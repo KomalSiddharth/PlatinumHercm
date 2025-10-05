@@ -11,6 +11,7 @@ import Leaderboard from '@/components/Leaderboard';
 import ProfileModal from '@/components/ProfileModal';
 import RitualHistoryModal from '@/components/RitualHistoryModal';
 import EditRitualModal from '@/components/EditRitualModal';
+import UpdateProgressModal from '@/components/UpdateProgressModal';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -32,8 +33,10 @@ export default function Dashboard() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [progressOpen, setProgressOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<'health' | 'relationship' | 'career' | 'money'>('health');
   const [selectedRitual, setSelectedRitual] = useState<Ritual | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<any>(null);
   
   const [userName, setUserName] = useState('John Doe');
   const [userEmail, setUserEmail] = useState('john@example.com');
@@ -225,6 +228,38 @@ export default function Dashboard() {
     });
   };
 
+  const handleUpdateCourseProgress = (id: string) => {
+    const course = courses.find(c => c.id === id);
+    if (course) {
+      setSelectedCourse(course);
+      setProgressOpen(true);
+    }
+  };
+
+  const handleSaveCourseProgress = (progress: number, status: 'not_started' | 'in_progress' | 'completed') => {
+    if (selectedCourse) {
+      setCourses(courses.map(course =>
+        course.id === selectedCourse.id
+          ? { ...course, progressPercent: progress, status }
+          : course
+      ));
+      toast({
+        title: 'Progress Updated',
+        description: `${selectedCourse.title} progress updated to ${progress}%`
+      });
+    }
+  };
+
+  const handleVisitCourse = (id: string) => {
+    const course = courses.find(c => c.id === id);
+    if (course) {
+      toast({
+        title: 'Opening Course',
+        description: `Redirecting to ${course.title}...`
+      });
+    }
+  };
+
   const hercmData = {
     health: { current: 7, target: 8 },
     relationship: { current: 6, target: 7 },
@@ -240,45 +275,54 @@ export default function Dashboard() {
     { id: 5, text: 'Practice meditation or mindfulness', completed: true, completedAt: '2025-02-05 08:15' }
   ];
 
-  const [courses, setCourses] = useState([
+  const [courses, setCourses] = useState<Array<{
+    id: string;
+    title: string;
+    url: string;
+    tags: string[];
+    source: string;
+    estimatedHours: number;
+    status: 'not_started' | 'in_progress' | 'completed';
+    progressPercent: number;
+  }>>([
     {
       id: 'health-mastery',
       title: 'Health Mastery Course',
-      url: '',
+      url: 'https://coaching.miteshkhatri.com/library?page=1',
       tags: ['Health', 'Wellness', 'Fitness'],
-      source: 'Platinum HERCM',
+      source: 'Mitesh Khatri Coaching',
       estimatedHours: 20,
-      status: 'not_started' as const,
+      status: 'not_started',
       progressPercent: 0
     },
     {
       id: 'wealth-mastery',
       title: 'Wealth Mastery Course',
-      url: '',
+      url: 'https://coaching.miteshkhatri.com/library?page=1',
       tags: ['Finance', 'Money', 'Investment'],
-      source: 'Platinum HERCM',
+      source: 'Mitesh Khatri Coaching',
       estimatedHours: 25,
-      status: 'not_started' as const,
+      status: 'not_started',
       progressPercent: 0
     },
     {
       id: 'relationship-mastery',
       title: 'Relationship Mastery Course',
-      url: '',
+      url: 'https://coaching.miteshkhatri.com/library?page=1',
       tags: ['Relationships', 'Communication', 'Connection'],
-      source: 'Platinum HERCM',
+      source: 'Mitesh Khatri Coaching',
       estimatedHours: 18,
-      status: 'not_started' as const,
+      status: 'not_started',
       progressPercent: 0
     },
     {
       id: 'career-mastery',
       title: 'Career Mastery Course',
-      url: '',
+      url: 'https://coaching.miteshkhatri.com/library?page=1',
       tags: ['Career', 'Growth', 'Success'],
-      source: 'Platinum HERCM',
+      source: 'Mitesh Khatri Coaching',
       estimatedHours: 22,
-      status: 'not_started' as const,
+      status: 'not_started',
       progressPercent: 0
     }
   ]);
@@ -404,7 +448,12 @@ export default function Dashboard() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {courses.map((course) => (
-                <CourseCard key={course.id} {...course} />
+                <CourseCard 
+                  key={course.id} 
+                  {...course}
+                  onUpdateProgress={handleUpdateCourseProgress}
+                  onVisit={handleVisitCourse}
+                />
               ))}
             </div>
           </div>
@@ -446,6 +495,17 @@ export default function Dashboard() {
             onSave={handleSaveEdit}
           />
         </>
+      )}
+
+      {selectedCourse && (
+        <UpdateProgressModal
+          open={progressOpen}
+          onOpenChange={setProgressOpen}
+          courseTitle={selectedCourse.title}
+          currentProgress={selectedCourse.progressPercent}
+          currentStatus={selectedCourse.status}
+          onUpdate={handleSaveCourseProgress}
+        />
       )}
     </div>
   );

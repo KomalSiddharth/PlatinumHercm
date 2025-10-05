@@ -14,6 +14,7 @@ interface CourseCardProps {
   status: 'not_started' | 'in_progress' | 'completed';
   progressPercent: number;
   onUpdateProgress?: (id: string) => void;
+  onVisit?: (id: string) => void;
 }
 
 const statusConfig = {
@@ -31,7 +32,8 @@ export default function CourseCard({
   estimatedHours,
   status,
   progressPercent,
-  onUpdateProgress = () => {}
+  onUpdateProgress = () => {},
+  onVisit = () => {}
 }: CourseCardProps) {
   const config = statusConfig[status];
   const firstLetter = title.charAt(0).toUpperCase();
@@ -86,12 +88,24 @@ export default function CourseCard({
           {config.label}
         </Badge>
         <div className="flex-1" />
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => onUpdateProgress(id)}
+          className="bg-gradient-to-r from-primary/10 to-accent/10 hover:from-primary/20 hover:to-accent/20 border border-primary/30"
+          data-testid={`button-update-${id}`}
+        >
+          Update
+        </Button>
         {url && (
           <Button
             variant="ghost"
             size="sm"
             className="gap-1"
-            onClick={() => window.open(url, '_blank')}
+            onClick={() => {
+              window.open(url, '_blank');
+              onVisit(id);
+            }}
             data-testid={`button-visit-${id}`}
           >
             <ExternalLink className="w-4 h-4" />
