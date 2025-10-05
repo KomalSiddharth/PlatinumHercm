@@ -1,0 +1,336 @@
+Goal: Build a production-ready single-page dashboard web app (MVP) called “Platinum HERCM Dashboard” with 3 sections: HERCM tracker, Daily Rituals, Course Tracker. Full backend, DB, auth, admin verification tools, tests, CI/CD, and deployment instructions. Use the uploaded Excel Platinum_Life_Standards_Life_Skills.xlsx as the canonical “Platinum Standard” criteria (parse and implement logic). Build exactly as described below — no fluff, follow constraints and validations strictly.
+
+Project summary (one-liner)
+
+Build a responsive single-page dashboard where users track weekly HERCM (Health, Relationship, Career, Money), daily rituals, and course progress. The system must support weekly rollovers, audit-proof timestamps, “Platinum Streak” detection and rewards, admin verification UI for Mitesh sir, leaderboard, and badge/points gamification. Minimal clicks, smooth UX, simple clean aesthetic, mobile-first.
+
+Non-functional requirements
+
+Stack (mandatory):
+
+Frontend: React (Vite or Next.js) + TailwindCSS
+
+Backend: Node.js + Express (or NestJS if you prefer structure)
+
+Database: PostgreSQL (can use Supabase for faster setup but must expose SQL schema)
+
+Auth: Supabase Auth or JWT (include signup/login + role admin)
+
+Deploy: Frontend on Vercel/Netlify, Backend on Railway/Render, DB on Supabase/AWS RDS
+
+Code style: ESLint + Prettier
+
+Tests: Unit tests for critical functions + one E2E (Playwright)
+
+CI: GitHub Actions for lint/test/deploy
+
+Security: all server timestamps set server-side; no client trusted for audit data; HTTPS; bcrypt for passwords if self auth
+
+Accessibility: basic a11y (aria labels, keyboard focus)
+
+Timezone: Asia/Kolkata default for date calculations
+
+What to deliver (exact)
+
+Full source repo with frontend/ and backend/. Single README with run/deploy steps.
+
+DB migration SQL files and seed data (including checklist templates and sample users).
+
+REST API docs (OpenAPI / Postman collection).
+
+Admin dashboard (protected route for role=admin) for verification & export CSV/PDF.
+
+Automated weekly rollover cron job (exposed as server script + instructions for scheduler).
+
+Integration test (Playwright) that covers signup → fill HERCM → complete checklists → achieve Platinum.
+
+Small logo (SVG) and color palette applied in UI.
+
+Use the uploaded Excel file: parse it and convert the Platinum standard rules into server-side JSON rules; include mapping logic file and unit tests for it.
+
+Functional requirements — exact behavior & validations
+Authentication
+
+Signup (email + password) + Login. Optionally Google OAuth.
+
+Roles: user, admin. Admin can view any user activity.
+
+Single-page layout & navigation
+
+Sticky header (or sidebar on desktop) with three buttons: HERCM | Daily Rituals | Courses. Clicking must scrollIntoView({behavior: 'smooth'}) to section.
+
+Mobile: header with hamburger.
+
+Section 1 — HERCM Tracker
+
+UI: four cards for Health, Relationship, Career, Money.
+
+Data model (per user, per week):
+
+week_start (ISO date for the week start, e.g., Monday)
+
+health, relationship, career, money (integers 1–10 or emotions mapping)
+
+health_target, relationship_target, career_target, money_target (integers)
+
+checklist_template_id, checklist_completed (boolean)
+
+Important validation: When user sets *_target, server must enforce: target == current + 1 OR target == current if user chooses zero increment? (Primary rule: allow only an increase of +1 from that area's current value — reject any other value.)
+
+Checklist suggestions:
+
+Load checklist templates from DB (seeded from Excel).
+
+Each checklist item stored in checklist_templates.items (JSON array) and linked to emotion tags.
+
+When user completes an item, server writes a checklist_progress row with server timestamp (completed_at).
+
+Smart repeat rule:
+
+If next week user enters same score as previous week and previous week’s checklist_completed == false, re-show same checklist template.
+
+If checklist was completed last week, next week show advanced/alternative checklist (store versions).
+
+Weekly rollover:
+
+Server-side cron (configurable) creates next-week entries: copy target to current_previous? Implementation: For each user, when week rolls:
+
+Archive current week to hercm_entries_history
+
+Create new hercm_entry for new week with empty current fields and *_target prefilled with prior targets? (Follow the task: current auto blank, next target becomes the new target field for the new week.) Implement exactly: new entry: current empty, target = previous target (or blank? The earlier spec said next target becomes current? Clarify: implement as — previous target becomes new current_target_placeholder visible to user; but current must be input by user.)
+
+Provide endpoint to manually trigger rollover for testing.
+
+Section 2 — Daily Rituals
+
+CRUD for rituals: title, recurrence (daily/mon-fri/custom), points, active.
+
+Ritual completion:
+
+When user marks a ritual complete, create ritual_history row with server completed_at and date.
+
+Points ledger: create points_ledger row with source: 'ritual' and amount.
+
+Leaderboard:
+
+Compute weekly and monthly leaderboards by summing points_ledger in date range.
+
+Endpoint returns top N users and allow returning user's rank.
+
+Section 3 — Course Tracking
+
+Course CRUD: title, url, tags, estimated_hours, source.
+
+User course progress: status (not_started/in_progress/completed), progress_percent, notes.
+
+Recommend courses:
+
+Implement simple rule engine: match tags with HERCM low areas or emotion tags from hercm_entries and rank by relevance.
+
+Provide endpoint /recommendations that returns top 3 courses for a user.
+
+Points, Badges, Platinum Streak logic
+
+Points ledger: all points (rituals, platinum rewards, manual admin awards) create rows in points_ledger.
+
+Platinum Streak detection:
+
+Criteria come from Excel file; parse and evaluate. Default criteria if Excel missing:
+
+4 consecutive weeks where:
+
+For each week: hercm filled (non-empty) AND checklist_completed==true
+
+Ritual completion rate ≥ 80% across the 4 weeks
+
+Implementation:
+
+Cron verifies each user weekly: maintain streak_count or compute sliding window.
+
+When user achieves 4-week streak, create achievements row, award platinum_points (e.g., +500), issue badge and notify user (in-app toast and email).
+
+Admin flag platinum_reward_given boolean to avoid double awarding.
+
+UI shows “Platinum Progress” 4-step visual and celebratory animation on completion.
+
+Admin Verification
+
+Protected admin routes to:
+
+Search user by email
+
+View hercm_entries history with checklist_progress timestamps and ritual_history
+
+Export full user activity (CSV / PDF)
+
+Add admin comments and manually award points or badges
+
+Database schema (exact SQL definitions — create migrations)
+
+Provide migrations for these tables at minimum (columns as described below):
+
+users (id uuid PK, name, email unique, password_hash, role, created_at)
+
+hercm_entries (id, user_id fk, week_start date, health int, relationship int, career int, money int, health_target int, relationship_target int, career_target int, money_target int, checklist_template_id fk, checklist_completed boolean, created_at)
+
+checklist_templates (id, name, description, items jsonb, emotion_tags text[])
+
+checklist_progress (id, user_id, hercm_entry_id, item_index int, completed boolean, completed_at timestamptz)
+
+rituals (id, user_id, title, recurrence text, points int, active boolean, created_at)
+
+ritual_history (id, ritual_id, user_id, date date, completed_at timestamptz)
+
+courses (id, title, url, tags text[], source, estimated_hours numeric)
+
+user_courses (id, user_id, course_id, status text, progress_percent int, notes text, updated_at)
+
+points_ledger (id, user_id, source text, amount int, metadata jsonb, created_at)
+
+achievements (id, user_id, type text (platinum etc), awarded_at timestamptz, details jsonb)
+
+admin_comments (id, admin_user_id, user_id, comment text, created_at)
+
+API endpoints (must implement exactly)
+
+POST /api/auth/signup → {name,email,password}
+
+POST /api/auth/login → returns JWT
+
+GET /api/hercm/week?week_start=YYYY-MM-DD → returns user hercm entry
+
+POST /api/hercm → create/update current week entry (server validates +1 rule)
+
+POST /api/checklist/:entryId/complete → body: { item_index } → server records checklist_progress with server timestamp
+
+GET /api/rituals POST /api/rituals PATCH /api/rituals/:id POST /api/rituals/:id/complete → returns ledger update
+
+GET /api/leaderboard?period=week|month → returns leaderboard
+
+GET /api/courses POST /api/courses PATCH /api/user_courses/:id
+
+GET /api/recommendations → based on recent hercm entries
+
+GET /api/admin/users/:id/activity → admin-only detailed audit
+
+POST /api/admin/award → admin awards points/badge manually
+
+POST /api/cron/rollover → manual trigger for weekly rollover (protected by env key)
+
+Frontend UX & UI specs (exact)
+
+Use Tailwind default spacing + Inter font.
+
+Header: left logo (SVG), center app title optional, right: profile avatar + points count + admin link (if admin).
+
+Hero area: small onboarding modal with 3 bullets explaining weekly flow.
+
+Section layouts:
+
+HERCM: 4 cards in a 2x2 grid on desktop, vertical stack on mobile. Each card: large numeric current field, small target field with +1 enforced, button “View Checklist” opens a modal listing checklist items with checkboxes.
+
+Rituals: top add bar (title, recurrence dropdown, points). Below: cards of rituals with checkbox and "history" icon to open last 7 days.
+
+Courses: card list with tags and button “Mark progress” (opens slider modal 0–100%).
+
+Smooth animations but lightweight. Celebrate Platinum with confetti animation (lottie or canvas).
+
+Use server calls with optimistic UI but final commit waits for server response for audit writes.
+
+Provide small tooltip/help text near target rule: “Targets can increase only by +1 from current — enforced by server.”
+
+Excel parsing (critical)
+
+Parse uploaded Platinum_Life_Standards_Life_Skills.xlsx:
+
+Convert its platinum criteria into a JSON ruleset and commit to config/platinum_rules.json.
+
+Write unit tests that validate the rule conversion logic.
+
+If any rule is ambiguous, default to conservative interpretation and log a warning; include README note with mapping choices.
+
+Tests & CI
+
+Unit tests:
+
+Server validation tests: target +1 enforcement
+
+Platinum detection logic (use seeded DB data)
+
+Checklist completion timestamp server-side enforcement
+
+E2E test:
+
+Sign up → fill HERCM → complete checklists & rituals → simulate 4 weeks (mock cron or trigger rollover) → assert Platinum awarded and points ledger updated
+
+GitHub Actions:
+
+run lint, tests on push
+
+on merge to main, deploy to staging (Vercel + Railway) automatically
+
+Deployment & run instructions (to include in README)
+
+Local dev: docker-compose with Postgres + backend + frontend or npm scripts
+
+Environment variables: list all required (DB URL, JWT secret, SMTP creds for email)
+
+How to run migrations & seeds
+
+How to run cron (local instructions and how to schedule on production)
+
+How to trigger manual rollover (endpoint + env key)
+
+Deliver the following artifacts in the repo
+
+README.md with setup, run, deploy, and cron instructions.
+
+migrations/ SQL + seeds (including checklist templates from Excel).
+
+openapi.json or Postman collection.
+
+tests/ with unit and E2E tests.
+
+design/ folder with SVG logo + color palette + 2 screenshots of UI mockup (desktop & mobile).
+
+scripts/parse_excel_to_rules.js and tests.
+
+Acceptance criteria (what I will test)
+
+Signup + Login works.
+
+User can input HERCM current + target; server rejects invalid target values.
+
+Checklist completion writes server timestamp and sets checklist_completed when all items done.
+
+Ritual completion creates ritual_history rows and updates points ledger.
+
+Weekly rollover endpoint archives previous week and creates new week entry as specified.
+
+Platinum detection awards points & badge after 4 weeks of meeting criteria (use seeded/test data to simulate).
+
+Admin can view user activity with timestamps and export CSV.
+
+Playwright E2E passes.
+
+Extra: Styling & branding
+
+Use palette: Primary #0F7173, Accent #FF6B48, Soft #F6F0EA, Success #2E9E4E.
+
+Font: Inter / Poppins
+
+Provide small, subtle micro-interactions; keep design minimal, friendly, trustworthy.
+
+Tone for commit messages & PRs
+
+Use clear actionable commit messages. Example: feat(hercm): add server validation for +1 target rule
+
+Each PR must include summary of changes and link to issue.
+
+Final instruction to the agent (strict)
+
+Do not make ambiguous assumptions — if any literal ambiguity in Excel mapping arises, implement conservative defaults and document mapping choices in README.
+
+Write clear code, with comments for business rules (especially Platinum logic).
+
+After building, run tests and include a short demo script in README to run the full platinum awarding E2E test locally.
