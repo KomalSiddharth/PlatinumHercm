@@ -7,9 +7,6 @@ import AddRitualForm from '@/components/AddRitualForm';
 import RitualCard from '@/components/RitualCard';
 import CourseCard from '@/components/CourseCard';
 import PlatinumProgress from '@/components/PlatinumProgress';
-import PlatinumStandards, { StandardRatings } from '@/components/PlatinumStandards';
-import ProblemsTracker from '@/components/ProblemsTracker';
-import LifeSkillsTracker from '@/components/LifeSkillsTracker';
 import Leaderboard from '@/components/Leaderboard';
 import ProfileModal from '@/components/ProfileModal';
 import RitualHistoryModal from '@/components/RitualHistoryModal';
@@ -45,16 +42,11 @@ export default function Dashboard() {
   const [userEmail, setUserEmail] = useState('john@example.com');
   const [totalPoints, setTotalPoints] = useState(0);
   
-  const [standardsRating, setStandardsRating] = useState(5);
-  const [problemsAddressed, setProblemsAddressed] = useState(0);
-  const [lifeSkillsCompleted, setLifeSkillsCompleted] = useState(0);
-  const [hercmFilled, setHercmFilled] = useState(false);
-  
   const [weeklyData, setWeeklyData] = useState([
-    { week: 1, standardsRating: 0, problemsAddressed: 0, lifeSkillsCompleted: 0, hercmFilled: false, ritualRate: 0 },
-    { week: 2, standardsRating: 0, problemsAddressed: 0, lifeSkillsCompleted: 0, hercmFilled: false, ritualRate: 0 },
-    { week: 3, standardsRating: 5, problemsAddressed: 0, lifeSkillsCompleted: 0, hercmFilled: false, ritualRate: 0 },
-    { week: 4, standardsRating: 0, problemsAddressed: 0, lifeSkillsCompleted: 0, hercmFilled: false, ritualRate: 0 }
+    { week: 1, hercmFilled: false, ritualRate: 0 },
+    { week: 2, hercmFilled: false, ritualRate: 0 },
+    { week: 3, hercmFilled: false, ritualRate: 0 },
+    { week: 4, hercmFilled: false, ritualRate: 0 }
   ]);
   
   const generateCurrentMonthHistory = () => {
@@ -101,35 +93,9 @@ export default function Dashboard() {
 
   const hercmRef = useRef<HTMLDivElement>(null);
   const ritualsRef = useRef<HTMLDivElement>(null);
-  const platinumRef = useRef<HTMLDivElement>(null);
   const coursesRef = useRef<HTMLDivElement>(null);
 
   const currentWeek = 3;
-
-  const handleStandardsChange = (ratings: StandardRatings) => {
-    const avg = (ratings.feelingsEmotional + ratings.beliefsPattern + 
-      Object.values(ratings.humanNeeds).reduce((a, b) => a + b, 0) / 6) / 3;
-    setStandardsRating(avg);
-    setWeeklyData(prev => prev.map(w => 
-      w.week === currentWeek ? { ...w, standardsRating: avg } : w
-    ));
-  };
-
-  const handleProblemsChange = (problems: any[]) => {
-    const count = problems.filter(p => p.addressed).length;
-    setProblemsAddressed(count);
-    setWeeklyData(prev => prev.map(w => 
-      w.week === currentWeek ? { ...w, problemsAddressed: count } : w
-    ));
-  };
-
-  const handleSkillsChange = (skills: any[]) => {
-    const count = skills.filter(s => s.completed).length;
-    setLifeSkillsCompleted(count);
-    setWeeklyData(prev => prev.map(w => 
-      w.week === currentWeek ? { ...w, lifeSkillsCompleted: count } : w
-    ));
-  };
 
   useEffect(() => {
     const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -154,7 +120,6 @@ export default function Dashboard() {
     const refs = {
       hercm: hercmRef,
       rituals: ritualsRef,
-      platinum: platinumRef,
       courses: coursesRef
     };
 
@@ -483,26 +448,6 @@ export default function Dashboard() {
             )}
 
             <Leaderboard entries={leaderboardEntries} period="week" currentUserId="2" />
-          </div>
-        </section>
-
-        <section ref={platinumRef} id="platinum" className="scroll-mt-20">
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                Platinum Standards Tracking
-              </h2>
-              <p className="text-muted-foreground mt-1">Rate yourself, track problems, and complete life skills modules</p>
-            </div>
-
-            <div className="grid grid-cols-1 gap-6">
-              <PlatinumStandards onRatingsChange={handleStandardsChange} />
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <ProblemsTracker onProblemsChange={handleProblemsChange} />
-                <LifeSkillsTracker onSkillsChange={handleSkillsChange} />
-              </div>
-            </div>
           </div>
         </section>
 

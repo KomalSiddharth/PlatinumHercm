@@ -5,9 +5,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 
 interface WeekData {
   week: number;
-  standardsRating: number;
-  problemsAddressed: number;
-  lifeSkillsCompleted: number;
   hercmFilled: boolean;
   ritualRate: number;
 }
@@ -31,19 +28,13 @@ export default function PlatinumProgress({
     const weekData = weeklyData.find(w => w.week === week);
     if (!weekData) return { met: false, isFuture: false };
     
-    const standardsMet = weekData.standardsRating >= 7;
-    const problemsMet = weekData.problemsAddressed >= 3;
-    const skillsMet = weekData.lifeSkillsCompleted >= 2;
     const hercmMet = weekData.hercmFilled;
     const ritualsMet = weekData.ritualRate >= 80;
     
     return {
-      met: standardsMet && problemsMet && skillsMet && hercmMet && ritualsMet,
+      met: hercmMet && ritualsMet,
       isFuture: false,
       criteria: {
-        standardsMet,
-        problemsMet,
-        skillsMet,
         hercmMet,
         ritualsMet
       },
@@ -100,20 +91,11 @@ export default function PlatinumProgress({
                         <TooltipContent side="bottom" className="max-w-xs">
                           <div className="space-y-1 text-xs">
                             <p className="font-semibold mb-2">Week {weekNum} Progress:</p>
-                            <div className={criteria.standardsMet ? 'text-chart-3' : 'text-muted-foreground'}>
-                              {criteria.standardsMet ? '✓' : '○'} Standards: {weekData.standardsRating.toFixed(1)}/10 {!criteria.standardsMet && '(need 7+)'}
-                            </div>
-                            <div className={criteria.problemsMet ? 'text-chart-3' : 'text-muted-foreground'}>
-                              {criteria.problemsMet ? '✓' : '○'} Problems: {weekData.problemsAddressed} {!criteria.problemsMet && '(need 3+)'}
-                            </div>
-                            <div className={criteria.skillsMet ? 'text-chart-3' : 'text-muted-foreground'}>
-                              {criteria.skillsMet ? '✓' : '○'} Skills: {weekData.lifeSkillsCompleted} {!criteria.skillsMet && '(need 2+)'}
-                            </div>
                             <div className={criteria.hercmMet ? 'text-chart-3' : 'text-muted-foreground'}>
                               {criteria.hercmMet ? '✓' : '○'} HERCM {!criteria.hercmMet && 'not filled'}
                             </div>
                             <div className={criteria.ritualsMet ? 'text-chart-3' : 'text-muted-foreground'}>
-                              {criteria.ritualsMet ? '✓' : '○'} Rituals: {weekData.ritualRate.toFixed(0)}% {!criteria.ritualsMet && '(need 80%+)'}
+                              {criteria.ritualsMet ? '✓' : '○'} Rituals: {(weekData.ritualRate || 0).toFixed(0)}% {!criteria.ritualsMet && '(need 80%+)'}
                             </div>
                           </div>
                         </TooltipContent>
@@ -190,18 +172,6 @@ export default function PlatinumProgress({
           <div className="bg-muted/50 rounded-lg p-4 space-y-2">
             <p className="text-sm font-medium">Platinum Criteria (Weekly):</p>
             <ul className="text-sm text-muted-foreground space-y-1">
-              <li className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-chart-3" />
-                Platinum Standards rated 7+/10
-              </li>
-              <li className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-chart-3" />
-                3+ Problems addressed
-              </li>
-              <li className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-chart-3" />
-                2+ Life Skills modules completed
-              </li>
               <li className="flex items-center gap-2">
                 <Check className="w-4 h-4 text-chart-3" />
                 HERCM scores filled
