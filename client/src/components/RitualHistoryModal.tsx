@@ -32,12 +32,14 @@ export default function RitualHistoryModal({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="text-xl">{ritualTitle}</DialogTitle>
-          <DialogDescription>7-day completion history</DialogDescription>
+          <DialogDescription>
+            {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} - Monthly completion history
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="bg-muted/50 rounded-lg p-4 text-center">
-            <p className="text-sm text-muted-foreground mb-1">Completion Rate</p>
+            <p className="text-sm text-muted-foreground mb-1">Completion Rate (This Month)</p>
             <div className="flex items-center justify-center gap-2">
               <p className="text-3xl font-bold">{completionRate}%</p>
               <Badge variant={completionRate >= 80 ? 'default' : 'secondary'}>
@@ -46,7 +48,7 @@ export default function RitualHistoryModal({
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="max-h-[400px] overflow-y-auto space-y-2">
             {history.map((day, idx) => (
               <div
                 key={idx}

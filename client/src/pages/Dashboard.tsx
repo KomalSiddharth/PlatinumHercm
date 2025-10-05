@@ -39,6 +39,27 @@ export default function Dashboard() {
   const [userEmail, setUserEmail] = useState('john@example.com');
   const [totalPoints, setTotalPoints] = useState(0);
   
+  const generateCurrentMonthHistory = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const today = now.getDate();
+    
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    const history = [];
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month, day);
+      const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      history.push({
+        date: dateStr,
+        completed: false
+      });
+    }
+    
+    return history;
+  };
+
   const [rituals, setRituals] = useState<Ritual[]>([
     {
       id: '1',
@@ -47,15 +68,7 @@ export default function Dashboard() {
       points: 50,
       active: true,
       completed: false,
-      history: [
-        { date: 'Feb 5', completed: true },
-        { date: 'Feb 4', completed: true },
-        { date: 'Feb 3', completed: false },
-        { date: 'Feb 2', completed: true },
-        { date: 'Feb 1', completed: true },
-        { date: 'Jan 31', completed: false },
-        { date: 'Jan 30', completed: true }
-      ]
+      history: generateCurrentMonthHistory()
     },
     {
       id: '2',
@@ -64,15 +77,7 @@ export default function Dashboard() {
       points: 75,
       active: true,
       completed: false,
-      history: [
-        { date: 'Feb 5', completed: true },
-        { date: 'Feb 4', completed: true },
-        { date: 'Feb 3', completed: true },
-        { date: 'Feb 2', completed: false },
-        { date: 'Feb 1', completed: true },
-        { date: 'Jan 31', completed: true },
-        { date: 'Jan 30', completed: true }
-      ]
+      history: generateCurrentMonthHistory()
     }
   ]);
 
@@ -102,10 +107,7 @@ export default function Dashboard() {
       points: newRitual.points,
       active: true,
       completed: false,
-      history: Array.from({ length: 7 }, (_, i) => ({
-        date: new Date(Date.now() - i * 86400000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        completed: false
-      })).reverse()
+      history: generateCurrentMonthHistory()
     };
     
     setRituals([...rituals, ritual]);
@@ -116,9 +118,16 @@ export default function Dashboard() {
   };
 
   const handleToggleComplete = (id: string) => {
+    const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    
     setRituals(rituals.map(ritual => {
       if (ritual.id === id && ritual.active) {
         const newCompleted = !ritual.completed;
+        
+        const updatedHistory = ritual.history.map(h => 
+          h.date === today ? { ...h, completed: newCompleted } : h
+        );
+        
         if (newCompleted) {
           setTotalPoints(prev => prev + ritual.points);
           toast({
@@ -128,7 +137,7 @@ export default function Dashboard() {
         } else {
           setTotalPoints(prev => Math.max(0, prev - ritual.points));
         }
-        return { ...ritual, completed: newCompleted };
+        return { ...ritual, completed: newCompleted, history: updatedHistory };
       }
       return ritual;
     }));
