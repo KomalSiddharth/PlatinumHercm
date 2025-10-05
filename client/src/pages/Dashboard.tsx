@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import DashboardHeader from '@/components/DashboardHeader';
 import HERCMCard from '@/components/HERCMCard';
 import BeliefTableModal from '@/components/BeliefTableModal';
-import WeeklySummary from '@/components/WeeklySummary';
 import AddRitualForm from '@/components/AddRitualForm';
 import RitualCard from '@/components/RitualCard';
 import CourseCard from '@/components/CourseCard';
@@ -385,14 +384,6 @@ export default function Dashboard() {
                 </Button>
               </div>
             </div>
-
-            <WeeklySummary
-              weekStart="Feb 3"
-              weekEnd="Feb 9"
-              completionPercent={75}
-              areasCompleted={3}
-              totalAreas={4}
-            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {(Object.keys(hercmData) as Array<keyof typeof hercmData>).map((category) => (
