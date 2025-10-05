@@ -253,12 +253,8 @@ export default function Dashboard() {
   ];
 
   const leaderboardEntries = [
-    { rank: 1, userId: '1', name: 'Alice Johnson', points: 2450 },
-    { rank: 2, userId: '2', name: userName, points: totalPoints, isCurrentUser: true },
-    { rank: 3, userId: '3', name: 'Charlie Davis', points: 2210 },
-    { rank: 4, userId: '4', name: 'Diana Martinez', points: 2100 },
-    { rank: 5, userId: '5', name: 'Ethan Brown', points: 1950 }
-  ].sort((a, b) => b.points - a.points).map((entry, idx) => ({ ...entry, rank: idx + 1 }));
+    { rank: 1, userId: '2', name: userName, points: totalPoints, isCurrentUser: true }
+  ];
 
   const weekStatuses = [
     { week: 1, hercmCompleted: true, checklistCompleted: true, ritualRate: 85 },

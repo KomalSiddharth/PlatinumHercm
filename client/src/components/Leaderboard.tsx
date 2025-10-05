@@ -43,7 +43,49 @@ export default function Leaderboard({ entries, period, currentUserId }: Leaderbo
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          {entries.map((entry) => {
+          {entries.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">No users yet. Be the first to earn points!</p>
+            </div>
+          ) : entries.length === 1 && entries[0].isCurrentUser ? (
+            <div className="space-y-4">
+              <div
+                className="flex items-center gap-3 p-3 rounded-lg border bg-primary/10 border-primary/20"
+                data-testid="leaderboard-entry-1"
+              >
+                <div className="w-8 text-center">
+                  <Trophy className="w-5 h-5 text-yellow-500 mx-auto" />
+                </div>
+
+                <Avatar className="w-10 h-10">
+                  <AvatarFallback className="bg-primary/20 text-primary text-sm font-medium">
+                    {entries[0].name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-primary truncate">
+                    {entries[0].name}
+                    <span className="ml-2 text-xs text-primary font-normal">(You)</span>
+                  </p>
+                </div>
+
+                <Badge className="bg-gradient-to-r from-primary to-accent text-white gap-1 border-0">
+                  <Trophy className="w-3 h-3" />
+                  {entries[0].points.toLocaleString()}
+                </Badge>
+              </div>
+              <div className="text-center py-4 bg-muted/30 rounded-lg border border-dashed">
+                <p className="text-sm text-muted-foreground">
+                  You're currently in 1st place! 🎉
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Other users will appear here as they join and earn points
+                </p>
+              </div>
+            </div>
+          ) : (
+            entries.map((entry) => {
             const isCurrentUser = entry.userId === currentUserId || entry.isCurrentUser;
             const medalIcon = getMedalIcon(entry.rank);
 
@@ -84,7 +126,7 @@ export default function Leaderboard({ entries, period, currentUserId }: Leaderbo
                 </Badge>
               </div>
             );
-          })}
+          }))}
         </div>
       </CardContent>
     </Card>
