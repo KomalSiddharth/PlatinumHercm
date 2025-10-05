@@ -1,0 +1,68 @@
+I want to rebuild my HERCM Tracker section with a more powerful and intelligent design.
+
+Currently, I have 4 cards — Health, Relationship, Career, and Money — each showing a circular progress bar, current score, and next-week target slider. Beneath every card is a “View Checklist” button that opens a checklist for improvements.
+
+I now want this entire section to work like Mitesh Sir’s Excel belief tracker, but fully automated and AI-driven.
+
+Here’s exactly what I want:
+
+When the user clicks “View Checklist,” open a table view (like Excel) with columns:
+
+Day / Section
+
+Current Belief
+
+Next Week Target
+
+Checklist (AI-generated)
+
+Course Suggestion
+
+Affirmation Suggestion
+
+Progress (%)
+
+Users can add, edit, or delete beliefs each week.
+
+I’ll provide an Excel sheet/database that includes all course videos, affirmations, and checklist templates categorized under Health, Relationship, Career, and Money.
+
+Based on the user’s “Current Belief,” the AI model should automatically:
+
+Analyze the belief text (e.g., “I don’t know how to make money”).
+
+Match relevant keywords (like money, wealth, relationship, etc.).
+
+Suggest:
+
+The most relevant course/video from my Excel database.
+
+A matching affirmation.
+
+2–3 action checklist points.
+
+If a user completes 80% or more of the weekly checklist, the system marks that belief as transformed, and automatically carries forward the “Next Week Target” as the new “Current Belief” for the next week.
+
+Every new week, the system should:
+
+Auto-save the current week’s data to history.
+
+Generate a fresh blank table with new “Current Beliefs” derived from last week’s targets.
+
+Keep the circular progress bars for each HERCM card, showing the section’s weekly completion %.
+
+The table and progress data should be stored in a database so the user’s progress and history can be tracked over time.
+
+Tech preference:
+
+Frontend: React (can reuse existing HERCM card design)
+
+Backend: Node.js + Express
+
+Database: MongoDB or PostgreSQL
+
+AI: OpenAI GPT-based integration (model uses provided Excel data to generate suggestions)
+
+Goal:
+Build a 100% working, production-ready, AI-driven HERCM belief tracker that mirrors Mitesh Sir’s manual Excel process but automates course, affirmation, and checklist recommendations dynamically.
+
+Please make sure the flow, UI, and weekly reset logic all function seamlessly.
