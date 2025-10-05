@@ -85,6 +85,18 @@ export default function Dashboard() {
   const ritualsRef = useRef<HTMLDivElement>(null);
   const coursesRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    
+    setRituals(prevRituals => prevRituals.map(ritual => {
+      const todayHistory = ritual.history.find(h => h.date === today);
+      return {
+        ...ritual,
+        completed: todayHistory?.completed || false
+      };
+    }));
+  }, []);
+
   const scrollToSection = (section: string) => {
     const refs = {
       hercm: hercmRef,
