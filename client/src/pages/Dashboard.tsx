@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import DashboardHeader from '@/components/DashboardHeader';
 import HERCMCard from '@/components/HERCMCard';
-import ChecklistModal from '@/components/ChecklistModal';
+import BeliefTableModal from '@/components/BeliefTableModal';
 import WeeklySummary from '@/components/WeeklySummary';
 import AddRitualForm from '@/components/AddRitualForm';
 import RitualCard from '@/components/RitualCard';
@@ -472,13 +472,11 @@ export default function Dashboard() {
         </section>
       </main>
 
-      <ChecklistModal
+      <BeliefTableModal
         open={checklistOpen}
         onOpenChange={setChecklistOpen}
-        title={`${selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Improvement Checklist`}
-        description={`Complete these items to improve your ${selectedCategory} score this week`}
-        items={checklistItems}
-        onComplete={() => setChecklistOpen(false)}
+        category={selectedCategory}
+        categoryName={selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)}
       />
 
       <ProfileModal
