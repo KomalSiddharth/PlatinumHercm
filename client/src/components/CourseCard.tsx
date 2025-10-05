@@ -98,18 +98,6 @@ export default function CourseCard({
             Visit
           </Button>
         )}
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => {
-            onUpdateProgress(id);
-            console.log('Update progress for:', id);
-          }}
-          className="bg-gradient-to-r from-primary/10 to-accent/10 hover:from-primary/20 hover:to-accent/20 border border-primary/30"
-          data-testid={`button-update-${id}`}
-        >
-          Update
-        </Button>
       </CardFooter>
     </Card>
   );

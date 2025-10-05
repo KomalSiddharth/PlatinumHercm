@@ -240,38 +240,48 @@ export default function Dashboard() {
     { id: 5, text: 'Practice meditation or mindfulness', completed: true, completedAt: '2025-02-05 08:15' }
   ];
 
-  const courses = [
+  const [courses, setCourses] = useState([
     {
-      id: '1',
-      title: 'Advanced React Patterns',
-      url: 'https://example.com/react',
-      tags: ['React', 'JavaScript', 'Frontend'],
-      source: 'Udemy',
-      estimatedHours: 12,
-      status: 'in_progress' as const,
-      progressPercent: 45
-    },
-    {
-      id: '2',
-      title: 'Financial Planning Fundamentals',
-      url: 'https://example.com/finance',
-      tags: ['Finance', 'Investment', 'Money'],
-      source: 'Coursera',
-      estimatedHours: 8,
+      id: 'health-mastery',
+      title: 'Health Mastery Course',
+      url: '',
+      tags: ['Health', 'Wellness', 'Fitness'],
+      source: 'Platinum HERCM',
+      estimatedHours: 20,
       status: 'not_started' as const,
       progressPercent: 0
     },
     {
-      id: '3',
-      title: 'Mindfulness and Meditation',
-      url: 'https://example.com/meditation',
-      tags: ['Health', 'Mental Wellness'],
-      source: 'Headspace',
-      estimatedHours: 6,
-      status: 'completed' as const,
-      progressPercent: 100
+      id: 'wealth-mastery',
+      title: 'Wealth Mastery Course',
+      url: '',
+      tags: ['Finance', 'Money', 'Investment'],
+      source: 'Platinum HERCM',
+      estimatedHours: 25,
+      status: 'not_started' as const,
+      progressPercent: 0
+    },
+    {
+      id: 'relationship-mastery',
+      title: 'Relationship Mastery Course',
+      url: '',
+      tags: ['Relationships', 'Communication', 'Connection'],
+      source: 'Platinum HERCM',
+      estimatedHours: 18,
+      status: 'not_started' as const,
+      progressPercent: 0
+    },
+    {
+      id: 'career-mastery',
+      title: 'Career Mastery Course',
+      url: '',
+      tags: ['Career', 'Growth', 'Success'],
+      source: 'Platinum HERCM',
+      estimatedHours: 22,
+      status: 'not_started' as const,
+      progressPercent: 0
     }
-  ];
+  ]);
 
   const leaderboardEntries = [
     { rank: 1, userId: '2', name: userName, points: totalPoints, isCurrentUser: true }
@@ -392,7 +402,7 @@ export default function Dashboard() {
               <p className="text-muted-foreground mt-1">Manage your learning journey and skill development</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {courses.map((course) => (
                 <CourseCard key={course.id} {...course} />
               ))}
