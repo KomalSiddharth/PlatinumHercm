@@ -78,7 +78,7 @@ export default function Leaderboard({ entries, period, currentUserId }: Leaderbo
                   </p>
                 </div>
 
-                <Badge className="bg-chart-2 text-white gap-1">
+                <Badge className="bg-gradient-to-r from-primary to-accent text-white gap-1 border-0">
                   <Trophy className="w-3 h-3" />
                   {entry.points.toLocaleString()}
                 </Badge>

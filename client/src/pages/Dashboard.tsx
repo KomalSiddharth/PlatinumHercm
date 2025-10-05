@@ -287,10 +287,20 @@ export default function Dashboard() {
                 <p className="text-muted-foreground mt-1">Track your weekly progress across all life areas</p>
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="icon" data-testid="button-prev-week">
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="border-primary/30 hover:bg-gradient-to-r hover:from-primary/10 hover:to-accent/10"
+                  data-testid="button-prev-week"
+                >
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
-                <Button variant="outline" size="icon" data-testid="button-next-week">
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="border-primary/30 hover:bg-gradient-to-r hover:from-primary/10 hover:to-accent/10"
+                  data-testid="button-next-week"
+                >
                   <ChevronRight className="w-4 h-4" />
                 </Button>
               </div>

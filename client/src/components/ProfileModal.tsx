@@ -111,7 +111,11 @@ export default function ProfileModal({
                 >
                   Cancel
                 </Button>
-                <Button onClick={handleSave} className="flex-1" data-testid="button-save-profile">
+                <Button 
+                  onClick={handleSave} 
+                  className="flex-1 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90" 
+                  data-testid="button-save-profile"
+                >
                   Save Changes
                 </Button>
               </div>

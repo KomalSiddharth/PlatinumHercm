@@ -55,7 +55,11 @@ export default function DashboardHeader({
                 variant={activeSection === item.id ? 'default' : 'ghost'}
                 onClick={() => onNavigate(item.id)}
                 data-testid={`nav-${item.id}`}
-                className="font-medium"
+                className={`font-medium ${
+                  activeSection === item.id 
+                    ? 'bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90' 
+                    : ''
+                }`}
               >
                 {item.label}
               </Button>
@@ -65,10 +69,10 @@ export default function DashboardHeader({
           <div className="flex items-center gap-3">
             <Badge 
               variant="secondary" 
-              className="gap-1 hidden sm:flex bg-gradient-to-r from-primary/20 to-accent/20 border-primary/30" 
+              className="gap-1 hidden sm:flex bg-gradient-to-r from-primary to-accent text-white border-0" 
               data-testid="badge-points"
             >
-              <Trophy className="w-4 h-4 text-primary" />
+              <Trophy className="w-4 h-4" />
               <span className="font-semibold">{userPoints}</span>
             </Badge>
 
@@ -125,15 +129,19 @@ export default function DashboardHeader({
                     onNavigate(item.id);
                     setMobileMenuOpen(false);
                   }}
-                  className="w-full justify-start"
+                  className={`w-full justify-start ${
+                    activeSection === item.id 
+                      ? 'bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90' 
+                      : ''
+                  }`}
                   data-testid={`nav-mobile-${item.id}`}
                 >
                   {item.label}
                 </Button>
               ))}
               <div className="pt-2 mt-2 border-t">
-                <Badge variant="secondary" className="w-full justify-center gap-2 py-2">
-                  <Trophy className="w-4 h-4 text-primary" />
+                <Badge variant="secondary" className="w-full justify-center gap-2 py-2 bg-gradient-to-r from-primary to-accent text-white border-0">
+                  <Trophy className="w-4 h-4" />
                   <span className="font-semibold">{userPoints} Points</span>
                 </Badge>
               </div>

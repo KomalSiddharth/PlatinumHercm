@@ -166,7 +166,7 @@ export default function HERCMCard({
 
           <Button
             variant="secondary"
-            className="w-full gap-2"
+            className="w-full gap-2 bg-gradient-to-r from-primary/10 to-accent/10 hover:from-primary/20 hover:to-accent/20 border border-primary/30"
             onClick={onViewChecklist}
             data-testid={`button-${category}-checklist`}
           >

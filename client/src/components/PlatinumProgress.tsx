@@ -20,7 +20,7 @@ export default function PlatinumProgress({ currentWeek, weekStatuses }: Platinum
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-xl">Platinum Streak Progress</CardTitle>
-          <Badge className="bg-gradient-to-r from-chart-2 to-chart-1 text-white gap-1">
+          <Badge className="bg-gradient-to-r from-primary to-accent text-white gap-1 border-0">
             <span className="font-bold">{currentWeek}/4</span> weeks
           </Badge>
         </div>
@@ -43,7 +43,7 @@ export default function PlatinumProgress({ currentWeek, weekStatuses }: Platinum
                         isCompleted
                           ? 'bg-chart-3 border-chart-3 text-white'
                           : isCurrent
-                          ? 'bg-primary border-primary text-primary-foreground animate-pulse'
+                          ? 'bg-gradient-to-br from-primary to-accent border-primary text-white animate-pulse'
                           : 'bg-card border-muted text-muted-foreground'
                       }`}
                     >
@@ -93,7 +93,7 @@ export default function PlatinumProgress({ currentWeek, weekStatuses }: Platinum
                       isCompleted
                         ? 'bg-chart-3 border-chart-3 text-white'
                         : isCurrent
-                        ? 'bg-primary border-primary text-primary-foreground'
+                        ? 'bg-gradient-to-br from-primary to-accent border-primary text-white'
                         : 'bg-card border-muted text-muted-foreground'
                     }`}
                   >

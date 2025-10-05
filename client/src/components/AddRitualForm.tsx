@@ -57,7 +57,11 @@ export default function AddRitualForm({ onAdd = () => {} }: AddRitualFormProps) 
             className="w-full sm:w-24"
             data-testid="input-points"
           />
-          <Button type="submit" className="gap-2" data-testid="button-add-ritual">
+          <Button 
+            type="submit" 
+            className="gap-2 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90" 
+            data-testid="button-add-ritual"
+          >
             <Plus className="w-4 h-4" />
             Add
           </Button>

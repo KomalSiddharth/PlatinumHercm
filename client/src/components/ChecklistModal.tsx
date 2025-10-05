@@ -127,7 +127,7 @@ export default function ChecklistModal({
                 onComplete();
                 console.log('Checklist completed!');
               }}
-              className="flex-1"
+              className="flex-1 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
               disabled={!allCompleted}
               data-testid="button-complete-checklist"
             >

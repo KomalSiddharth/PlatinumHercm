@@ -102,7 +102,11 @@ export default function EditRitualModal({
           >
             Cancel
           </Button>
-          <Button onClick={handleSave} data-testid="button-save-ritual">
+          <Button 
+            onClick={handleSave} 
+            className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
+            data-testid="button-save-ritual"
+          >
             Save Changes
           </Button>
         </DialogFooter>
