@@ -21,14 +21,19 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
+interface ChecklistItem {
+  id: string;
+  text: string;
+  checked: boolean;
+}
+
 interface Belief {
   id: string;
   currentBelief: string;
   nextWeekTarget: string;
-  checklist: string[];
+  checklist: ChecklistItem[];
   courseSuggestion: string;
   affirmationSuggestion: string;
-  progress: number;
   weekNumber: number;
 }
 
@@ -54,13 +59,12 @@ export default function BeliefTableModal({
       currentBelief: "I don't know how to make money",
       nextWeekTarget: "I am learning proven ways to create wealth",
       checklist: [
-        "Watch 'Money Mindset Mastery' course",
-        "Practice daily wealth affirmations",
-        "Read 1 chapter on financial literacy"
+        { id: '1-1', text: "Watch 'Money Mindset Mastery' course", checked: true },
+        { id: '1-2', text: "Practice daily wealth affirmations", checked: true },
+        { id: '1-3', text: "Read 1 chapter on financial literacy", checked: false }
       ],
       courseSuggestion: "Money Mindset Mastery - Module 3",
-      affirmationSuggestion: "Money flows to me easily and effortlessly",
-      progress: 67
+      affirmationSuggestion: "Money flows to me easily and effortlessly"
     }
   ]);
 
@@ -82,10 +86,11 @@ export default function BeliefTableModal({
       weekNumber: currentWeek,
       currentBelief: newBelief.currentBelief,
       nextWeekTarget: newBelief.nextWeekTarget,
-      checklist: ['AI will generate checklist items...'],
+      checklist: [
+        { id: `${Date.now()}-1`, text: 'AI will generate checklist items...', checked: false }
+      ],
       courseSuggestion: 'AI analyzing belief...',
-      affirmationSuggestion: 'AI generating personalized affirmation...',
-      progress: 0
+      affirmationSuggestion: 'AI generating personalized affirmation...'
     };
 
     setBeliefs([...beliefs, belief]);
@@ -121,6 +126,24 @@ export default function BeliefTableModal({
   const cancelEdit = () => {
     setEditingId(null);
     setEditValues({ currentBelief: '', nextWeekTarget: '' });
+  };
+
+  const calculateProgress = (checklist: ChecklistItem[]) => {
+    if (checklist.length === 0) return 0;
+    const checkedCount = checklist.filter(item => item.checked).length;
+    return Math.round((checkedCount / checklist.length) * 100);
+  };
+
+  const handleChecklistToggle = (beliefId: string, itemId: string) => {
+    setBeliefs(beliefs.map(b => {
+      if (b.id === beliefId) {
+        const updatedChecklist = b.checklist.map(item =>
+          item.id === itemId ? { ...item, checked: !item.checked } : item
+        );
+        return { ...b, checklist: updatedChecklist };
+      }
+      return b;
+    }));
   };
 
   const getProgressColor = (progress: number) => {
@@ -276,21 +299,33 @@ export default function BeliefTableModal({
                       {/* Checklist */}
                       <TableCell className="p-2">
                         <div className="text-sm p-2 rounded bg-chart-3/5 border border-chart-3/20 min-h-[60px]">
-                          <ul className="space-y-1">
+                          <div className="space-y-2">
                             {belief.checklist.map((item, idx) => (
-                              <li key={idx} className="flex items-start gap-1 text-xs" data-testid={`text-checklist-item-${belief.id}-${idx}`}>
-                                <span className="text-chart-3 mt-0.5">•</span>
-                                <span>{item}</span>
-                              </li>
+                              <label 
+                                key={item.id} 
+                                className="flex items-start gap-2 text-xs cursor-pointer hover-elevate rounded p-1"
+                                data-testid={`label-checklist-item-${belief.id}-${idx}`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={item.checked}
+                                  onChange={() => handleChecklistToggle(belief.id, item.id)}
+                                  className="mt-0.5 w-3.5 h-3.5 rounded border-chart-3 text-chart-3 focus:ring-chart-3 cursor-pointer"
+                                  data-testid={`checkbox-checklist-${belief.id}-${idx}`}
+                                />
+                                <span className={item.checked ? 'line-through text-muted-foreground' : ''}>
+                                  {item.text}
+                                </span>
+                              </label>
                             ))}
-                          </ul>
+                          </div>
                         </div>
                       </TableCell>
 
                       {/* Progress */}
                       <TableCell className="text-center p-2">
-                        <Badge className={getProgressColor(belief.progress)} data-testid={`badge-progress-${belief.id}`}>
-                          {belief.progress}%
+                        <Badge className={getProgressColor(calculateProgress(belief.checklist))} data-testid={`badge-progress-${belief.id}`}>
+                          {calculateProgress(belief.checklist)}%
                         </Badge>
                       </TableCell>
 
