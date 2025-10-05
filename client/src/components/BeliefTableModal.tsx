@@ -384,14 +384,6 @@ export default function BeliefTableModal({
                 </TableBody>
               </Table>
             </div>
-
-            {/* Info Footer */}
-            <div className="bg-muted/30 rounded-lg p-4 text-sm text-muted-foreground">
-              <p className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-primary" />
-                <strong>AI-Powered:</strong> Course, affirmation, and checklist suggestions will be automatically generated based on your belief text in Phase 3
-              </p>
-            </div>
           </div>
         </ScrollArea>
       </DialogContent>
