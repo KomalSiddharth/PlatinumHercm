@@ -1,9 +1,8 @@
-import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, Trophy, Pause, Play } from 'lucide-react';
+import { Clock, Trophy, Pause, Play, Edit, Trash2 } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -21,6 +20,8 @@ interface RitualCardProps {
   onToggleComplete?: (id: string) => void;
   onToggleActive?: (id: string) => void;
   onViewHistory?: (id: string) => void;
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
 const recurrenceLabels = {
@@ -38,30 +39,24 @@ export default function RitualCard({
   completed = false,
   onToggleComplete = () => {},
   onToggleActive = () => {},
-  onViewHistory = () => {}
+  onViewHistory = () => {},
+  onEdit = () => {},
+  onDelete = () => {}
 }: RitualCardProps) {
-  const [isCompleted, setIsCompleted] = useState(completed);
-
-  const handleToggle = () => {
-    setIsCompleted(!isCompleted);
-    onToggleComplete(id);
-    console.log(`Ritual ${id} ${!isCompleted ? 'completed' : 'uncompleted'}`);
-  };
-
   return (
     <Card className={`hover-elevate transition-all ${!active ? 'opacity-40' : ''}`}>
       <CardContent className="p-4">
         <div className="flex items-center gap-3">
           <Checkbox
-            checked={isCompleted}
-            onCheckedChange={handleToggle}
+            checked={completed}
+            onCheckedChange={() => onToggleComplete(id)}
             disabled={!active}
             className="w-5 h-5"
             data-testid={`checkbox-ritual-${id}`}
           />
 
           <div className="flex-1 min-w-0">
-            <h3 className={`font-medium ${isCompleted ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+            <h3 className={`font-medium ${completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
               {title}
             </h3>
             <div className="flex items-center gap-2 mt-1">
@@ -77,8 +72,8 @@ export default function RitualCard({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Badge className="gap-1 bg-chart-2 text-white">
+          <div className="flex items-center gap-1">
+            <Badge className="gap-1 bg-gradient-to-r from-primary to-accent text-white border-0">
               <Trophy className="w-3 h-3" />
               {points}
             </Badge>
@@ -108,10 +103,26 @@ export default function RitualCard({
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => {
-                      onToggleActive(id);
-                      console.log(`Ritual ${id} ${active ? 'paused' : 'resumed'}`);
-                    }}
+                    onClick={() => onEdit(id)}
+                    data-testid={`button-edit-${id}`}
+                    className="w-8 h-8"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Edit ritual</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onToggleActive(id)}
                     data-testid={`button-toggle-${id}`}
                     className="w-8 h-8"
                   >
@@ -120,6 +131,25 @@ export default function RitualCard({
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>{active ? 'Pause ritual' : 'Resume ritual'}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onDelete(id)}
+                    data-testid={`button-delete-${id}`}
+                    className="w-8 h-8 text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Delete ritual</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Menu, X, Trophy, Moon, Sun } from 'lucide-react';
+import { Menu, X, Trophy, Moon, Sun, User as UserIcon } from 'lucide-react';
 import Logo from './Logo';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -11,6 +11,7 @@ interface DashboardHeaderProps {
   isAdmin?: boolean;
   onNavigate?: (section: string) => void;
   activeSection?: string;
+  onProfileClick?: () => void;
 }
 
 export default function DashboardHeader({
@@ -18,7 +19,8 @@ export default function DashboardHeader({
   userPoints = 0,
   isAdmin = false,
   onNavigate = () => {},
-  activeSection = 'hercm'
+  activeSection = 'hercm',
+  onProfileClick = () => {}
 }: DashboardHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
@@ -61,8 +63,12 @@ export default function DashboardHeader({
           </nav>
 
           <div className="flex items-center gap-3">
-            <Badge variant="secondary" className="gap-1 hidden sm:flex" data-testid="badge-points">
-              <Trophy className="w-4 h-4 text-chart-2" />
+            <Badge 
+              variant="secondary" 
+              className="gap-1 hidden sm:flex bg-gradient-to-r from-primary/20 to-accent/20 border-primary/30" 
+              data-testid="badge-points"
+            >
+              <Trophy className="w-4 h-4 text-primary" />
               <span className="font-semibold">{userPoints}</span>
             </Badge>
 
@@ -75,12 +81,20 @@ export default function DashboardHeader({
               {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </Button>
 
-            <Avatar className="w-8 h-8" data-testid="avatar-user">
-              <AvatarImage src="" />
-              <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
-                {userName.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onProfileClick}
+              data-testid="button-profile"
+              className="relative"
+            >
+              <Avatar className="w-8 h-8">
+                <AvatarImage src="" />
+                <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-white text-sm font-medium">
+                  {userName.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            </Button>
 
             {isAdmin && (
               <Button variant="outline" size="sm" data-testid="button-admin">
@@ -117,6 +131,12 @@ export default function DashboardHeader({
                   {item.label}
                 </Button>
               ))}
+              <div className="pt-2 mt-2 border-t">
+                <Badge variant="secondary" className="w-full justify-center gap-2 py-2">
+                  <Trophy className="w-4 h-4 text-primary" />
+                  <span className="font-semibold">{userPoints} Points</span>
+                </Badge>
+              </div>
             </nav>
           </div>
         )}
