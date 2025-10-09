@@ -10,6 +10,18 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { X, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
 
 interface ChecklistItem {
   id: string;
@@ -340,34 +352,91 @@ export default function HERCMHistoryModal({ open, onOpenChange, currentWeek }: H
             <div className="space-y-4">
               <h3 className="text-sm font-semibold">Progress Analytics</h3>
               
-              {/* Overall Trend */}
-              <div className="rounded-lg border p-4 space-y-3">
+              {/* Overall Progress Line Chart */}
+              <div className="rounded-lg border p-4 space-y-3" data-testid="chart-overall-progress">
                 <h4 className="text-sm font-medium">Overall Progress Trend</h4>
-                <div className="flex items-center gap-2">
-                  {mockHistoricalData.map((week, index) => {
-                    const prevProgress = index > 0 ? mockHistoricalData[index - 1].overallProgress : 0;
-                    const change = week.overallProgress - prevProgress;
-                    
-                    return (
-                      <div key={week.weekNumber} className="flex flex-col items-center gap-1" data-testid={`analytics-week-${week.weekNumber}`}>
-                        <div className="text-xs text-muted-foreground">W{week.weekNumber}</div>
-                        <Badge className={getProgressColor(week.overallProgress)}>
-                          {week.overallProgress}%
-                        </Badge>
-                        {index > 0 && (
-                          <div className={`text-xs font-semibold ${change > 0 ? 'text-chart-3' : change < 0 ? 'text-destructive' : 'text-muted-foreground'}`}>
-                            {change > 0 ? '+' : ''}{change}%
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                <ResponsiveContainer width="100%" height={250}>
+                  <LineChart data={mockHistoricalData.map(week => ({
+                    week: `Week ${week.weekNumber}`,
+                    progress: week.overallProgress,
+                  }))}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                    <XAxis 
+                      dataKey="week" 
+                      className="text-xs fill-muted-foreground"
+                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                    />
+                    <YAxis 
+                      className="text-xs fill-muted-foreground"
+                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                      domain={[0, 100]}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--popover))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '6px',
+                        color: 'hsl(var(--popover-foreground))'
+                      }}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="progress" 
+                      stroke="hsl(var(--chart-3))" 
+                      strokeWidth={3}
+                      dot={{ fill: 'hsl(var(--chart-3))', r: 6 }}
+                      activeDot={{ r: 8 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
 
-              {/* Area-wise Comparison */}
+              {/* HERCM Area Comparison Bar Chart */}
+              <div className="rounded-lg border p-4 space-y-3" data-testid="chart-area-comparison">
+                <h4 className="text-sm font-medium">HERCM Area Progress Comparison</h4>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={mockHistoricalData.map(week => ({
+                    week: `W${week.weekNumber}`,
+                    Health: week.areas.find(a => a.category === 'Health')?.progress || 0,
+                    Relationship: week.areas.find(a => a.category === 'Relationship')?.progress || 0,
+                    Career: week.areas.find(a => a.category === 'Career')?.progress || 0,
+                    Money: week.areas.find(a => a.category === 'Money')?.progress || 0,
+                  }))}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                    <XAxis 
+                      dataKey="week" 
+                      className="text-xs fill-muted-foreground"
+                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                    />
+                    <YAxis 
+                      className="text-xs fill-muted-foreground"
+                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                      domain={[0, 100]}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--popover))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '6px',
+                        color: 'hsl(var(--popover-foreground))'
+                      }}
+                    />
+                    <Legend 
+                      wrapperStyle={{ 
+                        paddingTop: '20px'
+                      }}
+                    />
+                    <Bar dataKey="Health" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Relationship" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Career" fill="hsl(var(--chart-4))" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Money" fill="hsl(var(--chart-5))" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Improvement Summary Cards */}
               <div className="rounded-lg border p-4 space-y-3">
-                <h4 className="text-sm font-medium">HERCM Area Progress</h4>
+                <h4 className="text-sm font-medium">Overall Improvement Summary</h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {['Health', 'Relationship', 'Career', 'Money'].map((category) => {
                     const latestWeek = mockHistoricalData[mockHistoricalData.length - 1];
@@ -385,7 +454,8 @@ export default function HERCMHistoryModal({ open, onOpenChange, currentWeek }: H
                           <Badge className={getProgressColor(latestArea?.progress || 0)}>
                             {latestArea?.progress || 0}%
                           </Badge>
-                          <span className={`text-xs ${improvement > 0 ? 'text-chart-3' : improvement < 0 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                          <span className={`text-xs flex items-center gap-1 ${improvement > 0 ? 'text-chart-3' : improvement < 0 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                            {improvement > 0 ? <TrendingUp className="h-3 w-3" /> : improvement < 0 ? <TrendingDown className="h-3 w-3" /> : <Minus className="h-3 w-3" />}
                             {improvement > 0 ? '+' : ''}{improvement}%
                           </span>
                         </div>
