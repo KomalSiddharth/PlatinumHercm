@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import DashboardHeader from '@/components/DashboardHeader';
-import HERCMCard from '@/components/HERCMCard';
-import BeliefTableModal from '@/components/BeliefTableModal';
+import UnifiedHERCMTable from '@/components/UnifiedHERCMTable';
 import AddRitualForm from '@/components/AddRitualForm';
 import RitualCard from '@/components/RitualCard';
 import CourseCard from '@/components/CourseCard';
@@ -11,8 +10,6 @@ import ProfileModal from '@/components/ProfileModal';
 import RitualHistoryModal from '@/components/RitualHistoryModal';
 import EditRitualModal from '@/components/EditRitualModal';
 import UpdateProgressModal from '@/components/UpdateProgressModal';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
 interface Ritual {
@@ -28,12 +25,11 @@ interface Ritual {
 export default function Dashboard() {
   const { toast } = useToast();
   const [activeSection, setActiveSection] = useState('rituals');
-  const [checklistOpen, setChecklistOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [progressOpen, setProgressOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<'health' | 'relationship' | 'career' | 'money'>('health');
+  const [hercmHistoryOpen, setHercmHistoryOpen] = useState(false);
   const [selectedRitual, setSelectedRitual] = useState<Ritual | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
   
@@ -243,6 +239,18 @@ export default function Dashboard() {
     });
   };
 
+  const handleGenerateNextWeek = () => {
+    toast({
+      title: 'Generating Next Week',
+      description: 'AI is analyzing your progress and creating Week 4 targets...',
+    });
+    // This will be connected to AI in Phase 3
+  };
+
+  const handleViewHERCMHistory = () => {
+    setHercmHistoryOpen(true);
+  };
+
   const handleUpdateCourseProgress = (id: string) => {
     const course = courses.find(c => c.id === id);
     if (course) {
@@ -274,21 +282,6 @@ export default function Dashboard() {
       });
     }
   };
-
-  const hercmData = {
-    health: { current: 7, target: 8 },
-    relationship: { current: 6, target: 7 },
-    career: { current: 8, target: 9 },
-    money: { current: 5, target: 6 }
-  };
-
-  const checklistItems = [
-    { id: 1, text: 'Exercise for 30 minutes', completed: false },
-    { id: 2, text: 'Drink 8 glasses of water', completed: true, completedAt: '2025-02-05 14:30' },
-    { id: 3, text: 'Get 7-8 hours of sleep', completed: false },
-    { id: 4, text: 'Eat at least 3 servings of vegetables', completed: false },
-    { id: 5, text: 'Practice meditation or mindfulness', completed: true, completedAt: '2025-02-05 08:15' }
-  ];
 
   const [courses, setCourses] = useState<Array<{
     id: string;
@@ -359,47 +352,13 @@ export default function Dashboard() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
         <section ref={hercmRef} id="hercm" className="scroll-mt-20">
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-3xl font-bold">HERCM Tracker</h2>
-                <p className="text-muted-foreground mt-1">Track your weekly progress across all life areas</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline" 
-                  size="icon" 
-                  className="border-primary/30 hover:bg-gradient-to-r hover:from-primary/10 hover:to-accent/10"
-                  data-testid="button-prev-week"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="icon" 
-                  className="border-primary/30 hover:bg-gradient-to-r hover:from-primary/10 hover:to-accent/10"
-                  data-testid="button-next-week"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
+          <UnifiedHERCMTable 
+            weekNumber={currentWeek}
+            onGenerateNextWeek={handleGenerateNextWeek}
+            onViewHistory={handleViewHERCMHistory}
+          />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {(Object.keys(hercmData) as Array<keyof typeof hercmData>).map((category) => (
-                <HERCMCard
-                  key={category}
-                  category={category}
-                  current={hercmData[category].current}
-                  target={hercmData[category].target}
-                  onViewChecklist={() => {
-                    setSelectedCategory(category);
-                    setChecklistOpen(true);
-                  }}
-                />
-              ))}
-            </div>
-
+          <div className="mt-8">
             <PlatinumProgress 
               currentWeek={currentWeek} 
               weeklyData={weeklyData}
@@ -462,13 +421,6 @@ export default function Dashboard() {
           </div>
         </section>
       </main>
-
-      <BeliefTableModal
-        open={checklistOpen}
-        onOpenChange={setChecklistOpen}
-        category={selectedCategory}
-        categoryName={selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)}
-      />
 
       <ProfileModal
         open={profileOpen}
