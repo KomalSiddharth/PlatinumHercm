@@ -91,7 +91,7 @@ export default function Dashboard() {
   const ritualsRef = useRef<HTMLDivElement>(null);
   const coursesRef = useRef<HTMLDivElement>(null);
 
-  const currentWeek = 3;
+  const [currentWeek, setCurrentWeek] = useState(1);
 
   useEffect(() => {
     const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -241,11 +241,22 @@ export default function Dashboard() {
   };
 
   const handleGenerateNextWeek = () => {
+    // In Phase 3, this will connect to OpenAI to analyze progress and generate intelligent next week targets
+    // For now, it increments the week and shows progression
+    
     toast({
       title: 'Generating Next Week',
-      description: 'AI is analyzing your progress and creating Week 4 targets...',
+      description: `Analyzing Week ${currentWeek} progress and creating Week ${currentWeek + 1} targets...`,
     });
-    // This will be connected to AI in Phase 3
+
+    // Simulate AI processing time
+    setTimeout(() => {
+      setCurrentWeek(prev => prev + 1);
+      toast({
+        title: `Week ${currentWeek + 1} Generated!`,
+        description: 'Your next week beliefs and targets are ready. Keep growing!',
+      });
+    }, 1500);
   };
 
   const handleViewHERCMHistory = () => {
@@ -436,7 +447,7 @@ export default function Dashboard() {
       <HERCMHistoryModal
         open={hercmHistoryOpen}
         onOpenChange={setHercmHistoryOpen}
-        currentWeek={3}
+        currentWeek={currentWeek}
       />
 
       {selectedRitual && (

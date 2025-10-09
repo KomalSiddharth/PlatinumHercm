@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +33,165 @@ interface UnifiedHERCMTableProps {
   onViewHistory: () => void;
 }
 
+// Week-specific belief data generator
+const getWeekBeliefs = (week: number): HERCMBelief[] => {
+  if (week === 1) {
+    return [
+      {
+        category: 'Health',
+        currentBelief: "I can't stick to a routine",
+        nextWeekTarget: "I create simple, sustainable habits",
+        checklist: [
+          { id: 'h1', text: "Walk 10 min daily", checked: false },
+          { id: 'h2', text: "Drink 8 glasses water", checked: false },
+          { id: 'h3', text: "Sleep by 11 PM", checked: false }
+        ],
+        courseSuggestion: "Health Foundations - Module 1",
+        affirmationSuggestion: "I am disciplined and consistent"
+      },
+      {
+        category: 'Relationship',
+        currentBelief: "I'm not good at relationships",
+        nextWeekTarget: "I build meaningful connections",
+        checklist: [
+          { id: 'e1', text: "Daily check-in with partner", checked: false },
+          { id: 'e2', text: "Express gratitude 3x", checked: false },
+          { id: 'e3', text: "Quality time 30 min", checked: false }
+        ],
+        courseSuggestion: "Relationship Basics - Module 1",
+        affirmationSuggestion: "I am worthy of love and connection"
+      },
+      {
+        category: 'Career',
+        currentBelief: "I'm stuck in my career",
+        nextWeekTarget: "I take steps toward my goals",
+        checklist: [
+          { id: 'r1', text: "Update resume", checked: false },
+          { id: 'r2', text: "Network with 2 people", checked: false },
+          { id: 'r3', text: "Learn new skill 30 min", checked: false }
+        ],
+        courseSuggestion: "Career Growth - Module 1",
+        affirmationSuggestion: "I am capable of achieving my dreams"
+      },
+      {
+        category: 'Money',
+        currentBelief: "I'll never be financially free",
+        nextWeekTarget: "I manage money wisely",
+        checklist: [
+          { id: 'c1', text: "Track all expenses", checked: false },
+          { id: 'c2', text: "Save 10% income", checked: false },
+          { id: 'c3', text: "Review budget weekly", checked: false }
+        ],
+        courseSuggestion: "Financial Literacy - Module 1",
+        affirmationSuggestion: "Money flows to me naturally"
+      }
+    ];
+  } else if (week === 2) {
+    return [
+      {
+        category: 'Health',
+        currentBelief: "I create simple, sustainable habits",
+        nextWeekTarget: "I prioritize my health consistently",
+        checklist: [
+          { id: 'h1', text: "20 min morning walk", checked: false },
+          { id: 'h2', text: "Meal prep Sunday", checked: false },
+          { id: 'h3', text: "Yoga 3x per week", checked: false }
+        ],
+        courseSuggestion: "Health Mastery - Module 2",
+        affirmationSuggestion: "My body is my temple"
+      },
+      {
+        category: 'Relationship',
+        currentBelief: "I build meaningful connections",
+        nextWeekTarget: "I communicate with love and clarity",
+        checklist: [
+          { id: 'e1', text: "Daily gratitude practice", checked: false },
+          { id: 'e2', text: "Plan date night", checked: false },
+          { id: 'e3', text: "Active listening 15 min", checked: false }
+        ],
+        courseSuggestion: "Relationship Mastery - Communication",
+        affirmationSuggestion: "I express love freely"
+      },
+      {
+        category: 'Career',
+        currentBelief: "I take steps toward my goals",
+        nextWeekTarget: "I am worthy of success and recognition",
+        checklist: [
+          { id: 'r1', text: "Complete project milestone", checked: false },
+          { id: 'r2', text: "Speak up in meetings", checked: false },
+          { id: 'r3', text: "Request feedback", checked: false }
+        ],
+        courseSuggestion: "Career Excellence - Leadership",
+        affirmationSuggestion: "I deserve success"
+      },
+      {
+        category: 'Money',
+        currentBelief: "I manage money wisely",
+        nextWeekTarget: "Money flows to me with ease",
+        checklist: [
+          { id: 'c1', text: "Automate savings", checked: false },
+          { id: 'c2', text: "Research investments", checked: false },
+          { id: 'c3', text: "Cut 2 unnecessary expenses", checked: false }
+        ],
+        courseSuggestion: "Wealth Building - Module 2",
+        affirmationSuggestion: "I attract abundance"
+      }
+    ];
+  } else {
+    // Week 3+: Further progression
+    return [
+      {
+        category: 'Health',
+        currentBelief: "I prioritize my health consistently",
+        nextWeekTarget: "I am a fitness role model",
+        checklist: [
+          { id: 'h1', text: "30 min workout daily", checked: false },
+          { id: 'h2', text: "Cook healthy meals 5x", checked: false },
+          { id: 'h3', text: "Meditation 10 min", checked: false }
+        ],
+        courseSuggestion: "Advanced Health - Module 3",
+        affirmationSuggestion: "I radiate health and vitality"
+      },
+      {
+        category: 'Relationship',
+        currentBelief: "I communicate with love and clarity",
+        nextWeekTarget: "I am a master at deep connections",
+        checklist: [
+          { id: 'e1', text: "Deep conversation daily", checked: false },
+          { id: 'e2', text: "Show appreciation 5x", checked: false },
+          { id: 'e3', text: "Quality time 1 hour", checked: false }
+        ],
+        courseSuggestion: "Relationship Mastery - Advanced",
+        affirmationSuggestion: "Love flows through me"
+      },
+      {
+        category: 'Career',
+        currentBelief: "I am worthy of success and recognition",
+        nextWeekTarget: "I am a leader in my field",
+        checklist: [
+          { id: 'r1', text: "Lead team project", checked: false },
+          { id: 'r2', text: "Mentor junior colleague", checked: false },
+          { id: 'r3', text: "Deliver presentation", checked: false }
+        ],
+        courseSuggestion: "Leadership Mastery - Module 3",
+        affirmationSuggestion: "I am a respected leader"
+      },
+      {
+        category: 'Money',
+        currentBelief: "Money flows to me with ease",
+        nextWeekTarget: "I am financially abundant",
+        checklist: [
+          { id: 'c1', text: "Invest 20% income", checked: false },
+          { id: 'c2', text: "Create passive income stream", checked: false },
+          { id: 'c3', text: "Financial review weekly", checked: false }
+        ],
+        courseSuggestion: "Wealth Mastery - Advanced",
+        affirmationSuggestion: "Abundance is my birthright"
+      }
+    ];
+  }
+};
+
 export default function UnifiedHERCMTable({
   weekNumber,
   onGenerateNextWeek,
@@ -44,56 +203,12 @@ export default function UnifiedHERCMTable({
     nextWeekTarget: ''
   });
 
-  const [beliefs, setBeliefs] = useState<HERCMBelief[]>([
-    {
-      category: 'Health',
-      currentBelief: "I don't have time to exercise",
-      nextWeekTarget: "I prioritize my health and make time for movement",
-      checklist: [
-        { id: 'h1', text: "30 min morning walk daily", checked: true },
-        { id: 'h2', text: "Drink 8 glasses of water", checked: true },
-        { id: 'h3', text: "Sleep by 11 PM", checked: false }
-      ],
-      courseSuggestion: "Health Mastery - Module 2",
-      affirmationSuggestion: "My body is strong and energized"
-    },
-    {
-      category: 'Relationship',
-      currentBelief: "I struggle to communicate my feelings",
-      nextWeekTarget: "I express my emotions clearly and kindly",
-      checklist: [
-        { id: 'e1', text: "Daily gratitude for loved ones", checked: false },
-        { id: 'e2', text: "Active listening practice", checked: false },
-        { id: 'e3', text: "Quality time 30 min/day", checked: false }
-      ],
-      courseSuggestion: "Relationship Mastery - Communication",
-      affirmationSuggestion: "I communicate with love and clarity"
-    },
-    {
-      category: 'Career',
-      currentBelief: "I'm not good enough for promotion",
-      nextWeekTarget: "I am capable and deserving of career growth",
-      checklist: [
-        { id: 'r1', text: "Complete certification module", checked: true },
-        { id: 'r2', text: "Network with 3 professionals", checked: true },
-        { id: 'r3', text: "Update portfolio/resume", checked: true }
-      ],
-      courseSuggestion: "Career Mastery - Leadership Skills",
-      affirmationSuggestion: "I am a valuable professional"
-    },
-    {
-      category: 'Money',
-      currentBelief: "Money is hard to earn",
-      nextWeekTarget: "Money flows to me with ease and abundance",
-      checklist: [
-        { id: 'c1', text: "Create budget plan", checked: true },
-        { id: 'c2', text: "Read money mindset book", checked: false },
-        { id: 'c3', text: "Track expenses daily", checked: false }
-      ],
-      courseSuggestion: "Wealth Mastery - Money Mindset",
-      affirmationSuggestion: "I attract abundance effortlessly"
-    }
-  ]);
+  const [beliefs, setBeliefs] = useState<HERCMBelief[]>(getWeekBeliefs(weekNumber));
+
+  // Update beliefs when week changes
+  useEffect(() => {
+    setBeliefs(getWeekBeliefs(weekNumber));
+  }, [weekNumber]);
 
   const calculateProgress = (checklist: ChecklistItem[]) => {
     if (checklist.length === 0) return 0;
