@@ -10,6 +10,7 @@ import ProfileModal from '@/components/ProfileModal';
 import RitualHistoryModal from '@/components/RitualHistoryModal';
 import EditRitualModal from '@/components/EditRitualModal';
 import UpdateProgressModal from '@/components/UpdateProgressModal';
+import HERCMHistoryModal from '@/components/HERCMHistoryModal';
 import { useToast } from '@/hooks/use-toast';
 
 interface Ritual {
@@ -430,6 +431,12 @@ export default function Dashboard() {
         totalPoints={totalPoints}
         onSave={handleSaveProfile}
         onLogout={handleLogout}
+      />
+
+      <HERCMHistoryModal
+        open={hercmHistoryOpen}
+        onOpenChange={setHercmHistoryOpen}
+        currentWeek={3}
       />
 
       {selectedRitual && (
