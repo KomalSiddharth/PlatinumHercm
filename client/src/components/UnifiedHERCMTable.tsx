@@ -236,12 +236,22 @@ export default function UnifiedHERCMTable({
 
   const getCategoryColor = (category: string) => {
     const colors = {
-      'Health': 'text-chart-1',
-      'Relationship': 'text-chart-2', 
-      'Career': 'text-chart-4',
-      'Money': 'text-chart-5'
+      'Health': 'text-emerald-700 dark:text-emerald-400',
+      'Relationship': 'text-pink-700 dark:text-pink-400', 
+      'Career': 'text-blue-700 dark:text-blue-400',
+      'Money': 'text-amber-700 dark:text-amber-400'
     };
     return colors[category as keyof typeof colors] || 'text-foreground';
+  };
+
+  const getCategoryBadgeStyle = (category: string) => {
+    const styles = {
+      'Health': 'bg-emerald-100 dark:bg-emerald-950 border-emerald-300 dark:border-emerald-700',
+      'Relationship': 'bg-pink-100 dark:bg-pink-950 border-pink-300 dark:border-pink-700',
+      'Career': 'bg-blue-100 dark:bg-blue-950 border-blue-300 dark:border-blue-700',
+      'Money': 'bg-amber-100 dark:bg-amber-950 border-amber-300 dark:border-amber-700'
+    };
+    return styles[category as keyof typeof styles] || 'bg-muted';
   };
 
   const startEditing = (category: string) => {
@@ -347,9 +357,9 @@ export default function UnifiedHERCMTable({
               <TableRow key={belief.category} data-testid={`row-hercm-${belief.category.toLowerCase()}`}>
                 {/* HERCM Category */}
                 <TableCell className="font-semibold">
-                  <div className={`${getCategoryColor(belief.category)}`}>
+                  <Badge className={`${getCategoryBadgeStyle(belief.category)} ${getCategoryColor(belief.category)} border`}>
                     {belief.category}
-                  </div>
+                  </Badge>
                 </TableCell>
 
                 {/* Current Belief */}
