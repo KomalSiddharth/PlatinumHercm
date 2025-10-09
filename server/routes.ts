@@ -3,6 +3,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, isAdmin } from "./replitAuth";
+import { fetchCourseData, findMatchingCourse } from "./googleSheets";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup Replit Auth middleware
@@ -75,6 +76,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching user weeks:", error);
       res.status(500).json({ message: "Failed to fetch user weeks" });
+    }
+  });
+
+  // Google Sheets course suggestions
+  app.get('/api/courses/suggestions', isAuthenticated, async (req, res) => {
+    try {
+      const sheetUrl = "https://docs.google.com/spreadsheets/d/1pZaS2wnzwgk6VqB7KvchX2bfCmucvrhTf3Q6qAJG7Cw/edit?gid=314426355#gid=314426355";
+      const courses = await fetchCourseData(sheetUrl);
+      res.json(courses);
+    } catch (error) {
+      console.error("Error fetching course suggestions:", error);
+      res.status(500).json({ message: "Failed to fetch course suggestions" });
+    }
+  });
+
+  app.post('/api/courses/match', isAuthenticated, async (req, res) => {
+    try {
+      const { category, currentBelief } = req.body;
+      const sheetUrl = "https://docs.google.com/spreadsheets/d/1pZaS2wnzwgk6VqB7KvchX2bfCmucvrhTf3Q6qAJG7Cw/edit?gid=314426355#gid=314426355";
+      const courses = await fetchCourseData(sheetUrl);
+      const match = findMatchingCourse(courses, category, currentBelief);
+      res.json(match || { courseName: "No matching course found", description: "" });
+    } catch (error) {
+      console.error("Error matching course:", error);
+      res.status(500).json({ message: "Failed to match course" });
     }
   });
 

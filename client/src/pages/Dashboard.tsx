@@ -235,9 +235,13 @@ export default function Dashboard() {
   const handleLogout = () => {
     console.log('Logout clicked');
     toast({
-      title: 'Logged Out',
-      description: 'You have been successfully logged out.'
+      title: 'Logging Out',
+      description: 'Please wait...'
     });
+    
+    // Navigate to logout endpoint which handles session clearing and OIDC redirect
+    // This must be a full page navigation (not fetch) to properly handle OIDC logout flow
+    window.location.href = '/api/logout';
   };
 
   const handleGenerateNextWeek = () => {
