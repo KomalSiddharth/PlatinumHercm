@@ -260,17 +260,21 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
   const { toast } = useToast();
 
   // Fetch week data from database
-  const { data: weekData, isLoading } = useQuery({
+  const { data: weekData, isLoading } = useQuery<{ beliefs?: HERCMBelief[] }>({
     queryKey: ['/api/hercm/week', weekNumber],
     enabled: weekNumber > 0,
   });
 
   useEffect(() => {
-    // Load week-specific data
-    // In production, this will fetch from database
-    // For now, use getWeekBeliefs which has demo data for weeks 1-3
-    setBeliefs(getWeekBeliefs(weekNumber));
-  }, [weekNumber]);
+    // Priority: Use actual database data if available, otherwise use demo/blank template
+    if (weekData?.beliefs) {
+      // Database has data for this week - use it
+      setBeliefs(weekData.beliefs);
+    } else {
+      // No database data - use demo/blank template immediately (don't wait for loading)
+      setBeliefs(getWeekBeliefs(weekNumber));
+    }
+  }, [weekNumber, weekData]);
 
   // Fetch AI course recommendations
   const fetchCourseRecommendation = async (category: string, belief: HERCMBelief) => {
