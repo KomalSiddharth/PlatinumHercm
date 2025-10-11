@@ -21,6 +21,8 @@ Preferred communication style: Simple, everyday language.
 - **Authentication Fix**: Fixed email-based authentication middleware to properly support session-based login alongside OIDC auth - all API routes now support both OIDC (req.user?.claims?.sub) and email-based auth (req.session.userEmail)
 - **API Route Addition**: Added `/api/hercm/week/:weekNumber` endpoint to fetch individual week data
 - **History Modal Analytics Fix**: Fixed generateHistoricalData fallback to properly calculate progress from checklist items instead of hardcoding 0% - Week 1 now shows 33% progress, Week 2 shows 50%, Week 3+ shows 67%, enabling bar graphs and improvement summary to display meaningful data
+- **Week 2 Demo Data**: Added complete demo data for Week 2 showing continuity from Week 1 - Week 1's nextWeekTarget matches Week 2's currentBelief for realistic 100% comparison match
+- **Analytics in Comparison Dialog**: Added full analytics section (line chart, bar chart, improvement summary) to the Weekly Progress comparison dialog - same analytics that appear in History modal now also visible in week-over-week comparison for easier access
 
 ## System Architecture
 

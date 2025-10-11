@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Sparkles, Check, X, TrendingUp, History, Edit2, Save, Loader2 } from 'lucide-react';
+import { Sparkles, Check, X, TrendingUp, History, Edit2, Save, Loader2, ArrowUp, ArrowDown } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -23,6 +23,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface ChecklistItem {
   id: string;
@@ -621,12 +623,116 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
 
       {/* Week-over-Week Comparison Dialog */}
       <Dialog open={showComparison} onOpenChange={setShowComparison}>
-        <DialogContent className="max-w-5xl">
+        <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Week-over-Week Progress Comparison</DialogTitle>
           </DialogHeader>
           {weekNumber > 1 && comparisonData.length > 0 ? (
-            <WeekComparison comparisons={comparisonData} />
+            <div className="space-y-6">
+              {/* Analytics Charts */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Progress Analytics</h3>
+                
+                {/* Progress Trend Chart */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Overall Progress Trend</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={200}>
+                      <LineChart data={[
+                        {
+                          week: `Week ${weekNumber - 1}`,
+                          progress: previousWeekData?.beliefs && previousWeekData.beliefs.length > 0
+                            ? Math.round(previousWeekData.beliefs.reduce((sum, b) => sum + calculateProgress(b.checklist), 0) / previousWeekData.beliefs.length)
+                            : Math.round(getWeekBeliefs(weekNumber - 1).reduce((sum, b) => sum + calculateProgress(b.checklist), 0) / 4)
+                        },
+                        {
+                          week: `Week ${weekNumber}`,
+                          progress: weeklyProgress
+                        }
+                      ]}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="week" />
+                        <YAxis domain={[0, 100]} />
+                        <Tooltip />
+                        <Line type="monotone" dataKey="progress" stroke="#0d9488" strokeWidth={2} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+
+                {/* HERCM Area Comparison */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">HERCM Area Progress Comparison</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <BarChart data={(() => {
+                        const prevWeek = (previousWeekData?.beliefs && previousWeekData.beliefs.length > 0) 
+                          ? previousWeekData.beliefs 
+                          : getWeekBeliefs(weekNumber - 1);
+                        return beliefs.map((belief, index) => ({
+                          area: belief.category,
+                          [`Week ${weekNumber - 1}`]: calculateProgress(prevWeek[index]?.checklist || []),
+                          [`Week ${weekNumber}`]: calculateProgress(belief.checklist)
+                        }));
+                      })()}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="area" />
+                        <YAxis domain={[0, 100]} />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey={`Week ${weekNumber - 1}`} fill="#94a3b8" />
+                        <Bar dataKey={`Week ${weekNumber}`} fill="#0d9488" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+
+                {/* Improvement Summary */}
+                <div className="space-y-2">
+                  <h3 className="text-base font-semibold">Overall Improvement Summary</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {beliefs.map((belief, index) => {
+                      const prevWeek = (previousWeekData?.beliefs && previousWeekData.beliefs.length > 0) 
+                        ? previousWeekData.beliefs 
+                        : getWeekBeliefs(weekNumber - 1);
+                      const prevProgress = calculateProgress(prevWeek[index]?.checklist || []);
+                      const currentProgress = calculateProgress(belief.checklist);
+                      const improvement = currentProgress - prevProgress;
+                      
+                      return (
+                        <Card key={belief.category} className="p-3">
+                          <div className="space-y-1">
+                            <p className="text-sm font-medium">{belief.category}</p>
+                            <div className="flex items-center gap-2">
+                              {improvement > 0 ? (
+                                <ArrowUp className="w-4 h-4 text-green-600" />
+                              ) : improvement < 0 ? (
+                                <ArrowDown className="w-4 h-4 text-red-600" />
+                              ) : (
+                                <span className="w-4 h-4">-</span>
+                              )}
+                              <span className={`text-lg font-bold ${improvement > 0 ? 'text-green-600' : improvement < 0 ? 'text-red-600' : 'text-muted-foreground'}`}>
+                                {improvement > 0 ? '+' : ''}{improvement}%
+                              </span>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              {prevProgress}% → {currentProgress}%
+                            </p>
+                          </div>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Text Comparison */}
+              <WeekComparison comparisons={comparisonData} />
+            </div>
           ) : (
             <p className="text-muted-foreground text-center py-8">
               Comparison available from Week 2 onwards
