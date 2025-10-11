@@ -3,7 +3,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, isAdmin } from "./replitAuth";
-import { fetchCourseData, findMatchingCourse } from "./googleSheets";
+import { fetchCourseData, findMatchingCourse, recommendCourses } from "./googleSheets";
+import { recommendCoursesRequestSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup Replit Auth middleware
@@ -101,6 +102,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error matching course:", error);
       res.status(500).json({ message: "Failed to match course" });
+    }
+  });
+
+  // Enhanced course recommendations based on HERCM data
+  app.post('/api/courses/recommend', isAuthenticated, async (req: any, res) => {
+    try {
+      // Validate request
+      const validatedData = recommendCoursesRequestSchema.parse(req.body);
+      
+      // Get user's sheet URL or use default
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      const sheetUrl = user?.courseSheetUrl || "https://docs.google.com/spreadsheets/d/1pZaS2wnzwgk6VqB7KvchX2bfCmucvrhTf3Q6qAJG7Cw/edit?gid=314426355#gid=314426355";
+      
+      // Get recommendations
+      const recommendations = await recommendCourses(sheetUrl, {
+        category: validatedData.category,
+        problems: validatedData.problems,
+        feelings: validatedData.feelings,
+        beliefs: validatedData.beliefs,
+        actions: validatedData.actions,
+      });
+      
+      res.json(recommendations);
+    } catch (error) {
+      console.error("Error recommending courses:", error);
+      res.status(500).json({ message: "Failed to recommend courses", error: error instanceof Error ? error.message : 'Unknown error' });
+    }
+  });
+
+  // Update user's Google Sheet URL
+  app.post('/api/user/course-sheet', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { sheetUrl } = req.body;
+      
+      await storage.updateUserCourseSheet(userId, sheetUrl);
+      res.json({ success: true, message: "Course sheet URL updated" });
+    } catch (error) {
+      console.error("Error updating course sheet:", error);
+      res.status(500).json({ message: "Failed to update course sheet" });
     }
   });
 

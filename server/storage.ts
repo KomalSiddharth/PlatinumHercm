@@ -18,6 +18,7 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   getAllUsers(): Promise<User[]>;
+  updateUserCourseSheet(userId: string, sheetUrl: string): Promise<User>;
   
   // HERCM Week operations
   getHercmWeek(userId: string, weekNumber: number): Promise<HercmWeek | undefined>;
@@ -54,6 +55,15 @@ export class DatabaseStorage implements IStorage {
 
   async getAllUsers(): Promise<User[]> {
     return await db.select().from(users);
+  }
+
+  async updateUserCourseSheet(userId: string, sheetUrl: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ courseSheetUrl: sheetUrl, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
   }
 
   // HERCM Week operations

@@ -30,6 +30,7 @@ export const users = pgTable("users", {
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
   isAdmin: boolean("is_admin").default(false).notNull(),
+  courseSheetUrl: varchar("course_sheet_url"), // User's Google Sheet URL for courses
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -104,3 +105,39 @@ export const insertPlatinumProgressSchema = createInsertSchema(platinumProgress)
 
 export type InsertPlatinumProgress = z.infer<typeof insertPlatinumProgressSchema>;
 export type PlatinumProgress = typeof platinumProgress.$inferSelect;
+
+// Course Recommendation Types (from Google Sheets)
+export const courseRecommendationSchema = z.object({
+  courseName: z.string(),
+  link: z.string().url(),
+  hercmAreas: z.array(z.enum(['Health', 'Relationship', 'Career', 'Money'])),
+  keywords: z.array(z.string()),
+  targetProblems: z.array(z.string()),
+  targetFeelings: z.array(z.string()),
+  beliefTargets: z.array(z.string()),
+  actionSuggestions: z.array(z.string()),
+  difficulty: z.string().optional(),
+  duration: z.string().optional(),
+});
+
+export type CourseRecommendation = z.infer<typeof courseRecommendationSchema>;
+
+// Course Recommendation Request/Response
+export const recommendCoursesRequestSchema = z.object({
+  category: z.enum(['Health', 'Relationship', 'Career', 'Money']),
+  currentRating: z.number(),
+  problems: z.string(),
+  feelings: z.string(),
+  beliefs: z.string(),
+  actions: z.string(),
+});
+
+export type RecommendCoursesRequest = z.infer<typeof recommendCoursesRequestSchema>;
+
+export const recommendedCourseSchema = z.object({
+  course: courseRecommendationSchema,
+  score: z.number(),
+  matchReasons: z.array(z.string()),
+});
+
+export type RecommendedCourse = z.infer<typeof recommendedCourseSchema>;
