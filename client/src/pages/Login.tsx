@@ -66,7 +66,7 @@ export default function Login() {
               Login now for HRCM Dashboard
             </h1>
             <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Use your registered Email ID to enter Zoom Meeting
+              Use your registered Email ID to enter HRCM Dashboard
             </p>
           </div>
 
