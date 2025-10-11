@@ -367,7 +367,7 @@ export default function Dashboard() {
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
-        <section ref={hercmRef} id="hercm" className="scroll-mt-20">
+        <section ref={hercmRef} id="hercm" className="scroll-mt-20 bg-primary/5 dark:bg-primary/10 p-6 rounded-lg border border-primary/20">
           <UnifiedHERCMTable 
             weekNumber={currentWeek}
             onGenerateNextWeek={handleGenerateNextWeek}
@@ -382,7 +382,7 @@ export default function Dashboard() {
           </div>
         </section>
 
-        <section ref={ritualsRef} id="rituals" className="scroll-mt-20">
+        <section ref={ritualsRef} id="rituals" className="scroll-mt-20 bg-accent/5 dark:bg-accent/10 p-6 rounded-lg border border-accent/20">
           <div className="space-y-6">
             <div>
               <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
@@ -417,7 +417,7 @@ export default function Dashboard() {
           </div>
         </section>
 
-        <section ref={coursesRef} id="courses" className="scroll-mt-20">
+        <section ref={coursesRef} id="courses" className="scroll-mt-20 bg-muted/50 dark:bg-muted/30 p-6 rounded-lg border border-border">
           <div className="space-y-6">
             <div>
               <h2 className="text-3xl font-bold">Course Tracker</h2>
