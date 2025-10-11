@@ -11,18 +11,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { X, TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts';
 
 interface ChecklistItem {
   id: string;
@@ -276,7 +264,7 @@ export default function HERCMHistoryModal({ open, onOpenChange, currentWeek }: H
       <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto" data-testid="modal-hercm-history">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
-            <span>HERCM History & Analytics</span>
+            <span>HERCM History</span>
             <Button
               variant="ghost"
               size="icon"
@@ -287,7 +275,7 @@ export default function HERCMHistoryModal({ open, onOpenChange, currentWeek }: H
             </Button>
           </DialogTitle>
           <DialogDescription>
-            View your journey across all weeks and track your progress trends
+            View exact snapshots of your HERCM table for each completed week
           </DialogDescription>
         </DialogHeader>
 
@@ -408,123 +396,10 @@ export default function HERCMHistoryModal({ open, onOpenChange, currentWeek }: H
             </div>
           )}
 
-          {/* Overall Analytics */}
+          {/* Show message when no week selected */}
           {!selectedWeek && (
-            <div className="space-y-4">
-              <h3 className="text-sm font-semibold">Progress Analytics</h3>
-              
-              {/* Overall Progress Line Chart */}
-              <div className="rounded-lg border p-4 space-y-3" data-testid="chart-overall-progress">
-                <h4 className="text-sm font-medium">Overall Progress Trend</h4>
-                <ResponsiveContainer width="100%" height={250}>
-                  <LineChart data={mockHistoricalData.map(week => ({
-                    week: `Week ${week.weekNumber}`,
-                    progress: week.overallProgress,
-                  }))}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                    <XAxis 
-                      dataKey="week" 
-                      className="text-xs fill-muted-foreground"
-                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                    />
-                    <YAxis 
-                      className="text-xs fill-muted-foreground"
-                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                      domain={[0, 100]}
-                    />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'hsl(var(--popover))',
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '6px',
-                        color: 'hsl(var(--popover-foreground))'
-                      }}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="progress" 
-                      stroke="hsl(var(--chart-3))" 
-                      strokeWidth={3}
-                      dot={{ fill: 'hsl(var(--chart-3))', r: 6 }}
-                      activeDot={{ r: 8 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* HERCM Area Comparison Bar Chart */}
-              <div className="rounded-lg border p-4 space-y-3" data-testid="chart-area-comparison">
-                <h4 className="text-sm font-medium">HERCM Area Progress Comparison</h4>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={mockHistoricalData.map(week => ({
-                    week: `W${week.weekNumber}`,
-                    Health: week.areas.find(a => a.category === 'Health')?.progress || 0,
-                    Relationship: week.areas.find(a => a.category === 'Relationship')?.progress || 0,
-                    Career: week.areas.find(a => a.category === 'Career')?.progress || 0,
-                    Money: week.areas.find(a => a.category === 'Money')?.progress || 0,
-                  }))}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                    <XAxis 
-                      dataKey="week" 
-                      className="text-xs fill-muted-foreground"
-                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                    />
-                    <YAxis 
-                      className="text-xs fill-muted-foreground"
-                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                      domain={[0, 100]}
-                    />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'hsl(var(--popover))',
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '6px',
-                        color: 'hsl(var(--popover-foreground))'
-                      }}
-                    />
-                    <Legend 
-                      wrapperStyle={{ 
-                        paddingTop: '20px'
-                      }}
-                    />
-                    <Bar dataKey="Health" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="Relationship" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="Career" fill="hsl(var(--chart-4))" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="Money" fill="hsl(var(--chart-5))" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Improvement Summary Cards */}
-              <div className="rounded-lg border p-4 space-y-3">
-                <h4 className="text-sm font-medium">Overall Improvement Summary</h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {['Health', 'Relationship', 'Career', 'Money'].map((category) => {
-                    const latestWeek = mockHistoricalData[mockHistoricalData.length - 1];
-                    const firstWeek = mockHistoricalData[0];
-                    const latestArea = latestWeek.areas.find(a => a.category === category);
-                    const firstArea = firstWeek.areas.find(a => a.category === category);
-                    const improvement = latestArea && firstArea ? latestArea.progress - firstArea.progress : 0;
-
-                    return (
-                      <div key={category} className="space-y-2" data-testid={`analytics-category-${category.toLowerCase()}`}>
-                        <div className={`text-sm font-semibold ${getCategoryColor(category)}`}>
-                          {category}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge className={getProgressColor(latestArea?.progress || 0)}>
-                            {latestArea?.progress || 0}%
-                          </Badge>
-                          <span className={`text-xs flex items-center gap-1 ${improvement > 0 ? 'text-chart-3' : improvement < 0 ? 'text-destructive' : 'text-muted-foreground'}`}>
-                            {improvement > 0 ? <TrendingUp className="h-3 w-3" /> : improvement < 0 ? <TrendingDown className="h-3 w-3" /> : <Minus className="h-3 w-3" />}
-                            {improvement > 0 ? '+' : ''}{improvement}%
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+            <div className="text-center py-8 text-muted-foreground">
+              <p>Select a week from the timeline above to view its snapshot</p>
             </div>
           )}
           </div>
