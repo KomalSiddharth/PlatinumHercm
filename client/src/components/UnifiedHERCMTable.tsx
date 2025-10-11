@@ -424,17 +424,11 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
   });
 
   useEffect(() => {
-    // If we have saved data from database, use it
-    // Otherwise, start with blank template for user to fill
-    if (weekData) {
-      // TODO: Transform database format to component format
-      // For now, use blank beliefs as placeholder
-      setBeliefs(getBlankBeliefs());
-    } else {
-      // New week - start with blank template
-      setBeliefs(getBlankBeliefs());
-    }
-  }, [weekNumber, weekData]);
+    // Load week-specific data
+    // In production, this will fetch from database
+    // For now, use getWeekBeliefs which has demo data for weeks 1-3
+    setBeliefs(getWeekBeliefs(weekNumber));
+  }, [weekNumber]);
 
   // Fetch AI course recommendations
   const fetchCourseRecommendation = async (category: string, belief: HERCMBelief) => {
