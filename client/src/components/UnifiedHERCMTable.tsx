@@ -66,9 +66,9 @@ const getBlankBeliefs = (): HERCMBelief[] => {
       nextWeekTarget: '',
       nextActions: '',
       checklist: [
-        { id: 'h1', text: 'Task 1', checked: false },
-        { id: 'h2', text: 'Task 2', checked: false },
-        { id: 'h3', text: 'Task 3', checked: false }
+        { id: 'h1', text: 'Exercise/Walk daily', checked: false },
+        { id: 'h2', text: 'Healthy eating habit', checked: false },
+        { id: 'h3', text: 'Stress management practice', checked: false }
       ],
       courseSuggestion: '',
       affirmationSuggestion: ''
@@ -86,9 +86,9 @@ const getBlankBeliefs = (): HERCMBelief[] => {
       nextWeekTarget: '',
       nextActions: '',
       checklist: [
-        { id: 'e1', text: 'Task 1', checked: false },
-        { id: 'e2', text: 'Task 2', checked: false },
-        { id: 'e3', text: 'Task 3', checked: false }
+        { id: 'e1', text: 'Daily gratitude practice', checked: false },
+        { id: 'e2', text: 'Active listening session', checked: false },
+        { id: 'e3', text: 'Quality time with loved ones', checked: false }
       ],
       courseSuggestion: '',
       affirmationSuggestion: ''
@@ -106,9 +106,9 @@ const getBlankBeliefs = (): HERCMBelief[] => {
       nextWeekTarget: '',
       nextActions: '',
       checklist: [
-        { id: 'r1', text: 'Task 1', checked: false },
-        { id: 'r2', text: 'Task 2', checked: false },
-        { id: 'r3', text: 'Task 3', checked: false }
+        { id: 'r1', text: 'Skill development activity', checked: false },
+        { id: 'r2', text: 'Networking or job search', checked: false },
+        { id: 'r3', text: 'Complete key task/project', checked: false }
       ],
       courseSuggestion: '',
       affirmationSuggestion: ''
@@ -126,9 +126,9 @@ const getBlankBeliefs = (): HERCMBelief[] => {
       nextWeekTarget: '',
       nextActions: '',
       checklist: [
-        { id: 'c1', text: 'Task 1', checked: false },
-        { id: 'c2', text: 'Task 2', checked: false },
-        { id: 'c3', text: 'Task 3', checked: false }
+        { id: 'c1', text: 'Track daily expenses', checked: false },
+        { id: 'c2', text: 'Save/Invest percentage', checked: false },
+        { id: 'c3', text: 'Review budget/finances', checked: false }
       ],
       courseSuggestion: '',
       affirmationSuggestion: ''
