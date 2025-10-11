@@ -100,10 +100,6 @@ export const hercmWeeks = pgTable("hercm_weeks", {
   achievementRate: integer("achievement_rate"), // Percentage of goals achieved
   weekStatus: varchar("week_status").default('active').notNull(), // 'active', 'locked', 'completed'
   
-  // Task Completion Tracking (for admin accountability)
-  checklistCompleted: boolean("checklist_completed").default(false).notNull(),
-  courseCompleted: boolean("course_completed").default(false).notNull(),
-  
   // Health
   healthCurrentBelief: varchar("health_current_belief"),
   healthNextTarget: varchar("health_next_target"),

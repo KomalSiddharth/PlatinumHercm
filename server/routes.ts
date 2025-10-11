@@ -55,40 +55,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get current week data with targets from previous week
-  app.get('/api/hercm/current-week/:weekNumber', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const weekNumber = parseInt(req.params.weekNumber);
-      const year = new Date().getFullYear();
-      
-      const weeks = await storage.getHercmWeeksByUser(userId);
-      let currentWeek = weeks.find((w: any) => w.weekNumber === weekNumber && w.year === year);
-      
-      // If current week doesn't exist, create it with targets from previous week
-      if (!currentWeek) {
-        const previousWeek = weeks.find((w: any) => w.weekNumber === weekNumber - 1 && w.year === year);
-        
-        currentWeek = {
-          userId,
-          weekNumber,
-          year,
-          // Set targets from previous week's nextWeek goals
-          targetH: previousWeek?.nextWeekH || null,
-          targetE: previousWeek?.nextWeekE || null,
-          targetR: previousWeek?.nextWeekR || null,
-          targetC: previousWeek?.nextWeekC || null,
-          targetM: previousWeek?.nextWeekM || null,
-        };
-      }
-      
-      res.json(currentWeek);
-    } catch (error) {
-      console.error("Error fetching current week:", error);
-      res.status(500).json({ message: "Failed to fetch current week" });
-    }
-  });
-
   // Auto-fill next week goals based on current week data
   app.post('/api/hercm/auto-fill-goals', isAuthenticated, async (req: any, res) => {
     try {
