@@ -414,40 +414,21 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
         </div>
       </div>
 
-      {/* Unified Excel-Style Table */}
+      {/* Current Week Table */}
       <div className="border rounded-lg overflow-x-auto">
+        <div className="bg-red-100 dark:bg-red-950/40 px-4 py-2 border-b">
+          <h3 className="font-bold text-red-700 dark:text-red-400 text-lg">Current Week</h3>
+        </div>
         <Table>
           <TableHeader>
-            {/* Section Headers Row */}
             <TableRow className="bg-muted/50">
-              <TableHead className="font-bold border-r" rowSpan={2}>HERCM Area</TableHead>
-              <TableHead className="bg-red-100 dark:bg-red-950/40 font-bold text-center border-r" colSpan={5}>
-                <span className="text-red-700 dark:text-red-400">Current Week</span>
-              </TableHead>
-              <TableHead className="bg-emerald-100 dark:bg-emerald-950/40 font-bold text-center border-r" colSpan={5}>
-                <span className="text-emerald-700 dark:text-emerald-400">Next Week</span>
-              </TableHead>
-              <TableHead className="bg-blue-100 dark:bg-blue-950/40 font-bold text-center" colSpan={4}>
-                <span className="text-blue-700 dark:text-blue-400">AI & Progress</span>
-              </TableHead>
-            </TableRow>
-            {/* Column Headers Row */}
-            <TableRow className="bg-muted/50">
-              {/* Current Week Columns */}
+              <TableHead className="font-bold border-r">HERCM Area</TableHead>
               <TableHead className="w-[80px] bg-red-50 dark:bg-red-950/20 font-semibold">Rating</TableHead>
               <TableHead className="w-[180px] bg-red-50 dark:bg-red-950/20 font-semibold">Problems</TableHead>
               <TableHead className="w-[150px] bg-red-50 dark:bg-red-950/20 font-semibold">Feelings</TableHead>
               <TableHead className="w-[180px] bg-red-50 dark:bg-red-950/20 font-semibold">Beliefs/Reasons</TableHead>
               <TableHead className="w-[180px] bg-red-50 dark:bg-red-950/20 font-semibold border-r">Actions</TableHead>
               
-              {/* Next Week Columns */}
-              <TableHead className="w-[80px] bg-emerald-50 dark:bg-emerald-950/20 font-semibold">Target</TableHead>
-              <TableHead className="w-[180px] bg-emerald-50 dark:bg-emerald-950/20 font-semibold">Result</TableHead>
-              <TableHead className="w-[150px] bg-emerald-50 dark:bg-emerald-950/20 font-semibold">Feelings</TableHead>
-              <TableHead className="w-[180px] bg-emerald-50 dark:bg-emerald-950/20 font-semibold">Beliefs</TableHead>
-              <TableHead className="w-[180px] bg-emerald-50 dark:bg-emerald-950/20 font-semibold border-r">Actions</TableHead>
-              
-              {/* AI & Progress Columns */}
               <TableHead className="w-[180px] bg-blue-50 dark:bg-blue-950/20 font-semibold">
                 <div className="flex items-center gap-1">
                   <Sparkles className="w-3 h-3" />
@@ -627,6 +608,97 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
                   )}
                 </TableCell>
 
+                {/* AI - Course Suggestion */}
+                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10">
+                  <div className="text-xs" data-testid={`text-course-${belief.category.toLowerCase()}`}>
+                    {belief.courseSuggestion}
+                  </div>
+                </TableCell>
+
+                {/* AI - Affirmation */}
+                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10">
+                  <div className="text-xs italic" data-testid={`text-affirmation-${belief.category.toLowerCase()}`}>
+                    "{belief.affirmationSuggestion}"
+                  </div>
+                </TableCell>
+
+                {/* AI - Checklist */}
+                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10">
+                  <div className="space-y-1">
+                    {belief.checklist.map((item, idx) => (
+                      <label 
+                        key={item.id} 
+                        className="flex items-start gap-2 text-xs cursor-pointer hover-elevate rounded p-1"
+                        data-testid={`label-checklist-${belief.category.toLowerCase()}-${idx}`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={item.checked}
+                          onChange={() => handleChecklistToggle(belief.category, item.id)}
+                          className="mt-0.5 w-3.5 h-3.5 rounded border-blue-500 text-blue-500 focus:ring-blue-500 cursor-pointer"
+                          data-testid={`checkbox-checklist-${belief.category.toLowerCase()}-${idx}`}
+                        />
+                        <span className={item.checked ? 'line-through text-muted-foreground' : ''}>
+                          {item.text}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </TableCell>
+
+                {/* Progress */}
+                <TableCell className="text-center p-2 bg-blue-50/30 dark:bg-blue-950/10">
+                  <Badge className={getProgressColor(calculateProgress(belief.checklist))} data-testid={`badge-progress-${belief.category.toLowerCase()}`}>
+                    {calculateProgress(belief.checklist)}%
+                  </Badge>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Next Week Table */}
+      <div className="border rounded-lg overflow-x-auto mt-6">
+        <div className="bg-emerald-100 dark:bg-emerald-950/40 px-4 py-2 border-b">
+          <h3 className="font-bold text-emerald-700 dark:text-emerald-400 text-lg">Next Week</h3>
+        </div>
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted/50">
+              <TableHead className="font-bold border-r">HERCM Area</TableHead>
+              <TableHead className="w-[80px] bg-emerald-50 dark:bg-emerald-950/20 font-semibold">Target (+1)</TableHead>
+              <TableHead className="w-[180px] bg-emerald-50 dark:bg-emerald-950/20 font-semibold">Result</TableHead>
+              <TableHead className="w-[150px] bg-emerald-50 dark:bg-emerald-950/20 font-semibold">Feelings</TableHead>
+              <TableHead className="w-[180px] bg-emerald-50 dark:bg-emerald-950/20 font-semibold">Beliefs</TableHead>
+              <TableHead className="w-[180px] bg-emerald-50 dark:bg-emerald-950/20 font-semibold border-r">Actions</TableHead>
+              
+              <TableHead className="w-[180px] bg-blue-50 dark:bg-blue-950/20 font-semibold">
+                <div className="flex items-center gap-1">
+                  <Sparkles className="w-3 h-3" />
+                  Course
+                </div>
+              </TableHead>
+              <TableHead className="w-[180px] bg-blue-50 dark:bg-blue-950/20 font-semibold">
+                <div className="flex items-center gap-1">
+                  <Sparkles className="w-3 h-3" />
+                  Affirmation
+                </div>
+              </TableHead>
+              <TableHead className="w-[200px] bg-blue-50 dark:bg-blue-950/20 font-semibold">Checklist (3)</TableHead>
+              <TableHead className="w-[100px] bg-blue-50 dark:bg-blue-950/20 font-semibold text-center">Progress</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {beliefs.map((belief) => (
+              <TableRow key={`next-${belief.category}`} className="border-b" data-testid={`row-next-${belief.category.toLowerCase()}`}>
+                {/* Category Column */}
+                <TableCell className="font-semibold border-r bg-muted/20" data-testid={`cell-next-category-${belief.category.toLowerCase()}`}>
+                  <Badge variant="outline" className="font-semibold">
+                    {belief.category}
+                  </Badge>
+                </TableCell>
+
                 {/* Next Week - Target Rating (Auto +1) */}
                 <TableCell className="p-2 bg-emerald-50/30 dark:bg-emerald-950/10">
                   <Input
@@ -780,14 +852,14 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
 
                 {/* AI - Course Suggestion */}
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10">
-                  <div className="text-xs" data-testid={`text-course-${belief.category.toLowerCase()}`}>
+                  <div className="text-xs" data-testid={`text-course-next-${belief.category.toLowerCase()}`}>
                     {belief.courseSuggestion}
                   </div>
                 </TableCell>
 
                 {/* AI - Affirmation */}
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10">
-                  <div className="text-xs italic" data-testid={`text-affirmation-${belief.category.toLowerCase()}`}>
+                  <div className="text-xs italic" data-testid={`text-affirmation-next-${belief.category.toLowerCase()}`}>
                     "{belief.affirmationSuggestion}"
                   </div>
                 </TableCell>
@@ -799,14 +871,14 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
                       <label 
                         key={item.id} 
                         className="flex items-start gap-2 text-xs cursor-pointer hover-elevate rounded p-1"
-                        data-testid={`label-checklist-${belief.category.toLowerCase()}-${idx}`}
+                        data-testid={`label-checklist-next-${belief.category.toLowerCase()}-${idx}`}
                       >
                         <input
                           type="checkbox"
                           checked={item.checked}
                           onChange={() => handleChecklistToggle(belief.category, item.id)}
                           className="mt-0.5 w-3.5 h-3.5 rounded border-blue-500 text-blue-500 focus:ring-blue-500 cursor-pointer"
-                          data-testid={`checkbox-checklist-${belief.category.toLowerCase()}-${idx}`}
+                          data-testid={`checkbox-checklist-next-${belief.category.toLowerCase()}-${idx}`}
                         />
                         <span className={item.checked ? 'line-through text-muted-foreground' : ''}>
                           {item.text}
@@ -818,7 +890,7 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
 
                 {/* Progress */}
                 <TableCell className="text-center p-2 bg-blue-50/30 dark:bg-blue-950/10">
-                  <Badge className={getProgressColor(calculateProgress(belief.checklist))} data-testid={`badge-progress-${belief.category.toLowerCase()}`}>
+                  <Badge className={getProgressColor(calculateProgress(belief.checklist))} data-testid={`badge-progress-next-${belief.category.toLowerCase()}`}>
                     {calculateProgress(belief.checklist)}%
                   </Badge>
                 </TableCell>
