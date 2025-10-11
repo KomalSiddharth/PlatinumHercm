@@ -171,10 +171,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const approvedEmail = await storage.getApprovedEmail(email);
       
       if (!approvedEmail || approvedEmail.status !== 'active') {
+        // Log failed attempt
+        await storage.createAccessLog({
+          email,
+          status: 'failed',
+          ipAddress: req.ip || req.headers['x-forwarded-for'] as string || 'unknown',
+          userAgent: req.headers['user-agent'] || 'unknown'
+        });
         return res.status(403).json({ message: "Your email is not approved. Please contact admin." });
       }
 
       await storage.incrementAccessCount(email);
+      
+      // Log successful attempt
+      await storage.createAccessLog({
+        email,
+        status: 'success',
+        ipAddress: req.ip || req.headers['x-forwarded-for'] as string || 'unknown',
+        userAgent: req.headers['user-agent'] || 'unknown'
+      });
       
       req.session.userEmail = email;
       req.session.isAdmin = false;
@@ -194,9 +209,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Email is required" });
       }
 
-      const user = await storage.getUserByEmail(email);
+      // Check admin users table
+      const adminUser = await storage.getAdminUser(email);
       
-      if (!user || !user.isAdmin) {
+      if (!adminUser || adminUser.status !== 'active') {
         return res.status(403).json({ message: "You are not authorized as admin" });
       }
 
@@ -216,6 +232,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Not authenticated" });
       }
 
+      // Check if admin first
+      if (req.session.isAdmin) {
+        const adminUser = await storage.getAdminUser(req.session.userEmail);
+        
+        if (adminUser) {
+          // Extract first name from admin's name
+          const firstName = adminUser.name.split(' ')[0];
+          return res.json({ 
+            email: adminUser.email, 
+            firstName,
+            lastName: adminUser.name.split(' ').slice(1).join(' ') || ''
+          });
+        }
+      }
+
+      // Regular user
       const user = await storage.getUserByEmail(req.session.userEmail);
       
       if (!user) {
@@ -307,6 +339,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching admin stats:", error);
       res.status(500).json({ message: "Failed to fetch stats" });
+    }
+  });
+
+  // Admin Users (Team Management) endpoints
+  app.get('/api/admin/team', async (req, res) => {
+    try {
+      const admins = await storage.getAllAdminUsers();
+      res.json(admins);
+    } catch (error) {
+      console.error("Error fetching admin users:", error);
+      res.status(500).json({ message: "Failed to fetch admin users" });
+    }
+  });
+
+  app.post('/api/admin/team', async (req, res) => {
+    try {
+      const { name, email, role, status } = req.body;
+      
+      if (!name || !email) {
+        return res.status(400).json({ message: "Name and email are required" });
+      }
+
+      const newAdmin = await storage.addAdminUser({ 
+        name, 
+        email, 
+        role: role || 'admin',
+        status: status || 'active'
+      });
+      res.json(newAdmin);
+    } catch (error: any) {
+      console.error("Error adding admin user:", error);
+      if (error.message?.includes('duplicate') || error.code === '23505') {
+        return res.status(400).json({ message: "Email already exists" });
+      }
+      res.status(500).json({ message: "Failed to add admin user" });
+    }
+  });
+
+  app.put('/api/admin/team/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { name, email, role, status } = req.body;
+      
+      const updatedAdmin = await storage.updateAdminUser(id, { name, email, role, status });
+      res.json(updatedAdmin);
+    } catch (error) {
+      console.error("Error updating admin user:", error);
+      res.status(500).json({ message: "Failed to update admin user" });
+    }
+  });
+
+  app.delete('/api/admin/team/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteAdminUser(id);
+      res.json({ success: true, message: "Admin user deleted" });
+    } catch (error) {
+      console.error("Error deleting admin user:", error);
+      res.status(500).json({ message: "Failed to delete admin user" });
+    }
+  });
+
+  // Access Logs endpoints
+  app.get('/api/admin/access-logs', async (req, res) => {
+    try {
+      const logs = await storage.getAllAccessLogs();
+      res.json(logs);
+    } catch (error) {
+      console.error("Error fetching access logs:", error);
+      res.status(500).json({ message: "Failed to fetch access logs" });
     }
   });
 
