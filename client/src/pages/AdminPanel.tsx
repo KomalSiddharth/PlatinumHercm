@@ -33,6 +33,7 @@ import { Textarea } from '@/components/ui/textarea';
 
 export default function AdminPanel() {
   const [, setLocation] = useLocation();
+  const [activeTab, setActiveTab] = useState<'approved' | 'team' | 'logs'>('approved');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -280,13 +281,37 @@ export default function AdminPanel() {
           {/* Tabs */}
           <div className="border-b border-gray-200 dark:border-gray-700">
             <div className="flex gap-6 px-6 pt-4">
-              <button className="pb-3 border-b-2 border-blue-600 text-blue-600 font-medium" data-testid="tab-approved">
+              <button 
+                onClick={() => setActiveTab('approved')}
+                className={`pb-3 border-b-2 transition-colors ${
+                  activeTab === 'approved' 
+                    ? 'border-blue-600 text-blue-600 font-medium' 
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                }`}
+                data-testid="tab-approved"
+              >
                 Approved Emails
               </button>
-              <button className="pb-3 text-gray-500 dark:text-gray-400" data-testid="tab-team">
+              <button 
+                onClick={() => setActiveTab('team')}
+                className={`pb-3 border-b-2 transition-colors ${
+                  activeTab === 'team' 
+                    ? 'border-blue-600 text-blue-600 font-medium' 
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                }`}
+                data-testid="tab-team"
+              >
                 Team Management
               </button>
-              <button className="pb-3 text-gray-500 dark:text-gray-400" data-testid="tab-logs">
+              <button 
+                onClick={() => setActiveTab('logs')}
+                className={`pb-3 border-b-2 transition-colors ${
+                  activeTab === 'logs' 
+                    ? 'border-blue-600 text-blue-600 font-medium' 
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                }`}
+                data-testid="tab-logs"
+              >
                 Access Logs
               </button>
             </div>

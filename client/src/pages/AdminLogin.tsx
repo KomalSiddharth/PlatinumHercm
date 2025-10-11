@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { Loader2, Shield, ArrowLeft, Lock } from 'lucide-react';
-import mkLogo from '@assets/Screenshot 2025-10-09 165931_1760165935397.png';
+import mkLogo from '@assets/Screenshot 2025-10-11 130038_1760168623219.png';
 
 export default function AdminLogin() {
   const [, setLocation] = useLocation();
