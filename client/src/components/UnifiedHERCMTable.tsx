@@ -17,6 +17,12 @@ import { apiRequest } from '@/lib/queryClient';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import WeekComparison from './WeekComparison';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface ChecklistItem {
   id: string;
@@ -138,8 +144,8 @@ const getBlankBeliefs = (): HERCMBelief[] => {
 
 // Week-specific belief data generator  
 const getWeekBeliefs = (week: number): HERCMBelief[] => {
-  // TODO: In production, fetch from database and check if data exists
-  // For now, show demo data for week 1, blank for others to demonstrate concept
+  // Week 1: Pre-filled demo data for demonstration
+  // Week 2+: Blank template for user to fill (after AI auto-fill if they want)
   
   if (week === 1) {
     // Demo week with sample data to show the system works
@@ -225,175 +231,10 @@ const getWeekBeliefs = (week: number): HERCMBelief[] => {
         affirmationSuggestion: "Money flows to me naturally"
       }
     ];
-  } else if (week === 2) {
-    return [
-      {
-        category: 'Health',
-        currentRating: 5,
-        problems: "Weight reduced by 200gms, Less anxiety",
-        currentFeelings: "Active, Relaxed, Calm",
-        currentBelief: "I am building healthy habits",
-        currentActions: "Walking 2000 steps, practicing ALOA",
-        targetRating: 6,
-        result: "I will lose 500 gms, Anxiety under control",
-        nextFeelings: "Energetic, Peaceful, Strong",
-        nextWeekTarget: "I prioritize my health consistently",
-        nextActions: "20 min morning walk, Meal prep Sunday",
-        checklist: [
-          { id: 'h1', text: "20 min morning walk", checked: false },
-          { id: 'h2', text: "Meal prep Sunday", checked: false },
-          { id: 'h3', text: "Yoga 3x per week", checked: false }
-        ],
-        courseSuggestion: "Health Mastery - Module 2",
-        affirmationSuggestion: "My body is my temple"
-      },
-      {
-        category: 'Relationship',
-        currentRating: 6,
-        problems: "Better communication with Boss",
-        currentFeelings: "Happy, Peaceful, Connected",
-        currentBelief: "I build meaningful connections",
-        currentActions: "Daily gratitude, Active listening",
-        targetRating: 7,
-        result: "Strong bond with partner and boss",
-        nextFeelings: "Loved, Appreciated, Joyful",
-        nextWeekTarget: "I communicate with love and clarity",
-        nextActions: "Plan date night, Express gratitude 5x",
-        checklist: [
-          { id: 'e1', text: "Daily gratitude practice", checked: false },
-          { id: 'e2', text: "Plan date night", checked: false },
-          { id: 'e3', text: "Active listening 15 min", checked: false }
-        ],
-        courseSuggestion: "Relationship Mastery - Communication",
-        affirmationSuggestion: "I express love freely"
-      },
-      {
-        category: 'Career',
-        currentRating: 5,
-        problems: "Got job interview calls",
-        currentFeelings: "Confident, Motivated",
-        currentBelief: "I take steps toward my goals",
-        currentActions: "Applied to 5 jobs, Updated resume",
-        targetRating: 6,
-        result: "Received job offer",
-        nextFeelings: "Successful, Fulfilled, Proud",
-        nextWeekTarget: "I am worthy of success and recognition",
-        nextActions: "Complete project milestone, Network actively",
-        checklist: [
-          { id: 'r1', text: "Complete project milestone", checked: false },
-          { id: 'r2', text: "Speak up in meetings", checked: false },
-          { id: 'r3', text: "Request feedback", checked: false }
-        ],
-        courseSuggestion: "Career Excellence - Leadership",
-        affirmationSuggestion: "I deserve success"
-      },
-      {
-        category: 'Money',
-        currentRating: 4,
-        problems: "Saved 10% of income successfully",
-        currentFeelings: "Abundant, Secure",
-        currentBelief: "I manage money wisely",
-        currentActions: "Tracking expenses, Saving 10%",
-        targetRating: 5,
-        result: "Saved 15% of income, Created emergency fund",
-        nextFeelings: "Wealthy, Grateful, Free",
-        nextWeekTarget: "Money flows to me with ease",
-        nextActions: "Increase savings, Explore investments",
-        checklist: [
-          { id: 'c1', text: "Automate savings", checked: false },
-          { id: 'c2', text: "Research investments", checked: false },
-          { id: 'c3', text: "Cut 2 unnecessary expenses", checked: false }
-        ],
-        courseSuggestion: "Wealth Building - Module 2",
-        affirmationSuggestion: "I attract abundance"
-      }
-    ];
-  } else if (week === 3) {
-    return [
-      {
-        category: 'Health',
-        currentRating: 6,
-        problems: "Lost 500gms, Anxiety controlled",
-        currentFeelings: "Energetic, Peaceful, Strong",
-        currentBelief: "I prioritize my health consistently",
-        currentActions: "Morning walks, Meal prepping, Yoga 3x",
-        targetRating: 7,
-        result: "Reached ideal weight, Completely anxiety-free",
-        nextFeelings: "Vibrant, Balanced, Healthy",
-        nextWeekTarget: "I love and care for my body",
-        nextActions: "Gym 4x week, Healthy meal plan",
-        checklist: [
-          { id: 'h1', text: "Gym 4x per week", checked: false },
-          { id: 'h2', text: "Follow meal plan", checked: false },
-          { id: 'h3', text: "Sleep 8 hours daily", checked: false }
-        ],
-        courseSuggestion: "Advanced Health Optimization",
-        affirmationSuggestion: "I am the healthiest version of myself"
-      },
-      {
-        category: 'Relationship',
-        currentRating: 7,
-        problems: "Strong bond with all relationships",
-        currentFeelings: "Loved, Appreciated, Joyful",
-        currentBelief: "I communicate with love and clarity",
-        currentActions: "Date nights, Gratitude practice, Active listening",
-        targetRating: 8,
-        result: "Deep connection with family and colleagues",
-        nextFeelings: "Fulfilled, Cherished, Peaceful",
-        nextWeekTarget: "I attract loving relationships",
-        nextActions: "Family time 3x week, Resolve conflicts peacefully",
-        checklist: [
-          { id: 'e1', text: "Family bonding activities", checked: false },
-          { id: 'e2', text: "Weekly date night", checked: false },
-          { id: 'e3', text: "Practice empathy daily", checked: false }
-        ],
-        courseSuggestion: "Deep Connection Mastery",
-        affirmationSuggestion: "I am surrounded by love"
-      },
-      {
-        category: 'Career',
-        currentRating: 6,
-        problems: "Got promotion, recognized at work",
-        currentFeelings: "Successful, Fulfilled, Proud",
-        currentBelief: "I am worthy of success and recognition",
-        currentActions: "Taking initiative, Networking, Upskilling",
-        targetRating: 7,
-        result: "Leading important projects, Becoming expert",
-        nextFeelings: "Accomplished, Confident, Respected",
-        nextWeekTarget: "I create value and impact",
-        nextActions: "Lead team project, Mentor junior colleagues",
-        checklist: [
-          { id: 'r1', text: "Lead team meeting", checked: false },
-          { id: 'r2', text: "Complete certification", checked: false },
-          { id: 'r3', text: "Mentor 2 colleagues", checked: false }
-        ],
-        courseSuggestion: "Leadership Excellence",
-        affirmationSuggestion: "I am a natural leader"
-      },
-      {
-        category: 'Money',
-        currentRating: 5,
-        problems: "Saved 15%, Started emergency fund",
-        currentFeelings: "Wealthy, Grateful, Free",
-        currentBelief: "Money flows to me with ease",
-        currentActions: "Automated savings, Researching investments",
-        targetRating: 6,
-        result: "Built 3-month emergency fund, First investment",
-        nextFeelings: "Prosperous, Abundant, Secure",
-        nextWeekTarget: "I build lasting wealth",
-        nextActions: "Open investment account, Increase income",
-        checklist: [
-          { id: 'c1', text: "Start investment portfolio", checked: false },
-          { id: 'c2', text: "Side income stream", checked: false },
-          { id: 'c3', text: "Financial planning session", checked: false }
-        ],
-        courseSuggestion: "Investment Foundations",
-        affirmationSuggestion: "Wealth flows to me effortlessly"
-      }
-    ];
   }
   
-  // For all other weeks, return blank template (user fills data)
+  // All other weeks (2, 3, 4+): Start with blank template
+  // User can fill manually or use AI auto-fill
   return getBlankBeliefs();
 };
 
@@ -415,6 +256,7 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
   const [editValue, setEditValue] = useState('');
   const [loadingCourses, setLoadingCourses] = useState<Set<string>>(new Set());
   const [autoFilling, setAutoFilling] = useState(false);
+  const [showComparison, setShowComparison] = useState(false);
   const { toast } = useToast();
 
   // Fetch week data from database
@@ -636,7 +478,11 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Badge className={getProgressColor(weeklyProgress)} data-testid="badge-weekly-progress">
+          <Badge 
+            className={`${getProgressColor(weeklyProgress)} cursor-pointer hover-elevate active-elevate-2`} 
+            data-testid="badge-weekly-progress"
+            onClick={() => setShowComparison(true)}
+          >
             {weeklyProgress}% Weekly Progress
           </Badge>
           <Button 
@@ -676,10 +522,21 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
         </div>
       </div>
 
-      {/* Week-over-Week Comparison (only show for week 2+) */}
-      {weekNumber > 1 && comparisonData.length > 0 && (
-        <WeekComparison comparisons={comparisonData} />
-      )}
+      {/* Week-over-Week Comparison Dialog */}
+      <Dialog open={showComparison} onOpenChange={setShowComparison}>
+        <DialogContent className="max-w-5xl">
+          <DialogHeader>
+            <DialogTitle>Week-over-Week Progress Comparison</DialogTitle>
+          </DialogHeader>
+          {weekNumber > 1 && comparisonData.length > 0 ? (
+            <WeekComparison comparisons={comparisonData} />
+          ) : (
+            <p className="text-muted-foreground text-center py-8">
+              Comparison available from Week 2 onwards
+            </p>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Current Week Table */}
       <div className="border-2 border-rose-300 dark:border-rose-700 rounded-lg overflow-x-auto shadow-lg">
