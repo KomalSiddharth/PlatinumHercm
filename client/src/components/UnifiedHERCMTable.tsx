@@ -856,7 +856,9 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
                     </div>
                   ) : (
                     <div className="group relative">
-                      <div className="text-xs" data-testid={`text-next-problems-${belief.category.toLowerCase()}`}>{belief.result}</div>
+                      <div className="text-xs" data-testid={`text-next-problems-${belief.category.toLowerCase()}`}>
+                        {belief.result || <span className="text-muted-foreground italic">Click to add target result...</span>}
+                      </div>
                       <Button
                         size="sm"
                         variant="ghost"
@@ -891,7 +893,9 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
                     </div>
                   ) : (
                     <div className="group relative">
-                      <div className="text-xs" data-testid={`text-next-feelings-${belief.category.toLowerCase()}`}>{belief.nextFeelings}</div>
+                      <div className="text-xs" data-testid={`text-next-feelings-${belief.category.toLowerCase()}`}>
+                        {belief.nextFeelings || <span className="text-muted-foreground italic">Click to add feelings...</span>}
+                      </div>
                       <Button
                         size="sm"
                         variant="ghost"
@@ -926,7 +930,9 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
                     </div>
                   ) : (
                     <div className="group relative">
-                      <div className="text-xs" data-testid={`text-next-beliefs-${belief.category.toLowerCase()}`}>{belief.nextWeekTarget}</div>
+                      <div className="text-xs" data-testid={`text-next-beliefs-${belief.category.toLowerCase()}`}>
+                        {belief.nextWeekTarget || <span className="text-muted-foreground italic">Click to add beliefs...</span>}
+                      </div>
                       <Button
                         size="sm"
                         variant="ghost"
@@ -961,7 +967,9 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
                     </div>
                   ) : (
                     <div className="group relative">
-                      <div className="text-xs" data-testid={`text-next-actions-${belief.category.toLowerCase()}`}>{belief.nextActions}</div>
+                      <div className="text-xs" data-testid={`text-next-actions-${belief.category.toLowerCase()}`}>
+                        {belief.nextActions || <span className="text-muted-foreground italic">Click to add actions...</span>}
+                      </div>
                       <Button
                         size="sm"
                         variant="ghost"
