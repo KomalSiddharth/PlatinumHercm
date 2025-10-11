@@ -417,7 +417,7 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
       {/* Current Week Table */}
       <div className="border rounded-lg overflow-x-auto">
         <div className="bg-red-100 dark:bg-red-950/40 px-4 py-2 border-b">
-          <h3 className="font-bold text-red-700 dark:text-red-400 text-lg">Current Week</h3>
+          <h3 className="font-bold text-red-700 dark:text-red-400 text-lg text-center">Current Week</h3>
         </div>
         <Table>
           <TableHeader>
@@ -648,7 +648,7 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
       {/* Next Week Table */}
       <div className="border rounded-lg overflow-x-auto mt-6">
         <div className="bg-emerald-100 dark:bg-emerald-950/40 px-4 py-2 border-b">
-          <h3 className="font-bold text-emerald-700 dark:text-emerald-400 text-lg">Next Week</h3>
+          <h3 className="font-bold text-emerald-700 dark:text-emerald-400 text-lg text-center">Next Week</h3>
         </div>
         <Table>
           <TableHeader>
