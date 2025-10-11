@@ -678,11 +678,9 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
               <SelectContent>
                 {Array.from({ length: totalMonths }, (_, i) => i + 1).map((month) => {
                   const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-                  const startWeek = (month - 1) * 4 + 1;
-                  const endWeek = month * 4;
                   return (
                     <SelectItem key={month} value={month.toString()}>
-                      {monthNames[month - 1]} - Week {startWeek}-{endWeek}
+                      {monthNames[month - 1]}
                     </SelectItem>
                   );
                 })}
