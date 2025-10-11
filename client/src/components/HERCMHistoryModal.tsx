@@ -20,7 +20,11 @@ interface ChecklistItem {
 
 interface HERCMArea {
   category: 'Health' | 'Relationship' | 'Career' | 'Money';
+  currentRating?: number;
+  problems?: string;
+  currentFeelings?: string;
   currentBelief: string;
+  currentActions?: string;
   nextWeekTarget: string;
   courseSuggestion: string;
   affirmation: string;
@@ -122,7 +126,11 @@ const generateHistoricalData = (currentWeek: number): WeekData[] => {
       areas: [
         {
           category: 'Health',
+          currentRating: week === 1 ? 3 : week === 2 ? 5 : 7,
+          problems: week === 1 ? "Anxiety due to financial stress, poor sleep" : week === 2 ? "Inconsistent exercise routine" : "Minor energy dips",
+          currentFeelings: week === 1 ? "Stressed, anxious" : week === 2 ? "Hopeful, motivated" : "Energized, healthy",
           currentBelief: week === 1 ? "I have anxiety because of financial problems" : week === 2 ? "I am building healthy habits" : "I feel energized and healthy",
+          currentActions: week === 1 ? "Started breathing exercises" : week === 2 ? "Walking 3x per week" : "Daily exercise routine",
           nextWeekTarget: week === 1 ? "I create healthy habits that reduce my anxiety" : week === 2 ? "I maintain consistent healthy routines" : "I am a model of health and wellness",
           courseSuggestion: week === 1 ? "Health Foundations - Module 1" : week === 2 ? "Health Foundations - Module 2" : "Advanced Health - Module 1",
           affirmation: week === 1 ? "I am disciplined and consistent" : week === 2 ? "Health flows through me naturally" : "I am vibrant and full of energy",
@@ -131,7 +139,11 @@ const generateHistoricalData = (currentWeek: number): WeekData[] => {
         },
         {
           category: 'Relationship',
+          currentRating: week === 1 ? 4 : week === 2 ? 6 : 8,
+          problems: week === 1 ? "Anger issues with family, boss not supportive" : week === 2 ? "Communication gaps" : "Minor misunderstandings",
+          currentFeelings: week === 1 ? "Frustrated, angry" : week === 2 ? "Improving, calm" : "Connected, loved",
           currentBelief: week === 1 ? "I get angry at my family. My boss is not supporting me" : week === 2 ? "I am improving communication" : "My relationships are harmonious",
+          currentActions: week === 1 ? "Practicing active listening" : week === 2 ? "Daily gratitude practice" : "Quality time with loved ones",
           nextWeekTarget: week === 1 ? "My boss and I have mutual respect. I communicate with love" : week === 2 ? "I express love and gratitude daily" : "I am surrounded by loving relationships",
           courseSuggestion: week === 1 ? "Relationship Basics - Module 1" : week === 2 ? "Relationship Basics - Module 2" : "Advanced Communication - Module 1",
           affirmation: week === 1 ? "I am worthy of love and connection" : week === 2 ? "I attract positive relationships" : "Love surrounds me everywhere",
@@ -140,7 +152,11 @@ const generateHistoricalData = (currentWeek: number): WeekData[] => {
         },
         {
           category: 'Career',
+          currentRating: week === 1 ? 2 : week === 2 ? 5 : 7,
+          problems: week === 1 ? "Lack of skills, no good opportunities" : week === 2 ? "Need more practice" : "Minor skill gaps",
+          currentFeelings: week === 1 ? "Insecure, worried" : week === 2 ? "Learning, growing" : "Confident, capable",
           currentBelief: week === 1 ? "I am not skilled enough for better opportunities" : week === 2 ? "I am developing valuable skills" : "I am confident in my abilities",
+          currentActions: week === 1 ? "Updating resume" : week === 2 ? "Skill development courses" : "Networking actively",
           nextWeekTarget: week === 1 ? "I am worthy of success and recognition" : week === 2 ? "I attract great opportunities" : "Success comes to me naturally",
           courseSuggestion: week === 1 ? "Career Growth - Module 1" : week === 2 ? "Career Growth - Module 2" : "Leadership Mastery - Module 1",
           affirmation: week === 1 ? "I am capable of achieving my dreams" : week === 2 ? "Opportunities flow to me" : "I am a leader in my field",
@@ -149,7 +165,11 @@ const generateHistoricalData = (currentWeek: number): WeekData[] => {
         },
         {
           category: 'Money',
+          currentRating: week === 1 ? 3 : week === 2 ? 5 : 7,
+          problems: week === 1 ? "Not earning enough, can't save" : week === 2 ? "Irregular savings" : "Minor budget issues",
+          currentFeelings: week === 1 ? "Worried, stressed" : week === 2 ? "Building discipline" : "Abundant, secure",
           currentBelief: week === 1 ? "I don't earn enough to save" : week === 2 ? "I am building financial discipline" : "Money flows to me abundantly",
+          currentActions: week === 1 ? "Tracking expenses" : week === 2 ? "Saving 10% income" : "Multiple income streams",
           nextWeekTarget: week === 1 ? "Money flows to me naturally" : week === 2 ? "I create multiple income streams" : "I am financially abundant",
           courseSuggestion: week === 1 ? "Financial Literacy - Module 1" : week === 2 ? "Financial Literacy - Module 2" : "Wealth Building - Module 1",
           affirmation: week === 1 ? "Money flows to me naturally" : week === 2 ? "I attract wealth effortlessly" : "I am a money magnet",
@@ -320,55 +340,55 @@ export default function HERCMHistoryModal({ open, onOpenChange, currentWeek }: H
                 </Badge>
               </div>
 
-              {/* Week Table with New Colorful Design */}
-              <div className="border-2 border-purple-300 dark:border-purple-700 rounded-lg overflow-x-auto shadow-lg">
-                <div className="bg-gradient-to-r from-purple-400 to-indigo-500 dark:from-purple-600 dark:to-indigo-700 px-4 py-3 border-b-2 border-purple-300 dark:border-purple-800">
-                  <h3 className="font-bold text-white text-lg text-center drop-shadow-md">Week {weekToDisplay.weekNumber} Snapshot</h3>
+              {/* Week Table - Current Week Format */}
+              <div className="border-2 border-rose-300 dark:border-rose-700 rounded-lg overflow-x-auto shadow-lg">
+                <div className="bg-gradient-to-r from-rose-400 to-pink-500 dark:from-rose-600 dark:to-pink-700 px-4 py-3 border-b-2 border-rose-300 dark:border-rose-800">
+                  <h3 className="font-bold text-white text-xl text-center drop-shadow-md">Week {weekToDisplay.weekNumber} Snapshot</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950/30 dark:to-indigo-950/30">
-                        <th className="p-3 text-left text-sm font-semibold border-r">HERCM Area</th>
-                        <th className="p-3 text-left text-sm font-semibold bg-purple-100 dark:bg-purple-900/40">Current Belief</th>
-                        <th className="p-3 text-left text-sm font-semibold bg-purple-100 dark:bg-purple-900/40">Next Week Target</th>
-                        <th className="p-3 text-left text-sm font-semibold bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/40 dark:to-blue-900/40">Course Suggestion</th>
-                        <th className="p-3 text-left text-sm font-semibold bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-900/40 dark:to-yellow-900/40">Affirmation</th>
-                        <th className="p-3 text-left text-sm font-semibold bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/40 dark:to-emerald-900/40">Action Checklist</th>
-                        <th className="p-3 text-left text-sm font-semibold bg-gradient-to-r from-pink-100 to-rose-100 dark:from-pink-900/40 dark:to-rose-900/40">Progress</th>
+                      <tr className="bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-950/30 dark:to-pink-950/30">
+                        <th className="p-3 text-left text-sm font-bold border-r">HERCM Area</th>
+                        <th className="p-3 text-left text-sm font-semibold bg-rose-100 dark:bg-rose-900/40 w-[80px]">Rating</th>
+                        <th className="p-3 text-left text-sm font-semibold bg-rose-100 dark:bg-rose-900/40 w-[180px]">Problems</th>
+                        <th className="p-3 text-left text-sm font-semibold bg-rose-100 dark:bg-rose-900/40 w-[150px]">Feelings</th>
+                        <th className="p-3 text-left text-sm font-semibold bg-rose-100 dark:bg-rose-900/40 w-[180px]">Beliefs/Reasons</th>
+                        <th className="p-3 text-left text-sm font-semibold bg-rose-100 dark:bg-rose-900/40 w-[180px] border-r">Actions</th>
+                        <th className="p-3 text-left text-sm font-semibold bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/40 dark:to-blue-900/40 w-[180px]">AI Course</th>
+                        <th className="p-3 text-left text-sm font-semibold bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900/40 dark:to-violet-900/40 w-[200px]">Checklist (3)</th>
+                        <th className="p-3 text-center text-sm font-semibold bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 w-[100px]">Progress</th>
                       </tr>
                     </thead>
                     <tbody>
                       {weekToDisplay.areas.map((area) => (
-                        <tr key={area.category} className="border-b last:border-0 hover:bg-muted/30 transition-colors" data-testid={`history-row-${area.category.toLowerCase()}-week-${weekToDisplay.weekNumber}`}>
-                          <td className="p-3 border-r bg-muted/10">
-                            <Badge variant="outline" className={`font-semibold ${getCategoryColor(area.category)}`}>
+                        <tr key={area.category} className="border-b last:border-0" data-testid={`history-row-${area.category.toLowerCase()}-week-${weekToDisplay.weekNumber}`}>
+                          <td className="p-3 border-r bg-muted/20">
+                            <Badge variant="outline" className="font-semibold">
                               {area.category}
                             </Badge>
                           </td>
-                          <td className="p-3 bg-purple-50/30 dark:bg-purple-950/10">
-                            <div className="rounded-md bg-white/50 dark:bg-black/20 border border-purple-200 dark:border-purple-800 p-2 text-sm">
-                              {area.currentBelief}
-                            </div>
+                          <td className="p-2 bg-red-50/30 dark:bg-red-950/10">
+                            <div className="text-center font-medium">{area.currentRating || '-'}</div>
                           </td>
-                          <td className="p-3 bg-purple-50/30 dark:bg-purple-950/10">
-                            <div className="rounded-md bg-white/50 dark:bg-black/20 border border-purple-200 dark:border-purple-800 p-2 text-sm">
-                              {area.nextWeekTarget}
-                            </div>
+                          <td className="p-2 bg-red-50/30 dark:bg-red-950/10">
+                            <div className="text-xs">{area.problems || '-'}</div>
                           </td>
-                          <td className="p-3 bg-cyan-50/30 dark:bg-cyan-950/10">
-                            <div className="rounded-md bg-white/50 dark:bg-black/20 border border-cyan-200 dark:border-cyan-800 p-2 text-sm">
-                              {area.courseSuggestion}
-                            </div>
+                          <td className="p-2 bg-red-50/30 dark:bg-red-950/10">
+                            <div className="text-xs">{area.currentFeelings || '-'}</div>
                           </td>
-                          <td className="p-3 bg-amber-50/30 dark:bg-amber-950/10">
-                            <div className="rounded-md bg-white/50 dark:bg-black/20 border border-amber-200 dark:border-amber-800 p-2 text-sm italic">
-                              "{area.affirmation}"
-                            </div>
+                          <td className="p-2 bg-red-50/30 dark:bg-red-950/10">
+                            <div className="text-xs">{area.currentBelief || '-'}</div>
                           </td>
-                          <td className="p-3 bg-green-50/30 dark:bg-green-950/10">
+                          <td className="p-2 bg-red-50/30 dark:bg-red-950/10 border-r">
+                            <div className="text-xs">{area.currentActions || '-'}</div>
+                          </td>
+                          <td className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10">
+                            <div className="text-xs">{area.courseSuggestion || '-'}</div>
+                          </td>
+                          <td className="p-2 bg-purple-50/30 dark:bg-purple-950/10">
                             <div className="space-y-1">
-                              {area.checklist.map((item) => (
+                              {area.checklist && area.checklist.length > 0 ? area.checklist.map((item) => (
                                 <div key={item.id} className="flex items-center gap-2">
                                   <Checkbox 
                                     checked={item.checked} 
@@ -379,10 +399,10 @@ export default function HERCMHistoryModal({ open, onOpenChange, currentWeek }: H
                                     {item.text}
                                   </span>
                                 </div>
-                              ))}
+                              )) : <span className="text-xs text-muted-foreground">-</span>}
                             </div>
                           </td>
-                          <td className="p-3 text-center bg-pink-50/30 dark:bg-pink-950/10">
+                          <td className="p-2 text-center bg-emerald-50/30 dark:bg-emerald-950/10">
                             <Badge className={getProgressColor(area.progress)}>
                               {area.progress}%
                             </Badge>
