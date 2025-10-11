@@ -26,6 +26,13 @@ Preferred communication style: Simple, everyday language.
 - **History Modal Cleanup**: Removed all analytics (charts, graphs) from History modal - now shows only week-wise table snapshots; title changed to "HERCM History"
 - **History Modal Table Format Update**: Updated History modal to show exact Current Week table format with all columns (Rating, Problems, Feelings, Beliefs/Reasons, Actions, AI Course, Checklist, Progress) matching the main Current Week table design
 - **Monthly Analytics Enhancement**: Monthly Progress Analytics now displays all 12 months (January-December) in the month selector dropdown; dropdown shows only month names (no week ranges); each month's analytics shows Week 1-4 (relative to that month, not cumulative); line chart, bar chart, and improvement summary all display weeks as 1-4 for any selected month; gracefully handles months without data by using template fallbacks
+- **Admin Panel Enhancement - Coach/Trainer Platform**: Transformed admin panel into professional coach/trainer dashboard (rated 9/10 by user)
+  - **Enhanced Analytics Dashboard**: Added summary cards (Total Users, Avg Achievement, Top Performers, Need Support) and comparison bar charts (Achievement Rate, Score Distribution) using Recharts
+  - **User Drill-Down View**: Added UserDetailDialog showing complete HERCM history for any user with summary cards, week-by-week breakdown, and progress trend line chart - enables coach to verify user claims with proof
+  - **Access Log Tracking**: Admin login now creates access_logs entries for audit trail (email, status, IP, user agent, timestamp)
+  - **Route Fix**: Added /admin → /admin/login redirect in App.tsx for better UX
+  - **Auth Middleware Fix**: Updated isAdmin middleware to support both session-based admin auth (req.session.isAdmin) and OIDC auth (req.user.claims) for dual authentication support
+  - **Approved Emails System**: Working access control - only approved emails can login to user dashboard
 
 ## System Architecture
 
