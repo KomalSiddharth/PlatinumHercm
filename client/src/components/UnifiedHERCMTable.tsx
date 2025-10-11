@@ -23,6 +23,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
@@ -345,6 +352,7 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
   const [loadingCourses, setLoadingCourses] = useState<Set<string>>(new Set());
   const [autoFilling, setAutoFilling] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   const { toast } = useToast();
 
   // Fetch current week data from database
@@ -357,6 +365,32 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
   const { data: previousWeekData } = useQuery<{ beliefs?: HERCMBelief[] }>({
     queryKey: ['/api/hercm/week', weekNumber - 1],
     enabled: weekNumber > 1,
+  });
+
+  // Calculate active month and weeks in it
+  const activeMonth = selectedMonth || Math.ceil(weekNumber / 4);
+  const weeksInMonth = (() => {
+    const startWeek = (activeMonth - 1) * 4 + 1;
+    const endWeek = Math.min(activeMonth * 4, weekNumber);
+    return Array.from({ length: endWeek - startWeek + 1 }, (_, i) => startWeek + i);
+  })();
+
+  // Fetch all weeks data for the selected month
+  const { data: allWeeksData } = useQuery({
+    queryKey: ['/api/hercm/weeks'],
+    enabled: showComparison && weeksInMonth.length > 0,
+  });
+
+  // Process month data for analytics
+  const monthWeeksData = weeksInMonth.map(week => {
+    const weekDataFromAPI = Array.isArray(allWeeksData) 
+      ? allWeeksData.find((w: any) => w.weekNumber === week)
+      : null;
+    const beliefs = weekDataFromAPI?.beliefs || getWeekBeliefs(week);
+    const progress = beliefs.length > 0
+      ? Math.round(beliefs.reduce((sum: number, b: any) => sum + calculateProgress(b.checklist || []), 0) / beliefs.length)
+      : 0;
+    return { week, beliefs, progress };
   });
 
   useEffect(() => {
@@ -625,88 +659,112 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
       <Dialog open={showComparison} onOpenChange={setShowComparison}>
         <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Week-over-Week Progress Comparison</DialogTitle>
+            <DialogTitle>Monthly Progress Analytics</DialogTitle>
           </DialogHeader>
+          
+          {/* Month Selector */}
+          <div className="flex items-center gap-3 pb-4 border-b">
+            <label className="text-sm font-medium">Select Month:</label>
+            <Select 
+              value={selectedMonth?.toString() || Math.ceil(weekNumber / 4).toString()} 
+              onValueChange={(value) => setSelectedMonth(parseInt(value))}
+            >
+              <SelectTrigger className="w-[200px]" data-testid="select-month">
+                <SelectValue placeholder="Select month" />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: Math.ceil(weekNumber / 4) }, (_, i) => i + 1).map((month) => {
+                  const monthNames = ['October', 'November', 'December', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September'];
+                  const startWeek = (month - 1) * 4 + 1;
+                  const endWeek = Math.min(month * 4, weekNumber);
+                  return (
+                    <SelectItem key={month} value={month.toString()}>
+                      {monthNames[(month - 1) % 12]} - Week {startWeek}-{endWeek}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+          
           {weekNumber > 1 && comparisonData.length > 0 ? (
             <div className="space-y-6">
               {/* Analytics Charts */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Progress Analytics</h3>
                 
-                {/* Progress Trend Chart */}
+                {/* Progress Trend Chart - All Weeks in Month */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base">Overall Progress Trend</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <ResponsiveContainer width="100%" height={200}>
-                      <LineChart data={[
-                        {
-                          week: `Week ${weekNumber - 1}`,
-                          progress: previousWeekData?.beliefs && previousWeekData.beliefs.length > 0
-                            ? Math.round(previousWeekData.beliefs.reduce((sum, b) => sum + calculateProgress(b.checklist), 0) / previousWeekData.beliefs.length)
-                            : Math.round(getWeekBeliefs(weekNumber - 1).reduce((sum, b) => sum + calculateProgress(b.checklist), 0) / 4)
-                        },
-                        {
-                          week: `Week ${weekNumber}`,
-                          progress: weeklyProgress
-                        }
-                      ]}>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <LineChart data={monthWeeksData.map(({ week, progress }) => ({
+                        week: `Week ${week}`,
+                        progress
+                      }))}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="week" />
                         <YAxis domain={[0, 100]} />
                         <Tooltip />
-                        <Line type="monotone" dataKey="progress" stroke="#0d9488" strokeWidth={2} />
+                        <Line type="monotone" dataKey="progress" stroke="#0d9488" strokeWidth={2} dot={{ r: 4 }} />
                       </LineChart>
                     </ResponsiveContainer>
                   </CardContent>
                 </Card>
 
-                {/* HERCM Area Comparison */}
+                {/* HERCM Area Comparison - All Weeks in Month */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base">HERCM Area Progress Comparison</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <ResponsiveContainer width="100%" height={250}>
-                      <BarChart data={(() => {
-                        const prevWeek = (previousWeekData?.beliefs && previousWeekData.beliefs.length > 0) 
-                          ? previousWeekData.beliefs 
-                          : getWeekBeliefs(weekNumber - 1);
-                        return beliefs.map((belief, index) => ({
-                          area: belief.category,
-                          [`Week ${weekNumber - 1}`]: calculateProgress(prevWeek[index]?.checklist || []),
-                          [`Week ${weekNumber}`]: calculateProgress(belief.checklist)
-                        }));
-                      })()}>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={['Health', 'Relationship', 'Career', 'Money'].map(category => {
+                        const dataPoint: any = { area: category };
+                        monthWeeksData.forEach(({ week, beliefs }) => {
+                          const belief = beliefs.find((b: any) => b.category === category);
+                          dataPoint[`Week ${week}`] = calculateProgress(belief?.checklist || []);
+                        });
+                        return dataPoint;
+                      })}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="area" />
                         <YAxis domain={[0, 100]} />
                         <Tooltip />
                         <Legend />
-                        <Bar dataKey={`Week ${weekNumber - 1}`} fill="#94a3b8" />
-                        <Bar dataKey={`Week ${weekNumber}`} fill="#0d9488" />
+                        {monthWeeksData.map(({ week }, index) => (
+                          <Bar 
+                            key={week} 
+                            dataKey={`Week ${week}`} 
+                            fill={['#94a3b8', '#64748b', '#0d9488', '#14b8a6'][index % 4]} 
+                          />
+                        ))}
                       </BarChart>
                     </ResponsiveContainer>
                   </CardContent>
                 </Card>
 
-                {/* Improvement Summary */}
+                {/* Improvement Summary - Month Progress */}
                 <div className="space-y-2">
-                  <h3 className="text-base font-semibold">Overall Improvement Summary</h3>
+                  <h3 className="text-base font-semibold">Monthly Improvement Summary</h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {beliefs.map((belief, index) => {
-                      const prevWeek = (previousWeekData?.beliefs && previousWeekData.beliefs.length > 0) 
-                        ? previousWeekData.beliefs 
-                        : getWeekBeliefs(weekNumber - 1);
-                      const prevProgress = calculateProgress(prevWeek[index]?.checklist || []);
-                      const currentProgress = calculateProgress(belief.checklist);
-                      const improvement = currentProgress - prevProgress;
+                    {['Health', 'Relationship', 'Career', 'Money'].map((category) => {
+                      const firstWeekData = monthWeeksData[0];
+                      const lastWeekData = monthWeeksData[monthWeeksData.length - 1];
+                      
+                      const firstBelief = firstWeekData.beliefs.find((b: any) => b.category === category);
+                      const lastBelief = lastWeekData.beliefs.find((b: any) => b.category === category);
+                      
+                      const firstProgress = calculateProgress(firstBelief?.checklist || []);
+                      const lastProgress = calculateProgress(lastBelief?.checklist || []);
+                      const improvement = lastProgress - firstProgress;
                       
                       return (
-                        <Card key={belief.category} className="p-3">
+                        <Card key={category} className="p-3">
                           <div className="space-y-1">
-                            <p className="text-sm font-medium">{belief.category}</p>
+                            <p className="text-sm font-medium">{category}</p>
                             <div className="flex items-center gap-2">
                               {improvement > 0 ? (
                                 <ArrowUp className="w-4 h-4 text-green-600" />
@@ -720,7 +778,7 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
                               </span>
                             </div>
                             <p className="text-xs text-muted-foreground">
-                              {prevProgress}% → {currentProgress}%
+                              Week {firstWeekData.week}: {firstProgress}% → Week {lastWeekData.week}: {lastProgress}%
                             </p>
                           </div>
                         </Card>
