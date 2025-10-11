@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import DashboardHeader from '@/components/DashboardHeader';
-import UnifiedHERCMTable from '@/components/UnifiedHERCMTable';
+import { HERCMRatingTracker } from '@/components/HERCMRatingTracker';
 import AddRitualForm from '@/components/AddRitualForm';
 import RitualCard from '@/components/RitualCard';
 import CourseCard from '@/components/CourseCard';
@@ -12,6 +12,7 @@ import EditRitualModal from '@/components/EditRitualModal';
 import UpdateProgressModal from '@/components/UpdateProgressModal';
 import HERCMHistoryModal from '@/components/HERCMHistoryModal';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Ritual {
   id: string;
@@ -25,6 +26,7 @@ interface Ritual {
 
 export default function Dashboard() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [activeSection, setActiveSection] = useState('rituals');
   const [profileOpen, setProfileOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -368,11 +370,17 @@ export default function Dashboard() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
         <section ref={hercmRef} id="hercm" className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
-          <UnifiedHERCMTable 
-            weekNumber={currentWeek}
-            onGenerateNextWeek={handleGenerateNextWeek}
-            onViewHistory={handleViewHERCMHistory}
-          />
+          {user?.id ? (
+            <HERCMRatingTracker 
+              weekNumber={currentWeek}
+              year={new Date().getFullYear()}
+              userId={user.id}
+            />
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Loading HERCM tracker...</p>
+            </div>
+          )}
 
           <div className="mt-8">
             <PlatinumProgress 
