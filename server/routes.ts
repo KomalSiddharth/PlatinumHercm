@@ -210,6 +210,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/auth/me', async (req, res) => {
+    try {
+      if (!req.session.userEmail) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const user = await storage.getUserByEmail(req.session.userEmail);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.json({ 
+        email: user.email, 
+        firstName: user.firstName, 
+        lastName: user.lastName 
+      });
+    } catch (error) {
+      console.error("Error fetching current user:", error);
+      res.status(500).json({ message: "Failed to fetch user info" });
+    }
+  });
+
   // Admin email management routes
   app.get('/api/admin/approved-emails', async (req, res) => {
     try {
@@ -223,13 +246,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/admin/approved-emails', async (req, res) => {
     try {
-      const { email, zoomLink } = req.body;
+      const { email, name, zoomLink } = req.body;
       
       if (!email) {
         return res.status(400).json({ message: "Email is required" });
       }
 
-      const newEmail = await storage.addApprovedEmail({ email, zoomLink, status: 'active' });
+      const newEmail = await storage.addApprovedEmail({ email, name, zoomLink, status: 'active' });
       res.json(newEmail);
     } catch (error: any) {
       console.error("Error adding approved email:", error);

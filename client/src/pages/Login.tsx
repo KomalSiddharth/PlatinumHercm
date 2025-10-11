@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { Loader2, Mail } from 'lucide-react';
-import mkLogo from '@assets/Screenshot 2025-10-09 165931_1760165935397.png';
+import mkLogo from '@assets/Screenshot 2025-10-11 130038_1760168623219.png';
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -63,9 +63,7 @@ export default function Login() {
           {/* Title */}
           <div className="text-center space-y-3">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white leading-tight">
-              Login now for Platinum<br />
-              Weekly Call at 10th Oct, 7:00<br />
-              PM IST
+              Login now for HRCM Dashboard
             </h1>
             <p className="text-gray-600 dark:text-gray-400 text-sm">
               Use your registered Email ID to enter Zoom Meeting

@@ -41,6 +41,7 @@ export type User = typeof users.$inferSelect;
 // Approved Emails - Admin manages which emails can access the system
 export const approvedEmails = pgTable("approved_emails", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name"), // User's name
   email: varchar("email").unique().notNull(),
   status: varchar("status").default('active').notNull(), // 'active' or 'inactive'
   accessCount: integer("access_count").default(0).notNull(),

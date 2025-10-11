@@ -38,6 +38,7 @@ export default function AdminPanel() {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showBulkDialog, setShowBulkDialog] = useState(false);
   const [newEmail, setNewEmail] = useState('');
+  const [newName, setNewName] = useState('');
   const [bulkEmails, setBulkEmails] = useState('');
   const { toast } = useToast();
 
@@ -54,8 +55,12 @@ export default function AdminPanel() {
     queryKey: ['/api/admin/stats'],
   });
 
+  const { data: adminInfo } = useQuery<{ email: string; firstName?: string; lastName?: string }>({
+    queryKey: ['/api/auth/me'],
+  });
+
   const addEmailMutation = useMutation({
-    mutationFn: async (data: { email: string }) => {
+    mutationFn: async (data: { email: string; name?: string }) => {
       return apiRequest('POST', '/api/admin/approved-emails', data);
     },
     onSuccess: () => {
@@ -64,6 +69,7 @@ export default function AdminPanel() {
       toast({ title: "Email Added", description: "Email has been approved successfully" });
       setShowAddDialog(false);
       setNewEmail('');
+      setNewName('');
     },
     onError: (error: any) => {
       toast({ 
@@ -122,7 +128,10 @@ export default function AdminPanel() {
       toast({ title: "Error", description: "Please enter an email", variant: "destructive" });
       return;
     }
-    addEmailMutation.mutate({ email: newEmail.trim() });
+    addEmailMutation.mutate({ 
+      email: newEmail.trim(), 
+      name: newName.trim() || undefined 
+    });
   };
 
   const handleBulkUpload = () => {
@@ -182,11 +191,9 @@ export default function AdminPanel() {
               <Plus className="w-4 h-4 mr-2" />
               Add Email
             </Button>
-            <Button variant="outline" data-testid="button-help">
-              <HelpCircle className="w-4 h-4 mr-2" />
-              Upload Help
-            </Button>
-            <span className="text-sm text-gray-600 dark:text-gray-400">Welcome, Admin</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">
+              Welcome, {adminInfo?.firstName || 'Admin'}
+            </span>
             <Button 
               onClick={handleLogout} 
               variant="destructive"
@@ -435,6 +442,16 @@ export default function AdminPanel() {
             <DialogDescription>Add a new email address to the approved list</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Name</label>
+              <Input
+                type="text"
+                placeholder="Full Name"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                data-testid="input-new-name"
+              />
+            </div>
             <div>
               <label className="text-sm font-medium mb-2 block">Email Address</label>
               <Input
