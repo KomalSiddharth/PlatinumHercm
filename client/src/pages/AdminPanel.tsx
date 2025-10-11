@@ -19,7 +19,11 @@ import {
   Trash2,
   RefreshCw,
   Edit,
-  ExternalLink
+  ExternalLink,
+  TrendingUp,
+  TrendingDown,
+  Eye,
+  BarChart3
 } from 'lucide-react';
 import type { ApprovedEmail, AdminUser, AccessLog } from '@shared/schema';
 import {
@@ -30,6 +34,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export default function AdminPanel() {
   const [, setLocation] = useLocation();
@@ -47,6 +53,9 @@ export default function AdminPanel() {
   const [newAdminName, setNewAdminName] = useState('');
   const [newAdminEmail, setNewAdminEmail] = useState('');
   const [editingAdmin, setEditingAdmin] = useState<AdminUser | null>(null);
+  
+  // Analytics states
+  const [selectedUserForDetail, setSelectedUserForDetail] = useState<string | null>(null);
   
   const { toast } = useToast();
 
@@ -697,89 +706,198 @@ export default function AdminPanel() {
             </>
           )}
 
-          {/* User Analytics Tab Content */}
+          {/* User Analytics Tab Content - Enhanced with Charts */}
           {activeTab === 'analytics' && (
-            <>
-              {/* Analytics Table */}
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 dark:bg-gray-900/50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">USER</th>
-                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">TOTAL WEEKS</th>
-                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">LATEST SCORE</th>
-                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">ACHIEVEMENT</th>
-                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">TREND</th>
-                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">STATUS</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                    {isLoadingAnalytics ? (
-                      <tr>
-                        <td colSpan={6} className="px-6 py-8 text-center text-gray-500">Loading analytics...</td>
-                      </tr>
-                    ) : userAnalytics.length === 0 ? (
-                      <tr>
-                        <td colSpan={6} className="px-6 py-8 text-center text-gray-500">No user data available</td>
-                      </tr>
-                    ) : (
-                      userAnalytics.map((user: any) => (
-                        <tr key={user.userId} className="hover:bg-gray-50 dark:hover:bg-gray-900/30" data-testid={`row-analytics-${user.userId}`}>
-                          <td className="px-6 py-4">
-                            <div>
-                              <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                {user.firstName} {user.lastName}
-                              </div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400">{user.email}</div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
-                            {user.totalWeeks} weeks
-                          </td>
-                          <td className="px-6 py-4">
-                            <Badge variant="outline" className="text-lg font-bold">
-                              {user.overallScore}/5
-                            </Badge>
-                          </td>
-                          <td className="px-6 py-4">
-                            <Badge variant={user.achievementRate >= 70 ? 'default' : user.achievementRate >= 50 ? 'secondary' : 'destructive'}>
-                              {user.achievementRate}%
-                            </Badge>
-                          </td>
-                          <td className="px-6 py-4">
-                            {user.trend > 0 ? (
-                              <Badge className="bg-green-500">
-                                📈 +{user.trend}
-                              </Badge>
-                            ) : user.trend < 0 ? (
-                              <Badge variant="destructive">
-                                📉 {user.trend}
-                              </Badge>
-                            ) : (
-                              <Badge variant="secondary">
-                                ➡️ 0
-                              </Badge>
-                            )}
-                          </td>
-                          <td className="px-6 py-4">
-                            {user.status === 'excellent' && <Badge className="bg-green-600">✅ Excellent</Badge>}
-                            {user.status === 'good' && <Badge variant="secondary">👍 Good</Badge>}
-                            {user.status === 'needs_support' && <Badge variant="destructive">⚠️ Needs Support</Badge>}
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+            <div className="p-6 space-y-6">
+              {isLoadingAnalytics ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                  <p className="mt-4 text-gray-500">Loading analytics...</p>
+                </div>
+              ) : userAnalytics.length === 0 ? (
+                <div className="text-center py-12">
+                  <BarChart3 className="w-16 h-16 mx-auto text-gray-400" />
+                  <p className="mt-4 text-gray-500">No user data available</p>
+                </div>
+              ) : (
+                <>
+                  {/* Summary Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Users</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-3xl font-bold">{userAnalytics.length}</div>
+                        <p className="text-xs text-gray-500 mt-1">Active participants</p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Avg Achievement</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-3xl font-bold">
+                          {Math.round(userAnalytics.reduce((sum: number, u: any) => sum + u.achievementRate, 0) / userAnalytics.length)}%
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">Across all users</p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Top Performers</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-3xl font-bold text-green-600">
+                          {userAnalytics.filter((u: any) => u.status === 'excellent').length}
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">Excellent status</p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Need Support</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-3xl font-bold text-orange-600">
+                          {userAnalytics.filter((u: any) => u.status === 'needs_support').length}
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">Require attention</p>
+                      </CardContent>
+                    </Card>
+                  </div>
 
-              {/* Footer */}
-              <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Showing {userAnalytics.length} users with progress data
-                </p>
-              </div>
-            </>
+                  {/* Charts */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Achievement Rate Comparison */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base">Achievement Rate Comparison</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ResponsiveContainer width="100%" height={300}>
+                          <BarChart data={userAnalytics.map((u: any) => ({
+                            name: u.firstName || u.email.split('@')[0],
+                            achievement: u.achievementRate
+                          }))}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
+                            <YAxis domain={[0, 100]} />
+                            <Tooltip />
+                            <Bar dataKey="achievement" fill="#3b82f6" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+
+                    {/* Overall Score Trend */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base">Overall Score Distribution</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ResponsiveContainer width="100%" height={300}>
+                          <BarChart data={userAnalytics.map((u: any) => ({
+                            name: u.firstName || u.email.split('@')[0],
+                            score: u.overallScore
+                          }))}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
+                            <YAxis domain={[0, 5]} />
+                            <Tooltip />
+                            <Bar dataKey="score" fill="#10b981" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* User Details Table with Actions */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">User Details & Actions</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead className="bg-gray-50 dark:bg-gray-900/50">
+                            <tr>
+                              <th className="px-4 py-3 text-left text-sm font-semibold">USER</th>
+                              <th className="px-4 py-3 text-left text-sm font-semibold">WEEKS</th>
+                              <th className="px-4 py-3 text-left text-sm font-semibold">SCORE</th>
+                              <th className="px-4 py-3 text-left text-sm font-semibold">ACHIEVEMENT</th>
+                              <th className="px-4 py-3 text-left text-sm font-semibold">TREND</th>
+                              <th className="px-4 py-3 text-left text-sm font-semibold">STATUS</th>
+                              <th className="px-4 py-3 text-left text-sm font-semibold">ACTIONS</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                            {userAnalytics.map((user: any) => (
+                              <tr key={user.userId} className="hover:bg-gray-50 dark:hover:bg-gray-900/30">
+                                <td className="px-4 py-3">
+                                  <div>
+                                    <div className="text-sm font-medium">{user.firstName} {user.lastName}</div>
+                                    <div className="text-xs text-gray-500">{user.email}</div>
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3 text-sm">{user.totalWeeks}</td>
+                                <td className="px-4 py-3">
+                                  <Badge variant="outline" className="font-bold">{user.overallScore}/5</Badge>
+                                </td>
+                                <td className="px-4 py-3">
+                                  <Badge variant={user.achievementRate >= 70 ? 'default' : user.achievementRate >= 50 ? 'secondary' : 'destructive'}>
+                                    {user.achievementRate}%
+                                  </Badge>
+                                </td>
+                                <td className="px-4 py-3">
+                                  {user.trend > 0 ? (
+                                    <div className="flex items-center gap-1 text-green-600">
+                                      <TrendingUp className="w-4 h-4" />
+                                      <span className="text-sm font-medium">+{user.trend}</span>
+                                    </div>
+                                  ) : user.trend < 0 ? (
+                                    <div className="flex items-center gap-1 text-red-600">
+                                      <TrendingDown className="w-4 h-4" />
+                                      <span className="text-sm font-medium">{user.trend}</span>
+                                    </div>
+                                  ) : (
+                                    <span className="text-gray-400">—</span>
+                                  )}
+                                </td>
+                                <td className="px-4 py-3">
+                                  <Badge className={
+                                    user.status === 'excellent' ? 'bg-green-600' :
+                                    user.status === 'good' ? 'bg-blue-600' :
+                                    'bg-orange-600'
+                                  }>
+                                    {user.status === 'excellent' ? 'Excellent' : 
+                                     user.status === 'good' ? 'Good' : 'Needs Support'}
+                                  </Badge>
+                                </td>
+                                <td className="px-4 py-3">
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => setSelectedUserForDetail(user.userId)}
+                                    data-testid={`button-view-user-${user.userId}`}
+                                  >
+                                    <Eye className="w-4 h-4 mr-1" />
+                                    View Details
+                                  </Button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -953,6 +1071,183 @@ export default function AdminPanel() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* User Detail View Dialog */}
+      <UserDetailDialog 
+        userId={selectedUserForDetail}
+        onClose={() => setSelectedUserForDetail(null)}
+      />
     </div>
+  );
+}
+
+// Separate component for User Detail Dialog
+function UserDetailDialog({ userId, onClose }: { userId: string | null; onClose: () => void }) {
+  const { data: userWeeks, isLoading } = useQuery<any[]>({
+    queryKey: ['/api/admin/user', userId, 'weeks'],
+    enabled: !!userId,
+  });
+
+  const userInfo = userWeeks && userWeeks.length > 0 ? {
+    email: userWeeks[0].userEmail || 'Unknown',
+    firstName: userWeeks[0].userFirstName,
+    lastName: userWeeks[0].userLastName
+  } : null;
+
+  return (
+    <Dialog open={!!userId} onOpenChange={onClose}>
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto" data-testid="dialog-user-detail">
+        <DialogHeader>
+          <DialogTitle className="text-xl">Complete HERCM History - {userInfo?.firstName} {userInfo?.lastName}</DialogTitle>
+          <DialogDescription>{userInfo?.email}</DialogDescription>
+        </DialogHeader>
+
+        {isLoading ? (
+          <div className="py-12 text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-500">Loading user data...</p>
+          </div>
+        ) : !userWeeks || userWeeks.length === 0 ? (
+          <div className="py-12 text-center text-gray-500">
+            No HERCM data available for this user
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Total Weeks</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{userWeeks.length}</div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Latest Week</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">Week {userWeeks[userWeeks.length - 1]?.weekNumber || 0}</div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Progress Trend</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {userWeeks.length >= 2 ? (
+                    <div className="flex items-center gap-2">
+                      {userWeeks[userWeeks.length - 1]?.overallScore > userWeeks[userWeeks.length - 2]?.overallScore ? (
+                        <>
+                          <TrendingUp className="w-6 h-6 text-green-600" />
+                          <span className="text-xl font-bold text-green-600">Improving</span>
+                        </>
+                      ) : userWeeks[userWeeks.length - 1]?.overallScore < userWeeks[userWeeks.length - 2]?.overallScore ? (
+                        <>
+                          <TrendingDown className="w-6 h-6 text-red-600" />
+                          <span className="text-xl font-bold text-red-600">Declining</span>
+                        </>
+                      ) : (
+                        <span className="text-xl font-bold text-gray-500">Stable</span>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-xl font-bold text-gray-500">—</span>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Week-by-Week Breakdown */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Week-by-Week Progress</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {userWeeks.map((week: any) => {
+                    const progress = week.beliefs?.length > 0
+                      ? Math.round(week.beliefs.reduce((sum: number, b: any) => {
+                          const checkedCount = b.checklist?.filter((c: any) => c.checked).length || 0;
+                          const totalCount = b.checklist?.length || 1;
+                          return sum + (checkedCount / totalCount) * 100;
+                        }, 0) / week.beliefs.length)
+                      : 0;
+
+                    return (
+                      <div key={week.id} className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-900/30">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <h4 className="font-semibold">Week {week.weekNumber}</h4>
+                            <Badge variant="outline">{new Date(week.createdAt).toLocaleDateString()}</Badge>
+                          </div>
+                          <Badge className={progress >= 70 ? 'bg-green-600' : progress >= 50 ? 'bg-blue-600' : 'bg-orange-600'}>
+                            {progress}% Complete
+                          </Badge>
+                        </div>
+                        
+                        {week.beliefs && week.beliefs.length > 0 && (
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {week.beliefs.map((belief: any) => {
+                              const beliefProgress = belief.checklist?.filter((c: any) => c.checked).length || 0;
+                              const total = belief.checklist?.length || 0;
+                              return (
+                                <div key={belief.id} className="text-sm">
+                                  <div className="font-medium text-gray-700 dark:text-gray-300">{belief.category}</div>
+                                  <div className="text-xs text-gray-500">
+                                    {beliefProgress}/{total} tasks done
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Progress Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Overall Progress Trend</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={250}>
+                  <LineChart data={userWeeks.map((week: any) => {
+                    const progress = week.beliefs?.length > 0
+                      ? Math.round(week.beliefs.reduce((sum: number, b: any) => {
+                          const checkedCount = b.checklist?.filter((c: any) => c.checked).length || 0;
+                          const totalCount = b.checklist?.length || 1;
+                          return sum + (checkedCount / totalCount) * 100;
+                        }, 0) / week.beliefs.length)
+                      : 0;
+                    return {
+                      week: `Week ${week.weekNumber}`,
+                      progress
+                    };
+                  })}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="week" />
+                    <YAxis domain={[0, 100]} />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="progress" stroke="#3b82f6" strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        <div className="flex justify-end mt-4">
+          <Button onClick={onClose}>Close</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
