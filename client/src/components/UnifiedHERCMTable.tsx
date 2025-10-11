@@ -259,10 +259,16 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
   const [showComparison, setShowComparison] = useState(false);
   const { toast } = useToast();
 
-  // Fetch week data from database
+  // Fetch current week data from database
   const { data: weekData, isLoading } = useQuery<{ beliefs?: HERCMBelief[] }>({
     queryKey: ['/api/hercm/week', weekNumber],
     enabled: weekNumber > 0,
+  });
+
+  // Fetch previous week data for comparison (only if week > 1)
+  const { data: previousWeekData } = useQuery<{ beliefs?: HERCMBelief[] }>({
+    queryKey: ['/api/hercm/week', weekNumber - 1],
+    enabled: weekNumber > 1,
   });
 
   useEffect(() => {
@@ -432,20 +438,21 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
   const calculateComparison = () => {
     if (weekNumber <= 1) return [];
     
-    const previousWeek = getWeekBeliefs(weekNumber - 1);
+    // Use previous week data from API if available, otherwise use fallback
+    const previousWeek = previousWeekData?.beliefs || getWeekBeliefs(weekNumber - 1);
     
     return beliefs.map((current, index) => {
       const previous = previousWeek[index];
       
       // Simple text similarity calculation (can be enhanced)
       const similarity = calculateTextSimilarity(
-        previous.nextWeekTarget || '',
+        previous?.nextWeekTarget || '',
         current.currentBelief || ''
       );
       
       return {
         category: current.category,
-        previousTarget: previous.nextWeekTarget || 'No target set',
+        previousTarget: previous?.nextWeekTarget || 'No target set',
         currentActual: current.currentBelief || 'Not filled yet',
         matchPercentage: similarity,
       };
