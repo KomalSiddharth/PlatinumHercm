@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { Slider } from '@/components/ui/slider';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Check, X, TrendingUp, History, Edit2, Save, Loader2 } from 'lucide-react';
+import { Sparkles, Check, X, TrendingUp, History, Loader2, ArrowUp, ArrowDown, Minus } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -12,33 +12,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { apiRequest } from '@/lib/queryClient';
-
-interface ChecklistItem {
-  id: string;
-  text: string;
-  checked: boolean;
-}
-
-interface HERCMBelief {
-  category: 'Health' | 'Relationship' | 'Career' | 'Money';
-  // Current Week Data
-  currentRating: number;
-  problems: string;
-  currentFeelings: string;
-  currentBelief: string;
-  currentActions: string;
-  // Next Week Data
-  targetRating: number;
-  result: string;
-  nextFeelings: string;
-  nextWeekTarget: string;
-  nextActions: string;
-  // AI Suggestions & Checklist
-  checklist: ChecklistItem[];
-  courseSuggestion: string;
-  affirmationSuggestion: string;
-}
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useToast } from '@/hooks/use-toast';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 
 interface UnifiedHERCMTableProps {
   weekNumber: number;
@@ -46,393 +23,209 @@ interface UnifiedHERCMTableProps {
   onViewHistory: () => void;
 }
 
-// Week-specific belief data generator
-const getWeekBeliefs = (week: number): HERCMBelief[] => {
-  if (week === 1) {
-    return [
-      {
-        category: 'Health',
-        currentRating: 4,
-        problems: "Overweight 2kgs, Anxiety, Panick Attacks",
-        currentFeelings: "Lazy, Tensed, Anxiety",
-        currentBelief: "I have anxiety because of financial problems",
-        currentActions: "I overeat, I don't exercise",
-        targetRating: 5,
-        result: "I will lose 200 gms, reduced anxiety attacks",
-        nextFeelings: "Active, Relaxed, Calm",
-        nextWeekTarget: "I create healthy habits that reduce my anxiety",
-        nextActions: "Walk 2000 steps 3/week, Practice ALOA breathing",
-        checklist: [
-          { id: 'h1', text: "ALOA breathing 2x daily", checked: false },
-          { id: 'h2', text: "Walk 2000 steps 3/week", checked: false },
-          { id: 'h3', text: "Stop overeating", checked: false }
-        ],
-        courseSuggestion: "Health Foundations - Module 1",
-        affirmationSuggestion: "I am disciplined and consistent"
-      },
-      {
-        category: 'Relationship',
-        currentRating: 5,
-        problems: "Conflicts with Boss, Not getting along with Life partner",
-        currentFeelings: "Lonely, Angry, Sad",
-        currentBelief: "I get angry at my family. My boss is not supporting me",
-        currentActions: "I get angry at my family, I shout a lot, I am not a good listener",
-        targetRating: 6,
-        result: "I am now getting along with my Boss, Better communication with partner",
-        nextFeelings: "Happy, Peaceful, Connected",
-        nextWeekTarget: "My boss and I have mutual respect. I communicate with love",
-        nextActions: "Daily gratitude, Active listening 15min, Quality time with partner",
-        checklist: [
-          { id: 'e1', text: "Daily gratitude practice", checked: false },
-          { id: 'e2', text: "Active listening 15 min", checked: false },
-          { id: 'e3', text: "Quality time 30 min", checked: false }
-        ],
-        courseSuggestion: "Relationship Basics - Module 1",
-        affirmationSuggestion: "I am worthy of love and connection"
-      },
-      {
-        category: 'Career',
-        currentRating: 4,
-        problems: "No job, stuck in a unsatisfied job",
-        currentFeelings: "Helpless, Failure",
-        currentBelief: "I am not skilled enough for better opportunities",
-        currentActions: "Not giving interviews, not making videos, procrastinating",
-        targetRating: 5,
-        result: "I got a job offer, I feel satisfied with my progress",
-        nextFeelings: "Confident, Motivated",
-        nextWeekTarget: "I am worthy of success and recognition",
-        nextActions: "Apply to 5 jobs, Update resume, Practice interviews",
-        checklist: [
-          { id: 'r1', text: "Apply to 5 jobs", checked: false },
-          { id: 'r2', text: "Update resume", checked: false },
-          { id: 'r3', text: "Practice mock interview", checked: false }
-        ],
-        courseSuggestion: "Career Growth - Module 1",
-        affirmationSuggestion: "I am capable of achieving my dreams"
-      },
-      {
-        category: 'Money',
-        currentRating: 3,
-        problems: "Not able to Save money",
-        currentFeelings: "Small, Poor",
-        currentBelief: "I don't earn enough to save",
-        currentActions: "Not tracking expenses, impulse buying, no budget",
-        targetRating: 4,
-        result: "I saved 10% of income successfully",
-        nextFeelings: "Abundant, Secure",
-        nextWeekTarget: "Money flows to me naturally",
-        nextActions: "Track expenses daily, Save 10%, Cut unnecessary expenses",
-        checklist: [
-          { id: 'c1', text: "Track all expenses", checked: false },
-          { id: 'c2', text: "Save 10% income", checked: false },
-          { id: 'c3', text: "Review budget weekly", checked: false }
-        ],
-        courseSuggestion: "Financial Literacy - Module 1",
-        affirmationSuggestion: "Money flows to me naturally"
-      }
-    ];
-  } else if (week === 2) {
-    return [
-      {
-        category: 'Health',
-        currentRating: 5,
-        problems: "Weight reduced by 200gms, Less anxiety",
-        currentFeelings: "Active, Relaxed, Calm",
-        currentBelief: "I am building healthy habits",
-        currentActions: "Walking 2000 steps, practicing ALOA",
-        targetRating: 6,
-        result: "I will lose 500 gms, Anxiety under control",
-        nextFeelings: "Energetic, Peaceful, Strong",
-        nextWeekTarget: "I prioritize my health consistently",
-        nextActions: "20 min morning walk, Meal prep Sunday",
-        checklist: [
-          { id: 'h1', text: "20 min morning walk", checked: false },
-          { id: 'h2', text: "Meal prep Sunday", checked: false },
-          { id: 'h3', text: "Yoga 3x per week", checked: false }
-        ],
-        courseSuggestion: "Health Mastery - Module 2",
-        affirmationSuggestion: "My body is my temple"
-      },
-      {
-        category: 'Relationship',
-        currentRating: 6,
-        problems: "Better communication with Boss",
-        currentFeelings: "Happy, Peaceful, Connected",
-        currentBelief: "I build meaningful connections",
-        currentActions: "Daily gratitude, Active listening",
-        targetRating: 7,
-        result: "Strong bond with partner and boss",
-        nextFeelings: "Loved, Appreciated, Joyful",
-        nextWeekTarget: "I communicate with love and clarity",
-        nextActions: "Plan date night, Express gratitude 5x",
-        checklist: [
-          { id: 'e1', text: "Daily gratitude practice", checked: false },
-          { id: 'e2', text: "Plan date night", checked: false },
-          { id: 'e3', text: "Active listening 15 min", checked: false }
-        ],
-        courseSuggestion: "Relationship Mastery - Communication",
-        affirmationSuggestion: "I express love freely"
-      },
-      {
-        category: 'Career',
-        currentRating: 5,
-        problems: "Got job interview calls",
-        currentFeelings: "Confident, Motivated",
-        currentBelief: "I take steps toward my goals",
-        currentActions: "Applied to 5 jobs, Updated resume",
-        targetRating: 6,
-        result: "Received job offer",
-        nextFeelings: "Successful, Fulfilled, Proud",
-        nextWeekTarget: "I am worthy of success and recognition",
-        nextActions: "Complete project milestone, Network actively",
-        checklist: [
-          { id: 'r1', text: "Complete project milestone", checked: false },
-          { id: 'r2', text: "Speak up in meetings", checked: false },
-          { id: 'r3', text: "Request feedback", checked: false }
-        ],
-        courseSuggestion: "Career Excellence - Leadership",
-        affirmationSuggestion: "I deserve success"
-      },
-      {
-        category: 'Money',
-        currentRating: 4,
-        problems: "Saved 10% of income successfully",
-        currentFeelings: "Abundant, Secure",
-        currentBelief: "I manage money wisely",
-        currentActions: "Tracking expenses, Saving 10%",
-        targetRating: 5,
-        result: "Saved 15% of income, Created emergency fund",
-        nextFeelings: "Wealthy, Grateful, Free",
-        nextWeekTarget: "Money flows to me with ease",
-        nextActions: "Increase savings, Explore investments",
-        checklist: [
-          { id: 'c1', text: "Automate savings", checked: false },
-          { id: 'c2', text: "Research investments", checked: false },
-          { id: 'c3', text: "Cut 2 unnecessary expenses", checked: false }
-        ],
-        courseSuggestion: "Wealth Building - Module 2",
-        affirmationSuggestion: "I attract abundance"
-      }
-    ];
-  } else {
-    return [
-      {
-        category: 'Health',
-        currentRating: 6,
-        problems: "Lost 500gms, Anxiety controlled",
-        currentFeelings: "Energetic, Peaceful, Strong",
-        currentBelief: "I prioritize my health consistently",
-        currentActions: "Morning walks, Meal prepping, Yoga 3x",
-        targetRating: 7,
-        result: "Reached ideal weight, Completely anxiety-free",
-        nextFeelings: "Vibrant, Balanced, Healthy",
-        nextWeekTarget: "I love and care for my body",
-        nextActions: "Gym 4x week, Healthy meal plan",
-        checklist: [
-          { id: 'h1', text: "Gym 4x per week", checked: false },
-          { id: 'h2', text: "Follow meal plan", checked: false },
-          { id: 'h3', text: "Sleep 8 hours daily", checked: false }
-        ],
-        courseSuggestion: "Advanced Health Optimization",
-        affirmationSuggestion: "I am the healthiest version of myself"
-      },
-      {
-        category: 'Relationship',
-        currentRating: 7,
-        problems: "Strong bond with all relationships",
-        currentFeelings: "Loved, Appreciated, Joyful",
-        currentBelief: "I communicate with love and clarity",
-        currentActions: "Date nights, Gratitude practice, Active listening",
-        targetRating: 8,
-        result: "Deep connection with family and colleagues",
-        nextFeelings: "Fulfilled, Cherished, Peaceful",
-        nextWeekTarget: "I attract loving relationships",
-        nextActions: "Family time 3x week, Resolve conflicts peacefully",
-        checklist: [
-          { id: 'e1', text: "Family bonding activities", checked: false },
-          { id: 'e2', text: "Weekly date night", checked: false },
-          { id: 'e3', text: "Practice empathy daily", checked: false }
-        ],
-        courseSuggestion: "Deep Connection Mastery",
-        affirmationSuggestion: "I am surrounded by love"
-      },
-      {
-        category: 'Career',
-        currentRating: 6,
-        problems: "Got promotion, recognized at work",
-        currentFeelings: "Successful, Fulfilled, Proud",
-        currentBelief: "I am worthy of success and recognition",
-        currentActions: "Taking initiative, Networking, Upskilling",
-        targetRating: 7,
-        result: "Leading important projects, Becoming expert",
-        nextFeelings: "Accomplished, Confident, Respected",
-        nextWeekTarget: "I create value and impact",
-        nextActions: "Lead team project, Mentor junior colleagues",
-        checklist: [
-          { id: 'r1', text: "Lead team meeting", checked: false },
-          { id: 'r2', text: "Complete certification", checked: false },
-          { id: 'r3', text: "Mentor 2 colleagues", checked: false }
-        ],
-        courseSuggestion: "Leadership Excellence",
-        affirmationSuggestion: "I am a natural leader"
-      },
-      {
-        category: 'Money',
-        currentRating: 5,
-        problems: "Saved 15%, Started emergency fund",
-        currentFeelings: "Wealthy, Grateful, Free",
-        currentBelief: "Money flows to me with ease",
-        currentActions: "Automated savings, Researching investments",
-        targetRating: 6,
-        result: "Built 3-month emergency fund, First investment",
-        nextFeelings: "Prosperous, Abundant, Secure",
-        nextWeekTarget: "I build lasting wealth",
-        nextActions: "Open investment account, Increase income",
-        checklist: [
-          { id: 'c1', text: "Start investment portfolio", checked: false },
-          { id: 'c2', text: "Side income stream", checked: false },
-          { id: 'c3', text: "Financial planning session", checked: false }
-        ],
-        courseSuggestion: "Investment Foundations",
-        affirmationSuggestion: "Wealth flows to me effortlessly"
-      }
-    ];
-  }
-};
-
-const calculateProgress = (checklist: ChecklistItem[]): number => {
-  if (checklist.length === 0) return 0;
-  const completed = checklist.filter(item => item.checked).length;
-  return Math.round((completed / checklist.length) * 100);
-};
-
-const getProgressColor = (progress: number) => {
-  if (progress >= 80) return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
-  if (progress >= 50) return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
-  return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
-};
+interface HERCMWeekData {
+  id?: string;
+  weekNumber: number;
+  year: number;
+  currentH?: number;
+  currentE?: number;
+  currentR?: number;
+  currentC?: number;
+  currentM?: number;
+  targetH?: number;
+  targetE?: number;
+  targetR?: number;
+  targetC?: number;
+  targetM?: number;
+  nextWeekH?: number;
+  nextWeekE?: number;
+  nextWeekR?: number;
+  nextWeekC?: number;
+  nextWeekM?: number;
+  improvementH?: number;
+  improvementE?: number;
+  improvementR?: number;
+  improvementC?: number;
+  improvementM?: number;
+  checklistCompleted?: boolean;
+  courseCompleted?: boolean;
+  overallScore?: number;
+  achievementRate?: number;
+}
 
 export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onViewHistory }: UnifiedHERCMTableProps) {
-  const [beliefs, setBeliefs] = useState<HERCMBelief[]>([]);
-  const [editingField, setEditingField] = useState<{ category: string; field: string } | null>(null);
-  const [editValue, setEditValue] = useState('');
-  const [loadingCourses, setLoadingCourses] = useState<Set<string>>(new Set());
+  const { toast } = useToast();
+  const [currentRatings, setCurrentRatings] = useState({
+    H: 3,
+    E: 3,
+    R: 3,
+    C: 3,
+    M: 3,
+  });
+  const [targetGoals, setTargetGoals] = useState({
+    H: 0,
+    E: 0,
+    R: 0,
+    C: 0,
+    M: 0,
+  });
+  const [checklistCompleted, setChecklistCompleted] = useState(false);
+  const [courseCompleted, setCourseCompleted] = useState(false);
+  const [autoFilling, setAutoFilling] = useState(false);
+  const [showComparison, setShowComparison] = useState(false);
 
+  // Fetch current week data
+  const { data: weekData, isLoading } = useQuery<HERCMWeekData>({
+    queryKey: ['/api/hercm/current-week', weekNumber],
+  });
+
+  // Load existing data when available
   useEffect(() => {
-    setBeliefs(getWeekBeliefs(weekNumber));
-  }, [weekNumber]);
+    if (weekData) {
+      setCurrentRatings({
+        H: weekData.currentH || 3,
+        E: weekData.currentE || 3,
+        R: weekData.currentR || 3,
+        C: weekData.currentC || 3,
+        M: weekData.currentM || 3,
+      });
+      setTargetGoals({
+        H: weekData.nextWeekH || 0,
+        E: weekData.nextWeekE || 0,
+        R: weekData.nextWeekR || 0,
+        C: weekData.nextWeekC || 0,
+        M: weekData.nextWeekM || 0,
+      });
+      setChecklistCompleted(weekData.checklistCompleted || false);
+      setCourseCompleted(weekData.courseCompleted || false);
+      // Show comparison if we have target data and improvements
+      setShowComparison(!!weekData.targetH && weekData.improvementH !== undefined);
+    }
+  }, [weekData]);
 
-  // Fetch AI course recommendations
-  const fetchCourseRecommendation = async (category: string, belief: HERCMBelief) => {
-    setLoadingCourses(prev => new Set(prev).add(category));
-
+  // Auto-fill target goals
+  const handleAutoFill = async () => {
+    setAutoFilling(true);
     try {
-      const response = await apiRequest('POST', '/api/courses/recommend', {
-        category: category,
-        currentRating: belief.currentRating,
-        problems: belief.problems || '',
-        feelings: belief.currentFeelings || '',
-        beliefs: belief.currentBelief || '',
-        actions: belief.currentActions || '',
+      const response = await apiRequest('POST', '/api/hercm/auto-fill-goals', {
+        currentH: currentRatings.H,
+        currentE: currentRatings.E,
+        currentR: currentRatings.R,
+        currentC: currentRatings.C,
+        currentM: currentRatings.M,
       });
-
-      const recommendations = await response.json();
-      
-      if (recommendations && recommendations.length > 0) {
-        const topCourse = recommendations[0];
-        setBeliefs(prev => prev.map(b => {
-          if (b.category === category) {
-            return { 
-              ...b, 
-              courseSuggestion: `${topCourse.course.courseName} (${topCourse.score}% match)` 
-            };
-          }
-          return b;
-        }));
-      }
+      const suggestions = await response.json();
+      setTargetGoals({
+        H: suggestions.nextWeekH,
+        E: suggestions.nextWeekE,
+        R: suggestions.nextWeekR,
+        C: suggestions.nextWeekC,
+        M: suggestions.nextWeekM,
+      });
+      toast({
+        title: "Goals Auto-filled!",
+        description: "AI has suggested your target goals based on current ratings.",
+      });
     } catch (error) {
-      console.error('Failed to fetch course recommendation:', error);
-    } finally {
-      setLoadingCourses(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(category);
-        return newSet;
+      toast({
+        title: "Error",
+        description: "Failed to auto-fill goals. Please try again.",
+        variant: "destructive",
       });
+    } finally {
+      setAutoFilling(false);
     }
   };
 
-  const weeklyProgress = beliefs.length > 0
-    ? Math.round(beliefs.reduce((sum, b) => sum + calculateProgress(b.checklist), 0) / beliefs.length)
-    : 0;
+  // Save week mutation
+  const saveWeekMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/hercm/save-with-comparison', {
+        weekNumber,
+        year: new Date().getFullYear(),
+        currentH: currentRatings.H,
+        currentE: currentRatings.E,
+        currentR: currentRatings.R,
+        currentC: currentRatings.C,
+        currentM: currentRatings.M,
+        nextWeekH: targetGoals.H,
+        nextWeekE: targetGoals.E,
+        nextWeekR: targetGoals.R,
+        nextWeekC: targetGoals.C,
+        nextWeekM: targetGoals.M,
+        // Targets come from previous week's nextWeek goals
+        targetH: weekData?.targetH,
+        targetE: weekData?.targetE,
+        targetR: weekData?.targetR,
+        targetC: weekData?.targetC,
+        targetM: weekData?.targetM,
+        checklistCompleted,
+        courseCompleted,
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/hercm/current-week'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/hercm/weeks'] });
+      setShowComparison(!!data.targetH);
+      toast({
+        title: "Week Saved!",
+        description: "Your HERCM data has been saved successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to save week data. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
 
-  const handleChecklistToggle = (category: string, itemId: string) => {
-    setBeliefs(prev => prev.map(belief => {
-      if (belief.category === category) {
-        return {
-          ...belief,
-          checklist: belief.checklist.map(item =>
-            item.id === itemId ? { ...item, checked: !item.checked } : item
-          )
-        };
-      }
-      return belief;
-    }));
-  };
-
-  const handleRatingChange = (category: string, newRating: number) => {
-    setBeliefs(prev => prev.map(belief => {
-      if (belief.category === category) {
-        return {
-          ...belief,
-          currentRating: newRating,
-          targetRating: newRating + 1 // Auto-increment by 1
-        };
-      }
-      return belief;
-    }));
-  };
-
-  const startEdit = (category: string, field: string, currentValue: string) => {
-    setEditingField({ category, field });
-    setEditValue(currentValue);
-  };
-
-  const saveEdit = async () => {
-    if (!editingField) return;
-    
-    // Save the editing info before clearing it
-    const { category, field } = editingField;
-    let updatedBelief: HERCMBelief | undefined = undefined;
-    
-    setBeliefs(prev => prev.map(belief => {
-      if (belief.category === category) {
-        const updated = { ...belief, [field]: editValue } as HERCMBelief;
-        updatedBelief = updated;
-        return updated;
-      }
-      return belief;
-    }));
-    
-    setEditingField(null);
-    setEditValue('');
-    
-    // Fetch AI course recommendation if current week field was edited
-    if (updatedBelief && ['problems', 'currentFeelings', 'currentBelief', 'currentActions'].includes(field)) {
-      await fetchCourseRecommendation(category, updatedBelief);
+  const getComparisonBadge = (improvement: number | undefined) => {
+    if (improvement === undefined || improvement === null) return null;
+    if (improvement > 0) {
+      return (
+        <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+          <ArrowUp className="w-3 h-3 mr-1" />
+          +{improvement}
+        </Badge>
+      );
+    } else if (improvement < 0) {
+      return (
+        <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+          <ArrowDown className="w-3 h-3 mr-1" />
+          {improvement}
+        </Badge>
+      );
+    } else {
+      return (
+        <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+          <Minus className="w-3 h-3 mr-1" />
+          Same
+        </Badge>
+      );
     }
   };
 
-  const cancelEdit = () => {
-    setEditingField(null);
-    setEditValue('');
-  };
+  const categories = [
+    { key: 'H', label: 'Hope (H)', color: 'bg-blue-50 dark:bg-blue-950/20' },
+    { key: 'E', label: 'Energy (E)', color: 'bg-green-50 dark:bg-green-950/20' },
+    { key: 'R', label: 'Respect (R)', color: 'bg-purple-50 dark:bg-purple-950/20' },
+    { key: 'C', label: 'Courage (C)', color: 'bg-orange-50 dark:bg-orange-950/20' },
+    { key: 'M', label: 'Maturity (M)', color: 'bg-pink-50 dark:bg-pink-950/20' },
+  ];
 
-  const isEditing = (category: string, field: string) => {
-    return editingField?.category === category && editingField?.field === field;
-  };
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -440,13 +233,10 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
             Week {weekNumber} - HERCM Tracker
           </h3>
           <p className="text-sm text-muted-foreground mt-1">
-            Track all 4 life areas in one unified view
+            Fill current feelings, get AI target goals, track progress
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Badge className={getProgressColor(weeklyProgress)} data-testid="badge-weekly-progress">
-            {weeklyProgress}% Weekly Progress
-          </Badge>
           <Button 
             variant="outline" 
             onClick={onViewHistory}
@@ -467,492 +257,212 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
       </div>
 
       {/* Current Week Table */}
-      <div className="border-2 border-rose-300 dark:border-rose-700 rounded-lg overflow-x-auto shadow-lg">
-        <div className="bg-gradient-to-r from-rose-400 to-pink-500 dark:from-rose-600 dark:to-pink-700 px-4 py-3 border-b-2 border-rose-300 dark:border-rose-800">
-          <h3 className="font-bold text-white text-xl text-center drop-shadow-md flex items-center justify-center gap-2">
+      <Card className="border-2 border-rose-300 dark:border-rose-700">
+        <CardHeader className="bg-gradient-to-r from-rose-400 to-pink-500 dark:from-rose-600 dark:to-pink-700 text-white">
+          <CardTitle className="flex items-center justify-center gap-2">
             <Sparkles className="w-5 h-5" />
-            Current Week
-          </h3>
-        </div>
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-950/30 dark:to-pink-950/30">
-              <TableHead className="font-bold border-r">HERCM Area</TableHead>
-              <TableHead className="w-[80px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Rating</TableHead>
-              <TableHead className="w-[180px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Problems</TableHead>
-              <TableHead className="w-[150px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Feelings</TableHead>
-              <TableHead className="w-[180px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Beliefs/Reasons</TableHead>
-              <TableHead className="w-[180px] bg-rose-100 dark:bg-rose-900/40 font-semibold border-r">Actions</TableHead>
-              
-              <TableHead className="w-[180px] bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/40 dark:to-blue-900/40 font-semibold">
-                <div className="flex items-center gap-1">
-                  <Sparkles className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
-                  AI Course
-                </div>
-              </TableHead>
-              <TableHead className="w-[200px] bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900/40 dark:to-violet-900/40 font-semibold">Checklist (3)</TableHead>
-              <TableHead className="w-[100px] bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 font-semibold text-center">Progress</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {beliefs.map((belief) => (
-              <TableRow key={belief.category} className="border-b" data-testid={`row-${belief.category.toLowerCase()}`}>
-                {/* Category Column */}
-                <TableCell className="font-semibold border-r bg-muted/20" data-testid={`cell-category-${belief.category.toLowerCase()}`}>
-                  <Badge variant="outline" className="font-semibold">
-                    {belief.category}
-                  </Badge>
-                </TableCell>
-
-                {/* Current Week - Rating */}
-                <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10">
-                  <Input
-                    type="number"
-                    min="1"
-                    max="10"
-                    value={belief.currentRating}
-                    onChange={(e) => handleRatingChange(belief.category, parseInt(e.target.value) || 1)}
-                    className="w-16 text-center"
-                    data-testid={`input-current-rating-${belief.category.toLowerCase()}`}
-                  />
-                </TableCell>
-
-                {/* Current Week - Problems */}
-                <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10">
-                  {isEditing(belief.category, 'problems') ? (
-                    <div className="space-y-1">
-                      <Textarea
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        className="min-h-[60px] text-xs"
-                        data-testid={`textarea-problems-${belief.category.toLowerCase()}`}
-                      />
-                      <div className="flex gap-1">
-                        <Button size="sm" variant="ghost" onClick={saveEdit} className="h-6 px-2" data-testid={`button-save-problems-${belief.category.toLowerCase()}`}>
-                          <Save className="w-3 h-3" />
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-6 px-2" data-testid={`button-cancel-problems-${belief.category.toLowerCase()}`}>
-                          <X className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="group relative">
-                      <div className="text-xs" data-testid={`text-problems-${belief.category.toLowerCase()}`}>{belief.problems}</div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => startEdit(belief.category, 'problems', belief.problems)}
-                        className="absolute top-0 right-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                        data-testid={`button-edit-problems-${belief.category.toLowerCase()}`}
-                      >
-                        <Edit2 className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  )}
-                </TableCell>
-
-                {/* Current Week - Feelings */}
-                <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10">
-                  {isEditing(belief.category, 'currentFeelings') ? (
-                    <div className="space-y-1">
-                      <Input
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        className="text-xs"
-                        data-testid={`input-current-feelings-${belief.category.toLowerCase()}`}
-                      />
-                      <div className="flex gap-1">
-                        <Button size="sm" variant="ghost" onClick={saveEdit} className="h-6 px-2" data-testid={`button-save-current-feelings-${belief.category.toLowerCase()}`}>
-                          <Save className="w-3 h-3" />
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-6 px-2" data-testid={`button-cancel-current-feelings-${belief.category.toLowerCase()}`}>
-                          <X className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="group relative">
-                      <div className="text-xs" data-testid={`text-current-feelings-${belief.category.toLowerCase()}`}>{belief.currentFeelings}</div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => startEdit(belief.category, 'currentFeelings', belief.currentFeelings)}
-                        className="absolute top-0 right-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                        data-testid={`button-edit-current-feelings-${belief.category.toLowerCase()}`}
-                      >
-                        <Edit2 className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  )}
-                </TableCell>
-
-                {/* Current Week - Beliefs/Reasons */}
-                <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10">
-                  {isEditing(belief.category, 'currentBelief') ? (
-                    <div className="space-y-1">
-                      <Textarea
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        className="min-h-[60px] text-xs"
-                        data-testid={`textarea-current-belief-${belief.category.toLowerCase()}`}
-                      />
-                      <div className="flex gap-1">
-                        <Button size="sm" variant="ghost" onClick={saveEdit} className="h-6 px-2" data-testid={`button-save-current-belief-${belief.category.toLowerCase()}`}>
-                          <Save className="w-3 h-3" />
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-6 px-2" data-testid={`button-cancel-current-belief-${belief.category.toLowerCase()}`}>
-                          <X className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="group relative">
-                      <div className="text-xs" data-testid={`text-current-belief-${belief.category.toLowerCase()}`}>{belief.currentBelief}</div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => startEdit(belief.category, 'currentBelief', belief.currentBelief)}
-                        className="absolute top-0 right-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                        data-testid={`button-edit-current-belief-${belief.category.toLowerCase()}`}
-                      >
-                        <Edit2 className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  )}
-                </TableCell>
-
-                {/* Current Week - Actions */}
-                <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10 border-r">
-                  {isEditing(belief.category, 'currentActions') ? (
-                    <div className="space-y-1">
-                      <Textarea
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        className="min-h-[60px] text-xs"
-                        data-testid={`textarea-current-actions-${belief.category.toLowerCase()}`}
-                      />
-                      <div className="flex gap-1">
-                        <Button size="sm" variant="ghost" onClick={saveEdit} className="h-6 px-2" data-testid={`button-save-current-actions-${belief.category.toLowerCase()}`}>
-                          <Save className="w-3 h-3" />
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-6 px-2" data-testid={`button-cancel-current-actions-${belief.category.toLowerCase()}`}>
-                          <X className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="group relative">
-                      <div className="text-xs" data-testid={`text-current-actions-${belief.category.toLowerCase()}`}>{belief.currentActions}</div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => startEdit(belief.category, 'currentActions', belief.currentActions)}
-                        className="absolute top-0 right-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                        data-testid={`button-edit-current-actions-${belief.category.toLowerCase()}`}
-                      >
-                        <Edit2 className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  )}
-                </TableCell>
-
-                {/* AI - Course Suggestion */}
-                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10">
-                  <div className="text-xs flex items-center gap-2" data-testid={`text-course-${belief.category.toLowerCase()}`}>
-                    {loadingCourses.has(belief.category) ? (
-                      <>
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                        <span>Getting AI recommendation...</span>
-                      </>
-                    ) : (
-                      belief.courseSuggestion
-                    )}
-                  </div>
-                </TableCell>
-
-                {/* AI - Checklist */}
-                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10">
-                  <div className="space-y-1">
-                    {belief.checklist.map((item, idx) => (
-                      <label 
-                        key={item.id} 
-                        className="flex items-start gap-2 text-xs cursor-pointer hover-elevate rounded p-1"
-                        data-testid={`label-checklist-${belief.category.toLowerCase()}-${idx}`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={item.checked}
-                          onChange={() => handleChecklistToggle(belief.category, item.id)}
-                          className="mt-0.5 w-3.5 h-3.5 rounded border-blue-500 text-blue-500 focus:ring-blue-500 cursor-pointer"
-                          data-testid={`checkbox-checklist-${belief.category.toLowerCase()}-${idx}`}
-                        />
-                        <span className={item.checked ? 'line-through text-muted-foreground' : ''}>
-                          {item.text}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </TableCell>
-
-                {/* Progress */}
-                <TableCell className="text-center p-2 bg-blue-50/30 dark:bg-blue-950/10">
-                  <Badge className={getProgressColor(calculateProgress(belief.checklist))} data-testid={`badge-progress-${belief.category.toLowerCase()}`}>
-                    {calculateProgress(belief.checklist)}%
-                  </Badge>
-                </TableCell>
+            Current Week - How I Feel Now
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[150px]">Category</TableHead>
+                <TableHead>Current Rating (1-5)</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* Next Week Table */}
-      <div className="border-2 border-emerald-300 dark:border-emerald-700 rounded-lg overflow-x-auto mt-6 shadow-lg">
-        <div className="bg-gradient-to-r from-emerald-400 to-teal-500 dark:from-emerald-600 dark:to-teal-700 px-4 py-3 border-b-2 border-emerald-300 dark:border-emerald-800">
-          <h3 className="font-bold text-white text-xl text-center drop-shadow-md flex items-center justify-center gap-2">
-            <TrendingUp className="w-5 h-5" />
-            Next Week Goals
-          </h3>
-        </div>
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30">
-              <TableHead className="font-bold border-r">HERCM Area</TableHead>
-              <TableHead className="w-[80px] bg-emerald-100 dark:bg-emerald-900/40 font-semibold">Target (+1)</TableHead>
-              <TableHead className="w-[180px] bg-emerald-100 dark:bg-emerald-900/40 font-semibold">Result</TableHead>
-              <TableHead className="w-[150px] bg-emerald-100 dark:bg-emerald-900/40 font-semibold">Feelings</TableHead>
-              <TableHead className="w-[180px] bg-emerald-100 dark:bg-emerald-900/40 font-semibold">Beliefs</TableHead>
-              <TableHead className="w-[180px] bg-emerald-100 dark:bg-emerald-900/40 font-semibold border-r">Actions</TableHead>
-              
-              <TableHead className="w-[180px] bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/40 dark:to-blue-900/40 font-semibold">
-                <div className="flex items-center gap-1">
-                  <Sparkles className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
-                  AI Course
-                </div>
-              </TableHead>
-              <TableHead className="w-[200px] bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900/40 dark:to-violet-900/40 font-semibold">Checklist (3)</TableHead>
-              <TableHead className="w-[100px] bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 font-semibold text-center">Progress</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {beliefs.map((belief) => (
-              <TableRow key={`next-${belief.category}`} className="border-b" data-testid={`row-next-${belief.category.toLowerCase()}`}>
-                {/* Category Column */}
-                <TableCell className="font-semibold border-r bg-muted/20" data-testid={`cell-next-category-${belief.category.toLowerCase()}`}>
-                  <Badge variant="outline" className="font-semibold">
-                    {belief.category}
-                  </Badge>
-                </TableCell>
-
-                {/* Next Week - Target Rating (Auto +1) */}
-                <TableCell className="p-2 bg-emerald-50/30 dark:bg-emerald-950/10">
-                  <Input
-                    type="number"
-                    value={belief.targetRating}
-                    disabled
-                    className="w-16 text-center bg-muted/50 cursor-not-allowed"
-                    data-testid={`input-target-rating-${belief.category.toLowerCase()}`}
-                  />
-                </TableCell>
-
-                {/* Next Week - Result */}
-                <TableCell className="p-2 bg-emerald-50/30 dark:bg-emerald-950/10">
-                  {isEditing(belief.category, 'result') ? (
-                    <div className="space-y-1">
-                      <Textarea
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        className="min-h-[60px] text-xs"
-                        data-testid={`textarea-result-${belief.category.toLowerCase()}`}
+            </TableHeader>
+            <TableBody>
+              {categories.map(({ key, label, color }) => (
+                <TableRow key={key} className={color}>
+                  <TableCell className="font-semibold">{label}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-4">
+                      <Slider
+                        value={[currentRatings[key as keyof typeof currentRatings]]}
+                        onValueChange={(value) => setCurrentRatings(prev => ({ ...prev, [key]: value[0] }))}
+                        min={1}
+                        max={5}
+                        step={1}
+                        className="flex-1"
+                        data-testid={`slider-current-${key.toLowerCase()}`}
                       />
-                      <div className="flex gap-1">
-                        <Button size="sm" variant="ghost" onClick={saveEdit} className="h-6 px-2" data-testid={`button-save-result-${belief.category.toLowerCase()}`}>
-                          <Save className="w-3 h-3" />
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-6 px-2" data-testid={`button-cancel-result-${belief.category.toLowerCase()}`}>
-                          <X className="w-3 h-3" />
-                        </Button>
-                      </div>
+                      <span className="w-8 text-center font-bold" data-testid={`text-current-${key.toLowerCase()}`}>
+                        {currentRatings[key as keyof typeof currentRatings]}
+                      </span>
                     </div>
-                  ) : (
-                    <div className="group relative">
-                      <div className="text-xs" data-testid={`text-result-${belief.category.toLowerCase()}`}>{belief.result}</div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => startEdit(belief.category, 'result', belief.result)}
-                        className="absolute top-0 right-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                        data-testid={`button-edit-result-${belief.category.toLowerCase()}`}
-                      >
-                        <Edit2 className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  )}
-                </TableCell>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          
+          {/* Task Completion */}
+          <div className="mt-4 flex items-center gap-6 p-3 bg-muted/30 rounded-lg">
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="checklist" 
+                checked={checklistCompleted}
+                onCheckedChange={(checked) => setChecklistCompleted(checked as boolean)}
+                data-testid="checkbox-checklist"
+              />
+              <label htmlFor="checklist" className="text-sm font-medium cursor-pointer">
+                ✅ Checklist Completed This Week
+              </label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="course" 
+                checked={courseCompleted}
+                onCheckedChange={(checked) => setCourseCompleted(checked as boolean)}
+                data-testid="checkbox-course"
+              />
+              <label htmlFor="course" className="text-sm font-medium cursor-pointer">
+                📚 Course Completed This Week
+              </label>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-                {/* Next Week - Feelings */}
-                <TableCell className="p-2 bg-emerald-50/30 dark:bg-emerald-950/10">
-                  {isEditing(belief.category, 'nextFeelings') ? (
-                    <div className="space-y-1">
-                      <Input
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        className="text-xs"
-                        data-testid={`input-next-feelings-${belief.category.toLowerCase()}`}
-                      />
-                      <div className="flex gap-1">
-                        <Button size="sm" variant="ghost" onClick={saveEdit} className="h-6 px-2" data-testid={`button-save-next-feelings-${belief.category.toLowerCase()}`}>
-                          <Save className="w-3 h-3" />
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-6 px-2" data-testid={`button-cancel-next-feelings-${belief.category.toLowerCase()}`}>
-                          <X className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="group relative">
-                      <div className="text-xs" data-testid={`text-next-feelings-${belief.category.toLowerCase()}`}>{belief.nextFeelings}</div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => startEdit(belief.category, 'nextFeelings', belief.nextFeelings)}
-                        className="absolute top-0 right-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                        data-testid={`button-edit-next-feelings-${belief.category.toLowerCase()}`}
-                      >
-                        <Edit2 className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  )}
-                </TableCell>
-
-                {/* Next Week - Beliefs */}
-                <TableCell className="p-2 bg-emerald-50/30 dark:bg-emerald-950/10">
-                  {isEditing(belief.category, 'nextWeekTarget') ? (
-                    <div className="space-y-1">
-                      <Textarea
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        className="min-h-[60px] text-xs"
-                        data-testid={`textarea-next-belief-${belief.category.toLowerCase()}`}
-                      />
-                      <div className="flex gap-1">
-                        <Button size="sm" variant="ghost" onClick={saveEdit} className="h-6 px-2" data-testid={`button-save-next-belief-${belief.category.toLowerCase()}`}>
-                          <Save className="w-3 h-3" />
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-6 px-2" data-testid={`button-cancel-next-belief-${belief.category.toLowerCase()}`}>
-                          <X className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="group relative">
-                      <div className="text-xs" data-testid={`text-next-belief-${belief.category.toLowerCase()}`}>{belief.nextWeekTarget}</div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => startEdit(belief.category, 'nextWeekTarget', belief.nextWeekTarget)}
-                        className="absolute top-0 right-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                        data-testid={`button-edit-next-belief-${belief.category.toLowerCase()}`}
-                      >
-                        <Edit2 className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  )}
-                </TableCell>
-
-                {/* Next Week - Actions */}
-                <TableCell className="p-2 bg-emerald-50/30 dark:bg-emerald-950/10 border-r">
-                  {isEditing(belief.category, 'nextActions') ? (
-                    <div className="space-y-1">
-                      <Textarea
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        className="min-h-[60px] text-xs"
-                        data-testid={`textarea-next-actions-${belief.category.toLowerCase()}`}
-                      />
-                      <div className="flex gap-1">
-                        <Button size="sm" variant="ghost" onClick={saveEdit} className="h-6 px-2" data-testid={`button-save-next-actions-${belief.category.toLowerCase()}`}>
-                          <Save className="w-3 h-3" />
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-6 px-2" data-testid={`button-cancel-next-actions-${belief.category.toLowerCase()}`}>
-                          <X className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="group relative">
-                      <div className="text-xs" data-testid={`text-next-actions-${belief.category.toLowerCase()}`}>{belief.nextActions}</div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => startEdit(belief.category, 'nextActions', belief.nextActions)}
-                        className="absolute top-0 right-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                        data-testid={`button-edit-next-actions-${belief.category.toLowerCase()}`}
-                      >
-                        <Edit2 className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  )}
-                </TableCell>
-
-                {/* AI - Course Suggestion */}
-                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10">
-                  <div className="text-xs flex items-center gap-2" data-testid={`text-course-next-${belief.category.toLowerCase()}`}>
-                    {loadingCourses.has(belief.category) ? (
-                      <>
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                        <span>Getting AI recommendation...</span>
-                      </>
-                    ) : (
-                      belief.courseSuggestion
-                    )}
-                  </div>
-                </TableCell>
-
-                {/* AI - Checklist */}
-                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10">
-                  <div className="space-y-1">
-                    {belief.checklist.map((item, idx) => (
-                      <label 
-                        key={item.id} 
-                        className="flex items-start gap-2 text-xs cursor-pointer hover-elevate rounded p-1"
-                        data-testid={`label-checklist-next-${belief.category.toLowerCase()}-${idx}`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={item.checked}
-                          onChange={() => handleChecklistToggle(belief.category, item.id)}
-                          className="mt-0.5 w-3.5 h-3.5 rounded border-blue-500 text-blue-500 focus:ring-blue-500 cursor-pointer"
-                          data-testid={`checkbox-checklist-next-${belief.category.toLowerCase()}-${idx}`}
-                        />
-                        <span className={item.checked ? 'line-through text-muted-foreground' : ''}>
-                          {item.text}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </TableCell>
-
-                {/* Progress */}
-                <TableCell className="text-center p-2 bg-blue-50/30 dark:bg-blue-950/10">
-                  <Badge className={getProgressColor(calculateProgress(belief.checklist))} data-testid={`badge-progress-next-${belief.category.toLowerCase()}`}>
-                    {calculateProgress(belief.checklist)}%
-                  </Badge>
-                </TableCell>
+      {/* Target Goals Table */}
+      <Card className="border-2 border-blue-300 dark:border-blue-700">
+        <CardHeader className="bg-gradient-to-r from-blue-400 to-cyan-500 dark:from-blue-600 dark:to-cyan-700 text-white">
+          <CardTitle className="flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5" />
+              Target Goals - Where I Want To Be
+            </span>
+            <Button 
+              variant="secondary"
+              size="sm"
+              onClick={handleAutoFill}
+              disabled={autoFilling}
+              data-testid="button-auto-fill"
+            >
+              {autoFilling ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Sparkles className="w-4 h-4 mr-2" />
+              )}
+              Auto-fill Goals
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[150px]">Category</TableHead>
+                <TableHead>Target Goal (Editable)</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {categories.map(({ key, label, color }) => (
+                <TableRow key={key} className={color}>
+                  <TableCell className="font-semibold">{label}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-4">
+                      <Slider
+                        value={[targetGoals[key as keyof typeof targetGoals] || 3]}
+                        onValueChange={(value) => setTargetGoals(prev => ({ ...prev, [key]: value[0] }))}
+                        min={1}
+                        max={5}
+                        step={1}
+                        className="flex-1"
+                        data-testid={`slider-target-${key.toLowerCase()}`}
+                      />
+                      <span className="w-8 text-center font-bold" data-testid={`text-target-${key.toLowerCase()}`}>
+                        {targetGoals[key as keyof typeof targetGoals] || 0}
+                      </span>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Save Button */}
+      <div className="flex justify-center">
+        <Button
+          size="lg"
+          onClick={() => saveWeekMutation.mutate()}
+          disabled={saveWeekMutation.isPending}
+          className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+          data-testid="button-save-week"
+        >
+          {saveWeekMutation.isPending ? (
+            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+          ) : (
+            <Check className="w-5 h-5 mr-2" />
+          )}
+          Save Week
+        </Button>
       </div>
 
-      {/* Info Footer */}
-      <div className="bg-muted/30 rounded-lg p-4 text-sm text-muted-foreground">
-        <p className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-primary" />
-          <strong>AI-Powered Weekly Progression:</strong> When you click "Generate Next Week", AI analyzes your progress and creates next week's targets. 80%+ completion transforms your belief!
-        </p>
-      </div>
+      {/* Weekly Comparison */}
+      {showComparison && weekData && weekData.targetH && (
+        <Card className="border-2 border-emerald-300 dark:border-emerald-700">
+          <CardHeader className="bg-gradient-to-r from-emerald-400 to-teal-500 dark:from-emerald-600 dark:to-teal-700 text-white">
+            <CardTitle className="flex items-center gap-2">
+              📊 Weekly Progress Comparison
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[150px]">Category</TableHead>
+                  <TableHead>Last Week Target</TableHead>
+                  <TableHead>This Week Actual</TableHead>
+                  <TableHead>Improvement</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {categories.map(({ key, label }) => {
+                  const targetKey = `target${key}` as keyof HERCMWeekData;
+                  const currentKey = `current${key}` as keyof HERCMWeekData;
+                  const improvementKey = `improvement${key}` as keyof HERCMWeekData;
+                  
+                  return (
+                    <TableRow key={key}>
+                      <TableCell className="font-semibold">{label}</TableCell>
+                      <TableCell data-testid={`text-target-comparison-${key.toLowerCase()}`}>
+                        {weekData[targetKey] || '-'}
+                      </TableCell>
+                      <TableCell data-testid={`text-current-comparison-${key.toLowerCase()}`}>
+                        {weekData[currentKey] || '-'}
+                      </TableCell>
+                      <TableCell data-testid={`badge-improvement-${key.toLowerCase()}`}>
+                        {getComparisonBadge(weekData[improvementKey] as number)}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+            
+            {weekData.achievementRate !== undefined && (
+              <div className="mt-4 p-4 bg-muted rounded-lg">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold">Overall Achievement:</span>
+                  <Badge className={
+                    weekData.achievementRate >= 70 
+                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                      : weekData.achievementRate >= 40
+                      ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                      : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                  }>
+                    {weekData.achievementRate}% Goals Achieved
+                  </Badge>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
