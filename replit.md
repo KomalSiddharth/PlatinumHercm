@@ -18,8 +18,9 @@ Preferred communication style: Simple, everyday language.
 - **Blank Week Generation**: Fixed next week generation logic - Week 1 shows demo data, all subsequent weeks (2, 3, 4+) start with blank templates for user to fill (manually or via AI auto-fill)
 - **Data Display Logic**: Both UnifiedHERCMTable and HERCMHistoryModal now follow consistent pattern: Week 1 = demo/sample data, Week 2+ = blank state
 - **Next Week Target Placeholders**: Added "Click to add..." placeholder text to all Next Week Target table fields (Result, Feelings, Beliefs, Actions) for better UX when fields are empty
-- **Authentication Fix**: Fixed email-based authentication middleware to properly support session-based login alongside OIDC auth
+- **Authentication Fix**: Fixed email-based authentication middleware to properly support session-based login alongside OIDC auth - all API routes now support both OIDC (req.user?.claims?.sub) and email-based auth (req.session.userEmail)
 - **API Route Addition**: Added `/api/hercm/week/:weekNumber` endpoint to fetch individual week data
+- **History Modal Analytics Fix**: Fixed generateHistoricalData fallback to properly calculate progress from checklist items instead of hardcoding 0% - Week 1 now shows 33% progress, Week 2 shows 50%, Week 3+ shows 67%, enabling bar graphs and improvement summary to display meaningful data
 
 ## System Architecture
 

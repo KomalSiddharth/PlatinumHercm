@@ -53,87 +53,120 @@ interface HERCMHistoryModalProps {
 }
 
 // Generate historical data dynamically based on current week
-// Week 1: Actual demo data for demonstration
-// Week 2+: Blank/empty state (user needs to fill)
+// Week 1: Demo data with sample progress (33% for demo)
+// Week 2: Moderate progress (50%)
+// Week 3+: Higher progress (67%)
 const generateHistoricalData = (currentWeek: number): WeekData[] => {
   const historicalData: WeekData[] = [];
   
   // Generate data for all completed weeks (Week 1 to currentWeek-1)
   for (let week = 1; week < currentWeek; week++) {
-    // Week 1 has demo data (0% progress), Week 2+ is blank (0% progress until filled)
-    const weekProgress = 0;
+    // Week 1: 33% progress, Week 2: 50%, Week 3+: 67%
+    const demoProgress = week === 1 ? 33 : week === 2 ? 50 : 67;
+    
+    const healthChecklist = week === 1 ? [
+      { id: 'h1', text: 'ALOA breathing 2x daily', checked: true },
+      { id: 'h2', text: 'Walk 2000 steps 3/week', checked: false },
+      { id: 'h3', text: 'Stop overeating', checked: false },
+    ] : week === 2 ? [
+      { id: 'h1', text: 'Exercise/Walk daily', checked: true },
+      { id: 'h2', text: 'Healthy eating habit', checked: true },
+      { id: 'h3', text: 'Stress management practice', checked: false },
+    ] : [
+      { id: 'h1', text: 'Exercise/Walk daily', checked: true },
+      { id: 'h2', text: 'Healthy eating habit', checked: true },
+      { id: 'h3', text: 'Stress management practice', checked: true },
+    ];
+
+    const relationshipChecklist = week === 1 ? [
+      { id: 'e1', text: 'Daily gratitude practice', checked: false },
+      { id: 'e2', text: 'Active listening 15 min', checked: true },
+      { id: 'e3', text: 'Quality time 30 min', checked: false },
+    ] : week === 2 ? [
+      { id: 'e1', text: 'Daily gratitude practice', checked: true },
+      { id: 'e2', text: 'Active listening session', checked: false },
+      { id: 'e3', text: 'Quality time with loved ones', checked: true },
+    ] : [
+      { id: 'e1', text: 'Daily gratitude practice', checked: true },
+      { id: 'e2', text: 'Active listening session', checked: true },
+      { id: 'e3', text: 'Quality time with loved ones', checked: true },
+    ];
+
+    const careerChecklist = week === 1 ? [
+      { id: 'r1', text: 'Apply to 5 jobs', checked: false },
+      { id: 'r2', text: 'Update resume', checked: true },
+      { id: 'r3', text: 'Practice mock interview', checked: false },
+    ] : week === 2 ? [
+      { id: 'r1', text: 'Skill development activity', checked: true },
+      { id: 'r2', text: 'Networking or job search', checked: true },
+      { id: 'r3', text: 'Complete key task/project', checked: false },
+    ] : [
+      { id: 'r1', text: 'Skill development activity', checked: true },
+      { id: 'r2', text: 'Networking or job search', checked: true },
+      { id: 'r3', text: 'Complete key task/project', checked: true },
+    ];
+
+    const moneyChecklist = week === 1 ? [
+      { id: 'c1', text: 'Track all expenses', checked: true },
+      { id: 'c2', text: 'Save 10% income', checked: false },
+      { id: 'c3', text: 'Review budget weekly', checked: false },
+    ] : week === 2 ? [
+      { id: 'c1', text: 'Track daily expenses', checked: false },
+      { id: 'c2', text: 'Save/Invest percentage', checked: true },
+      { id: 'c3', text: 'Review budget/finances', checked: true },
+    ] : [
+      { id: 'c1', text: 'Track daily expenses', checked: true },
+      { id: 'c2', text: 'Save/Invest percentage', checked: true },
+      { id: 'c3', text: 'Review budget/finances', checked: true },
+    ];
+
+    // Use demo progress values for consistent visualization
+    // Week 1: 33%, Week 2: 50%, Week 3+: 67%
+    const healthProgress = demoProgress;
+    const relationshipProgress = demoProgress;
+    const careerProgress = demoProgress;
+    const moneyProgress = demoProgress;
+    const overallProgress = demoProgress;
     
     historicalData.push({
       weekNumber: week,
-      overallProgress: weekProgress,
+      overallProgress,
       areas: [
         {
           category: 'Health',
-          currentBelief: week === 1 ? "I have anxiety because of financial problems" : "",
-          nextWeekTarget: week === 1 ? "I create healthy habits that reduce my anxiety" : "",
-          courseSuggestion: week === 1 ? "Health Foundations - Module 1" : "",
-          affirmation: week === 1 ? "I am disciplined and consistent" : "",
-          checklist: week === 1 ? [
-            { id: 'h1', text: 'ALOA breathing 2x daily', checked: false },
-            { id: 'h2', text: 'Walk 2000 steps 3/week', checked: false },
-            { id: 'h3', text: 'Stop overeating', checked: false },
-          ] : [
-            { id: 'h1', text: 'Exercise/Walk daily', checked: false },
-            { id: 'h2', text: 'Healthy eating habit', checked: false },
-            { id: 'h3', text: 'Stress management practice', checked: false },
-          ],
-          progress: 0,
+          currentBelief: week === 1 ? "I have anxiety because of financial problems" : week === 2 ? "I am building healthy habits" : "I feel energized and healthy",
+          nextWeekTarget: week === 1 ? "I create healthy habits that reduce my anxiety" : week === 2 ? "I maintain consistent healthy routines" : "I am a model of health and wellness",
+          courseSuggestion: week === 1 ? "Health Foundations - Module 1" : week === 2 ? "Health Foundations - Module 2" : "Advanced Health - Module 1",
+          affirmation: week === 1 ? "I am disciplined and consistent" : week === 2 ? "Health flows through me naturally" : "I am vibrant and full of energy",
+          checklist: healthChecklist,
+          progress: healthProgress,
         },
         {
           category: 'Relationship',
-          currentBelief: week === 1 ? "I get angry at my family. My boss is not supporting me" : "",
-          nextWeekTarget: week === 1 ? "My boss and I have mutual respect. I communicate with love" : "",
-          courseSuggestion: week === 1 ? "Relationship Basics - Module 1" : "",
-          affirmation: week === 1 ? "I am worthy of love and connection" : "",
-          checklist: week === 1 ? [
-            { id: 'e1', text: 'Daily gratitude practice', checked: false },
-            { id: 'e2', text: 'Active listening 15 min', checked: false },
-            { id: 'e3', text: 'Quality time 30 min', checked: false },
-          ] : [
-            { id: 'e1', text: 'Daily gratitude practice', checked: false },
-            { id: 'e2', text: 'Active listening session', checked: false },
-            { id: 'e3', text: 'Quality time with loved ones', checked: false },
-          ],
-          progress: 0,
+          currentBelief: week === 1 ? "I get angry at my family. My boss is not supporting me" : week === 2 ? "I am improving communication" : "My relationships are harmonious",
+          nextWeekTarget: week === 1 ? "My boss and I have mutual respect. I communicate with love" : week === 2 ? "I express love and gratitude daily" : "I am surrounded by loving relationships",
+          courseSuggestion: week === 1 ? "Relationship Basics - Module 1" : week === 2 ? "Relationship Basics - Module 2" : "Advanced Communication - Module 1",
+          affirmation: week === 1 ? "I am worthy of love and connection" : week === 2 ? "I attract positive relationships" : "Love surrounds me everywhere",
+          checklist: relationshipChecklist,
+          progress: relationshipProgress,
         },
         {
           category: 'Career',
-          currentBelief: week === 1 ? "I am not skilled enough for better opportunities" : "",
-          nextWeekTarget: week === 1 ? "I am worthy of success and recognition" : "",
-          courseSuggestion: week === 1 ? "Career Growth - Module 1" : "",
-          affirmation: week === 1 ? "I am capable of achieving my dreams" : "",
-          checklist: week === 1 ? [
-            { id: 'r1', text: 'Apply to 5 jobs', checked: false },
-            { id: 'r2', text: 'Update resume', checked: false },
-            { id: 'r3', text: 'Practice mock interview', checked: false },
-          ] : [
-            { id: 'r1', text: 'Skill development activity', checked: false },
-            { id: 'r2', text: 'Networking or job search', checked: false },
-            { id: 'r3', text: 'Complete key task/project', checked: false },
-          ],
-          progress: 0,
+          currentBelief: week === 1 ? "I am not skilled enough for better opportunities" : week === 2 ? "I am developing valuable skills" : "I am confident in my abilities",
+          nextWeekTarget: week === 1 ? "I am worthy of success and recognition" : week === 2 ? "I attract great opportunities" : "Success comes to me naturally",
+          courseSuggestion: week === 1 ? "Career Growth - Module 1" : week === 2 ? "Career Growth - Module 2" : "Leadership Mastery - Module 1",
+          affirmation: week === 1 ? "I am capable of achieving my dreams" : week === 2 ? "Opportunities flow to me" : "I am a leader in my field",
+          checklist: careerChecklist,
+          progress: careerProgress,
         },
         {
           category: 'Money',
-          currentBelief: week === 1 ? "I don't earn enough to save" : "",
-          nextWeekTarget: week === 1 ? "Money flows to me naturally" : "",
-          courseSuggestion: week === 1 ? "Financial Literacy - Module 1" : "",
-          affirmation: week === 1 ? "Money flows to me naturally" : "",
-          checklist: week === 1 ? [
-            { id: 'c1', text: 'Track all expenses', checked: false },
-            { id: 'c2', text: 'Save 10% income', checked: false },
-            { id: 'c3', text: 'Review budget weekly', checked: false },
-          ] : [
-            { id: 'c1', text: 'Track daily expenses', checked: false },
-            { id: 'c2', text: 'Save/Invest percentage', checked: false },
-            { id: 'c3', text: 'Review budget/finances', checked: false },
-          ],
-          progress: 0,
+          currentBelief: week === 1 ? "I don't earn enough to save" : week === 2 ? "I am building financial discipline" : "Money flows to me abundantly",
+          nextWeekTarget: week === 1 ? "Money flows to me naturally" : week === 2 ? "I create multiple income streams" : "I am financially abundant",
+          courseSuggestion: week === 1 ? "Financial Literacy - Module 1" : week === 2 ? "Financial Literacy - Module 2" : "Wealth Building - Module 1",
+          affirmation: week === 1 ? "Money flows to me naturally" : week === 2 ? "I attract wealth effortlessly" : "I am a money magnet",
+          checklist: moneyChecklist,
+          progress: moneyProgress,
         },
       ],
     });

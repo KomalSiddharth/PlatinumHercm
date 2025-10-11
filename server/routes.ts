@@ -28,7 +28,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      // Handle both OIDC auth (req.user.claims.sub) and email-based auth (req.session.userEmail)
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const user = await storage.getUser(userId);
       res.json(user);
     } catch (error) {
@@ -40,7 +45,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User HERCM routes (protected)
   app.get('/api/hercm/weeks', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      // Handle both OIDC auth (req.user.claims.sub) and email-based auth (req.session.userEmail)
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const weeks = await storage.getHercmWeeksByUser(userId);
       res.json(weeks);
     } catch (error) {
@@ -68,7 +78,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/hercm/weeks', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      // Handle both OIDC auth (req.user.claims.sub) and email-based auth (req.session.userEmail)
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const weekData = { ...req.body, userId };
       const week = await storage.createHercmWeek(weekData);
       res.json(week);
@@ -109,7 +124,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Save current week with comparison calculation
   app.post('/api/hercm/save-with-comparison', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      // Handle both OIDC auth (req.user.claims.sub) and email-based auth (req.session.userEmail)
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
       const weekData = { ...req.body, userId };
       
       // Calculate improvements if targets exist
@@ -147,7 +166,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/hercm/comparison/:weekId', isAuthenticated, async (req: any, res) => {
     try {
       const { weekId } = req.params;
-      const userId = req.user.claims.sub;
+      // Handle both OIDC auth (req.user.claims.sub) and email-based auth (req.session.userEmail)
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
       
       const weeks = await storage.getHercmWeeksByUser(userId);
       const week = weeks.find((w: any) => w.id === weekId);
@@ -176,7 +199,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Platinum Progress routes
   app.get('/api/platinum/progress', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      // Handle both OIDC auth (req.user.claims.sub) and email-based auth (req.session.userEmail)
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
       const progress = await storage.getPlatinumProgress(userId);
       res.json(progress || { userId, currentStreak: 0, totalPoints: 0, badges: [] });
     } catch (error) {
@@ -378,7 +405,11 @@ Return ONLY valid JSON in this exact format:
   // Update user's Google Sheet URL
   app.post('/api/user/course-sheet', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      // Handle both OIDC auth (req.user.claims.sub) and email-based auth (req.session.userEmail)
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
       const { sheetUrl } = req.body;
       
       await storage.updateUserCourseSheet(userId, sheetUrl);
