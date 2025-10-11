@@ -23,6 +23,7 @@ Preferred communication style: Simple, everyday language.
 - **History Modal Analytics Fix**: Fixed generateHistoricalData fallback to properly calculate progress from checklist items instead of hardcoding 0% - Week 1 now shows 33% progress, Week 2 shows 50%, Week 3+ shows 67%, enabling bar graphs and improvement summary to display meaningful data
 - **Week 2 Demo Data**: Added complete demo data for Week 2 showing continuity from Week 1 - Week 1's nextWeekTarget matches Week 2's currentBelief for realistic 100% comparison match
 - **Analytics in Comparison Dialog**: Added full analytics section (line chart, bar chart, improvement summary) to the Weekly Progress comparison dialog - same analytics that appear in History modal now also visible in week-over-week comparison for easier access
+- **Platinum Streak Section Removal**: Completely removed PlatinumProgress component from Dashboard - no more Platinum Streak Progress card or week progression indicators
 
 ## System Architecture
 

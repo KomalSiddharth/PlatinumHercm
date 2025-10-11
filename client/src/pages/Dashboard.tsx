@@ -4,7 +4,6 @@ import UnifiedHERCMTable from '@/components/UnifiedHERCMTable';
 import AddRitualForm from '@/components/AddRitualForm';
 import RitualCard from '@/components/RitualCard';
 import CourseCard from '@/components/CourseCard';
-import PlatinumProgress from '@/components/PlatinumProgress';
 import Leaderboard from '@/components/Leaderboard';
 import ProfileModal from '@/components/ProfileModal';
 import RitualHistoryModal from '@/components/RitualHistoryModal';
@@ -37,13 +36,6 @@ export default function Dashboard() {
   const [userName, setUserName] = useState('John Doe');
   const [userEmail, setUserEmail] = useState('john@example.com');
   const [totalPoints, setTotalPoints] = useState(0);
-  
-  const [weeklyData, setWeeklyData] = useState([
-    { week: 1, hercmFilled: false, ritualRate: 0 },
-    { week: 2, hercmFilled: false, ritualRate: 0 },
-    { week: 3, hercmFilled: false, ritualRate: 0 },
-    { week: 4, hercmFilled: false, ritualRate: 0 }
-  ]);
   
   const generateCurrentMonthHistory = () => {
     const now = new Date();
@@ -104,13 +96,6 @@ export default function Dashboard() {
       };
     }));
   }, []);
-
-  useEffect(() => {
-    const ritualRate = rituals.length > 0 ? (rituals.filter(r => r.completed).length / rituals.length) * 100 : 0;
-    setWeeklyData(prev => prev.map(w => 
-      w.week === currentWeek ? { ...w, ritualRate } : w
-    ));
-  }, [rituals, currentWeek]);
 
   const scrollToSection = (section: string) => {
     const refs = {
@@ -373,13 +358,6 @@ export default function Dashboard() {
             onGenerateNextWeek={handleGenerateNextWeek}
             onViewHistory={handleViewHERCMHistory}
           />
-
-          <div className="mt-8">
-            <PlatinumProgress 
-              currentWeek={currentWeek} 
-              weeklyData={weeklyData}
-            />
-          </div>
         </section>
 
         <section ref={ritualsRef} id="rituals" className="scroll-mt-20 bg-purple-50 dark:bg-purple-950/40 p-6 rounded-lg border-2 border-purple-200 dark:border-purple-800">
