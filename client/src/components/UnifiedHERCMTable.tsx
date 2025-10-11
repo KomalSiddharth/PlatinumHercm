@@ -3,8 +3,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sparkles, Check, X, TrendingUp, History, Edit2, Save } from 'lucide-react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 interface ChecklistItem {
   id: string;
@@ -292,35 +299,32 @@ const getWeekBeliefs = (week: number): HERCMBelief[] => {
   }
 };
 
-const getCategoryColor = (category: string) => {
-  const colors = {
-    Health: 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900',
-    Relationship: 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900',
-    Career: 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900',
-    Money: 'bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900'
-  };
-  return colors[category as keyof typeof colors] || '';
+const calculateProgress = (checklist: ChecklistItem[]): number => {
+  if (checklist.length === 0) return 0;
+  const completed = checklist.filter(item => item.checked).length;
+  return Math.round((completed / checklist.length) * 100);
 };
 
-const getCategoryBadgeColor = (category: string) => {
-  const colors = {
-    Health: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-    Relationship: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
-    Career: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-    Money: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-  };
-  return colors[category as keyof typeof colors] || '';
+const getProgressColor = (progress: number) => {
+  if (progress >= 80) return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+  if (progress >= 50) return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+  return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
 };
 
 export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onViewHistory }: UnifiedHERCMTableProps) {
   const [beliefs, setBeliefs] = useState<HERCMBelief[]>([]);
   const [editingField, setEditingField] = useState<{ category: string; field: string } | null>(null);
+  const [editValue, setEditValue] = useState('');
 
   useEffect(() => {
     setBeliefs(getWeekBeliefs(weekNumber));
   }, [weekNumber]);
 
-  const handleToggleChecklist = (category: string, itemId: string) => {
+  const weeklyProgress = beliefs.length > 0
+    ? Math.round(beliefs.reduce((sum, b) => sum + calculateProgress(b.checklist), 0) / beliefs.length)
+    : 0;
+
+  const handleChecklistToggle = (category: string, itemId: string) => {
     setBeliefs(prev => prev.map(belief => {
       if (belief.category === category) {
         return {
@@ -329,15 +333,6 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
             item.id === itemId ? { ...item, checked: !item.checked } : item
           )
         };
-      }
-      return belief;
-    }));
-  };
-
-  const handleFieldEdit = (category: string, field: keyof HERCMBelief, value: string | number) => {
-    setBeliefs(prev => prev.map(belief => {
-      if (belief.category === category) {
-        return { ...belief, [field]: value };
       }
       return belief;
     }));
@@ -356,13 +351,28 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
     }));
   };
 
-
-  const startEdit = (category: string, field: string) => {
+  const startEdit = (category: string, field: string, currentValue: string) => {
     setEditingField({ category, field });
+    setEditValue(currentValue);
   };
 
-  const stopEdit = () => {
+  const saveEdit = () => {
+    if (!editingField) return;
+    
+    setBeliefs(prev => prev.map(belief => {
+      if (belief.category === editingField.category) {
+        return { ...belief, [editingField.field]: editValue };
+      }
+      return belief;
+    }));
+    
     setEditingField(null);
+    setEditValue('');
+  };
+
+  const cancelEdit = () => {
+    setEditingField(null);
+    setEditValue('');
   };
 
   const isEditing = (category: string, field: string) => {
@@ -372,27 +382,30 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <Badge className="text-lg px-4 py-1.5" data-testid="badge-week-number">
-            Week {weekNumber}
-          </Badge>
-          <h2 className="text-2xl font-semibold">HERCM Belief Tracker</h2>
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            Week {weekNumber} - HERCM Tracker
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            Track all 4 life areas in one unified view
+          </p>
         </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
+        <div className="flex items-center gap-3">
+          <Badge className={getProgressColor(weeklyProgress)} data-testid="badge-weekly-progress">
+            {weeklyProgress}% Weekly Progress
+          </Badge>
+          <Button 
+            variant="outline" 
             onClick={onViewHistory}
             data-testid="button-view-history"
           >
             <History className="w-4 h-4 mr-2" />
-            History
+            View History
           </Button>
-          <Button
-            variant="default"
-            size="sm"
+          <Button 
             onClick={onGenerateNextWeek}
+            className="bg-gradient-to-r from-primary to-accent"
             data-testid="button-generate-next-week"
           >
             <TrendingUp className="w-4 h-4 mr-2" />
@@ -401,453 +414,426 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
         </div>
       </div>
 
-      {/* HERCM Categories */}
-      <div className="grid gap-6">
-        {beliefs.map((belief) => (
-          <Card 
-            key={belief.category} 
-            className={`${getCategoryColor(belief.category)} border-2`}
-            data-testid={`card-hercm-${belief.category.toLowerCase()}`}
-          >
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Badge className={`${getCategoryBadgeColor(belief.category)} text-base px-3 py-1`}>
+      {/* Unified Excel-Style Table */}
+      <div className="border rounded-lg overflow-x-auto">
+        <Table>
+          <TableHeader>
+            {/* Section Headers Row */}
+            <TableRow className="bg-muted/50">
+              <TableHead className="font-bold border-r" rowSpan={2}>HERCM Area</TableHead>
+              <TableHead className="bg-red-100 dark:bg-red-950/40 font-bold text-center border-r" colSpan={5}>
+                <span className="text-red-700 dark:text-red-400">Current Week</span>
+              </TableHead>
+              <TableHead className="bg-emerald-100 dark:bg-emerald-950/40 font-bold text-center border-r" colSpan={5}>
+                <span className="text-emerald-700 dark:text-emerald-400">Next Week</span>
+              </TableHead>
+              <TableHead className="bg-blue-100 dark:bg-blue-950/40 font-bold text-center" colSpan={4}>
+                <span className="text-blue-700 dark:text-blue-400">AI & Progress</span>
+              </TableHead>
+            </TableRow>
+            {/* Column Headers Row */}
+            <TableRow className="bg-muted/50">
+              {/* Current Week Columns */}
+              <TableHead className="w-[80px] bg-red-50 dark:bg-red-950/20 font-semibold">Rating</TableHead>
+              <TableHead className="w-[180px] bg-red-50 dark:bg-red-950/20 font-semibold">Problems</TableHead>
+              <TableHead className="w-[150px] bg-red-50 dark:bg-red-950/20 font-semibold">Feelings</TableHead>
+              <TableHead className="w-[180px] bg-red-50 dark:bg-red-950/20 font-semibold">Beliefs/Reasons</TableHead>
+              <TableHead className="w-[180px] bg-red-50 dark:bg-red-950/20 font-semibold border-r">Actions</TableHead>
+              
+              {/* Next Week Columns */}
+              <TableHead className="w-[80px] bg-emerald-50 dark:bg-emerald-950/20 font-semibold">Target</TableHead>
+              <TableHead className="w-[180px] bg-emerald-50 dark:bg-emerald-950/20 font-semibold">Result</TableHead>
+              <TableHead className="w-[150px] bg-emerald-50 dark:bg-emerald-950/20 font-semibold">Feelings</TableHead>
+              <TableHead className="w-[180px] bg-emerald-50 dark:bg-emerald-950/20 font-semibold">Beliefs</TableHead>
+              <TableHead className="w-[180px] bg-emerald-50 dark:bg-emerald-950/20 font-semibold border-r">Actions</TableHead>
+              
+              {/* AI & Progress Columns */}
+              <TableHead className="w-[180px] bg-blue-50 dark:bg-blue-950/20 font-semibold">
+                <div className="flex items-center gap-1">
+                  <Sparkles className="w-3 h-3" />
+                  Course
+                </div>
+              </TableHead>
+              <TableHead className="w-[180px] bg-blue-50 dark:bg-blue-950/20 font-semibold">
+                <div className="flex items-center gap-1">
+                  <Sparkles className="w-3 h-3" />
+                  Affirmation
+                </div>
+              </TableHead>
+              <TableHead className="w-[200px] bg-blue-50 dark:bg-blue-950/20 font-semibold">Checklist (3)</TableHead>
+              <TableHead className="w-[100px] bg-blue-50 dark:bg-blue-950/20 font-semibold text-center">Progress</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {beliefs.map((belief) => (
+              <TableRow key={belief.category} className="border-b" data-testid={`row-${belief.category.toLowerCase()}`}>
+                {/* Category Column */}
+                <TableCell className="font-semibold border-r bg-muted/20" data-testid={`cell-category-${belief.category.toLowerCase()}`}>
+                  <Badge variant="outline" className="font-semibold">
                     {belief.category}
                   </Badge>
-                  <span className="text-sm font-normal text-muted-foreground">
-                    Rating: {belief.currentRating}/10 → {belief.targetRating}/10
-                  </span>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Current Week Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-red-300 dark:border-red-800">
-                  <h3 className="font-semibold text-red-700 dark:text-red-400">Current Week</h3>
-                </div>
-                
-                <div className="grid md:grid-cols-2 gap-4">
-                  {/* Current Rating */}
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Rating</label>
-                    <Input
-                      type="number"
-                      min="1"
-                      max="10"
-                      value={belief.currentRating}
-                      onChange={(e) => handleRatingChange(belief.category, parseInt(e.target.value) || 1)}
-                      className="mt-1"
-                      data-testid={`input-current-rating-${belief.category.toLowerCase()}`}
-                    />
-                  </div>
+                </TableCell>
 
-                  {/* Problems */}
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground flex items-center justify-between">
-                      Problems
-                      {!isEditing(belief.category, 'problems') && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => startEdit(belief.category, 'problems')}
-                          className="h-6 w-6 p-0"
-                          data-testid={`button-edit-problems-${belief.category.toLowerCase()}`}
-                        >
-                          <Edit2 className="w-3 h-3" />
+                {/* Current Week - Rating */}
+                <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10">
+                  <Input
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={belief.currentRating}
+                    onChange={(e) => handleRatingChange(belief.category, parseInt(e.target.value) || 1)}
+                    className="w-16 text-center"
+                    data-testid={`input-current-rating-${belief.category.toLowerCase()}`}
+                  />
+                </TableCell>
+
+                {/* Current Week - Problems */}
+                <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10">
+                  {isEditing(belief.category, 'problems') ? (
+                    <div className="space-y-1">
+                      <Textarea
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        className="min-h-[60px] text-xs"
+                        data-testid={`textarea-problems-${belief.category.toLowerCase()}`}
+                      />
+                      <div className="flex gap-1">
+                        <Button size="sm" variant="ghost" onClick={saveEdit} className="h-6 px-2" data-testid={`button-save-problems-${belief.category.toLowerCase()}`}>
+                          <Save className="w-3 h-3" />
                         </Button>
-                      )}
-                    </label>
-                    {isEditing(belief.category, 'problems') ? (
-                      <div className="flex gap-2 mt-1">
-                        <Textarea
-                          value={belief.problems}
-                          onChange={(e) => handleFieldEdit(belief.category, 'problems', e.target.value)}
-                          className="min-h-[80px]"
-                          data-testid={`textarea-problems-${belief.category.toLowerCase()}`}
-                        />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={stopEdit}
-                          className="h-8 w-8 p-0"
-                          data-testid={`button-save-problems-${belief.category.toLowerCase()}`}
-                        >
-                          <Save className="w-4 h-4" />
+                        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-6 px-2" data-testid={`button-cancel-problems-${belief.category.toLowerCase()}`}>
+                          <X className="w-3 h-3" />
                         </Button>
                       </div>
-                    ) : (
-                      <p className="mt-1 text-sm p-2 bg-background rounded-md" data-testid={`text-problems-${belief.category.toLowerCase()}`}>
-                        {belief.problems}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Current Feelings */}
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground flex items-center justify-between">
-                      Feelings
-                      {!isEditing(belief.category, 'currentFeelings') && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => startEdit(belief.category, 'currentFeelings')}
-                          className="h-6 w-6 p-0"
-                          data-testid={`button-edit-current-feelings-${belief.category.toLowerCase()}`}
-                        >
-                          <Edit2 className="w-3 h-3" />
-                        </Button>
-                      )}
-                    </label>
-                    {isEditing(belief.category, 'currentFeelings') ? (
-                      <div className="flex gap-2 mt-1">
-                        <Input
-                          value={belief.currentFeelings}
-                          onChange={(e) => handleFieldEdit(belief.category, 'currentFeelings', e.target.value)}
-                          data-testid={`input-current-feelings-${belief.category.toLowerCase()}`}
-                        />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={stopEdit}
-                          className="h-8 w-8 p-0"
-                          data-testid={`button-save-current-feelings-${belief.category.toLowerCase()}`}
-                        >
-                          <Save className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <p className="mt-1 text-sm p-2 bg-background rounded-md" data-testid={`text-current-feelings-${belief.category.toLowerCase()}`}>
-                        {belief.currentFeelings}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Current Beliefs/Reasons */}
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground flex items-center justify-between">
-                      Beliefs/Reasons
-                      {!isEditing(belief.category, 'currentBelief') && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => startEdit(belief.category, 'currentBelief')}
-                          className="h-6 w-6 p-0"
-                          data-testid={`button-edit-current-belief-${belief.category.toLowerCase()}`}
-                        >
-                          <Edit2 className="w-3 h-3" />
-                        </Button>
-                      )}
-                    </label>
-                    {isEditing(belief.category, 'currentBelief') ? (
-                      <div className="flex gap-2 mt-1">
-                        <Textarea
-                          value={belief.currentBelief}
-                          onChange={(e) => handleFieldEdit(belief.category, 'currentBelief', e.target.value)}
-                          className="min-h-[80px]"
-                          data-testid={`textarea-current-belief-${belief.category.toLowerCase()}`}
-                        />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={stopEdit}
-                          className="h-8 w-8 p-0"
-                          data-testid={`button-save-current-belief-${belief.category.toLowerCase()}`}
-                        >
-                          <Save className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <p className="mt-1 text-sm p-2 bg-background rounded-md" data-testid={`text-current-belief-${belief.category.toLowerCase()}`}>
-                        {belief.currentBelief}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Current Actions */}
-                  <div className="md:col-span-2">
-                    <label className="text-sm font-medium text-muted-foreground flex items-center justify-between">
-                      Actions
-                      {!isEditing(belief.category, 'currentActions') && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => startEdit(belief.category, 'currentActions')}
-                          className="h-6 w-6 p-0"
-                          data-testid={`button-edit-current-actions-${belief.category.toLowerCase()}`}
-                        >
-                          <Edit2 className="w-3 h-3" />
-                        </Button>
-                      )}
-                    </label>
-                    {isEditing(belief.category, 'currentActions') ? (
-                      <div className="flex gap-2 mt-1">
-                        <Textarea
-                          value={belief.currentActions}
-                          onChange={(e) => handleFieldEdit(belief.category, 'currentActions', e.target.value)}
-                          className="min-h-[80px]"
-                          data-testid={`textarea-current-actions-${belief.category.toLowerCase()}`}
-                        />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={stopEdit}
-                          className="h-8 w-8 p-0"
-                          data-testid={`button-save-current-actions-${belief.category.toLowerCase()}`}
-                        >
-                          <Save className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <p className="mt-1 text-sm p-2 bg-background rounded-md" data-testid={`text-current-actions-${belief.category.toLowerCase()}`}>
-                        {belief.currentActions}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Next Week Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-green-300 dark:border-green-800">
-                  <h3 className="font-semibold text-green-700 dark:text-green-400">Next Week</h3>
-                </div>
-                
-                <div className="grid md:grid-cols-2 gap-4">
-                  {/* Target Rating */}
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Target Rating (auto +1)</label>
-                    <Input
-                      type="number"
-                      value={belief.targetRating}
-                      disabled
-                      className="mt-1 bg-muted/50 cursor-not-allowed"
-                      data-testid={`input-target-rating-${belief.category.toLowerCase()}`}
-                    />
-                  </div>
-
-                  {/* Result */}
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground flex items-center justify-between">
-                      Result
-                      {!isEditing(belief.category, 'result') && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => startEdit(belief.category, 'result')}
-                          className="h-6 w-6 p-0"
-                          data-testid={`button-edit-result-${belief.category.toLowerCase()}`}
-                        >
-                          <Edit2 className="w-3 h-3" />
-                        </Button>
-                      )}
-                    </label>
-                    {isEditing(belief.category, 'result') ? (
-                      <div className="flex gap-2 mt-1">
-                        <Textarea
-                          value={belief.result}
-                          onChange={(e) => handleFieldEdit(belief.category, 'result', e.target.value)}
-                          className="min-h-[80px]"
-                          data-testid={`textarea-result-${belief.category.toLowerCase()}`}
-                        />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={stopEdit}
-                          className="h-8 w-8 p-0"
-                          data-testid={`button-save-result-${belief.category.toLowerCase()}`}
-                        >
-                          <Save className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <p className="mt-1 text-sm p-2 bg-background rounded-md" data-testid={`text-result-${belief.category.toLowerCase()}`}>
-                        {belief.result}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Next Feelings */}
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground flex items-center justify-between">
-                      Feelings
-                      {!isEditing(belief.category, 'nextFeelings') && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => startEdit(belief.category, 'nextFeelings')}
-                          className="h-6 w-6 p-0"
-                          data-testid={`button-edit-next-feelings-${belief.category.toLowerCase()}`}
-                        >
-                          <Edit2 className="w-3 h-3" />
-                        </Button>
-                      )}
-                    </label>
-                    {isEditing(belief.category, 'nextFeelings') ? (
-                      <div className="flex gap-2 mt-1">
-                        <Input
-                          value={belief.nextFeelings}
-                          onChange={(e) => handleFieldEdit(belief.category, 'nextFeelings', e.target.value)}
-                          data-testid={`input-next-feelings-${belief.category.toLowerCase()}`}
-                        />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={stopEdit}
-                          className="h-8 w-8 p-0"
-                          data-testid={`button-save-next-feelings-${belief.category.toLowerCase()}`}
-                        >
-                          <Save className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <p className="mt-1 text-sm p-2 bg-background rounded-md" data-testid={`text-next-feelings-${belief.category.toLowerCase()}`}>
-                        {belief.nextFeelings}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Next Week Beliefs */}
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground flex items-center justify-between">
-                      Beliefs
-                      {!isEditing(belief.category, 'nextWeekTarget') && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => startEdit(belief.category, 'nextWeekTarget')}
-                          className="h-6 w-6 p-0"
-                          data-testid={`button-edit-next-belief-${belief.category.toLowerCase()}`}
-                        >
-                          <Edit2 className="w-3 h-3" />
-                        </Button>
-                      )}
-                    </label>
-                    {isEditing(belief.category, 'nextWeekTarget') ? (
-                      <div className="flex gap-2 mt-1">
-                        <Textarea
-                          value={belief.nextWeekTarget}
-                          onChange={(e) => handleFieldEdit(belief.category, 'nextWeekTarget', e.target.value)}
-                          className="min-h-[80px]"
-                          data-testid={`textarea-next-belief-${belief.category.toLowerCase()}`}
-                        />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={stopEdit}
-                          className="h-8 w-8 p-0"
-                          data-testid={`button-save-next-belief-${belief.category.toLowerCase()}`}
-                        >
-                          <Save className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <p className="mt-1 text-sm p-2 bg-background rounded-md" data-testid={`text-next-belief-${belief.category.toLowerCase()}`}>
-                        {belief.nextWeekTarget}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Next Actions */}
-                  <div className="md:col-span-2">
-                    <label className="text-sm font-medium text-muted-foreground flex items-center justify-between">
-                      Actions
-                      {!isEditing(belief.category, 'nextActions') && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => startEdit(belief.category, 'nextActions')}
-                          className="h-6 w-6 p-0"
-                          data-testid={`button-edit-next-actions-${belief.category.toLowerCase()}`}
-                        >
-                          <Edit2 className="w-3 h-3" />
-                        </Button>
-                      )}
-                    </label>
-                    {isEditing(belief.category, 'nextActions') ? (
-                      <div className="flex gap-2 mt-1">
-                        <Textarea
-                          value={belief.nextActions}
-                          onChange={(e) => handleFieldEdit(belief.category, 'nextActions', e.target.value)}
-                          className="min-h-[80px]"
-                          data-testid={`textarea-next-actions-${belief.category.toLowerCase()}`}
-                        />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={stopEdit}
-                          className="h-8 w-8 p-0"
-                          data-testid={`button-save-next-actions-${belief.category.toLowerCase()}`}
-                        >
-                          <Save className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <p className="mt-1 text-sm p-2 bg-background rounded-md" data-testid={`text-next-actions-${belief.category.toLowerCase()}`}>
-                        {belief.nextActions}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* AI & Progress Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-blue-300 dark:border-blue-800">
-                  <h3 className="font-semibold text-blue-700 dark:text-blue-400 flex items-center gap-2">
-                    <Sparkles className="w-4 h-4" />
-                    AI & Progress
-                  </h3>
-                </div>
-                
-                <div className="grid md:grid-cols-2 gap-4">
-                  {/* Course Suggestion */}
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Course Suggestion</label>
-                    <p className="mt-1 text-sm p-2 bg-blue-50 dark:bg-blue-950/30 rounded-md" data-testid={`text-course-${belief.category.toLowerCase()}`}>
-                      {belief.courseSuggestion}
-                    </p>
-                  </div>
-
-                  {/* Affirmation */}
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Affirmation</label>
-                    <p className="mt-1 text-sm p-2 bg-blue-50 dark:bg-blue-950/30 rounded-md italic" data-testid={`text-affirmation-${belief.category.toLowerCase()}`}>
-                      "{belief.affirmationSuggestion}"
-                    </p>
-                  </div>
-
-                  {/* Action Checklist */}
-                  <div className="md:col-span-2">
-                    <label className="text-sm font-medium text-muted-foreground">Action Checklist</label>
-                    <div className="mt-2 space-y-2">
-                      {belief.checklist.map((item) => (
-                        <div
-                          key={item.id}
-                          className="flex items-center gap-3 p-2 rounded-md hover-elevate active-elevate-2 cursor-pointer"
-                          onClick={() => handleToggleChecklist(belief.category, item.id)}
-                          data-testid={`checklist-item-${item.id}`}
-                        >
-                          <div className={`flex items-center justify-center w-5 h-5 rounded border-2 transition-colors ${
-                            item.checked 
-                              ? 'bg-primary border-primary' 
-                              : 'border-muted-foreground/30'
-                          }`}>
-                            {item.checked && <Check className="w-3 h-3 text-primary-foreground" />}
-                          </div>
-                          <span className={`text-sm flex-1 ${item.checked ? 'line-through text-muted-foreground' : ''}`}>
-                            {item.text}
-                          </span>
-                        </div>
-                      ))}
                     </div>
+                  ) : (
+                    <div className="group relative">
+                      <div className="text-xs" data-testid={`text-problems-${belief.category.toLowerCase()}`}>{belief.problems}</div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => startEdit(belief.category, 'problems', belief.problems)}
+                        className="absolute top-0 right-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                        data-testid={`button-edit-problems-${belief.category.toLowerCase()}`}
+                      >
+                        <Edit2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  )}
+                </TableCell>
+
+                {/* Current Week - Feelings */}
+                <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10">
+                  {isEditing(belief.category, 'currentFeelings') ? (
+                    <div className="space-y-1">
+                      <Input
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        className="text-xs"
+                        data-testid={`input-current-feelings-${belief.category.toLowerCase()}`}
+                      />
+                      <div className="flex gap-1">
+                        <Button size="sm" variant="ghost" onClick={saveEdit} className="h-6 px-2" data-testid={`button-save-current-feelings-${belief.category.toLowerCase()}`}>
+                          <Save className="w-3 h-3" />
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-6 px-2" data-testid={`button-cancel-current-feelings-${belief.category.toLowerCase()}`}>
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="group relative">
+                      <div className="text-xs" data-testid={`text-current-feelings-${belief.category.toLowerCase()}`}>{belief.currentFeelings}</div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => startEdit(belief.category, 'currentFeelings', belief.currentFeelings)}
+                        className="absolute top-0 right-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                        data-testid={`button-edit-current-feelings-${belief.category.toLowerCase()}`}
+                      >
+                        <Edit2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  )}
+                </TableCell>
+
+                {/* Current Week - Beliefs/Reasons */}
+                <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10">
+                  {isEditing(belief.category, 'currentBelief') ? (
+                    <div className="space-y-1">
+                      <Textarea
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        className="min-h-[60px] text-xs"
+                        data-testid={`textarea-current-belief-${belief.category.toLowerCase()}`}
+                      />
+                      <div className="flex gap-1">
+                        <Button size="sm" variant="ghost" onClick={saveEdit} className="h-6 px-2" data-testid={`button-save-current-belief-${belief.category.toLowerCase()}`}>
+                          <Save className="w-3 h-3" />
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-6 px-2" data-testid={`button-cancel-current-belief-${belief.category.toLowerCase()}`}>
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="group relative">
+                      <div className="text-xs" data-testid={`text-current-belief-${belief.category.toLowerCase()}`}>{belief.currentBelief}</div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => startEdit(belief.category, 'currentBelief', belief.currentBelief)}
+                        className="absolute top-0 right-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                        data-testid={`button-edit-current-belief-${belief.category.toLowerCase()}`}
+                      >
+                        <Edit2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  )}
+                </TableCell>
+
+                {/* Current Week - Actions */}
+                <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10 border-r">
+                  {isEditing(belief.category, 'currentActions') ? (
+                    <div className="space-y-1">
+                      <Textarea
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        className="min-h-[60px] text-xs"
+                        data-testid={`textarea-current-actions-${belief.category.toLowerCase()}`}
+                      />
+                      <div className="flex gap-1">
+                        <Button size="sm" variant="ghost" onClick={saveEdit} className="h-6 px-2" data-testid={`button-save-current-actions-${belief.category.toLowerCase()}`}>
+                          <Save className="w-3 h-3" />
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-6 px-2" data-testid={`button-cancel-current-actions-${belief.category.toLowerCase()}`}>
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="group relative">
+                      <div className="text-xs" data-testid={`text-current-actions-${belief.category.toLowerCase()}`}>{belief.currentActions}</div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => startEdit(belief.category, 'currentActions', belief.currentActions)}
+                        className="absolute top-0 right-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                        data-testid={`button-edit-current-actions-${belief.category.toLowerCase()}`}
+                      >
+                        <Edit2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  )}
+                </TableCell>
+
+                {/* Next Week - Target Rating (Auto +1) */}
+                <TableCell className="p-2 bg-emerald-50/30 dark:bg-emerald-950/10">
+                  <Input
+                    type="number"
+                    value={belief.targetRating}
+                    disabled
+                    className="w-16 text-center bg-muted/50 cursor-not-allowed"
+                    data-testid={`input-target-rating-${belief.category.toLowerCase()}`}
+                  />
+                </TableCell>
+
+                {/* Next Week - Result */}
+                <TableCell className="p-2 bg-emerald-50/30 dark:bg-emerald-950/10">
+                  {isEditing(belief.category, 'result') ? (
+                    <div className="space-y-1">
+                      <Textarea
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        className="min-h-[60px] text-xs"
+                        data-testid={`textarea-result-${belief.category.toLowerCase()}`}
+                      />
+                      <div className="flex gap-1">
+                        <Button size="sm" variant="ghost" onClick={saveEdit} className="h-6 px-2" data-testid={`button-save-result-${belief.category.toLowerCase()}`}>
+                          <Save className="w-3 h-3" />
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-6 px-2" data-testid={`button-cancel-result-${belief.category.toLowerCase()}`}>
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="group relative">
+                      <div className="text-xs" data-testid={`text-result-${belief.category.toLowerCase()}`}>{belief.result}</div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => startEdit(belief.category, 'result', belief.result)}
+                        className="absolute top-0 right-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                        data-testid={`button-edit-result-${belief.category.toLowerCase()}`}
+                      >
+                        <Edit2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  )}
+                </TableCell>
+
+                {/* Next Week - Feelings */}
+                <TableCell className="p-2 bg-emerald-50/30 dark:bg-emerald-950/10">
+                  {isEditing(belief.category, 'nextFeelings') ? (
+                    <div className="space-y-1">
+                      <Input
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        className="text-xs"
+                        data-testid={`input-next-feelings-${belief.category.toLowerCase()}`}
+                      />
+                      <div className="flex gap-1">
+                        <Button size="sm" variant="ghost" onClick={saveEdit} className="h-6 px-2" data-testid={`button-save-next-feelings-${belief.category.toLowerCase()}`}>
+                          <Save className="w-3 h-3" />
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-6 px-2" data-testid={`button-cancel-next-feelings-${belief.category.toLowerCase()}`}>
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="group relative">
+                      <div className="text-xs" data-testid={`text-next-feelings-${belief.category.toLowerCase()}`}>{belief.nextFeelings}</div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => startEdit(belief.category, 'nextFeelings', belief.nextFeelings)}
+                        className="absolute top-0 right-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                        data-testid={`button-edit-next-feelings-${belief.category.toLowerCase()}`}
+                      >
+                        <Edit2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  )}
+                </TableCell>
+
+                {/* Next Week - Beliefs */}
+                <TableCell className="p-2 bg-emerald-50/30 dark:bg-emerald-950/10">
+                  {isEditing(belief.category, 'nextWeekTarget') ? (
+                    <div className="space-y-1">
+                      <Textarea
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        className="min-h-[60px] text-xs"
+                        data-testid={`textarea-next-belief-${belief.category.toLowerCase()}`}
+                      />
+                      <div className="flex gap-1">
+                        <Button size="sm" variant="ghost" onClick={saveEdit} className="h-6 px-2" data-testid={`button-save-next-belief-${belief.category.toLowerCase()}`}>
+                          <Save className="w-3 h-3" />
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-6 px-2" data-testid={`button-cancel-next-belief-${belief.category.toLowerCase()}`}>
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="group relative">
+                      <div className="text-xs" data-testid={`text-next-belief-${belief.category.toLowerCase()}`}>{belief.nextWeekTarget}</div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => startEdit(belief.category, 'nextWeekTarget', belief.nextWeekTarget)}
+                        className="absolute top-0 right-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                        data-testid={`button-edit-next-belief-${belief.category.toLowerCase()}`}
+                      >
+                        <Edit2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  )}
+                </TableCell>
+
+                {/* Next Week - Actions */}
+                <TableCell className="p-2 bg-emerald-50/30 dark:bg-emerald-950/10 border-r">
+                  {isEditing(belief.category, 'nextActions') ? (
+                    <div className="space-y-1">
+                      <Textarea
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        className="min-h-[60px] text-xs"
+                        data-testid={`textarea-next-actions-${belief.category.toLowerCase()}`}
+                      />
+                      <div className="flex gap-1">
+                        <Button size="sm" variant="ghost" onClick={saveEdit} className="h-6 px-2" data-testid={`button-save-next-actions-${belief.category.toLowerCase()}`}>
+                          <Save className="w-3 h-3" />
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-6 px-2" data-testid={`button-cancel-next-actions-${belief.category.toLowerCase()}`}>
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="group relative">
+                      <div className="text-xs" data-testid={`text-next-actions-${belief.category.toLowerCase()}`}>{belief.nextActions}</div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => startEdit(belief.category, 'nextActions', belief.nextActions)}
+                        className="absolute top-0 right-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                        data-testid={`button-edit-next-actions-${belief.category.toLowerCase()}`}
+                      >
+                        <Edit2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  )}
+                </TableCell>
+
+                {/* AI - Course Suggestion */}
+                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10">
+                  <div className="text-xs" data-testid={`text-course-${belief.category.toLowerCase()}`}>
+                    {belief.courseSuggestion}
                   </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                </TableCell>
+
+                {/* AI - Affirmation */}
+                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10">
+                  <div className="text-xs italic" data-testid={`text-affirmation-${belief.category.toLowerCase()}`}>
+                    "{belief.affirmationSuggestion}"
+                  </div>
+                </TableCell>
+
+                {/* AI - Checklist */}
+                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10">
+                  <div className="space-y-1">
+                    {belief.checklist.map((item, idx) => (
+                      <label 
+                        key={item.id} 
+                        className="flex items-start gap-2 text-xs cursor-pointer hover-elevate rounded p-1"
+                        data-testid={`label-checklist-${belief.category.toLowerCase()}-${idx}`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={item.checked}
+                          onChange={() => handleChecklistToggle(belief.category, item.id)}
+                          className="mt-0.5 w-3.5 h-3.5 rounded border-blue-500 text-blue-500 focus:ring-blue-500 cursor-pointer"
+                          data-testid={`checkbox-checklist-${belief.category.toLowerCase()}-${idx}`}
+                        />
+                        <span className={item.checked ? 'line-through text-muted-foreground' : ''}>
+                          {item.text}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </TableCell>
+
+                {/* Progress */}
+                <TableCell className="text-center p-2 bg-blue-50/30 dark:bg-blue-950/10">
+                  <Badge className={getProgressColor(calculateProgress(belief.checklist))} data-testid={`badge-progress-${belief.category.toLowerCase()}`}>
+                    {calculateProgress(belief.checklist)}%
+                  </Badge>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Info Footer */}
+      <div className="bg-muted/30 rounded-lg p-4 text-sm text-muted-foreground">
+        <p className="flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-primary" />
+          <strong>AI-Powered Weekly Progression:</strong> When you click "Generate Next Week", AI analyzes your progress and creates next week's targets. 80%+ completion transforms your belief!
+        </p>
       </div>
     </div>
   );
