@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
   Dialog,
   DialogContent,
@@ -166,8 +167,54 @@ const getTrendIcon = (current: number, previous: number) => {
 export default function HERCMHistoryModal({ open, onOpenChange, currentWeek }: HERCMHistoryModalProps) {
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
 
-  // Generate historical data based on current week
-  const mockHistoricalData = generateHistoricalData(currentWeek);
+  // Helper function to calculate progress
+  const calculateProgress = (checklist: ChecklistItem[]): number => {
+    if (!checklist || checklist.length === 0) return 0;
+    const completed = checklist.filter((item) => item.checked).length;
+    return Math.round((completed / checklist.length) * 100);
+  };
+
+  // Fetch all weeks from database
+  const { data: allWeeksData } = useQuery({
+    queryKey: ['/api/hercm/weeks'],
+    enabled: open, // Only fetch when modal is open
+  });
+
+  // Transform API data to match WeekData format and filter for completed weeks only
+  const historicalData: WeekData[] = [];
+  
+  if (allWeeksData && Array.isArray(allWeeksData)) {
+    // Use real database data
+    for (const weekData of allWeeksData) {
+      if (weekData.weekNumber < currentWeek && weekData.beliefs) {
+        const areas: HERCMArea[] = weekData.beliefs.map((belief: any) => ({
+          category: belief.category,
+          currentBelief: belief.currentBelief || '',
+          nextWeekTarget: belief.nextWeekTarget || '',
+          courseSuggestion: belief.courseSuggestion || '',
+          affirmation: belief.affirmationSuggestion || '',
+          checklist: belief.checklist || [],
+          progress: calculateProgress(belief.checklist || []),
+        }));
+        
+        const overallProgress = areas.length > 0
+          ? Math.round(areas.reduce((sum, area) => sum + area.progress, 0) / areas.length)
+          : 0;
+        
+        historicalData.push({
+          weekNumber: weekData.weekNumber,
+          areas,
+          overallProgress,
+        });
+      }
+    }
+  }
+  
+  // Sort by week number to ensure correct chronological order for trends
+  historicalData.sort((a, b) => a.weekNumber - b.weekNumber);
+  
+  // Fallback to generated data if no API data (for demo purposes)
+  const mockHistoricalData = historicalData.length > 0 ? historicalData : generateHistoricalData(currentWeek);
 
   // Calculate trends
   const calculateTrends = () => {
