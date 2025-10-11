@@ -4,6 +4,8 @@ import {
   hercmWeeks,
   platinumProgress,
   approvedEmails,
+  adminUsers,
+  accessLogs,
   type User,
   type UpsertUser,
   type HercmWeek,
@@ -12,6 +14,10 @@ import {
   type InsertPlatinumProgress,
   type ApprovedEmail,
   type InsertApprovedEmail,
+  type AdminUser,
+  type InsertAdminUser,
+  type AccessLog,
+  type InsertAccessLog,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, count, sql } from "drizzle-orm";
@@ -48,6 +54,17 @@ export interface IStorage {
     totalAccess: number;
     failedAttempts: number;
   }>;
+  
+  // Admin Users operations
+  getAllAdminUsers(): Promise<AdminUser[]>;
+  getAdminUser(email: string): Promise<AdminUser | undefined>;
+  addAdminUser(admin: InsertAdminUser): Promise<AdminUser>;
+  updateAdminUser(id: string, admin: Partial<InsertAdminUser>): Promise<AdminUser>;
+  deleteAdminUser(id: string): Promise<void>;
+  
+  // Access Logs operations
+  getAllAccessLogs(): Promise<AccessLog[]>;
+  createAccessLog(log: InsertAccessLog): Promise<AccessLog>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -239,6 +256,62 @@ export class DatabaseStorage implements IStorage {
       totalAccess,
       failedAttempts: 0,
     };
+  }
+
+  // Admin Users operations
+  async getAllAdminUsers(): Promise<AdminUser[]> {
+    return await db
+      .select()
+      .from(adminUsers)
+      .orderBy(desc(adminUsers.createdAt));
+  }
+
+  async getAdminUser(email: string): Promise<AdminUser | undefined> {
+    const [admin] = await db
+      .select()
+      .from(adminUsers)
+      .where(eq(adminUsers.email, email));
+    return admin;
+  }
+
+  async addAdminUser(adminData: InsertAdminUser): Promise<AdminUser> {
+    const [admin] = await db
+      .insert(adminUsers)
+      .values(adminData as any)
+      .returning();
+    return admin;
+  }
+
+  async updateAdminUser(id: string, adminData: Partial<InsertAdminUser>): Promise<AdminUser> {
+    const [admin] = await db
+      .update(adminUsers)
+      .set({ ...adminData, updatedAt: new Date() } as any)
+      .where(eq(adminUsers.id, id))
+      .returning();
+    return admin;
+  }
+
+  async deleteAdminUser(id: string): Promise<void> {
+    await db
+      .delete(adminUsers)
+      .where(eq(adminUsers.id, id));
+  }
+
+  // Access Logs operations
+  async getAllAccessLogs(): Promise<AccessLog[]> {
+    return await db
+      .select()
+      .from(accessLogs)
+      .orderBy(desc(accessLogs.createdAt))
+      .limit(100);
+  }
+
+  async createAccessLog(logData: InsertAccessLog): Promise<AccessLog> {
+    const [log] = await db
+      .insert(accessLogs)
+      .values(logData as any)
+      .returning();
+    return log;
   }
 }
 

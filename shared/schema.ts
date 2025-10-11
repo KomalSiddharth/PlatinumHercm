@@ -163,3 +163,41 @@ export const recommendedCourseSchema = z.object({
 });
 
 export type RecommendedCourse = z.infer<typeof recommendedCourseSchema>;
+
+// Admin Users - Manage who has admin panel access
+export const adminUsers = pgTable("admin_users", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(),
+  email: varchar("email").unique().notNull(),
+  role: varchar("role").default('admin').notNull(), // 'admin' or 'super_admin'
+  status: varchar("status").default('active').notNull(), // 'active' or 'inactive'
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertAdminUserSchema = createInsertSchema(adminUsers).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertAdminUser = z.infer<typeof insertAdminUserSchema>;
+export type AdminUser = typeof adminUsers.$inferSelect;
+
+// Access Logs - Track user login attempts
+export const accessLogs = pgTable("access_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  email: varchar("email").notNull(),
+  status: varchar("status").notNull(), // 'success' or 'failed'
+  ipAddress: varchar("ip_address"),
+  userAgent: varchar("user_agent"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertAccessLogSchema = createInsertSchema(accessLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertAccessLog = z.infer<typeof insertAccessLogSchema>;
+export type AccessLog = typeof accessLogs.$inferSelect;
