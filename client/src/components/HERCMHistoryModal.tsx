@@ -259,50 +259,53 @@ export default function HERCMHistoryModal({ open, onOpenChange, currentWeek }: H
                 </Badge>
               </div>
 
-              {/* Week Table */}
-              <div className="rounded-lg border">
+              {/* Week Table with New Colorful Design */}
+              <div className="border-2 border-purple-300 dark:border-purple-700 rounded-lg overflow-x-auto shadow-lg">
+                <div className="bg-gradient-to-r from-purple-400 to-indigo-500 dark:from-purple-600 dark:to-indigo-700 px-4 py-3 border-b-2 border-purple-300 dark:border-purple-800">
+                  <h3 className="font-bold text-white text-lg text-center drop-shadow-md">Week {weekToDisplay.weekNumber} Snapshot</h3>
+                </div>
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b bg-muted/50">
-                        <th className="p-3 text-left text-sm font-semibold text-muted-foreground">HERCM Area</th>
-                        <th className="p-3 text-left text-sm font-semibold text-muted-foreground">Current Belief</th>
-                        <th className="p-3 text-left text-sm font-semibold text-muted-foreground">Next Week Target</th>
-                        <th className="p-3 text-left text-sm font-semibold text-muted-foreground">✨ Course Suggestion</th>
-                        <th className="p-3 text-left text-sm font-semibold text-muted-foreground">💫 Affirmation</th>
-                        <th className="p-3 text-left text-sm font-semibold text-muted-foreground">✓ Action Checklist</th>
-                        <th className="p-3 text-left text-sm font-semibold text-muted-foreground">Progress</th>
+                      <tr className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950/30 dark:to-indigo-950/30">
+                        <th className="p-3 text-left text-sm font-semibold border-r">HERCM Area</th>
+                        <th className="p-3 text-left text-sm font-semibold bg-purple-100 dark:bg-purple-900/40">Current Belief</th>
+                        <th className="p-3 text-left text-sm font-semibold bg-purple-100 dark:bg-purple-900/40">Next Week Target</th>
+                        <th className="p-3 text-left text-sm font-semibold bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/40 dark:to-blue-900/40">Course Suggestion</th>
+                        <th className="p-3 text-left text-sm font-semibold bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-900/40 dark:to-yellow-900/40">Affirmation</th>
+                        <th className="p-3 text-left text-sm font-semibold bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/40 dark:to-emerald-900/40">Action Checklist</th>
+                        <th className="p-3 text-left text-sm font-semibold bg-gradient-to-r from-pink-100 to-rose-100 dark:from-pink-900/40 dark:to-rose-900/40">Progress</th>
                       </tr>
                     </thead>
                     <tbody>
                       {weekToDisplay.areas.map((area) => (
-                        <tr key={area.category} className="border-b last:border-0" data-testid={`history-row-${area.category.toLowerCase()}-week-${weekToDisplay.weekNumber}`}>
-                          <td className="p-3">
-                            <span className={`font-semibold ${getCategoryColor(area.category)}`}>
+                        <tr key={area.category} className="border-b last:border-0 hover:bg-muted/30 transition-colors" data-testid={`history-row-${area.category.toLowerCase()}-week-${weekToDisplay.weekNumber}`}>
+                          <td className="p-3 border-r bg-muted/10">
+                            <Badge variant="outline" className={`font-semibold ${getCategoryColor(area.category)}`}>
                               {area.category}
-                            </span>
+                            </Badge>
                           </td>
-                          <td className="p-3">
-                            <div className="rounded bg-muted/30 p-2 text-sm">
+                          <td className="p-3 bg-purple-50/30 dark:bg-purple-950/10">
+                            <div className="rounded-md bg-white/50 dark:bg-black/20 border border-purple-200 dark:border-purple-800 p-2 text-sm">
                               {area.currentBelief}
                             </div>
                           </td>
-                          <td className="p-3">
-                            <div className="rounded bg-accent/5 border border-accent/20 p-2 text-sm">
+                          <td className="p-3 bg-purple-50/30 dark:bg-purple-950/10">
+                            <div className="rounded-md bg-white/50 dark:bg-black/20 border border-purple-200 dark:border-purple-800 p-2 text-sm">
                               {area.nextWeekTarget}
                             </div>
                           </td>
-                          <td className="p-3">
-                            <div className="rounded bg-chart-1/5 border border-chart-1/20 p-2 text-sm">
+                          <td className="p-3 bg-cyan-50/30 dark:bg-cyan-950/10">
+                            <div className="rounded-md bg-white/50 dark:bg-black/20 border border-cyan-200 dark:border-cyan-800 p-2 text-sm">
                               {area.courseSuggestion}
                             </div>
                           </td>
-                          <td className="p-3">
-                            <div className="rounded bg-chart-2/5 border border-chart-2/20 p-2 text-sm italic">
+                          <td className="p-3 bg-amber-50/30 dark:bg-amber-950/10">
+                            <div className="rounded-md bg-white/50 dark:bg-black/20 border border-amber-200 dark:border-amber-800 p-2 text-sm italic">
                               "{area.affirmation}"
                             </div>
                           </td>
-                          <td className="p-3">
+                          <td className="p-3 bg-green-50/30 dark:bg-green-950/10">
                             <div className="space-y-1">
                               {area.checklist.map((item) => (
                                 <div key={item.id} className="flex items-center gap-2">
@@ -318,7 +321,7 @@ export default function HERCMHistoryModal({ open, onOpenChange, currentWeek }: H
                               ))}
                             </div>
                           </td>
-                          <td className="p-3">
+                          <td className="p-3 text-center bg-pink-50/30 dark:bg-pink-950/10">
                             <Badge className={getProgressColor(area.progress)}>
                               {area.progress}%
                             </Badge>

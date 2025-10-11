@@ -324,14 +324,6 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
 
   // Fetch AI course recommendations
   const fetchCourseRecommendation = async (category: string, belief: HERCMBelief) => {
-    console.log('[DEBUG] fetchCourseRecommendation called for:', category);
-    console.log('[DEBUG] Belief data:', JSON.stringify({
-      problems: belief.problems,
-      feelings: belief.currentFeelings,
-      beliefs: belief.currentBelief,
-      actions: belief.currentActions
-    }, null, 2));
-    
     setLoadingCourses(prev => new Set(prev).add(category));
 
     try {
@@ -412,13 +404,10 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
     const { category, field } = editingField;
     let updatedBelief: HERCMBelief | undefined = undefined;
     
-    console.log('[DEBUG] saveEdit called', { category, field, editValue });
-    
     setBeliefs(prev => prev.map(belief => {
       if (belief.category === category) {
         const updated = { ...belief, [field]: editValue } as HERCMBelief;
         updatedBelief = updated;
-        console.log('[DEBUG] Updated belief:', JSON.stringify(updated, null, 2));
         return updated;
       }
       return belief;
@@ -428,11 +417,7 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
     setEditValue('');
     
     // Fetch AI course recommendation if current week field was edited
-    const shouldFetch = ['problems', 'currentFeelings', 'currentBelief', 'currentActions'].includes(field);
-    console.log('[DEBUG] Should fetch?', { updatedBelief: !!updatedBelief, shouldFetch, field });
-    
-    if (updatedBelief && shouldFetch) {
-      console.log('[DEBUG] Calling fetchCourseRecommendation');
+    if (updatedBelief && ['problems', 'currentFeelings', 'currentBelief', 'currentActions'].includes(field)) {
       await fetchCourseRecommendation(category, updatedBelief);
     }
   };
@@ -482,28 +467,31 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
       </div>
 
       {/* Current Week Table */}
-      <div className="border rounded-lg overflow-x-auto">
-        <div className="bg-red-100 dark:bg-red-950/40 px-4 py-2 border-b">
-          <h3 className="font-bold text-red-700 dark:text-red-400 text-lg text-center">Current Week</h3>
+      <div className="border-2 border-rose-300 dark:border-rose-700 rounded-lg overflow-x-auto shadow-lg">
+        <div className="bg-gradient-to-r from-rose-400 to-pink-500 dark:from-rose-600 dark:to-pink-700 px-4 py-3 border-b-2 border-rose-300 dark:border-rose-800">
+          <h3 className="font-bold text-white text-xl text-center drop-shadow-md flex items-center justify-center gap-2">
+            <Sparkles className="w-5 h-5" />
+            Current Week
+          </h3>
         </div>
         <Table>
           <TableHeader>
-            <TableRow className="bg-muted/50">
+            <TableRow className="bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-950/30 dark:to-pink-950/30">
               <TableHead className="font-bold border-r">HERCM Area</TableHead>
-              <TableHead className="w-[80px] bg-red-50 dark:bg-red-950/20 font-semibold">Rating</TableHead>
-              <TableHead className="w-[180px] bg-red-50 dark:bg-red-950/20 font-semibold">Problems</TableHead>
-              <TableHead className="w-[150px] bg-red-50 dark:bg-red-950/20 font-semibold">Feelings</TableHead>
-              <TableHead className="w-[180px] bg-red-50 dark:bg-red-950/20 font-semibold">Beliefs/Reasons</TableHead>
-              <TableHead className="w-[180px] bg-red-50 dark:bg-red-950/20 font-semibold border-r">Actions</TableHead>
+              <TableHead className="w-[80px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Rating</TableHead>
+              <TableHead className="w-[180px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Problems</TableHead>
+              <TableHead className="w-[150px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Feelings</TableHead>
+              <TableHead className="w-[180px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Beliefs/Reasons</TableHead>
+              <TableHead className="w-[180px] bg-rose-100 dark:bg-rose-900/40 font-semibold border-r">Actions</TableHead>
               
-              <TableHead className="w-[180px] bg-blue-50 dark:bg-blue-950/20 font-semibold">
+              <TableHead className="w-[180px] bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/40 dark:to-blue-900/40 font-semibold">
                 <div className="flex items-center gap-1">
-                  <Sparkles className="w-3 h-3" />
-                  Course
+                  <Sparkles className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+                  AI Course
                 </div>
               </TableHead>
-              <TableHead className="w-[200px] bg-blue-50 dark:bg-blue-950/20 font-semibold">Checklist (3)</TableHead>
-              <TableHead className="w-[100px] bg-blue-50 dark:bg-blue-950/20 font-semibold text-center">Progress</TableHead>
+              <TableHead className="w-[200px] bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900/40 dark:to-violet-900/40 font-semibold">Checklist (3)</TableHead>
+              <TableHead className="w-[100px] bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 font-semibold text-center">Progress</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -720,28 +708,31 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
       </div>
 
       {/* Next Week Table */}
-      <div className="border rounded-lg overflow-x-auto mt-6">
-        <div className="bg-emerald-100 dark:bg-emerald-950/40 px-4 py-2 border-b">
-          <h3 className="font-bold text-emerald-700 dark:text-emerald-400 text-lg text-center">Next Week</h3>
+      <div className="border-2 border-emerald-300 dark:border-emerald-700 rounded-lg overflow-x-auto mt-6 shadow-lg">
+        <div className="bg-gradient-to-r from-emerald-400 to-teal-500 dark:from-emerald-600 dark:to-teal-700 px-4 py-3 border-b-2 border-emerald-300 dark:border-emerald-800">
+          <h3 className="font-bold text-white text-xl text-center drop-shadow-md flex items-center justify-center gap-2">
+            <TrendingUp className="w-5 h-5" />
+            Next Week Goals
+          </h3>
         </div>
         <Table>
           <TableHeader>
-            <TableRow className="bg-muted/50">
+            <TableRow className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30">
               <TableHead className="font-bold border-r">HERCM Area</TableHead>
-              <TableHead className="w-[80px] bg-emerald-50 dark:bg-emerald-950/20 font-semibold">Target (+1)</TableHead>
-              <TableHead className="w-[180px] bg-emerald-50 dark:bg-emerald-950/20 font-semibold">Result</TableHead>
-              <TableHead className="w-[150px] bg-emerald-50 dark:bg-emerald-950/20 font-semibold">Feelings</TableHead>
-              <TableHead className="w-[180px] bg-emerald-50 dark:bg-emerald-950/20 font-semibold">Beliefs</TableHead>
-              <TableHead className="w-[180px] bg-emerald-50 dark:bg-emerald-950/20 font-semibold border-r">Actions</TableHead>
+              <TableHead className="w-[80px] bg-emerald-100 dark:bg-emerald-900/40 font-semibold">Target (+1)</TableHead>
+              <TableHead className="w-[180px] bg-emerald-100 dark:bg-emerald-900/40 font-semibold">Result</TableHead>
+              <TableHead className="w-[150px] bg-emerald-100 dark:bg-emerald-900/40 font-semibold">Feelings</TableHead>
+              <TableHead className="w-[180px] bg-emerald-100 dark:bg-emerald-900/40 font-semibold">Beliefs</TableHead>
+              <TableHead className="w-[180px] bg-emerald-100 dark:bg-emerald-900/40 font-semibold border-r">Actions</TableHead>
               
-              <TableHead className="w-[180px] bg-blue-50 dark:bg-blue-950/20 font-semibold">
+              <TableHead className="w-[180px] bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/40 dark:to-blue-900/40 font-semibold">
                 <div className="flex items-center gap-1">
-                  <Sparkles className="w-3 h-3" />
-                  Course
+                  <Sparkles className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+                  AI Course
                 </div>
               </TableHead>
-              <TableHead className="w-[200px] bg-blue-50 dark:bg-blue-950/20 font-semibold">Checklist (3)</TableHead>
-              <TableHead className="w-[100px] bg-blue-50 dark:bg-blue-950/20 font-semibold text-center">Progress</TableHead>
+              <TableHead className="w-[200px] bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900/40 dark:to-violet-900/40 font-semibold">Checklist (3)</TableHead>
+              <TableHead className="w-[100px] bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 font-semibold text-center">Progress</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
