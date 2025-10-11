@@ -371,15 +371,21 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
   const activeMonth = selectedMonth || Math.ceil(weekNumber / 4);
   const weeksInMonth = (() => {
     const startWeek = (activeMonth - 1) * 4 + 1;
-    const endWeek = Math.min(activeMonth * 4, weekNumber);
+    const endWeek = activeMonth * 4; // Show all 4 weeks in the month
     return Array.from({ length: endWeek - startWeek + 1 }, (_, i) => startWeek + i);
   })();
 
   // Fetch all weeks data for the selected month
   const { data: allWeeksData } = useQuery({
     queryKey: ['/api/hercm/weeks'],
-    enabled: showComparison && weeksInMonth.length > 0,
+    enabled: showComparison,
   });
+
+  // Calculate total available months from all weeks data
+  const maxWeekNumber = Array.isArray(allWeeksData) && allWeeksData.length > 0
+    ? Math.max(...allWeeksData.map((w: any) => w.weekNumber || 0))
+    : weekNumber;
+  const totalMonths = Math.ceil(maxWeekNumber / 4);
 
   // Process month data for analytics
   const monthWeeksData = weeksInMonth.map(week => {
@@ -673,10 +679,10 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
                 <SelectValue placeholder="Select month" />
               </SelectTrigger>
               <SelectContent>
-                {Array.from({ length: Math.ceil(weekNumber / 4) }, (_, i) => i + 1).map((month) => {
+                {Array.from({ length: totalMonths }, (_, i) => i + 1).map((month) => {
                   const monthNames = ['October', 'November', 'December', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September'];
                   const startWeek = (month - 1) * 4 + 1;
-                  const endWeek = Math.min(month * 4, weekNumber);
+                  const endWeek = month * 4;
                   return (
                     <SelectItem key={month} value={month.toString()}>
                       {monthNames[(month - 1) % 12]} - Week {startWeek}-{endWeek}
