@@ -435,12 +435,6 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
                   Course
                 </div>
               </TableHead>
-              <TableHead className="w-[180px] bg-blue-50 dark:bg-blue-950/20 font-semibold">
-                <div className="flex items-center gap-1">
-                  <Sparkles className="w-3 h-3" />
-                  Affirmation
-                </div>
-              </TableHead>
               <TableHead className="w-[200px] bg-blue-50 dark:bg-blue-950/20 font-semibold">Checklist (3)</TableHead>
               <TableHead className="w-[100px] bg-blue-50 dark:bg-blue-950/20 font-semibold text-center">Progress</TableHead>
             </TableRow>
@@ -615,13 +609,6 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
                   </div>
                 </TableCell>
 
-                {/* AI - Affirmation */}
-                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10">
-                  <div className="text-xs italic" data-testid={`text-affirmation-${belief.category.toLowerCase()}`}>
-                    "{belief.affirmationSuggestion}"
-                  </div>
-                </TableCell>
-
                 {/* AI - Checklist */}
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10">
                   <div className="space-y-1">
@@ -677,12 +664,6 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
                 <div className="flex items-center gap-1">
                   <Sparkles className="w-3 h-3" />
                   Course
-                </div>
-              </TableHead>
-              <TableHead className="w-[180px] bg-blue-50 dark:bg-blue-950/20 font-semibold">
-                <div className="flex items-center gap-1">
-                  <Sparkles className="w-3 h-3" />
-                  Affirmation
                 </div>
               </TableHead>
               <TableHead className="w-[200px] bg-blue-50 dark:bg-blue-950/20 font-semibold">Checklist (3)</TableHead>
@@ -854,13 +835,6 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10">
                   <div className="text-xs" data-testid={`text-course-next-${belief.category.toLowerCase()}`}>
                     {belief.courseSuggestion}
-                  </div>
-                </TableCell>
-
-                {/* AI - Affirmation */}
-                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10">
-                  <div className="text-xs italic" data-testid={`text-affirmation-next-${belief.category.toLowerCase()}`}>
-                    "{belief.affirmationSuggestion}"
                   </div>
                 </TableCell>
 
