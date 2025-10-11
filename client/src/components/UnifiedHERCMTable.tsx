@@ -701,8 +701,8 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
                   </CardHeader>
                   <CardContent>
                     <ResponsiveContainer width="100%" height={250}>
-                      <LineChart data={monthWeeksData.map(({ week, progress }) => ({
-                        week: `Week ${week}`,
+                      <LineChart data={monthWeeksData.map(({ week, progress }, index) => ({
+                        week: `Week ${index + 1}`,
                         progress
                       }))}>
                         <CartesianGrid strokeDasharray="3 3" />
@@ -724,9 +724,9 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
                     <ResponsiveContainer width="100%" height={300}>
                       <BarChart data={['Health', 'Relationship', 'Career', 'Money'].map(category => {
                         const dataPoint: any = { area: category };
-                        monthWeeksData.forEach(({ week, beliefs }) => {
+                        monthWeeksData.forEach(({ beliefs }, index) => {
                           const belief = beliefs.find((b: any) => b.category === category);
-                          dataPoint[`Week ${week}`] = calculateProgress(belief?.checklist || []);
+                          dataPoint[`Week ${index + 1}`] = calculateProgress(belief?.checklist || []);
                         });
                         return dataPoint;
                       })}>
@@ -735,10 +735,10 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
                         <YAxis domain={[0, 100]} />
                         <Tooltip />
                         <Legend />
-                        {monthWeeksData.map(({ week }, index) => (
+                        {monthWeeksData.map((_, index) => (
                           <Bar 
-                            key={week} 
-                            dataKey={`Week ${week}`} 
+                            key={index} 
+                            dataKey={`Week ${index + 1}`} 
                             fill={['#94a3b8', '#64748b', '#0d9488', '#14b8a6'][index % 4]} 
                           />
                         ))}
@@ -779,7 +779,7 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
                               </span>
                             </div>
                             <p className="text-xs text-muted-foreground">
-                              Week {firstWeekData.week}: {firstProgress}% → Week {lastWeekData.week}: {lastProgress}%
+                              Week 1: {firstProgress}% → Week {monthWeeksData.length}: {lastProgress}%
                             </p>
                           </div>
                         </Card>

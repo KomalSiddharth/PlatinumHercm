@@ -25,7 +25,7 @@ Preferred communication style: Simple, everyday language.
 - **Platinum Streak Section Removal**: Completely removed PlatinumProgress component from Dashboard - no more Platinum Streak Progress card or week progression indicators
 - **History Modal Cleanup**: Removed all analytics (charts, graphs) from History modal - now shows only week-wise table snapshots; title changed to "HERCM History"
 - **History Modal Table Format Update**: Updated History modal to show exact Current Week table format with all columns (Rating, Problems, Feelings, Beliefs/Reasons, Actions, AI Course, Checklist, Progress) matching the main Current Week table design
-- **Monthly Analytics Enhancement**: Monthly Progress Analytics now displays all 12 months (January-December) in the month selector dropdown; each month shows its corresponding 4-week range (e.g., January - Week 1-4, February - Week 5-8); analytics charts and summaries display data for selected month's weeks; gracefully handles months without data by using template fallbacks
+- **Monthly Analytics Enhancement**: Monthly Progress Analytics now displays all 12 months (January-December) in the month selector dropdown; dropdown shows only month names (no week ranges); each month's analytics shows Week 1-4 (relative to that month, not cumulative); line chart, bar chart, and improvement summary all display weeks as 1-4 for any selected month; gracefully handles months without data by using template fallbacks
 
 ## System Architecture
 
