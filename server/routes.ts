@@ -1,11 +1,19 @@
 // Server routes with Replit Auth integration
-import type { Express } from "express";
+import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, isAdmin } from "./replitAuth";
 import { fetchCourseData, findMatchingCourse, recommendCourses, fetchEnhancedCourseData } from "./googleSheets";
 import { recommendCoursesRequestSchema } from "@shared/schema";
 import { getAIRecommendations } from "./aiRecommendations";
+
+// Extend express-session to include custom session fields
+declare module 'express-session' {
+  interface SessionData {
+    userEmail?: string;
+    isAdmin?: boolean;
+  }
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup Replit Auth middleware
@@ -148,6 +156,134 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating course sheet:", error);
       res.status(500).json({ message: "Failed to update course sheet" });
+    }
+  });
+
+  // Email-based authentication routes
+  app.post('/api/auth/login', async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+
+      const approvedEmail = await storage.getApprovedEmail(email);
+      
+      if (!approvedEmail || approvedEmail.status !== 'active') {
+        return res.status(403).json({ message: "Your email is not approved. Please contact admin." });
+      }
+
+      await storage.incrementAccessCount(email);
+      
+      req.session.userEmail = email;
+      req.session.isAdmin = false;
+      
+      res.json({ success: true, message: "Login successful" });
+    } catch (error) {
+      console.error("Error during login:", error);
+      res.status(500).json({ message: "Login failed" });
+    }
+  });
+
+  app.post('/api/auth/admin-login', async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+
+      const user = await storage.getUserByEmail(email);
+      
+      if (!user || !user.isAdmin) {
+        return res.status(403).json({ message: "You are not authorized as admin" });
+      }
+
+      req.session.userEmail = email;
+      req.session.isAdmin = true;
+      
+      res.json({ success: true, message: "Admin login successful" });
+    } catch (error) {
+      console.error("Error during admin login:", error);
+      res.status(500).json({ message: "Admin login failed" });
+    }
+  });
+
+  // Admin email management routes
+  app.get('/api/admin/approved-emails', async (req, res) => {
+    try {
+      const emails = await storage.getAllApprovedEmails();
+      res.json(emails);
+    } catch (error) {
+      console.error("Error fetching approved emails:", error);
+      res.status(500).json({ message: "Failed to fetch approved emails" });
+    }
+  });
+
+  app.post('/api/admin/approved-emails', async (req, res) => {
+    try {
+      const { email, zoomLink } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+
+      const newEmail = await storage.addApprovedEmail({ email, zoomLink, status: 'active' });
+      res.json(newEmail);
+    } catch (error: any) {
+      console.error("Error adding approved email:", error);
+      if (error.message?.includes('duplicate') || error.code === '23505') {
+        return res.status(400).json({ message: "Email already exists" });
+      }
+      res.status(500).json({ message: "Failed to add email" });
+    }
+  });
+
+  app.post('/api/admin/bulk-upload', async (req, res) => {
+    try {
+      const { emails } = req.body;
+      
+      if (!Array.isArray(emails) || emails.length === 0) {
+        return res.status(400).json({ message: "Emails array is required" });
+      }
+
+      const results = await storage.bulkAddApprovedEmails(emails);
+      res.json({ success: true, added: results.length, message: "Emails uploaded successfully" });
+    } catch (error) {
+      console.error("Error bulk uploading emails:", error);
+      res.status(500).json({ message: "Failed to upload emails" });
+    }
+  });
+
+  app.delete('/api/admin/approved-emails/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteApprovedEmail(id);
+      res.json({ success: true, message: "Email deleted" });
+    } catch (error) {
+      console.error("Error deleting approved email:", error);
+      res.status(500).json({ message: "Failed to delete email" });
+    }
+  });
+
+  app.delete('/api/admin/approved-emails/all', async (req, res) => {
+    try {
+      await storage.deleteAllApprovedEmails();
+      res.json({ success: true, message: "All emails deleted" });
+    } catch (error) {
+      console.error("Error deleting all emails:", error);
+      res.status(500).json({ message: "Failed to delete all emails" });
+    }
+  });
+
+  app.get('/api/admin/stats', async (req, res) => {
+    try {
+      const stats = await storage.getAdminStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching admin stats:", error);
+      res.status(500).json({ message: "Failed to fetch stats" });
     }
   });
 

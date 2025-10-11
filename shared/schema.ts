@@ -38,6 +38,27 @@ export const users = pgTable("users", {
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 
+// Approved Emails - Admin manages which emails can access the system
+export const approvedEmails = pgTable("approved_emails", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  email: varchar("email").unique().notNull(),
+  status: varchar("status").default('active').notNull(), // 'active' or 'inactive'
+  accessCount: integer("access_count").default(0).notNull(),
+  zoomLink: varchar("zoom_link"), // Optional Zoom link for user
+  lastAccessAt: timestamp("last_access_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertApprovedEmailSchema = createInsertSchema(approvedEmails).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertApprovedEmail = z.infer<typeof insertApprovedEmailSchema>;
+export type ApprovedEmail = typeof approvedEmails.$inferSelect;
+
 // HERCM Weekly Data Storage
 export const hercmWeeks = pgTable("hercm_weeks", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
