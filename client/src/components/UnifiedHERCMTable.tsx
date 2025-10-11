@@ -1,16 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Check, X, TrendingUp, History } from 'lucide-react';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Sparkles, Check, X, TrendingUp, History, Edit2, Save } from 'lucide-react';
 
 interface ChecklistItem {
   id: string;
@@ -24,13 +18,13 @@ interface HERCMBelief {
   currentRating: number;
   problems: string;
   currentFeelings: string;
-  currentBelief: string; // Beliefs/Reasons
+  currentBelief: string;
   currentActions: string;
   // Next Week Data
   targetRating: number;
   result: string;
   nextFeelings: string;
-  nextWeekTarget: string; // Next Beliefs
+  nextWeekTarget: string;
   nextActions: string;
   // AI Suggestions & Checklist
   checklist: ChecklistItem[];
@@ -213,7 +207,6 @@ const getWeekBeliefs = (week: number): HERCMBelief[] => {
       }
     ];
   } else {
-    // Week 3+: Further progression
     return [
       {
         category: 'Health',
@@ -223,204 +216,183 @@ const getWeekBeliefs = (week: number): HERCMBelief[] => {
         currentBelief: "I prioritize my health consistently",
         currentActions: "Morning walks, Meal prepping, Yoga 3x",
         targetRating: 7,
-        result: "Achieve ideal weight, Complete mental peace",
-        nextFeelings: "Vibrant, Confident, Healthy",
-        nextWeekTarget: "I am a fitness role model",
-        nextActions: "30 min workout daily, Cook healthy meals 5x",
+        result: "Reached ideal weight, Completely anxiety-free",
+        nextFeelings: "Vibrant, Balanced, Healthy",
+        nextWeekTarget: "I love and care for my body",
+        nextActions: "Gym 4x week, Healthy meal plan",
         checklist: [
-          { id: 'h1', text: "30 min workout daily", checked: false },
-          { id: 'h2', text: "Cook healthy meals 5x", checked: false },
-          { id: 'h3', text: "Meditation 10 min", checked: false }
+          { id: 'h1', text: "Gym 4x per week", checked: false },
+          { id: 'h2', text: "Follow meal plan", checked: false },
+          { id: 'h3', text: "Sleep 8 hours daily", checked: false }
         ],
-        courseSuggestion: "Advanced Health - Module 3",
-        affirmationSuggestion: "I radiate health and vitality"
+        courseSuggestion: "Advanced Health Optimization",
+        affirmationSuggestion: "I am the healthiest version of myself"
       },
       {
         category: 'Relationship',
         currentRating: 7,
-        problems: "Strong relationship with all",
+        problems: "Strong bond with all relationships",
         currentFeelings: "Loved, Appreciated, Joyful",
         currentBelief: "I communicate with love and clarity",
         currentActions: "Date nights, Gratitude practice, Active listening",
         targetRating: 8,
-        result: "Deep connection with loved ones",
-        nextFeelings: "Fulfilled, Connected, Blessed",
-        nextWeekTarget: "I am a master at deep connections",
-        nextActions: "Deep conversations daily, Show appreciation 5x",
+        result: "Deep connection with family and colleagues",
+        nextFeelings: "Fulfilled, Cherished, Peaceful",
+        nextWeekTarget: "I attract loving relationships",
+        nextActions: "Family time 3x week, Resolve conflicts peacefully",
         checklist: [
-          { id: 'e1', text: "Deep conversation daily", checked: false },
-          { id: 'e2', text: "Show appreciation 5x", checked: false },
-          { id: 'e3', text: "Quality time 1 hour", checked: false }
+          { id: 'e1', text: "Family bonding activities", checked: false },
+          { id: 'e2', text: "Weekly date night", checked: false },
+          { id: 'e3', text: "Practice empathy daily", checked: false }
         ],
-        courseSuggestion: "Relationship Mastery - Advanced",
-        affirmationSuggestion: "Love flows through me"
+        courseSuggestion: "Deep Connection Mastery",
+        affirmationSuggestion: "I am surrounded by love"
       },
       {
         category: 'Career',
         currentRating: 6,
-        problems: "Got the job, Performing well",
+        problems: "Got promotion, recognized at work",
         currentFeelings: "Successful, Fulfilled, Proud",
         currentBelief: "I am worthy of success and recognition",
-        currentActions: "Project completion, Networking, Seeking feedback",
+        currentActions: "Taking initiative, Networking, Upskilling",
         targetRating: 7,
-        result: "Promotion, Recognition as leader",
-        nextFeelings: "Accomplished, Respected, Inspired",
-        nextWeekTarget: "I am a leader in my field",
-        nextActions: "Lead team project, Mentor colleagues",
+        result: "Leading important projects, Becoming expert",
+        nextFeelings: "Accomplished, Confident, Respected",
+        nextWeekTarget: "I create value and impact",
+        nextActions: "Lead team project, Mentor junior colleagues",
         checklist: [
-          { id: 'r1', text: "Lead team project", checked: false },
-          { id: 'r2', text: "Mentor junior colleague", checked: false },
-          { id: 'r3', text: "Deliver presentation", checked: false }
+          { id: 'r1', text: "Lead team meeting", checked: false },
+          { id: 'r2', text: "Complete certification", checked: false },
+          { id: 'r3', text: "Mentor 2 colleagues", checked: false }
         ],
-        courseSuggestion: "Leadership Mastery - Module 3",
-        affirmationSuggestion: "I am a respected leader"
+        courseSuggestion: "Leadership Excellence",
+        affirmationSuggestion: "I am a natural leader"
       },
       {
         category: 'Money',
         currentRating: 5,
-        problems: "Saved 15%, Emergency fund created",
+        problems: "Saved 15%, Started emergency fund",
         currentFeelings: "Wealthy, Grateful, Free",
         currentBelief: "Money flows to me with ease",
         currentActions: "Automated savings, Researching investments",
         targetRating: 6,
-        result: "Passive income started, 20% savings",
-        nextFeelings: "Abundant, Prosperous, Generous",
-        nextWeekTarget: "I am financially abundant",
-        nextActions: "Invest 20% income, Create passive income",
+        result: "Built 3-month emergency fund, First investment",
+        nextFeelings: "Prosperous, Abundant, Secure",
+        nextWeekTarget: "I build lasting wealth",
+        nextActions: "Open investment account, Increase income",
         checklist: [
-          { id: 'c1', text: "Invest 20% income", checked: false },
-          { id: 'c2', text: "Create passive income stream", checked: false },
-          { id: 'c3', text: "Financial review weekly", checked: false }
+          { id: 'c1', text: "Start investment portfolio", checked: false },
+          { id: 'c2', text: "Side income stream", checked: false },
+          { id: 'c3', text: "Financial planning session", checked: false }
         ],
-        courseSuggestion: "Wealth Mastery - Advanced",
-        affirmationSuggestion: "Abundance is my birthright"
+        courseSuggestion: "Investment Foundations",
+        affirmationSuggestion: "Wealth flows to me effortlessly"
       }
     ];
   }
 };
 
-export default function UnifiedHERCMTable({
-  weekNumber,
-  onGenerateNextWeek,
-  onViewHistory
-}: UnifiedHERCMTableProps) {
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editValues, setEditValues] = useState<{ currentBelief: string; nextWeekTarget: string }>({
-    currentBelief: '',
-    nextWeekTarget: ''
-  });
+const getCategoryColor = (category: string) => {
+  const colors = {
+    Health: 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900',
+    Relationship: 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900',
+    Career: 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900',
+    Money: 'bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900'
+  };
+  return colors[category as keyof typeof colors] || '';
+};
 
-  const [beliefs, setBeliefs] = useState<HERCMBelief[]>(getWeekBeliefs(weekNumber));
+const getCategoryBadgeColor = (category: string) => {
+  const colors = {
+    Health: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+    Relationship: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+    Career: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+    Money: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+  };
+  return colors[category as keyof typeof colors] || '';
+};
 
-  // Update beliefs when week changes
+export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onViewHistory }: UnifiedHERCMTableProps) {
+  const [beliefs, setBeliefs] = useState<HERCMBelief[]>([]);
+  const [editingField, setEditingField] = useState<{ category: string; field: string } | null>(null);
+
   useEffect(() => {
     setBeliefs(getWeekBeliefs(weekNumber));
   }, [weekNumber]);
 
-  const calculateProgress = (checklist: ChecklistItem[]) => {
-    if (checklist.length === 0) return 0;
-    const checkedCount = checklist.filter(item => item.checked).length;
-    return Math.round((checkedCount / checklist.length) * 100);
-  };
-
-  const handleChecklistToggle = (category: string, itemId: string) => {
-    setBeliefs(beliefs.map(b => {
-      if (b.category === category) {
-        const updatedChecklist = b.checklist.map(item =>
-          item.id === itemId ? { ...item, checked: !item.checked } : item
-        );
-        return { ...b, checklist: updatedChecklist };
+  const handleToggleChecklist = (category: string, itemId: string) => {
+    setBeliefs(prev => prev.map(belief => {
+      if (belief.category === category) {
+        return {
+          ...belief,
+          checklist: belief.checklist.map(item =>
+            item.id === itemId ? { ...item, checked: !item.checked } : item
+          )
+        };
       }
-      return b;
+      return belief;
     }));
   };
 
-  const getProgressColor = (progress: number) => {
-    if (progress >= 80) return 'bg-chart-3 text-white';
-    if (progress >= 50) return 'bg-yellow-500 text-white';
-    return 'bg-muted text-muted-foreground';
+  const handleFieldEdit = (category: string, field: keyof HERCMBelief, value: string | number) => {
+    setBeliefs(prev => prev.map(belief => {
+      if (belief.category === category) {
+        return { ...belief, [field]: value };
+      }
+      return belief;
+    }));
   };
 
-  const getCategoryColor = (category: string) => {
-    const colors = {
-      'Health': 'text-emerald-700 dark:text-emerald-400',
-      'Relationship': 'text-pink-700 dark:text-pink-400', 
-      'Career': 'text-blue-700 dark:text-blue-400',
-      'Money': 'text-amber-700 dark:text-amber-400'
-    };
-    return colors[category as keyof typeof colors] || 'text-foreground';
+  const handleRatingChange = (category: string, newRating: number) => {
+    setBeliefs(prev => prev.map(belief => {
+      if (belief.category === category) {
+        return {
+          ...belief,
+          currentRating: newRating,
+          targetRating: newRating + 1 // Auto-increment by 1
+        };
+      }
+      return belief;
+    }));
   };
 
-  const getCategoryBadgeStyle = (category: string) => {
-    const styles = {
-      'Health': 'bg-emerald-100 dark:bg-emerald-950 border-emerald-300 dark:border-emerald-700',
-      'Relationship': 'bg-pink-100 dark:bg-pink-950 border-pink-300 dark:border-pink-700',
-      'Career': 'bg-blue-100 dark:bg-blue-950 border-blue-300 dark:border-blue-700',
-      'Money': 'bg-amber-100 dark:bg-amber-950 border-amber-300 dark:border-amber-700'
-    };
-    return styles[category as keyof typeof styles] || 'bg-muted';
+
+  const startEdit = (category: string, field: string) => {
+    setEditingField({ category, field });
   };
 
-  const startEditing = (category: string) => {
-    const belief = beliefs.find(b => b.category === category);
-    if (belief) {
-      setEditingId(category);
-      setEditValues({
-        currentBelief: belief.currentBelief,
-        nextWeekTarget: belief.nextWeekTarget
-      });
-    }
+  const stopEdit = () => {
+    setEditingField(null);
   };
 
-  const saveEdit = (category: string) => {
-    setBeliefs(beliefs.map(b => 
-      b.category === category 
-        ? { ...b, currentBelief: editValues.currentBelief, nextWeekTarget: editValues.nextWeekTarget }
-        : b
-    ));
-    setEditingId(null);
+  const isEditing = (category: string, field: string) => {
+    return editingField?.category === category && editingField?.field === field;
   };
-
-  const cancelEdit = () => {
-    setEditingId(null);
-    setEditValues({ currentBelief: '', nextWeekTarget: '' });
-  };
-
-  const handleRegenerateAI = (category: string) => {
-    console.log('Regenerating AI suggestions for:', category);
-  };
-
-  const weeklyProgress = Math.round(
-    beliefs.reduce((sum, b) => sum + calculateProgress(b.checklist), 0) / beliefs.length
-  );
 
   return (
-    <div className="space-y-6">
-      {/* Week Header with Actions */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Week {weekNumber} - HERCM Tracker
-          </h3>
-          <p className="text-sm text-muted-foreground mt-1">
-            Track all 4 life areas in one unified view
-          </p>
-        </div>
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <Badge className={getProgressColor(weeklyProgress)} data-testid="badge-weekly-progress">
-            {weeklyProgress}% Weekly Progress
+          <Badge className="text-lg px-4 py-1.5" data-testid="badge-week-number">
+            Week {weekNumber}
           </Badge>
-          <Button 
-            variant="outline" 
+          <h2 className="text-2xl font-semibold">HERCM Belief Tracker</h2>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
             onClick={onViewHistory}
             data-testid="button-view-history"
           >
             <History className="w-4 h-4 mr-2" />
-            View History
+            History
           </Button>
-          <Button 
+          <Button
+            variant="default"
+            size="sm"
             onClick={onGenerateNextWeek}
-            className="bg-gradient-to-r from-primary to-accent"
             data-testid="button-generate-next-week"
           >
             <TrendingUp className="w-4 h-4 mr-2" />
@@ -429,170 +401,453 @@ export default function UnifiedHERCMTable({
         </div>
       </div>
 
-      {/* Unified Excel-Style Table */}
-      <div className="border rounded-lg overflow-x-auto">
-        <Table>
-          <TableHeader>
-            {/* Section Headers Row */}
-            <TableRow className="bg-muted/50">
-              <TableHead className="font-bold border-r" rowSpan={2}>HERCM Area</TableHead>
-              <TableHead className="bg-red-100 dark:bg-red-950/40 font-bold text-center border-r" colSpan={5}>
-                <span className="text-red-700 dark:text-red-400">Current Week</span>
-              </TableHead>
-              <TableHead className="bg-emerald-100 dark:bg-emerald-950/40 font-bold text-center border-r" colSpan={5}>
-                <span className="text-emerald-700 dark:text-emerald-400">Next Week</span>
-              </TableHead>
-              <TableHead className="bg-blue-100 dark:bg-blue-950/40 font-bold text-center" colSpan={4}>
-                <span className="text-blue-700 dark:text-blue-400">AI & Progress</span>
-              </TableHead>
-            </TableRow>
-            {/* Column Headers Row */}
-            <TableRow className="bg-muted/50">
-              {/* Current Week Columns */}
-              <TableHead className="w-[80px] bg-red-50 dark:bg-red-950/20 font-semibold">Rating</TableHead>
-              <TableHead className="w-[180px] bg-red-50 dark:bg-red-950/20 font-semibold">Problems</TableHead>
-              <TableHead className="w-[150px] bg-red-50 dark:bg-red-950/20 font-semibold">Feelings</TableHead>
-              <TableHead className="w-[180px] bg-red-50 dark:bg-red-950/20 font-semibold">Beliefs/Reasons</TableHead>
-              <TableHead className="w-[180px] bg-red-50 dark:bg-red-950/20 font-semibold border-r">Actions</TableHead>
-              
-              {/* Next Week Columns */}
-              <TableHead className="w-[80px] bg-emerald-50 dark:bg-emerald-950/20 font-semibold">Target</TableHead>
-              <TableHead className="w-[180px] bg-emerald-50 dark:bg-emerald-950/20 font-semibold">Result</TableHead>
-              <TableHead className="w-[150px] bg-emerald-50 dark:bg-emerald-950/20 font-semibold">Feelings</TableHead>
-              <TableHead className="w-[180px] bg-emerald-50 dark:bg-emerald-950/20 font-semibold">Beliefs</TableHead>
-              <TableHead className="w-[180px] bg-emerald-50 dark:bg-emerald-950/20 font-semibold border-r">Actions</TableHead>
-              
-              {/* AI & Progress Columns */}
-              <TableHead className="w-[180px] bg-blue-50 dark:bg-blue-950/20 font-semibold">
-                <div className="flex items-center gap-1">
-                  <Sparkles className="w-3 h-3" />
-                  Course
-                </div>
-              </TableHead>
-              <TableHead className="w-[180px] bg-blue-50 dark:bg-blue-950/20 font-semibold">
-                <div className="flex items-center gap-1">
-                  <Sparkles className="w-3 h-3" />
-                  Affirmation
-                </div>
-              </TableHead>
-              <TableHead className="w-[150px] bg-blue-50 dark:bg-blue-950/20 font-semibold">Checklist</TableHead>
-              <TableHead className="w-[100px] bg-blue-50 dark:bg-blue-950/20 font-semibold text-center">Progress</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {beliefs.map((belief) => (
-              <TableRow key={belief.category} data-testid={`row-hercm-${belief.category.toLowerCase()}`}>
-                {/* HERCM Category */}
-                <TableCell className="font-semibold border-r">
-                  <Badge className={`${getCategoryBadgeStyle(belief.category)} ${getCategoryColor(belief.category)} border`}>
+      {/* HERCM Categories */}
+      <div className="grid gap-6">
+        {beliefs.map((belief) => (
+          <Card 
+            key={belief.category} 
+            className={`${getCategoryColor(belief.category)} border-2`}
+            data-testid={`card-hercm-${belief.category.toLowerCase()}`}
+          >
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Badge className={`${getCategoryBadgeColor(belief.category)} text-base px-3 py-1`}>
                     {belief.category}
                   </Badge>
-                </TableCell>
+                  <span className="text-sm font-normal text-muted-foreground">
+                    Rating: {belief.currentRating}/10 → {belief.targetRating}/10
+                  </span>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Current Week Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-red-300 dark:border-red-800">
+                  <h3 className="font-semibold text-red-700 dark:text-red-400">Current Week</h3>
+                </div>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  {/* Current Rating */}
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Rating</label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="10"
+                      value={belief.currentRating}
+                      onChange={(e) => handleRatingChange(belief.category, parseInt(e.target.value) || 1)}
+                      className="mt-1"
+                      data-testid={`input-current-rating-${belief.category.toLowerCase()}`}
+                    />
+                  </div>
 
-                {/* Current Week Section */}
-                <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10 text-center">
-                  <div className="text-2xl font-bold text-red-700 dark:text-red-400" data-testid={`text-current-rating-${belief.category.toLowerCase()}`}>
-                    {belief.currentRating}
-                  </div>
-                </TableCell>
-                <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10">
-                  <div className="text-sm" data-testid={`text-problems-${belief.category.toLowerCase()}`}>
-                    {belief.problems}
-                  </div>
-                </TableCell>
-                <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10">
-                  <div className="text-sm text-red-700 dark:text-red-400" data-testid={`text-current-feelings-${belief.category.toLowerCase()}`}>
-                    {belief.currentFeelings}
-                  </div>
-                </TableCell>
-                <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10">
-                  <div className="text-sm" data-testid={`text-current-belief-${belief.category.toLowerCase()}`}>
-                    {belief.currentBelief}
-                  </div>
-                </TableCell>
-                <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10 border-r">
-                  <div className="text-sm" data-testid={`text-current-actions-${belief.category.toLowerCase()}`}>
-                    {belief.currentActions}
-                  </div>
-                </TableCell>
-
-                {/* Next Week Section */}
-                <TableCell className="p-2 bg-emerald-50/30 dark:bg-emerald-950/10 text-center">
-                  <div className="text-2xl font-bold text-emerald-700 dark:text-emerald-400" data-testid={`text-target-rating-${belief.category.toLowerCase()}`}>
-                    {belief.targetRating}
-                  </div>
-                </TableCell>
-                <TableCell className="p-2 bg-emerald-50/30 dark:bg-emerald-950/10">
-                  <div className="text-sm" data-testid={`text-result-${belief.category.toLowerCase()}`}>
-                    {belief.result}
-                  </div>
-                </TableCell>
-                <TableCell className="p-2 bg-emerald-50/30 dark:bg-emerald-950/10">
-                  <div className="text-sm text-emerald-700 dark:text-emerald-400" data-testid={`text-next-feelings-${belief.category.toLowerCase()}`}>
-                    {belief.nextFeelings}
-                  </div>
-                </TableCell>
-                <TableCell className="p-2 bg-emerald-50/30 dark:bg-emerald-950/10">
-                  <div className="text-sm" data-testid={`text-next-target-${belief.category.toLowerCase()}`}>
-                    {belief.nextWeekTarget}
-                  </div>
-                </TableCell>
-                <TableCell className="p-2 bg-emerald-50/30 dark:bg-emerald-950/10 border-r">
-                  <div className="text-sm" data-testid={`text-next-actions-${belief.category.toLowerCase()}`}>
-                    {belief.nextActions}
-                  </div>
-                </TableCell>
-
-                {/* AI & Progress Section */}
-                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10">
-                  <div className="text-sm" data-testid={`text-course-${belief.category.toLowerCase()}`}>
-                    {belief.courseSuggestion}
-                  </div>
-                </TableCell>
-                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10">
-                  <div className="text-sm italic" data-testid={`text-affirmation-${belief.category.toLowerCase()}`}>
-                    "{belief.affirmationSuggestion}"
-                  </div>
-                </TableCell>
-                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10">
-                  <div className="space-y-1">
-                    {belief.checklist.map((item, idx) => (
-                      <label 
-                        key={item.id} 
-                        className="flex items-start gap-2 text-xs cursor-pointer hover-elevate rounded p-1"
-                        data-testid={`label-checklist-${belief.category.toLowerCase()}-${idx}`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={item.checked}
-                          onChange={() => handleChecklistToggle(belief.category, item.id)}
-                          className="mt-0.5 w-3.5 h-3.5 rounded border-blue-500 text-blue-500 focus:ring-blue-500 cursor-pointer"
-                          data-testid={`checkbox-checklist-${belief.category.toLowerCase()}-${idx}`}
+                  {/* Problems */}
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground flex items-center justify-between">
+                      Problems
+                      {!isEditing(belief.category, 'problems') && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => startEdit(belief.category, 'problems')}
+                          className="h-6 w-6 p-0"
+                          data-testid={`button-edit-problems-${belief.category.toLowerCase()}`}
+                        >
+                          <Edit2 className="w-3 h-3" />
+                        </Button>
+                      )}
+                    </label>
+                    {isEditing(belief.category, 'problems') ? (
+                      <div className="flex gap-2 mt-1">
+                        <Textarea
+                          value={belief.problems}
+                          onChange={(e) => handleFieldEdit(belief.category, 'problems', e.target.value)}
+                          className="min-h-[80px]"
+                          data-testid={`textarea-problems-${belief.category.toLowerCase()}`}
                         />
-                        <span className={item.checked ? 'line-through text-muted-foreground' : ''}>
-                          {item.text}
-                        </span>
-                      </label>
-                    ))}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={stopEdit}
+                          className="h-8 w-8 p-0"
+                          data-testid={`button-save-problems-${belief.category.toLowerCase()}`}
+                        >
+                          <Save className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <p className="mt-1 text-sm p-2 bg-background rounded-md" data-testid={`text-problems-${belief.category.toLowerCase()}`}>
+                        {belief.problems}
+                      </p>
+                    )}
                   </div>
-                </TableCell>
-                <TableCell className="text-center p-2 bg-blue-50/30 dark:bg-blue-950/10">
-                  <Badge className={getProgressColor(calculateProgress(belief.checklist))} data-testid={`badge-progress-${belief.category.toLowerCase()}`}>
-                    {calculateProgress(belief.checklist)}%
-                  </Badge>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
 
-      {/* Info Footer */}
-      <div className="bg-muted/30 rounded-lg p-4 text-sm text-muted-foreground">
-        <p className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-primary" />
-          <strong>AI-Powered Weekly Progression:</strong> When you click "Generate Next Week", AI analyzes your progress and creates next week's targets. 80%+ completion transforms your belief!
-        </p>
+                  {/* Current Feelings */}
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground flex items-center justify-between">
+                      Feelings
+                      {!isEditing(belief.category, 'currentFeelings') && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => startEdit(belief.category, 'currentFeelings')}
+                          className="h-6 w-6 p-0"
+                          data-testid={`button-edit-current-feelings-${belief.category.toLowerCase()}`}
+                        >
+                          <Edit2 className="w-3 h-3" />
+                        </Button>
+                      )}
+                    </label>
+                    {isEditing(belief.category, 'currentFeelings') ? (
+                      <div className="flex gap-2 mt-1">
+                        <Input
+                          value={belief.currentFeelings}
+                          onChange={(e) => handleFieldEdit(belief.category, 'currentFeelings', e.target.value)}
+                          data-testid={`input-current-feelings-${belief.category.toLowerCase()}`}
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={stopEdit}
+                          className="h-8 w-8 p-0"
+                          data-testid={`button-save-current-feelings-${belief.category.toLowerCase()}`}
+                        >
+                          <Save className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <p className="mt-1 text-sm p-2 bg-background rounded-md" data-testid={`text-current-feelings-${belief.category.toLowerCase()}`}>
+                        {belief.currentFeelings}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Current Beliefs/Reasons */}
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground flex items-center justify-between">
+                      Beliefs/Reasons
+                      {!isEditing(belief.category, 'currentBelief') && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => startEdit(belief.category, 'currentBelief')}
+                          className="h-6 w-6 p-0"
+                          data-testid={`button-edit-current-belief-${belief.category.toLowerCase()}`}
+                        >
+                          <Edit2 className="w-3 h-3" />
+                        </Button>
+                      )}
+                    </label>
+                    {isEditing(belief.category, 'currentBelief') ? (
+                      <div className="flex gap-2 mt-1">
+                        <Textarea
+                          value={belief.currentBelief}
+                          onChange={(e) => handleFieldEdit(belief.category, 'currentBelief', e.target.value)}
+                          className="min-h-[80px]"
+                          data-testid={`textarea-current-belief-${belief.category.toLowerCase()}`}
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={stopEdit}
+                          className="h-8 w-8 p-0"
+                          data-testid={`button-save-current-belief-${belief.category.toLowerCase()}`}
+                        >
+                          <Save className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <p className="mt-1 text-sm p-2 bg-background rounded-md" data-testid={`text-current-belief-${belief.category.toLowerCase()}`}>
+                        {belief.currentBelief}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Current Actions */}
+                  <div className="md:col-span-2">
+                    <label className="text-sm font-medium text-muted-foreground flex items-center justify-between">
+                      Actions
+                      {!isEditing(belief.category, 'currentActions') && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => startEdit(belief.category, 'currentActions')}
+                          className="h-6 w-6 p-0"
+                          data-testid={`button-edit-current-actions-${belief.category.toLowerCase()}`}
+                        >
+                          <Edit2 className="w-3 h-3" />
+                        </Button>
+                      )}
+                    </label>
+                    {isEditing(belief.category, 'currentActions') ? (
+                      <div className="flex gap-2 mt-1">
+                        <Textarea
+                          value={belief.currentActions}
+                          onChange={(e) => handleFieldEdit(belief.category, 'currentActions', e.target.value)}
+                          className="min-h-[80px]"
+                          data-testid={`textarea-current-actions-${belief.category.toLowerCase()}`}
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={stopEdit}
+                          className="h-8 w-8 p-0"
+                          data-testid={`button-save-current-actions-${belief.category.toLowerCase()}`}
+                        >
+                          <Save className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <p className="mt-1 text-sm p-2 bg-background rounded-md" data-testid={`text-current-actions-${belief.category.toLowerCase()}`}>
+                        {belief.currentActions}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Next Week Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-green-300 dark:border-green-800">
+                  <h3 className="font-semibold text-green-700 dark:text-green-400">Next Week</h3>
+                </div>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  {/* Target Rating */}
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Target Rating (auto +1)</label>
+                    <Input
+                      type="number"
+                      value={belief.targetRating}
+                      disabled
+                      className="mt-1 bg-muted/50 cursor-not-allowed"
+                      data-testid={`input-target-rating-${belief.category.toLowerCase()}`}
+                    />
+                  </div>
+
+                  {/* Result */}
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground flex items-center justify-between">
+                      Result
+                      {!isEditing(belief.category, 'result') && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => startEdit(belief.category, 'result')}
+                          className="h-6 w-6 p-0"
+                          data-testid={`button-edit-result-${belief.category.toLowerCase()}`}
+                        >
+                          <Edit2 className="w-3 h-3" />
+                        </Button>
+                      )}
+                    </label>
+                    {isEditing(belief.category, 'result') ? (
+                      <div className="flex gap-2 mt-1">
+                        <Textarea
+                          value={belief.result}
+                          onChange={(e) => handleFieldEdit(belief.category, 'result', e.target.value)}
+                          className="min-h-[80px]"
+                          data-testid={`textarea-result-${belief.category.toLowerCase()}`}
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={stopEdit}
+                          className="h-8 w-8 p-0"
+                          data-testid={`button-save-result-${belief.category.toLowerCase()}`}
+                        >
+                          <Save className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <p className="mt-1 text-sm p-2 bg-background rounded-md" data-testid={`text-result-${belief.category.toLowerCase()}`}>
+                        {belief.result}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Next Feelings */}
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground flex items-center justify-between">
+                      Feelings
+                      {!isEditing(belief.category, 'nextFeelings') && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => startEdit(belief.category, 'nextFeelings')}
+                          className="h-6 w-6 p-0"
+                          data-testid={`button-edit-next-feelings-${belief.category.toLowerCase()}`}
+                        >
+                          <Edit2 className="w-3 h-3" />
+                        </Button>
+                      )}
+                    </label>
+                    {isEditing(belief.category, 'nextFeelings') ? (
+                      <div className="flex gap-2 mt-1">
+                        <Input
+                          value={belief.nextFeelings}
+                          onChange={(e) => handleFieldEdit(belief.category, 'nextFeelings', e.target.value)}
+                          data-testid={`input-next-feelings-${belief.category.toLowerCase()}`}
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={stopEdit}
+                          className="h-8 w-8 p-0"
+                          data-testid={`button-save-next-feelings-${belief.category.toLowerCase()}`}
+                        >
+                          <Save className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <p className="mt-1 text-sm p-2 bg-background rounded-md" data-testid={`text-next-feelings-${belief.category.toLowerCase()}`}>
+                        {belief.nextFeelings}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Next Week Beliefs */}
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground flex items-center justify-between">
+                      Beliefs
+                      {!isEditing(belief.category, 'nextWeekTarget') && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => startEdit(belief.category, 'nextWeekTarget')}
+                          className="h-6 w-6 p-0"
+                          data-testid={`button-edit-next-belief-${belief.category.toLowerCase()}`}
+                        >
+                          <Edit2 className="w-3 h-3" />
+                        </Button>
+                      )}
+                    </label>
+                    {isEditing(belief.category, 'nextWeekTarget') ? (
+                      <div className="flex gap-2 mt-1">
+                        <Textarea
+                          value={belief.nextWeekTarget}
+                          onChange={(e) => handleFieldEdit(belief.category, 'nextWeekTarget', e.target.value)}
+                          className="min-h-[80px]"
+                          data-testid={`textarea-next-belief-${belief.category.toLowerCase()}`}
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={stopEdit}
+                          className="h-8 w-8 p-0"
+                          data-testid={`button-save-next-belief-${belief.category.toLowerCase()}`}
+                        >
+                          <Save className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <p className="mt-1 text-sm p-2 bg-background rounded-md" data-testid={`text-next-belief-${belief.category.toLowerCase()}`}>
+                        {belief.nextWeekTarget}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Next Actions */}
+                  <div className="md:col-span-2">
+                    <label className="text-sm font-medium text-muted-foreground flex items-center justify-between">
+                      Actions
+                      {!isEditing(belief.category, 'nextActions') && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => startEdit(belief.category, 'nextActions')}
+                          className="h-6 w-6 p-0"
+                          data-testid={`button-edit-next-actions-${belief.category.toLowerCase()}`}
+                        >
+                          <Edit2 className="w-3 h-3" />
+                        </Button>
+                      )}
+                    </label>
+                    {isEditing(belief.category, 'nextActions') ? (
+                      <div className="flex gap-2 mt-1">
+                        <Textarea
+                          value={belief.nextActions}
+                          onChange={(e) => handleFieldEdit(belief.category, 'nextActions', e.target.value)}
+                          className="min-h-[80px]"
+                          data-testid={`textarea-next-actions-${belief.category.toLowerCase()}`}
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={stopEdit}
+                          className="h-8 w-8 p-0"
+                          data-testid={`button-save-next-actions-${belief.category.toLowerCase()}`}
+                        >
+                          <Save className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <p className="mt-1 text-sm p-2 bg-background rounded-md" data-testid={`text-next-actions-${belief.category.toLowerCase()}`}>
+                        {belief.nextActions}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* AI & Progress Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-blue-300 dark:border-blue-800">
+                  <h3 className="font-semibold text-blue-700 dark:text-blue-400 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4" />
+                    AI & Progress
+                  </h3>
+                </div>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  {/* Course Suggestion */}
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Course Suggestion</label>
+                    <p className="mt-1 text-sm p-2 bg-blue-50 dark:bg-blue-950/30 rounded-md" data-testid={`text-course-${belief.category.toLowerCase()}`}>
+                      {belief.courseSuggestion}
+                    </p>
+                  </div>
+
+                  {/* Affirmation */}
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Affirmation</label>
+                    <p className="mt-1 text-sm p-2 bg-blue-50 dark:bg-blue-950/30 rounded-md italic" data-testid={`text-affirmation-${belief.category.toLowerCase()}`}>
+                      "{belief.affirmationSuggestion}"
+                    </p>
+                  </div>
+
+                  {/* Action Checklist */}
+                  <div className="md:col-span-2">
+                    <label className="text-sm font-medium text-muted-foreground">Action Checklist</label>
+                    <div className="mt-2 space-y-2">
+                      {belief.checklist.map((item) => (
+                        <div
+                          key={item.id}
+                          className="flex items-center gap-3 p-2 rounded-md hover-elevate active-elevate-2 cursor-pointer"
+                          onClick={() => handleToggleChecklist(belief.category, item.id)}
+                          data-testid={`checklist-item-${item.id}`}
+                        >
+                          <div className={`flex items-center justify-center w-5 h-5 rounded border-2 transition-colors ${
+                            item.checked 
+                              ? 'bg-primary border-primary' 
+                              : 'border-muted-foreground/30'
+                          }`}>
+                            {item.checked && <Check className="w-3 h-3 text-primary-foreground" />}
+                          </div>
+                          <span className={`text-sm flex-1 ${item.checked ? 'line-through text-muted-foreground' : ''}`}>
+                            {item.text}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     </div>
   );
