@@ -55,6 +55,101 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Auto-fill next week goals based on current week data
+  app.post('/api/hercm/auto-fill-goals', isAuthenticated, async (req: any, res) => {
+    try {
+      const { currentH, currentE, currentR, currentC, currentM } = req.body;
+      
+      // Auto-fill logic: +1 if below 5, maintain if 5, +2 if very low
+      const autoFill = (rating: number) => {
+        if (!rating) return 3; // Default if no rating
+        if (rating >= 5) return 5; // Maintain max
+        if (rating <= 2) return Math.min(rating + 2, 5); // Aggressive improvement for low ratings
+        return Math.min(rating + 1, 5); // Normal increment
+      };
+      
+      const suggestions = {
+        nextWeekH: autoFill(currentH),
+        nextWeekE: autoFill(currentE),
+        nextWeekR: autoFill(currentR),
+        nextWeekC: autoFill(currentC),
+        nextWeekM: autoFill(currentM),
+      };
+      
+      res.json(suggestions);
+    } catch (error) {
+      console.error("Error auto-filling goals:", error);
+      res.status(500).json({ message: "Failed to auto-fill goals" });
+    }
+  });
+
+  // Save current week with comparison calculation
+  app.post('/api/hercm/save-with-comparison', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const weekData = { ...req.body, userId };
+      
+      // Calculate improvements if targets exist
+      if (weekData.targetH !== null && weekData.currentH !== null) {
+        weekData.improvementH = weekData.currentH - (weekData.targetH || 0);
+        weekData.improvementE = weekData.currentE - (weekData.targetE || 0);
+        weekData.improvementR = weekData.currentR - (weekData.targetR || 0);
+        weekData.improvementC = weekData.currentC - (weekData.targetC || 0);
+        weekData.improvementM = weekData.currentM - (weekData.targetM || 0);
+        
+        // Calculate overall score and achievement rate
+        const current = [weekData.currentH, weekData.currentE, weekData.currentR, weekData.currentC, weekData.currentM];
+        weekData.overallScore = Math.round(current.reduce((a, b) => a + (b || 0), 0) / 5);
+        
+        // Achievement rate: percentage of goals achieved or exceeded
+        const achievements = [
+          weekData.improvementH >= 0 ? 1 : 0,
+          weekData.improvementE >= 0 ? 1 : 0,
+          weekData.improvementR >= 0 ? 1 : 0,
+          weekData.improvementC >= 0 ? 1 : 0,
+          weekData.improvementM >= 0 ? 1 : 0,
+        ];
+        weekData.achievementRate = Math.round((achievements.reduce((a, b) => a + b, 0) / 5) * 100);
+      }
+      
+      const week = await storage.createHercmWeek(weekData);
+      res.json(week);
+    } catch (error) {
+      console.error("Error saving week with comparison:", error);
+      res.status(500).json({ message: "Failed to save week" });
+    }
+  });
+
+  // Get comparison data for a specific week
+  app.get('/api/hercm/comparison/:weekId', isAuthenticated, async (req: any, res) => {
+    try {
+      const { weekId } = req.params;
+      const userId = req.user.claims.sub;
+      
+      const weeks = await storage.getHercmWeeksByUser(userId);
+      const week = weeks.find((w: any) => w.id === weekId);
+      
+      if (!week) {
+        return res.status(404).json({ message: "Week not found" });
+      }
+      
+      const comparison = {
+        Hope: { target: week.targetH, actual: week.currentH, improvement: week.improvementH },
+        Energy: { target: week.targetE, actual: week.currentE, improvement: week.improvementE },
+        Respect: { target: week.targetR, actual: week.currentR, improvement: week.improvementR },
+        Courage: { target: week.targetC, actual: week.currentC, improvement: week.improvementC },
+        Maturity: { target: week.targetM, actual: week.currentM, improvement: week.improvementM },
+        overallScore: week.overallScore,
+        achievementRate: week.achievementRate,
+      };
+      
+      res.json(comparison);
+    } catch (error) {
+      console.error("Error fetching comparison:", error);
+      res.status(500).json({ message: "Failed to fetch comparison" });
+    }
+  });
+
   // Platinum Progress routes
   app.get('/api/platinum/progress', isAuthenticated, async (req: any, res) => {
     try {
@@ -86,6 +181,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching user weeks:", error);
       res.status(500).json({ message: "Failed to fetch user weeks" });
+    }
+  });
+
+  // Admin analytics - Get all users progress summary
+  app.get('/api/admin/users-analytics', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      const analytics = [];
+      
+      for (const user of users) {
+        const weeks = await storage.getHercmWeeksByUser(user.id);
+        
+        if (weeks.length > 0) {
+          const latestWeek = weeks[weeks.length - 1];
+          const overallScore = latestWeek.overallScore || 0;
+          const achievementRate = latestWeek.achievementRate || 0;
+          
+          // Calculate trend (compare last 2 weeks)
+          let trend = 0;
+          if (weeks.length >= 2) {
+            const prevWeek = weeks[weeks.length - 2];
+            const prevScore = prevWeek.overallScore || 0;
+            trend = overallScore - prevScore;
+          }
+          
+          analytics.push({
+            userId: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            totalWeeks: weeks.length,
+            latestWeekNumber: latestWeek.weekNumber,
+            overallScore,
+            achievementRate,
+            trend, // positive = improving, negative = declining
+            status: achievementRate >= 70 ? 'excellent' : achievementRate >= 50 ? 'good' : 'needs_support',
+          });
+        }
+      }
+      
+      res.json(analytics);
+    } catch (error) {
+      console.error("Error fetching users analytics:", error);
+      res.status(500).json({ message: "Failed to fetch analytics" });
     }
   });
 
