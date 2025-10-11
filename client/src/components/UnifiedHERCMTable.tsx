@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Check, X, TrendingUp, History, Edit2, Save } from 'lucide-react';
+import { Sparkles, Check, X, TrendingUp, History, Edit2, Save, Loader2 } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -12,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { apiRequest } from '@/lib/queryClient';
 
 interface ChecklistItem {
   id: string;
@@ -315,10 +316,55 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
   const [beliefs, setBeliefs] = useState<HERCMBelief[]>([]);
   const [editingField, setEditingField] = useState<{ category: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState('');
+  const [loadingCourses, setLoadingCourses] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     setBeliefs(getWeekBeliefs(weekNumber));
   }, [weekNumber]);
+
+  // Fetch AI course recommendations
+  const fetchCourseRecommendation = async (category: string, belief: HERCMBelief) => {
+    // Only fetch if all required fields are filled
+    if (!belief.problems || !belief.currentFeelings || !belief.currentBelief || !belief.currentActions) {
+      return;
+    }
+
+    setLoadingCourses(prev => new Set(prev).add(category));
+
+    try {
+      const response = await apiRequest('POST', '/api/courses/recommend', {
+        category: category,
+        currentRating: belief.currentRating,
+        problems: belief.problems,
+        feelings: belief.currentFeelings,
+        beliefs: belief.currentBelief,
+        actions: belief.currentActions,
+      });
+
+      const recommendations = await response.json();
+      
+      if (recommendations && recommendations.length > 0) {
+        const topCourse = recommendations[0];
+        setBeliefs(prev => prev.map(b => {
+          if (b.category === category) {
+            return { 
+              ...b, 
+              courseSuggestion: `${topCourse.course.courseName} (${topCourse.score}% match)` 
+            };
+          }
+          return b;
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to fetch course recommendation:', error);
+    } finally {
+      setLoadingCourses(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(category);
+        return newSet;
+      });
+    }
+  };
 
   const weeklyProgress = beliefs.length > 0
     ? Math.round(beliefs.reduce((sum, b) => sum + calculateProgress(b.checklist), 0) / beliefs.length)
@@ -356,18 +402,27 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
     setEditValue(currentValue);
   };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     if (!editingField) return;
+    
+    let updatedBelief: HERCMBelief | undefined = undefined;
     
     setBeliefs(prev => prev.map(belief => {
       if (belief.category === editingField.category) {
-        return { ...belief, [editingField.field]: editValue };
+        const updated = { ...belief, [editingField.field]: editValue } as HERCMBelief;
+        updatedBelief = updated;
+        return updated;
       }
       return belief;
     }));
     
     setEditingField(null);
     setEditValue('');
+    
+    // Fetch AI course recommendation if current week field was edited
+    if (updatedBelief && ['problems', 'currentFeelings', 'currentBelief', 'currentActions'].includes(editingField.field)) {
+      await fetchCourseRecommendation(updatedBelief.category, updatedBelief);
+    }
   };
 
   const cancelEdit = () => {
@@ -604,8 +659,15 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
 
                 {/* AI - Course Suggestion */}
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10">
-                  <div className="text-xs" data-testid={`text-course-${belief.category.toLowerCase()}`}>
-                    {belief.courseSuggestion}
+                  <div className="text-xs flex items-center gap-2" data-testid={`text-course-${belief.category.toLowerCase()}`}>
+                    {loadingCourses.has(belief.category) ? (
+                      <>
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        <span>Getting AI recommendation...</span>
+                      </>
+                    ) : (
+                      belief.courseSuggestion
+                    )}
                   </div>
                 </TableCell>
 
@@ -833,8 +895,15 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
 
                 {/* AI - Course Suggestion */}
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10">
-                  <div className="text-xs" data-testid={`text-course-next-${belief.category.toLowerCase()}`}>
-                    {belief.courseSuggestion}
+                  <div className="text-xs flex items-center gap-2" data-testid={`text-course-next-${belief.category.toLowerCase()}`}>
+                    {loadingCourses.has(belief.category) ? (
+                      <>
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        <span>Getting AI recommendation...</span>
+                      </>
+                    ) : (
+                      belief.courseSuggestion
+                    )}
                   </div>
                 </TableCell>
 

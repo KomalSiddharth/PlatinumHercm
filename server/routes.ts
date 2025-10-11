@@ -3,8 +3,9 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, isAdmin } from "./replitAuth";
-import { fetchCourseData, findMatchingCourse, recommendCourses } from "./googleSheets";
+import { fetchCourseData, findMatchingCourse, recommendCourses, fetchEnhancedCourseData } from "./googleSheets";
 import { recommendCoursesRequestSchema } from "@shared/schema";
+import { getAIRecommendations } from "./aiRecommendations";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup Replit Auth middleware
@@ -105,7 +106,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Enhanced course recommendations based on HERCM data
+  // AI-powered course recommendations based on HERCM data
   app.post('/api/courses/recommend', isAuthenticated, async (req: any, res) => {
     try {
       // Validate request
@@ -116,14 +117,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.getUser(userId);
       const sheetUrl = user?.courseSheetUrl || "https://docs.google.com/spreadsheets/d/1pZaS2wnzwgk6VqB7KvchX2bfCmucvrhTf3Q6qAJG7Cw/edit?gid=314426355#gid=314426355";
       
-      // Get recommendations
-      const recommendations = await recommendCourses(sheetUrl, {
+      // Fetch courses from Google Sheets
+      const courses = await fetchEnhancedCourseData(sheetUrl);
+      
+      // Get AI-powered recommendations
+      const recommendations = await getAIRecommendations(courses, {
         category: validatedData.category,
+        rating: validatedData.currentRating,
         problems: validatedData.problems,
         feelings: validatedData.feelings,
         beliefs: validatedData.beliefs,
         actions: validatedData.actions,
-      });
+      }, 3);
       
       res.json(recommendations);
     } catch (error) {
