@@ -283,8 +283,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = recommendCoursesRequestSchema.parse(req.body);
       
       // Get user's sheet URL or use default
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      // Support both email-based auth (session) and OIDC auth
+      const userId = req.session.userEmail || (req.user?.claims?.sub);
+      const user = userId ? await storage.getUser(userId) : null;
       const sheetUrl = user?.courseSheetUrl || "https://docs.google.com/spreadsheets/d/1pZaS2wnzwgk6VqB7KvchX2bfCmucvrhTf3Q6qAJG7Cw/edit?gid=314426355#gid=314426355";
       
       // Fetch courses from Google Sheets
