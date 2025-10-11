@@ -33,7 +33,7 @@ import { Textarea } from '@/components/ui/textarea';
 
 export default function AdminPanel() {
   const [, setLocation] = useLocation();
-  const [activeTab, setActiveTab] = useState<'approved' | 'team' | 'logs'>('approved');
+  const [activeTab, setActiveTab] = useState<'approved' | 'team' | 'logs' | 'analytics'>('approved');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -75,6 +75,11 @@ export default function AdminPanel() {
   const { data: accessLogs = [], isLoading: isLoadingLogs } = useQuery<AccessLog[]>({
     queryKey: ['/api/admin/access-logs'],
     enabled: activeTab === 'logs',
+  });
+
+  const { data: userAnalytics = [], isLoading: isLoadingAnalytics } = useQuery<any[]>({
+    queryKey: ['/api/admin/users-analytics'],
+    enabled: activeTab === 'analytics',
   });
 
   const addEmailMutation = useMutation({
@@ -392,6 +397,17 @@ export default function AdminPanel() {
               >
                 Access Logs
               </button>
+              <button 
+                onClick={() => setActiveTab('analytics')}
+                className={`pb-3 border-b-2 transition-colors ${
+                  activeTab === 'analytics' 
+                    ? 'border-blue-600 text-blue-600 font-medium' 
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                }`}
+                data-testid="tab-analytics"
+              >
+                User Analytics
+              </button>
             </div>
           </div>
 
@@ -676,6 +692,91 @@ export default function AdminPanel() {
               <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   Showing last {accessLogs.length} login attempts
+                </p>
+              </div>
+            </>
+          )}
+
+          {/* User Analytics Tab Content */}
+          {activeTab === 'analytics' && (
+            <>
+              {/* Analytics Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 dark:bg-gray-900/50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">USER</th>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">TOTAL WEEKS</th>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">LATEST SCORE</th>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">ACHIEVEMENT</th>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">TREND</th>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">STATUS</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                    {isLoadingAnalytics ? (
+                      <tr>
+                        <td colSpan={6} className="px-6 py-8 text-center text-gray-500">Loading analytics...</td>
+                      </tr>
+                    ) : userAnalytics.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="px-6 py-8 text-center text-gray-500">No user data available</td>
+                      </tr>
+                    ) : (
+                      userAnalytics.map((user: any) => (
+                        <tr key={user.userId} className="hover:bg-gray-50 dark:hover:bg-gray-900/30" data-testid={`row-analytics-${user.userId}`}>
+                          <td className="px-6 py-4">
+                            <div>
+                              <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                {user.firstName} {user.lastName}
+                              </div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400">{user.email}</div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
+                            {user.totalWeeks} weeks
+                          </td>
+                          <td className="px-6 py-4">
+                            <Badge variant="outline" className="text-lg font-bold">
+                              {user.overallScore}/5
+                            </Badge>
+                          </td>
+                          <td className="px-6 py-4">
+                            <Badge variant={user.achievementRate >= 70 ? 'default' : user.achievementRate >= 50 ? 'secondary' : 'destructive'}>
+                              {user.achievementRate}%
+                            </Badge>
+                          </td>
+                          <td className="px-6 py-4">
+                            {user.trend > 0 ? (
+                              <Badge className="bg-green-500">
+                                📈 +{user.trend}
+                              </Badge>
+                            ) : user.trend < 0 ? (
+                              <Badge variant="destructive">
+                                📉 {user.trend}
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary">
+                                ➡️ 0
+                              </Badge>
+                            )}
+                          </td>
+                          <td className="px-6 py-4">
+                            {user.status === 'excellent' && <Badge className="bg-green-600">✅ Excellent</Badge>}
+                            {user.status === 'good' && <Badge variant="secondary">👍 Good</Badge>}
+                            {user.status === 'needs_support' && <Badge variant="destructive">⚠️ Needs Support</Badge>}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Footer */}
+              <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Showing {userAnalytics.length} users with progress data
                 </p>
               </div>
             </>

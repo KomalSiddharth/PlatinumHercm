@@ -73,6 +73,20 @@ export function HERCMRatingTracker({ weekNumber, year, userId }: HERCMRatingTrac
   const handleSave = async () => {
     setSaving(true);
     try {
+      // Fetch previous week to get targets
+      const previousWeeks: any = await apiRequest('GET', '/api/hercm/weeks');
+      let targetH = null, targetE = null, targetR = null, targetC = null, targetM = null;
+      
+      if (previousWeeks && previousWeeks.length > 0) {
+        const prevWeek = previousWeeks[previousWeeks.length - 1];
+        // Previous week's next week goals become this week's targets
+        targetH = prevWeek.nextWeekH;
+        targetE = prevWeek.nextWeekE;
+        targetR = prevWeek.nextWeekR;
+        targetC = prevWeek.nextWeekC;
+        targetM = prevWeek.nextWeekM;
+      }
+      
       const weekData = {
         userId,
         weekNumber,
@@ -82,6 +96,11 @@ export function HERCMRatingTracker({ weekNumber, year, userId }: HERCMRatingTrac
         currentR,
         currentC,
         currentM,
+        targetH,
+        targetE,
+        targetR,
+        targetC,
+        targetM,
         nextWeekH,
         nextWeekE,
         nextWeekR,
@@ -90,15 +109,19 @@ export function HERCMRatingTracker({ weekNumber, year, userId }: HERCMRatingTrac
         weekStatus: 'active',
       };
       
-      await apiRequest('POST', '/api/hercm/save-with-comparison', weekData);
+      const savedWeek: any = await apiRequest('POST', '/api/hercm/save-with-comparison', weekData);
       
       toast({
         title: "Week Saved!",
         description: "Your weekly progress has been saved successfully.",
       });
       
-      // Load comparison if available
-      // loadComparison();
+      // Load comparison if targets existed
+      if (targetH !== null) {
+        const comparison: any = await apiRequest('GET', `/api/hercm/comparison/${savedWeek.id}`);
+        setComparisonData(comparison);
+        setShowComparison(true);
+      }
     } catch (error) {
       toast({
         title: "Error",
