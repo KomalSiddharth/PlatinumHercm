@@ -49,6 +49,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/hercm/week/:weekNumber', isAuthenticated, async (req: any, res) => {
+    try {
+      // Handle both OIDC auth (req.user.claims.sub) and email-based auth (req.session.userEmail)
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const weekNumber = parseInt(req.params.weekNumber);
+      const week = await storage.getHercmWeek(userId, weekNumber);
+      res.json(week || null);
+    } catch (error) {
+      console.error("Error fetching HERCM week:", error);
+      res.status(500).json({ message: "Failed to fetch week" });
+    }
+  });
+
   app.post('/api/hercm/weeks', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;

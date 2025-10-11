@@ -126,6 +126,12 @@ export async function setupAuth(app: Express) {
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
+  // Check for email-based session authentication first
+  if ((req.session as any).userEmail) {
+    return next();
+  }
+
+  // Fall back to OIDC authentication
   const user = req.user as any;
 
   if (!req.isAuthenticated() || !user.expires_at) {

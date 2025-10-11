@@ -10,6 +10,14 @@ The application combines goal tracking with behavioral psychology principles (La
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+
+**October 11, 2025**
+- **Week Comparison Display**: Moved week-over-week comparison from main page to Dialog modal, triggered by clicking the "Weekly Progress" badge (shows for Week 2+)
+- **History Data Consistency**: Fixed HERCMHistoryModal to show accurate Week 1 demo data matching the main table
+- **Blank Week Generation**: Fixed next week generation logic - Week 1 shows demo data, all subsequent weeks (2, 3, 4+) start with blank templates for user to fill (manually or via AI auto-fill)
+- **Data Display Logic**: Both UnifiedHERCMTable and HERCMHistoryModal now follow consistent pattern: Week 1 = demo/sample data, Week 2+ = blank state
+
 ## System Architecture
 
 ### Frontend Architecture
