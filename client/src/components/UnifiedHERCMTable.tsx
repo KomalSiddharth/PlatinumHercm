@@ -381,11 +381,8 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
     enabled: showComparison,
   });
 
-  // Calculate total available months from all weeks data
-  const maxWeekNumber = Array.isArray(allWeeksData) && allWeeksData.length > 0
-    ? Math.max(...allWeeksData.map((w: any) => w.weekNumber || 0))
-    : weekNumber;
-  const totalMonths = Math.ceil(maxWeekNumber / 4);
+  // Show all 12 months in dropdown
+  const totalMonths = 12;
 
   // Process month data for analytics
   const monthWeeksData = weeksInMonth.map(week => {
@@ -680,12 +677,12 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
               </SelectTrigger>
               <SelectContent>
                 {Array.from({ length: totalMonths }, (_, i) => i + 1).map((month) => {
-                  const monthNames = ['October', 'November', 'December', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September'];
+                  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
                   const startWeek = (month - 1) * 4 + 1;
                   const endWeek = month * 4;
                   return (
                     <SelectItem key={month} value={month.toString()}>
-                      {monthNames[(month - 1) % 12]} - Week {startWeek}-{endWeek}
+                      {monthNames[month - 1]} - Week {startWeek}-{endWeek}
                     </SelectItem>
                   );
                 })}
