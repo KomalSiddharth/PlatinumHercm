@@ -324,21 +324,24 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
 
   // Fetch AI course recommendations
   const fetchCourseRecommendation = async (category: string, belief: HERCMBelief) => {
-    // Only fetch if all required fields are filled
-    if (!belief.problems || !belief.currentFeelings || !belief.currentBelief || !belief.currentActions) {
-      return;
-    }
-
+    console.log('[DEBUG] fetchCourseRecommendation called for:', category);
+    console.log('[DEBUG] Belief data:', JSON.stringify({
+      problems: belief.problems,
+      feelings: belief.currentFeelings,
+      beliefs: belief.currentBelief,
+      actions: belief.currentActions
+    }, null, 2));
+    
     setLoadingCourses(prev => new Set(prev).add(category));
 
     try {
       const response = await apiRequest('POST', '/api/courses/recommend', {
         category: category,
         currentRating: belief.currentRating,
-        problems: belief.problems,
-        feelings: belief.currentFeelings,
-        beliefs: belief.currentBelief,
-        actions: belief.currentActions,
+        problems: belief.problems || '',
+        feelings: belief.currentFeelings || '',
+        beliefs: belief.currentBelief || '',
+        actions: belief.currentActions || '',
       });
 
       const recommendations = await response.json();
@@ -405,12 +408,17 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
   const saveEdit = async () => {
     if (!editingField) return;
     
+    // Save the editing info before clearing it
+    const { category, field } = editingField;
     let updatedBelief: HERCMBelief | undefined = undefined;
     
+    console.log('[DEBUG] saveEdit called', { category, field, editValue });
+    
     setBeliefs(prev => prev.map(belief => {
-      if (belief.category === editingField.category) {
-        const updated = { ...belief, [editingField.field]: editValue } as HERCMBelief;
+      if (belief.category === category) {
+        const updated = { ...belief, [field]: editValue } as HERCMBelief;
         updatedBelief = updated;
+        console.log('[DEBUG] Updated belief:', JSON.stringify(updated, null, 2));
         return updated;
       }
       return belief;
@@ -420,8 +428,12 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
     setEditValue('');
     
     // Fetch AI course recommendation if current week field was edited
-    if (updatedBelief && ['problems', 'currentFeelings', 'currentBelief', 'currentActions'].includes(editingField.field)) {
-      await fetchCourseRecommendation(updatedBelief.category, updatedBelief);
+    const shouldFetch = ['problems', 'currentFeelings', 'currentBelief', 'currentActions'].includes(field);
+    console.log('[DEBUG] Should fetch?', { updatedBelief: !!updatedBelief, shouldFetch, field });
+    
+    if (updatedBelief && shouldFetch) {
+      console.log('[DEBUG] Calling fetchCourseRecommendation');
+      await fetchCourseRecommendation(category, updatedBelief);
     }
   };
 
