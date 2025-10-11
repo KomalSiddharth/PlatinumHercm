@@ -38,7 +38,6 @@ export default function AdminPanel() {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showBulkDialog, setShowBulkDialog] = useState(false);
   const [newEmail, setNewEmail] = useState('');
-  const [newZoomLink, setNewZoomLink] = useState('');
   const [bulkEmails, setBulkEmails] = useState('');
   const { toast } = useToast();
 
@@ -56,7 +55,7 @@ export default function AdminPanel() {
   });
 
   const addEmailMutation = useMutation({
-    mutationFn: async (data: { email: string; zoomLink?: string }) => {
+    mutationFn: async (data: { email: string }) => {
       return apiRequest('POST', '/api/admin/approved-emails', data);
     },
     onSuccess: () => {
@@ -65,7 +64,6 @@ export default function AdminPanel() {
       toast({ title: "Email Added", description: "Email has been approved successfully" });
       setShowAddDialog(false);
       setNewEmail('');
-      setNewZoomLink('');
     },
     onError: (error: any) => {
       toast({ 
@@ -124,7 +122,7 @@ export default function AdminPanel() {
       toast({ title: "Error", description: "Please enter an email", variant: "destructive" });
       return;
     }
-    addEmailMutation.mutate({ email: newEmail.trim(), zoomLink: newZoomLink.trim() || undefined });
+    addEmailMutation.mutate({ email: newEmail.trim() });
   };
 
   const handleBulkUpload = () => {
@@ -281,9 +279,6 @@ export default function AdminPanel() {
               <button className="pb-3 text-gray-500 dark:text-gray-400" data-testid="tab-team">
                 Team Management
               </button>
-              <button className="pb-3 text-gray-500 dark:text-gray-400" data-testid="tab-zoom">
-                Zoom Configuration
-              </button>
               <button className="pb-3 text-gray-500 dark:text-gray-400" data-testid="tab-logs">
                 Access Logs
               </button>
@@ -342,18 +337,17 @@ export default function AdminPanel() {
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">USER</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">STATUS</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">ACCESS COUNT</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">ZOOM LINK</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">ACTIONS</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">Loading...</td>
+                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500">Loading...</td>
                   </tr>
                 ) : filteredEmails.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">No approved emails found</td>
+                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500">No approved emails found</td>
                   </tr>
                 ) : (
                   filteredEmails.map((email: ApprovedEmail) => (
@@ -396,22 +390,6 @@ export default function AdminPanel() {
                         <span className="text-sm text-gray-900 dark:text-white" data-testid={`text-access-${email.id}`}>
                           {email.accessCount}
                         </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        {email.zoomLink ? (
-                          <a 
-                            href={email.zoomLink} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline text-sm flex items-center gap-1"
-                            data-testid={`link-zoom-${email.id}`}
-                          >
-                            View Link
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
-                        ) : (
-                          <span className="text-sm text-gray-400">undefined</span>
-                        )}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
@@ -465,16 +443,6 @@ export default function AdminPanel() {
                 value={newEmail}
                 onChange={(e) => setNewEmail(e.target.value)}
                 data-testid="input-new-email"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-2 block">Zoom Link (Optional)</label>
-              <Input
-                type="url"
-                placeholder="https://zoom.us/j/..."
-                value={newZoomLink}
-                onChange={(e) => setNewZoomLink(e.target.value)}
-                data-testid="input-zoom-link"
               />
             </div>
           </div>

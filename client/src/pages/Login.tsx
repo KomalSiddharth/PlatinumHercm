@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Mail } from 'lucide-react';
 import mkLogo from '@assets/Screenshot 2025-10-09 165931_1760165935397.png';
 
 export default function Login() {
@@ -47,33 +47,44 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
-      <div className="w-full max-w-md p-8">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 space-y-6">
+    <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-950">
+      <div className="w-full max-w-md px-6">
+        <div className="space-y-8">
           {/* Logo */}
           <div className="flex justify-center">
             <img 
               src={mkLogo} 
               alt="MK Logo" 
-              className="w-40 h-40 object-contain"
+              className="w-32 h-32 object-contain"
               data-testid="img-mk-logo"
             />
           </div>
 
           {/* Title */}
-          <h1 className="text-2xl font-bold text-center text-gray-900 dark:text-white">
-            Login Now For Session Dashboard
-          </h1>
+          <div className="text-center space-y-3">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white leading-tight">
+              Login now for Platinum<br />
+              Weekly Call at 10th Oct, 7:00<br />
+              PM IST
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 text-sm">
+              Use your registered Email ID to enter Zoom Meeting
+            </p>
+          </div>
 
           {/* Login Form */}
           <form onSubmit={handleLogin} className="space-y-6">
-            <div>
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                <Mail className="w-4 h-4" />
+                Email Address
+              </label>
               <Input
                 type="email"
-                placeholder="Email"
+                placeholder="Enter your registered email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="h-12 text-base border-2 border-blue-200 focus:border-blue-400 dark:border-blue-800 dark:focus:border-blue-600"
+                className="h-12 text-base rounded-lg border-gray-300 dark:border-gray-700"
                 disabled={loading}
                 data-testid="input-email"
               />
@@ -82,29 +93,25 @@ export default function Login() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full h-14 text-lg font-bold bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-full shadow-lg"
+              className="w-full h-12 text-base font-semibold bg-red-600 hover:bg-red-700 text-white rounded-full shadow-md"
               data-testid="button-login"
             >
               {loading ? (
                 <>
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Logging in...
+                  Verifying...
                 </>
               ) : (
-                'LOGIN'
+                'Verify Access'
               )}
             </Button>
           </form>
 
-          {/* Admin Link */}
-          <div className="text-center pt-4">
-            <button
-              onClick={() => setLocation('/admin/login')}
-              className="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 underline"
-              data-testid="link-admin"
-            >
-              Admin Login
-            </button>
+          {/* Footer */}
+          <div className="text-center pt-6">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              © 2025 Copyright Mitesh Khatri Training™ LLP. All Rights Reserved
+            </p>
           </div>
         </div>
       </div>

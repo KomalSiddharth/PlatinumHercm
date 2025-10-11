@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { Loader2, Shield } from 'lucide-react';
+import { Loader2, Shield, ArrowLeft, Lock } from 'lucide-react';
+import mkLogo from '@assets/Screenshot 2025-10-09 165931_1760165935397.png';
 
 export default function AdminLogin() {
   const [, setLocation] = useLocation();
@@ -46,35 +47,42 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-gray-900">
-      <div className="w-full max-w-md p-8">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 space-y-6">
-          {/* Admin Icon */}
+    <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-950">
+      <div className="w-full max-w-md px-6">
+        <div className="space-y-8">
+          {/* Logo */}
           <div className="flex justify-center">
-            <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-              <Shield className="w-12 h-12 text-white" data-testid="icon-admin" />
-            </div>
+            <img 
+              src={mkLogo} 
+              alt="MK Logo" 
+              className="w-32 h-32 object-contain"
+              data-testid="img-mk-logo"
+            />
           </div>
 
           {/* Title */}
           <div className="text-center space-y-2">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Admin Panel
+              Admin Access Portal
             </h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              IMK Email Verification System
+            <p className="text-gray-600 dark:text-gray-400 text-sm">
+              Secure login for administrative team members
             </p>
           </div>
 
           {/* Login Form */}
           <form onSubmit={handleLogin} className="space-y-6">
-            <div>
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                <Shield className="w-4 h-4" />
+                Admin Email Address
+              </label>
               <Input
                 type="email"
-                placeholder="Admin Email"
+                placeholder="Enter your admin email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="h-12 text-base border-2 border-blue-200 focus:border-blue-400 dark:border-blue-800 dark:focus:border-blue-600"
+                className="h-12 text-base rounded-lg border-gray-300 dark:border-gray-700"
                 disabled={loading}
                 data-testid="input-admin-email"
               />
@@ -83,29 +91,45 @@ export default function AdminLogin() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full h-14 text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full shadow-lg"
+              className="w-full h-12 text-base font-semibold bg-red-600 hover:bg-red-700 text-white rounded-full shadow-md"
               data-testid="button-admin-login"
             >
               {loading ? (
                 <>
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Logging in...
+                  Accessing...
                 </>
               ) : (
-                'ADMIN LOGIN'
+                'Access Admin Panel'
               )}
             </Button>
           </form>
 
-          {/* Back to User Login */}
-          <div className="text-center pt-4">
+          {/* Back to Main Dashboard */}
+          <div className="text-center">
             <button
               onClick={() => setLocation('/')}
-              className="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 underline"
+              className="inline-flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
               data-testid="link-user-login"
             >
-              Back to User Login
+              <ArrowLeft className="w-4 h-4" />
+              Back to Main Dashboard
             </button>
+          </div>
+
+          {/* Security Notice */}
+          <div className="flex items-center justify-center gap-2 pt-4">
+            <Lock className="w-4 h-4 text-gray-500" />
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Secure Admin Access System
+            </p>
+          </div>
+
+          {/* Footer */}
+          <div className="text-center pt-2">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              © 2025 Copyright Mitesh Khatri Training™ LLP. All Rights Reserved
+            </p>
           </div>
         </div>
       </div>
