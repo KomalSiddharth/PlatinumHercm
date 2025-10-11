@@ -21,7 +21,7 @@ import {
   Edit,
   ExternalLink
 } from 'lucide-react';
-import type { ApprovedEmail } from '@shared/schema';
+import type { ApprovedEmail, AdminUser, AccessLog } from '@shared/schema';
 import {
   Dialog,
   DialogContent,
@@ -41,6 +41,13 @@ export default function AdminPanel() {
   const [newEmail, setNewEmail] = useState('');
   const [newName, setNewName] = useState('');
   const [bulkEmails, setBulkEmails] = useState('');
+  
+  // Team Management states
+  const [showAddAdminDialog, setShowAddAdminDialog] = useState(false);
+  const [newAdminName, setNewAdminName] = useState('');
+  const [newAdminEmail, setNewAdminEmail] = useState('');
+  const [editingAdmin, setEditingAdmin] = useState<AdminUser | null>(null);
+  
   const { toast } = useToast();
 
   const { data: approvedEmails = [], isLoading } = useQuery<ApprovedEmail[]>({
@@ -58,6 +65,16 @@ export default function AdminPanel() {
 
   const { data: adminInfo } = useQuery<{ email: string; firstName?: string; lastName?: string }>({
     queryKey: ['/api/auth/me'],
+  });
+
+  const { data: adminUsers = [], isLoading: isLoadingAdmins } = useQuery<AdminUser[]>({
+    queryKey: ['/api/admin/team'],
+    enabled: activeTab === 'team',
+  });
+
+  const { data: accessLogs = [], isLoading: isLoadingLogs } = useQuery<AccessLog[]>({
+    queryKey: ['/api/admin/access-logs'],
+    enabled: activeTab === 'logs',
   });
 
   const addEmailMutation = useMutation({
@@ -124,6 +141,55 @@ export default function AdminPanel() {
     }
   });
 
+  // Team Management mutations
+  const addAdminMutation = useMutation({
+    mutationFn: async (data: { name: string; email: string }) => {
+      return apiRequest('POST', '/api/admin/team', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/team'] });
+      toast({ title: "Admin Added", description: "Admin user has been added successfully" });
+      setShowAddAdminDialog(false);
+      setNewAdminName('');
+      setNewAdminEmail('');
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Error", 
+        description: error.message || "Failed to add admin",
+        variant: "destructive" 
+      });
+    }
+  });
+
+  const updateAdminMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: { name: string; email: string; status?: string } }) => {
+      return apiRequest('PUT', `/api/admin/team/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/team'] });
+      toast({ title: "Admin Updated", description: "Admin user has been updated successfully" });
+      setEditingAdmin(null);
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Error", 
+        description: error.message || "Failed to update admin",
+        variant: "destructive" 
+      });
+    }
+  });
+
+  const deleteAdminMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return apiRequest('DELETE', `/api/admin/team/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/team'] });
+      toast({ title: "Admin Deleted", description: "Admin user has been removed" });
+    }
+  });
+
   const handleAddEmail = () => {
     if (!newEmail.trim()) {
       toast({ title: "Error", description: "Please enter an email", variant: "destructive" });
@@ -158,6 +224,18 @@ export default function AdminPanel() {
     } else {
       setSelectedEmails(filteredEmails.map((e: ApprovedEmail) => e.id));
     }
+  };
+
+  // Team Management handlers
+  const handleAddAdmin = () => {
+    if (!newAdminName.trim() || !newAdminEmail.trim()) {
+      toast({ title: "Error", description: "Please enter both name and email", variant: "destructive" });
+      return;
+    }
+    addAdminMutation.mutate({ 
+      name: newAdminName.trim(), 
+      email: newAdminEmail.trim() 
+    });
   };
 
   return (
@@ -317,42 +395,45 @@ export default function AdminPanel() {
             </div>
           </div>
 
-          {/* Search and Actions */}
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <Input
-                  placeholder="Search by email or name..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                  data-testid="input-search"
-                />
+          {/* Approved Emails Tab Content */}
+          {activeTab === 'approved' && (
+            <>
+              {/* Search and Actions */}
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-4">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input
+                      placeholder="Search by email or name..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10"
+                      data-testid="input-search"
+                    />
+                  </div>
+                  <Button variant="outline" data-testid="button-export">
+                    <Download className="w-4 h-4 mr-2" />
+                    Export
+                  </Button>
+                  <Button 
+                    variant="destructive" 
+                    onClick={() => deleteAllMutation.mutate()}
+                    disabled={deleteAllMutation.isPending}
+                    data-testid="button-delete-all"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete All
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/admin/approved-emails'] })}
+                    data-testid="button-refresh"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Refresh
+                  </Button>
+                </div>
               </div>
-              <Button variant="outline" data-testid="button-export">
-                <Download className="w-4 h-4 mr-2" />
-                Export
-              </Button>
-              <Button 
-                variant="destructive" 
-                onClick={() => deleteAllMutation.mutate()}
-                disabled={deleteAllMutation.isPending}
-                data-testid="button-delete-all"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete All
-              </Button>
-              <Button 
-                variant="outline"
-                onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/admin/approved-emails'] })}
-                data-testid="button-refresh"
-              >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Refresh
-              </Button>
-            </div>
-          </div>
 
           {/* Table */}
           <div className="overflow-x-auto">
@@ -450,12 +531,155 @@ export default function AdminPanel() {
             </table>
           </div>
 
-          {/* Footer */}
-          <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Total: {filteredEmails.length} emails
-            </p>
-          </div>
+              {/* Footer */}
+              <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Total: {filteredEmails.length} emails
+                </p>
+              </div>
+            </>
+          )}
+
+          {/* Team Management Tab Content */}
+          {activeTab === 'team' && (
+            <>
+              {/* Actions Bar */}
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Admin Users</h3>
+                  <Button 
+                    onClick={() => setShowAddAdminDialog(true)}
+                    className="bg-blue-600 hover:bg-blue-700"
+                    data-testid="button-add-admin"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Admin
+                  </Button>
+                </div>
+              </div>
+
+              {/* Admin Users Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 dark:bg-gray-900/50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">NAME</th>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">EMAIL</th>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">ROLE</th>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">STATUS</th>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">ACTIONS</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                    {isLoadingAdmins ? (
+                      <tr>
+                        <td colSpan={5} className="px-6 py-8 text-center text-gray-500">Loading...</td>
+                      </tr>
+                    ) : adminUsers.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="px-6 py-8 text-center text-gray-500">No admin users found</td>
+                      </tr>
+                    ) : (
+                      adminUsers.map((admin: AdminUser) => (
+                        <tr key={admin.id} className="hover:bg-gray-50 dark:hover:bg-gray-900/30" data-testid={`row-admin-${admin.id}`}>
+                          <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">{admin.name}</td>
+                          <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{admin.email}</td>
+                          <td className="px-6 py-4">
+                            <Badge variant="outline" className="capitalize">{admin.role}</Badge>
+                          </td>
+                          <td className="px-6 py-4">
+                            <Badge variant={admin.status === 'active' ? 'default' : 'secondary'}>
+                              {admin.status}
+                            </Badge>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2">
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={() => setEditingAdmin(admin)}
+                                data-testid={`button-edit-admin-${admin.id}`}
+                              >
+                                <Edit className="w-4 h-4 text-blue-600" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={() => deleteAdminMutation.mutate(admin.id)}
+                                disabled={deleteAdminMutation.isPending}
+                                data-testid={`button-delete-admin-${admin.id}`}
+                              >
+                                <Trash2 className="w-4 h-4 text-red-600" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Footer */}
+              <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Total: {adminUsers.length} admin users
+                </p>
+              </div>
+            </>
+          )}
+
+          {/* Access Logs Tab Content */}
+          {activeTab === 'logs' && (
+            <>
+              {/* Access Logs Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 dark:bg-gray-900/50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">EMAIL</th>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">STATUS</th>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">IP ADDRESS</th>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">TIME</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                    {isLoadingLogs ? (
+                      <tr>
+                        <td colSpan={4} className="px-6 py-8 text-center text-gray-500">Loading...</td>
+                      </tr>
+                    ) : accessLogs.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="px-6 py-8 text-center text-gray-500">No access logs found</td>
+                      </tr>
+                    ) : (
+                      accessLogs.map((log: AccessLog) => (
+                        <tr key={log.id} className="hover:bg-gray-50 dark:hover:bg-gray-900/30" data-testid={`row-log-${log.id}`}>
+                          <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">{log.email}</td>
+                          <td className="px-6 py-4">
+                            <Badge variant={log.status === 'success' ? 'default' : 'destructive'} className="capitalize">
+                              {log.status}
+                            </Badge>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{log.ipAddress || 'N/A'}</td>
+                          <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
+                            {log.createdAt ? new Date(log.createdAt).toLocaleString() : 'N/A'}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Footer */}
+              <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Showing last {accessLogs.length} login attempts
+                </p>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -529,6 +753,101 @@ export default function AdminPanel() {
               data-testid="button-confirm-bulk"
             >
               {bulkUploadMutation.isPending ? 'Uploading...' : 'Upload Emails'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Admin Dialog */}
+      <Dialog open={showAddAdminDialog} onOpenChange={setShowAddAdminDialog}>
+        <DialogContent data-testid="dialog-add-admin">
+          <DialogHeader>
+            <DialogTitle>Add Admin User</DialogTitle>
+            <DialogDescription>Add a new admin user to the system</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Name</label>
+              <Input
+                type="text"
+                placeholder="Full Name"
+                value={newAdminName}
+                onChange={(e) => setNewAdminName(e.target.value)}
+                data-testid="input-admin-name"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Email Address</label>
+              <Input
+                type="email"
+                placeholder="admin@example.com"
+                value={newAdminEmail}
+                onChange={(e) => setNewAdminEmail(e.target.value)}
+                data-testid="input-admin-email"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setShowAddAdminDialog(false)} data-testid="button-cancel-add-admin">
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleAddAdmin} 
+              disabled={addAdminMutation.isPending}
+              data-testid="button-confirm-add-admin"
+            >
+              {addAdminMutation.isPending ? 'Adding...' : 'Add Admin'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Admin Dialog */}
+      <Dialog open={!!editingAdmin} onOpenChange={() => setEditingAdmin(null)}>
+        <DialogContent data-testid="dialog-edit-admin">
+          <DialogHeader>
+            <DialogTitle>Edit Admin User</DialogTitle>
+            <DialogDescription>Update admin user information</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Name</label>
+              <Input
+                type="text"
+                placeholder="Full Name"
+                value={editingAdmin?.name || ''}
+                onChange={(e) => setEditingAdmin(editingAdmin ? { ...editingAdmin, name: e.target.value } : null)}
+                data-testid="input-edit-admin-name"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Email Address</label>
+              <Input
+                type="email"
+                placeholder="admin@example.com"
+                value={editingAdmin?.email || ''}
+                onChange={(e) => setEditingAdmin(editingAdmin ? { ...editingAdmin, email: e.target.value } : null)}
+                data-testid="input-edit-admin-email"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setEditingAdmin(null)} data-testid="button-cancel-edit-admin">
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                if (editingAdmin) {
+                  updateAdminMutation.mutate({
+                    id: editingAdmin.id,
+                    data: { name: editingAdmin.name, email: editingAdmin.email }
+                  });
+                }
+              }}
+              disabled={updateAdminMutation.isPending}
+              data-testid="button-confirm-edit-admin"
+            >
+              {updateAdminMutation.isPending ? 'Updating...' : 'Update Admin'}
             </Button>
           </div>
         </DialogContent>
