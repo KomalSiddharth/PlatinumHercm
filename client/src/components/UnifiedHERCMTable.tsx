@@ -14,6 +14,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { apiRequest } from '@/lib/queryClient';
+import { useQuery } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
+import WeekComparison from './WeekComparison';
 
 interface ChecklistItem {
   id: string;
@@ -47,9 +50,99 @@ interface UnifiedHERCMTableProps {
   onViewHistory: () => void;
 }
 
-// Week-specific belief data generator
+// Generate blank beliefs for a new week
+const getBlankBeliefs = (): HERCMBelief[] => {
+  return [
+    {
+      category: 'Health',
+      currentRating: 1,
+      problems: '',
+      currentFeelings: '',
+      currentBelief: '',
+      currentActions: '',
+      targetRating: 2,
+      result: '',
+      nextFeelings: '',
+      nextWeekTarget: '',
+      nextActions: '',
+      checklist: [
+        { id: 'h1', text: 'Task 1', checked: false },
+        { id: 'h2', text: 'Task 2', checked: false },
+        { id: 'h3', text: 'Task 3', checked: false }
+      ],
+      courseSuggestion: '',
+      affirmationSuggestion: ''
+    },
+    {
+      category: 'Relationship',
+      currentRating: 1,
+      problems: '',
+      currentFeelings: '',
+      currentBelief: '',
+      currentActions: '',
+      targetRating: 2,
+      result: '',
+      nextFeelings: '',
+      nextWeekTarget: '',
+      nextActions: '',
+      checklist: [
+        { id: 'e1', text: 'Task 1', checked: false },
+        { id: 'e2', text: 'Task 2', checked: false },
+        { id: 'e3', text: 'Task 3', checked: false }
+      ],
+      courseSuggestion: '',
+      affirmationSuggestion: ''
+    },
+    {
+      category: 'Career',
+      currentRating: 1,
+      problems: '',
+      currentFeelings: '',
+      currentBelief: '',
+      currentActions: '',
+      targetRating: 2,
+      result: '',
+      nextFeelings: '',
+      nextWeekTarget: '',
+      nextActions: '',
+      checklist: [
+        { id: 'r1', text: 'Task 1', checked: false },
+        { id: 'r2', text: 'Task 2', checked: false },
+        { id: 'r3', text: 'Task 3', checked: false }
+      ],
+      courseSuggestion: '',
+      affirmationSuggestion: ''
+    },
+    {
+      category: 'Money',
+      currentRating: 1,
+      problems: '',
+      currentFeelings: '',
+      currentBelief: '',
+      currentActions: '',
+      targetRating: 2,
+      result: '',
+      nextFeelings: '',
+      nextWeekTarget: '',
+      nextActions: '',
+      checklist: [
+        { id: 'c1', text: 'Task 1', checked: false },
+        { id: 'c2', text: 'Task 2', checked: false },
+        { id: 'c3', text: 'Task 3', checked: false }
+      ],
+      courseSuggestion: '',
+      affirmationSuggestion: ''
+    }
+  ];
+};
+
+// Week-specific belief data generator  
 const getWeekBeliefs = (week: number): HERCMBelief[] => {
+  // TODO: In production, fetch from database and check if data exists
+  // For now, show demo data for week 1, blank for others to demonstrate concept
+  
   if (week === 1) {
+    // Demo week with sample data to show the system works
     return [
       {
         category: 'Health',
@@ -215,7 +308,7 @@ const getWeekBeliefs = (week: number): HERCMBelief[] => {
         affirmationSuggestion: "I attract abundance"
       }
     ];
-  } else {
+  } else if (week === 3) {
     return [
       {
         category: 'Health',
@@ -299,6 +392,9 @@ const getWeekBeliefs = (week: number): HERCMBelief[] => {
       }
     ];
   }
+  
+  // For all other weeks, return blank template (user fills data)
+  return getBlankBeliefs();
 };
 
 const calculateProgress = (checklist: ChecklistItem[]): number => {
@@ -318,10 +414,27 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
   const [editingField, setEditingField] = useState<{ category: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState('');
   const [loadingCourses, setLoadingCourses] = useState<Set<string>>(new Set());
+  const [autoFilling, setAutoFilling] = useState(false);
+  const { toast } = useToast();
+
+  // Fetch week data from database
+  const { data: weekData, isLoading } = useQuery({
+    queryKey: ['/api/hercm/week', weekNumber],
+    enabled: weekNumber > 0,
+  });
 
   useEffect(() => {
-    setBeliefs(getWeekBeliefs(weekNumber));
-  }, [weekNumber]);
+    // If we have saved data from database, use it
+    // Otherwise, start with blank template for user to fill
+    if (weekData) {
+      // TODO: Transform database format to component format
+      // For now, use blank beliefs as placeholder
+      setBeliefs(getBlankBeliefs());
+    } else {
+      // New week - start with blank template
+      setBeliefs(getBlankBeliefs());
+    }
+  }, [weekNumber, weekData]);
 
   // Fetch AI course recommendations
   const fetchCourseRecommendation = async (category: string, belief: HERCMBelief) => {
@@ -432,6 +545,90 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
     return editingField?.category === category && editingField?.field === field;
   };
 
+  // Auto-fill next week goals using AI
+  const handleAutoFillNextWeek = async () => {
+    setAutoFilling(true);
+    try {
+      // Call API for each category
+      const updatedBeliefs = await Promise.all(
+        beliefs.map(async (belief) => {
+          try {
+            const response = await apiRequest('POST', '/api/hercm/auto-fill-next-week', {
+              category: belief.category,
+              currentRating: belief.currentRating,
+              problems: belief.problems,
+              currentFeelings: belief.currentFeelings,
+              currentBelief: belief.currentBelief,
+              currentActions: belief.currentActions,
+            });
+
+            const aiSuggestion = await response.json();
+            
+            return {
+              ...belief,
+              targetRating: aiSuggestion.targetRating,
+              result: aiSuggestion.expectedResult,
+              nextFeelings: aiSuggestion.targetFeelings,
+              nextWeekTarget: aiSuggestion.nextWeekTarget,
+              nextActions: aiSuggestion.nextActions,
+              affirmationSuggestion: aiSuggestion.affirmation,
+            };
+          } catch (error) {
+            console.error(`Failed to auto-fill for ${belief.category}:`, error);
+            return belief; // Return unchanged if API fails
+          }
+        })
+      );
+      
+      setBeliefs(updatedBeliefs);
+    } catch (error) {
+      console.error('Auto-fill error:', error);
+    } finally {
+      setAutoFilling(false);
+    }
+  };
+
+  // Calculate comparison data (previous week's target vs current week's actual)
+  const calculateComparison = () => {
+    if (weekNumber <= 1) return [];
+    
+    const previousWeek = getWeekBeliefs(weekNumber - 1);
+    
+    return beliefs.map((current, index) => {
+      const previous = previousWeek[index];
+      
+      // Simple text similarity calculation (can be enhanced)
+      const similarity = calculateTextSimilarity(
+        previous.nextWeekTarget || '',
+        current.currentBelief || ''
+      );
+      
+      return {
+        category: current.category,
+        previousTarget: previous.nextWeekTarget || 'No target set',
+        currentActual: current.currentBelief || 'Not filled yet',
+        matchPercentage: similarity,
+      };
+    });
+  };
+
+  // Simple text similarity function (basic implementation)
+  const calculateTextSimilarity = (text1: string, text2: string): number => {
+    if (!text1 || !text2) return 0;
+    
+    const words1 = text1.toLowerCase().split(' ');
+    const words2 = text2.toLowerCase().split(' ');
+    
+    const matchingWords = words1.filter(word => 
+      words2.some(w => w.includes(word) || word.includes(w))
+    ).length;
+    
+    const maxLength = Math.max(words1.length, words2.length);
+    return Math.round((matchingWords / maxLength) * 100);
+  };
+
+  const comparisonData = calculateComparison();
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -457,6 +654,24 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
             View History
           </Button>
           <Button 
+            onClick={handleAutoFillNextWeek}
+            disabled={autoFilling}
+            className="bg-gradient-to-r from-cyan-500 to-blue-500"
+            data-testid="button-auto-fill"
+          >
+            {autoFilling ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                AI Filling...
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4 mr-2" />
+                AI Auto-Fill Next Week
+              </>
+            )}
+          </Button>
+          <Button 
             onClick={onGenerateNextWeek}
             className="bg-gradient-to-r from-primary to-accent"
             data-testid="button-generate-next-week"
@@ -466,6 +681,11 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
           </Button>
         </div>
       </div>
+
+      {/* Week-over-Week Comparison (only show for week 2+) */}
+      {weekNumber > 1 && comparisonData.length > 0 && (
+        <WeekComparison comparisons={comparisonData} />
+      )}
 
       {/* Current Week Table */}
       <div className="border-2 border-rose-300 dark:border-rose-700 rounded-lg overflow-x-auto shadow-lg">
@@ -526,6 +746,7 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
                         value={editValue}
                         onChange={(e) => setEditValue(e.target.value)}
                         className="min-h-[60px] text-xs"
+                        placeholder="Enter your current problems..."
                         data-testid={`textarea-problems-${belief.category.toLowerCase()}`}
                       />
                       <div className="flex gap-1">
@@ -539,7 +760,9 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
                     </div>
                   ) : (
                     <div className="group relative">
-                      <div className="text-xs" data-testid={`text-problems-${belief.category.toLowerCase()}`}>{belief.problems}</div>
+                      <div className="text-xs" data-testid={`text-problems-${belief.category.toLowerCase()}`}>
+                        {belief.problems || <span className="text-muted-foreground italic">Click to add problems...</span>}
+                      </div>
                       <Button
                         size="sm"
                         variant="ghost"
@@ -574,7 +797,9 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
                     </div>
                   ) : (
                     <div className="group relative">
-                      <div className="text-xs" data-testid={`text-feelings-${belief.category.toLowerCase()}`}>{belief.currentFeelings}</div>
+                      <div className="text-xs" data-testid={`text-feelings-${belief.category.toLowerCase()}`}>
+                        {belief.currentFeelings || <span className="text-muted-foreground italic">Click to add feelings...</span>}
+                      </div>
                       <Button
                         size="sm"
                         variant="ghost"
@@ -608,7 +833,9 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
                     </div>
                   ) : (
                     <div className="group relative">
-                      <div className="text-xs" data-testid={`text-beliefs-${belief.category.toLowerCase()}`}>{belief.currentBelief}</div>
+                      <div className="text-xs" data-testid={`text-beliefs-${belief.category.toLowerCase()}`}>
+                        {belief.currentBelief || <span className="text-muted-foreground italic">Click to add beliefs...</span>}
+                      </div>
                       <Button
                         size="sm"
                         variant="ghost"
@@ -642,7 +869,9 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
                     </div>
                   ) : (
                     <div className="group relative">
-                      <div className="text-xs" data-testid={`text-actions-${belief.category.toLowerCase()}`}>{belief.currentActions}</div>
+                      <div className="text-xs" data-testid={`text-actions-${belief.category.toLowerCase()}`}>
+                        {belief.currentActions || <span className="text-muted-foreground italic">Click to add actions...</span>}
+                      </div>
                       <Button
                         size="sm"
                         variant="ghost"
@@ -711,23 +940,33 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
           <TableHeader>
             <TableRow className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30">
               <TableHead className="font-bold border-r">HERCM Area</TableHead>
-              <TableHead className="w-[80px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Target</TableHead>
-              <TableHead className="w-[180px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Expected Result</TableHead>
-              <TableHead className="w-[150px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Target Feelings</TableHead>
-              <TableHead className="w-[180px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Next Week Target</TableHead>
-              <TableHead className="w-[180px] bg-blue-100 dark:bg-blue-900/40 font-semibold border-r">Next Actions</TableHead>
-              <TableHead className="w-[200px] bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-900/40 dark:to-yellow-900/40 font-semibold">Affirmation</TableHead>
+              <TableHead className="w-[80px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Rating</TableHead>
+              <TableHead className="w-[180px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Problems</TableHead>
+              <TableHead className="w-[150px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Feelings</TableHead>
+              <TableHead className="w-[180px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Beliefs/Reasons</TableHead>
+              <TableHead className="w-[180px] bg-blue-100 dark:bg-blue-900/40 font-semibold border-r">Actions</TableHead>
+              
+              <TableHead className="w-[180px] bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/40 dark:to-blue-900/40 font-semibold">
+                <div className="flex items-center gap-1">
+                  <Sparkles className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+                  AI Course
+                </div>
+              </TableHead>
+              <TableHead className="w-[200px] bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900/40 dark:to-violet-900/40 font-semibold">Checklist (3)</TableHead>
+              <TableHead className="w-[100px] bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 font-semibold text-center">Progress</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {beliefs.map((belief) => (
               <TableRow key={belief.category} className="border-b" data-testid={`row-next-${belief.category.toLowerCase()}`}>
+                {/* Category Column */}
                 <TableCell className="font-semibold border-r bg-muted/20">
                   <Badge variant="outline" className="font-semibold">
                     {belief.category}
                   </Badge>
                 </TableCell>
 
+                {/* Next Week - Rating */}
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10">
                   <Input
                     type="number"
@@ -745,6 +984,7 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
                   />
                 </TableCell>
 
+                {/* Next Week - Problems */}
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10">
                   {isEditing(belief.category, 'result') ? (
                     <div className="space-y-1">
@@ -752,24 +992,26 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
                         value={editValue}
                         onChange={(e) => setEditValue(e.target.value)}
                         className="min-h-[60px] text-xs"
+                        data-testid={`textarea-next-problems-${belief.category.toLowerCase()}`}
                       />
                       <div className="flex gap-1">
-                        <Button size="sm" variant="ghost" onClick={saveEdit} className="h-6 px-2">
+                        <Button size="sm" variant="ghost" onClick={saveEdit} className="h-6 px-2" data-testid={`button-save-next-problems-${belief.category.toLowerCase()}`}>
                           <Save className="w-3 h-3" />
                         </Button>
-                        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-6 px-2">
+                        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-6 px-2" data-testid={`button-cancel-next-problems-${belief.category.toLowerCase()}`}>
                           <X className="w-3 h-3" />
                         </Button>
                       </div>
                     </div>
                   ) : (
                     <div className="group relative">
-                      <div className="text-xs">{belief.result}</div>
+                      <div className="text-xs" data-testid={`text-next-problems-${belief.category.toLowerCase()}`}>{belief.result}</div>
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={() => startEdit(belief.category, 'result', belief.result)}
                         className="absolute top-0 right-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                        data-testid={`button-edit-next-problems-${belief.category.toLowerCase()}`}
                       >
                         <Edit2 className="w-3 h-3" />
                       </Button>
@@ -777,6 +1019,7 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
                   )}
                 </TableCell>
 
+                {/* Next Week - Feelings */}
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10">
                   {isEditing(belief.category, 'nextFeelings') ? (
                     <div className="space-y-1">
@@ -784,24 +1027,26 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
                         value={editValue}
                         onChange={(e) => setEditValue(e.target.value)}
                         className="min-h-[60px] text-xs"
+                        data-testid={`textarea-next-feelings-${belief.category.toLowerCase()}`}
                       />
                       <div className="flex gap-1">
-                        <Button size="sm" variant="ghost" onClick={saveEdit} className="h-6 px-2">
+                        <Button size="sm" variant="ghost" onClick={saveEdit} className="h-6 px-2" data-testid={`button-save-next-feelings-${belief.category.toLowerCase()}`}>
                           <Save className="w-3 h-3" />
                         </Button>
-                        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-6 px-2">
+                        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-6 px-2" data-testid={`button-cancel-next-feelings-${belief.category.toLowerCase()}`}>
                           <X className="w-3 h-3" />
                         </Button>
                       </div>
                     </div>
                   ) : (
                     <div className="group relative">
-                      <div className="text-xs">{belief.nextFeelings}</div>
+                      <div className="text-xs" data-testid={`text-next-feelings-${belief.category.toLowerCase()}`}>{belief.nextFeelings}</div>
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={() => startEdit(belief.category, 'nextFeelings', belief.nextFeelings)}
                         className="absolute top-0 right-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                        data-testid={`button-edit-next-feelings-${belief.category.toLowerCase()}`}
                       >
                         <Edit2 className="w-3 h-3" />
                       </Button>
@@ -809,6 +1054,7 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
                   )}
                 </TableCell>
 
+                {/* Next Week - Beliefs/Reasons */}
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10">
                   {isEditing(belief.category, 'nextWeekTarget') ? (
                     <div className="space-y-1">
@@ -816,24 +1062,26 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
                         value={editValue}
                         onChange={(e) => setEditValue(e.target.value)}
                         className="min-h-[60px] text-xs"
+                        data-testid={`textarea-next-beliefs-${belief.category.toLowerCase()}`}
                       />
                       <div className="flex gap-1">
-                        <Button size="sm" variant="ghost" onClick={saveEdit} className="h-6 px-2">
+                        <Button size="sm" variant="ghost" onClick={saveEdit} className="h-6 px-2" data-testid={`button-save-next-beliefs-${belief.category.toLowerCase()}`}>
                           <Save className="w-3 h-3" />
                         </Button>
-                        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-6 px-2">
+                        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-6 px-2" data-testid={`button-cancel-next-beliefs-${belief.category.toLowerCase()}`}>
                           <X className="w-3 h-3" />
                         </Button>
                       </div>
                     </div>
                   ) : (
                     <div className="group relative">
-                      <div className="text-xs">{belief.nextWeekTarget}</div>
+                      <div className="text-xs" data-testid={`text-next-beliefs-${belief.category.toLowerCase()}`}>{belief.nextWeekTarget}</div>
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={() => startEdit(belief.category, 'nextWeekTarget', belief.nextWeekTarget)}
                         className="absolute top-0 right-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                        data-testid={`button-edit-next-beliefs-${belief.category.toLowerCase()}`}
                       >
                         <Edit2 className="w-3 h-3" />
                       </Button>
@@ -841,6 +1089,7 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
                   )}
                 </TableCell>
 
+                {/* Next Week - Actions */}
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 border-r">
                   {isEditing(belief.category, 'nextActions') ? (
                     <div className="space-y-1">
@@ -848,24 +1097,26 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
                         value={editValue}
                         onChange={(e) => setEditValue(e.target.value)}
                         className="min-h-[60px] text-xs"
+                        data-testid={`textarea-next-actions-${belief.category.toLowerCase()}`}
                       />
                       <div className="flex gap-1">
-                        <Button size="sm" variant="ghost" onClick={saveEdit} className="h-6 px-2">
+                        <Button size="sm" variant="ghost" onClick={saveEdit} className="h-6 px-2" data-testid={`button-save-next-actions-${belief.category.toLowerCase()}`}>
                           <Save className="w-3 h-3" />
                         </Button>
-                        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-6 px-2">
+                        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-6 px-2" data-testid={`button-cancel-next-actions-${belief.category.toLowerCase()}`}>
                           <X className="w-3 h-3" />
                         </Button>
                       </div>
                     </div>
                   ) : (
                     <div className="group relative">
-                      <div className="text-xs">{belief.nextActions}</div>
+                      <div className="text-xs" data-testid={`text-next-actions-${belief.category.toLowerCase()}`}>{belief.nextActions}</div>
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={() => startEdit(belief.category, 'nextActions', belief.nextActions)}
                         className="absolute top-0 right-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                        data-testid={`button-edit-next-actions-${belief.category.toLowerCase()}`}
                       >
                         <Edit2 className="w-3 h-3" />
                       </Button>
@@ -873,10 +1124,36 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
                   )}
                 </TableCell>
 
-                <TableCell className="p-2 bg-amber-50/30 dark:bg-amber-950/10">
-                  <div className="text-xs italic text-amber-700 dark:text-amber-400" data-testid={`text-affirmation-${belief.category.toLowerCase()}`}>
-                    "{belief.affirmationSuggestion}"
+                {/* AI Course */}
+                <TableCell className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10">
+                  <div className="text-xs italic text-cyan-700 dark:text-cyan-400" data-testid={`text-next-course-${belief.category.toLowerCase()}`}>
+                    {belief.affirmationSuggestion}
                   </div>
+                </TableCell>
+
+                {/* Checklist */}
+                <TableCell className="p-2 bg-purple-50/30 dark:bg-purple-950/10">
+                  <div className="space-y-1">
+                    {belief.checklist.map((item) => (
+                      <div key={item.id} className="flex items-center gap-2">
+                        <Checkbox
+                          checked={item.checked}
+                          onCheckedChange={() => handleChecklistToggle(belief.category, item.id)}
+                          data-testid={`checkbox-next-${belief.category.toLowerCase()}-${item.id}`}
+                        />
+                        <span className={`text-xs ${item.checked ? 'line-through text-muted-foreground' : ''}`}>
+                          {item.text}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </TableCell>
+
+                {/* Progress */}
+                <TableCell className="p-2 text-center bg-emerald-50/30 dark:bg-emerald-950/10">
+                  <Badge className={getProgressColor(calculateProgress(belief.checklist))} data-testid={`badge-next-progress-${belief.category.toLowerCase()}`}>
+                    {calculateProgress(belief.checklist)}%
+                  </Badge>
                 </TableCell>
               </TableRow>
             ))}

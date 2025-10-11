@@ -6,6 +6,12 @@ import { setupAuth, isAuthenticated, isAdmin } from "./replitAuth";
 import { fetchCourseData, findMatchingCourse, recommendCourses, fetchEnhancedCourseData } from "./googleSheets";
 import { recommendCoursesRequestSchema } from "@shared/schema";
 import { getAIRecommendations } from "./aiRecommendations";
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY
+});
 
 // Extend express-session to include custom session fields
 declare module 'express-session' {
@@ -281,6 +287,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error recommending courses:", error);
       res.status(500).json({ message: "Failed to recommend courses", error: error instanceof Error ? error.message : 'Unknown error' });
+    }
+  });
+
+  // AI Auto-fill next week goals based on current week data
+  app.post('/api/hercm/auto-fill-next-week', isAuthenticated, async (req: any, res) => {
+    try {
+      const { category, currentRating, problems, currentFeelings, currentBelief, currentActions } = req.body;
+      
+      const prompt = `You are an expert life coach helping users set realistic and achievable goals for next week.
+
+**User's Current Week Data (${category}):**
+- Current Rating: ${currentRating}/10
+- Problems: ${problems}
+- Current Feelings: ${currentFeelings}
+- Current Beliefs: ${currentBelief}
+- Current Actions: ${currentActions}
+
+**Task:**
+Based on their current situation, suggest realistic next week goals that will help them improve incrementally.
+
+Provide the following:
+1. **Target Rating**: Suggest a realistic target rating for next week (current + 1 or 2 points max, never more than 10)
+2. **Expected Result**: What tangible outcome should they expect if they follow through (be specific and realistic)
+3. **Target Feelings**: Transform their negative feelings into positive ones (e.g., "Lazy" → "Active, Energetic")
+4. **Next Week Target**: A positive belief or affirmation to work towards (transform their limiting belief)
+5. **Next Actions**: 3-4 specific, actionable steps they should take next week
+6. **Affirmation**: A powerful, personal affirmation to support their transformation
+
+Return ONLY valid JSON in this exact format:
+{
+  "targetRating": 5,
+  "expectedResult": "...",
+  "targetFeelings": "...",
+  "nextWeekTarget": "...",
+  "nextActions": "...",
+  "affirmation": "..."
+}`;
+
+      const completion = await openai.chat.completions.create({
+        model: "gpt-5-mini",
+        messages: [
+          { role: "system", content: "You are an expert life coach providing personalized goal suggestions. Always return valid JSON." },
+          { role: "user", content: prompt }
+        ],
+        temperature: 0.7,
+      });
+
+      const responseText = completion.choices[0]?.message?.content || '{}';
+      
+      // Parse AI response
+      const aiSuggestion = JSON.parse(responseText);
+      
+      res.json(aiSuggestion);
+    } catch (error) {
+      console.error("Error auto-filling next week goals:", error);
+      
+      // Fallback: simple incremental logic
+      const fallback = {
+        targetRating: Math.min((req.body.currentRating || 1) + 1, 10),
+        expectedResult: "Incremental improvement in this area",
+        targetFeelings: "Positive, Motivated",
+        nextWeekTarget: "I am making progress every day",
+        nextActions: "Take small steps daily towards improvement",
+        affirmation: "I am capable of positive change"
+      };
+      
+      res.json(fallback);
     }
   });
 
