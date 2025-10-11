@@ -161,6 +161,16 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
 };
 
 export const isAdmin: RequestHandler = async (req, res, next) => {
+  // Check for session-based admin authentication first
+  if ((req.session as any).isAdmin && (req.session as any).userEmail) {
+    // Verify the admin user still exists and is active
+    const adminUser = await storage.getAdminUser((req.session as any).userEmail);
+    if (adminUser && adminUser.status === 'active') {
+      return next();
+    }
+  }
+
+  // Fall back to OIDC-based admin authentication
   const user = req.user as any;
   
   if (!req.isAuthenticated() || !user.claims?.sub) {

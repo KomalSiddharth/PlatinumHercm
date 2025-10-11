@@ -474,11 +474,26 @@ Return ONLY valid JSON in this exact format:
       const adminUser = await storage.getAdminUser(email);
       
       if (!adminUser || adminUser.status !== 'active') {
+        // Log failed admin login attempt
+        await storage.createAccessLog({
+          email,
+          status: 'failed',
+          ipAddress: req.ip || req.headers['x-forwarded-for'] as string || 'unknown',
+          userAgent: req.headers['user-agent'] || 'unknown',
+        });
         return res.status(403).json({ message: "You are not authorized as admin" });
       }
 
       req.session.userEmail = email;
       req.session.isAdmin = true;
+      
+      // Log successful admin login
+      await storage.createAccessLog({
+        email,
+        status: 'success',
+        ipAddress: req.ip || req.headers['x-forwarded-for'] as string || 'unknown',
+        userAgent: req.headers['user-agent'] || 'unknown',
+      });
       
       res.json({ success: true, message: "Admin login successful" });
     } catch (error) {
