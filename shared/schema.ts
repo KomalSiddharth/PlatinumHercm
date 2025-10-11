@@ -65,6 +65,40 @@ export const hercmWeeks = pgTable("hercm_weeks", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id),
   weekNumber: integer("week_number").notNull(),
+  year: integer("year").notNull(),
+  
+  // Current Week Ratings (H-E-R-C-M 1-5 scale)
+  currentH: integer("current_h"), // Hope
+  currentE: integer("current_e"), // Energy
+  currentR: integer("current_r"), // Respect
+  currentC: integer("current_c"), // Courage
+  currentM: integer("current_m"), // Maturity
+  
+  // Target Ratings (from previous week's next week goals)
+  targetH: integer("target_h"),
+  targetE: integer("target_e"),
+  targetR: integer("target_r"),
+  targetC: integer("target_c"),
+  targetM: integer("target_m"),
+  
+  // Next Week Goals (auto-filled suggestions)
+  nextWeekH: integer("next_week_h"),
+  nextWeekE: integer("next_week_e"),
+  nextWeekR: integer("next_week_r"),
+  nextWeekC: integer("next_week_c"),
+  nextWeekM: integer("next_week_m"),
+  
+  // Improvement Calculations (current - target)
+  improvementH: integer("improvement_h"),
+  improvementE: integer("improvement_e"),
+  improvementR: integer("improvement_r"),
+  improvementC: integer("improvement_c"),
+  improvementM: integer("improvement_m"),
+  
+  // Overall Metrics
+  overallScore: integer("overall_score"), // Average of current ratings
+  achievementRate: integer("achievement_rate"), // Percentage of goals achieved
+  weekStatus: varchar("week_status").default('active').notNull(), // 'active', 'locked', 'completed'
   
   // Health
   healthCurrentBelief: varchar("health_current_belief"),
