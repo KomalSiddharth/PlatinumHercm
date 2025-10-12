@@ -39,7 +39,7 @@ interface ChecklistItem {
   checked: boolean;
 }
 
-interface HERCMBelief {
+interface HRCMBelief {
   category: 'Health' | 'Relationship' | 'Career' | 'Money';
   // Current Week Data
   currentRating: number;
@@ -59,14 +59,14 @@ interface HERCMBelief {
   affirmationSuggestion: string;
 }
 
-interface UnifiedHERCMTableProps {
+interface UnifiedHRCMTableProps {
   weekNumber: number;
   onGenerateNextWeek: () => void;
   onViewHistory: () => void;
 }
 
 // Generate blank beliefs for a new week
-const getBlankBeliefs = (): HERCMBelief[] => {
+const getBlankBeliefs = (): HRCMBelief[] => {
   return [
     {
       category: 'Health',
@@ -152,7 +152,7 @@ const getBlankBeliefs = (): HERCMBelief[] => {
 };
 
 // Week-specific belief data generator  
-const getWeekBeliefs = (week: number): HERCMBelief[] => {
+const getWeekBeliefs = (week: number): HRCMBelief[] => {
   // Week 1: Pre-filled demo data for demonstration
   // Week 2+: Blank template for user to fill (after AI auto-fill if they want)
   
@@ -345,8 +345,8 @@ const getProgressColor = (progress: number) => {
   return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
 };
 
-export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onViewHistory }: UnifiedHERCMTableProps) {
-  const [beliefs, setBeliefs] = useState<HERCMBelief[]>([]);
+export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onViewHistory }: UnifiedHRCMTableProps) {
+  const [beliefs, setBeliefs] = useState<HRCMBelief[]>([]);
   const [editingField, setEditingField] = useState<{ category: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState('');
   const [loadingCourses, setLoadingCourses] = useState<Set<string>>(new Set());
@@ -356,13 +356,13 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
   const { toast } = useToast();
 
   // Fetch current week data from database
-  const { data: weekData, isLoading } = useQuery<{ beliefs?: HERCMBelief[] }>({
+  const { data: weekData, isLoading } = useQuery<{ beliefs?: HRCMBelief[] }>({
     queryKey: ['/api/hercm/week', weekNumber],
     enabled: weekNumber > 0,
   });
 
   // Fetch previous week data for comparison (only if week > 1)
-  const { data: previousWeekData } = useQuery<{ beliefs?: HERCMBelief[] }>({
+  const { data: previousWeekData } = useQuery<{ beliefs?: HRCMBelief[] }>({
     queryKey: ['/api/hercm/week', weekNumber - 1],
     enabled: weekNumber > 1,
   });
@@ -408,7 +408,7 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
   }, [weekNumber, weekData]);
 
   // Fetch AI course recommendations
-  const fetchCourseRecommendation = async (category: string, belief: HERCMBelief) => {
+  const fetchCourseRecommendation = async (category: string, belief: HRCMBelief) => {
     setLoadingCourses(prev => new Set(prev).add(category));
 
     try {
@@ -509,11 +509,11 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
     
     // Save the editing info before clearing it
     const { category, field } = editingField;
-    let updatedBelief: HERCMBelief | undefined = undefined;
+    let updatedBelief: HRCMBelief | undefined = undefined;
     
     setBeliefs(prev => prev.map(belief => {
       if (belief.category === category) {
-        const updated = { ...belief, [field]: editValue } as HERCMBelief;
+        const updated = { ...belief, [field]: editValue } as HRCMBelief;
         updatedBelief = updated;
         return updated;
       }
@@ -751,7 +751,7 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
                 {/* HERCM Area Comparison - All Weeks in Month */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-base">HERCM Area Progress Comparison</CardTitle>
+                    <CardTitle className="text-base">HRCM Area Progress Comparison</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <ResponsiveContainer width="100%" height={300}>
@@ -844,7 +844,7 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
         <Table>
           <TableHeader>
             <TableRow className="bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-950/30 dark:to-pink-950/30">
-              <TableHead className="font-bold border-r">HERCM Area</TableHead>
+              <TableHead className="font-bold border-r">HRCM Area</TableHead>
               <TableHead className="w-[80px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Rating</TableHead>
               <TableHead className="w-[180px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Problems</TableHead>
               <TableHead className="w-[150px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Feelings</TableHead>
@@ -1085,7 +1085,7 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
         <Table>
           <TableHeader>
             <TableRow className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30">
-              <TableHead className="font-bold border-r">HERCM Area</TableHead>
+              <TableHead className="font-bold border-r">HRCM Area</TableHead>
               <TableHead className="w-[80px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Rating</TableHead>
               <TableHead className="w-[180px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Problems</TableHead>
               <TableHead className="w-[150px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Feelings</TableHead>

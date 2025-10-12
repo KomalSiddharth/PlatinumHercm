@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import DashboardHeader from '@/components/DashboardHeader';
-import UnifiedHERCMTable from '@/components/UnifiedHERCMTable';
+import UnifiedHRCMTable from '@/components/UnifiedHRCMTable';
 import AddRitualForm from '@/components/AddRitualForm';
 import RitualCard from '@/components/RitualCard';
 import CourseCard from '@/components/CourseCard';
@@ -11,7 +11,7 @@ import ProfileModal from '@/components/ProfileModal';
 import RitualHistoryModal from '@/components/RitualHistoryModal';
 import EditRitualModal from '@/components/EditRitualModal';
 import UpdateProgressModal from '@/components/UpdateProgressModal';
-import HERCMHistoryModal from '@/components/HERCMHistoryModal';
+import HRCMHistoryModal from '@/components/HRCMHistoryModal';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
@@ -75,7 +75,7 @@ export default function Dashboard() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [progressOpen, setProgressOpen] = useState(false);
-  const [hercmHistoryOpen, setHercmHistoryOpen] = useState(false);
+  const [hrcmHistoryOpen, setHrcmHistoryOpen] = useState(false);
   const [selectedRitual, setSelectedRitual] = useState<Ritual | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
   
@@ -367,8 +367,8 @@ export default function Dashboard() {
     }, 1500);
   };
 
-  const handleViewHERCMHistory = () => {
-    setHercmHistoryOpen(true);
+  const handleViewHRCMHistory = () => {
+    setHrcmHistoryOpen(true);
   };
 
   const handleUpdateCourseProgress = (id: string) => {
@@ -472,10 +472,10 @@ export default function Dashboard() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
         <section ref={hercmRef} id="hercm" className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
-          <UnifiedHERCMTable 
+          <UnifiedHRCMTable 
             weekNumber={currentWeek}
             onGenerateNextWeek={handleGenerateNextWeek}
-            onViewHistory={handleViewHERCMHistory}
+            onViewHistory={handleViewHRCMHistory}
           />
         </section>
 
@@ -563,9 +563,9 @@ export default function Dashboard() {
         onLogout={handleLogout}
       />
 
-      <HERCMHistoryModal
-        open={hercmHistoryOpen}
-        onOpenChange={setHercmHistoryOpen}
+      <HRCMHistoryModal
+        open={hrcmHistoryOpen}
+        onOpenChange={setHrcmHistoryOpen}
         currentWeek={currentWeek}
       />
 

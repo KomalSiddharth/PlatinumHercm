@@ -60,19 +60,19 @@ export const insertApprovedEmailSchema = createInsertSchema(approvedEmails).omit
 export type InsertApprovedEmail = z.infer<typeof insertApprovedEmailSchema>;
 export type ApprovedEmail = typeof approvedEmails.$inferSelect;
 
-// HERCM Weekly Data Storage
+// HRCM Weekly Data Storage
 export const hercmWeeks = pgTable("hercm_weeks", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id),
   weekNumber: integer("week_number").notNull(),
   year: integer("year").notNull(),
   
-  // Current Week Ratings (H-E-R-C-M 1-5 scale)
-  currentH: integer("current_h"), // Hope
-  currentE: integer("current_e"), // Energy
-  currentR: integer("current_r"), // Respect
-  currentC: integer("current_c"), // Courage
-  currentM: integer("current_m"), // Maturity
+  // Current Week Ratings (H-R-C-M 1-5 scale)
+  currentH: integer("current_h"), // Health
+  currentE: integer("current_e"), // Relationship (Emotion)
+  currentR: integer("current_r"), // Respect (Career)
+  currentC: integer("current_c"), // Courage (Money)
+  currentM: integer("current_m"), // (unused - legacy)
   
   // Target Ratings (from previous week's next week goals)
   targetH: integer("target_h"),
@@ -190,7 +190,7 @@ export type PlatinumProgress = typeof platinumProgress.$inferSelect;
 export const courseRecommendationSchema = z.object({
   courseName: z.string(),
   link: z.string().url(),
-  hercmAreas: z.array(z.enum(['Health', 'Relationship', 'Career', 'Money'])),
+  hrcmAreas: z.array(z.enum(['Health', 'Relationship', 'Career', 'Money'])),
   keywords: z.array(z.string()),
   targetProblems: z.array(z.string()),
   targetFeelings: z.array(z.string()),

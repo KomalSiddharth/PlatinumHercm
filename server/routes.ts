@@ -42,7 +42,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // User HERCM routes (protected)
+  // User HRCM routes (protected)
   app.get('/api/hercm/weeks', isAuthenticated, async (req: any, res) => {
     try {
       // Handle both OIDC auth (req.user.claims.sub) and email-based auth (req.session.userEmail)
@@ -54,7 +54,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const weeks = await storage.getHercmWeeksByUser(userId);
       res.json(weeks);
     } catch (error) {
-      console.error("Error fetching HERCM weeks:", error);
+      console.error("Error fetching HRCM weeks:", error);
       res.status(500).json({ message: "Failed to fetch weeks" });
     }
   });
