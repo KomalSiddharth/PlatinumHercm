@@ -65,86 +65,70 @@ interface UnifiedHRCMTableProps {
   onViewHistory: () => void;
 }
 
-// Generate blank beliefs for a new week
+// Generate completely blank beliefs for a new week - no pre-filled data
 const getBlankBeliefs = (): HRCMBelief[] => {
   return [
     {
       category: 'Health',
-      currentRating: 1,
+      currentRating: 0,
       problems: '',
       currentFeelings: '',
       currentBelief: '',
       currentActions: '',
-      targetRating: 2,
+      targetRating: 0,
       result: '',
       nextFeelings: '',
       nextWeekTarget: '',
       nextActions: '',
-      checklist: [
-        { id: 'h1', text: 'Exercise/Walk daily', checked: false },
-        { id: 'h2', text: 'Healthy eating habit', checked: false },
-        { id: 'h3', text: 'Stress management practice', checked: false }
-      ],
+      checklist: [],
       courseSuggestion: '',
       affirmationSuggestion: ''
     },
     {
       category: 'Relationship',
-      currentRating: 1,
+      currentRating: 0,
       problems: '',
       currentFeelings: '',
       currentBelief: '',
       currentActions: '',
-      targetRating: 2,
+      targetRating: 0,
       result: '',
       nextFeelings: '',
       nextWeekTarget: '',
       nextActions: '',
-      checklist: [
-        { id: 'e1', text: 'Daily gratitude practice', checked: false },
-        { id: 'e2', text: 'Active listening session', checked: false },
-        { id: 'e3', text: 'Quality time with loved ones', checked: false }
-      ],
+      checklist: [],
       courseSuggestion: '',
       affirmationSuggestion: ''
     },
     {
       category: 'Career',
-      currentRating: 1,
+      currentRating: 0,
       problems: '',
       currentFeelings: '',
       currentBelief: '',
       currentActions: '',
-      targetRating: 2,
+      targetRating: 0,
       result: '',
       nextFeelings: '',
       nextWeekTarget: '',
       nextActions: '',
-      checklist: [
-        { id: 'r1', text: 'Skill development activity', checked: false },
-        { id: 'r2', text: 'Networking or job search', checked: false },
-        { id: 'r3', text: 'Complete key task/project', checked: false }
-      ],
+      checklist: [],
       courseSuggestion: '',
       affirmationSuggestion: ''
     },
     {
       category: 'Money',
-      currentRating: 1,
+      currentRating: 0,
       problems: '',
       currentFeelings: '',
       currentBelief: '',
       currentActions: '',
-      targetRating: 2,
+      targetRating: 0,
       result: '',
       nextFeelings: '',
       nextWeekTarget: '',
       nextActions: '',
-      checklist: [
-        { id: 'c1', text: 'Track daily expenses', checked: false },
-        { id: 'c2', text: 'Save/Invest percentage', checked: false },
-        { id: 'c3', text: 'Review budget/finances', checked: false }
-      ],
+      checklist: [],
       courseSuggestion: '',
       affirmationSuggestion: ''
     }
