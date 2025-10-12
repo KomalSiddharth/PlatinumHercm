@@ -12,6 +12,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+**October 12, 2025**
+- **Complete Data Persistence Implementation**: All HERCM data now saves to database and displays in History modal
+  - **Database Mapping**: Problems/Feelings/Actions fields map to category-specific columns (healthProblems, relationshipCurrentFeelings, careerCurrentActions, etc.)
+  - **H-E-R-C-M Default Values**: All rating columns (currentH/E/R/C/M) default to 1 to prevent NaN errors in calculations
+  - **Save Mutation**: UnifiedHERCMTable POST to /api/hercm/save-with-comparison endpoint successfully saves edits to database
+  - **User Auto-Creation**: Login flow uses upsertUser to create user record if not exists, preventing foreign key violations
+  - **History Modal Fix**: Removed week filter (weekNumber < currentWeek) so ALL saved weeks including current Week 1 display in History modal
+  - **E2E Test Success**: All 17 test steps passing - users can edit Problems/Feelings/Actions, save to database, view in History modal
+
 **October 11, 2025**
 - **Week Comparison Display**: Moved week-over-week comparison from main page to Dialog modal, triggered by clicking the "Weekly Progress" badge (shows for Week 2+)
 - **History Data Consistency**: Fixed HERCMHistoryModal to show accurate Week 1 demo data matching the main table
