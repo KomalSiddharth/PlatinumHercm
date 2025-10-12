@@ -44,9 +44,13 @@ export default function PDFExportCard() {
         description: `Week ${selectedWeek} report downloaded successfully!`
       });
     } catch (error: any) {
+      const errorMessage = error.message?.includes('Week not found') 
+        ? `Week ${selectedWeek} data not found. Please fill Week ${selectedWeek} HRCM data first.`
+        : error.message || "Could not download PDF";
+      
       toast({
         title: "Download Failed",
-        description: error.message || "Could not download PDF",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
@@ -79,9 +83,13 @@ export default function PDFExportCard() {
         description: `Monthly report for ${currentMonth}/${currentYear} downloaded!`
       });
     } catch (error: any) {
+      const errorMessage = error.message?.includes('No data') 
+        ? 'No HRCM data found for this month. Please fill your weekly HRCM data first.'
+        : error.message || "Could not download PDF";
+      
       toast({
         title: "Download Failed",
-        description: error.message || "Could not download PDF",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
