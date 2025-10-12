@@ -12,7 +12,22 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-**October 12, 2025**
+**October 12, 2025 - Session 2: Full Persistence & AI Integration Complete**
+- **✅ Database Schema Extended**: Added `rituals`, `ritual_completions`, and `courses` tables with proper foreign key relationships
+- **✅ Rituals & Courses Persistence**: Complete CRUD operations for rituals (create, update, delete, toggle completion) with database storage; Dashboard now fetches rituals from database instead of local state
+- **✅ OpenAI Integration Live**: AI-powered course recommendations and auto-fill (Problems/Feelings/Actions) using gpt-5 model via Replit AI Integrations
+- **✅ Critical UPSERT Bug Fix**: Fixed duplicate week creation - save endpoint now properly updates existing weeks instead of creating duplicates
+  - Changed `upsertUser` conflict target from `users.id` to `users.email` to prevent duplicate user errors
+  - Implemented proper UPSERT logic in `/api/hercm/save-with-comparison`: checks if week exists, updates if found, creates if not
+- **✅ Data Transformation Fix**: GET `/api/hercm/week/:weekNumber` now transforms database flat columns back to beliefs array format for UI
+  - Database stores: healthProblems, relationshipCurrentFeelings, careerCurrentActions, etc.
+  - Frontend expects: beliefs array with category objects
+  - Transformation ensures saved data displays correctly after page reload
+- **✅ Security Enhancements**: All update/delete operations verify userId ownership; unauthorized access returns 404
+- **✅ E2E Test Validation**: Complete test suite confirms no duplicate weeks, data persists across reloads, UI displays database values correctly
+- **Removed**: "(auto: X+1)" text from Next Week Target Rating display (now just shows blue badge)
+
+**October 12, 2025 - Session 1**
 - **Complete Data Persistence Implementation**: All HERCM data now saves to database and displays in History modal
   - **Database Mapping**: Problems/Feelings/Actions fields map to category-specific columns (healthProblems, relationshipCurrentFeelings, careerCurrentActions, etc.)
   - **H-E-R-C-M Default Values**: All rating columns (currentH/E/R/C/M) default to 1 to prevent NaN errors in calculations
