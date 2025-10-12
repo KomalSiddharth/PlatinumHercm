@@ -1174,19 +1174,25 @@ Return JSON with:
       }
 
       const { category, currentRating, historicalData } = req.body;
+      
+      if (!category || currentRating === undefined) {
+        return res.status(400).json({ message: "Category and currentRating are required" });
+      }
+
       const weeks = await storage.getHercmWeeksByUser(userId);
 
       // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
-      const completion = await openai.chat.completions.create({
-        model: "gpt-5",
-        messages: [
-          {
-            role: "system",
-            content: "You are a machine learning expert specializing in goal-setting and achievement prediction. Based on historical performance data, recommend realistic yet challenging targets."
-          },
-          {
-            role: "user",
-            content: `Category: ${category}
+      const completion = await Promise.race([
+        openai.chat.completions.create({
+          model: "gpt-5",
+          messages: [
+            {
+              role: "system",
+              content: "You are a machine learning expert specializing in goal-setting and achievement prediction. Based on historical performance data, recommend realistic yet challenging targets."
+            },
+            {
+              role: "user",
+              content: `Category: ${category}
 Current Rating: ${currentRating}/5
 Historical Data: ${JSON.stringify(historicalData || weeks.slice(-4))}
 
@@ -1197,16 +1203,23 @@ Recommend a target rating for next week based on ML analysis. Consider:
 4. Challenge level to maintain engagement
 
 Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "...", "tips": ["tip1", "tip2"] }`
-          }
-        ],
-        response_format: { type: "json_object" },
-        max_completion_tokens: 8192
-      });
+            }
+          ],
+          response_format: { type: "json_object" },
+          max_completion_tokens: 8192
+        }),
+        new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Request timeout')), 25000)
+        )
+      ]);
 
       const recommendation = JSON.parse(completion.choices[0].message.content || '{}');
       res.json(recommendation);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error generating ML target:", error);
+      if (error.message === 'Request timeout') {
+        return res.status(504).json({ message: "AI request timeout - please try again" });
+      }
       res.status(500).json({ message: "Failed to generate target recommendation" });
     }
   });
