@@ -411,6 +411,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteRitual(id: string, userId: string): Promise<number> {
+    // First delete all ritual completions for this ritual
+    await db
+      .delete(ritualCompletions)
+      .where(and(
+        eq(ritualCompletions.ritualId, id),
+        eq(ritualCompletions.userId, userId)
+      ));
+    
+    // Then delete the ritual itself
     const result = await db
       .delete(rituals)
       .where(and(

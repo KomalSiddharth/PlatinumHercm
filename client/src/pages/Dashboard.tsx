@@ -71,7 +71,7 @@ const calculatePoints = (frequency: string): number => {
 
 export default function Dashboard() {
   const { toast } = useToast();
-  const [activeSection, setActiveSection] = useState('rituals');
+  const [activeSection, setActiveSection] = useState('hrcm');
   const [profileOpen, setProfileOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
