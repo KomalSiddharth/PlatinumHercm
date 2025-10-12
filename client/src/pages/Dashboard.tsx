@@ -123,6 +123,11 @@ export default function Dashboard() {
 
   const [currentWeek, setCurrentWeek] = useState(1);
   
+  // Fetch user's HRCM weeks to check 7-day restriction
+  const { data: userWeeks = [], isLoading: loadingWeeks, isError: weeksError } = useQuery<any[]>({
+    queryKey: ['/api/hercm/weeks'],
+  });
+  
   // Calculate total points from completed rituals
   useEffect(() => {
     const points = rituals
@@ -349,9 +354,46 @@ export default function Dashboard() {
     window.location.href = '/api/logout';
   };
 
+  // Check if current week can unlock next week (7-day restriction)
+  const canUnlockNextWeek = () => {
+    // While loading or if error, don't allow unlock (prevents bypass)
+    if (loadingWeeks || weeksError) return false;
+    
+    if (userWeeks.length === 0) return true; // First week always allowed
+    
+    const latestWeek = userWeeks[userWeeks.length - 1];
+    if (!latestWeek?.createdAt) return true; // If no createdAt, allow
+    
+    const weekCreatedDate = new Date(latestWeek.createdAt);
+    const now = new Date();
+    const daysSinceCreated = Math.floor((now.getTime() - weekCreatedDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    return daysSinceCreated >= 7;
+  };
+
+  const getNextUnlockDate = () => {
+    // While loading, error, or no weeks, don't show date
+    if (loadingWeeks || weeksError || userWeeks.length === 0) return null;
+    
+    const latestWeek = userWeeks[userWeeks.length - 1];
+    if (!latestWeek?.createdAt) return null;
+    
+    const weekCreatedDate = new Date(latestWeek.createdAt);
+    const unlockDate = new Date(weekCreatedDate.getTime() + (7 * 24 * 60 * 60 * 1000));
+    return unlockDate;
+  };
+
   const handleGenerateNextWeek = () => {
-    // In Phase 3, this will connect to OpenAI to analyze progress and generate intelligent next week targets
-    // For now, it increments the week and shows progression
+    // Check 7-day restriction
+    if (!canUnlockNextWeek()) {
+      const unlockDate = getNextUnlockDate();
+      toast({
+        title: 'Week Locked',
+        description: `Next week unlocks on ${unlockDate?.toLocaleDateString('en-IN')}. Complete 7 days of practice first!`,
+        variant: 'destructive',
+      });
+      return;
+    }
     
     toast({
       title: 'Generating Next Week',
@@ -487,6 +529,8 @@ export default function Dashboard() {
             weekNumber={currentWeek}
             onGenerateNextWeek={handleGenerateNextWeek}
             onViewHistory={handleViewHRCMHistory}
+            canUnlockNextWeek={canUnlockNextWeek()}
+            nextUnlockDate={getNextUnlockDate()}
           />
         </section>
 

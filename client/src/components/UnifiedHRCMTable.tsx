@@ -63,6 +63,8 @@ interface UnifiedHRCMTableProps {
   weekNumber: number;
   onGenerateNextWeek: () => void;
   onViewHistory: () => void;
+  canUnlockNextWeek?: boolean;
+  nextUnlockDate?: Date | null;
 }
 
 // Generate completely blank beliefs for a new week - absolutely no pre-filled data
@@ -154,7 +156,7 @@ const getProgressColor = (progress: number) => {
   return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
 };
 
-export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onViewHistory }: UnifiedHRCMTableProps) {
+export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onViewHistory, canUnlockNextWeek = true, nextUnlockDate = null }: UnifiedHRCMTableProps) {
   const [beliefs, setBeliefs] = useState<HRCMBelief[]>([]);
   const [editingField, setEditingField] = useState<{ category: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState('');
@@ -489,14 +491,22 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
               </>
             )}
           </Button>
-          <Button 
-            onClick={onGenerateNextWeek}
-            className="bg-gradient-to-r from-primary to-accent"
-            data-testid="button-generate-next-week"
-          >
-            <TrendingUp className="w-4 h-4 mr-2" />
-            Generate Next Week
-          </Button>
+          <div className="flex flex-col items-end gap-1">
+            <Button 
+              onClick={onGenerateNextWeek}
+              disabled={!canUnlockNextWeek}
+              className="bg-gradient-to-r from-primary to-accent"
+              data-testid="button-generate-next-week"
+            >
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Generate Next Week
+            </Button>
+            {!canUnlockNextWeek && nextUnlockDate && (
+              <p className="text-xs text-muted-foreground" data-testid="text-unlock-date">
+                Unlocks: {nextUnlockDate.toLocaleDateString('en-IN')}
+              </p>
+            )}
+          </div>
         </div>
       </div>
 
