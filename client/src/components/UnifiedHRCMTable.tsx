@@ -324,7 +324,24 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
     
     setBeliefs(prev => prev.map(belief => {
       if (belief.category === category) {
-        const updated = { ...belief, [field]: editValue } as HRCMBelief;
+        let updated = { ...belief, [field]: editValue } as HRCMBelief;
+        
+        // Auto-generate checklist from nextActions field
+        if (field === 'nextActions' && editValue.trim()) {
+          const actionLines = editValue
+            .split('\n')
+            .map(line => line.trim())
+            .filter(line => line.length > 0);
+          
+          const checklist: ChecklistItem[] = actionLines.map((action, index) => ({
+            id: `${category}-action-${index}`,
+            text: action.replace(/^[-•*]\s*/, ''), // Remove bullet points
+            checked: false
+          }));
+          
+          updated = { ...updated, checklist };
+        }
+        
         updatedBelief = updated;
         return updated;
       }

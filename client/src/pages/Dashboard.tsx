@@ -80,11 +80,27 @@ export default function Dashboard() {
   const [selectedRitual, setSelectedRitual] = useState<Ritual | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
   
-  const [userName, setUserName] = useState('John Doe');
-  const [userEmail, setUserEmail] = useState('john@example.com');
+  const [userName, setUserName] = useState('User');
+  const [userEmail, setUserEmail] = useState('');
   const [totalPoints, setTotalPoints] = useState(0);
   
   const todayDate = useMemo(() => getTodayDate(), []);
+  
+  // Fetch current user data
+  const { data: currentUser } = useQuery<{ id: string; email: string; firstName?: string; lastName?: string; isAdmin?: boolean }>({
+    queryKey: ['/api/auth/user'],
+  });
+  
+  // Update userName and userEmail when user data is fetched
+  useEffect(() => {
+    if (currentUser) {
+      const fullName = currentUser.firstName && currentUser.lastName 
+        ? `${currentUser.firstName} ${currentUser.lastName}`
+        : currentUser.firstName || currentUser.lastName || currentUser.email;
+      setUserName(fullName);
+      setUserEmail(currentUser.email);
+    }
+  }, [currentUser]);
   
   // Fetch rituals from database
   const { data: dbRituals = [], isLoading: ritualsLoading } = useQuery<DbRitual[]>({
