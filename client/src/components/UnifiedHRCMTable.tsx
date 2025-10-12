@@ -65,7 +65,7 @@ interface UnifiedHRCMTableProps {
   onViewHistory: () => void;
 }
 
-// Generate completely blank beliefs for a new week - no pre-filled data
+// Generate completely blank beliefs for a new week - absolutely no pre-filled data
 const getBlankBeliefs = (): HRCMBelief[] => {
   return [
     {
