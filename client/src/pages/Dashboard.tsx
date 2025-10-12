@@ -12,7 +12,6 @@ import RitualHistoryModal from '@/components/RitualHistoryModal';
 import EditRitualModal from '@/components/EditRitualModal';
 import UpdateProgressModal from '@/components/UpdateProgressModal';
 import HRCMHistoryModal from '@/components/HRCMHistoryModal';
-import PDFExportCard from '@/components/PDFExportCard';
 import BadgeDisplayCard from '@/components/BadgeDisplayCard';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -481,12 +480,9 @@ export default function Dashboard() {
           />
         </section>
 
-        {/* PDF Export & Badges Section */}
+        {/* Achievements & Badges Section */}
         <section className="scroll-mt-20">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <BadgeDisplayCard />
-            <PDFExportCard />
-          </div>
+          <BadgeDisplayCard />
         </section>
 
         <section ref={ritualsRef} id="rituals" className="scroll-mt-20 bg-purple-50 dark:bg-purple-950/40 p-6 rounded-lg border-2 border-purple-200 dark:border-purple-800">
