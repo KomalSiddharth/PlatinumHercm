@@ -69,7 +69,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const weekNumber = parseInt(req.params.weekNumber);
       const week = await storage.getHercmWeek(userId, weekNumber);
-      res.json(week || null);
+      
+      if (!week) {
+        return res.json(null);
+      }
+      
+      // Transform database format back to beliefs array for frontend
+      const beliefs = [
+        {
+          category: 'Health',
+          currentRating: week.currentH || 1,
+          targetRating: week.targetH || 1,
+          problems: week.healthProblems || '',
+          currentFeelings: week.healthCurrentFeelings || '',
+          currentBelief: week.healthCurrentBelief || '',
+          currentActions: week.healthCurrentActions || '',
+          result: week.healthResult || '',
+          nextFeelings: week.healthNextFeelings || '',
+          nextWeekTarget: week.healthNextTarget || '',
+          nextActions: week.healthNextActions || '',
+          checklist: week.healthChecklist || [],
+          courseSuggestion: week.healthCourseSuggestion || '',
+          affirmationSuggestion: week.healthAffirmation || ''
+        },
+        {
+          category: 'Relationship',
+          currentRating: week.currentE || 1,
+          targetRating: week.targetE || 1,
+          problems: week.relationshipProblems || '',
+          currentFeelings: week.relationshipCurrentFeelings || '',
+          currentBelief: week.relationshipCurrentBelief || '',
+          currentActions: week.relationshipCurrentActions || '',
+          result: week.relationshipResult || '',
+          nextFeelings: week.relationshipNextFeelings || '',
+          nextWeekTarget: week.relationshipNextTarget || '',
+          nextActions: week.relationshipNextActions || '',
+          checklist: week.relationshipChecklist || [],
+          courseSuggestion: week.relationshipCourseSuggestion || '',
+          affirmationSuggestion: week.relationshipAffirmation || ''
+        },
+        {
+          category: 'Career',
+          currentRating: week.currentR || 1,
+          targetRating: week.targetR || 1,
+          problems: week.careerProblems || '',
+          currentFeelings: week.careerCurrentFeelings || '',
+          currentBelief: week.careerCurrentBelief || '',
+          currentActions: week.careerCurrentActions || '',
+          result: week.careerResult || '',
+          nextFeelings: week.careerNextFeelings || '',
+          nextWeekTarget: week.careerNextTarget || '',
+          nextActions: week.careerNextActions || '',
+          checklist: week.careerChecklist || [],
+          courseSuggestion: week.careerCourseSuggestion || '',
+          affirmationSuggestion: week.careerAffirmation || ''
+        },
+        {
+          category: 'Money',
+          currentRating: week.currentC || 1,
+          targetRating: week.targetC || 1,
+          problems: week.moneyProblems || '',
+          currentFeelings: week.moneyCurrentFeelings || '',
+          currentBelief: week.moneyCurrentBelief || '',
+          currentActions: week.moneyCurrentActions || '',
+          result: week.moneyResult || '',
+          nextFeelings: week.moneyNextFeelings || '',
+          nextWeekTarget: week.moneyNextTarget || '',
+          nextActions: week.moneyNextActions || '',
+          checklist: week.moneyChecklist || [],
+          courseSuggestion: week.moneyCourseSuggestion || '',
+          affirmationSuggestion: week.moneyAffirmation || ''
+        }
+      ];
+      
+      res.json({ ...week, beliefs });
     } catch (error) {
       console.error("Error fetching HERCM week:", error);
       res.status(500).json({ message: "Failed to fetch week" });
@@ -204,7 +277,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         weekData.achievementRate = Math.round((achievements.reduce((a, b) => a + b, 0) / 5) * 100);
       }
       
-      const week = await storage.createHercmWeek(weekData);
+      // UPSERT logic: update if exists, create if not
+      const existingWeek = await storage.getHercmWeek(userId, weekData.weekNumber);
+      let week;
+      if (existingWeek) {
+        week = await storage.updateHercmWeek(existingWeek.id, weekData);
+      } else {
+        week = await storage.createHercmWeek(weekData);
+      }
       res.json(week);
     } catch (error) {
       console.error("Error saving week with comparison:", error);
