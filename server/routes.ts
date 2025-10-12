@@ -961,6 +961,56 @@ Return ONLY valid JSON in this exact format:
     }
   });
 
+  // Leaderboard endpoint - Multi-user ritual points
+  app.get('/api/leaderboard', isAuthenticated, async (req: any, res) => {
+    try {
+      const currentUserId = req.user?.claims?.sub || req.session.userEmail;
+      const todayDate = new Date().toISOString().split('T')[0];
+      
+      // Get all users
+      const allUsers = await storage.getAllUsers();
+      
+      // Calculate points for each user
+      const leaderboardData = await Promise.all(
+        allUsers.map(async (user) => {
+          const userRituals = await storage.getRitualsByUser(user.id);
+          const todayCompletions = await storage.getRitualCompletionsByDate(user.id, todayDate);
+          
+          // Calculate points: daily=50, weekly=75
+          const points = userRituals.reduce((sum, ritual) => {
+            const isCompleted = todayCompletions.some(c => c.ritualId === ritual.id);
+            if (!isCompleted || !ritual.isActive) return sum;
+            
+            const ritualPoints = ritual.frequency === 'daily' ? 50 : 75;
+            return sum + ritualPoints;
+          }, 0);
+          
+          return {
+            userId: user.id,
+            name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
+            email: user.email,
+            points,
+            isCurrentUser: user.id === currentUserId,
+          };
+        })
+      );
+      
+      // Sort by points descending
+      leaderboardData.sort((a, b) => b.points - a.points);
+      
+      // Add rank
+      const rankedLeaderboard = leaderboardData.map((entry, index) => ({
+        rank: index + 1,
+        ...entry,
+      }));
+      
+      res.json(rankedLeaderboard);
+    } catch (error) {
+      console.error("Error fetching leaderboard:", error);
+      res.status(500).json({ message: "Failed to fetch leaderboard" });
+    }
+  });
+
   // Courses endpoints
   app.get('/api/courses/:weekNumber', isAuthenticated, async (req: any, res) => {
     try {

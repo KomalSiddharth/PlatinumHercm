@@ -456,9 +456,19 @@ export default function Dashboard() {
     }
   ]);
 
-  const leaderboardEntries = [
-    { rank: 1, userId: '2', name: userName, points: totalPoints, isCurrentUser: true }
-  ];
+  // Fetch live leaderboard data
+  const { data: leaderboardData = [] } = useQuery<Array<{
+    rank: number;
+    userId: string;
+    name: string;
+    email: string;
+    points: number;
+    isCurrentUser: boolean;
+  }>>({
+    queryKey: ['/api/leaderboard'],
+  });
+
+  const leaderboardEntries = leaderboardData;
 
   return (
     <div className="min-h-screen bg-background">
