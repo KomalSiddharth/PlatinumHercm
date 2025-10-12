@@ -1114,7 +1114,7 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
 
                 {/* Next Week - Rating (Auto-calculated: Current + 1, Read-only) */}
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10">
-                  <div className="flex items-center justify-center gap-2">
+                  <div className="flex items-center justify-center">
                     <Badge 
                       variant="secondary" 
                       className="w-12 justify-center font-bold text-base bg-blue-100 dark:bg-blue-900 border-blue-300 dark:border-blue-700"
@@ -1122,9 +1122,6 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
                     >
                       {belief.targetRating}
                     </Badge>
-                    <span className="text-xs text-muted-foreground italic">
-                      (auto: {belief.currentRating}+1)
-                    </span>
                   </div>
                 </TableCell>
 
