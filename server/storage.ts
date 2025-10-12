@@ -6,6 +6,9 @@ import {
   approvedEmails,
   adminUsers,
   accessLogs,
+  rituals,
+  ritualCompletions,
+  courses,
   type User,
   type UpsertUser,
   type HercmWeek,
@@ -18,6 +21,12 @@ import {
   type InsertAdminUser,
   type AccessLog,
   type InsertAccessLog,
+  type Ritual,
+  type InsertRitual,
+  type RitualCompletion,
+  type InsertRitualCompletion,
+  type Course,
+  type InsertCourse,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, count, sql } from "drizzle-orm";
@@ -65,6 +74,24 @@ export interface IStorage {
   // Access Logs operations
   getAllAccessLogs(): Promise<AccessLog[]>;
   createAccessLog(log: InsertAccessLog): Promise<AccessLog>;
+  
+  // Rituals operations
+  getRitualsByUser(userId: string): Promise<Ritual[]>;
+  getRitualsByUserAndCategory(userId: string, category: string): Promise<Ritual[]>;
+  createRitual(ritual: InsertRitual): Promise<Ritual>;
+  updateRitual(id: string, ritual: Partial<InsertRitual>): Promise<Ritual>;
+  deleteRitual(id: string): Promise<void>;
+  
+  // Ritual Completions operations
+  getRitualCompletionsByDate(userId: string, date: string): Promise<RitualCompletion[]>;
+  createRitualCompletion(completion: InsertRitualCompletion): Promise<RitualCompletion>;
+  deleteRitualCompletion(ritualId: string, date: string): Promise<void>;
+  
+  // Courses operations
+  getCoursesByUserAndWeek(userId: string, weekNumber: number): Promise<Course[]>;
+  getCoursesByUserCategoryWeek(userId: string, category: string, weekNumber: number): Promise<Course | undefined>;
+  createCourse(course: InsertCourse): Promise<Course>;
+  updateCourse(id: string, course: Partial<InsertCourse>): Promise<Course>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -312,6 +339,119 @@ export class DatabaseStorage implements IStorage {
       .values(logData as any)
       .returning();
     return log;
+  }
+
+  // Rituals operations
+  async getRitualsByUser(userId: string): Promise<Ritual[]> {
+    return await db
+      .select()
+      .from(rituals)
+      .where(eq(rituals.userId, userId))
+      .orderBy(desc(rituals.createdAt));
+  }
+
+  async getRitualsByUserAndCategory(userId: string, category: string): Promise<Ritual[]> {
+    return await db
+      .select()
+      .from(rituals)
+      .where(and(
+        eq(rituals.userId, userId),
+        eq(rituals.category, category),
+        eq(rituals.isActive, true)
+      ));
+  }
+
+  async createRitual(ritualData: InsertRitual): Promise<Ritual> {
+    const [ritual] = await db
+      .insert(rituals)
+      .values(ritualData as any)
+      .returning();
+    return ritual;
+  }
+
+  async updateRitual(id: string, ritualData: Partial<InsertRitual>): Promise<Ritual> {
+    const [ritual] = await db
+      .update(rituals)
+      .set({ ...ritualData, updatedAt: new Date() } as any)
+      .where(eq(rituals.id, id))
+      .returning();
+    return ritual;
+  }
+
+  async deleteRitual(id: string): Promise<void> {
+    await db
+      .delete(rituals)
+      .where(eq(rituals.id, id));
+  }
+
+  // Ritual Completions operations
+  async getRitualCompletionsByDate(userId: string, date: string): Promise<RitualCompletion[]> {
+    return await db
+      .select()
+      .from(ritualCompletions)
+      .where(and(
+        eq(ritualCompletions.userId, userId),
+        eq(ritualCompletions.date, date)
+      ));
+  }
+
+  async createRitualCompletion(completionData: InsertRitualCompletion): Promise<RitualCompletion> {
+    const [completion] = await db
+      .insert(ritualCompletions)
+      .values(completionData as any)
+      .returning();
+    return completion;
+  }
+
+  async deleteRitualCompletion(ritualId: string, date: string): Promise<void> {
+    await db
+      .delete(ritualCompletions)
+      .where(and(
+        eq(ritualCompletions.ritualId, ritualId),
+        eq(ritualCompletions.date, date)
+      ));
+  }
+
+  // Courses operations
+  async getCoursesByUserAndWeek(userId: string, weekNumber: number): Promise<Course[]> {
+    return await db
+      .select()
+      .from(courses)
+      .where(and(
+        eq(courses.userId, userId),
+        eq(courses.weekNumber, weekNumber),
+        eq(courses.isActive, true)
+      ));
+  }
+
+  async getCoursesByUserCategoryWeek(userId: string, category: string, weekNumber: number): Promise<Course | undefined> {
+    const [course] = await db
+      .select()
+      .from(courses)
+      .where(and(
+        eq(courses.userId, userId),
+        eq(courses.category, category),
+        eq(courses.weekNumber, weekNumber),
+        eq(courses.isActive, true)
+      ));
+    return course;
+  }
+
+  async createCourse(courseData: InsertCourse): Promise<Course> {
+    const [course] = await db
+      .insert(courses)
+      .values(courseData as any)
+      .returning();
+    return course;
+  }
+
+  async updateCourse(id: string, courseData: Partial<InsertCourse>): Promise<Course> {
+    const [course] = await db
+      .update(courses)
+      .set({ ...courseData, updatedAt: new Date() } as any)
+      .where(eq(courses.id, id))
+      .returning();
+    return course;
   }
 }
 
