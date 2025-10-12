@@ -116,7 +116,7 @@ export default function Dashboard() {
     });
   }, [dbRituals, todayCompletions]);
 
-  const hercmRef = useRef<HTMLDivElement>(null);
+  const hrcmRef = useRef<HTMLDivElement>(null);
   const ritualsRef = useRef<HTMLDivElement>(null);
   const coursesRef = useRef<HTMLDivElement>(null);
 
@@ -132,7 +132,7 @@ export default function Dashboard() {
 
   const scrollToSection = (section: string) => {
     const refs = {
-      hercm: hercmRef,
+      hrcm: hrcmRef,
       rituals: ritualsRef,
       courses: coursesRef
     };
@@ -471,7 +471,7 @@ export default function Dashboard() {
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
-        <section ref={hercmRef} id="hercm" className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
+        <section ref={hrcmRef} id="hrcm" className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
           <UnifiedHRCMTable 
             weekNumber={currentWeek}
             onGenerateNextWeek={handleGenerateNextWeek}

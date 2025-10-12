@@ -19,7 +19,7 @@ export default function DashboardHeader({
   userPoints = 0,
   isAdmin = false,
   onNavigate = () => {},
-  activeSection = 'hercm',
+  activeSection = 'hrcm',
   onProfileClick = () => {}
 }: DashboardHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -32,7 +32,7 @@ export default function DashboardHeader({
   };
 
   const navItems = [
-    { id: 'hercm', label: 'HERCM' },
+    { id: 'hrcm', label: 'HRCM' },
     { id: 'rituals', label: 'Daily Rituals' },
     { id: 'courses', label: 'Courses' }
   ];
@@ -44,7 +44,7 @@ export default function DashboardHeader({
           <div className="flex items-center gap-3">
             <Logo className="w-10 h-10" />
             <span className="hidden sm:block text-xl font-semibold text-foreground">
-              Platinum HERCM
+              Platinum HRCM
             </span>
           </div>
 

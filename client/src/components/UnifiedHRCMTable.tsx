@@ -640,7 +640,7 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Week {weekNumber} - HERCM Tracker
+            Week {weekNumber} - HRCM Tracker
           </h3>
           <p className="text-sm text-muted-foreground mt-1">
             Track all 4 life areas in one unified view
@@ -748,7 +748,7 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                   </CardContent>
                 </Card>
 
-                {/* HERCM Area Comparison - All Weeks in Month */}
+                {/* HRCM Area Comparison - All Weeks in Month */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base">HRCM Area Progress Comparison</CardTitle>

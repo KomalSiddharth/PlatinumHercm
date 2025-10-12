@@ -7,7 +7,7 @@ export default function DashboardHeaderExample() {
         userName="John Doe"
         userPoints={1250}
         isAdmin={true}
-        activeSection="hercm"
+        activeSection="hrcm"
         onNavigate={(section) => console.log('Navigate to:', section)}
       />
       <div className="p-8">

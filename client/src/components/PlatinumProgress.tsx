@@ -92,7 +92,7 @@ export default function PlatinumProgress({
                           <div className="space-y-1 text-xs">
                             <p className="font-semibold mb-2">Week {weekNum} Progress:</p>
                             <div className={criteria.hercmMet ? 'text-chart-3' : 'text-muted-foreground'}>
-                              {criteria.hercmMet ? '✓' : '○'} HERCM {!criteria.hercmMet && 'not filled'}
+                              {criteria.hercmMet ? '✓' : '○'} HRCM {!criteria.hercmMet && 'not filled'}
                             </div>
                             <div className={criteria.ritualsMet ? 'text-chart-3' : 'text-muted-foreground'}>
                               {criteria.ritualsMet ? '✓' : '○'} Rituals: {(weekData.ritualRate || 0).toFixed(0)}% {!criteria.ritualsMet && '(need 80%+)'}
@@ -174,7 +174,7 @@ export default function PlatinumProgress({
             <ul className="text-sm text-muted-foreground space-y-1">
               <li className="flex items-center gap-2">
                 <Check className="w-4 h-4 text-chart-3" />
-                HERCM scores filled
+                HRCM scores filled
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-4 h-4 text-chart-3" />

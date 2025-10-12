@@ -2,10 +2,10 @@ import PlatinumProgress from '../PlatinumProgress';
 
 export default function PlatinumProgressExample() {
   const weekStatuses = [
-    { week: 1, hercmCompleted: true, checklistCompleted: true, ritualRate: 85 },
-    { week: 2, hercmCompleted: true, checklistCompleted: true, ritualRate: 90 },
-    { week: 3, hercmCompleted: true, checklistCompleted: false, ritualRate: 75 },
-    { week: 4, hercmCompleted: false, checklistCompleted: false, ritualRate: 0 }
+    { week: 1, hrcmCompleted: true, checklistCompleted: true, ritualRate: 85 },
+    { week: 2, hrcmCompleted: true, checklistCompleted: true, ritualRate: 90 },
+    { week: 3, hrcmCompleted: true, checklistCompleted: false, ritualRate: 75 },
+    { week: 4, hrcmCompleted: false, checklistCompleted: false, ritualRate: 0 }
   ];
 
   return (

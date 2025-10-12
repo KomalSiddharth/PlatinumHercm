@@ -1,9 +1,9 @@
-import HERCMCard from '../HERCMCard';
+import HRCMCard from '../HRCMCard';
 
-export default function HERCMCardExample() {
+export default function HRCMCardExample() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8 max-w-4xl">
-      <HERCMCard
+      <HRCMCard
         category="health"
         current={7}
         target={8}
@@ -11,7 +11,7 @@ export default function HERCMCardExample() {
         onTargetChange={(val) => console.log('Health target:', val)}
         onViewChecklist={() => console.log('View health checklist')}
       />
-      <HERCMCard
+      <HRCMCard
         category="relationship"
         current={6}
         target={7}
@@ -19,7 +19,7 @@ export default function HERCMCardExample() {
         onTargetChange={(val) => console.log('Relationship target:', val)}
         onViewChecklist={() => console.log('View relationship checklist')}
       />
-      <HERCMCard
+      <HRCMCard
         category="career"
         current={8}
         target={9}
@@ -27,7 +27,7 @@ export default function HERCMCardExample() {
         onTargetChange={(val) => console.log('Career target:', val)}
         onViewChecklist={() => console.log('View career checklist')}
       />
-      <HERCMCard
+      <HRCMCard
         category="money"
         current={5}
         target={6}

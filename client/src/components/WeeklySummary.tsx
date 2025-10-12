@@ -46,8 +46,8 @@ export default function WeeklySummary({
         </div>
         <p className="text-sm text-muted-foreground">
           {completionPercent === 100
-            ? 'Amazing! All HERCM areas completed this week!'
-            : `${areasCompleted} out of ${totalAreas} HERCM areas completed. Keep going!`}
+            ? 'Amazing! All HRCM areas completed this week!'
+            : `${areasCompleted} out of ${totalAreas} HRCM areas completed. Keep going!`}
         </p>
       </CardContent>
     </Card>

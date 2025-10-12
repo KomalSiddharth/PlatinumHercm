@@ -18,7 +18,7 @@ interface ChecklistItem {
   checked: boolean;
 }
 
-interface HERCMArea {
+interface HRCMArea {
   category: 'Health' | 'Relationship' | 'Career' | 'Money';
   currentRating?: number;
   problems?: string;
@@ -34,11 +34,11 @@ interface HERCMArea {
 
 interface WeekData {
   weekNumber: number;
-  areas: HERCMArea[];
+  areas: HRCMArea[];
   overallProgress: number;
 }
 
-interface HERCMHistoryModalProps {
+interface HRCMHistoryModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   currentWeek: number;
@@ -205,7 +205,7 @@ const getTrendIcon = (current: number, previous: number) => {
   return <Minus className="h-4 w-4 text-muted-foreground" />;
 };
 
-export default function HERCMHistoryModal({ open, onOpenChange, currentWeek }: HERCMHistoryModalProps) {
+export default function HRCMHistoryModal({ open, onOpenChange, currentWeek }: HRCMHistoryModalProps) {
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
 
   // Helper function to calculate progress
@@ -229,7 +229,7 @@ export default function HERCMHistoryModal({ open, onOpenChange, currentWeek }: H
     for (const weekData of allWeeksData) {
       // Transform category-specific database fields back to beliefs array format
       const categories = ['Health', 'Relationship', 'Career', 'Money'] as const;
-      const areas: HERCMArea[] = categories.map((category) => {
+      const areas: HRCMArea[] = categories.map((category) => {
         const prefix = category.toLowerCase();
         
         return {
@@ -292,7 +292,7 @@ export default function HERCMHistoryModal({ open, onOpenChange, currentWeek }: H
       <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto" data-testid="modal-hercm-history">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
-            <span>HERCM History</span>
+            <span>HRCM History</span>
             <Button
               variant="ghost"
               size="icon"
@@ -303,7 +303,7 @@ export default function HERCMHistoryModal({ open, onOpenChange, currentWeek }: H
             </Button>
           </DialogTitle>
           <DialogDescription>
-            View exact snapshots of your HERCM table for each completed week
+            View exact snapshots of your HRCM table for each completed week
           </DialogDescription>
         </DialogHeader>
 
@@ -357,7 +357,7 @@ export default function HERCMHistoryModal({ open, onOpenChange, currentWeek }: H
                   <table className="w-full">
                     <thead>
                       <tr className="bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-950/30 dark:to-pink-950/30">
-                        <th className="p-3 text-left text-sm font-bold border-r">HERCM Area</th>
+                        <th className="p-3 text-left text-sm font-bold border-r">HRCM Area</th>
                         <th className="p-3 text-left text-sm font-semibold bg-rose-100 dark:bg-rose-900/40 w-[80px]">Rating</th>
                         <th className="p-3 text-left text-sm font-semibold bg-rose-100 dark:bg-rose-900/40 w-[180px]">Problems</th>
                         <th className="p-3 text-left text-sm font-semibold bg-rose-100 dark:bg-rose-900/40 w-[150px]">Feelings</th>
