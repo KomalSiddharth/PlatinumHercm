@@ -221,43 +221,41 @@ export default function HERCMHistoryModal({ open, onOpenChange, currentWeek }: H
     enabled: open, // Only fetch when modal is open
   });
 
-  // Transform API data to match WeekData format and filter for completed weeks only
+  // Transform API data to match WeekData format - show all saved weeks including current
   const historicalData: WeekData[] = [];
   
   if (allWeeksData && Array.isArray(allWeeksData)) {
-    // Use real database data
+    // Use real database data - include all weeks (including current week if saved)
     for (const weekData of allWeeksData) {
-      if (weekData.weekNumber < currentWeek) {
-        // Transform category-specific database fields back to beliefs array format
-        const categories = ['Health', 'Relationship', 'Career', 'Money'] as const;
-        const areas: HERCMArea[] = categories.map((category) => {
-          const prefix = category.toLowerCase();
-          
-          return {
-            category,
-            currentRating: undefined, // Rating not stored per category in database
-            problems: weekData[`${prefix}Problems`] || '',
-            currentFeelings: weekData[`${prefix}CurrentFeelings`] || '',
-            currentBelief: weekData[`${prefix}CurrentBelief`] || '',
-            currentActions: weekData[`${prefix}CurrentActions`] || '',
-            nextWeekTarget: weekData[`${prefix}NextTarget`] || '',
-            courseSuggestion: weekData[`${prefix}CourseSuggestion`] || '',
-            affirmation: weekData[`${prefix}Affirmation`] || '',
-            checklist: weekData[`${prefix}Checklist`] || [],
-            progress: calculateProgress(weekData[`${prefix}Checklist`] || []),
-          };
-        });
+      // Transform category-specific database fields back to beliefs array format
+      const categories = ['Health', 'Relationship', 'Career', 'Money'] as const;
+      const areas: HERCMArea[] = categories.map((category) => {
+        const prefix = category.toLowerCase();
         
-        const overallProgress = areas.length > 0
-          ? Math.round(areas.reduce((sum, area) => sum + area.progress, 0) / areas.length)
-          : 0;
-        
-        historicalData.push({
-          weekNumber: weekData.weekNumber,
-          areas,
-          overallProgress,
-        });
-      }
+        return {
+          category,
+          currentRating: undefined, // Rating not stored per category in database
+          problems: weekData[`${prefix}Problems`] || '',
+          currentFeelings: weekData[`${prefix}CurrentFeelings`] || '',
+          currentBelief: weekData[`${prefix}CurrentBelief`] || '',
+          currentActions: weekData[`${prefix}CurrentActions`] || '',
+          nextWeekTarget: weekData[`${prefix}NextTarget`] || '',
+          courseSuggestion: weekData[`${prefix}CourseSuggestion`] || '',
+          affirmation: weekData[`${prefix}Affirmation`] || '',
+          checklist: weekData[`${prefix}Checklist`] || [],
+          progress: calculateProgress(weekData[`${prefix}Checklist`] || []),
+        };
+      });
+      
+      const overallProgress = areas.length > 0
+        ? Math.round(areas.reduce((sum, area) => sum + area.progress, 0) / areas.length)
+        : 0;
+      
+      historicalData.push({
+        weekNumber: weekData.weekNumber,
+        areas,
+        overallProgress,
+      });
     }
   }
   
