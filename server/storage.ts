@@ -47,6 +47,8 @@ export interface IStorage {
   
   // Platinum Progress operations
   getPlatinumProgress(userId: string): Promise<PlatinumProgress | undefined>;
+  createPlatinumProgress(progress: InsertPlatinumProgress): Promise<PlatinumProgress>;
+  updatePlatinumProgress(userId: string, progress: Partial<InsertPlatinumProgress>): Promise<PlatinumProgress>;
   upsertPlatinumProgress(progress: InsertPlatinumProgress): Promise<PlatinumProgress>;
   
   // Approved Emails operations
@@ -182,6 +184,23 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(platinumProgress)
       .where(eq(platinumProgress.userId, userId));
+    return progress;
+  }
+
+  async createPlatinumProgress(progressData: InsertPlatinumProgress): Promise<PlatinumProgress> {
+    const [progress] = await db
+      .insert(platinumProgress)
+      .values(progressData as any)
+      .returning();
+    return progress;
+  }
+
+  async updatePlatinumProgress(userId: string, progressData: Partial<InsertPlatinumProgress>): Promise<PlatinumProgress> {
+    const [progress] = await db
+      .update(platinumProgress)
+      .set({ ...progressData, updatedAt: new Date() } as any)
+      .where(eq(platinumProgress.userId, userId))
+      .returning();
     return progress;
   }
 
