@@ -1053,9 +1053,10 @@ Return ONLY valid JSON in this exact format:
             return sum + ritualPoints;
           }, 0);
           
+          const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
           return {
             userId: user.id,
-            name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
+            name: fullName || user.email || 'Unknown User',
             email: user.email,
             points,
             isCurrentUser: user.id === currentUserId,

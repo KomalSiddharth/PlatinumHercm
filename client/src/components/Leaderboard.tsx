@@ -107,13 +107,13 @@ export default function Leaderboard({ entries, period, currentUserId }: Leaderbo
 
                 <Avatar className="w-10 h-10">
                   <AvatarFallback className="bg-primary/20 text-primary text-sm font-medium">
-                    {entry.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                    {(entry.name || entry.email || 'U').split(' ').map(n => n[0]).join('').toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
 
                 <div className="flex-1 min-w-0">
                   <p className={`font-medium truncate ${isCurrentUser ? 'text-primary' : 'text-foreground'}`}>
-                    {entry.name}
+                    {entry.name || entry.email || 'Unknown User'}
                     {isCurrentUser && (
                       <span className="ml-2 text-xs text-primary font-normal">(You)</span>
                     )}

@@ -474,6 +474,31 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
             View History
           </Button>
           <Button 
+            onClick={() => {
+              // Manually trigger save with current week data
+              saveWeekMutation.mutate({
+                weekNumber,
+                year: new Date().getFullYear(),
+                beliefs,
+              });
+            }}
+            disabled={saveWeekMutation.isPending}
+            variant="default"
+            data-testid="button-save-week"
+          >
+            {saveWeekMutation.isPending ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4 mr-2" />
+                Save Week
+              </>
+            )}
+          </Button>
+          <Button 
             onClick={handleAutoFillNextWeek}
             disabled={autoFilling}
             className="bg-gradient-to-r from-cyan-500 to-blue-500"
