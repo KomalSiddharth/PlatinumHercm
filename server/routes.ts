@@ -369,6 +369,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin: Get specific user's detailed analytics (rituals, badges, progress)
+  app.get('/api/admin/user/:userId/analytics', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      // Get user info
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Get HRCM weeks
+      const weeks = await storage.getHercmWeeksByUser(userId);
+      
+      // Get rituals
+      const rituals = await storage.getRitualsByUser(userId);
+      
+      // Get today's completions
+      const todayDate = new Date().toISOString().split('T')[0];
+      const todayCompletions = await storage.getRitualCompletionsByDate(userId, todayDate);
+      
+      // Calculate ritual points
+      const ritualPoints = rituals.reduce((sum, ritual) => {
+        const isCompleted = todayCompletions.some(c => c.ritualId === ritual.id);
+        if (!isCompleted || !ritual.isActive) return sum;
+        const points = ritual.frequency === 'daily' ? 50 : 75;
+        return sum + points;
+      }, 0);
+      
+      // Get platinum progress/badges
+      const platinumProgress = await storage.getPlatinumProgress(userId);
+      
+      // Calculate weekly analytics
+      const weeklyAnalytics = weeks.map(week => ({
+        weekNumber: week.weekNumber,
+        overallScore: week.overallScore,
+        achievementRate: week.achievementRate,
+        currentH: week.currentH,
+        currentE: week.currentE,
+        currentR: week.currentR,
+        currentC: week.currentC,
+      }));
+      
+      res.json({
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          isAdmin: user.isAdmin,
+        },
+        weeks: weeklyAnalytics,
+        rituals: rituals.map(r => ({
+          id: r.id,
+          title: r.title,
+          frequency: r.frequency,
+          isActive: r.isActive,
+          completed: todayCompletions.some(c => c.ritualId === r.id),
+        })),
+        ritualPoints,
+        platinumProgress: platinumProgress || { badges: [], currentStreak: 0, totalPoints: 0 },
+      });
+    } catch (error) {
+      console.error("Error fetching user analytics:", error);
+      res.status(500).json({ message: "Failed to fetch user analytics" });
+    }
+  });
+
   // Admin analytics - Get all users progress summary
   app.get('/api/admin/users-analytics', isAuthenticated, isAdmin, async (req, res) => {
     try {
