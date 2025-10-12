@@ -232,9 +232,17 @@ export default function HRCMHistoryModal({ open, onOpenChange, currentWeek }: HR
       const areas: HRCMArea[] = categories.map((category) => {
         const prefix = category.toLowerCase();
         
+        // Get the current rating for each category (H=Health, E=Relationship, R=Career, C=Money)
+        const ratingMap = {
+          health: weekData.currentH,
+          relationship: weekData.currentE,
+          career: weekData.currentR,
+          money: weekData.currentC,
+        };
+        
         return {
           category,
-          currentRating: undefined, // Rating not stored per category in database
+          currentRating: ratingMap[prefix as keyof typeof ratingMap],
           problems: weekData[`${prefix}Problems`] || '',
           currentFeelings: weekData[`${prefix}CurrentFeelings`] || '',
           currentBelief: weekData[`${prefix}CurrentBelief`] || '',
@@ -262,8 +270,8 @@ export default function HRCMHistoryModal({ open, onOpenChange, currentWeek }: HR
   // Sort by week number to ensure correct chronological order for trends
   historicalData.sort((a, b) => a.weekNumber - b.weekNumber);
   
-  // Fallback to generated data if no API data (for demo purposes)
-  const mockHistoricalData = historicalData.length > 0 ? historicalData : generateHistoricalData(currentWeek);
+  // Use real data, no mock fallback - if no data, show empty message
+  const mockHistoricalData = historicalData;
 
   // Calculate trends
   const calculateTrends = () => {
