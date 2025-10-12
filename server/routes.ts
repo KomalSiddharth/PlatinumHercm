@@ -252,7 +252,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Map course and affirmation
           weekData[`${prefix}CourseSuggestion`] = belief.courseSuggestion || '';
-          weekData[`${prefix}Affirmation`] = belief.affirmation || '';
+          weekData[`${prefix}Affirmation`] = belief.affirmationSuggestion || '';
           
           // Map checklist
           weekData[`${prefix}Checklist`] = belief.checklist || [];

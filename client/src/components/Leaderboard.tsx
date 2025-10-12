@@ -7,6 +7,7 @@ interface LeaderboardEntry {
   rank: number;
   userId: string;
   name: string;
+  email?: string;
   points: number;
   isCurrentUser?: boolean;
 }
