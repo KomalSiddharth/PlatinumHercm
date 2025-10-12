@@ -1,4 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import DashboardHeader from '@/components/DashboardHeader';
 import UnifiedHERCMTable from '@/components/UnifiedHERCMTable';
 import AddRitualForm from '@/components/AddRitualForm';
@@ -11,6 +13,9 @@ import EditRitualModal from '@/components/EditRitualModal';
 import UpdateProgressModal from '@/components/UpdateProgressModal';
 import HERCMHistoryModal from '@/components/HERCMHistoryModal';
 import { useToast } from '@/hooks/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card } from '@/components/ui/card';
+import type { Ritual as DbRitual, RitualCompletion } from '@shared/schema';
 
 interface Ritual {
   id: string;
@@ -21,6 +26,47 @@ interface Ritual {
   completed: boolean;
   history: { date: string; completed: boolean }[];
 }
+
+// Helper function to get today's date in YYYY-MM-DD format
+const getTodayDate = () => {
+  const today = new Date();
+  return today.toISOString().split('T')[0];
+};
+
+// Helper function to generate current month history
+const generateCurrentMonthHistory = (completions: RitualCompletion[] = []) => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  
+  const history = [];
+  for (let day = 1; day <= daysInMonth; day++) {
+    const date = new Date(year, month, day);
+    const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const isoDate = date.toISOString().split('T')[0];
+    const isCompleted = completions.some(c => c.date === isoDate);
+    
+    history.push({
+      date: dateStr,
+      completed: isCompleted
+    });
+  }
+  
+  return history;
+};
+
+// Map frequency to recurrence
+const mapFrequencyToRecurrence = (frequency: string): 'daily' | 'mon-fri' | 'custom' => {
+  if (frequency === 'weekly') return 'mon-fri';
+  return 'daily';
+};
+
+// Calculate points based on frequency
+const calculatePoints = (frequency: string): number => {
+  return frequency === 'daily' ? 50 : 75;
+};
 
 export default function Dashboard() {
   const { toast } = useToast();
@@ -37,65 +83,52 @@ export default function Dashboard() {
   const [userEmail, setUserEmail] = useState('john@example.com');
   const [totalPoints, setTotalPoints] = useState(0);
   
-  const generateCurrentMonthHistory = () => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
-    const today = now.getDate();
-    
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    
-    const history = [];
-    for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(year, month, day);
-      const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      history.push({
-        date: dateStr,
-        completed: false
-      });
-    }
-    
-    return history;
-  };
-
-  const [rituals, setRituals] = useState<Ritual[]>([
-    {
-      id: '1',
-      title: 'Morning meditation',
-      recurrence: 'daily',
-      points: 50,
-      active: true,
-      completed: false,
-      history: generateCurrentMonthHistory()
-    },
-    {
-      id: '2',
-      title: 'Read for 30 minutes',
-      recurrence: 'daily',
-      points: 75,
-      active: true,
-      completed: false,
-      history: generateCurrentMonthHistory()
-    }
-  ]);
+  const todayDate = useMemo(() => getTodayDate(), []);
+  
+  // Fetch rituals from database
+  const { data: dbRituals = [], isLoading: ritualsLoading } = useQuery<DbRitual[]>({
+    queryKey: ['/api/rituals'],
+  });
+  
+  // Fetch today's ritual completions
+  const { data: todayCompletions = [] } = useQuery<RitualCompletion[]>({
+    queryKey: ['/api/ritual-completions', todayDate],
+  });
+  
+  // Map database rituals to Dashboard Ritual interface
+  const rituals: Ritual[] = useMemo(() => {
+    return dbRituals.map(dbRitual => {
+      const points = calculatePoints(dbRitual.frequency);
+      const isCompleted = todayCompletions.some(c => c.ritualId === dbRitual.id);
+      // For now, history only shows today's completion
+      // TODO: Fetch all completions for the month when viewing history
+      const ritualCompletions = todayCompletions.filter(c => c.ritualId === dbRitual.id);
+      
+      return {
+        id: dbRitual.id,
+        title: dbRitual.title,
+        recurrence: mapFrequencyToRecurrence(dbRitual.frequency),
+        points,
+        active: dbRitual.isActive,
+        completed: isCompleted,
+        history: generateCurrentMonthHistory(ritualCompletions)
+      };
+    });
+  }, [dbRituals, todayCompletions]);
 
   const hercmRef = useRef<HTMLDivElement>(null);
   const ritualsRef = useRef<HTMLDivElement>(null);
   const coursesRef = useRef<HTMLDivElement>(null);
 
   const [currentWeek, setCurrentWeek] = useState(1);
-
+  
+  // Calculate total points from completed rituals
   useEffect(() => {
-    const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    
-    setRituals(prevRituals => prevRituals.map(ritual => {
-      const todayHistory = ritual.history.find(h => h.date === today);
-      return {
-        ...ritual,
-        completed: todayHistory?.completed || false
-      };
-    }));
-  }, []);
+    const points = rituals
+      .filter(r => r.completed)
+      .reduce((sum, r) => sum + r.points, 0);
+    setTotalPoints(points);
+  }, [rituals]);
 
   const scrollToSection = (section: string) => {
     const refs = {
@@ -111,61 +144,112 @@ export default function Dashboard() {
     setActiveSection(section);
   };
 
+  // Mutation: Add ritual
+  const addRitualMutation = useMutation({
+    mutationFn: async (newRitual: { title: string; recurrence: string; points: number }) => {
+      const frequency = newRitual.recurrence === 'mon-fri' ? 'weekly' : 'daily';
+      const response = await apiRequest('POST', '/api/rituals', {
+        title: newRitual.title,
+        description: '',
+        category: 'Health', // Default category
+        frequency,
+      });
+      return response.json();
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/rituals'] });
+      toast({
+        title: 'Ritual Added',
+        description: `${variables.title} has been added to your daily rituals.`
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to add ritual',
+        variant: 'destructive'
+      });
+    }
+  });
+  
   const handleAddRitual = (newRitual: { title: string; recurrence: string; points: number }) => {
-    const ritual: Ritual = {
-      id: Date.now().toString(),
-      title: newRitual.title,
-      recurrence: newRitual.recurrence as 'daily' | 'mon-fri' | 'custom',
-      points: newRitual.points,
-      active: true,
-      completed: false,
-      history: generateCurrentMonthHistory()
-    };
-    
-    setRituals([...rituals, ritual]);
-    toast({
-      title: 'Ritual Added',
-      description: `${newRitual.title} has been added to your daily rituals.`
-    });
+    addRitualMutation.mutate(newRitual);
   };
 
-  const handleToggleComplete = (id: string) => {
-    const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    
-    setRituals(rituals.map(ritual => {
-      if (ritual.id === id && ritual.active) {
-        const newCompleted = !ritual.completed;
-        
-        const updatedHistory = ritual.history.map(h => 
-          h.date === today ? { ...h, completed: newCompleted } : h
-        );
-        
-        if (newCompleted) {
-          setTotalPoints(prev => prev + ritual.points);
-          toast({
-            title: 'Points Earned!',
-            description: `+${ritual.points} points for completing ${ritual.title}`,
-          });
-        } else {
-          setTotalPoints(prev => Math.max(0, prev - ritual.points));
-        }
-        return { ...ritual, completed: newCompleted, history: updatedHistory };
+  // Mutation: Toggle ritual completion
+  const toggleCompleteMutation = useMutation({
+    mutationFn: async ({ id, isCompleted }: { id: string; isCompleted: boolean }) => {
+      if (isCompleted) {
+        // Delete completion
+        await apiRequest('DELETE', `/api/ritual-completions/${id}/${todayDate}`);
+      } else {
+        // Create completion
+        await apiRequest('POST', '/api/ritual-completions', {
+          ritualId: id,
+          date: todayDate,
+        });
       }
-      return ritual;
-    }));
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/ritual-completions', todayDate] });
+      
+      const ritual = rituals.find(r => r.id === variables.id);
+      if (ritual && !variables.isCompleted) {
+        toast({
+          title: 'Points Earned!',
+          description: `+${ritual.points} points for completing ${ritual.title}`,
+        });
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update completion',
+        variant: 'destructive'
+      });
+    }
+  });
+  
+  const handleToggleComplete = (id: string) => {
+    const ritual = rituals.find(r => r.id === id);
+    if (ritual && ritual.active) {
+      toggleCompleteMutation.mutate({ id, isCompleted: ritual.completed });
+    }
   };
 
+  // Mutation: Toggle ritual active status
+  const toggleActiveMutation = useMutation({
+    mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
+      const response = await apiRequest('PATCH', `/api/rituals/${id}`, {
+        isActive: !isActive,
+      });
+      return response.json();
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/rituals'] });
+      
+      const ritual = rituals.find(r => r.id === variables.id);
+      toast({
+        title: variables.isActive ? 'Ritual Paused' : 'Ritual Resumed',
+        description: variables.isActive 
+          ? `${ritual?.title} has been paused.`
+          : `${ritual?.title} is now active again.`
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update ritual',
+        variant: 'destructive'
+      });
+    }
+  });
+  
   const handleToggleActive = (id: string) => {
-    setRituals(rituals.map(ritual =>
-      ritual.id === id ? { ...ritual, active: !ritual.active } : ritual
-    ));
     const ritual = rituals.find(r => r.id === id);
-    toast({
-      title: ritual?.active ? 'Ritual Paused' : 'Ritual Resumed',
-      description: ritual?.active 
-        ? `${ritual.title} has been paused.`
-        : `${ritual?.title} is now active again.`
-    });
+    if (ritual) {
+      toggleActiveMutation.mutate({ id, isActive: ritual.active });
+    }
   };
 
   const handleViewHistory = (id: string) => {
@@ -184,28 +268,63 @@ export default function Dashboard() {
     }
   };
 
-  const handleSaveEdit = (updatedRitual: { id: string; title: string; recurrence: string; points: number }) => {
-    setRituals(rituals.map(ritual =>
-      ritual.id === updatedRitual.id
-        ? { ...ritual, ...updatedRitual, recurrence: updatedRitual.recurrence as 'daily' | 'mon-fri' | 'custom' }
-        : ritual
-    ));
-    toast({
-      title: 'Ritual Updated',
-      description: `${updatedRitual.title} has been updated.`
-    });
-  };
-
-  const handleDeleteRitual = (id: string) => {
-    const ritual = rituals.find(r => r.id === id);
-    if (ritual) {
-      setRituals(rituals.filter(r => r.id !== id));
+  // Mutation: Update ritual
+  const updateRitualMutation = useMutation({
+    mutationFn: async (updatedRitual: { id: string; title: string; recurrence: string; points: number }) => {
+      const frequency = updatedRitual.recurrence === 'mon-fri' ? 'weekly' : 'daily';
+      const response = await apiRequest('PATCH', `/api/rituals/${updatedRitual.id}`, {
+        title: updatedRitual.title,
+        frequency,
+      });
+      return response.json();
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/rituals'] });
       toast({
-        title: 'Ritual Deleted',
-        description: `${ritual.title} has been removed.`,
+        title: 'Ritual Updated',
+        description: `${variables.title} has been updated.`
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update ritual',
         variant: 'destructive'
       });
     }
+  });
+  
+  const handleSaveEdit = (updatedRitual: { id: string; title: string; recurrence: string; points: number }) => {
+    updateRitualMutation.mutate(updatedRitual);
+  };
+
+  // Mutation: Delete ritual
+  const deleteRitualMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await apiRequest('DELETE', `/api/rituals/${id}`);
+    },
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/rituals'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ritual-completions', todayDate] });
+      
+      const ritual = rituals.find(r => r.id === id);
+      toast({
+        title: 'Ritual Deleted',
+        description: `${ritual?.title} has been removed.`,
+        variant: 'destructive'
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete ritual',
+        variant: 'destructive'
+      });
+    }
+  });
+  
+  const handleDeleteRitual = (id: string) => {
+    deleteRitualMutation.mutate(id);
   };
 
   const handleSaveProfile = (data: { name: string; email: string }) => {
@@ -371,24 +490,42 @@ export default function Dashboard() {
 
             <AddRitualForm onAdd={handleAddRitual} />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {rituals.map((ritual) => (
-                <RitualCard
-                  key={ritual.id}
-                  {...ritual}
-                  onToggleComplete={handleToggleComplete}
-                  onToggleActive={handleToggleActive}
-                  onViewHistory={handleViewHistory}
-                  onEdit={handleEditRitual}
-                  onDelete={handleDeleteRitual}
-                />
-              ))}
-            </div>
-
-            {rituals.length === 0 && (
-              <div className="text-center py-12 border-2 border-dashed rounded-lg">
-                <p className="text-muted-foreground">No rituals yet. Add your first ritual above!</p>
+            {ritualsLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[1, 2].map((i) => (
+                  <Card key={i} className="p-4">
+                    <Skeleton className="h-6 w-3/4 mb-3" />
+                    <Skeleton className="h-4 w-1/2 mb-4" />
+                    <div className="flex gap-2">
+                      <Skeleton className="h-8 w-20" />
+                      <Skeleton className="h-8 w-20" />
+                      <Skeleton className="h-8 w-20" />
+                    </div>
+                  </Card>
+                ))}
               </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {rituals.map((ritual) => (
+                    <RitualCard
+                      key={ritual.id}
+                      {...ritual}
+                      onToggleComplete={handleToggleComplete}
+                      onToggleActive={handleToggleActive}
+                      onViewHistory={handleViewHistory}
+                      onEdit={handleEditRitual}
+                      onDelete={handleDeleteRitual}
+                    />
+                  ))}
+                </div>
+
+                {rituals.length === 0 && (
+                  <div className="text-center py-12 border-2 border-dashed rounded-lg">
+                    <p className="text-muted-foreground">No rituals yet. Add your first ritual above!</p>
+                  </div>
+                )}
+              </>
             )}
 
             <Leaderboard entries={leaderboardEntries} period="week" currentUserId="2" />
