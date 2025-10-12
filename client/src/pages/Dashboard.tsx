@@ -417,7 +417,7 @@ export default function Dashboard() {
     {
       id: 'health-mastery',
       title: 'Health Mastery Course',
-      url: 'https://coaching.miteshkhatri.com/library?page=1',
+      url: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym',
       tags: ['Health', 'Wellness', 'Fitness'],
       source: 'Mitesh Khatri Coaching',
       estimatedHours: 20,
@@ -427,7 +427,7 @@ export default function Dashboard() {
     {
       id: 'wealth-mastery',
       title: 'Wealth Mastery Course',
-      url: 'https://coaching.miteshkhatri.com/library?page=1',
+      url: 'https://www.miteshkhatri.com/MoneyAssessment',
       tags: ['Finance', 'Money', 'Investment'],
       source: 'Mitesh Khatri Coaching',
       estimatedHours: 25,
@@ -437,7 +437,7 @@ export default function Dashboard() {
     {
       id: 'relationship-mastery',
       title: 'Relationship Mastery Course',
-      url: 'https://coaching.miteshkhatri.com/library?page=1',
+      url: 'https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri',
       tags: ['Relationships', 'Communication', 'Connection'],
       source: 'Mitesh Khatri Coaching',
       estimatedHours: 18,
@@ -447,7 +447,7 @@ export default function Dashboard() {
     {
       id: 'career-mastery',
       title: 'Career Mastery Course',
-      url: 'https://coaching.miteshkhatri.com/library?page=1',
+      url: 'https://coaching.miteshkhatri.com/products/lead-business',
       tags: ['Career', 'Growth', 'Success'],
       source: 'Mitesh Khatri Coaching',
       estimatedHours: 22,
