@@ -32,7 +32,7 @@ export default function Login() {
       
       toast({
         title: "Login Successful",
-        description: "Welcome to Platinum HERCM Dashboard"
+        description: "Welcome to Platinum HRCM Dashboard"
       });
       setLocation('/dashboard');
     } catch (error: any) {
