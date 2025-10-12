@@ -1044,12 +1044,13 @@ Return ONLY valid JSON in this exact format:
           const userRituals = await storage.getRitualsByUser(user.id);
           const todayCompletions = await storage.getRitualCompletionsByDate(user.id, todayDate);
           
-          // Calculate points: daily=50, weekly=75
+          // Calculate points using actual ritual.points from database
           const points = userRituals.reduce((sum, ritual) => {
             const isCompleted = todayCompletions.some(c => c.ritualId === ritual.id);
             if (!isCompleted || !ritual.isActive) return sum;
             
-            const ritualPoints = ritual.frequency === 'daily' ? 50 : 75;
+            // Use custom points from database, fallback to 50 if not set
+            const ritualPoints = ritual.points || 50;
             return sum + ritualPoints;
           }, 0);
           

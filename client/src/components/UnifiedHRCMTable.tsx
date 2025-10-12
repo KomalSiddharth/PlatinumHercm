@@ -84,7 +84,7 @@ const getBlankBeliefs = (): HRCMBelief[] => {
       nextActions: '',
       checklist: [],
       courseSuggestion: '',
-      affirmationSuggestion: ''
+      affirmationSuggestion: 'I am healthy, strong, and full of energy. My body deserves care and nourishment.'
     },
     {
       category: 'Relationship',
@@ -100,7 +100,7 @@ const getBlankBeliefs = (): HRCMBelief[] => {
       nextActions: '',
       checklist: [],
       courseSuggestion: '',
-      affirmationSuggestion: ''
+      affirmationSuggestion: 'I attract loving relationships. I communicate with clarity, love, and respect.'
     },
     {
       category: 'Career',
@@ -116,7 +116,7 @@ const getBlankBeliefs = (): HRCMBelief[] => {
       nextActions: '',
       checklist: [],
       courseSuggestion: '',
-      affirmationSuggestion: ''
+      affirmationSuggestion: 'I am capable and skilled. Success flows to me naturally as I follow my purpose.'
     },
     {
       category: 'Money',
@@ -132,7 +132,7 @@ const getBlankBeliefs = (): HRCMBelief[] => {
       nextActions: '',
       checklist: [],
       courseSuggestion: '',
-      affirmationSuggestion: ''
+      affirmationSuggestion: 'I am a money magnet. Abundance flows to me from multiple sources with ease.'
     }
   ];
 };
@@ -715,10 +715,10 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
               <TableHead className="w-[180px] bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/40 dark:to-blue-900/40 font-semibold">
                 <div className="flex items-center gap-1">
                   <Sparkles className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
-                  Affirmations
+                  AI Course
                 </div>
               </TableHead>
-              <TableHead className="w-[200px] bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900/40 dark:to-violet-900/40 font-semibold">Checklist (3)</TableHead>
+              <TableHead className="w-[200px] bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900/40 dark:to-violet-900/40 font-semibold">Checklist</TableHead>
               <TableHead className="w-[100px] bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 font-semibold text-center">Progress</TableHead>
             </TableRow>
           </TableHeader>
@@ -983,7 +983,7 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                   Affirmations
                 </div>
               </TableHead>
-              <TableHead className="w-[200px] bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900/40 dark:to-violet-900/40 font-semibold">Checklist (3)</TableHead>
+              <TableHead className="w-[200px] bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900/40 dark:to-violet-900/40 font-semibold">Checklist</TableHead>
               <TableHead className="w-[100px] bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 font-semibold text-center">Progress</TableHead>
             </TableRow>
           </TableHeader>
