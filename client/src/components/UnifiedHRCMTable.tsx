@@ -240,7 +240,7 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
           if (b.category === category) {
             return { 
               ...b, 
-              courseSuggestion: `${topCourse.course.courseName} (${topCourse.score}% match)` 
+              courseSuggestion: `${topCourse.course.courseName} (${topCourse.score}% match)\nLink: ${topCourse.course.link}` 
             };
           }
           return b;
@@ -322,7 +322,8 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
     const { category, field } = editingField;
     let updatedBelief: HRCMBelief | undefined = undefined;
     
-    setBeliefs(prev => prev.map(belief => {
+    // Build updated beliefs array with checklist
+    const updatedBeliefs = beliefs.map(belief => {
       if (belief.category === category) {
         let updated = { ...belief, [field]: editValue } as HRCMBelief;
         
@@ -346,7 +347,10 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
         return updated;
       }
       return belief;
-    }));
+    });
+    
+    // Update local state
+    setBeliefs(updatedBeliefs);
     
     setEditingField(null);
     setEditValue('');
@@ -356,15 +360,11 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
       await fetchCourseRecommendation(category, updatedBelief);
     }
     
-    // Save to database
-    const currentBeliefs = beliefs.map(b => 
-      b.category === category ? { ...b, [field]: editValue } : b
-    );
-    
+    // Save to database with complete updated beliefs including checklist
     saveWeekMutation.mutate({
       weekNumber,
       year: new Date().getFullYear(),
-      beliefs: currentBeliefs,
+      beliefs: updatedBeliefs,
     });
   };
 
@@ -715,7 +715,7 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
               <TableHead className="w-[180px] bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/40 dark:to-blue-900/40 font-semibold">
                 <div className="flex items-center gap-1">
                   <Sparkles className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
-                  AI Course
+                  Affirmations
                 </div>
               </TableHead>
               <TableHead className="w-[200px] bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900/40 dark:to-violet-900/40 font-semibold">Checklist (3)</TableHead>
@@ -891,17 +891,41 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                   )}
                 </TableCell>
 
-                {/* AI Course Suggestion */}
+                {/* Course Recommendation with Link */}
                 <TableCell className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10">
                   {loadingCourses.has(belief.category) ? (
                     <div className="flex items-center gap-2">
                       <Loader2 className="w-4 h-4 animate-spin text-cyan-600" />
                       <span className="text-xs text-muted-foreground">Loading...</span>
                     </div>
+                  ) : belief.courseSuggestion ? (
+                    (() => {
+                      const lines = belief.courseSuggestion.split('\n');
+                      const courseName = lines[0] || '';
+                      const linkLine = lines.find(l => l.startsWith('Link:'));
+                      const link = linkLine ? linkLine.replace('Link:', '').trim() : '';
+                      
+                      return (
+                        <div className="space-y-1">
+                          <div className="text-xs text-cyan-700 dark:text-cyan-400 font-medium" data-testid={`text-course-${belief.category.toLowerCase()}`}>
+                            {courseName}
+                          </div>
+                          {link && (
+                            <a 
+                              href={link} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-xs text-blue-600 dark:text-blue-400 underline hover:text-blue-800 dark:hover:text-blue-300"
+                              data-testid={`link-course-${belief.category.toLowerCase()}`}
+                            >
+                              View Course →
+                            </a>
+                          )}
+                        </div>
+                      );
+                    })()
                   ) : (
-                    <div className="text-xs text-cyan-700 dark:text-cyan-400 font-medium" data-testid={`text-course-${belief.category.toLowerCase()}`}>
-                      {belief.courseSuggestion}
-                    </div>
+                    <span className="text-xs text-muted-foreground italic">Fill problems to get recommendations</span>
                   )}
                 </TableCell>
 
@@ -956,7 +980,7 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
               <TableHead className="w-[180px] bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/40 dark:to-blue-900/40 font-semibold">
                 <div className="flex items-center gap-1">
                   <Sparkles className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
-                  AI Course
+                  Affirmations
                 </div>
               </TableHead>
               <TableHead className="w-[200px] bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900/40 dark:to-violet-900/40 font-semibold">Checklist (3)</TableHead>

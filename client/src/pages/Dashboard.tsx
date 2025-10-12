@@ -64,7 +64,8 @@ const mapFrequencyToRecurrence = (frequency: string): 'daily' | 'mon-fri' | 'cus
   return 'daily';
 };
 
-// Calculate points based on frequency
+// No longer needed - using points from database directly
+// Keeping for backward compatibility but will use dbRitual.points
 const calculatePoints = (frequency: string): number => {
   return frequency === 'daily' ? 50 : 75;
 };
@@ -115,7 +116,8 @@ export default function Dashboard() {
   // Map database rituals to Dashboard Ritual interface
   const rituals: Ritual[] = useMemo(() => {
     return dbRituals.map(dbRitual => {
-      const points = calculatePoints(dbRitual.frequency);
+      // Use points from database instead of calculating
+      const points = dbRitual.points || calculatePoints(dbRitual.frequency);
       const isCompleted = todayCompletions.some(c => c.ritualId === dbRitual.id);
       // For now, history only shows today's completion
       // TODO: Fetch all completions for the month when viewing history
@@ -175,6 +177,7 @@ export default function Dashboard() {
         description: '',
         category: 'Health', // Default category
         frequency,
+        points: newRitual.points,
       });
       return response.json();
     },
