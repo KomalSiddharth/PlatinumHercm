@@ -420,8 +420,9 @@ Return ONLY valid JSON in this exact format:
   "affirmation": "..."
 }`;
 
+      // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
       const completion = await openai.chat.completions.create({
-        model: "gpt-5-mini",
+        model: "gpt-5",
         messages: [
           { role: "system", content: "You are an expert life coach providing personalized goal suggestions. Always return valid JSON." },
           { role: "user", content: prompt }
