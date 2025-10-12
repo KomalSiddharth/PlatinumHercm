@@ -101,28 +101,40 @@ export const hercmWeeks = pgTable("hercm_weeks", {
   weekStatus: varchar("week_status").default('active').notNull(), // 'active', 'locked', 'completed'
   
   // Health
+  healthProblems: varchar("health_problems"),
+  healthCurrentFeelings: varchar("health_current_feelings"),
   healthCurrentBelief: varchar("health_current_belief"),
+  healthCurrentActions: varchar("health_current_actions"),
   healthNextTarget: varchar("health_next_target"),
   healthCourseSuggestion: varchar("health_course_suggestion"),
   healthAffirmation: varchar("health_affirmation"),
   healthChecklist: jsonb("health_checklist").$type<{ id: string; text: string; checked: boolean }[]>(),
   
   // Relationship
+  relationshipProblems: varchar("relationship_problems"),
+  relationshipCurrentFeelings: varchar("relationship_current_feelings"),
   relationshipCurrentBelief: varchar("relationship_current_belief"),
+  relationshipCurrentActions: varchar("relationship_current_actions"),
   relationshipNextTarget: varchar("relationship_next_target"),
   relationshipCourseSuggestion: varchar("relationship_course_suggestion"),
   relationshipAffirmation: varchar("relationship_affirmation"),
   relationshipChecklist: jsonb("relationship_checklist").$type<{ id: string; text: string; checked: boolean }[]>(),
   
   // Career
+  careerProblems: varchar("career_problems"),
+  careerCurrentFeelings: varchar("career_current_feelings"),
   careerCurrentBelief: varchar("career_current_belief"),
+  careerCurrentActions: varchar("career_current_actions"),
   careerNextTarget: varchar("career_next_target"),
   careerCourseSuggestion: varchar("career_course_suggestion"),
   careerAffirmation: varchar("career_affirmation"),
   careerChecklist: jsonb("career_checklist").$type<{ id: string; text: string; checked: boolean }[]>(),
   
   // Money
+  moneyProblems: varchar("money_problems"),
+  moneyCurrentFeelings: varchar("money_current_feelings"),
   moneyCurrentBelief: varchar("money_current_belief"),
+  moneyCurrentActions: varchar("money_current_actions"),
   moneyNextTarget: varchar("money_next_target"),
   moneyCourseSuggestion: varchar("money_course_suggestion"),
   moneyAffirmation: varchar("money_affirmation"),

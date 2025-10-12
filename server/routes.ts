@@ -131,6 +131,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       const weekData = { ...req.body, userId };
       
+      // Map beliefs array to category-specific database columns
+      if (weekData.beliefs && Array.isArray(weekData.beliefs)) {
+        weekData.beliefs.forEach((belief: any) => {
+          const prefix = belief.category.toLowerCase(); // 'health', 'relationship', 'career', 'money'
+          
+          // Map problems, feelings, actions fields
+          weekData[`${prefix}Problems`] = belief.problems || '';
+          weekData[`${prefix}CurrentFeelings`] = belief.currentFeelings || '';
+          weekData[`${prefix}CurrentBelief`] = belief.currentBelief || '';
+          weekData[`${prefix}CurrentActions`] = belief.currentActions || '';
+          
+          // Map next week target fields
+          weekData[`${prefix}NextTarget`] = belief.nextWeekTarget || '';
+          
+          // Map course and affirmation
+          weekData[`${prefix}CourseSuggestion`] = belief.courseSuggestion || '';
+          weekData[`${prefix}Affirmation`] = belief.affirmation || '';
+          
+          // Map checklist
+          weekData[`${prefix}Checklist`] = belief.checklist || [];
+        });
+      }
+      
       // Calculate improvements if targets exist
       if (weekData.targetH !== null && weekData.currentH !== null) {
         weekData.improvementH = weekData.currentH - (weekData.targetH || 0);
