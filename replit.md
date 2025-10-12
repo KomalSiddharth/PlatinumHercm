@@ -20,6 +20,11 @@ Preferred communication style: Simple, everyday language.
   - **User Auto-Creation**: Login flow uses upsertUser to create user record if not exists, preventing foreign key violations
   - **History Modal Fix**: Removed week filter (weekNumber < currentWeek) so ALL saved weeks including current Week 1 display in History modal
   - **E2E Test Success**: All 17 test steps passing - users can edit Problems/Feelings/Actions, save to database, view in History modal
+- **Next Week Target Rating Auto-Calculation**: Fixed to be read-only and auto-calculated as currentRating + 1
+  - **Read-Only Display**: Replaced editable input with blue badge showing target rating
+  - **Auto-Calculate Logic**: When current rating changes, target automatically updates to current+1 (e.g., 4→5, 7→8)
+  - **Visual Indicator**: Shows "(auto: X+1)" text to indicate it's calculated automatically
+  - **User Prevention**: Users cannot manually edit target rating - it's always exactly 1 point higher than current rating
 
 **October 11, 2025**
 - **Week Comparison Display**: Moved week-over-week comparison from main page to Dialog modal, triggered by clicking the "Weekly Progress" badge (shows for Week 2+)

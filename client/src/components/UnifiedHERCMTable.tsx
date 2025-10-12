@@ -1112,22 +1112,20 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
                   </Badge>
                 </TableCell>
 
-                {/* Next Week - Rating */}
+                {/* Next Week - Rating (Auto-calculated: Current + 1, Read-only) */}
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10">
-                  <Input
-                    type="number"
-                    min="1"
-                    max="10"
-                    value={belief.targetRating}
-                    onChange={(e) => {
-                      const newTarget = parseInt(e.target.value) || 1;
-                      setBeliefs(prev => prev.map(b => 
-                        b.category === belief.category ? { ...b, targetRating: newTarget } : b
-                      ));
-                    }}
-                    className="w-16 text-center"
-                    data-testid={`input-target-rating-${belief.category.toLowerCase()}`}
-                  />
+                  <div className="flex items-center justify-center gap-2">
+                    <Badge 
+                      variant="secondary" 
+                      className="w-12 justify-center font-bold text-base bg-blue-100 dark:bg-blue-900 border-blue-300 dark:border-blue-700"
+                      data-testid={`badge-target-rating-${belief.category.toLowerCase()}`}
+                    >
+                      {belief.targetRating}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground italic">
+                      (auto: {belief.currentRating}+1)
+                    </span>
+                  </div>
                 </TableCell>
 
                 {/* Next Week - Problems */}
