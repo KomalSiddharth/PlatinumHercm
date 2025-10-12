@@ -333,7 +333,7 @@ export default function HERCMHistoryModal({ open, onOpenChange, currentWeek }: H
                     <Badge className={getProgressColor(week.overallProgress)}>
                       {week.overallProgress}%
                     </Badge>
-                    {trend && getTrendIcon(week.overallProgress, mockHistoricalData[index - 1].overallProgress)}
+                    {trend && index > 0 && mockHistoricalData[index - 1] && getTrendIcon(week.overallProgress, mockHistoricalData[index - 1].overallProgress)}
                   </Button>
                 );
               })}

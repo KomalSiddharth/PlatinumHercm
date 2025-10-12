@@ -133,8 +133,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Map beliefs array to category-specific database columns
       if (weekData.beliefs && Array.isArray(weekData.beliefs)) {
+        // Initialize default values for all H-E-R-C-M columns
+        weekData.currentH = 1;
+        weekData.targetH = 1;
+        weekData.currentE = 1;
+        weekData.targetE = 1;
+        weekData.currentR = 1;
+        weekData.targetR = 1;
+        weekData.currentC = 1;
+        weekData.targetC = 1;
+        weekData.currentM = 1; // Default for unused Maturity column
+        weekData.targetM = 1;
+        
         weekData.beliefs.forEach((belief: any) => {
           const prefix = belief.category.toLowerCase(); // 'health', 'relationship', 'career', 'money'
+          
+          // Map rating fields to H-E-R-C-M format
+          if (belief.category === 'Health') {
+            weekData.currentH = belief.currentRating || 1;
+            weekData.targetH = belief.targetRating || 1;
+          } else if (belief.category === 'Relationship') {
+            weekData.currentE = belief.currentRating || 1;
+            weekData.targetE = belief.targetRating || 1;
+          } else if (belief.category === 'Career') {
+            weekData.currentR = belief.currentRating || 1;
+            weekData.targetR = belief.targetRating || 1;
+          } else if (belief.category === 'Money') {
+            weekData.currentC = belief.currentRating || 1;
+            weekData.targetC = belief.targetRating || 1;
+          }
           
           // Map problems, feelings, actions fields
           weekData[`${prefix}Problems`] = belief.problems || '';
@@ -473,6 +500,13 @@ Return ONLY valid JSON in this exact format:
         status: 'success',
         ipAddress: req.ip || req.headers['x-forwarded-for'] as string || 'unknown',
         userAgent: req.headers['user-agent'] || 'unknown'
+      });
+      
+      // Create user if doesn't exist (upsertUser handles both create and update)
+      await storage.upsertUser({
+        id: email,
+        username: email.split('@')[0],
+        password: '', // No password for email-based auth
       });
       
       req.session.userEmail = email;
