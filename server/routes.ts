@@ -6,6 +6,8 @@ import { setupAuth, isAuthenticated, isAdmin } from "./replitAuth";
 import { fetchCourseData, findMatchingCourse, recommendCourses, fetchEnhancedCourseData } from "./googleSheets";
 import { recommendCoursesRequestSchema } from "@shared/schema";
 import { getAIRecommendations } from "./aiRecommendations";
+import { generateHRCMWeeklyPDF, generateMonthlyProgressPDF } from "./pdfExport";
+import { emailService } from "./emailService";
 import OpenAI from "openai";
 
 const openai = new OpenAI({
@@ -1049,6 +1051,228 @@ Return ONLY valid JSON in this exact format:
     } catch (error) {
       console.error("Error generating course recommendation:", error);
       res.status(500).json({ message: "Failed to generate course recommendation" });
+    }
+  });
+
+  // PDF Export endpoints
+  app.get('/api/export/week/:weekNumber/pdf', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const weekNumber = parseInt(req.params.weekNumber);
+      const user = await storage.getUser(userId);
+      const week = await storage.getHercmWeek(userId, weekNumber);
+
+      if (!week) {
+        return res.status(404).json({ message: "Week not found" });
+      }
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="HRCM-Week-${weekNumber}.pdf"`);
+
+      generateHRCMWeeklyPDF(user, week, res);
+    } catch (error) {
+      console.error("Error generating weekly PDF:", error);
+      res.status(500).json({ message: "Failed to generate PDF" });
+    }
+  });
+
+  app.get('/api/export/monthly/:month/:year/pdf', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const month = parseInt(req.params.month);
+      const year = parseInt(req.params.year);
+      const user = await storage.getUser(userId);
+      const allWeeks = await storage.getHercmWeeksByUser(userId);
+      
+      // Filter weeks for the specified month/year
+      const monthlyWeeks = allWeeks.filter(w => {
+        const weekDate = new Date(w.createdAt);
+        return weekDate.getMonth() + 1 === month && weekDate.getFullYear() === year;
+      });
+
+      if (monthlyWeeks.length === 0) {
+        return res.status(404).json({ message: "No data for this month" });
+      }
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="HRCM-Monthly-${month}-${year}.pdf"`);
+
+      generateMonthlyProgressPDF(user, monthlyWeeks, month, year, res);
+    } catch (error) {
+      console.error("Error generating monthly PDF:", error);
+      res.status(500).json({ message: "Failed to generate PDF" });
+    }
+  });
+
+  // Smart Insights endpoint - ML-based analysis
+  app.get('/api/insights/smart', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const weeks = await storage.getHercmWeeksByUser(userId);
+      
+      if (weeks.length < 2) {
+        return res.json({
+          insights: ["Start tracking for at least 2 weeks to get AI insights"],
+          trends: [],
+          recommendations: []
+        });
+      }
+
+      // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+      const completion = await openai.chat.completions.create({
+        model: "gpt-5",
+        messages: [
+          {
+            role: "system",
+            content: "You are an expert life coach analyzing HRCM (Health, Relationship, Career, Money) progress data. Provide actionable insights, identify patterns, and predict future outcomes based on historical data."
+          },
+          {
+            role: "user",
+            content: `Analyze this user's HRCM progress data and provide smart insights:
+            
+${weeks.map((w, i) => `Week ${w.weekNumber}: Health=${w.currentH}/5, Relationship=${w.currentE}/5, Career=${w.currentR}/5, Money=${w.currentC}/5, Achievement=${w.achievementRate}%`).join('\n')}
+
+Return JSON with:
+{
+  "insights": ["key insight 1", "key insight 2", ...],
+  "trends": [{ "category": "Health|Relationship|Career|Money", "direction": "improving|declining|stable", "confidence": 0-100 }],
+  "predictions": [{ "category": "...", "nextWeekPrediction": 1-5, "reasoning": "..." }],
+  "recommendations": ["actionable recommendation 1", ...]
+}`
+          }
+        ],
+        response_format: { type: "json_object" },
+        max_completion_tokens: 8192
+      });
+
+      const analysis = JSON.parse(completion.choices[0].message.content || '{}');
+      res.json(analysis);
+    } catch (error) {
+      console.error("Error generating smart insights:", error);
+      res.status(500).json({ message: "Failed to generate insights" });
+    }
+  });
+
+  // ML-based target recommendations
+  app.post('/api/insights/ml-targets', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const { category, currentRating, historicalData } = req.body;
+      const weeks = await storage.getHercmWeeksByUser(userId);
+
+      // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+      const completion = await openai.chat.completions.create({
+        model: "gpt-5",
+        messages: [
+          {
+            role: "system",
+            content: "You are a machine learning expert specializing in goal-setting and achievement prediction. Based on historical performance data, recommend realistic yet challenging targets."
+          },
+          {
+            role: "user",
+            content: `Category: ${category}
+Current Rating: ${currentRating}/5
+Historical Data: ${JSON.stringify(historicalData || weeks.slice(-4))}
+
+Recommend a target rating for next week based on ML analysis. Consider:
+1. Historical improvement rate
+2. Current momentum
+3. Realistic achievability (80% probability of success)
+4. Challenge level to maintain engagement
+
+Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "...", "tips": ["tip1", "tip2"] }`
+          }
+        ],
+        response_format: { type: "json_object" },
+        max_completion_tokens: 8192
+      });
+
+      const recommendation = JSON.parse(completion.choices[0].message.content || '{}');
+      res.json(recommendation);
+    } catch (error) {
+      console.error("Error generating ML target:", error);
+      res.status(500).json({ message: "Failed to generate target recommendation" });
+    }
+  });
+
+  // Badge check and award - Check monthly progress and award Platinum badge
+  app.post('/api/badges/check-platinum', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const { month, year } = req.body;
+      const user = await storage.getUser(userId);
+      const allWeeks = await storage.getHercmWeeksByUser(userId);
+      
+      // Calculate monthly progress
+      const monthlyWeeks = allWeeks.filter(w => {
+        const weekDate = new Date(w.createdAt);
+        return weekDate.getMonth() + 1 === month && weekDate.getFullYear() === year;
+      });
+
+      if (monthlyWeeks.length === 0) {
+        return res.json({ eligible: false, progress: 0 });
+      }
+
+      const avgAchievement = monthlyWeeks.reduce((sum, w) => sum + (w.achievementRate || 0), 0) / monthlyWeeks.length;
+      const isPlatinum = avgAchievement > 80;
+
+      if (isPlatinum) {
+        // Award Platinum badge
+        const progress = await storage.getPlatinumProgress(userId) || await storage.createPlatinumProgress({ userId });
+        
+        const platinumBadge = {
+          id: `platinum-${month}-${year}`,
+          name: 'Platinum Standards',
+          achievedAt: new Date().toISOString(),
+          description: `Achieved >80% monthly progress in ${month}/${year}`
+        };
+
+        const existingBadges = progress.badges || [];
+        const alreadyHas = existingBadges.some(b => b.id === platinumBadge.id);
+
+        if (!alreadyHas) {
+          await storage.updatePlatinumProgress(userId, {
+            badges: [...existingBadges, platinumBadge],
+            platinumAchieved: true,
+            platinumAchievedAt: new Date()
+          });
+
+          // Send email notification
+          await emailService.sendPlatinumBadgeNotification(user);
+        }
+
+        res.json({ 
+          eligible: true, 
+          progress: avgAchievement, 
+          badge: platinumBadge,
+          alreadyAwarded: alreadyHas 
+        });
+      } else {
+        res.json({ eligible: false, progress: avgAchievement });
+      }
+    } catch (error) {
+      console.error("Error checking platinum badge:", error);
+      res.status(500).json({ message: "Failed to check badge eligibility" });
     }
   });
 

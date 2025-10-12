@@ -61,8 +61,63 @@ Preferred communication style: Simple, everyday language.
 - `date-fns` for date manipulation and formatting, with Asia/Kolkata as default timezone.
 
 **Third-Party Services**:
-- OpenAI (gpt-5 model) via Replit AI Integrations for course recommendations and auto-fill.
+- OpenAI (gpt-5 model) via Replit AI Integrations for course recommendations, auto-fill, smart insights, and ML-based target predictions.
 - Google Sheets for user-specific course data.
+- Email Service (Resend/SendGrid) for weekly reminders and badge notifications (optional - requires RESEND_API_KEY or SENDGRID_API_KEY).
+
+**PDF Generation**:
+- `pdfkit` for generating weekly and monthly HRCM reports.
+
+**Scheduled Tasks**:
+- `node-cron` for automated weekly email reminders and Platinum badge checks.
 
 **Database Driver**:
 - `@neondatabase/serverless` for PostgreSQL connection.
+
+## Recent Changes (October 12, 2025)
+
+### New Features Implemented:
+
+1. **PDF Export System**
+   - Weekly HRCM reports: `/api/export/week/:weekNumber/pdf`
+   - Monthly progress reports: `/api/export/monthly/:month/:year/pdf`
+   - Professional formatting with category breakdown and insights
+
+2. **Email Notification Service** (Optional)
+   - Weekly HRCM check-in reminders (automated - every Monday 9:00 AM IST)
+   - Platinum badge achievement notifications (automated - checked every Sunday 11:59 PM IST)
+   - Requires `RESEND_API_KEY` or `SENDGRID_API_KEY` environment variable
+   - Set `EMAIL_FROM` for sender address (default: noreply@hrcm.app)
+   - Gracefully degrades if no API key is provided (logs warnings only)
+
+3. **Platinum Badge System**
+   - Automatically awards "Platinum Standards" badge when monthly progress > 80%
+   - Email notification sent on badge achievement
+   - Badge tracking in `platinum_progress` table with `platinumAchieved` flag
+   - API: `POST /api/badges/check-platinum` with `{ month, year }`
+
+4. **Smart AI Insights**
+   - ML-powered analysis of HRCM patterns: `GET /api/insights/smart`
+   - Returns insights, trends, predictions, and recommendations
+   - Requires at least 2 weeks of data
+
+5. **ML-Based Target Recommendations**
+   - Intelligent target suggestions based on historical performance
+   - API: `POST /api/insights/ml-targets`
+   - Considers improvement rate, momentum, and realistic achievability
+
+### Email Service Setup (Optional):
+
+**For Resend:**
+```bash
+export RESEND_API_KEY="your_api_key"
+export EMAIL_FROM="noreply@yourdomain.com"
+```
+
+**For SendGrid:**
+```bash
+export SENDGRID_API_KEY="your_api_key"
+export EMAIL_FROM="noreply@yourdomain.com"
+```
+
+Note: Email service is optional. If not configured, the system will log warnings but continue functioning without email notifications.
