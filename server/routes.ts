@@ -242,8 +242,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           weekData[`${prefix}CurrentBelief`] = belief.currentBelief || '';
           weekData[`${prefix}CurrentActions`] = belief.currentActions || '';
           
-          // Map next week target fields
+          // Map next week fields (result, feelings, target, actions)
+          weekData[`${prefix}Result`] = belief.result || '';
+          weekData[`${prefix}NextFeelings`] = belief.nextFeelings || '';
           weekData[`${prefix}NextTarget`] = belief.nextWeekTarget || '';
+          weekData[`${prefix}NextActions`] = belief.nextActions || '';
           
           // Map course and affirmation
           weekData[`${prefix}CourseSuggestion`] = belief.courseSuggestion || '';

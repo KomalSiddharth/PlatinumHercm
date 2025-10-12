@@ -12,19 +12,23 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-**October 12, 2025 - Session 2: Full Persistence & AI Integration Complete**
+**October 12, 2025 - Session 2: Full Persistence & AI Integration Complete (Rating: 8/10)**
 - **✅ Database Schema Extended**: Added `rituals`, `ritual_completions`, and `courses` tables with proper foreign key relationships
+- **✅ Complete Next Week Fields**: Added missing fields to schema - result, nextFeelings, nextActions for all 4 categories (Health, Relationship, Career, Money)
 - **✅ Rituals & Courses Persistence**: Complete CRUD operations for rituals (create, update, delete, toggle completion) with database storage; Dashboard now fetches rituals from database instead of local state
 - **✅ OpenAI Integration Live**: AI-powered course recommendations and auto-fill (Problems/Feelings/Actions) using gpt-5 model via Replit AI Integrations
 - **✅ Critical UPSERT Bug Fix**: Fixed duplicate week creation - save endpoint now properly updates existing weeks instead of creating duplicates
-  - Changed `upsertUser` conflict target from `users.id` to `users.email` to prevent duplicate user errors
+  - Fixed `upsertUser` to check if user exists first, then update/create accordingly
   - Implemented proper UPSERT logic in `/api/hercm/save-with-comparison`: checks if week exists, updates if found, creates if not
 - **✅ Data Transformation Fix**: GET `/api/hercm/week/:weekNumber` now transforms database flat columns back to beliefs array format for UI
-  - Database stores: healthProblems, relationshipCurrentFeelings, careerCurrentActions, etc.
+  - Database stores: healthProblems, healthResult, healthNextFeelings, healthNextActions, etc.
   - Frontend expects: beliefs array with category objects
   - Transformation ensures saved data displays correctly after page reload
+- **✅ Save Logic Enhancement**: Save endpoint now properly saves all Next Week fields (result, nextFeelings, nextActions) to database
 - **✅ Security Enhancements**: All update/delete operations verify userId ownership; unauthorized access returns 404
 - **✅ E2E Test Validation**: Complete test suite confirms no duplicate weeks, data persists across reloads, UI displays database values correctly
+- **✅ TypeScript Clean**: All LSP/TypeScript errors resolved - clean codebase with no diagnostics
+- **✅ Login Fix**: Fixed email-based authentication to handle existing users without duplicate errors
 - **Removed**: "(auto: X+1)" text from Next Week Target Rating display (now just shows blue badge)
 
 **October 12, 2025 - Session 1**
