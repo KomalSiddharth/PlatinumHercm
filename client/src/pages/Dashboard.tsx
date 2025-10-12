@@ -96,9 +96,9 @@ export default function Dashboard() {
     if (currentUser) {
       const fullName = currentUser.firstName && currentUser.lastName 
         ? `${currentUser.firstName} ${currentUser.lastName}`
-        : currentUser.firstName || currentUser.lastName || currentUser.email;
-      setUserName(fullName);
-      setUserEmail(currentUser.email);
+        : currentUser.firstName || currentUser.lastName || currentUser.email || 'User';
+      setUserName(fullName || 'User');
+      setUserEmail(currentUser.email || '');
     }
   }, [currentUser]);
   

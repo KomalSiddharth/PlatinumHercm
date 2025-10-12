@@ -24,6 +24,9 @@ export default function DashboardHeader({
 }: DashboardHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  
+  // Safety check: Ensure userName is never null/undefined
+  const displayName = userName || 'User';
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
@@ -95,7 +98,7 @@ export default function DashboardHeader({
               <Avatar className="w-8 h-8">
                 <AvatarImage src="" />
                 <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-white text-sm font-medium">
-                  {userName.charAt(0).toUpperCase()}
+                  {displayName.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
             </Button>
