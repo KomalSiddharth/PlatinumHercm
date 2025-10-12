@@ -79,13 +79,13 @@ export interface IStorage {
   getRitualsByUser(userId: string): Promise<Ritual[]>;
   getRitualsByUserAndCategory(userId: string, category: string): Promise<Ritual[]>;
   createRitual(ritual: InsertRitual): Promise<Ritual>;
-  updateRitual(id: string, ritual: Partial<InsertRitual>): Promise<Ritual>;
-  deleteRitual(id: string): Promise<void>;
+  updateRitual(id: string, userId: string, ritual: Partial<InsertRitual>): Promise<Ritual | undefined>;
+  deleteRitual(id: string, userId: string): Promise<number>;
   
   // Ritual Completions operations
   getRitualCompletionsByDate(userId: string, date: string): Promise<RitualCompletion[]>;
   createRitualCompletion(completion: InsertRitualCompletion): Promise<RitualCompletion>;
-  deleteRitualCompletion(ritualId: string, date: string): Promise<void>;
+  deleteRitualCompletion(ritualId: string, userId: string, date: string): Promise<number>;
   
   // Courses operations
   getCoursesByUserAndWeek(userId: string, weekNumber: number): Promise<Course[]>;
@@ -369,19 +369,27 @@ export class DatabaseStorage implements IStorage {
     return ritual;
   }
 
-  async updateRitual(id: string, ritualData: Partial<InsertRitual>): Promise<Ritual> {
+  async updateRitual(id: string, userId: string, ritualData: Partial<InsertRitual>): Promise<Ritual | undefined> {
     const [ritual] = await db
       .update(rituals)
       .set({ ...ritualData, updatedAt: new Date() } as any)
-      .where(eq(rituals.id, id))
+      .where(and(
+        eq(rituals.id, id),
+        eq(rituals.userId, userId)
+      ))
       .returning();
     return ritual;
   }
 
-  async deleteRitual(id: string): Promise<void> {
-    await db
+  async deleteRitual(id: string, userId: string): Promise<number> {
+    const result = await db
       .delete(rituals)
-      .where(eq(rituals.id, id));
+      .where(and(
+        eq(rituals.id, id),
+        eq(rituals.userId, userId)
+      ))
+      .returning();
+    return result.length;
   }
 
   // Ritual Completions operations
@@ -403,13 +411,16 @@ export class DatabaseStorage implements IStorage {
     return completion;
   }
 
-  async deleteRitualCompletion(ritualId: string, date: string): Promise<void> {
-    await db
+  async deleteRitualCompletion(ritualId: string, userId: string, date: string): Promise<number> {
+    const result = await db
       .delete(ritualCompletions)
       .where(and(
         eq(ritualCompletions.ritualId, ritualId),
+        eq(ritualCompletions.userId, userId),
         eq(ritualCompletions.date, date)
-      ));
+      ))
+      .returning();
+    return result.length;
   }
 
   // Courses operations

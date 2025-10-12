@@ -505,8 +505,7 @@ Return ONLY valid JSON in this exact format:
       // Create user if doesn't exist (upsertUser handles both create and update)
       await storage.upsertUser({
         id: email,
-        username: email.split('@')[0],
-        password: '', // No password for email-based auth
+        email: email,
       });
       
       req.session.userEmail = email;
@@ -742,6 +741,227 @@ Return ONLY valid JSON in this exact format:
     } catch (error) {
       console.error("Error fetching access logs:", error);
       res.status(500).json({ message: "Failed to fetch access logs" });
+    }
+  });
+
+  // Rituals endpoints
+  app.get('/api/rituals', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const rituals = await storage.getRitualsByUser(userId);
+      res.json(rituals);
+    } catch (error) {
+      console.error("Error fetching rituals:", error);
+      res.status(500).json({ message: "Failed to fetch rituals" });
+    }
+  });
+
+  app.post('/api/rituals', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const ritualData = { ...req.body, userId };
+      const ritual = await storage.createRitual(ritualData);
+      res.json(ritual);
+    } catch (error) {
+      console.error("Error creating ritual:", error);
+      res.status(500).json({ message: "Failed to create ritual" });
+    }
+  });
+
+  app.patch('/api/rituals/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const { id } = req.params;
+      const ritual = await storage.updateRitual(id, userId, req.body);
+      
+      if (!ritual) {
+        return res.status(404).json({ message: "Ritual not found or access denied" });
+      }
+      
+      res.json(ritual);
+    } catch (error) {
+      console.error("Error updating ritual:", error);
+      res.status(500).json({ message: "Failed to update ritual" });
+    }
+  });
+
+  app.delete('/api/rituals/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const { id } = req.params;
+      const deletedCount = await storage.deleteRitual(id, userId);
+      
+      if (deletedCount === 0) {
+        return res.status(404).json({ message: "Ritual not found or access denied" });
+      }
+      
+      res.json({ success: true, message: "Ritual deleted" });
+    } catch (error) {
+      console.error("Error deleting ritual:", error);
+      res.status(500).json({ message: "Failed to delete ritual" });
+    }
+  });
+
+  // Ritual Completions endpoints
+  app.get('/api/ritual-completions/:date', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const { date } = req.params;
+      const completions = await storage.getRitualCompletionsByDate(userId, date);
+      res.json(completions);
+    } catch (error) {
+      console.error("Error fetching ritual completions:", error);
+      res.status(500).json({ message: "Failed to fetch ritual completions" });
+    }
+  });
+
+  app.post('/api/ritual-completions', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const completionData = { ...req.body, userId };
+      const completion = await storage.createRitualCompletion(completionData);
+      res.json(completion);
+    } catch (error) {
+      console.error("Error creating ritual completion:", error);
+      res.status(500).json({ message: "Failed to create ritual completion" });
+    }
+  });
+
+  app.delete('/api/ritual-completions/:ritualId/:date', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const { ritualId, date } = req.params;
+      const deletedCount = await storage.deleteRitualCompletion(ritualId, userId, date);
+      
+      if (deletedCount === 0) {
+        return res.status(404).json({ message: "Ritual completion not found or access denied" });
+      }
+      
+      res.json({ success: true, message: "Ritual completion deleted" });
+    } catch (error) {
+      console.error("Error deleting ritual completion:", error);
+      res.status(500).json({ message: "Failed to delete ritual completion" });
+    }
+  });
+
+  // Courses endpoints
+  app.get('/api/courses/:weekNumber', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const weekNumber = parseInt(req.params.weekNumber);
+      const courses = await storage.getCoursesByUserAndWeek(userId, weekNumber);
+      res.json(courses);
+    } catch (error) {
+      console.error("Error fetching courses:", error);
+      res.status(500).json({ message: "Failed to fetch courses" });
+    }
+  });
+
+  app.post('/api/courses', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const courseData = { ...req.body, userId };
+      const course = await storage.createCourse(courseData);
+      res.json(course);
+    } catch (error) {
+      console.error("Error creating course:", error);
+      res.status(500).json({ message: "Failed to create course" });
+    }
+  });
+
+  // AI auto-fill endpoint for Problems/Feelings/Actions
+  app.post('/api/ai/auto-fill', isAuthenticated, async (req: any, res) => {
+    try {
+      const { category, currentRating, problems, feelings, beliefs, actions } = req.body;
+      
+      // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+      const completion = await openai.chat.completions.create({
+        model: "gpt-5",
+        messages: [
+          {
+            role: "system",
+            content: `You are a personal development coach helping users improve their ${category}. Based on the current state, suggest specific improvements for Problems, Feelings, and Actions. Be concise and actionable.`
+          },
+          {
+            role: "user",
+            content: `Category: ${category}\nCurrent Rating: ${currentRating}/10\nProblems: ${problems || 'Not specified'}\nFeelings: ${feelings || 'Not specified'}\nBeliefs: ${beliefs || 'Not specified'}\nActions: ${actions || 'Not specified'}\n\nSuggest improvements for the next week.`
+          }
+        ],
+        response_format: { type: "json_object" },
+        max_completion_tokens: 8192
+      });
+
+      const suggestions = JSON.parse(completion.choices[0].message.content || '{}');
+      res.json(suggestions);
+    } catch (error) {
+      console.error("Error generating AI suggestions:", error);
+      res.status(500).json({ message: "Failed to generate AI suggestions" });
+    }
+  });
+
+  // AI course recommendation endpoint
+  app.post('/api/ai/recommend-course', isAuthenticated, async (req: any, res) => {
+    try {
+      const { category, currentRating, problems, feelings, beliefs, actions } = req.body;
+      
+      // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+      const completion = await openai.chat.completions.create({
+        model: "gpt-5",
+        messages: [
+          {
+            role: "system",
+            content: `You are a course recommendation expert. Based on the user's ${category} goals and challenges, recommend ONE specific online course that would help them most. Include course name, a brief description, and match percentage (0-100).`
+          },
+          {
+            role: "user",
+            content: `Category: ${category}\nCurrent Rating: ${currentRating}/10\nProblems: ${problems || 'Not specified'}\nFeelings: ${feelings || 'Not specified'}\nBeliefs/Reasons: ${beliefs || 'Not specified'}\nCurrent Actions: ${actions || 'Not specified'}\n\nRecommend the best course. Return JSON with: { "courseName": "...", "description": "...", "matchScore": 85 }`
+          }
+        ],
+        response_format: { type: "json_object" },
+        max_completion_tokens: 8192
+      });
+
+      const recommendation = JSON.parse(completion.choices[0].message.content || '{}');
+      res.json(recommendation);
+    } catch (error) {
+      console.error("Error generating course recommendation:", error);
+      res.status(500).json({ message: "Failed to generate course recommendation" });
     }
   });
 
