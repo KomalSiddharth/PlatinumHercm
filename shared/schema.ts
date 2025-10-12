@@ -247,3 +247,67 @@ export const insertAccessLogSchema = createInsertSchema(accessLogs).omit({
 
 export type InsertAccessLog = z.infer<typeof insertAccessLogSchema>;
 export type AccessLog = typeof accessLogs.$inferSelect;
+
+// Rituals - Daily habits/practices for personal development
+export const rituals = pgTable("rituals", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  title: varchar("title").notNull(),
+  description: varchar("description"),
+  category: varchar("category").notNull(), // 'Health', 'Relationship', 'Career', 'Money'
+  frequency: varchar("frequency").default('daily').notNull(), // 'daily', 'weekly'
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertRitualSchema = createInsertSchema(rituals).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertRitual = z.infer<typeof insertRitualSchema>;
+export type Ritual = typeof rituals.$inferSelect;
+
+// Ritual Completions - Track daily ritual completion
+export const ritualCompletions = pgTable("ritual_completions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  ritualId: varchar("ritual_id").notNull().references(() => rituals.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  completedAt: timestamp("completed_at").defaultNow().notNull(),
+  date: varchar("date").notNull(), // YYYY-MM-DD format for easy date queries
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertRitualCompletionSchema = createInsertSchema(ritualCompletions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertRitualCompletion = z.infer<typeof insertRitualCompletionSchema>;
+export type RitualCompletion = typeof ritualCompletions.$inferSelect;
+
+// Courses - AI-recommended courses stored in database
+export const courses = pgTable("courses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  weekNumber: integer("week_number").notNull(),
+  category: varchar("category").notNull(), // 'Health', 'Relationship', 'Career', 'Money'
+  courseName: varchar("course_name").notNull(),
+  courseLink: varchar("course_link"),
+  matchScore: integer("match_score"), // 0-100 percentage match
+  matchReasons: jsonb("match_reasons").$type<string[]>(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertCourseSchema = createInsertSchema(courses).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertCourse = z.infer<typeof insertCourseSchema>;
+export type Course = typeof courses.$inferSelect;
