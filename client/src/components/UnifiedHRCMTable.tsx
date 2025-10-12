@@ -327,8 +327,8 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
       if (belief.category === category) {
         let updated = { ...belief, [field]: editValue } as HRCMBelief;
         
-        // Auto-generate checklist from nextActions field
-        if (field === 'nextActions' && editValue.trim()) {
+        // Auto-generate checklist from currentActions or nextActions field
+        if ((field === 'currentActions' || field === 'nextActions') && editValue.trim()) {
           const actionLines = editValue
             .split('\n')
             .map(line => line.trim())
