@@ -583,11 +583,14 @@ Return ONLY valid JSON in this exact format:
         userAgent: req.headers['user-agent'] || 'unknown'
       });
       
-      // Create user if doesn't exist (upsertUser handles both create and update)
-      await storage.upsertUser({
-        id: email,
-        email: email,
-      });
+      // Check if user exists, create only if doesn't exist
+      const existingUser = await storage.getUserByEmail(email);
+      if (!existingUser) {
+        await storage.upsertUser({
+          id: email,
+          email: email,
+        });
+      }
       
       req.session.userEmail = email;
       req.session.isAdmin = false;
