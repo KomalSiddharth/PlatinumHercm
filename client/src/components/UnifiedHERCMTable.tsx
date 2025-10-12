@@ -13,8 +13,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { apiRequest } from '@/lib/queryClient';
-import { useQuery } from '@tanstack/react-query';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import WeekComparison from './WeekComparison';
 import {
@@ -477,6 +477,28 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
     }));
   };
 
+  // Mutation for saving week data to database
+  const saveWeekMutation = useMutation({
+    mutationFn: async (weekData: any) => {
+      const response = await apiRequest('POST', '/api/hercm/save-with-comparison', weekData);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/hercm/weeks'] });
+      toast({
+        title: 'Saved!',
+        description: 'Your changes have been saved successfully.',
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to save changes. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  });
+
   const startEdit = (category: string, field: string, currentValue: string) => {
     setEditingField({ category, field });
     setEditValue(currentValue);
@@ -505,6 +527,17 @@ export default function UnifiedHERCMTable({ weekNumber, onGenerateNextWeek, onVi
     if (updatedBelief && ['problems', 'currentFeelings', 'currentBelief', 'currentActions'].includes(field)) {
       await fetchCourseRecommendation(category, updatedBelief);
     }
+    
+    // Save to database
+    const currentBeliefs = beliefs.map(b => 
+      b.category === category ? { ...b, [field]: editValue } : b
+    );
+    
+    saveWeekMutation.mutate({
+      weekNumber,
+      year: new Date().getFullYear(),
+      beliefs: currentBeliefs,
+    });
   };
 
   const cancelEdit = () => {
