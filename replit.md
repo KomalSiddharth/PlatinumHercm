@@ -76,6 +76,39 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### October 13, 2025 - Admin Analytics Enhancement with Email Search and Detailed User Views
+
+**Enhanced Admin Panel Analytics**
+- Added email-based user search in Analytics tab
+- Comprehensive UserDetailView component with drill-down analytics
+- Displays emotion trends, HRCM ratings, regularity tracking, and compact weekly data
+
+**New Features:**
+1. **Email Search**: Search for users by email address in Analytics tab
+2. **Detailed User Analytics View**:
+   - Progress Report with summary cards (current week, overall score, total weeks, highest/lowest weeks)
+   - Emotion Trends Over Time graph (line chart showing 4 emotion categories)
+   - HRCM Rating Trends graph (line chart showing H/R/C/M ratings over weeks)
+   - Regularity Tracking (visual indicators showing weekly participation pattern)
+   - Compact Weekly Data table (condensed view of all week information)
+
+**Schema Changes:**
+- Added emotion score fields to `hrcm_beliefs` table:
+  - `healthEmotionScore` (integer 1-10)
+  - `relationshipEmotionScore` (integer 1-10)
+  - `careerEmotionScore` (integer 1-10)
+  - `moneyEmotionScore` (integer 1-10)
+
+**Backend APIs:**
+- `GET /api/admin/search-user?email={email}` - Search users by email
+- `GET /api/admin/user/:userId/detailed-analytics` - Comprehensive user analytics
+
+**Authentication Improvements:**
+- Dual admin system: supports both `adminUsers` table and `users` table with `isAdmin` flag
+- Admin-login endpoint checks both sources for authorization
+- isAdmin middleware validates session-based admin using both tables
+- Prevents foreign key violations by ensuring user exists before rituals creation
+
 ### October 13, 2025 - Auto-Save and Automatic Week Progression
 
 **Auto-Save Implementation**
