@@ -542,95 +542,96 @@ export default function Dashboard() {
         onProfileClick={() => setProfileOpen(true)}
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
-        <section ref={hrcmRef} id="hrcm" className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
-          <UnifiedHRCMTable 
-            weekNumber={currentWeek}
-            onGenerateNextWeek={handleGenerateNextWeek}
-            onViewHistory={handleViewHRCMHistory}
-            canUnlockNextWeek={canUnlockNextWeek()}
-            nextUnlockDate={getNextUnlockDate()}
-          />
-        </section>
+      <div className="flex">
+        {/* Main Content */}
+        <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+          <section ref={hrcmRef} id="hrcm" className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
+            <UnifiedHRCMTable 
+              weekNumber={currentWeek}
+              onGenerateNextWeek={handleGenerateNextWeek}
+              onViewHistory={handleViewHRCMHistory}
+              canUnlockNextWeek={canUnlockNextWeek()}
+              nextUnlockDate={getNextUnlockDate()}
+            />
+          </section>
 
-        {/* Achievements & Badges Section */}
-        <section className="scroll-mt-20">
-          <BadgeDisplayCard />
-        </section>
-
-        <section ref={ritualsRef} id="rituals" className="scroll-mt-20 bg-purple-50 dark:bg-purple-950/40 p-6 rounded-lg border-2 border-purple-200 dark:border-purple-800">
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                Daily Rituals
-              </h2>
-              <p className="text-muted-foreground mt-1">Build consistent habits and earn points</p>
-            </div>
-
-            <AddRitualForm onAdd={handleAddRitual} />
-
-            {ritualsLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[1, 2].map((i) => (
-                  <Card key={i} className="p-4">
-                    <Skeleton className="h-6 w-3/4 mb-3" />
-                    <Skeleton className="h-4 w-1/2 mb-4" />
-                    <div className="flex gap-2">
-                      <Skeleton className="h-8 w-20" />
-                      <Skeleton className="h-8 w-20" />
-                      <Skeleton className="h-8 w-20" />
-                    </div>
-                  </Card>
-                ))}
+          <section ref={ritualsRef} id="rituals" className="scroll-mt-20 bg-purple-50 dark:bg-purple-950/40 p-6 rounded-lg border-2 border-purple-200 dark:border-purple-800">
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                  Daily Rituals
+                </h2>
+                <p className="text-muted-foreground mt-1">Build consistent habits and earn points</p>
               </div>
-            ) : (
-              <>
+
+              <AddRitualForm onAdd={handleAddRitual} />
+
+              {ritualsLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {rituals.map((ritual) => (
-                    <RitualCard
-                      key={ritual.id}
-                      {...ritual}
-                      onToggleComplete={handleToggleComplete}
-                      onToggleActive={handleToggleActive}
-                      onViewHistory={handleViewHistory}
-                      onEdit={handleEditRitual}
-                      onDelete={handleDeleteRitual}
-                    />
+                  {[1, 2].map((i) => (
+                    <Card key={i} className="p-4">
+                      <Skeleton className="h-6 w-3/4 mb-3" />
+                      <Skeleton className="h-4 w-1/2 mb-4" />
+                      <div className="flex gap-2">
+                        <Skeleton className="h-8 w-20" />
+                        <Skeleton className="h-8 w-20" />
+                        <Skeleton className="h-8 w-20" />
+                      </div>
+                    </Card>
                   ))}
                 </div>
-
-                {rituals.length === 0 && (
-                  <div className="text-center py-12 border-2 border-dashed rounded-lg">
-                    <p className="text-muted-foreground">No rituals yet. Add your first ritual above!</p>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {rituals.map((ritual) => (
+                      <RitualCard
+                        key={ritual.id}
+                        {...ritual}
+                        onToggleComplete={handleToggleComplete}
+                        onToggleActive={handleToggleActive}
+                        onViewHistory={handleViewHistory}
+                        onEdit={handleEditRitual}
+                        onDelete={handleDeleteRitual}
+                      />
+                    ))}
                   </div>
-                )}
-              </>
-            )}
 
-            <Leaderboard entries={leaderboardEntries} period="week" currentUserId="2" />
-          </div>
-        </section>
-
-        <section ref={coursesRef} id="courses" className="scroll-mt-20 bg-emerald-50 dark:bg-emerald-950/40 p-6 rounded-lg border-2 border-emerald-200 dark:border-emerald-800">
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-3xl font-bold">Course Tracker</h2>
-              <p className="text-muted-foreground mt-1">Manage your learning journey and skill development</p>
+                  {rituals.length === 0 && (
+                    <div className="text-center py-12 border-2 border-dashed rounded-lg">
+                      <p className="text-muted-foreground">No rituals yet. Add your first ritual above!</p>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
+          </section>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {courses.map((course) => (
-                <CourseCard 
-                  key={course.id} 
-                  {...course}
-                  onUpdateProgress={handleUpdateCourseProgress}
-                  onVisit={handleVisitCourse}
-                />
-              ))}
+          <section ref={coursesRef} id="courses" className="scroll-mt-20 bg-emerald-50 dark:bg-emerald-950/40 p-6 rounded-lg border-2 border-emerald-200 dark:border-emerald-800">
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-3xl font-bold">Course Tracker</h2>
+                <p className="text-muted-foreground mt-1">Manage your learning journey and skill development</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {courses.map((course) => (
+                  <CourseCard 
+                    key={course.id} 
+                    {...course}
+                    onUpdateProgress={handleUpdateCourseProgress}
+                    onVisit={handleVisitCourse}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-        </section>
-      </main>
+          </section>
+        </main>
+
+        {/* Right Sidebar - Achievements & Badges */}
+        <aside className="hidden lg:block w-80 xl:w-96 px-4 py-8 sticky top-0 h-screen overflow-y-auto">
+          <BadgeDisplayCard leaderboardEntries={leaderboardEntries} currentUserId={currentUser?.id} />
+        </aside>
+      </div>
 
       <ProfileModal
         open={profileOpen}
