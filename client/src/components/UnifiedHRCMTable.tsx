@@ -695,8 +695,8 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
       </Dialog>
 
       {/* Current Week Table */}
-      <div className="border-2 border-rose-300 dark:border-rose-700 rounded-lg overflow-x-auto shadow-lg">
-        <div className="bg-gradient-to-r from-rose-400 to-pink-500 dark:from-rose-600 dark:to-pink-700 px-4 py-3 border-b-2 border-rose-300 dark:border-rose-800">
+      <div className="border-2 border-red-800 dark:border-red-900 rounded-lg overflow-x-auto shadow-lg">
+        <div className="px-4 py-3 border-b-2 border-red-900 dark:border-red-950" style={{ backgroundColor: '#bc0000' }}>
           <h3 className="font-bold text-white text-xl text-center drop-shadow-md flex items-center justify-center gap-2">
             <Sparkles className="w-5 h-5" />
             Current Week
@@ -960,8 +960,8 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
       </div>
 
       {/* Next Week Table */}
-      <div className="border-2 border-blue-300 dark:border-blue-700 rounded-lg overflow-x-auto shadow-lg">
-        <div className="bg-gradient-to-r from-blue-400 to-cyan-500 dark:from-blue-600 dark:to-cyan-700 px-4 py-3 border-b-2 border-blue-300 dark:border-blue-800">
+      <div className="border-2 border-green-600 dark:border-green-800 rounded-lg overflow-x-auto shadow-lg">
+        <div className="bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-700 dark:to-emerald-700 px-4 py-3 border-b-2 border-green-700 dark:border-green-900">
           <h3 className="font-bold text-white text-xl text-center drop-shadow-md flex items-center justify-center gap-2">
             <TrendingUp className="w-5 h-5" />
             Next Week Target
