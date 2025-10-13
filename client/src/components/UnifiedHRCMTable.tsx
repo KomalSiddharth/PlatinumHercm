@@ -168,6 +168,16 @@ const HEALTH_STANDARDS: ChecklistItem[] = [
   { id: 'health-std-10', text: 'I Promise to Practice Walking-Talking Affirmations before doing any task today', checked: false },
 ];
 
+// Relationship Standards - Predefined checklist for Relationship category
+const RELATIONSHIP_STANDARDS: ChecklistItem[] = [
+  { id: 'relationship-std-1', text: 'I Promise to talk to all my Relationships with Respect', checked: false },
+  { id: 'relationship-std-2', text: 'I Promise to Practice Great Listening Skills today', checked: false },
+  { id: 'relationship-std-3', text: 'I Promise to Practice Excellent Conflict Management Skills', checked: false },
+  { id: 'relationship-std-4', text: 'I Promise to End my Day with lots of Fun, Laughter, Hugs & Kisses with all my Family Members', checked: false },
+  { id: 'relationship-std-5', text: 'I Promise to Appreciate People Generously & regularly say Thank You', checked: false },
+  { id: 'relationship-std-6', text: 'I Promise to Accept Mistakes today and Easily say "I Am Sorry, Please Forgive Me."', checked: false },
+];
+
 export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChange }: UnifiedHRCMTableProps) {
   const [beliefs, setBeliefs] = useState<HRCMBelief[]>([]);
   const [editingField, setEditingField] = useState<{ category: string; field: string } | null>(null);
@@ -293,10 +303,16 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
   const handleRatingChange = (category: string, newRating: number) => {
     setBeliefs(prev => prev.map(belief => {
       if (belief.category === category) {
+        // Get category-specific max rating
+        const maxRating = category === 'Health' ? 10 : category === 'Relationship' ? 6 : 10;
+        
+        // Cap both current and target ratings at category max
+        const cappedRating = Math.min(newRating, maxRating);
+        
         return {
           ...belief,
-          currentRating: newRating,
-          targetRating: newRating + 1 // Auto-increment by 1
+          currentRating: cappedRating,
+          targetRating: Math.min(cappedRating + 1, maxRating) // Auto-increment by 1, capped at category max
         };
       }
       return belief;
@@ -330,6 +346,29 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
         }
         return b;
       }));
+    } else if (category === 'Relationship') {
+      setBeliefs(prev => prev.map(b => {
+        if (b.category === 'Relationship') {
+          const existingChecklist = b.checklist || [];
+          
+          // Check if this is the old format by looking for relationship-std-* IDs
+          const hasNewFormat = existingChecklist.some(item => item.id.startsWith('relationship-std-'));
+          
+          if (!hasNewFormat || existingChecklist.length !== 6) {
+            // Replace with new 6 relationship standards
+            return {
+              ...b,
+              checklist: RELATIONSHIP_STANDARDS.map(std => ({ ...std })),
+              currentRating: 0,
+              targetRating: 1
+            };
+          }
+          
+          // Already has new format, keep as is
+          return b;
+        }
+        return b;
+      }));
     }
     
     setShowStandardsDialog(true);
@@ -343,15 +382,18 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
           item.id === itemId ? { ...item, checked: !item.checked } : item
         );
         
-        // Calculate new rating based on checked items (10 items = max rating 10)
+        // Get category-specific max rating
+        const maxRating = category === 'Health' ? 10 : category === 'Relationship' ? 6 : 10;
+        
+        // Calculate new rating based on checked items
         const checkedCount = updatedChecklist.filter(item => item.checked).length;
-        const newRating = checkedCount; // 1 checked = 1, 10 checked = 10
+        const newRating = checkedCount;
         
         return {
           ...belief,
           checklist: updatedChecklist,
           currentRating: newRating,
-          targetRating: Math.min(newRating + 1, 10) // Target is +1, max 10
+          targetRating: Math.min(newRating + 1, maxRating) // Target is +1, capped at category max
         };
       }
       return belief;
@@ -843,6 +885,15 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
                     >
                       {belief.currentRating}/10
                     </Button>
+                  ) : belief.category === 'Relationship' ? (
+                    <Button
+                      variant="outline"
+                      onClick={() => handleOpenStandardsDialog('Relationship')}
+                      className="w-16 h-9 text-center font-semibold"
+                      data-testid={`button-relationship-rating-${belief.category.toLowerCase()}`}
+                    >
+                      {belief.currentRating}/6
+                    </Button>
                   ) : (
                     <Input
                       type="number"
@@ -1245,30 +1296,33 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
         </Table>
       </div>
 
-      {/* Health Standards Dialog */}
+      {/* Standards Dialog (Health & Relationship) */}
       <Dialog open={showStandardsDialog} onOpenChange={setShowStandardsDialog}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Health Standards Checklist
+              {selectedCategory} Standards Checklist
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-4">
             <p className="text-sm text-muted-foreground">
-              Select the standards you've completed today. Your health rating will be calculated automatically based on your selections (1 standard = 1 point, max 10).
+              {selectedCategory === 'Health' 
+                ? 'Select the standards you\'ve completed today. Your health rating will be calculated automatically based on your selections (1 standard = 1 point, max 10).'
+                : 'Select the standards you\'ve completed today. Your relationship rating will be calculated automatically based on your selections (1 standard = 1 point, max 6).'}
             </p>
             
-            {selectedCategory === 'Health' && (() => {
-              const healthBelief = beliefs.find(b => b.category === 'Health');
-              const currentStandards = healthBelief?.checklist || [];
+            {selectedCategory && (() => {
+              const categoryBelief = beliefs.find(b => b.category === selectedCategory);
+              const currentStandards = categoryBelief?.checklist || [];
               const checkedCount = currentStandards.filter(item => item.checked).length;
+              const maxRating = selectedCategory === 'Health' ? 10 : selectedCategory === 'Relationship' ? 6 : 10;
               
               return (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                    <span className="font-semibold">Current Health Rating:</span>
+                    <span className="font-semibold">Current {selectedCategory} Rating:</span>
                     <Badge className="text-lg px-4 py-1" variant="default">
-                      {checkedCount}/10
+                      {checkedCount}/{maxRating}
                     </Badge>
                   </div>
                   
@@ -1282,7 +1336,7 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
                         <Checkbox
                           id={standard.id}
                           checked={standard.checked}
-                          onCheckedChange={() => handleStandardToggle('Health', standard.id)}
+                          onCheckedChange={() => handleStandardToggle(selectedCategory, standard.id)}
                           className="mt-1"
                           data-testid={`checkbox-standard-${standard.id}`}
                         />

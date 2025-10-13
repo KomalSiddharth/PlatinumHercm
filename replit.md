@@ -131,17 +131,18 @@ Preferred communication style: Simple, everyday language.
 - Row-wise layout shows checkbox, title, badges, and action buttons inline
 - Maintains all existing functionality: complete, pause/resume, edit, delete, view history
 
-### October 13, 2025 - Health Standards Rating System
+### October 13, 2025 - Health & Relationship Standards Rating System
 
-**Standards-Based Health Rating**
-- Implemented a new health rating system where users rate their health by selecting from 10 specific health standards via checkboxes in a popup dialog
-- Rating automatically calculates based on number of standards selected (1 standard = 1 point, max 10)
-- Health rating cell displays a button that opens the standards dialog
-- Standards are predefined with specific health habits and promises
-- Automatic migration from old checklist format to new 10-standard system
+**Standards-Based Rating for Health & Relationship**
+- Implemented standards-based rating system for both Health and Relationship categories
+- Users rate by selecting from predefined standards via checkboxes in a popup dialog
+- Rating automatically calculates based on number of standards selected (1 standard = 1 point)
+- Rating cell displays a button that opens the standards dialog
+- Standards are predefined with specific habits and promises
+- Automatic migration from old checklist format to new standards system
 - Preserves user selections when reopening the dialog
 
-**Health Standards (10 Total):**
+**Health Standards (10 Total, max rating: 10):**
 1. I started my Day with Magic Water
 2. I started my Day with 10 Mins of Musical Workout for Squats & Pushups
 3. I started my Day with Healthy Breakfast
@@ -152,6 +153,14 @@ Preferred communication style: Simple, everyday language.
 8. I Promise to Be Aware of my Emotional Rules and Make Positive Emotions Easy and Negative Emotions Difficult
 9. I Promise to Believe in myself more than Anybody else
 10. I Promise to Practice Walking-Talking Affirmations before doing any task today
+
+**Relationship Standards (6 Total, max rating: 6):**
+1. I Promise to talk to all my Relationships with Respect
+2. I Promise to Practice Great Listening Skills today
+3. I Promise to Practice Excellent Conflict Management Skills
+4. I Promise to End my Day with lots of Fun, Laughter, Hugs & Kisses with all my Family Members
+5. I Promise to Appreciate People Generously & regularly say Thank You
+6. I Promise to Accept Mistakes today and Easily say "I Am Sorry, Please Forgive Me."
 
 ### October 12, 2025
 
