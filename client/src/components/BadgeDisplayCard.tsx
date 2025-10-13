@@ -85,8 +85,8 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
     <div className="space-y-4">
       <Card className="bg-gradient-to-br from-black to-gray-900 dark:from-black dark:to-gray-950 border-yellow-600 dark:border-yellow-500 border-2">
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-yellow-500 dark:text-yellow-400 text-lg sm:text-xl">
-            <Trophy className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500 dark:text-yellow-400" />
+          <CardTitle className="flex items-center gap-2 text-yellow-500 dark:text-yellow-400 text-lg">
+            <Trophy className="h-5 w-5 text-yellow-500 dark:text-yellow-400" />
             Achievements
           </CardTitle>
         </CardHeader>
@@ -94,10 +94,10 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
           {/* Current Month Progress */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs sm:text-sm font-medium text-yellow-400 dark:text-yellow-300">Monthly Progress</span>
-              <span className="text-xs sm:text-sm font-bold text-yellow-500 dark:text-yellow-400">{progressPercentage.toFixed(0)}%</span>
+              <span className="text-xs font-medium text-yellow-400 dark:text-yellow-300">Monthly Progress</span>
+              <span className="text-xs font-bold text-yellow-500 dark:text-yellow-400">{progressPercentage.toFixed(0)}%</span>
             </div>
-            <div className="h-2 sm:h-3 bg-gray-800 dark:bg-gray-950 rounded-full overflow-hidden border border-yellow-600/50 dark:border-yellow-500/50">
+            <div className="h-2 bg-gray-800 dark:bg-gray-950 rounded-full overflow-hidden border border-yellow-600/50 dark:border-yellow-500/50">
               <div 
                 className={`h-full transition-all duration-500 ${
                   progressPercentage > 80 
@@ -107,7 +107,7 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
                 style={{ width: `${Math.min(progressPercentage, 100)}%` }}
               />
             </div>
-            <p className="text-[10px] sm:text-xs text-yellow-500/90 dark:text-yellow-400/90">
+            <p className="text-[10px] text-yellow-500/90 dark:text-yellow-400/90">
               {isEligible 
                 ? '🎉 Platinum Eligible!' 
                 : `${(80 - progressPercentage).toFixed(0)}% to Platinum`}
@@ -116,32 +116,32 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
 
           {/* Badges Display */}
           <div className="space-y-2">
-            <h3 className="text-xs sm:text-sm font-medium flex items-center gap-1 text-yellow-400 dark:text-yellow-300">
-              <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 dark:text-yellow-400" />
+            <h3 className="text-xs font-medium flex items-center gap-1 text-yellow-400 dark:text-yellow-300">
+              <Sparkles className="h-3 w-3 text-yellow-500 dark:text-yellow-400" />
               Badges
             </h3>
             
             {isEligible && badgeData?.badge ? (
               <div 
-                className="p-2 sm:p-3 bg-gradient-to-r from-yellow-600/20 to-yellow-700/20 dark:from-yellow-500/20 dark:to-yellow-600/20 rounded-md border border-yellow-500 dark:border-yellow-400"
+                className="p-2 bg-gradient-to-r from-yellow-600/20 to-yellow-700/20 dark:from-yellow-500/20 dark:to-yellow-600/20 rounded-md border border-yellow-500 dark:border-yellow-400"
                 data-testid="badge-platinum"
               >
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <Award className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500 dark:text-yellow-400 flex-shrink-0" />
+                <div className="flex items-center gap-2">
+                  <Award className="h-5 w-5 text-yellow-500 dark:text-yellow-400 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-xs sm:text-sm font-bold text-yellow-400 dark:text-yellow-300 truncate">
+                    <h4 className="text-xs font-bold text-yellow-400 dark:text-yellow-300 truncate">
                       {badgeData.badge.name}
                     </h4>
-                    <p className="text-[10px] sm:text-xs text-yellow-500/90 dark:text-yellow-400/90">
+                    <p className="text-[10px] text-yellow-500/90 dark:text-yellow-400/90">
                       {new Date(badgeData.badge.achievedAt).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="text-center py-3 sm:py-4 border border-dashed border-yellow-600/50 dark:border-yellow-500/50 rounded-md bg-gray-900/50 dark:bg-black/50">
-                <Trophy className="h-6 w-6 sm:h-8 sm:w-8 mx-auto text-yellow-600/60 dark:text-yellow-500/60 mb-1" />
-                <p className="text-[10px] sm:text-xs text-yellow-500/80 dark:text-yellow-400/80">
+              <div className="text-center py-3 border border-dashed border-yellow-600/50 dark:border-yellow-500/50 rounded-md bg-gray-900/50 dark:bg-black/50">
+                <Trophy className="h-6 w-6 mx-auto text-yellow-600/60 dark:text-yellow-500/60 mb-1" />
+                <p className="text-[10px] text-yellow-500/80 dark:text-yellow-400/80">
                   80%+ for Platinum
                 </p>
               </div>
@@ -154,49 +154,49 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
       <Card className="bg-gradient-to-br from-black to-gray-900 dark:from-black dark:to-gray-950 border-yellow-600 dark:border-yellow-500 border-2">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-yellow-500 dark:text-yellow-400 text-lg sm:text-xl">
-              <Trophy className="h-5 w-5 sm:h-6 sm:w-6" />
+            <CardTitle className="flex items-center gap-2 text-yellow-500 dark:text-yellow-400 text-lg">
+              <Trophy className="h-5 w-5" />
               Leaderboard
             </CardTitle>
-            <Badge variant="outline" className="text-[10px] sm:text-xs border-yellow-600/50 text-yellow-500">
+            <Badge variant="outline" className="text-[10px] border-yellow-600/50 text-yellow-500">
               Top 5
             </Badge>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-1 sm:space-y-2">
+          <div className="space-y-1">
             {leaderboardEntries.length === 0 ? (
-              <div className="text-center py-4 sm:py-6">
-                <p className="text-[10px] sm:text-xs text-yellow-500/60">No entries yet</p>
+              <div className="text-center py-4">
+                <p className="text-[10px] text-yellow-500/60">No entries yet</p>
               </div>
             ) : leaderboardEntries.slice(0, 5).map((entry) => {
               const isCurrentUser = entry.userId === currentUserId || entry.isCurrentUser;
               return (
                 <div
                   key={entry.userId}
-                  className={`flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-md transition-all ${
+                  className={`flex items-center gap-2 p-2 rounded-md transition-all ${
                     isCurrentUser ? 'bg-yellow-600/20 border border-yellow-600/30' : 'hover:bg-gray-800/50'
                   }`}
                   data-testid={`leaderboard-entry-${entry.rank}`}
                 >
-                  <div className="w-5 sm:w-6 flex items-center justify-center">
+                  <div className="w-5 flex items-center justify-center">
                     {getMedalIcon(entry.rank)}
                   </div>
 
-                  <Avatar className="w-6 h-6 sm:w-8 sm:h-8">
-                    <AvatarFallback className={`text-[10px] sm:text-xs ${isCurrentUser ? 'bg-yellow-600/30 text-yellow-400' : 'bg-gray-700 text-gray-400'}`}>
+                  <Avatar className="w-6 h-6">
+                    <AvatarFallback className={`text-[10px] ${isCurrentUser ? 'bg-yellow-600/30 text-yellow-400' : 'bg-gray-700 text-gray-400'}`}>
                       {(entry.name || entry.email || 'U').split(' ').map(n => n[0]).join('').toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
 
                   <div className="flex-1 min-w-0">
-                    <p className={`text-xs sm:text-sm font-medium truncate ${isCurrentUser ? 'text-yellow-400' : 'text-gray-300'}`}>
+                    <p className={`text-xs font-medium truncate ${isCurrentUser ? 'text-yellow-400' : 'text-gray-300'}`}>
                       {entry.name || entry.email || 'Unknown'}
-                      {isCurrentUser && <span className="ml-1 text-[10px] sm:text-xs">(You)</span>}
+                      {isCurrentUser && <span className="ml-1 text-[10px]">(You)</span>}
                     </p>
                   </div>
 
-                  <Badge className="bg-yellow-600/30 text-yellow-400 border-yellow-600/50 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0">
+                  <Badge className="bg-yellow-600/30 text-yellow-400 border-yellow-600/50 text-[10px] px-1.5 py-0">
                     {entry.points}
                   </Badge>
                 </div>
