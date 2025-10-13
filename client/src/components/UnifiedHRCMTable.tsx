@@ -856,10 +856,6 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                       onChange={(e) => setEditValue(e.target.value)}
                       onBlur={saveEdit}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          saveEdit();
-                        }
                         if (e.key === 'Escape') {
                           cancelEdit();
                         }
@@ -890,10 +886,6 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                       onChange={(e) => setEditValue(e.target.value)}
                       onBlur={saveEdit}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          saveEdit();
-                        }
                         if (e.key === 'Escape') {
                           cancelEdit();
                         }
@@ -923,10 +915,6 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                       onChange={(e) => setEditValue(e.target.value)}
                       onBlur={saveEdit}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          saveEdit();
-                        }
                         if (e.key === 'Escape') {
                           cancelEdit();
                         }
@@ -956,10 +944,6 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                       onChange={(e) => setEditValue(e.target.value)}
                       onBlur={saveEdit}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          saveEdit();
-                        }
                         if (e.key === 'Escape') {
                           cancelEdit();
                         }
@@ -1108,10 +1092,6 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                       onChange={(e) => setEditValue(e.target.value)}
                       onBlur={saveEdit}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          saveEdit();
-                        }
                         if (e.key === 'Escape') {
                           cancelEdit();
                         }
@@ -1141,10 +1121,6 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                       onChange={(e) => setEditValue(e.target.value)}
                       onBlur={saveEdit}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          saveEdit();
-                        }
                         if (e.key === 'Escape') {
                           cancelEdit();
                         }
@@ -1174,10 +1150,6 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                       onChange={(e) => setEditValue(e.target.value)}
                       onBlur={saveEdit}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          saveEdit();
-                        }
                         if (e.key === 'Escape') {
                           cancelEdit();
                         }
@@ -1207,10 +1179,6 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                       onChange={(e) => setEditValue(e.target.value)}
                       onBlur={saveEdit}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          saveEdit();
-                        }
                         if (e.key === 'Escape') {
                           cancelEdit();
                         }
