@@ -100,6 +100,12 @@ export const hercmWeeks = pgTable("hercm_weeks", {
   achievementRate: integer("achievement_rate"), // Percentage of goals achieved
   weekStatus: varchar("week_status").default('active').notNull(), // 'active', 'locked', 'completed'
   
+  // Emotion Scores (1-10 scale for tracking emotional state)
+  healthEmotionScore: integer("health_emotion_score"), // Health emotional state
+  relationshipEmotionScore: integer("relationship_emotion_score"), // Relationship emotional state
+  careerEmotionScore: integer("career_emotion_score"), // Career emotional state
+  moneyEmotionScore: integer("money_emotion_score"), // Money emotional state
+  
   // Health
   healthProblems: varchar("health_problems"),
   healthCurrentFeelings: varchar("health_current_feelings"),

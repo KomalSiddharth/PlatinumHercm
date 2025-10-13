@@ -358,6 +358,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin: Search user by email
+  app.get('/api/admin/search-user', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { email } = req.query;
+      if (!email || typeof email !== 'string') {
+        return res.status(400).json({ message: "Email parameter required" });
+      }
+
+      const users = await storage.getAllUsers();
+      const matchedUser = users.find(u => 
+        u.email?.toLowerCase().includes(email.toLowerCase())
+      );
+
+      if (!matchedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.json(matchedUser);
+    } catch (error) {
+      console.error("Error searching user:", error);
+      res.status(500).json({ message: "Failed to search user" });
+    }
+  });
+
   app.get('/api/admin/user/:userId/weeks', isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { userId } = req.params;
@@ -434,6 +458,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching user analytics:", error);
       res.status(500).json({ message: "Failed to fetch user analytics" });
+    }
+  });
+
+  // Admin: Get enhanced user detailed analytics with emotion trends and regularity
+  app.get('/api/admin/user/:userId/detailed-analytics', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      // Get user info
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Get all HRCM weeks
+      const weeks = await storage.getHercmWeeksByUser(userId);
+      const sortedWeeks = weeks.sort((a, b) => a.weekNumber - b.weekNumber);
+      
+      // Get rituals and platinum progress
+      const rituals = await storage.getRitualsByUser(userId);
+      const platinumProgress = await storage.getPlatinumProgress(userId);
+      
+      // Calculate emotion trends
+      const emotionTrends = sortedWeeks.map(week => ({
+        weekNumber: week.weekNumber,
+        healthEmotion: week.healthEmotionScore || 5,
+        relationshipEmotion: week.relationshipEmotionScore || 5,
+        careerEmotion: week.careerEmotionScore || 5,
+        moneyEmotion: week.moneyEmotionScore || 5,
+      }));
+      
+      // Calculate HRCM rating trends
+      const hrcmTrends = sortedWeeks.map(week => ({
+        weekNumber: week.weekNumber,
+        health: week.currentH || 0,
+        relationship: week.currentE || 0,
+        career: week.currentR || 0,
+        money: week.currentC || 0,
+      }));
+      
+      // Calculate regularity/irregularity
+      const totalWeeks = sortedWeeks.length;
+      const expectedWeeks = totalWeeks > 0 ? sortedWeeks[sortedWeeks.length - 1].weekNumber : 0;
+      const regularity = expectedWeeks > 0 ? Math.round((totalWeeks / expectedWeeks) * 100) : 0;
+      const missedWeeks = expectedWeeks - totalWeeks;
+      
+      // Calculate weekly gaps
+      const gaps = [];
+      for (let i = 1; i < sortedWeeks.length; i++) {
+        const gap = sortedWeeks[i].weekNumber - sortedWeeks[i - 1].weekNumber - 1;
+        if (gap > 0) {
+          gaps.push({
+            afterWeek: sortedWeeks[i - 1].weekNumber,
+            beforeWeek: sortedWeeks[i].weekNumber,
+            gapSize: gap,
+          });
+        }
+      }
+      
+      // Progress summary
+      const latestWeek = sortedWeeks[sortedWeeks.length - 1] || null;
+      const progressSummary = latestWeek ? {
+        currentWeek: latestWeek.weekNumber,
+        overallScore: latestWeek.overallScore || 0,
+        achievementRate: latestWeek.achievementRate || 0,
+        currentStreak: platinumProgress?.currentStreak || 0,
+        totalBadges: platinumProgress?.badges?.length || 0,
+      } : null;
+      
+      // Compact weekly data (all weeks in summary format)
+      const compactWeeklyData = sortedWeeks.map(week => ({
+        week: week.weekNumber,
+        date: week.createdAt,
+        h: week.currentH || 0,
+        r: week.currentE || 0,
+        c: week.currentR || 0,
+        m: week.currentC || 0,
+        score: week.overallScore || 0,
+        achievement: week.achievementRate || 0,
+      }));
+      
+      res.json({
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+        },
+        progressSummary,
+        emotionTrends,
+        hrcmTrends,
+        regularity: {
+          percentage: regularity,
+          totalWeeks,
+          expectedWeeks,
+          missedWeeks,
+          gaps,
+          status: regularity >= 80 ? 'regular' : regularity >= 50 ? 'semi-regular' : 'irregular',
+        },
+        compactWeeklyData,
+        badges: platinumProgress?.badges || [],
+        rituals: rituals.map(r => ({
+          id: r.id,
+          title: r.title,
+          category: r.category,
+          isActive: r.isActive,
+        })),
+      });
+    } catch (error) {
+      console.error("Error fetching detailed analytics:", error);
+      res.status(500).json({ message: "Failed to fetch detailed analytics" });
     }
   });
 
