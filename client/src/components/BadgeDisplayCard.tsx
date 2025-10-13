@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Award, Trophy, Star, Sparkles } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Award, Trophy, Star, Sparkles, Medal } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -20,7 +21,21 @@ interface BadgeCheckResponse {
   alreadyAwarded?: boolean;
 }
 
-export default function BadgeDisplayCard() {
+interface LeaderboardEntry {
+  rank: number;
+  userId: string;
+  name: string;
+  email?: string;
+  points: number;
+  isCurrentUser?: boolean;
+}
+
+interface BadgeDisplayCardProps {
+  leaderboardEntries?: LeaderboardEntry[];
+  currentUserId?: string;
+}
+
+export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserId }: BadgeDisplayCardProps) {
   const { toast } = useToast();
   const [badges, setBadges] = useState<PlatinumBadge[]>([]);
   const currentMonth = new Date().getMonth() + 1;
@@ -122,6 +137,123 @@ export default function BadgeDisplayCard() {
               </p>
             </div>
           )}
+        </div>
+
+        {/* Leaderboard Section */}
+        <div className="space-y-3 pt-4 border-t border-yellow-600/30 dark:border-yellow-500/30">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-medium flex items-center gap-2 text-yellow-400 dark:text-yellow-300">
+              <Trophy className="h-4 w-4 text-yellow-500 dark:text-yellow-400" />
+              Leaderboard
+            </h3>
+            <Badge variant="outline" className="capitalize text-xs bg-yellow-600/20 dark:bg-yellow-500/20 text-yellow-400 dark:text-yellow-300 border-yellow-600/50 dark:border-yellow-500/50">
+              This Week
+            </Badge>
+          </div>
+          
+          <div className="space-y-2">
+            {leaderboardEntries.length === 0 ? (
+              <div className="text-center py-6 border-2 border-dashed border-yellow-600/50 dark:border-yellow-500/50 rounded-lg bg-gray-900/50 dark:bg-black/50">
+                <p className="text-sm text-yellow-500/80 dark:text-yellow-400/80">
+                  No users yet. Be the first to earn points!
+                </p>
+              </div>
+            ) : leaderboardEntries.length === 1 && leaderboardEntries[0].isCurrentUser ? (
+              <div className="space-y-3">
+                <div
+                  className="flex items-center gap-3 p-3 rounded-lg bg-yellow-600/20 dark:bg-yellow-500/20 border border-yellow-500/50 dark:border-yellow-400/50"
+                  data-testid="leaderboard-entry-1"
+                >
+                  <div className="w-8 text-center">
+                    <Trophy className="w-5 h-5 text-yellow-500 dark:text-yellow-400 mx-auto" />
+                  </div>
+
+                  <Avatar className="w-10 h-10">
+                    <AvatarFallback className="bg-yellow-600/30 dark:bg-yellow-500/30 text-yellow-400 dark:text-yellow-300 text-sm font-medium">
+                      {leaderboardEntries[0].name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-yellow-400 dark:text-yellow-300 truncate">
+                      {leaderboardEntries[0].name}
+                      <span className="ml-2 text-xs text-yellow-500/80 dark:text-yellow-400/80 font-normal">(You)</span>
+                    </p>
+                  </div>
+
+                  <Badge className="bg-gradient-to-r from-yellow-500 to-yellow-600 dark:from-yellow-400 dark:to-yellow-500 text-white gap-1 border-0">
+                    <Trophy className="w-3 h-3" />
+                    {leaderboardEntries[0].points.toLocaleString()}
+                  </Badge>
+                </div>
+                <div className="text-center py-3 bg-gray-900/50 dark:bg-black/50 rounded-lg border border-dashed border-yellow-600/30 dark:border-yellow-500/30">
+                  <p className="text-xs text-yellow-500/80 dark:text-yellow-400/80">
+                    You're currently in 1st place! 🎉
+                  </p>
+                  <p className="text-xs text-yellow-500/70 dark:text-yellow-400/70 mt-1">
+                    Other users will appear here as they join and earn points
+                  </p>
+                </div>
+              </div>
+            ) : (
+              leaderboardEntries.map((entry) => {
+                const isCurrentUser = entry.userId === currentUserId || entry.isCurrentUser;
+                const getMedalIcon = (rank: number) => {
+                  switch (rank) {
+                    case 1:
+                      return <Trophy className="w-5 h-5 text-yellow-500 dark:text-yellow-400" />;
+                    case 2:
+                      return <Medal className="w-5 h-5 text-gray-400" />;
+                    case 3:
+                      return <Award className="w-5 h-5 text-amber-600" />;
+                    default:
+                      return null;
+                  }
+                };
+                const medalIcon = getMedalIcon(entry.rank);
+
+                return (
+                  <div
+                    key={entry.userId}
+                    className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
+                      isCurrentUser 
+                        ? 'bg-yellow-600/20 dark:bg-yellow-500/20 border border-yellow-500/50 dark:border-yellow-400/50' 
+                        : 'bg-gray-900/50 dark:bg-black/50 border border-yellow-600/20 dark:border-yellow-500/20'
+                    }`}
+                    data-testid={`leaderboard-entry-${entry.rank}`}
+                  >
+                    <div className="w-8 text-center">
+                      {medalIcon || (
+                        <span className="text-sm font-semibold text-yellow-500/60 dark:text-yellow-400/60">
+                          {entry.rank}
+                        </span>
+                      )}
+                    </div>
+
+                    <Avatar className="w-10 h-10">
+                      <AvatarFallback className="bg-yellow-600/30 dark:bg-yellow-500/30 text-yellow-400 dark:text-yellow-300 text-sm font-medium">
+                        {(entry.name || entry.email || 'U').split(' ').map(n => n[0]).join('').toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+
+                    <div className="flex-1 min-w-0">
+                      <p className={`font-medium truncate ${isCurrentUser ? 'text-yellow-400 dark:text-yellow-300' : 'text-yellow-500/90 dark:text-yellow-400/90'}`}>
+                        {entry.name || entry.email || 'Unknown User'}
+                        {isCurrentUser && (
+                          <span className="ml-2 text-xs text-yellow-500/80 dark:text-yellow-400/80 font-normal">(You)</span>
+                        )}
+                      </p>
+                    </div>
+
+                    <Badge className="bg-gradient-to-r from-yellow-500 to-yellow-600 dark:from-yellow-400 dark:to-yellow-500 text-white gap-1 border-0">
+                      <Trophy className="w-3 h-3" />
+                      {entry.points.toLocaleString()}
+                    </Badge>
+                  </div>
+                );
+              })
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>

@@ -6,7 +6,6 @@ import UnifiedHRCMTable from '@/components/UnifiedHRCMTable';
 import AddRitualForm from '@/components/AddRitualForm';
 import RitualCard from '@/components/RitualCard';
 import CourseCard from '@/components/CourseCard';
-import Leaderboard from '@/components/Leaderboard';
 import ProfileModal from '@/components/ProfileModal';
 import RitualHistoryModal from '@/components/RitualHistoryModal';
 import EditRitualModal from '@/components/EditRitualModal';
@@ -715,9 +714,11 @@ export default function Dashboard() {
         </section>
 
         {/* Achievements, Badges & Leaderboard Section */}
-        <section className="scroll-mt-20 space-y-6">
-          <BadgeDisplayCard />
-          <Leaderboard entries={leaderboardEntries} period="week" currentUserId="2" />
+        <section className="scroll-mt-20">
+          <BadgeDisplayCard 
+            leaderboardEntries={leaderboardEntries} 
+            currentUserId={currentUser?.id}
+          />
         </section>
       </main>
 
