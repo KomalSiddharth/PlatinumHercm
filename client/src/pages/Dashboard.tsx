@@ -555,6 +555,11 @@ export default function Dashboard() {
             />
           </section>
 
+          {/* Achievements & Badges - Mobile/Tablet Only */}
+          <section className="lg:hidden scroll-mt-20">
+            <BadgeDisplayCard leaderboardEntries={leaderboardEntries} currentUserId={currentUser?.id} />
+          </section>
+
           <section ref={ritualsRef} id="rituals" className="scroll-mt-20 bg-purple-50 dark:bg-purple-950/40 p-6 rounded-lg border-2 border-purple-200 dark:border-purple-800">
             <div className="space-y-6">
               <div>
