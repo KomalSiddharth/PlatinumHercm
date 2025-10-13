@@ -201,7 +201,6 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
   const [editingField, setEditingField] = useState<{ category: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState('');
   const [loadingCourses, setLoadingCourses] = useState<Set<string>>(new Set());
-  const [autoFilling, setAutoFilling] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   const [showStandardsDialog, setShowStandardsDialog] = useState(false);
@@ -622,49 +621,6 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
     return editingField?.category === category && editingField?.field === field;
   };
 
-  // Auto-fill next week goals using AI
-  const handleAutoFillNextWeek = async () => {
-    setAutoFilling(true);
-    try {
-      // Call API for each category
-      const updatedBeliefs = await Promise.all(
-        beliefs.map(async (belief) => {
-          try {
-            const response = await apiRequest('POST', '/api/hercm/auto-fill-next-week', {
-              category: belief.category,
-              currentRating: belief.currentRating,
-              problems: belief.problems,
-              currentFeelings: belief.currentFeelings,
-              currentBelief: belief.currentBelief,
-              currentActions: belief.currentActions,
-            });
-
-            const aiSuggestion = await response.json();
-            
-            return {
-              ...belief,
-              targetRating: aiSuggestion.targetRating,
-              result: aiSuggestion.expectedResult,
-              nextFeelings: aiSuggestion.targetFeelings,
-              nextWeekTarget: aiSuggestion.nextWeekTarget,
-              nextActions: aiSuggestion.nextActions,
-              affirmationSuggestion: aiSuggestion.affirmation,
-            };
-          } catch (error) {
-            console.error(`Failed to auto-fill for ${belief.category}:`, error);
-            return belief; // Return unchanged if API fails
-          }
-        })
-      );
-      
-      setBeliefs(updatedBeliefs);
-    } catch (error) {
-      console.error('Auto-fill error:', error);
-    } finally {
-      setAutoFilling(false);
-    }
-  };
-
   // Calculate comparison data (previous week's target vs current week's actual)
   const calculateComparison = () => {
     if (weekNumber <= 1) return [];
@@ -734,24 +690,6 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
           >
             <History className="w-4 h-4 mr-2" />
             View History
-          </Button>
-          <Button 
-            onClick={handleAutoFillNextWeek}
-            disabled={autoFilling}
-            className="bg-gradient-to-r from-cyan-500 to-blue-500"
-            data-testid="button-auto-fill"
-          >
-            {autoFilling ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                AI Filling...
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4 mr-2" />
-                AI Auto-Fill Next Week
-              </>
-            )}
           </Button>
         </div>
       </div>
