@@ -818,14 +818,14 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
             {beliefs.map((belief) => (
               <TableRow key={belief.category} className="border-b" data-testid={`row-${belief.category.toLowerCase()}`}>
                 {/* Category Column */}
-                <TableCell className="font-semibold border-r bg-muted/20" data-testid={`cell-category-${belief.category.toLowerCase()}`}>
+                <TableCell className="font-semibold border-r bg-muted/20 align-top" data-testid={`cell-category-${belief.category.toLowerCase()}`}>
                   <Badge variant="outline" className="font-semibold">
                     {belief.category}
                   </Badge>
                 </TableCell>
 
                 {/* Current Week - Rating */}
-                <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10">
+                <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10 align-top">
                   {belief.category === 'Health' ? (
                     <Button
                       variant="outline"
@@ -849,7 +849,7 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                 </TableCell>
 
                 {/* Current Week - Problems */}
-                <TableCell className="p-0 bg-red-50/30 dark:bg-red-950/10">
+                <TableCell className="p-0 bg-red-50/30 dark:bg-red-950/10 align-top">
                   {isEditing(belief.category, 'problems') ? (
                     <Textarea
                       value={editValue}
@@ -883,7 +883,7 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                 </TableCell>
 
                 {/* Current Week - Feelings */}
-                <TableCell className="p-0 bg-red-50/30 dark:bg-red-950/10">
+                <TableCell className="p-0 bg-red-50/30 dark:bg-red-950/10 align-top">
                   {isEditing(belief.category, 'currentFeelings') ? (
                     <Textarea
                       value={editValue}
@@ -916,7 +916,7 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                 </TableCell>
 
                 {/* Current Week - Beliefs */}
-                <TableCell className="p-0 bg-red-50/30 dark:bg-red-950/10">
+                <TableCell className="p-0 bg-red-50/30 dark:bg-red-950/10 align-top">
                   {isEditing(belief.category, 'currentBelief') ? (
                     <Textarea
                       value={editValue}
@@ -949,7 +949,7 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                 </TableCell>
 
                 {/* Current Week - Actions */}
-                <TableCell className="p-0 bg-red-50/30 dark:bg-red-950/10 border-r">
+                <TableCell className="p-0 bg-red-50/30 dark:bg-red-950/10 border-r align-top">
                   {isEditing(belief.category, 'currentActions') ? (
                     <Textarea
                       value={editValue}
@@ -982,7 +982,7 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                 </TableCell>
 
                 {/* Course Recommendation with Link */}
-                <TableCell className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10">
+                <TableCell className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10 align-top">
                   {loadingCourses.has(belief.category) ? (
                     <div className="flex items-center gap-2">
                       <Loader2 className="w-4 h-4 animate-spin text-cyan-600" />
@@ -1020,7 +1020,7 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                 </TableCell>
 
                 {/* Checklist */}
-                <TableCell className="p-2 bg-purple-50/30 dark:bg-purple-950/10">
+                <TableCell className="p-2 bg-purple-50/30 dark:bg-purple-950/10 align-top">
                   <div className="space-y-1">
                     {belief.checklist.map((item) => (
                       <div key={item.id} className="flex items-center gap-2">
@@ -1038,7 +1038,7 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                 </TableCell>
 
                 {/* Progress */}
-                <TableCell className="p-2 text-center bg-emerald-50/30 dark:bg-emerald-950/10">
+                <TableCell className="p-2 text-center bg-emerald-50/30 dark:bg-emerald-950/10 align-top">
                   <Badge className={getProgressColor(calculateProgress(belief.checklist))} data-testid={`badge-progress-${belief.category.toLowerCase()}`}>
                     {calculateProgress(belief.checklist)}%
                   </Badge>
@@ -1081,14 +1081,14 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
             {beliefs.map((belief) => (
               <TableRow key={belief.category} className="border-b" data-testid={`row-next-${belief.category.toLowerCase()}`}>
                 {/* Category Column */}
-                <TableCell className="font-semibold border-r bg-muted/20">
+                <TableCell className="font-semibold border-r bg-muted/20 align-top">
                   <Badge variant="outline" className="font-semibold">
                     {belief.category}
                   </Badge>
                 </TableCell>
 
                 {/* Next Week - Rating (Auto-calculated: Current + 1, Read-only) */}
-                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10">
+                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top">
                   <div className="flex items-center justify-center">
                     <Badge 
                       variant="secondary" 
@@ -1101,7 +1101,7 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                 </TableCell>
 
                 {/* Next Week - Problems */}
-                <TableCell className="p-0 bg-blue-50/30 dark:bg-blue-950/10">
+                <TableCell className="p-0 bg-blue-50/30 dark:bg-blue-950/10 align-top">
                   {isEditing(belief.category, 'result') ? (
                     <Textarea
                       value={editValue}
@@ -1134,7 +1134,7 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                 </TableCell>
 
                 {/* Next Week - Feelings */}
-                <TableCell className="p-0 bg-blue-50/30 dark:bg-blue-950/10">
+                <TableCell className="p-0 bg-blue-50/30 dark:bg-blue-950/10 align-top">
                   {isEditing(belief.category, 'nextFeelings') ? (
                     <Textarea
                       value={editValue}
@@ -1167,7 +1167,7 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                 </TableCell>
 
                 {/* Next Week - Beliefs/Reasons */}
-                <TableCell className="p-0 bg-blue-50/30 dark:bg-blue-950/10">
+                <TableCell className="p-0 bg-blue-50/30 dark:bg-blue-950/10 align-top">
                   {isEditing(belief.category, 'nextWeekTarget') ? (
                     <Textarea
                       value={editValue}
@@ -1200,7 +1200,7 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                 </TableCell>
 
                 {/* Next Week - Actions */}
-                <TableCell className="p-0 bg-blue-50/30 dark:bg-blue-950/10 border-r">
+                <TableCell className="p-0 bg-blue-50/30 dark:bg-blue-950/10 border-r align-top">
                   {isEditing(belief.category, 'nextActions') ? (
                     <Textarea
                       value={editValue}
@@ -1233,14 +1233,14 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                 </TableCell>
 
                 {/* AI Course */}
-                <TableCell className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10">
+                <TableCell className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10 align-top">
                   <div className="text-xs italic text-cyan-700 dark:text-cyan-400" data-testid={`text-next-course-${belief.category.toLowerCase()}`}>
                     {belief.affirmationSuggestion}
                   </div>
                 </TableCell>
 
                 {/* Checklist */}
-                <TableCell className="p-2 bg-purple-50/30 dark:bg-purple-950/10">
+                <TableCell className="p-2 bg-purple-50/30 dark:bg-purple-950/10 align-top">
                   <div className="space-y-1">
                     {belief.checklist.map((item) => (
                       <div key={item.id} className="flex items-center gap-2">
@@ -1258,7 +1258,7 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                 </TableCell>
 
                 {/* Progress */}
-                <TableCell className="p-2 text-center bg-emerald-50/30 dark:bg-emerald-950/10">
+                <TableCell className="p-2 text-center bg-emerald-50/30 dark:bg-emerald-950/10 align-top">
                   <Badge className={getProgressColor(calculateProgress(belief.checklist))} data-testid={`badge-next-progress-${belief.category.toLowerCase()}`}>
                     {calculateProgress(belief.checklist)}%
                   </Badge>
