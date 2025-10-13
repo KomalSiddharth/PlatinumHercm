@@ -178,6 +178,24 @@ const RELATIONSHIP_STANDARDS: ChecklistItem[] = [
   { id: 'relationship-std-6', text: 'I Promise to Accept Mistakes today and Easily say "I Am Sorry, Please Forgive Me."', checked: false },
 ];
 
+// Career Standards - Predefined checklist for Career category
+const CAREER_STANDARDS: ChecklistItem[] = [
+  { id: 'career-std-1', text: 'I Promise to Add 10x Value for any work I do today', checked: false },
+  { id: 'career-std-2', text: 'I Promise to Love what I do, even if I don\'t like it', checked: false },
+  { id: 'career-std-3', text: 'I Promise to focus on Serving & Adding Value rather than being Desperate for my Goals', checked: false },
+  { id: 'career-std-4', text: 'I Promise to Practice Walking-Talking Affirmations before doing any task related to my Career', checked: false },
+  { id: 'career-std-5', text: 'I Promise to End my work with this Affirmation – "My Career is Amazing, I Had a Great Day today."', checked: false },
+];
+
+// Money Standards - Predefined checklist for Money category
+const MONEY_STANDARDS: ChecklistItem[] = [
+  { id: 'money-std-1', text: 'I Promise to Be Generous while Spending Money today and Be Happy for others Making Money', checked: false },
+  { id: 'money-std-2', text: 'I Promise to Be Comfortable to Ask for Money today', checked: false },
+  { id: 'money-std-3', text: 'I Promise to invest at least 15 mins today to work on developing More Money-Making Skills', checked: false },
+  { id: 'money-std-4', text: 'I Promise to Appreciate People Generously & Regularly say Thank You (to increase Money Flow Energy)', checked: false },
+  { id: 'money-std-5', text: 'I Promise to Practice Saying "Time for Double Happiness" every time something Negative happens about Money', checked: false },
+];
+
 export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChange }: UnifiedHRCMTableProps) {
   const [beliefs, setBeliefs] = useState<HRCMBelief[]>([]);
   const [editingField, setEditingField] = useState<{ category: string; field: string } | null>(null);
@@ -303,16 +321,16 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
   const handleRatingChange = (category: string, newRating: number) => {
     setBeliefs(prev => prev.map(belief => {
       if (belief.category === category) {
-        // Get category-specific max rating
-        const maxRating = category === 'Health' ? 10 : category === 'Relationship' ? 6 : 10;
+        // All categories now have max rating of 10
+        const maxRating = 10;
         
-        // Cap both current and target ratings at category max
+        // Cap both current and target ratings at 10
         const cappedRating = Math.min(newRating, maxRating);
         
         return {
           ...belief,
           currentRating: cappedRating,
-          targetRating: Math.min(cappedRating + 1, maxRating) // Auto-increment by 1, capped at category max
+          targetRating: Math.min(cappedRating + 1, maxRating) // Auto-increment by 1, capped at 10
         };
       }
       return belief;
@@ -369,12 +387,58 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
         }
         return b;
       }));
+    } else if (category === 'Career') {
+      setBeliefs(prev => prev.map(b => {
+        if (b.category === 'Career') {
+          const existingChecklist = b.checklist || [];
+          
+          // Check if this is the old format by looking for career-std-* IDs
+          const hasNewFormat = existingChecklist.some(item => item.id.startsWith('career-std-'));
+          
+          if (!hasNewFormat || existingChecklist.length !== 5) {
+            // Replace with new 5 career standards
+            return {
+              ...b,
+              checklist: CAREER_STANDARDS.map(std => ({ ...std })),
+              currentRating: 0,
+              targetRating: 1
+            };
+          }
+          
+          // Already has new format, keep as is
+          return b;
+        }
+        return b;
+      }));
+    } else if (category === 'Money') {
+      setBeliefs(prev => prev.map(b => {
+        if (b.category === 'Money') {
+          const existingChecklist = b.checklist || [];
+          
+          // Check if this is the old format by looking for money-std-* IDs
+          const hasNewFormat = existingChecklist.some(item => item.id.startsWith('money-std-'));
+          
+          if (!hasNewFormat || existingChecklist.length !== 5) {
+            // Replace with new 5 money standards
+            return {
+              ...b,
+              checklist: MONEY_STANDARDS.map(std => ({ ...std })),
+              currentRating: 0,
+              targetRating: 1
+            };
+          }
+          
+          // Already has new format, keep as is
+          return b;
+        }
+        return b;
+      }));
     }
     
     setShowStandardsDialog(true);
   };
 
-  // Toggle a standard and recalculate rating
+  // Toggle a standard and recalculate rating (scaled to 10)
   const handleStandardToggle = (category: string, itemId: string) => {
     setBeliefs(prev => prev.map(belief => {
       if (belief.category === category) {
@@ -382,18 +446,16 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
           item.id === itemId ? { ...item, checked: !item.checked } : item
         );
         
-        // Get category-specific max rating
-        const maxRating = category === 'Health' ? 10 : category === 'Relationship' ? 6 : 10;
-        
-        // Calculate new rating based on checked items
+        // Calculate scaled rating out of 10 based on percentage of standards checked
         const checkedCount = updatedChecklist.filter(item => item.checked).length;
-        const newRating = checkedCount;
+        const totalStandards = updatedChecklist.length;
+        const newRating = Math.round((checkedCount / totalStandards) * 10);
         
         return {
           ...belief,
           checklist: updatedChecklist,
           currentRating: newRating,
-          targetRating: Math.min(newRating + 1, maxRating) // Target is +1, capped at category max
+          targetRating: Math.min(newRating + 1, 10) // Target is +1, capped at 10
         };
       }
       return belief;
@@ -876,35 +938,14 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
 
                 {/* Current Week - Rating */}
                 <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10 align-top">
-                  {belief.category === 'Health' ? (
-                    <Button
-                      variant="outline"
-                      onClick={() => handleOpenStandardsDialog('Health')}
-                      className="w-16 h-9 text-center font-semibold"
-                      data-testid={`button-health-rating-${belief.category.toLowerCase()}`}
-                    >
-                      {belief.currentRating}/10
-                    </Button>
-                  ) : belief.category === 'Relationship' ? (
-                    <Button
-                      variant="outline"
-                      onClick={() => handleOpenStandardsDialog('Relationship')}
-                      className="w-16 h-9 text-center font-semibold"
-                      data-testid={`button-relationship-rating-${belief.category.toLowerCase()}`}
-                    >
-                      {belief.currentRating}/6
-                    </Button>
-                  ) : (
-                    <Input
-                      type="number"
-                      min="1"
-                      max="10"
-                      value={belief.currentRating}
-                      onChange={(e) => handleRatingChange(belief.category, parseInt(e.target.value) || 1)}
-                      className="w-16 text-center"
-                      data-testid={`input-current-rating-${belief.category.toLowerCase()}`}
-                    />
-                  )}
+                  <Button
+                    variant="outline"
+                    onClick={() => handleOpenStandardsDialog(belief.category)}
+                    className="w-16 h-9 text-center font-semibold"
+                    data-testid={`button-${belief.category.toLowerCase()}-rating`}
+                  >
+                    {belief.currentRating}/10
+                  </Button>
                 </TableCell>
 
                 {/* Current Week - Problems */}
@@ -1296,7 +1337,7 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
         </Table>
       </div>
 
-      {/* Standards Dialog (Health & Relationship) */}
+      {/* Standards Dialog (All Categories) */}
       <Dialog open={showStandardsDialog} onOpenChange={setShowStandardsDialog}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
@@ -1306,24 +1347,27 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
           </DialogHeader>
           <div className="space-y-4 mt-4">
             <p className="text-sm text-muted-foreground">
-              {selectedCategory === 'Health' 
-                ? 'Select the standards you\'ve completed today. Your health rating will be calculated automatically based on your selections (1 standard = 1 point, max 10).'
-                : 'Select the standards you\'ve completed today. Your relationship rating will be calculated automatically based on your selections (1 standard = 1 point, max 6).'}
+              Select the standards you've completed today. Your {selectedCategory?.toLowerCase()} rating will be calculated automatically and scaled to a rating out of 10.
             </p>
             
             {selectedCategory && (() => {
               const categoryBelief = beliefs.find(b => b.category === selectedCategory);
               const currentStandards = categoryBelief?.checklist || [];
               const checkedCount = currentStandards.filter(item => item.checked).length;
-              const maxRating = selectedCategory === 'Health' ? 10 : selectedCategory === 'Relationship' ? 6 : 10;
+              const totalStandards = currentStandards.length;
+              const scaledRating = Math.round((checkedCount / totalStandards) * 10);
               
               return (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                     <span className="font-semibold">Current {selectedCategory} Rating:</span>
                     <Badge className="text-lg px-4 py-1" variant="default">
-                      {checkedCount}/{maxRating}
+                      {scaledRating}/10
                     </Badge>
+                  </div>
+                  
+                  <div className="text-xs text-muted-foreground text-center">
+                    {checkedCount} of {totalStandards} standards completed
                   </div>
                   
                   <div className="space-y-3">

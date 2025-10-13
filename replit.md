@@ -131,18 +131,21 @@ Preferred communication style: Simple, everyday language.
 - Row-wise layout shows checkbox, title, badges, and action buttons inline
 - Maintains all existing functionality: complete, pause/resume, edit, delete, view history
 
-### October 13, 2025 - Health & Relationship Standards Rating System
+### October 13, 2025 - All Categories Standards Rating System (Scaled to 10)
 
-**Standards-Based Rating for Health & Relationship**
-- Implemented standards-based rating system for both Health and Relationship categories
+**Universal Standards-Based Rating for All HRCM Categories**
+- All categories (Health, Relationship, Career, Money) now use standards-based rating system
+- All categories rate out of 10 using scaled calculation
 - Users rate by selecting from predefined standards via checkboxes in a popup dialog
-- Rating automatically calculates based on number of standards selected (1 standard = 1 point)
-- Rating cell displays a button that opens the standards dialog
-- Standards are predefined with specific habits and promises
+- Rating automatically calculates and scales to 10 based on percentage of standards selected
+- Rating cell displays a button for all categories that opens the standards dialog
+- Standards are predefined with specific habits and promises for each category
 - Automatic migration from old checklist format to new standards system
 - Preserves user selections when reopening the dialog
 
-**Health Standards (10 Total, max rating: 10):**
+**Scaling Formula:** `Math.round((checkedCount / totalStandards) * 10)`
+
+**Health Standards (10 Total, scaled to rating out of 10):**
 1. I started my Day with Magic Water
 2. I started my Day with 10 Mins of Musical Workout for Squats & Pushups
 3. I started my Day with Healthy Breakfast
@@ -154,13 +157,27 @@ Preferred communication style: Simple, everyday language.
 9. I Promise to Believe in myself more than Anybody else
 10. I Promise to Practice Walking-Talking Affirmations before doing any task today
 
-**Relationship Standards (6 Total, max rating: 6):**
+**Relationship Standards (6 Total, scaled to rating out of 10):**
 1. I Promise to talk to all my Relationships with Respect
 2. I Promise to Practice Great Listening Skills today
 3. I Promise to Practice Excellent Conflict Management Skills
 4. I Promise to End my Day with lots of Fun, Laughter, Hugs & Kisses with all my Family Members
 5. I Promise to Appreciate People Generously & regularly say Thank You
 6. I Promise to Accept Mistakes today and Easily say "I Am Sorry, Please Forgive Me."
+
+**Career Standards (5 Total, scaled to rating out of 10):**
+1. I Promise to Add 10x Value for any work I do today
+2. I Promise to Love what I do, even if I don't like it
+3. I Promise to focus on Serving & Adding Value rather than being Desperate for my Goals
+4. I Promise to Practice Walking-Talking Affirmations before doing any task related to my Career
+5. I Promise to End my work with this Affirmation – "My Career is Amazing, I Had a Great Day today."
+
+**Money Standards (5 Total, scaled to rating out of 10):**
+1. I Promise to Be Generous while Spending Money today and Be Happy for others Making Money
+2. I Promise to Be Comfortable to Ask for Money today
+3. I Promise to invest at least 15 mins today to work on developing More Money-Making Skills
+4. I Promise to Appreciate People Generously & Regularly say Thank You (to increase Money Flow Energy)
+5. I Promise to Practice Saying "Time for Double Happiness" every time something Negative happens about Money
 
 ### October 12, 2025
 
