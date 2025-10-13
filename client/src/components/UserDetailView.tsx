@@ -11,7 +11,7 @@ interface UserDetailViewProps {
 
 export default function UserDetailView({ userId }: UserDetailViewProps) {
   const { data: analytics, isLoading } = useQuery({
-    queryKey: ['/api/admin/user', userId, 'detailed-analytics'],
+    queryKey: [`/api/admin/user/${userId}/detailed-analytics`],
     enabled: !!userId,
   });
 
