@@ -579,8 +579,8 @@ export default function Dashboard() {
             ) : (
               <>
                 {rituals.length === 0 ? (
-                  <div className="text-center py-12 border-2 border-dashed rounded-lg">
-                    <p className="text-muted-foreground">No rituals yet. Add your first ritual above!</p>
+                  <div className="text-center py-12 border-2 border-dashed rounded-lg border-white/30">
+                    <p className="text-white/80">No rituals yet. Add your first ritual above!</p>
                   </div>
                 ) : (
                   <Card>

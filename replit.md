@@ -76,6 +76,18 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### October 13, 2025 - Dashboard Layout and Daily Rituals UI Updates
+
+**Dashboard Layout Reorganization**
+- Moved Achievements & Badges section to bottom of dashboard
+- Combined Achievements & Badges with Leaderboard in a single section at bottom
+- New order: HRCM Table → Daily Rituals → Course Tracker → Achievements/Badges/Leaderboard
+
+**Daily Rituals Section Styling**
+- Changed section background color to #00008c (deep blue)
+- Updated text colors to white for better contrast on dark background
+- Border color set to #0000cc for visual consistency
+
 ### October 13, 2025 - Text Box and Daily Rituals Updates
 
 **Text Box Behavior Change**
