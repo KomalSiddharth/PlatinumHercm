@@ -156,6 +156,20 @@ const getProgressColor = (progress: number) => {
   return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
 };
 
+// Health Standards - Predefined checklist for Health category
+const HEALTH_STANDARDS: ChecklistItem[] = [
+  { id: 'health-std-1', text: 'I started my Day with Magic Water', checked: false },
+  { id: 'health-std-2', text: 'I started my Day with 10 Mins of Musical Workout for Squats & Pushups', checked: false },
+  { id: 'health-std-3', text: 'I started my Day with Healthy Breakfast', checked: false },
+  { id: 'health-std-4', text: 'I completed 100 Pushups & Squats today', checked: false },
+  { id: 'health-std-5', text: 'I Promise to say Cancel-Cancel every time I say something Negative', checked: false },
+  { id: 'health-std-6', text: 'I Promise to check my Emotional Frequency every 2 hours by Alarm', checked: false },
+  { id: 'health-std-7', text: 'I Promise to say this Affirmation – "I Am Responsible for my Feelings" 10 times today', checked: false },
+  { id: 'health-std-8', text: 'I Promise to Be Aware of my Emotional Rules and Make Positive Emotions Easy and Negative Emotions Difficult', checked: false },
+  { id: 'health-std-9', text: 'I Promise to Believe in myself more than Anybody else', checked: false },
+  { id: 'health-std-10', text: 'I Promise to Practice Walking-Talking Affirmations before doing any task today', checked: false },
+];
+
 export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onViewHistory, canUnlockNextWeek = true, nextUnlockDate = null }: UnifiedHRCMTableProps) {
   const [beliefs, setBeliefs] = useState<HRCMBelief[]>([]);
   const [editingField, setEditingField] = useState<{ category: string; field: string } | null>(null);
@@ -164,6 +178,8 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
   const [autoFilling, setAutoFilling] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
+  const [showStandardsDialog, setShowStandardsDialog] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const { toast } = useToast();
 
   // Fetch current week data from database
@@ -282,6 +298,61 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
           ...belief,
           currentRating: newRating,
           targetRating: newRating + 1 // Auto-increment by 1
+        };
+      }
+      return belief;
+    }));
+  };
+
+  // Open standards dialog for a category
+  const handleOpenStandardsDialog = (category: string) => {
+    setSelectedCategory(category);
+    
+    if (category === 'Health') {
+      setBeliefs(prev => prev.map(b => {
+        if (b.category === 'Health') {
+          const existingChecklist = b.checklist || [];
+          
+          // Check if this is the old format by looking for health-std-* IDs
+          const hasNewFormat = existingChecklist.some(item => item.id.startsWith('health-std-'));
+          
+          if (!hasNewFormat || existingChecklist.length !== 10) {
+            // Replace with new 10 health standards
+            return {
+              ...b,
+              checklist: HEALTH_STANDARDS.map(std => ({ ...std })),
+              currentRating: 0,
+              targetRating: 1
+            };
+          }
+          
+          // Already has new format, keep as is
+          return b;
+        }
+        return b;
+      }));
+    }
+    
+    setShowStandardsDialog(true);
+  };
+
+  // Toggle a standard and recalculate rating
+  const handleStandardToggle = (category: string, itemId: string) => {
+    setBeliefs(prev => prev.map(belief => {
+      if (belief.category === category) {
+        const updatedChecklist = belief.checklist.map(item =>
+          item.id === itemId ? { ...item, checked: !item.checked } : item
+        );
+        
+        // Calculate new rating based on checked items (10 items = max rating 10)
+        const checkedCount = updatedChecklist.filter(item => item.checked).length;
+        const newRating = checkedCount; // 1 checked = 1, 10 checked = 10
+        
+        return {
+          ...belief,
+          checklist: updatedChecklist,
+          currentRating: newRating,
+          targetRating: Math.min(newRating + 1, 10) // Target is +1, max 10
         };
       }
       return belief;
@@ -734,15 +805,26 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
 
                 {/* Current Week - Rating */}
                 <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10">
-                  <Input
-                    type="number"
-                    min="1"
-                    max="10"
-                    value={belief.currentRating}
-                    onChange={(e) => handleRatingChange(belief.category, parseInt(e.target.value) || 1)}
-                    className="w-16 text-center"
-                    data-testid={`input-current-rating-${belief.category.toLowerCase()}`}
-                  />
+                  {belief.category === 'Health' ? (
+                    <Button
+                      variant="outline"
+                      onClick={() => handleOpenStandardsDialog('Health')}
+                      className="w-16 h-9 text-center font-semibold"
+                      data-testid={`button-health-rating-${belief.category.toLowerCase()}`}
+                    >
+                      {belief.currentRating}/10
+                    </Button>
+                  ) : (
+                    <Input
+                      type="number"
+                      min="1"
+                      max="10"
+                      value={belief.currentRating}
+                      onChange={(e) => handleRatingChange(belief.category, parseInt(e.target.value) || 1)}
+                      className="w-16 text-center"
+                      data-testid={`input-current-rating-${belief.category.toLowerCase()}`}
+                    />
+                  )}
                 </TableCell>
 
                 {/* Current Week - Problems */}
@@ -1194,6 +1276,88 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
           </TableBody>
         </Table>
       </div>
+
+      {/* Health Standards Dialog */}
+      <Dialog open={showStandardsDialog} onOpenChange={setShowStandardsDialog}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              Health Standards Checklist
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <p className="text-sm text-muted-foreground">
+              Select the standards you've completed today. Your health rating will be calculated automatically based on your selections (1 standard = 1 point, max 10).
+            </p>
+            
+            {selectedCategory === 'Health' && (() => {
+              const healthBelief = beliefs.find(b => b.category === 'Health');
+              const currentStandards = healthBelief?.checklist || [];
+              const checkedCount = currentStandards.filter(item => item.checked).length;
+              
+              return (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                    <span className="font-semibold">Current Health Rating:</span>
+                    <Badge className="text-lg px-4 py-1" variant="default">
+                      {checkedCount}/10
+                    </Badge>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {currentStandards.map((standard) => (
+                      <div 
+                        key={standard.id} 
+                        className="flex items-start gap-3 p-3 rounded-lg hover-elevate border"
+                        data-testid={`standard-item-${standard.id}`}
+                      >
+                        <Checkbox
+                          id={standard.id}
+                          checked={standard.checked}
+                          onCheckedChange={() => handleStandardToggle('Health', standard.id)}
+                          className="mt-1"
+                          data-testid={`checkbox-standard-${standard.id}`}
+                        />
+                        <label 
+                          htmlFor={standard.id} 
+                          className={`text-sm cursor-pointer flex-1 ${standard.checked ? 'text-muted-foreground line-through' : ''}`}
+                        >
+                          {standard.text}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="flex justify-end gap-2 pt-4 border-t">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowStandardsDialog(false)}
+                      data-testid="button-close-standards"
+                    >
+                      Close
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setShowStandardsDialog(false);
+                        // Save the updated data
+                        saveWeekMutation.mutate({
+                          weekNumber,
+                          year: new Date().getFullYear(),
+                          beliefs,
+                        });
+                      }}
+                      data-testid="button-save-standards"
+                    >
+                      <Save className="w-4 h-4 mr-2" />
+                      Save & Close
+                    </Button>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
