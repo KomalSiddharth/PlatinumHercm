@@ -854,6 +854,7 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                     <Textarea
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
+                      onBlur={saveEdit}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault();
@@ -887,6 +888,7 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                     <Textarea
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
+                      onBlur={saveEdit}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault();
@@ -919,6 +921,7 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                     <Textarea
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
+                      onBlur={saveEdit}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault();
@@ -951,6 +954,7 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                     <Textarea
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
+                      onBlur={saveEdit}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault();
@@ -1102,6 +1106,7 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                     <Textarea
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
+                      onBlur={saveEdit}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault();
@@ -1134,6 +1139,7 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                     <Textarea
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
+                      onBlur={saveEdit}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault();
@@ -1166,6 +1172,7 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                     <Textarea
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
+                      onBlur={saveEdit}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault();
@@ -1198,6 +1205,7 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                     <Textarea
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
+                      onBlur={saveEdit}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault();
