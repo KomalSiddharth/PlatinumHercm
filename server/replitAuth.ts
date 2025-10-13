@@ -163,9 +163,17 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
 export const isAdmin: RequestHandler = async (req, res, next) => {
   // Check for session-based admin authentication first
   if ((req.session as any).isAdmin && (req.session as any).userEmail) {
-    // Verify the admin user still exists and is active
-    const adminUser = await storage.getAdminUser((req.session as any).userEmail);
+    const userEmail = (req.session as any).userEmail;
+    
+    // Check admin users table first
+    const adminUser = await storage.getAdminUser(userEmail);
     if (adminUser && adminUser.status === 'active') {
+      return next();
+    }
+    
+    // If not in admin users table, check regular users table for isAdmin flag
+    const regularUser = await storage.getUserByEmail(userEmail);
+    if (regularUser?.isAdmin) {
       return next();
     }
   }

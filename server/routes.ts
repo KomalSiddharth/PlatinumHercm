@@ -818,10 +818,19 @@ Return ONLY valid JSON in this exact format:
         return res.status(400).json({ message: "Email is required" });
       }
 
-      // Check admin users table
+      // Check admin users table first
       const adminUser = await storage.getAdminUser(email);
       
-      if (!adminUser || adminUser.status !== 'active') {
+      // Check if user is in admin users table with active status
+      let isAuthorized = adminUser && adminUser.status === 'active';
+      
+      // If not in admin users table, check regular users table for isAdmin flag
+      if (!isAuthorized) {
+        const regularUser = await storage.getUserByEmail(email);
+        isAuthorized = regularUser?.isAdmin === true;
+      }
+      
+      if (!isAuthorized) {
         // Log failed admin login attempt
         await storage.createAccessLog({
           email,
@@ -1042,6 +1051,17 @@ Return ONLY valid JSON in this exact format:
       const userId = req.user?.claims?.sub || req.session.userEmail;
       if (!userId) {
         return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      // Ensure user exists in users table (create if doesn't exist)
+      const existingUser = await storage.getUser(userId);
+      if (!existingUser) {
+        // For admin users logging via email, use email as both id and email
+        const userEmail = typeof userId === 'string' && userId.includes('@') ? userId : req.session.userEmail;
+        await storage.upsertUser({
+          id: userId,
+          email: userEmail || userId,
+        });
       }
       
       // Define default rituals that should exist for all users
