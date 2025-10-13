@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -180,6 +180,7 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   const [showStandardsDialog, setShowStandardsDialog] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const lastFocusedButton = useRef<HTMLButtonElement | null>(null);
   const { toast } = useToast();
 
   // Fetch current week data from database
@@ -381,7 +382,11 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
     }
   });
 
-  const startEdit = (category: string, field: string, currentValue: string) => {
+  const startEdit = (category: string, field: string, currentValue: string, buttonElement?: HTMLButtonElement) => {
+    // Store the button element for focus restoration
+    if (buttonElement) {
+      lastFocusedButton.current = buttonElement;
+    }
     setEditingField({ category, field });
     setEditValue(currentValue);
   };
@@ -426,6 +431,14 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
     setEditingField(null);
     setEditValue('');
     
+    // Restore focus to the button that triggered editing
+    setTimeout(() => {
+      if (lastFocusedButton.current) {
+        lastFocusedButton.current.focus();
+        lastFocusedButton.current = null;
+      }
+    }, 0);
+    
     // Fetch AI course recommendation if current week field was edited
     if (updatedBelief && ['problems', 'currentFeelings', 'currentBelief', 'currentActions'].includes(field)) {
       await fetchCourseRecommendation(category, updatedBelief);
@@ -442,6 +455,14 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
   const cancelEdit = () => {
     setEditingField(null);
     setEditValue('');
+    
+    // Restore focus to the button that triggered editing
+    setTimeout(() => {
+      if (lastFocusedButton.current) {
+        lastFocusedButton.current.focus();
+        lastFocusedButton.current = null;
+      }
+    }, 0);
   };
 
   const isEditing = (category: string, field: string) => {
@@ -776,21 +797,21 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
         <Table>
           <TableHeader>
             <TableRow className="bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-950/30 dark:to-pink-950/30">
-              <TableHead className="font-bold border-r">HRCM Area</TableHead>
-              <TableHead className="w-[80px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Rating</TableHead>
-              <TableHead className="w-[180px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Problems</TableHead>
-              <TableHead className="w-[150px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Feelings</TableHead>
-              <TableHead className="w-[180px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Beliefs/Reasons</TableHead>
-              <TableHead className="w-[180px] bg-rose-100 dark:bg-rose-900/40 font-semibold border-r">Actions</TableHead>
+              <TableHead className="font-bold border-r min-w-[120px]">HRCM Area</TableHead>
+              <TableHead className="min-w-[80px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Rating</TableHead>
+              <TableHead className="min-w-[150px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Problems</TableHead>
+              <TableHead className="min-w-[150px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Feelings</TableHead>
+              <TableHead className="min-w-[150px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Beliefs/Reasons</TableHead>
+              <TableHead className="min-w-[150px] bg-rose-100 dark:bg-rose-900/40 font-semibold border-r">Actions</TableHead>
               
-              <TableHead className="w-[180px] bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/40 dark:to-blue-900/40 font-semibold">
+              <TableHead className="min-w-[150px] bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/40 dark:to-blue-900/40 font-semibold">
                 <div className="flex items-center gap-1">
                   <Sparkles className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
                   AI Course
                 </div>
               </TableHead>
-              <TableHead className="w-[200px] bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900/40 dark:to-violet-900/40 font-semibold">Checklist</TableHead>
-              <TableHead className="w-[100px] bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 font-semibold text-center">Progress</TableHead>
+              <TableHead className="min-w-[180px] bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900/40 dark:to-violet-900/40 font-semibold">Checklist</TableHead>
+              <TableHead className="min-w-[100px] bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 font-semibold text-center">Progress</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -828,148 +849,131 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                 </TableCell>
 
                 {/* Current Week - Problems */}
-                <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10">
+                <TableCell className="p-0 bg-red-50/30 dark:bg-red-950/10">
                   {isEditing(belief.category, 'problems') ? (
-                    <div className="space-y-1">
-                      <Textarea
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        className="min-h-[60px] text-xs"
-                        placeholder="Enter your current problems..."
-                        data-testid={`textarea-problems-${belief.category.toLowerCase()}`}
-                      />
-                      <div className="flex gap-1">
-                        <Button size="sm" variant="ghost" onClick={saveEdit} className="h-6 px-2" data-testid={`button-save-problems-${belief.category.toLowerCase()}`}>
-                          <Save className="w-3 h-3" />
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-6 px-2" data-testid={`button-cancel-problems-${belief.category.toLowerCase()}`}>
-                          <X className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
+                    <Textarea
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          saveEdit();
+                        }
+                        if (e.key === 'Escape') {
+                          cancelEdit();
+                        }
+                      }}
+                      className="min-h-[60px] text-xs border-0"
+                      placeholder="Enter your current problems..."
+                      autoFocus
+                      data-testid={`textarea-problems-${belief.category.toLowerCase()}`}
+                    />
                   ) : (
-                    <div className="group relative">
-                      <div className="text-xs" data-testid={`text-problems-${belief.category.toLowerCase()}`}>
-                        {belief.problems || <span className="text-muted-foreground italic">Click to add problems...</span>}
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => startEdit(belief.category, 'problems', belief.problems)}
-                        className="absolute top-0 right-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                        data-testid={`button-edit-problems-${belief.category.toLowerCase()}`}
-                      >
-                        <Edit2 className="w-3 h-3" />
-                      </Button>
-                    </div>
+                    <button
+                      className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
+                      onClick={(e) => startEdit(belief.category, 'problems', belief.problems, e.currentTarget)}
+                      type="button"
+                      aria-label="Edit problems"
+                      data-testid={`text-problems-${belief.category.toLowerCase()}`}
+                    >
+                      {belief.problems || <span className="text-muted-foreground italic">Click to add problems...</span>}
+                    </button>
                   )}
                 </TableCell>
 
                 {/* Current Week - Feelings */}
-                <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10">
+                <TableCell className="p-0 bg-red-50/30 dark:bg-red-950/10">
                   {isEditing(belief.category, 'currentFeelings') ? (
-                    <div className="space-y-1">
-                      <Textarea
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        className="min-h-[60px] text-xs"
-                        data-testid={`textarea-feelings-${belief.category.toLowerCase()}`}
-                      />
-                      <div className="flex gap-1">
-                        <Button size="sm" variant="ghost" onClick={saveEdit} className="h-6 px-2">
-                          <Save className="w-3 h-3" />
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-6 px-2">
-                          <X className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
+                    <Textarea
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          saveEdit();
+                        }
+                        if (e.key === 'Escape') {
+                          cancelEdit();
+                        }
+                      }}
+                      className="min-h-[60px] text-xs border-0"
+                      autoFocus
+                      data-testid={`textarea-feelings-${belief.category.toLowerCase()}`}
+                    />
                   ) : (
-                    <div className="group relative">
-                      <div className="text-xs" data-testid={`text-feelings-${belief.category.toLowerCase()}`}>
-                        {belief.currentFeelings || <span className="text-muted-foreground italic">Click to add feelings...</span>}
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => startEdit(belief.category, 'currentFeelings', belief.currentFeelings)}
-                        className="absolute top-0 right-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                      >
-                        <Edit2 className="w-3 h-3" />
-                      </Button>
-                    </div>
+                    <button
+                      className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
+                      onClick={(e) => startEdit(belief.category, 'currentFeelings', belief.currentFeelings, e.currentTarget)}
+                      type="button"
+                      aria-label="Edit feelings"
+                      data-testid={`text-feelings-${belief.category.toLowerCase()}`}
+                    >
+                      {belief.currentFeelings || <span className="text-muted-foreground italic">Click to add feelings...</span>}
+                    </button>
                   )}
                 </TableCell>
 
                 {/* Current Week - Beliefs */}
-                <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10">
+                <TableCell className="p-0 bg-red-50/30 dark:bg-red-950/10">
                   {isEditing(belief.category, 'currentBelief') ? (
-                    <div className="space-y-1">
-                      <Textarea
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        className="min-h-[60px] text-xs"
-                        data-testid={`textarea-beliefs-${belief.category.toLowerCase()}`}
-                      />
-                      <div className="flex gap-1">
-                        <Button size="sm" variant="ghost" onClick={saveEdit} className="h-6 px-2">
-                          <Save className="w-3 h-3" />
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-6 px-2">
-                          <X className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
+                    <Textarea
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          saveEdit();
+                        }
+                        if (e.key === 'Escape') {
+                          cancelEdit();
+                        }
+                      }}
+                      className="min-h-[60px] text-xs border-0"
+                      autoFocus
+                      data-testid={`textarea-beliefs-${belief.category.toLowerCase()}`}
+                    />
                   ) : (
-                    <div className="group relative">
-                      <div className="text-xs" data-testid={`text-beliefs-${belief.category.toLowerCase()}`}>
-                        {belief.currentBelief || <span className="text-muted-foreground italic">Click to add beliefs...</span>}
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => startEdit(belief.category, 'currentBelief', belief.currentBelief)}
-                        className="absolute top-0 right-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                      >
-                        <Edit2 className="w-3 h-3" />
-                      </Button>
-                    </div>
+                    <button
+                      className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
+                      onClick={(e) => startEdit(belief.category, 'currentBelief', belief.currentBelief, e.currentTarget)}
+                      type="button"
+                      aria-label="Edit beliefs"
+                      data-testid={`text-beliefs-${belief.category.toLowerCase()}`}
+                    >
+                      {belief.currentBelief || <span className="text-muted-foreground italic">Click to add beliefs...</span>}
+                    </button>
                   )}
                 </TableCell>
 
                 {/* Current Week - Actions */}
-                <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10 border-r">
+                <TableCell className="p-0 bg-red-50/30 dark:bg-red-950/10 border-r">
                   {isEditing(belief.category, 'currentActions') ? (
-                    <div className="space-y-1">
-                      <Textarea
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        className="min-h-[60px] text-xs"
-                        data-testid={`textarea-actions-${belief.category.toLowerCase()}`}
-                      />
-                      <div className="flex gap-1">
-                        <Button size="sm" variant="ghost" onClick={saveEdit} className="h-6 px-2">
-                          <Save className="w-3 h-3" />
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-6 px-2">
-                          <X className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
+                    <Textarea
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          saveEdit();
+                        }
+                        if (e.key === 'Escape') {
+                          cancelEdit();
+                        }
+                      }}
+                      className="min-h-[60px] text-xs border-0"
+                      autoFocus
+                      data-testid={`textarea-actions-${belief.category.toLowerCase()}`}
+                    />
                   ) : (
-                    <div className="group relative">
-                      <div className="text-xs" data-testid={`text-actions-${belief.category.toLowerCase()}`}>
-                        {belief.currentActions || <span className="text-muted-foreground italic">Click to add actions...</span>}
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => startEdit(belief.category, 'currentActions', belief.currentActions)}
-                        className="absolute top-0 right-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                      >
-                        <Edit2 className="w-3 h-3" />
-                      </Button>
-                    </div>
+                    <button
+                      className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
+                      onClick={(e) => startEdit(belief.category, 'currentActions', belief.currentActions, e.currentTarget)}
+                      type="button"
+                      aria-label="Edit actions"
+                      data-testid={`text-actions-${belief.category.toLowerCase()}`}
+                    >
+                      {belief.currentActions || <span className="text-muted-foreground italic">Click to add actions...</span>}
+                    </button>
                   )}
                 </TableCell>
 
@@ -1052,21 +1056,21 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
         <Table>
           <TableHeader>
             <TableRow className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30">
-              <TableHead className="font-bold border-r">HRCM Area</TableHead>
-              <TableHead className="w-[80px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Rating</TableHead>
-              <TableHead className="w-[180px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Problems</TableHead>
-              <TableHead className="w-[150px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Feelings</TableHead>
-              <TableHead className="w-[180px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Beliefs/Reasons</TableHead>
-              <TableHead className="w-[180px] bg-blue-100 dark:bg-blue-900/40 font-semibold border-r">Actions</TableHead>
+              <TableHead className="font-bold border-r min-w-[120px]">HRCM Area</TableHead>
+              <TableHead className="min-w-[80px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Rating</TableHead>
+              <TableHead className="min-w-[150px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Problems</TableHead>
+              <TableHead className="min-w-[150px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Feelings</TableHead>
+              <TableHead className="min-w-[150px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Beliefs/Reasons</TableHead>
+              <TableHead className="min-w-[150px] bg-blue-100 dark:bg-blue-900/40 font-semibold border-r">Actions</TableHead>
               
-              <TableHead className="w-[180px] bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/40 dark:to-blue-900/40 font-semibold">
+              <TableHead className="min-w-[150px] bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/40 dark:to-blue-900/40 font-semibold">
                 <div className="flex items-center gap-1">
                   <Sparkles className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
                   Affirmations
                 </div>
               </TableHead>
-              <TableHead className="w-[200px] bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900/40 dark:to-violet-900/40 font-semibold">Checklist</TableHead>
-              <TableHead className="w-[100px] bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 font-semibold text-center">Progress</TableHead>
+              <TableHead className="min-w-[180px] bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900/40 dark:to-violet-900/40 font-semibold">Checklist</TableHead>
+              <TableHead className="min-w-[100px] bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 font-semibold text-center">Progress</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -1093,150 +1097,130 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
                 </TableCell>
 
                 {/* Next Week - Problems */}
-                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10">
+                <TableCell className="p-0 bg-blue-50/30 dark:bg-blue-950/10">
                   {isEditing(belief.category, 'result') ? (
-                    <div className="space-y-1">
-                      <Textarea
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        className="min-h-[60px] text-xs"
-                        data-testid={`textarea-next-problems-${belief.category.toLowerCase()}`}
-                      />
-                      <div className="flex gap-1">
-                        <Button size="sm" variant="ghost" onClick={saveEdit} className="h-6 px-2" data-testid={`button-save-next-problems-${belief.category.toLowerCase()}`}>
-                          <Save className="w-3 h-3" />
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-6 px-2" data-testid={`button-cancel-next-problems-${belief.category.toLowerCase()}`}>
-                          <X className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
+                    <Textarea
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          saveEdit();
+                        }
+                        if (e.key === 'Escape') {
+                          cancelEdit();
+                        }
+                      }}
+                      className="min-h-[60px] text-xs border-0"
+                      autoFocus
+                      data-testid={`textarea-next-problems-${belief.category.toLowerCase()}`}
+                    />
                   ) : (
-                    <div className="group relative">
-                      <div className="text-xs" data-testid={`text-next-problems-${belief.category.toLowerCase()}`}>
-                        {belief.result || <span className="text-muted-foreground italic">Click to add target result...</span>}
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => startEdit(belief.category, 'result', belief.result)}
-                        className="absolute top-0 right-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                        data-testid={`button-edit-next-problems-${belief.category.toLowerCase()}`}
-                      >
-                        <Edit2 className="w-3 h-3" />
-                      </Button>
-                    </div>
+                    <button
+                      className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
+                      onClick={(e) => startEdit(belief.category, 'result', belief.result, e.currentTarget)}
+                      type="button"
+                      aria-label="Edit target result"
+                      data-testid={`text-next-problems-${belief.category.toLowerCase()}`}
+                    >
+                      {belief.result || <span className="text-muted-foreground italic">Click to add target result...</span>}
+                    </button>
                   )}
                 </TableCell>
 
                 {/* Next Week - Feelings */}
-                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10">
+                <TableCell className="p-0 bg-blue-50/30 dark:bg-blue-950/10">
                   {isEditing(belief.category, 'nextFeelings') ? (
-                    <div className="space-y-1">
-                      <Textarea
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        className="min-h-[60px] text-xs"
-                        data-testid={`textarea-next-feelings-${belief.category.toLowerCase()}`}
-                      />
-                      <div className="flex gap-1">
-                        <Button size="sm" variant="ghost" onClick={saveEdit} className="h-6 px-2" data-testid={`button-save-next-feelings-${belief.category.toLowerCase()}`}>
-                          <Save className="w-3 h-3" />
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-6 px-2" data-testid={`button-cancel-next-feelings-${belief.category.toLowerCase()}`}>
-                          <X className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
+                    <Textarea
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          saveEdit();
+                        }
+                        if (e.key === 'Escape') {
+                          cancelEdit();
+                        }
+                      }}
+                      className="min-h-[60px] text-xs border-0"
+                      autoFocus
+                      data-testid={`textarea-next-feelings-${belief.category.toLowerCase()}`}
+                    />
                   ) : (
-                    <div className="group relative">
-                      <div className="text-xs" data-testid={`text-next-feelings-${belief.category.toLowerCase()}`}>
-                        {belief.nextFeelings || <span className="text-muted-foreground italic">Click to add feelings...</span>}
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => startEdit(belief.category, 'nextFeelings', belief.nextFeelings)}
-                        className="absolute top-0 right-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                        data-testid={`button-edit-next-feelings-${belief.category.toLowerCase()}`}
-                      >
-                        <Edit2 className="w-3 h-3" />
-                      </Button>
-                    </div>
+                    <button
+                      className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
+                      onClick={(e) => startEdit(belief.category, 'nextFeelings', belief.nextFeelings, e.currentTarget)}
+                      type="button"
+                      aria-label="Edit next week feelings"
+                      data-testid={`text-next-feelings-${belief.category.toLowerCase()}`}
+                    >
+                      {belief.nextFeelings || <span className="text-muted-foreground italic">Click to add feelings...</span>}
+                    </button>
                   )}
                 </TableCell>
 
                 {/* Next Week - Beliefs/Reasons */}
-                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10">
+                <TableCell className="p-0 bg-blue-50/30 dark:bg-blue-950/10">
                   {isEditing(belief.category, 'nextWeekTarget') ? (
-                    <div className="space-y-1">
-                      <Textarea
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        className="min-h-[60px] text-xs"
-                        data-testid={`textarea-next-beliefs-${belief.category.toLowerCase()}`}
-                      />
-                      <div className="flex gap-1">
-                        <Button size="sm" variant="ghost" onClick={saveEdit} className="h-6 px-2" data-testid={`button-save-next-beliefs-${belief.category.toLowerCase()}`}>
-                          <Save className="w-3 h-3" />
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-6 px-2" data-testid={`button-cancel-next-beliefs-${belief.category.toLowerCase()}`}>
-                          <X className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
+                    <Textarea
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          saveEdit();
+                        }
+                        if (e.key === 'Escape') {
+                          cancelEdit();
+                        }
+                      }}
+                      className="min-h-[60px] text-xs border-0"
+                      autoFocus
+                      data-testid={`textarea-next-beliefs-${belief.category.toLowerCase()}`}
+                    />
                   ) : (
-                    <div className="group relative">
-                      <div className="text-xs" data-testid={`text-next-beliefs-${belief.category.toLowerCase()}`}>
-                        {belief.nextWeekTarget || <span className="text-muted-foreground italic">Click to add beliefs...</span>}
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => startEdit(belief.category, 'nextWeekTarget', belief.nextWeekTarget)}
-                        className="absolute top-0 right-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                        data-testid={`button-edit-next-beliefs-${belief.category.toLowerCase()}`}
-                      >
-                        <Edit2 className="w-3 h-3" />
-                      </Button>
-                    </div>
+                    <button
+                      className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
+                      onClick={(e) => startEdit(belief.category, 'nextWeekTarget', belief.nextWeekTarget, e.currentTarget)}
+                      type="button"
+                      aria-label="Edit next week beliefs"
+                      data-testid={`text-next-beliefs-${belief.category.toLowerCase()}`}
+                    >
+                      {belief.nextWeekTarget || <span className="text-muted-foreground italic">Click to add beliefs...</span>}
+                    </button>
                   )}
                 </TableCell>
 
                 {/* Next Week - Actions */}
-                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 border-r">
+                <TableCell className="p-0 bg-blue-50/30 dark:bg-blue-950/10 border-r">
                   {isEditing(belief.category, 'nextActions') ? (
-                    <div className="space-y-1">
-                      <Textarea
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        className="min-h-[60px] text-xs"
-                        data-testid={`textarea-next-actions-${belief.category.toLowerCase()}`}
-                      />
-                      <div className="flex gap-1">
-                        <Button size="sm" variant="ghost" onClick={saveEdit} className="h-6 px-2" data-testid={`button-save-next-actions-${belief.category.toLowerCase()}`}>
-                          <Save className="w-3 h-3" />
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-6 px-2" data-testid={`button-cancel-next-actions-${belief.category.toLowerCase()}`}>
-                          <X className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
+                    <Textarea
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          saveEdit();
+                        }
+                        if (e.key === 'Escape') {
+                          cancelEdit();
+                        }
+                      }}
+                      className="min-h-[60px] text-xs border-0"
+                      autoFocus
+                      data-testid={`textarea-next-actions-${belief.category.toLowerCase()}`}
+                    />
                   ) : (
-                    <div className="group relative">
-                      <div className="text-xs" data-testid={`text-next-actions-${belief.category.toLowerCase()}`}>
-                        {belief.nextActions || <span className="text-muted-foreground italic">Click to add actions...</span>}
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => startEdit(belief.category, 'nextActions', belief.nextActions)}
-                        className="absolute top-0 right-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                        data-testid={`button-edit-next-actions-${belief.category.toLowerCase()}`}
-                      >
-                        <Edit2 className="w-3 h-3" />
-                      </Button>
-                    </div>
+                    <button
+                      className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
+                      onClick={(e) => startEdit(belief.category, 'nextActions', belief.nextActions, e.currentTarget)}
+                      type="button"
+                      aria-label="Edit next week actions"
+                      data-testid={`text-next-actions-${belief.category.toLowerCase()}`}
+                    >
+                      {belief.nextActions || <span className="text-muted-foreground italic">Click to add actions...</span>}
+                    </button>
                   )}
                 </TableCell>
 
