@@ -272,6 +272,7 @@ export const rituals = pgTable("rituals", {
   frequency: varchar("frequency").default('daily').notNull(), // 'daily', 'weekly'
   points: integer("points").default(50).notNull(), // Custom points for each ritual
   isActive: boolean("is_active").default(true).notNull(),
+  isDefault: boolean("is_default").default(false).notNull(), // System default rituals (non-deletable)
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

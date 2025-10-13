@@ -411,6 +411,24 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteRitual(id: string, userId: string): Promise<number> {
+    // Check if this is a default ritual (non-deletable)
+    const [ritual] = await db
+      .select()
+      .from(rituals)
+      .where(and(
+        eq(rituals.id, id),
+        eq(rituals.userId, userId)
+      ));
+    
+    if (!ritual) {
+      return 0;
+    }
+    
+    // Prevent deletion of default rituals
+    if (ritual.isDefault) {
+      return 0;
+    }
+    
     // First delete all ritual completions for this ritual
     await db
       .delete(ritualCompletions)

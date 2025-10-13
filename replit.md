@@ -76,6 +76,27 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### October 13, 2025 - Text Box and Daily Rituals Updates
+
+**Text Box Behavior Change**
+- Removed Enter key save functionality from all text boxes in HRCM tables
+- Enter key now creates new line (standard behavior)
+- Save only occurs on blur (clicking outside text box)
+- Escape key still cancels edit and restores original value
+
+**Daily Rituals Row-Wise Layout with Default Options**
+- Changed Daily Rituals display from grid cards to row-wise list layout
+- Added 4 default rituals that appear for all users automatically:
+  1. "Attend Live DMP Everyday" (Health, Daily, 50 points)
+  2. "Attend Morning Fitness Everyday" (Health, Daily, 50 points)
+  3. "Attend Platinum Live Support Calls" (Career, Daily, 50 points)
+  4. "Joined Magic of 6" (Career, Daily, 50 points)
+- Default rituals are automatically created on first access
+- Default rituals cannot be deleted (only paused/resumed)
+- New `isDefault` field in rituals schema to mark system rituals
+- Row-wise layout shows checkbox, title, badges, and action buttons inline
+- Maintains all existing functionality: complete, pause/resume, edit, delete, view history
+
 ### October 13, 2025 - Health Standards Rating System
 
 **Standards-Based Health Rating**

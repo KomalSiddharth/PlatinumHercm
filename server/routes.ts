@@ -909,8 +909,63 @@ Return ONLY valid JSON in this exact format:
         return res.status(401).json({ message: "User not authenticated" });
       }
       
-      const rituals = await storage.getRitualsByUser(userId);
-      res.json(rituals);
+      // Define default rituals that should exist for all users
+      const defaultRituals = [
+        {
+          title: "Attend Live DMP Everyday",
+          description: "Daily morning practice",
+          category: "Health",
+          frequency: "daily",
+          points: 50,
+          isDefault: true,
+        },
+        {
+          title: "Attend Morning Fitness Everyday",
+          description: "Morning fitness routine",
+          category: "Health",
+          frequency: "daily",
+          points: 50,
+          isDefault: true,
+        },
+        {
+          title: "Attend Platinum Live Support Calls",
+          description: "Join support sessions",
+          category: "Career",
+          frequency: "daily",
+          points: 50,
+          isDefault: true,
+        },
+        {
+          title: "Joined Magic of 6",
+          description: "Magic of 6 practice",
+          category: "Career",
+          frequency: "daily",
+          points: 50,
+          isDefault: true,
+        },
+      ];
+      
+      // Get existing rituals
+      const existingRituals = await storage.getRitualsByUser(userId);
+      
+      // Check which default rituals are missing
+      const existingTitles = new Set(existingRituals.map(r => r.title));
+      const missingDefaults = defaultRituals.filter(d => !existingTitles.has(d.title));
+      
+      // Create missing default rituals
+      for (const defaultRitual of missingDefaults) {
+        await storage.createRitual({
+          ...defaultRitual,
+          userId,
+        });
+      }
+      
+      // Fetch all rituals again if we created any defaults
+      const allRituals = missingDefaults.length > 0 
+        ? await storage.getRitualsByUser(userId)
+        : existingRituals;
+      
+      res.json(allRituals);
     } catch (error) {
       console.error("Error fetching rituals:", error);
       res.status(500).json({ message: "Failed to fetch rituals" });
@@ -962,6 +1017,19 @@ Return ONLY valid JSON in this exact format:
       }
       
       const { id } = req.params;
+      
+      // Check if ritual is a default ritual before attempting deletion
+      const rituals = await storage.getRitualsByUser(userId);
+      const ritual = rituals.find(r => r.id === id);
+      
+      if (!ritual) {
+        return res.status(404).json({ message: "Ritual not found" });
+      }
+      
+      if (ritual.isDefault) {
+        return res.status(403).json({ message: "Default rituals cannot be deleted. You can pause them instead." });
+      }
+      
       const deletedCount = await storage.deleteRitual(id, userId);
       
       if (deletedCount === 0) {

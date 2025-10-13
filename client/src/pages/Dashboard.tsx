@@ -16,6 +16,11 @@ import BadgeDisplayCard from '@/components/BadgeDisplayCard';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { Trophy, Pause, Play, History as HistoryIcon, Edit3, Trash2 } from 'lucide-react';
 import type { Ritual as DbRitual, RitualCompletion } from '@shared/schema';
 
 interface Ritual {
@@ -570,39 +575,124 @@ export default function Dashboard() {
             <AddRitualForm onAdd={handleAddRitual} />
 
             {ritualsLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[1, 2].map((i) => (
-                  <Card key={i} className="p-4">
-                    <Skeleton className="h-6 w-3/4 mb-3" />
-                    <Skeleton className="h-4 w-1/2 mb-4" />
-                    <div className="flex gap-2">
-                      <Skeleton className="h-8 w-20" />
-                      <Skeleton className="h-8 w-20" />
-                      <Skeleton className="h-8 w-20" />
-                    </div>
-                  </Card>
-                ))}
-              </div>
+              <Card className="p-4">
+                <Skeleton className="h-6 w-full mb-3" />
+                <Skeleton className="h-6 w-full mb-3" />
+                <Skeleton className="h-6 w-full mb-3" />
+                <Skeleton className="h-6 w-full" />
+              </Card>
             ) : (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {rituals.map((ritual) => (
-                    <RitualCard
-                      key={ritual.id}
-                      {...ritual}
-                      onToggleComplete={handleToggleComplete}
-                      onToggleActive={handleToggleActive}
-                      onViewHistory={handleViewHistory}
-                      onEdit={handleEditRitual}
-                      onDelete={handleDeleteRitual}
-                    />
-                  ))}
-                </div>
-
-                {rituals.length === 0 && (
+                {rituals.length === 0 ? (
                   <div className="text-center py-12 border-2 border-dashed rounded-lg">
                     <p className="text-muted-foreground">No rituals yet. Add your first ritual above!</p>
                   </div>
+                ) : (
+                  <Card>
+                    <div className="divide-y">
+                      {rituals.map((ritual) => (
+                        <div 
+                          key={ritual.id} 
+                          className={`flex items-center gap-4 p-4 hover:bg-muted/30 transition-colors ${!ritual.active ? 'opacity-40' : ''}`}
+                          data-testid={`ritual-row-${ritual.id}`}
+                        >
+                          <Checkbox
+                            checked={ritual.completed}
+                            onCheckedChange={() => handleToggleComplete(ritual.id)}
+                            disabled={!ritual.active}
+                            className="w-5 h-5"
+                            data-testid={`checkbox-ritual-${ritual.id}`}
+                          />
+                          
+                          <div className="flex-1 min-w-0">
+                            <h3 className={`font-medium ${ritual.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                              {ritual.title}
+                            </h3>
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-xs">
+                              {ritual.recurrence === 'daily' ? 'Daily' : ritual.recurrence === 'mon-fri' ? 'Mon-Fri' : 'Custom'}
+                            </Badge>
+                            
+                            {!ritual.active && (
+                              <Badge variant="secondary" className="text-xs gap-1">
+                                <Pause className="w-3 h-3" />
+                                Paused
+                              </Badge>
+                            )}
+                            
+                            <Badge className="gap-1 bg-gradient-to-r from-primary to-accent text-white border-0">
+                              <Trophy className="w-3 h-3" />
+                              {ritual.points}
+                            </Badge>
+                            
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleViewHistory(ritual.id)}
+                                    data-testid={`button-history-${ritual.id}`}
+                                    className="w-8 h-8"
+                                  >
+                                    <HistoryIcon className="w-4 h-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>View history</TooltipContent>
+                              </Tooltip>
+                              
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleEditRitual(ritual.id)}
+                                    data-testid={`button-edit-${ritual.id}`}
+                                    className="w-8 h-8"
+                                  >
+                                    <Edit3 className="w-4 h-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Edit</TooltipContent>
+                              </Tooltip>
+                              
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleToggleActive(ritual.id)}
+                                    data-testid={`button-pause-${ritual.id}`}
+                                    className="w-8 h-8"
+                                  >
+                                    {ritual.active ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>{ritual.active ? 'Pause' : 'Resume'}</TooltipContent>
+                              </Tooltip>
+                              
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleDeleteRitual(ritual.id)}
+                                    data-testid={`button-delete-${ritual.id}`}
+                                    className="w-8 h-8"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Delete</TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
                 )}
               </>
             )}
