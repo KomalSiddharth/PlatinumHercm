@@ -61,10 +61,8 @@ interface HRCMBelief {
 
 interface UnifiedHRCMTableProps {
   weekNumber: number;
-  onGenerateNextWeek: () => void;
   onViewHistory: () => void;
-  canUnlockNextWeek?: boolean;
-  nextUnlockDate?: Date | null;
+  onWeekChange?: (newWeek: number) => void;
 }
 
 // Generate completely blank beliefs for a new week - absolutely no pre-filled data
@@ -170,7 +168,7 @@ const HEALTH_STANDARDS: ChecklistItem[] = [
   { id: 'health-std-10', text: 'I Promise to Practice Walking-Talking Affirmations before doing any task today', checked: false },
 ];
 
-export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onViewHistory, canUnlockNextWeek = true, nextUnlockDate = null }: UnifiedHRCMTableProps) {
+export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChange }: UnifiedHRCMTableProps) {
   const [beliefs, setBeliefs] = useState<HRCMBelief[]>([]);
   const [editingField, setEditingField] = useState<{ category: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState('');
@@ -181,7 +179,8 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
   const [showStandardsDialog, setShowStandardsDialog] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const lastFocusedButton = useRef<HTMLButtonElement | null>(null);
-  const { toast } = useToast();
+  const hasAutoProgressed = useRef<Set<number>>(new Set()); // Track which weeks have been auto-progressed
+  const { toast} = useToast();
 
   // Fetch current week data from database
   const { data: weekData, isLoading } = useQuery<{ beliefs?: HRCMBelief[] }>({
@@ -203,10 +202,9 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
     return Array.from({ length: endWeek - startWeek + 1 }, (_, i) => startWeek + i);
   })();
 
-  // Fetch all weeks data for the selected month
+  // Fetch all weeks data (needed for auto-progression and comparison)
   const { data: allWeeksData } = useQuery({
     queryKey: ['/api/hercm/weeks'],
-    enabled: showComparison,
   });
 
   // Show all 12 months in dropdown
@@ -381,6 +379,57 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
       });
     }
   });
+
+  // Automatic week progression: Check if 7 days have passed since week creation
+  useEffect(() => {
+    if (!Array.isArray(allWeeksData) || !onWeekChange) return;
+
+    // Only auto-progress the latest (current) week, not when viewing history
+    const maxWeekNumber = Math.max(...allWeeksData.map((w: any) => w.weekNumber || 0), weekNumber);
+    if (weekNumber !== maxWeekNumber) return; // User is viewing an old week, don't auto-progress
+
+    // Check if we've already auto-progressed this week
+    if (hasAutoProgressed.current.has(weekNumber)) return;
+
+    const currentWeekData = allWeeksData.find((w: any) => w.weekNumber === weekNumber);
+    if (!currentWeekData?.createdAt) return;
+
+    const weekCreatedDate = new Date(currentWeekData.createdAt);
+    const now = new Date();
+    const daysSinceCreated = Math.floor((now.getTime() - weekCreatedDate.getTime()) / (1000 * 60 * 60 * 24));
+
+    // If 7 days have passed, automatically move to next week
+    if (daysSinceCreated >= 7) {
+      // Save current week data and wait for completion before moving to next
+      const performAutoProgression = async () => {
+        try {
+          await apiRequest('POST', '/api/hercm/save-with-comparison', {
+            weekNumber,
+            year: new Date().getFullYear(),
+            beliefs,
+          });
+
+          // Only mark as progressed and move to next week if save succeeded
+          hasAutoProgressed.current.add(weekNumber);
+          onWeekChange(weekNumber + 1);
+          toast({
+            title: '🎉 New Week Started!',
+            description: `Week ${weekNumber} completed! Moving to Week ${weekNumber + 1}.`,
+          });
+        } catch (error) {
+          // Don't mark as progressed so it can retry
+          console.error('Failed to save before week progression:', error);
+          toast({
+            title: 'Error',
+            description: 'Could not save your progress. Please try again.',
+            variant: 'destructive',
+          });
+        }
+      };
+
+      performAutoProgression();
+    }
+  }, [allWeeksData, weekNumber, onWeekChange, beliefs, toast]);
 
   const startEdit = (category: string, field: string, currentValue: string, buttonElement?: HTMLButtonElement) => {
     // Store the button element for focus restoration
@@ -583,31 +632,6 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
             View History
           </Button>
           <Button 
-            onClick={() => {
-              // Manually trigger save with current week data
-              saveWeekMutation.mutate({
-                weekNumber,
-                year: new Date().getFullYear(),
-                beliefs,
-              });
-            }}
-            disabled={saveWeekMutation.isPending}
-            variant="default"
-            data-testid="button-save-week"
-          >
-            {saveWeekMutation.isPending ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="w-4 h-4 mr-2" />
-                Save Week
-              </>
-            )}
-          </Button>
-          <Button 
             onClick={handleAutoFillNextWeek}
             disabled={autoFilling}
             className="bg-gradient-to-r from-cyan-500 to-blue-500"
@@ -625,22 +649,6 @@ export default function UnifiedHRCMTable({ weekNumber, onGenerateNextWeek, onVie
               </>
             )}
           </Button>
-          <div className="flex flex-col items-end gap-1">
-            <Button 
-              onClick={onGenerateNextWeek}
-              disabled={!canUnlockNextWeek}
-              className="bg-gradient-to-r from-primary to-accent"
-              data-testid="button-generate-next-week"
-            >
-              <TrendingUp className="w-4 h-4 mr-2" />
-              Generate Next Week
-            </Button>
-            {!canUnlockNextWeek && nextUnlockDate && (
-              <p className="text-xs text-muted-foreground" data-testid="text-unlock-date">
-                Unlocks: {nextUnlockDate.toLocaleDateString('en-IN')}
-              </p>
-            )}
-          </div>
         </div>
       </div>
 

@@ -76,6 +76,22 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### October 13, 2025 - Auto-Save and Automatic Week Progression
+
+**Auto-Save Implementation**
+- Removed manual "Save Week" button
+- All changes now save automatically on field blur (when clicking outside text boxes)
+- Users no longer need to manually save their progress
+
+**Automatic Week Progression**
+- Removed manual "Generate Next Week" button
+- System automatically moves to next week after 7 days from week creation
+- Auto-progression only applies to the latest/current week (not when viewing history)
+- Data is saved to backend before progressing to ensure no data loss
+- Only progresses once per week using ref-based tracking to prevent multiple triggers
+- Shows success notification when moving to new week
+- New week starts with blank template for fresh data entry
+
 ### October 13, 2025 - Dashboard Layout and Daily Rituals UI Updates
 
 **Dashboard Layout Reorganization**

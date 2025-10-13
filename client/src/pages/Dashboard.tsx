@@ -377,60 +377,8 @@ export default function Dashboard() {
     window.location.href = '/api/logout';
   };
 
-  // Check if current week can unlock next week (7-day restriction)
-  const canUnlockNextWeek = () => {
-    // While loading or if error, don't allow unlock (prevents bypass)
-    if (loadingWeeks || weeksError) return false;
-    
-    if (userWeeks.length === 0) return true; // First week always allowed
-    
-    const latestWeek = userWeeks[userWeeks.length - 1];
-    if (!latestWeek?.createdAt) return true; // If no createdAt, allow
-    
-    const weekCreatedDate = new Date(latestWeek.createdAt);
-    const now = new Date();
-    const daysSinceCreated = Math.floor((now.getTime() - weekCreatedDate.getTime()) / (1000 * 60 * 60 * 24));
-    
-    return daysSinceCreated >= 7;
-  };
-
-  const getNextUnlockDate = () => {
-    // While loading, error, or no weeks, don't show date
-    if (loadingWeeks || weeksError || userWeeks.length === 0) return null;
-    
-    const latestWeek = userWeeks[userWeeks.length - 1];
-    if (!latestWeek?.createdAt) return null;
-    
-    const weekCreatedDate = new Date(latestWeek.createdAt);
-    const unlockDate = new Date(weekCreatedDate.getTime() + (7 * 24 * 60 * 60 * 1000));
-    return unlockDate;
-  };
-
-  const handleGenerateNextWeek = () => {
-    // Check 7-day restriction
-    if (!canUnlockNextWeek()) {
-      const unlockDate = getNextUnlockDate();
-      toast({
-        title: 'Week Locked',
-        description: `Next week unlocks on ${unlockDate?.toLocaleDateString('en-IN')}. Complete 7 days of practice first!`,
-        variant: 'destructive',
-      });
-      return;
-    }
-    
-    toast({
-      title: 'Generating Next Week',
-      description: `Analyzing Week ${currentWeek} progress and creating Week ${currentWeek + 1} targets...`,
-    });
-
-    // Simulate AI processing time
-    setTimeout(() => {
-      setCurrentWeek(prev => prev + 1);
-      toast({
-        title: `Week ${currentWeek + 1} Generated!`,
-        description: 'Your next week beliefs and targets are ready. Keep growing!',
-      });
-    }, 1500);
+  const handleWeekChange = (newWeek: number) => {
+    setCurrentWeek(newWeek);
   };
 
   const handleViewHRCMHistory = () => {
@@ -550,10 +498,8 @@ export default function Dashboard() {
         <section ref={hrcmRef} id="hrcm" className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
           <UnifiedHRCMTable 
             weekNumber={currentWeek}
-            onGenerateNextWeek={handleGenerateNextWeek}
             onViewHistory={handleViewHRCMHistory}
-            canUnlockNextWeek={canUnlockNextWeek()}
-            nextUnlockDate={getNextUnlockDate()}
+            onWeekChange={handleWeekChange}
           />
         </section>
 
