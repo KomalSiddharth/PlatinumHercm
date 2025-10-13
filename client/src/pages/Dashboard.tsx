@@ -558,18 +558,13 @@ export default function Dashboard() {
           />
         </section>
 
-        {/* Achievements & Badges Section */}
-        <section className="scroll-mt-20">
-          <BadgeDisplayCard />
-        </section>
-
-        <section ref={ritualsRef} id="rituals" className="scroll-mt-20 bg-purple-50 dark:bg-purple-950/40 p-6 rounded-lg border-2 border-purple-200 dark:border-purple-800">
+        <section ref={ritualsRef} id="rituals" className="scroll-mt-20 p-6 rounded-lg border-2" style={{ backgroundColor: '#00008c', borderColor: '#0000cc' }}>
           <div className="space-y-6">
             <div>
-              <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              <h2 className="text-3xl font-bold text-white">
                 Daily Rituals
               </h2>
-              <p className="text-muted-foreground mt-1">Build consistent habits and earn points</p>
+              <p className="text-white/80 mt-1">Build consistent habits and earn points</p>
             </div>
 
             <AddRitualForm onAdd={handleAddRitual} />
@@ -696,8 +691,6 @@ export default function Dashboard() {
                 )}
               </>
             )}
-
-            <Leaderboard entries={leaderboardEntries} period="week" currentUserId="2" />
           </div>
         </section>
 
@@ -719,6 +712,12 @@ export default function Dashboard() {
               ))}
             </div>
           </div>
+        </section>
+
+        {/* Achievements, Badges & Leaderboard Section */}
+        <section className="scroll-mt-20 space-y-6">
+          <BadgeDisplayCard />
+          <Leaderboard entries={leaderboardEntries} period="week" currentUserId="2" />
         </section>
       </main>
 
