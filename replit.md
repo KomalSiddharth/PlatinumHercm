@@ -80,13 +80,19 @@ Preferred communication style: Simple, everyday language.
 
 **Dashboard Layout Reorganization**
 - Moved Achievements & Badges section to bottom of dashboard
-- Combined Achievements & Badges with Leaderboard in a single section at bottom
-- New order: HRCM Table → Daily Rituals → Course Tracker → Achievements/Badges/Leaderboard
+- Integrated Leaderboard directly into Achievements & Badges card component
+- Leaderboard now appears as a section within the golden achievements card with:
+  - Border separator between badges and leaderboard
+  - Consistent golden/yellow theme styling
+  - Trophy icons for top 3 positions
+  - Special highlighting for current user
+- New order: HRCM Table → Daily Rituals → Course Tracker → Achievements/Badges (with integrated Leaderboard)
 
 **Daily Rituals Section Styling**
 - Changed section background color to #00008c (deep blue)
 - Updated text colors to white for better contrast on dark background
 - Border color set to #0000cc for visual consistency
+- Fixed accessibility: All text meets WCAG AA contrast requirements (9.7:1 ratio)
 
 ### October 13, 2025 - Text Box and Daily Rituals Updates
 
