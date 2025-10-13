@@ -36,6 +36,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import UserDetailView from '@/components/UserDetailView';
 
 export default function AdminPanel() {
   const [, setLocation] = useLocation();
@@ -56,6 +57,8 @@ export default function AdminPanel() {
   
   // Analytics states
   const [selectedUserForDetail, setSelectedUserForDetail] = useState<string | null>(null);
+  const [emailSearchQuery, setEmailSearchQuery] = useState('');
+  const [searchedUser, setSearchedUser] = useState<any>(null);
   
   const { toast } = useToast();
 
@@ -90,6 +93,41 @@ export default function AdminPanel() {
     queryKey: ['/api/admin/users-analytics'],
     enabled: activeTab === 'analytics',
   });
+
+  const searchUserMutation = useMutation({
+    mutationFn: async (email: string) => {
+      const response = await fetch(`/api/admin/search-user?email=${encodeURIComponent(email)}`);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'User not found');
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setSearchedUser(data);
+      setSelectedUserForDetail(data.id);
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "User Not Found", 
+        description: error.message || "No user found with this email",
+        variant: "destructive" 
+      });
+      setSearchedUser(null);
+    }
+  });
+
+  const handleEmailSearch = () => {
+    if (!emailSearchQuery.trim()) {
+      toast({ 
+        title: "Email Required", 
+        description: "Please enter an email address to search",
+        variant: "destructive" 
+      });
+      return;
+    }
+    searchUserMutation.mutate(emailSearchQuery.trim());
+  };
 
   const addEmailMutation = useMutation({
     mutationFn: async (data: { email: string; name?: string }) => {
@@ -709,6 +747,34 @@ export default function AdminPanel() {
           {/* User Analytics Tab Content - Enhanced with Charts */}
           {activeTab === 'analytics' && (
             <div className="p-6 space-y-6">
+              {/* Email Search */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Search User by Email</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex gap-2">
+                    <Input
+                      type="email"
+                      placeholder="Enter user email to search..."
+                      value={emailSearchQuery}
+                      onChange={(e) => setEmailSearchQuery(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleEmailSearch()}
+                      data-testid="input-email-search"
+                      className="flex-1"
+                    />
+                    <Button 
+                      onClick={handleEmailSearch}
+                      disabled={searchUserMutation.isPending}
+                      data-testid="button-search-user"
+                    >
+                      <Search className="w-4 h-4 mr-2" />
+                      {searchUserMutation.isPending ? 'Searching...' : 'Search'}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
               {isLoadingAnalytics ? (
                 <div className="text-center py-12">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
@@ -1083,169 +1149,17 @@ export default function AdminPanel() {
 
 // Separate component for User Detail Dialog
 function UserDetailDialog({ userId, onClose }: { userId: string | null; onClose: () => void }) {
-  const { data: userWeeks, isLoading } = useQuery<any[]>({
-    queryKey: ['/api/admin/user', userId, 'weeks'],
-    enabled: !!userId,
-  });
-
-  const userInfo = userWeeks && userWeeks.length > 0 ? {
-    email: userWeeks[0].userEmail || 'Unknown',
-    firstName: userWeeks[0].userFirstName,
-    lastName: userWeeks[0].userLastName
-  } : null;
-
   return (
     <Dialog open={!!userId} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto" data-testid="dialog-user-detail">
+      <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto" data-testid="dialog-user-detail">
         <DialogHeader>
-          <DialogTitle className="text-xl">Complete HERCM History - {userInfo?.firstName} {userInfo?.lastName}</DialogTitle>
-          <DialogDescription>{userInfo?.email}</DialogDescription>
+          <DialogTitle className="text-2xl">User Analytics & Progress Report</DialogTitle>
         </DialogHeader>
 
-        {isLoading ? (
-          <div className="py-12 text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-500">Loading user data...</p>
-          </div>
-        ) : !userWeeks || userWeeks.length === 0 ? (
-          <div className="py-12 text-center text-gray-500">
-            No HERCM data available for this user
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Total Weeks</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{userWeeks.length}</div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Latest Week</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">Week {userWeeks[userWeeks.length - 1]?.weekNumber || 0}</div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Progress Trend</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {userWeeks.length >= 2 ? (
-                    <div className="flex items-center gap-2">
-                      {userWeeks[userWeeks.length - 1]?.overallScore > userWeeks[userWeeks.length - 2]?.overallScore ? (
-                        <>
-                          <TrendingUp className="w-6 h-6 text-green-600" />
-                          <span className="text-xl font-bold text-green-600">Improving</span>
-                        </>
-                      ) : userWeeks[userWeeks.length - 1]?.overallScore < userWeeks[userWeeks.length - 2]?.overallScore ? (
-                        <>
-                          <TrendingDown className="w-6 h-6 text-red-600" />
-                          <span className="text-xl font-bold text-red-600">Declining</span>
-                        </>
-                      ) : (
-                        <span className="text-xl font-bold text-gray-500">Stable</span>
-                      )}
-                    </div>
-                  ) : (
-                    <span className="text-xl font-bold text-gray-500">—</span>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Week-by-Week Breakdown */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Week-by-Week Progress</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {userWeeks.map((week: any) => {
-                    const progress = week.beliefs?.length > 0
-                      ? Math.round(week.beliefs.reduce((sum: number, b: any) => {
-                          const checkedCount = b.checklist?.filter((c: any) => c.checked).length || 0;
-                          const totalCount = b.checklist?.length || 1;
-                          return sum + (checkedCount / totalCount) * 100;
-                        }, 0) / week.beliefs.length)
-                      : 0;
-
-                    return (
-                      <div key={week.id} className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-900/30">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-3">
-                            <h4 className="font-semibold">Week {week.weekNumber}</h4>
-                            <Badge variant="outline">{new Date(week.createdAt).toLocaleDateString()}</Badge>
-                          </div>
-                          <Badge className={progress >= 70 ? 'bg-green-600' : progress >= 50 ? 'bg-blue-600' : 'bg-orange-600'}>
-                            {progress}% Complete
-                          </Badge>
-                        </div>
-                        
-                        {week.beliefs && week.beliefs.length > 0 && (
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                            {week.beliefs.map((belief: any) => {
-                              const beliefProgress = belief.checklist?.filter((c: any) => c.checked).length || 0;
-                              const total = belief.checklist?.length || 0;
-                              return (
-                                <div key={belief.id} className="text-sm">
-                                  <div className="font-medium text-gray-700 dark:text-gray-300">{belief.category}</div>
-                                  <div className="text-xs text-gray-500">
-                                    {beliefProgress}/{total} tasks done
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Progress Chart */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Overall Progress Trend</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={250}>
-                  <LineChart data={userWeeks.map((week: any) => {
-                    const progress = week.beliefs?.length > 0
-                      ? Math.round(week.beliefs.reduce((sum: number, b: any) => {
-                          const checkedCount = b.checklist?.filter((c: any) => c.checked).length || 0;
-                          const totalCount = b.checklist?.length || 1;
-                          return sum + (checkedCount / totalCount) * 100;
-                        }, 0) / week.beliefs.length)
-                      : 0;
-                    return {
-                      week: `Week ${week.weekNumber}`,
-                      progress
-                    };
-                  })}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="week" />
-                    <YAxis domain={[0, 100]} />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="progress" stroke="#3b82f6" strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+        {userId && <UserDetailView userId={userId} />}
 
         <div className="flex justify-end mt-4">
-          <Button onClick={onClose}>Close</Button>
+          <Button onClick={onClose} data-testid="button-close-user-detail">Close</Button>
         </div>
       </DialogContent>
     </Dialog>
