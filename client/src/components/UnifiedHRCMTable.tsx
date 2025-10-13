@@ -909,21 +909,21 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
         <Table>
           <TableHeader>
             <TableRow className="bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-950/30 dark:to-pink-950/30">
-              <TableHead className="font-bold border-r min-w-[120px]">HRCM Area</TableHead>
-              <TableHead className="min-w-[80px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Rating</TableHead>
-              <TableHead className="min-w-[150px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Problems</TableHead>
-              <TableHead className="min-w-[150px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Feelings</TableHead>
-              <TableHead className="min-w-[150px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Beliefs/Reasons</TableHead>
-              <TableHead className="min-w-[150px] bg-rose-100 dark:bg-rose-900/40 font-semibold border-r">Actions</TableHead>
+              <TableHead className="font-bold border-r min-w-[100px]">HRCM Area</TableHead>
+              <TableHead className="min-w-[60px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Rating</TableHead>
+              <TableHead className="min-w-[140px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Problems</TableHead>
+              <TableHead className="min-w-[140px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Feelings</TableHead>
+              <TableHead className="min-w-[140px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Beliefs/Reasons</TableHead>
+              <TableHead className="min-w-[140px] bg-rose-100 dark:bg-rose-900/40 font-semibold border-r">Actions</TableHead>
               
-              <TableHead className="min-w-[150px] bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/40 dark:to-blue-900/40 font-semibold">
+              <TableHead className="min-w-[130px] bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/40 dark:to-blue-900/40 font-semibold">
                 <div className="flex items-center gap-1">
                   <Sparkles className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
                   AI Course
                 </div>
               </TableHead>
-              <TableHead className="min-w-[180px] bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900/40 dark:to-violet-900/40 font-semibold">Checklist</TableHead>
-              <TableHead className="min-w-[100px] bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 font-semibold text-center">Progress</TableHead>
+              <TableHead className="min-w-[150px] bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900/40 dark:to-violet-900/40 font-semibold">Checklist</TableHead>
+              <TableHead className="min-w-[70px] bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 font-semibold text-center">Progress</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -1144,21 +1144,21 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
         <Table>
           <TableHeader>
             <TableRow className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30">
-              <TableHead className="font-bold border-r min-w-[120px]">HRCM Area</TableHead>
-              <TableHead className="min-w-[80px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Rating</TableHead>
-              <TableHead className="min-w-[150px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Problems</TableHead>
-              <TableHead className="min-w-[150px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Feelings</TableHead>
-              <TableHead className="min-w-[150px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Beliefs/Reasons</TableHead>
-              <TableHead className="min-w-[150px] bg-blue-100 dark:bg-blue-900/40 font-semibold border-r">Actions</TableHead>
+              <TableHead className="font-bold border-r min-w-[100px]">HRCM Area</TableHead>
+              <TableHead className="min-w-[60px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Rating</TableHead>
+              <TableHead className="min-w-[140px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Problems</TableHead>
+              <TableHead className="min-w-[140px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Feelings</TableHead>
+              <TableHead className="min-w-[140px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Beliefs/Reasons</TableHead>
+              <TableHead className="min-w-[140px] bg-blue-100 dark:bg-blue-900/40 font-semibold border-r">Actions</TableHead>
               
-              <TableHead className="min-w-[150px] bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/40 dark:to-blue-900/40 font-semibold">
+              <TableHead className="min-w-[130px] bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/40 dark:to-blue-900/40 font-semibold">
                 <div className="flex items-center gap-1">
                   <Sparkles className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
                   Affirmations
                 </div>
               </TableHead>
-              <TableHead className="min-w-[180px] bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900/40 dark:to-violet-900/40 font-semibold">Checklist</TableHead>
-              <TableHead className="min-w-[100px] bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 font-semibold text-center">Progress</TableHead>
+              <TableHead className="min-w-[150px] bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900/40 dark:to-violet-900/40 font-semibold">Checklist</TableHead>
+              <TableHead className="min-w-[70px] bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 font-semibold text-center">Progress</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
