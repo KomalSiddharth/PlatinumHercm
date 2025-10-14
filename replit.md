@@ -167,6 +167,33 @@ The dashboard features a clean, responsive design with "New York" style shadcn/u
 - Consistent 10-point system across all rituals
 - Cannot pause or edit rituals after creation (only delete)
 
+### October 14, 2025 - Course Section Enhancement with Video Checklist
+
+**Course Section Redesign**
+- Removed time display (Clock icon and estimated hours)
+- Removed "Update" button - progress now automatic
+- Added video checklist functionality with expandable section
+- Progress bar now automatically updates based on video completion percentage
+- Simplified UI with focus on video tracking and progress visualization
+
+**Video Checklist System:**
+- Each course has a list of videos (provided by admin/coach)
+- Users check off videos as they complete them
+- Progress bar automatically updates: (Completed Videos / Total Videos) × 100
+- Video completions stored in database per user
+- Expandable/collapsible video list within each course card
+
+**Database Schema:**
+- `course_videos` table: stores videos for each course (courseId, title, videoUrl, orderIndex)
+- `course_video_completions` table: tracks which users completed which videos
+- API endpoints: GET/POST video management, toggle completion status
+
+**User Workflow:**
+1. Click course card to expand video checklist
+2. Click checkboxes as you complete each video
+3. Progress bar updates automatically
+4. "Visit" button opens course URL in new tab
+
 ### October 13, 2025 - UI Improvements and Column Width Optimization
 
 **Column Width Optimization**

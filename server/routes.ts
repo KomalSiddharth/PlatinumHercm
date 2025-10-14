@@ -4,7 +4,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, isAdmin } from "./replitAuth";
 import { fetchCourseData, findMatchingCourse, recommendCourses, fetchEnhancedCourseData } from "./googleSheets";
-import { recommendCoursesRequestSchema } from "@shared/schema";
+import { recommendCoursesRequestSchema, insertCourseVideoSchema } from "@shared/schema";
 import { getAIRecommendations, generateAffirmation } from "./aiRecommendations";
 import { generateHRCMWeeklyPDF, generateMonthlyProgressPDF } from "./pdfExport";
 import { emailService } from "./emailService";
@@ -1549,6 +1549,62 @@ Return ONLY valid JSON in this exact format:
     } catch (error) {
       console.error("Error creating course:", error);
       res.status(500).json({ message: "Failed to create course" });
+    }
+  });
+
+  // Course Videos endpoints
+  app.get('/api/course-videos/:courseId', isAuthenticated, async (req: any, res) => {
+    try {
+      const courseId = req.params.courseId;
+      const videos = await storage.getCourseVideos(courseId);
+      res.json(videos);
+    } catch (error) {
+      console.error("Error fetching course videos:", error);
+      res.status(500).json({ message: "Failed to fetch course videos" });
+    }
+  });
+
+  app.post('/api/course-videos', isAuthenticated, async (req: any, res) => {
+    try {
+      const videoData = insertCourseVideoSchema.parse(req.body);
+      const video = await storage.createCourseVideo(videoData);
+      res.json(video);
+    } catch (error) {
+      console.error("Error creating course video:", error);
+      res.status(500).json({ message: "Failed to create course video" });
+    }
+  });
+
+  // Course Video Completions endpoints
+  app.get('/api/course-video-completions/:courseId', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const courseId = req.params.courseId;
+      const completions = await storage.getCourseVideoCompletions(userId, courseId);
+      res.json(completions);
+    } catch (error) {
+      console.error("Error fetching video completions:", error);
+      res.status(500).json({ message: "Failed to fetch video completions" });
+    }
+  });
+
+  app.post('/api/course-video-completions/toggle', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const { videoId } = req.body;
+      const result = await storage.toggleVideoCompletion(userId, videoId);
+      res.json(result);
+    } catch (error) {
+      console.error("Error toggling video completion:", error);
+      res.status(500).json({ message: "Failed to toggle video completion" });
     }
   });
 
