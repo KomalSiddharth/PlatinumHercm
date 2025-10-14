@@ -27,13 +27,17 @@ interface UserActivity {
   totalWeeks: number;
 }
 
-export default function UserActivitySearch() {
+interface UserActivitySearchProps {
+  apiEndpoint?: string;
+}
+
+export default function UserActivitySearch({ apiEndpoint = '/api/team/search-users' }: UserActivitySearchProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const { toast } = useToast();
 
   const { data: users, isLoading, error } = useQuery<UserActivity[]>({
-    queryKey: [`/api/admin/search-user-by-name?name=${searchTerm}`],
+    queryKey: [`${apiEndpoint}?name=${searchTerm}`],
     enabled: !!searchTerm,
   });
 

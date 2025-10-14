@@ -981,7 +981,7 @@ export default function AdminPanel() {
           {/* User Activity Search Tab Content */}
           {activeTab === 'activity' && (
             <div className="p-6">
-              <UserActivitySearch />
+              <UserActivitySearch apiEndpoint="/api/admin/search-user-by-name" />
             </div>
           )}
         </div>
