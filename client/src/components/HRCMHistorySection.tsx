@@ -12,6 +12,19 @@ interface ChecklistItem {
   checked: boolean;
 }
 
+interface CourseModule {
+  id: string;
+  name: string;
+  completed: boolean;
+}
+
+interface CourseSuggestion {
+  courseName: string;
+  link: string;
+  matchScore: string;
+  modules: CourseModule[];
+}
+
 interface HRCMArea {
   category: 'Health' | 'Relationship' | 'Career' | 'Money';
   currentRating?: number;
@@ -20,7 +33,7 @@ interface HRCMArea {
   currentBelief: string;
   currentActions?: string;
   nextWeekTarget: string;
-  courseSuggestion: string;
+  courseSuggestion: CourseSuggestion | null;
   affirmation: string;
   checklist: ChecklistItem[];
   progress: number;
@@ -99,7 +112,7 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
           currentBelief: snapshot[`${prefix}CurrentBelief`] || '',
           currentActions: snapshot[`${prefix}CurrentActions`] || '',
           nextWeekTarget: snapshot[`${prefix}NextTarget`] || '',
-          courseSuggestion: snapshot[`${prefix}CourseSuggestion`] || '',
+          courseSuggestion: snapshot[`${prefix}CourseSuggestion`] || null,
           affirmation: snapshot[`${prefix}Affirmation`] || '',
           checklist: snapshot[`${prefix}Checklist`] || [],
           progress: calculateProgress(snapshot[`${prefix}Checklist`] || []),
@@ -380,7 +393,28 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
                               <div className="text-xs">{area.currentActions || '-'}</div>
                             </td>
                             <td className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10 align-top">
-                              <div className="text-xs">{area.courseSuggestion || '-'}</div>
+                              {area.courseSuggestion ? (
+                                <div className="space-y-1">
+                                  <div className="text-xs font-medium text-cyan-700 dark:text-cyan-400">
+                                    {area.courseSuggestion.courseName}
+                                  </div>
+                                  <div className="text-xs text-cyan-600 dark:text-cyan-500">
+                                    {area.courseSuggestion.matchScore}
+                                  </div>
+                                  {area.courseSuggestion.link && (
+                                    <a 
+                                      href={area.courseSuggestion.link} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="text-xs text-blue-600 dark:text-blue-400 underline hover:text-blue-800 dark:hover:text-blue-300 block"
+                                    >
+                                      View →
+                                    </a>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="text-xs text-muted-foreground">-</div>
+                              )}
                             </td>
                             <td className="p-2 bg-purple-50/30 dark:bg-purple-950/10 align-top">
                               <div className="space-y-1 pointer-events-none">

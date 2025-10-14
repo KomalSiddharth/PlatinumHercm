@@ -1119,26 +1119,28 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                           </a>
                         )}
                       </div>
-                      <div className="space-y-1 border-t border-cyan-200 dark:border-cyan-800 pt-2">
-                        <div className="text-xs font-medium text-cyan-600 dark:text-cyan-400">Modules:</div>
-                        {belief.courseSuggestion.modules.map((module) => (
-                          <div key={module.id} className="flex items-center gap-2">
-                            <Checkbox
-                              id={`course-${belief.category}-${module.id}`}
-                              checked={module.completed}
-                              onCheckedChange={() => handleCourseModuleToggle(belief.category, module.id)}
-                              className="h-3 w-3"
-                              data-testid={`checkbox-module-${belief.category.toLowerCase()}-${module.id}`}
-                            />
-                            <label
-                              htmlFor={`course-${belief.category}-${module.id}`}
-                              className={`text-xs cursor-pointer ${module.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}
-                            >
-                              {module.name}
-                            </label>
-                          </div>
-                        ))}
-                      </div>
+                      {belief.courseSuggestion?.modules && belief.courseSuggestion.modules.length > 0 && (
+                        <div className="space-y-1 border-t border-cyan-200 dark:border-cyan-800 pt-2">
+                          <div className="text-xs font-medium text-cyan-600 dark:text-cyan-400">Modules:</div>
+                          {belief.courseSuggestion.modules.map((module) => (
+                            <div key={module.id} className="flex items-center gap-2">
+                              <Checkbox
+                                id={`course-${belief.category}-${module.id}`}
+                                checked={module.completed}
+                                onCheckedChange={() => handleCourseModuleToggle(belief.category, module.id)}
+                                className="h-3 w-3"
+                                data-testid={`checkbox-module-${belief.category.toLowerCase()}-${module.id}`}
+                              />
+                              <label
+                                htmlFor={`course-${belief.category}-${module.id}`}
+                                className={`text-xs cursor-pointer ${module.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}
+                              >
+                                {module.name}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                       <Button
                         size="sm"
                         variant="ghost"

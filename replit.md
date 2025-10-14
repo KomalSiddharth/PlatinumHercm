@@ -31,6 +31,7 @@ The dashboard employs a clean, responsive "New York" style design using shadcn/u
 - **Team Activity Search**: A new "Team Activity" tab in the user dashboard allows users to search and view team members' HRCM progress with compact user cards.
 - **Simplified Daily Rituals**: Rituals are always active, cannot be edited after creation, and automatically allocate 10 points.
 - **Course Section Enhancement**: Removed time display and "Update" button. Includes a video checklist functionality where progress bars automatically update based on video completion percentage.
+- **AI Course Module Checkboxes** (Oct 2025): Course suggestions now stored as jsonb with structured module data. Each course displays 5 modules with checkboxes for completion tracking. Module completion state auto-saves on toggle. History section displays course data properly. User auto-creation prevents FK constraint violations during OIDC auth.
 
 ## External Dependencies
 

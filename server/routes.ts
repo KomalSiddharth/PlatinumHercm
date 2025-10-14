@@ -205,6 +205,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!userId) {
         return res.status(401).json({ message: "User not authenticated" });
       }
+      
+      // Ensure user exists in users table (create if doesn't exist) - fixes FK constraint for rating_progression
+      const existingUser = await storage.getUser(userId);
+      if (!existingUser) {
+        const userEmail = typeof userId === 'string' && userId.includes('@') ? userId : req.session.userEmail;
+        const claims = req.user?.claims;
+        await storage.upsertUser({
+          id: userId,
+          email: userEmail || userId,
+          firstName: claims?.first_name || null,
+          lastName: claims?.last_name || null,
+          profileImageUrl: claims?.profile_image_url || null,
+        });
+      }
+      
       const weekData = { 
         ...req.body, 
         userId,
