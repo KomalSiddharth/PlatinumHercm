@@ -5,7 +5,7 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated, isAdmin } from "./replitAuth";
 import { fetchCourseData, findMatchingCourse, recommendCourses, fetchEnhancedCourseData } from "./googleSheets";
 import { recommendCoursesRequestSchema } from "@shared/schema";
-import { getAIRecommendations } from "./aiRecommendations";
+import { getAIRecommendations, generateAffirmation } from "./aiRecommendations";
 import { generateHRCMWeeklyPDF, generateMonthlyProgressPDF } from "./pdfExport";
 import { emailService } from "./emailService";
 import OpenAI from "openai";
@@ -848,6 +848,28 @@ Return ONLY valid JSON in this exact format:
       };
       
       res.json(fallback);
+    }
+  });
+
+  // AI-powered affirmation generation
+  app.post('/api/affirmations/generate', isAuthenticated, async (req: any, res) => {
+    try {
+      const { category, currentRating, problems, currentFeelings, currentBelief, currentActions, nextWeekTarget } = req.body;
+      
+      const affirmation = await generateAffirmation(
+        category,
+        currentRating || 1,
+        problems || '',
+        currentFeelings || '',
+        currentBelief || '',
+        currentActions || '',
+        nextWeekTarget || ''
+      );
+      
+      res.json({ affirmation });
+    } catch (error) {
+      console.error("Error generating affirmation:", error);
+      res.status(500).json({ message: "Failed to generate affirmation", error: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 

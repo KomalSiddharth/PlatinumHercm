@@ -120,6 +120,68 @@ Return ONLY valid JSON in this exact format:
   }
 }
 
+// AI-powered affirmation generation
+export async function generateAffirmation(
+  category: string,
+  rating: number,
+  problems: string,
+  feelings: string,
+  beliefs: string,
+  actions: string,
+  nextWeekTarget: string
+): Promise<string> {
+  const prompt = `You are an expert life coach and affirmation specialist. Create a powerful, personalized affirmation for someone working on their ${category}.
+
+**User's Current State (${category}):**
+- Current Rating: ${rating}/10
+- Problems: ${problems}
+- Feelings: ${feelings}
+- Limiting Beliefs: ${beliefs}
+- Current Actions: ${actions}
+- Next Week Target: ${nextWeekTarget}
+
+**Task:**
+Create ONE powerful affirmation (1-2 sentences) that:
+1. Is in the present tense ("I am", "I have", "I attract")
+2. Addresses their specific challenges
+3. Reinforces their next week target
+4. Is emotionally uplifting and believable
+5. Uses positive, empowering language
+
+Return ONLY valid JSON in this exact format:
+{
+  "affirmation": "your powerful affirmation here"
+}`;
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-5-mini",
+      messages: [
+        { role: "system", content: "You are an expert affirmation coach who creates powerful, personalized affirmations. Always respond with valid JSON." },
+        { role: "user", content: prompt }
+      ],
+      response_format: { type: "json_object" },
+      max_completion_tokens: 200,
+    });
+
+    const responseText = completion.choices[0]?.message?.content || '{"affirmation": "I am growing stronger every day"}';
+    const aiResponse = JSON.parse(responseText);
+    
+    return aiResponse.affirmation || "I am capable and moving towards my goals with confidence";
+    
+  } catch (error) {
+    console.error('AI affirmation generation error:', error);
+    // Fallback affirmations by category
+    const fallbackAffirmations: Record<string, string> = {
+      'Health': 'I am healthy, strong, and full of energy. My body deserves care and nourishment.',
+      'Relationship': 'I attract loving relationships. I communicate with clarity, love, and respect.',
+      'Career': 'I am capable and skilled. Success flows to me naturally as I follow my purpose.',
+      'Money': 'I am a money magnet. Abundance flows to me from multiple sources with ease.'
+    };
+    return fallbackAffirmations[category] || "I am growing and improving every single day";
+  }
+}
+
 // Fallback keyword-based matching
 function fallbackRecommendations(
   courses: EnhancedCourseData[],

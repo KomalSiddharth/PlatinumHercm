@@ -596,6 +596,45 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
       await fetchCourseRecommendation(category, updatedBelief);
     }
     
+    // Generate fresh affirmation if next week target was edited
+    if (updatedBelief && field === 'nextWeekTarget' && editValue.trim()) {
+      try {
+        const response = await apiRequest('POST', '/api/affirmations/generate', {
+          category: category,
+          currentRating: updatedBelief.currentRating || 1,
+          problems: updatedBelief.problems || '',
+          currentFeelings: updatedBelief.currentFeelings || '',
+          currentBelief: updatedBelief.currentBelief || '',
+          currentActions: updatedBelief.currentActions || '',
+          nextWeekTarget: editValue,
+        });
+        
+        const data = await response.json();
+        
+        // Update affirmation in the beliefs array
+        const beliefsWithAffirmation = updatedBeliefs.map(belief => {
+          if (belief.category === category) {
+            return { ...belief, affirmationSuggestion: data.affirmation };
+          }
+          return belief;
+        });
+        
+        setBeliefs(beliefsWithAffirmation);
+        
+        // Save with the new affirmation
+        saveWeekMutation.mutate({
+          weekNumber,
+          year: new Date().getFullYear(),
+          beliefs: beliefsWithAffirmation,
+        });
+        
+        return; // Early return to avoid duplicate save
+      } catch (error) {
+        console.error('Error generating affirmation:', error);
+        // Continue with normal save if affirmation generation fails
+      }
+    }
+    
     // Save to database with complete updated beliefs including checklist
     saveWeekMutation.mutate({
       weekNumber,
