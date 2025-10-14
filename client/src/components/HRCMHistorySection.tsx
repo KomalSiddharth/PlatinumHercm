@@ -223,30 +223,30 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
                       <tbody>
                         {selectedSnapshot.areas.map((area) => (
                           <tr key={area.category} className="border-b last:border-0" data-testid={`history-row-${area.category.toLowerCase()}-${selectedSnapshot.id}`}>
-                            <td className="p-3 border-r bg-muted/20">
+                            <td className="p-3 border-r bg-muted/20 align-top">
                               <Badge variant="outline" className="font-semibold">
                                 {area.category}
                               </Badge>
                             </td>
-                            <td className="p-2 bg-red-50/30 dark:bg-red-950/10">
+                            <td className="p-2 bg-red-50/30 dark:bg-red-950/10 align-top">
                               <div className="text-center font-medium">{area.currentRating || '-'}</div>
                             </td>
-                            <td className="p-2 bg-red-50/30 dark:bg-red-950/10">
+                            <td className="p-2 bg-red-50/30 dark:bg-red-950/10 align-top">
                               <div className="text-xs" data-testid={`text-problems-${area.category.toLowerCase()}`}>{area.problems || '-'}</div>
                             </td>
-                            <td className="p-2 bg-red-50/30 dark:bg-red-950/10">
+                            <td className="p-2 bg-red-50/30 dark:bg-red-950/10 align-top">
                               <div className="text-xs" data-testid={`text-feelings-${area.category.toLowerCase()}`}>{area.currentFeelings || '-'}</div>
                             </td>
-                            <td className="p-2 bg-red-50/30 dark:bg-red-950/10">
+                            <td className="p-2 bg-red-50/30 dark:bg-red-950/10 align-top">
                               <div className="text-xs">{area.currentBelief || '-'}</div>
                             </td>
-                            <td className="p-2 bg-red-50/30 dark:bg-red-950/10 border-r">
+                            <td className="p-2 bg-red-50/30 dark:bg-red-950/10 border-r align-top">
                               <div className="text-xs">{area.currentActions || '-'}</div>
                             </td>
-                            <td className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10">
+                            <td className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10 align-top">
                               <div className="text-xs">{area.courseSuggestion || '-'}</div>
                             </td>
-                            <td className="p-2 bg-purple-50/30 dark:bg-purple-950/10">
+                            <td className="p-2 bg-purple-50/30 dark:bg-purple-950/10 align-top">
                               <div className="space-y-1">
                                 {area.checklist && area.checklist.length > 0 ? area.checklist.map((item) => (
                                   <div key={item.id} className="flex items-center gap-2">
@@ -262,7 +262,7 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
                                 )) : <span className="text-xs text-muted-foreground">-</span>}
                               </div>
                             </td>
-                            <td className="p-2 text-center bg-emerald-50/30 dark:bg-emerald-950/10">
+                            <td className="p-2 text-center bg-emerald-50/30 dark:bg-emerald-950/10 align-top">
                               <Badge className={getProgressColor(area.progress)}>
                                 {area.progress}%
                               </Badge>
