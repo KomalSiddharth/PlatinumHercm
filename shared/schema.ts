@@ -115,7 +115,7 @@ export const hercmWeeks = pgTable("hercm_weeks", {
   healthNextFeelings: varchar("health_next_feelings"),
   healthNextTarget: varchar("health_next_target"),
   healthNextActions: varchar("health_next_actions"),
-  healthCourseSuggestion: varchar("health_course_suggestion"),
+  healthCourseSuggestion: jsonb("health_course_suggestion").$type<{ courseName: string; link: string; matchScore: string; modules: { id: string; name: string; completed: boolean }[] }>(),
   healthAffirmation: varchar("health_affirmation"),
   healthChecklist: jsonb("health_checklist").$type<{ id: string; text: string; checked: boolean }[]>(),
   
@@ -128,7 +128,7 @@ export const hercmWeeks = pgTable("hercm_weeks", {
   relationshipNextFeelings: varchar("relationship_next_feelings"),
   relationshipNextTarget: varchar("relationship_next_target"),
   relationshipNextActions: varchar("relationship_next_actions"),
-  relationshipCourseSuggestion: varchar("relationship_course_suggestion"),
+  relationshipCourseSuggestion: jsonb("relationship_course_suggestion").$type<{ courseName: string; link: string; matchScore: string; modules: { id: string; name: string; completed: boolean }[] }>(),
   relationshipAffirmation: varchar("relationship_affirmation"),
   relationshipChecklist: jsonb("relationship_checklist").$type<{ id: string; text: string; checked: boolean }[]>(),
   
@@ -141,7 +141,7 @@ export const hercmWeeks = pgTable("hercm_weeks", {
   careerNextFeelings: varchar("career_next_feelings"),
   careerNextTarget: varchar("career_next_target"),
   careerNextActions: varchar("career_next_actions"),
-  careerCourseSuggestion: varchar("career_course_suggestion"),
+  careerCourseSuggestion: jsonb("career_course_suggestion").$type<{ courseName: string; link: string; matchScore: string; modules: { id: string; name: string; completed: boolean }[] }>(),
   careerAffirmation: varchar("career_affirmation"),
   careerChecklist: jsonb("career_checklist").$type<{ id: string; text: string; checked: boolean }[]>(),
   
@@ -154,7 +154,7 @@ export const hercmWeeks = pgTable("hercm_weeks", {
   moneyNextFeelings: varchar("money_next_feelings"),
   moneyNextTarget: varchar("money_next_target"),
   moneyNextActions: varchar("money_next_actions"),
-  moneyCourseSuggestion: varchar("money_course_suggestion"),
+  moneyCourseSuggestion: jsonb("money_course_suggestion").$type<{ courseName: string; link: string; matchScore: string; modules: { id: string; name: string; completed: boolean }[] }>(),
   moneyAffirmation: varchar("money_affirmation"),
   moneyChecklist: jsonb("money_checklist").$type<{ id: string; text: string; checked: boolean }[]>(),
   
