@@ -9,8 +9,8 @@ import CourseCard from '@/components/CourseCard';
 import ProfileModal from '@/components/ProfileModal';
 import RitualHistoryModal from '@/components/RitualHistoryModal';
 import UpdateProgressModal from '@/components/UpdateProgressModal';
-import HRCMHistoryModal from '@/components/HRCMHistoryModal';
 import BadgeDisplayCard from '@/components/BadgeDisplayCard';
+import HRCMHistorySection from '@/components/HRCMHistorySection';
 import UserActivitySearch from '@/components/UserActivitySearch';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -80,7 +80,6 @@ export default function Dashboard() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [progressOpen, setProgressOpen] = useState(false);
-  const [hrcmHistoryOpen, setHrcmHistoryOpen] = useState(false);
   const [selectedRitual, setSelectedRitual] = useState<Ritual | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
   
@@ -309,10 +308,6 @@ export default function Dashboard() {
     setCurrentWeek(newWeek);
   };
 
-  const handleViewHRCMHistory = () => {
-    setHrcmHistoryOpen(true);
-  };
-
   const handleUpdateCourseProgress = (id: string) => {
     const course = courses.find(c => c.id === id);
     if (course) {
@@ -431,7 +426,6 @@ export default function Dashboard() {
         <section ref={hrcmRef} id="hrcm" className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
           <UnifiedHRCMTable 
             weekNumber={currentWeek}
-            onViewHistory={handleViewHRCMHistory}
             onWeekChange={handleWeekChange}
           />
         </section>
@@ -580,6 +574,11 @@ export default function Dashboard() {
             currentUserId={currentUser?.id}
           />
         </section>
+
+        {/* HRCM History Section */}
+        <section className="scroll-mt-20">
+          <HRCMHistorySection currentWeek={currentWeek} />
+        </section>
       </main>
 
       <ProfileModal
@@ -590,12 +589,6 @@ export default function Dashboard() {
         totalPoints={totalPoints}
         onSave={handleSaveProfile}
         onLogout={handleLogout}
-      />
-
-      <HRCMHistoryModal
-        open={hrcmHistoryOpen}
-        onOpenChange={setHrcmHistoryOpen}
-        currentWeek={currentWeek}
       />
 
       {selectedRitual && (

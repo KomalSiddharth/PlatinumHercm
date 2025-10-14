@@ -60,7 +60,6 @@ interface HRCMBelief {
 
 interface UnifiedHRCMTableProps {
   weekNumber: number;
-  onViewHistory: () => void;
   onWeekChange?: (newWeek: number) => void;
 }
 
@@ -195,7 +194,7 @@ const MONEY_STANDARDS: ChecklistItem[] = [
   { id: 'money-std-5', text: 'I Promise to Practice Saying "Time for Double Happiness" every time something Negative happens about Money', checked: false },
 ];
 
-export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChange }: UnifiedHRCMTableProps) {
+export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHRCMTableProps) {
   const [beliefs, setBeliefs] = useState<HRCMBelief[]>([]);
   const [editingField, setEditingField] = useState<{ category: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState('');
@@ -728,14 +727,6 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
           >
             {weeklyProgress}% Weekly Progress
           </Badge>
-          <Button 
-            variant="outline" 
-            onClick={onViewHistory}
-            data-testid="button-view-history"
-          >
-            <History className="w-4 h-4 mr-2" />
-            View History
-          </Button>
         </div>
       </div>
 

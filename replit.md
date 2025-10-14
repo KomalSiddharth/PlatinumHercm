@@ -48,6 +48,28 @@ The dashboard features a clean, responsive design with "New York" style shadcn/u
 
 ## Recent Changes
 
+### October 14, 2025 - HRCM History Inline Display
+
+**HRCM History Section Redesign**
+- Removed Weekly Progress Analytics dialog completely
+- Removed "View History" button from HRCM table header
+- Added inline HRCM History section displayed below Achievements & Badges section
+- Shows complete historical snapshots of all saved weeks
+
+**History Display Features:**
+- Week Timeline: Interactive buttons showing all saved weeks with progress badges
+- Trend Indicators: Visual icons (up/down/neutral) showing week-over-week progress changes
+- Week Snapshot Table: Exact replica of HRCM table structure for selected week
+- Color-Coded Progress: Green (≥80%), Amber (≥50%), Red (<50%)
+- Read-Only Checklists: Disabled checkboxes showing historical completion status
+
+**User Experience:**
+- Click week button to toggle snapshot view
+- Timeline shows overall progress percentage for each week
+- Gradient orange/amber background for distinct visual section
+- Empty state message when no historical data exists
+- Snapshots show: Rating, Problems, Feelings, Beliefs/Reasons, Actions, AI Course, Checklist (3 items), Progress
+
 ### October 14, 2025 - Rating Increment Constraint System
 
 **New Rating Progression System**
