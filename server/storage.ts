@@ -10,6 +10,8 @@ import {
   ritualCompletions,
   courses,
   ratingProgression,
+  courseVideos,
+  courseVideoCompletions,
   type User,
   type UpsertUser,
   type HercmWeek,
@@ -30,6 +32,10 @@ import {
   type InsertCourse,
   type RatingProgression,
   type InsertRatingProgression,
+  type CourseVideo,
+  type InsertCourseVideo,
+  type CourseVideoCompletion,
+  type InsertCourseVideoCompletion,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, count, sql } from "drizzle-orm";
@@ -97,6 +103,14 @@ export interface IStorage {
   getCoursesByUserCategoryWeek(userId: string, category: string, weekNumber: number): Promise<Course | undefined>;
   createCourse(course: InsertCourse): Promise<Course>;
   updateCourse(id: string, course: Partial<InsertCourse>): Promise<Course>;
+  
+  // Course Videos operations
+  getCourseVideos(courseId: string): Promise<CourseVideo[]>;
+  createCourseVideo(video: InsertCourseVideo): Promise<CourseVideo>;
+  
+  // Course Video Completions operations
+  getCourseVideoCompletions(userId: string, courseId: string): Promise<CourseVideoCompletion[]>;
+  toggleVideoCompletion(userId: string, videoId: string): Promise<{ completed: boolean }>;
   
   // Rating Progression operations
   getRatingProgression(userId: string): Promise<RatingProgression | undefined>;
@@ -527,6 +541,71 @@ export class DatabaseStorage implements IStorage {
       .where(eq(courses.id, id))
       .returning();
     return course;
+  }
+
+  // Course Videos operations
+  async getCourseVideos(courseId: string): Promise<CourseVideo[]> {
+    return await db
+      .select()
+      .from(courseVideos)
+      .where(eq(courseVideos.courseId, courseId))
+      .orderBy(courseVideos.orderIndex);
+  }
+
+  async createCourseVideo(videoData: InsertCourseVideo): Promise<CourseVideo> {
+    const [video] = await db
+      .insert(courseVideos)
+      .values(videoData as any)
+      .returning();
+    return video;
+  }
+
+  // Course Video Completions operations
+  async getCourseVideoCompletions(userId: string, courseId: string): Promise<CourseVideoCompletion[]> {
+    // Get all video IDs for the course first
+    const videos = await this.getCourseVideos(courseId);
+    const videoIds = videos.map(v => v.id);
+    
+    if (videoIds.length === 0) {
+      return [];
+    }
+    
+    // Then get completions for those videos
+    return await db
+      .select()
+      .from(courseVideoCompletions)
+      .where(and(
+        eq(courseVideoCompletions.userId, userId),
+        sql`${courseVideoCompletions.videoId} IN (${sql.join(videoIds.map(id => sql`${id}`), sql`, `)})`
+      ));
+  }
+
+  async toggleVideoCompletion(userId: string, videoId: string): Promise<{ completed: boolean }> {
+    // Check if completion already exists
+    const [existing] = await db
+      .select()
+      .from(courseVideoCompletions)
+      .where(and(
+        eq(courseVideoCompletions.userId, userId),
+        eq(courseVideoCompletions.videoId, videoId)
+      ));
+
+    if (existing) {
+      // Delete completion (uncomplete)
+      await db
+        .delete(courseVideoCompletions)
+        .where(and(
+          eq(courseVideoCompletions.userId, userId),
+          eq(courseVideoCompletions.videoId, videoId)
+        ));
+      return { completed: false };
+    } else {
+      // Create completion (complete)
+      await db
+        .insert(courseVideoCompletions)
+        .values({ userId, videoId } as any);
+      return { completed: true };
+    }
   }
 
   // Rating Progression operations
