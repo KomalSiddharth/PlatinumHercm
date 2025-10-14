@@ -132,8 +132,22 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
     ? snapshots.find(s => s.id === selectedSnapshotId)
     : null;
 
-  // Reverse snapshots to show oldest first (left to right chronologically)
-  const displaySnapshots = [...snapshots].reverse();
+  // Group snapshots by week number and keep only the latest one per week
+  const latestSnapshotsByWeek = snapshots.reduce((acc: SnapshotData[], snapshot) => {
+    const existingIndex = acc.findIndex(s => s.weekNumber === snapshot.weekNumber);
+    if (existingIndex === -1) {
+      acc.push(snapshot);
+    } else {
+      // Keep the latest snapshot (newer createdAt)
+      if (new Date(snapshot.createdAt) > new Date(acc[existingIndex].createdAt)) {
+        acc[existingIndex] = snapshot;
+      }
+    }
+    return acc;
+  }, []);
+  
+  // Sort by week number (oldest to newest week)
+  const displaySnapshots = latestSnapshotsByWeek.sort((a, b) => a.weekNumber - b.weekNumber);
 
   return (
     <div className="bg-gradient-to-br from-rose-50/80 to-pink-50/80 dark:from-rose-950/20 dark:to-pink-950/20 p-6 rounded-lg border-2 border-red-800 dark:border-red-900 shadow-lg" data-testid="section-hercm-history">
@@ -369,13 +383,14 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
                               <div className="text-xs">{area.courseSuggestion || '-'}</div>
                             </td>
                             <td className="p-2 bg-purple-50/30 dark:bg-purple-950/10 align-top">
-                              <div className="space-y-1">
+                              <div className="space-y-1 pointer-events-none">
                                 {area.checklist && area.checklist.length > 0 ? area.checklist.map((item) => (
                                   <div key={item.id} className="flex items-center gap-2">
                                     <Checkbox 
                                       checked={item.checked} 
                                       disabled 
-                                      className="opacity-50"
+                                      className="opacity-50 cursor-not-allowed"
+                                      onClick={(e) => e.preventDefault()}
                                     />
                                     <span className={`text-xs ${item.checked ? 'line-through text-muted-foreground' : ''}`}>
                                       {item.text}
