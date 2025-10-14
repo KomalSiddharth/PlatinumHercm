@@ -31,6 +31,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { ChevronDown } from 'lucide-react';
 
 interface ChecklistItem {
   id: string;
@@ -216,6 +222,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
   const [loadingCourses, setLoadingCourses] = useState<Set<string>>(new Set());
   const [showStandardsDialog, setShowStandardsDialog] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [collapsedCourses, setCollapsedCourses] = useState<Set<string>>(new Set());
   const lastFocusedButton = useRef<HTMLButtonElement | null>(null);
   const hasAutoProgressed = useRef<Set<number>>(new Set()); // Track which weeks have been auto-progressed
   const { toast} = useToast();
@@ -719,6 +726,21 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
     }
   }, [allWeeksData, weekNumber, onWeekChange, beliefs, toast]);
 
+  // Auto-trigger: Get AI course recommendation when user fills triggers
+  useEffect(() => {
+    beliefs.forEach((belief) => {
+      // Check if user has filled any trigger data and no course exists yet
+      const hasTriggers = belief.problems || belief.currentFeelings || belief.currentBelief || belief.currentActions;
+      const noCourse = !belief.courseSuggestion;
+      const notLoading = !loadingCourses.has(belief.category);
+      
+      if (hasTriggers && noCourse && notLoading) {
+        // Auto-fetch course recommendation
+        getAICourseRecommendation(belief.category);
+      }
+    });
+  }, [beliefs.map(b => `${b.problems}|${b.currentFeelings}|${b.currentBelief}|${b.currentActions}`).join(',')]);
+
   const startEdit = (category: string, field: string, currentValue: string, buttonElement?: HTMLButtonElement) => {
     // Store the button element for focus restoration
     if (buttonElement) {
@@ -1091,7 +1113,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                   )}
                 </TableCell>
 
-                {/* Course Recommendation with Link */}
+                {/* AI Course - Collapsible Design */}
                 <TableCell className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10 align-top">
                   {loadingCourses.has(belief.category) ? (
                     <div className="flex items-center gap-2">
@@ -1099,71 +1121,91 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                       <span className="text-xs text-muted-foreground">AI analyzing...</span>
                     </div>
                   ) : belief.courseSuggestion ? (
-                    <div className="space-y-2">
-                      <div className="space-y-1">
-                        <div className="text-xs text-cyan-700 dark:text-cyan-400 font-medium" data-testid={`text-course-${belief.category.toLowerCase()}`}>
-                          {belief.courseSuggestion.courseName}
-                        </div>
-                        <div className="text-xs text-cyan-600 dark:text-cyan-500">
-                          {belief.courseSuggestion.matchScore}
-                        </div>
-                        {belief.courseSuggestion.link && (
-                          <a 
-                            href={belief.courseSuggestion.link} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-xs text-blue-600 dark:text-blue-400 underline hover:text-blue-800 dark:hover:text-blue-300 block"
-                            data-testid={`link-course-${belief.category.toLowerCase()}`}
-                          >
-                            View Course →
-                          </a>
-                        )}
-                      </div>
-                      {belief.courseSuggestion?.modules && belief.courseSuggestion.modules.length > 0 && (
-                        <div className="space-y-1 border-t border-cyan-200 dark:border-cyan-800 pt-2">
-                          <div className="text-xs font-medium text-cyan-600 dark:text-cyan-400">Modules:</div>
-                          {belief.courseSuggestion.modules.map((module) => (
-                            <div key={module.id} className="flex items-center gap-2">
-                              <Checkbox
-                                id={`course-${belief.category}-${module.id}`}
-                                checked={module.completed}
-                                onCheckedChange={() => handleCourseModuleToggle(belief.category, module.id)}
-                                className="h-3 w-3"
-                                data-testid={`checkbox-module-${belief.category.toLowerCase()}-${module.id}`}
-                              />
-                              <label
-                                htmlFor={`course-${belief.category}-${module.id}`}
-                                className={`text-xs cursor-pointer ${module.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}
-                              >
-                                {module.name}
-                              </label>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-6 px-2 text-xs w-full"
-                        onClick={() => getAICourseRecommendation(belief.category)}
-                        data-testid={`button-refresh-course-${belief.category.toLowerCase()}`}
-                      >
-                        <Sparkles className="w-3 h-3 mr-1" />
-                        Refresh Course
-                      </Button>
-                    </div>
-                  ) : (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-7 px-2 text-xs"
-                      onClick={() => getAICourseRecommendation(belief.category)}
-                      disabled={!belief.problems && !belief.currentFeelings}
-                      data-testid={`button-get-course-${belief.category.toLowerCase()}`}
+                    <Collapsible
+                      open={!collapsedCourses.has(belief.category)}
+                      onOpenChange={(open) => {
+                        setCollapsedCourses(prev => {
+                          const newSet = new Set(prev);
+                          if (open) {
+                            newSet.delete(belief.category);
+                          } else {
+                            newSet.add(belief.category);
+                          }
+                          return newSet;
+                        });
+                      }}
                     >
-                      <Sparkles className="w-3 h-3 mr-1" />
-                      Get AI Course
-                    </Button>
+                      <div className="space-y-2">
+                        <CollapsibleTrigger asChild>
+                          <button 
+                            className="w-full flex items-center justify-between gap-2 p-2 rounded-md hover:bg-cyan-100/50 dark:hover:bg-cyan-900/30 transition-colors"
+                            data-testid={`button-toggle-course-${belief.category.toLowerCase()}`}
+                          >
+                            <div className="flex-1 text-left">
+                              <div className="text-xs text-cyan-700 dark:text-cyan-400 font-medium" data-testid={`text-course-${belief.category.toLowerCase()}`}>
+                                {belief.courseSuggestion.courseName}
+                              </div>
+                              <div className="text-xs text-cyan-600 dark:text-cyan-500">
+                                {belief.courseSuggestion.matchScore}
+                              </div>
+                            </div>
+                            <ChevronDown className={`w-4 h-4 text-cyan-600 dark:text-cyan-400 transition-transform ${!collapsedCourses.has(belief.category) ? 'rotate-180' : ''}`} />
+                          </button>
+                        </CollapsibleTrigger>
+                        
+                        <CollapsibleContent className="space-y-2">
+                          {belief.courseSuggestion.link && (
+                            <a 
+                              href={belief.courseSuggestion.link} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-xs text-blue-600 dark:text-blue-400 underline hover:text-blue-800 dark:hover:text-blue-300 block px-2"
+                              data-testid={`link-course-${belief.category.toLowerCase()}`}
+                            >
+                              🔗 View Course
+                            </a>
+                          )}
+                          
+                          {belief.courseSuggestion?.modules && belief.courseSuggestion.modules.length > 0 && (
+                            <div className="space-y-1 border-t border-cyan-200 dark:border-cyan-800 pt-2 px-2">
+                              <div className="text-xs font-medium text-cyan-600 dark:text-cyan-400">Lessons:</div>
+                              {belief.courseSuggestion.modules.map((module) => (
+                                <div key={module.id} className="flex items-center gap-2">
+                                  <Checkbox
+                                    id={`course-${belief.category}-${module.id}`}
+                                    checked={module.completed}
+                                    onCheckedChange={() => handleCourseModuleToggle(belief.category, module.id)}
+                                    className="h-3 w-3"
+                                    data-testid={`checkbox-module-${belief.category.toLowerCase()}-${module.id}`}
+                                  />
+                                  <label
+                                    htmlFor={`course-${belief.category}-${module.id}`}
+                                    className={`text-xs cursor-pointer ${module.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}
+                                  >
+                                    {module.name}
+                                  </label>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 px-2 text-xs w-full"
+                            onClick={() => getAICourseRecommendation(belief.category)}
+                            data-testid={`button-refresh-course-${belief.category.toLowerCase()}`}
+                          >
+                            <Sparkles className="w-3 h-3 mr-1" />
+                            Refresh Course
+                          </Button>
+                        </CollapsibleContent>
+                      </div>
+                    </Collapsible>
+                  ) : (
+                    <div className="text-xs text-muted-foreground italic px-2">
+                      Fill triggers to get AI course...
+                    </div>
                   )}
                 </TableCell>
 
