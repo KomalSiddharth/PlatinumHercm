@@ -123,12 +123,15 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
     ? snapshots.find(s => s.id === selectedSnapshotId)
     : null;
 
+  // Reverse snapshots to show oldest first (left to right chronologically)
+  const displaySnapshots = [...snapshots].reverse();
+
   return (
     <div className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 p-6 rounded-lg border-2 border-orange-200 dark:border-orange-800" data-testid="section-hercm-history">
       <div className="space-y-6">
         <div>
           <h2 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">HRCM History</h2>
-          <p className="text-muted-foreground mt-1">View all your HRCM table edits with exact date and time</p>
+          <p className="text-muted-foreground mt-1">View all your HRCM table edits with exact date and time (oldest to newest, left to right)</p>
         </div>
 
         {snapshots.length === 0 ? (
@@ -139,18 +142,19 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
           <div className="space-y-6">
             {/* Timeline Overview */}
             <div className="space-y-3">
-              <h3 className="text-sm font-semibold">Snapshot Timeline (All Saves)</h3>
+              <h3 className="text-sm font-semibold">Snapshot Timeline (Oldest → Newest)</h3>
               <div className="flex gap-2 flex-wrap">
-                {snapshots.map((snapshot) => (
+                {displaySnapshots.map((snapshot, index) => (
                   <Button
                     key={snapshot.id}
                     variant={selectedSnapshotId === snapshot.id ? "default" : "outline"}
                     onClick={() => setSelectedSnapshotId(snapshot.id === selectedSnapshotId ? null : snapshot.id)}
                     className="flex flex-col items-start gap-1 h-auto py-2 px-3"
-                    data-testid={`button-snapshot-${snapshot.id}`}
+                    data-testid={`button-snapshot-${index + 1}`}
                   >
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold">Week {snapshot.weekNumber}</span>
+                      <span className="text-xs font-semibold">#{index + 1}</span>
+                      <Badge variant="outline" className="text-xs">Week {snapshot.weekNumber}</Badge>
                       <Badge className={getProgressColor(snapshot.overallProgress)}>
                         {snapshot.overallProgress}%
                       </Badge>
@@ -210,10 +214,10 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
                               <div className="text-center font-medium">{area.currentRating || '-'}</div>
                             </td>
                             <td className="p-2 bg-red-50/30 dark:bg-red-950/10">
-                              <div className="text-xs">{area.problems || '-'}</div>
+                              <div className="text-xs" data-testid={`text-problems-${area.category.toLowerCase()}`}>{area.problems || '-'}</div>
                             </td>
                             <td className="p-2 bg-red-50/30 dark:bg-red-950/10">
-                              <div className="text-xs">{area.currentFeelings || '-'}</div>
+                              <div className="text-xs" data-testid={`text-feelings-${area.category.toLowerCase()}`}>{area.currentFeelings || '-'}</div>
                             </td>
                             <td className="p-2 bg-red-50/30 dark:bg-red-950/10">
                               <div className="text-xs">{area.currentBelief || '-'}</div>
