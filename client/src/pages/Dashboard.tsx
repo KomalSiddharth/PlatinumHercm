@@ -354,6 +354,7 @@ export default function Dashboard() {
     estimatedHours: number;
     status: 'not_started' | 'in_progress' | 'completed';
     progressPercent: number;
+    category: string;
   }>>([
     {
       id: 'health-mastery',
@@ -363,7 +364,8 @@ export default function Dashboard() {
       source: 'Mitesh Khatri Coaching',
       estimatedHours: 20,
       status: 'not_started',
-      progressPercent: 0
+      progressPercent: 0,
+      category: 'Health'
     },
     {
       id: 'wealth-mastery',
@@ -373,7 +375,8 @@ export default function Dashboard() {
       source: 'Mitesh Khatri Coaching',
       estimatedHours: 25,
       status: 'not_started',
-      progressPercent: 0
+      progressPercent: 0,
+      category: 'Money'
     },
     {
       id: 'relationship-mastery',
@@ -383,7 +386,8 @@ export default function Dashboard() {
       source: 'Mitesh Khatri Coaching',
       estimatedHours: 18,
       status: 'not_started',
-      progressPercent: 0
+      progressPercent: 0,
+      category: 'Relationship'
     },
     {
       id: 'career-mastery',
@@ -393,7 +397,8 @@ export default function Dashboard() {
       source: 'Mitesh Khatri Coaching',
       estimatedHours: 22,
       status: 'not_started',
-      progressPercent: 0
+      progressPercent: 0,
+      category: 'Career'
     }
   ]);
 
@@ -544,7 +549,7 @@ export default function Dashboard() {
               <p className="text-muted-foreground mt-1">Manage your learning journey and skill development</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
               {courses.map((course) => (
                 <CourseCard 
                   key={course.id} 
