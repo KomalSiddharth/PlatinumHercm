@@ -135,7 +135,7 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
   const displaySnapshots = [...snapshots].reverse();
 
   return (
-    <div className="bg-red-50 dark:bg-red-950/40 p-6 rounded-lg border-2 border-red-200 dark:border-red-800" data-testid="section-hercm-history">
+    <div className="bg-gradient-to-br from-rose-50/80 to-pink-50/80 dark:from-rose-950/20 dark:to-pink-950/20 p-6 rounded-lg border-2 border-red-800 dark:border-red-900 shadow-lg" data-testid="section-hercm-history">
       <div className="space-y-6">
         <div>
           <h2 className="text-3xl font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent">
