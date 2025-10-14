@@ -202,7 +202,6 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
   const [editValue, setEditValue] = useState('');
   const [loadingCourses, setLoadingCourses] = useState<Set<string>>(new Set());
   const [showComparison, setShowComparison] = useState(false);
-  const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   const [showStandardsDialog, setShowStandardsDialog] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const lastFocusedButton = useRef<HTMLButtonElement | null>(null);
@@ -220,14 +219,6 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
     queryKey: ['/api/hercm/week', weekNumber - 1],
     enabled: weekNumber > 1,
   });
-
-  // Calculate active month and weeks in it
-  const activeMonth = selectedMonth || Math.ceil(weekNumber / 4);
-  const weeksInMonth = (() => {
-    const startWeek = (activeMonth - 1) * 4 + 1;
-    const endWeek = activeMonth * 4; // Show all 4 weeks in the month
-    return Array.from({ length: endWeek - startWeek + 1 }, (_, i) => startWeek + i);
-  })();
 
   // Fetch all weeks data (needed for auto-progression and comparison)
   const { data: allWeeksData } = useQuery({
@@ -257,20 +248,18 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
     queryKey: ['/api/rating-progression/status'],
   });
 
-  // Show all 12 months in dropdown
-  const totalMonths = 12;
-
-  // Process month data for analytics
-  const monthWeeksData = weeksInMonth.map(week => {
-    const weekDataFromAPI = Array.isArray(allWeeksData) 
-      ? allWeeksData.find((w: any) => w.weekNumber === week)
-      : null;
-    const beliefs = weekDataFromAPI?.beliefs || getWeekBeliefs(week);
-    const progress = beliefs.length > 0
-      ? Math.round(beliefs.reduce((sum: number, b: any) => sum + calculateProgress(b.checklist || []), 0) / beliefs.length)
-      : 0;
-    return { week, beliefs, progress };
-  });
+  // Process ALL weeks data for analytics (not just current month)
+  const allWeeksForAnalytics = Array.isArray(allWeeksData) 
+    ? allWeeksData
+        .sort((a: any, b: any) => a.weekNumber - b.weekNumber)
+        .map((weekDataFromAPI: any) => {
+          const beliefs = weekDataFromAPI?.beliefs || getWeekBeliefs(weekDataFromAPI.weekNumber);
+          const progress = beliefs.length > 0
+            ? Math.round(beliefs.reduce((sum: number, b: any) => sum + calculateProgress(b.checklist || []), 0) / beliefs.length)
+            : 0;
+          return { week: weekDataFromAPI.weekNumber, beliefs, progress };
+        })
+    : [];
 
   useEffect(() => {
     // Priority: Use actual database data if available, otherwise use demo/blank template
@@ -766,51 +755,28 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
         </div>
       </div>
 
-      {/* Week-over-Week Comparison Dialog */}
+      {/* Weekly Progress Analytics Dialog */}
       <Dialog open={showComparison} onOpenChange={setShowComparison}>
         <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Monthly Progress Analytics</DialogTitle>
+            <DialogTitle>Weekly Progress Analytics</DialogTitle>
           </DialogHeader>
           
-          {/* Month Selector */}
-          <div className="flex items-center gap-3 pb-4 border-b">
-            <label className="text-sm font-medium">Select Month:</label>
-            <Select 
-              value={selectedMonth?.toString() || Math.ceil(weekNumber / 4).toString()} 
-              onValueChange={(value) => setSelectedMonth(parseInt(value))}
-            >
-              <SelectTrigger className="w-[200px]" data-testid="select-month">
-                <SelectValue placeholder="Select month" />
-              </SelectTrigger>
-              <SelectContent>
-                {Array.from({ length: totalMonths }, (_, i) => i + 1).map((month) => {
-                  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-                  return (
-                    <SelectItem key={month} value={month.toString()}>
-                      {monthNames[month - 1]}
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          {weekNumber > 1 && comparisonData.length > 0 ? (
+          {allWeeksForAnalytics.length > 0 ? (
             <div className="space-y-6">
               {/* Analytics Charts */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Progress Analytics</h3>
                 
-                {/* Progress Trend Chart - All Weeks in Month */}
+                {/* Progress Trend Chart - All Weeks */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base">Overall Progress Trend</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <ResponsiveContainer width="100%" height={250}>
-                      <LineChart data={monthWeeksData.map(({ week, progress }, index) => ({
-                        week: `Week ${index + 1}`,
+                      <LineChart data={allWeeksForAnalytics.map(({ week, progress }) => ({
+                        week: `Week ${week}`,
                         progress
                       }))}>
                         <CartesianGrid strokeDasharray="3 3" />
@@ -823,7 +789,7 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
                   </CardContent>
                 </Card>
 
-                {/* HRCM Area Comparison - All Weeks in Month */}
+                {/* HRCM Area Comparison - All Weeks */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base">HRCM Area Progress Comparison</CardTitle>
@@ -832,9 +798,9 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
                     <ResponsiveContainer width="100%" height={300}>
                       <BarChart data={['Health', 'Relationship', 'Career', 'Money'].map(category => {
                         const dataPoint: any = { area: category };
-                        monthWeeksData.forEach(({ beliefs }, index) => {
+                        allWeeksForAnalytics.forEach(({ week, beliefs }) => {
                           const belief = beliefs.find((b: any) => b.category === category);
-                          dataPoint[`Week ${index + 1}`] = calculateProgress(belief?.checklist || []);
+                          dataPoint[`Week ${week}`] = calculateProgress(belief?.checklist || []);
                         });
                         return dataPoint;
                       })}>
@@ -843,10 +809,10 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
                         <YAxis domain={[0, 100]} />
                         <Tooltip />
                         <Legend />
-                        {monthWeeksData.map((_, index) => (
+                        {allWeeksForAnalytics.map(({ week }, index) => (
                           <Bar 
-                            key={index} 
-                            dataKey={`Week ${index + 1}`} 
+                            key={week} 
+                            dataKey={`Week ${week}`} 
                             fill={['#94a3b8', '#64748b', '#0d9488', '#14b8a6'][index % 4]} 
                           />
                         ))}
@@ -855,13 +821,13 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
                   </CardContent>
                 </Card>
 
-                {/* Improvement Summary - Month Progress */}
+                {/* Improvement Summary - Overall Progress */}
                 <div className="space-y-2">
-                  <h3 className="text-base font-semibold">Monthly Improvement Summary</h3>
+                  <h3 className="text-base font-semibold">Overall Improvement Summary</h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {['Health', 'Relationship', 'Career', 'Money'].map((category) => {
-                      const firstWeekData = monthWeeksData[0];
-                      const lastWeekData = monthWeeksData[monthWeeksData.length - 1];
+                      const firstWeekData = allWeeksForAnalytics[0];
+                      const lastWeekData = allWeeksForAnalytics[allWeeksForAnalytics.length - 1];
                       
                       const firstBelief = firstWeekData.beliefs.find((b: any) => b.category === category);
                       const lastBelief = lastWeekData.beliefs.find((b: any) => b.category === category);
@@ -887,7 +853,7 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
                               </span>
                             </div>
                             <p className="text-xs text-muted-foreground">
-                              Week 1: {firstProgress}% → Week {monthWeeksData.length}: {lastProgress}%
+                              Week {firstWeekData.week}: {firstProgress}% → Week {lastWeekData.week}: {lastProgress}%
                             </p>
                           </div>
                         </Card>
