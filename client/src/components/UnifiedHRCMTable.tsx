@@ -762,13 +762,13 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
             <DialogTitle>Weekly Progress Analytics</DialogTitle>
           </DialogHeader>
           
-          {allWeeksForAnalytics.length > 0 ? (
-            <div className="space-y-6">
-              {/* Analytics Charts */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Progress Analytics</h3>
-                
-                {/* Progress Trend Chart - All Weeks */}
+          <div className="space-y-6">
+            {/* Analytics Charts */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Progress Analytics</h3>
+              
+              {/* Progress Trend Chart - All Weeks */}
+              {allWeeksForAnalytics.length > 0 && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base">Overall Progress Trend</CardTitle>
@@ -788,8 +788,10 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
                     </ResponsiveContainer>
                   </CardContent>
                 </Card>
+              )}
 
-                {/* HRCM Area Comparison - All Weeks */}
+              {/* HRCM Area Comparison - All Weeks */}
+              {allWeeksForAnalytics.length > 0 && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base">HRCM Area Progress Comparison</CardTitle>
@@ -820,56 +822,52 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
                     </ResponsiveContainer>
                   </CardContent>
                 </Card>
+              )}
 
-                {/* Current Week Progress - Graphical */}
-                <div className="space-y-3">
-                  <h3 className="text-base font-semibold">Current Week Progress</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {['Health', 'Relationship', 'Career', 'Money'].map((category) => {
-                      const currentBelief = beliefs.find((b: any) => b.category === category);
-                      const currentProgress = calculateProgress(currentBelief?.checklist || []);
-                      const categoryIcon = {
-                        'Health': '💪',
-                        'Relationship': '❤️',
-                        'Career': '💼',
-                        'Money': '💰'
-                      }[category];
-                      
-                      return (
-                        <Card key={category} className="p-4">
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <span className="text-lg">{categoryIcon}</span>
-                                <p className="text-sm font-semibold">{category}</p>
-                              </div>
-                              <span className={`text-lg font-bold ${currentProgress >= 80 ? 'text-green-600' : currentProgress >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
-                                {currentProgress}%
-                              </span>
+              {/* Current Week Progress - Graphical */}
+              <div className="space-y-3">
+                <h3 className="text-base font-semibold">Current Week Progress</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {['Health', 'Relationship', 'Career', 'Money'].map((category) => {
+                    const currentBelief = beliefs.find((b: any) => b.category === category);
+                    const currentProgress = calculateProgress(currentBelief?.checklist || []);
+                    const categoryIcon = {
+                      'Health': '💪',
+                      'Relationship': '❤️',
+                      'Career': '💼',
+                      'Money': '💰'
+                    }[category];
+                    
+                    return (
+                      <Card key={category} className="p-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">{categoryIcon}</span>
+                              <p className="text-sm font-semibold">{category}</p>
                             </div>
-                            <div className="w-full bg-muted rounded-full h-3">
-                              <div 
-                                className={`h-3 rounded-full transition-all ${
-                                  currentProgress >= 80 ? 'bg-green-500' : 
-                                  currentProgress >= 50 ? 'bg-amber-500' : 
-                                  'bg-red-500'
-                                }`}
-                                style={{ width: `${currentProgress}%` }}
-                              />
-                            </div>
+                            <span className={`text-lg font-bold ${currentProgress >= 80 ? 'text-green-600' : currentProgress >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
+                              {currentProgress}%
+                            </span>
                           </div>
-                        </Card>
-                      );
-                    })}
-                  </div>
+                          <div className="w-full bg-muted rounded-full h-3">
+                            <div 
+                              className={`h-3 rounded-full transition-all ${
+                                currentProgress >= 80 ? 'bg-green-500' : 
+                                currentProgress >= 50 ? 'bg-amber-500' : 
+                                'bg-red-500'
+                              }`}
+                              style={{ width: `${currentProgress}%` }}
+                            />
+                          </div>
+                        </div>
+                      </Card>
+                    );
+                  })}
                 </div>
               </div>
             </div>
-          ) : (
-            <p className="text-muted-foreground text-center py-8">
-              Comparison available from Week 2 onwards
-            </p>
-          )}
+          </div>
         </DialogContent>
       </Dialog>
 
