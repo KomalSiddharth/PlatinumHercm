@@ -478,10 +478,6 @@ export default function Dashboard() {
                           </div>
                           
                           <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="text-xs">
-                              {ritual.recurrence === 'daily' ? 'Daily' : ritual.recurrence === 'mon-fri' ? 'Mon-Fri' : 'Custom'}
-                            </Badge>
-                            
                             {!ritual.active && (
                               <Badge variant="secondary" className="text-xs gap-1">
                                 <Pause className="w-3 h-3" />
