@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { format } from 'date-fns';
 
 interface ChecklistItem {
   id: string;
@@ -25,8 +25,10 @@ interface HRCMArea {
   progress: number;
 }
 
-interface WeekData {
+interface SnapshotData {
+  id: string;
   weekNumber: number;
+  createdAt: string;
   areas: HRCMArea[];
   overallProgress: number;
 }
@@ -51,14 +53,8 @@ const getProgressColor = (progress: number) => {
   return 'bg-muted text-muted-foreground';
 };
 
-const getTrendIcon = (current: number, previous: number) => {
-  if (current > previous) return <TrendingUp className="h-4 w-4 text-chart-3" />;
-  if (current < previous) return <TrendingDown className="h-4 w-4 text-destructive" />;
-  return <Minus className="h-4 w-4 text-muted-foreground" />;
-};
-
 export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionProps) {
-  const [selectedWeek, setSelectedWeek] = useState<number | null>(1);
+  const [selectedSnapshotId, setSelectedSnapshotId] = useState<string | null>(null);
 
   // Helper function to calculate progress
   const calculateProgress = (checklist: ChecklistItem[]): number => {
@@ -67,42 +63,45 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
     return Math.round((completed / checklist.length) * 100);
   };
 
-  // Fetch all weeks from database
-  const { data: allWeeksData } = useQuery({
+  // Format date/time nicely
+  const formatDateTime = (dateString: string): string => {
+    const date = new Date(dateString);
+    return format(date, 'MMM dd, yyyy - h:mm a'); // e.g., "Oct 14, 2025 - 2:30 PM"
+  };
+
+  // Fetch all snapshots from database
+  const { data: allSnapshotsData } = useQuery({
     queryKey: ['/api/hercm/weeks'],
   });
 
-  // Transform API data to match WeekData format - show all saved weeks including current
-  const historicalData: WeekData[] = [];
+  // Transform API data to snapshot format
+  const snapshots: SnapshotData[] = [];
   
-  if (allWeeksData && Array.isArray(allWeeksData)) {
-    // Use real database data - include all weeks (including current week if saved)
-    for (const weekData of allWeeksData) {
-      // Transform category-specific database fields back to beliefs array format
+  if (allSnapshotsData && Array.isArray(allSnapshotsData)) {
+    for (const snapshot of allSnapshotsData) {
       const categories = ['Health', 'Relationship', 'Career', 'Money'] as const;
       const areas: HRCMArea[] = categories.map((category) => {
         const prefix = category.toLowerCase();
         
-        // Get the current rating for each category (H=Health, E=Relationship, R=Career, C=Money)
         const ratingMap = {
-          health: weekData.currentH,
-          relationship: weekData.currentE,
-          career: weekData.currentR,
-          money: weekData.currentC,
+          health: snapshot.currentH,
+          relationship: snapshot.currentE,
+          career: snapshot.currentR,
+          money: snapshot.currentC,
         };
         
         return {
           category,
           currentRating: ratingMap[prefix as keyof typeof ratingMap],
-          problems: weekData[`${prefix}Problems`] || '',
-          currentFeelings: weekData[`${prefix}CurrentFeelings`] || '',
-          currentBelief: weekData[`${prefix}CurrentBelief`] || '',
-          currentActions: weekData[`${prefix}CurrentActions`] || '',
-          nextWeekTarget: weekData[`${prefix}NextTarget`] || '',
-          courseSuggestion: weekData[`${prefix}CourseSuggestion`] || '',
-          affirmation: weekData[`${prefix}Affirmation`] || '',
-          checklist: weekData[`${prefix}Checklist`] || [],
-          progress: calculateProgress(weekData[`${prefix}Checklist`] || []),
+          problems: snapshot[`${prefix}Problems`] || '',
+          currentFeelings: snapshot[`${prefix}CurrentFeelings`] || '',
+          currentBelief: snapshot[`${prefix}CurrentBelief`] || '',
+          currentActions: snapshot[`${prefix}CurrentActions`] || '',
+          nextWeekTarget: snapshot[`${prefix}NextTarget`] || '',
+          courseSuggestion: snapshot[`${prefix}CourseSuggestion`] || '',
+          affirmation: snapshot[`${prefix}Affirmation`] || '',
+          checklist: snapshot[`${prefix}Checklist`] || [],
+          progress: calculateProgress(snapshot[`${prefix}Checklist`] || []),
         };
       });
       
@@ -110,37 +109,18 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
         ? Math.round(areas.reduce((sum, area) => sum + area.progress, 0) / areas.length)
         : 0;
       
-      historicalData.push({
-        weekNumber: weekData.weekNumber,
+      snapshots.push({
+        id: snapshot.id,
+        weekNumber: snapshot.weekNumber,
+        createdAt: snapshot.createdAt,
         areas,
         overallProgress,
       });
     }
   }
-  
-  // Sort by week number to ensure correct chronological order for trends
-  historicalData.sort((a, b) => a.weekNumber - b.weekNumber);
 
-  // Calculate trends
-  const calculateTrends = () => {
-    if (historicalData.length < 2) return [];
-    
-    const trends = historicalData.map((week, index) => {
-      if (index === 0) return null;
-      const prevWeek = historicalData[index - 1];
-      return {
-        weekNumber: week.weekNumber,
-        change: week.overallProgress - prevWeek.overallProgress,
-      };
-    }).filter(Boolean);
-    
-    return trends;
-  };
-
-  const trends = calculateTrends();
-
-  const weekToDisplay = selectedWeek 
-    ? historicalData.find(w => w.weekNumber === selectedWeek)
+  const selectedSnapshot = selectedSnapshotId 
+    ? snapshots.find(s => s.id === selectedSnapshotId)
     : null;
 
   return (
@@ -148,54 +128,60 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
       <div className="space-y-6">
         <div>
           <h2 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">HRCM History</h2>
-          <p className="text-muted-foreground mt-1">View exact snapshots of your HRCM table for each completed week</p>
+          <p className="text-muted-foreground mt-1">View all your HRCM table edits with exact date and time</p>
         </div>
 
-        {historicalData.length === 0 ? (
+        {snapshots.length === 0 ? (
           <div className="text-center py-12 border-2 border-dashed border-orange-300 dark:border-orange-700 rounded-lg">
-            <p className="text-muted-foreground">No historical data yet. Complete Week {currentWeek} and generate Week {currentWeek + 1} to see your progress history!</p>
+            <p className="text-muted-foreground">No history yet. Save your HRCM table to see snapshots here with date & time!</p>
           </div>
         ) : (
           <div className="space-y-6">
             {/* Timeline Overview */}
             <div className="space-y-3">
-              <h3 className="text-sm font-semibold">Week Timeline</h3>
+              <h3 className="text-sm font-semibold">Snapshot Timeline (All Saves)</h3>
               <div className="flex gap-2 flex-wrap">
-                {historicalData.map((week, index) => {
-                  const trend = trends.find(t => t?.weekNumber === week.weekNumber);
-                  return (
-                    <Button
-                      key={week.weekNumber}
-                      variant={selectedWeek === week.weekNumber ? "default" : "outline"}
-                      onClick={() => setSelectedWeek(week.weekNumber === selectedWeek ? null : week.weekNumber)}
-                      className="flex items-center gap-2"
-                      data-testid={`button-week-${week.weekNumber}`}
-                    >
-                      Week {week.weekNumber}
-                      <Badge className={getProgressColor(week.overallProgress)}>
-                        {week.overallProgress}%
+                {snapshots.map((snapshot) => (
+                  <Button
+                    key={snapshot.id}
+                    variant={selectedSnapshotId === snapshot.id ? "default" : "outline"}
+                    onClick={() => setSelectedSnapshotId(snapshot.id === selectedSnapshotId ? null : snapshot.id)}
+                    className="flex flex-col items-start gap-1 h-auto py-2 px-3"
+                    data-testid={`button-snapshot-${snapshot.id}`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold">Week {snapshot.weekNumber}</span>
+                      <Badge className={getProgressColor(snapshot.overallProgress)}>
+                        {snapshot.overallProgress}%
                       </Badge>
-                      {trend && index > 0 && historicalData[index - 1] && getTrendIcon(week.overallProgress, historicalData[index - 1].overallProgress)}
-                    </Button>
-                  );
-                })}
+                    </div>
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">
+                      {formatDateTime(snapshot.createdAt)}
+                    </span>
+                  </Button>
+                ))}
               </div>
             </div>
 
-            {/* Selected Week Details */}
-            {weekToDisplay && (
+            {/* Selected Snapshot Details */}
+            {selectedSnapshot && (
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <h3 className="text-lg font-semibold">Week {weekToDisplay.weekNumber} Details</h3>
-                  <Badge className={getProgressColor(weekToDisplay.overallProgress)}>
-                    {weekToDisplay.overallProgress}% Overall
+                  <h3 className="text-lg font-semibold">
+                    Saved on {formatDateTime(selectedSnapshot.createdAt)}
+                  </h3>
+                  <Badge variant="outline" className="text-xs">Week {selectedSnapshot.weekNumber}</Badge>
+                  <Badge className={getProgressColor(selectedSnapshot.overallProgress)}>
+                    {selectedSnapshot.overallProgress}% Overall
                   </Badge>
                 </div>
 
-                {/* Week Table - Current Week Format */}
+                {/* Snapshot Table */}
                 <div className="border-2 border-rose-300 dark:border-rose-700 rounded-lg overflow-hidden shadow-lg">
                   <div className="bg-gradient-to-r from-rose-400 to-pink-500 dark:from-rose-600 dark:to-pink-700 px-4 py-3 border-b-2 border-rose-300 dark:border-rose-800">
-                    <h3 className="font-bold text-white text-xl text-center drop-shadow-md">Week {weekToDisplay.weekNumber} Snapshot</h3>
+                    <h3 className="font-bold text-white text-xl text-center drop-shadow-md">
+                      Snapshot from {formatDateTime(selectedSnapshot.createdAt)}
+                    </h3>
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full">
@@ -213,8 +199,8 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
                         </tr>
                       </thead>
                       <tbody>
-                        {weekToDisplay.areas.map((area) => (
-                          <tr key={area.category} className="border-b last:border-0" data-testid={`history-row-${area.category.toLowerCase()}-week-${weekToDisplay.weekNumber}`}>
+                        {selectedSnapshot.areas.map((area) => (
+                          <tr key={area.category} className="border-b last:border-0" data-testid={`history-row-${area.category.toLowerCase()}-${selectedSnapshot.id}`}>
                             <td className="p-3 border-r bg-muted/20">
                               <Badge variant="outline" className="font-semibold">
                                 {area.category}
@@ -268,10 +254,10 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
               </div>
             )}
 
-            {/* Show message when no week selected */}
-            {!selectedWeek && (
+            {/* Show message when no snapshot selected */}
+            {!selectedSnapshotId && (
               <div className="text-center py-8 text-muted-foreground">
-                <p>Select a week from the timeline above to view its snapshot</p>
+                <p>Click on any snapshot above to view its complete HRCM data with exact date & time</p>
               </div>
             )}
           </div>
