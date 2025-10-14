@@ -586,33 +586,39 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
       const data = await response.json();
 
       // Update belief with rating-based courses
-      setBeliefs(prev => prev.map(b => 
-        b.category === category 
-          ? { 
-              ...b, 
-              courseSuggestion: {
-                courses: data.courses || []
+      setBeliefs(prev => {
+        const updated = prev.map(b => 
+          b.category === category 
+            ? { 
+                ...b, 
+                courseSuggestion: {
+                  courses: data.courses || []
+                }
               }
-            }
-          : b
-      ));
+            : b
+        );
+        
+        // Auto-save with updated beliefs (not stale)
+        saveWeekMutation.mutate({
+          weekNumber,
+          beliefs: updated
+        });
+        
+        return updated;
+      });
 
       const courseCount = data.courses?.length || 0;
       toast({
         title: "AI Courses Recommended",
         description: `Found ${courseCount} course${courseCount !== 1 ? 's' : ''} based on your rating`,
       });
-
-      // Auto-save the updated course suggestion
-      saveWeekMutation.mutate({
-        weekNumber,
-        beliefs
-      });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error getting AI course recommendation:', error);
+      console.error('Error message:', error?.message);
+      console.error('Error response:', error?.response);
       toast({
         title: "Failed to get AI courses",
-        description: "Please try again or fill in more HRCM data",
+        description: error?.message || "Please try again or fill in more HRCM data",
         variant: "destructive"
       });
     } finally {
@@ -675,21 +681,30 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
     }
   }, [allWeeksData, weekNumber, onWeekChange, beliefs, toast]);
 
-  // Auto-trigger: Get AI course recommendation based on rating (triggers optional)
+  // Track if this is the first render to prevent auto-fetch on mount
+  const hasInitialized = useRef(false);
+  
+  // Auto-trigger: Get AI course recommendation when rating changes
   useEffect(() => {
+    // Skip on first render (initial mount)
+    if (!hasInitialized.current) {
+      hasInitialized.current = true;
+      return;
+    }
+    
     beliefs.forEach((belief) => {
-      // Check if category has rating but no course exists yet
+      // Check if category has rating > 0
       const hasRating = belief.currentRating > 0;
-      const noCourse = !belief.courseSuggestion;
       const notLoading = !loadingCourses.has(belief.category);
       
-      // Auto-fetch if has rating and no course (triggers are now optional)
-      if (hasRating && noCourse && notLoading) {
-        // Auto-fetch course recommendation based on rating
+      // Auto-fetch courses whenever rating changes (triggers optional)
+      // This will re-fetch even if courses exist, to get rating-appropriate count
+      if (hasRating && notLoading) {
+        console.log(`Auto-fetching courses for ${belief.category} with rating ${belief.currentRating}`);
         getAICourseRecommendation(belief.category);
       }
     });
-  }, [beliefs.map(b => `${b.currentRating}|${b.problems}|${b.currentFeelings}|${b.currentBelief}|${b.currentActions}`).join(',')]);
+  }, [beliefs.map(b => b.currentRating).join(',')]);
 
   const startEdit = (category: string, field: string, currentValue: string, buttonElement?: HTMLButtonElement) => {
     // Store the button element for focus restoration
