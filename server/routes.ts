@@ -1920,7 +1920,7 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
     }
   });
 
-  // Badge check and award - Check monthly progress and award Platinum badge
+  // Badge check and award - Check consecutive 4 weeks with rating 8+ and award Platinum badge
   app.post('/api/badges/check-platinum', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.session.userEmail;
@@ -1928,32 +1928,85 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
         return res.status(401).json({ message: "User not authenticated" });
       }
 
-      const { month, year } = req.body;
       const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
       const allWeeks = await storage.getHercmWeeksByUser(userId);
       
-      // Calculate monthly progress
-      const monthlyWeeks = allWeeks.filter(w => {
-        const weekDate = new Date(w.createdAt);
-        return weekDate.getMonth() + 1 === month && weekDate.getFullYear() === year;
+      // Group by weekNumber and keep only the latest snapshot per week
+      const weekMap = new Map<number, typeof allWeeks[0]>();
+      allWeeks.forEach(week => {
+        const existing = weekMap.get(week.weekNumber);
+        if (!existing || new Date(week.createdAt) > new Date(existing.createdAt)) {
+          weekMap.set(week.weekNumber, week);
+        }
       });
+      
+      // Sort unique weeks by week number
+      const uniqueWeeks = Array.from(weekMap.values()).sort((a, b) => a.weekNumber - b.weekNumber);
 
-      if (monthlyWeeks.length === 0) {
-        return res.json({ eligible: false, progress: 0 });
+      if (uniqueWeeks.length < 4) {
+        return res.json({ eligible: false, progress: 0, message: "Need at least 4 weeks of data" });
       }
 
-      const avgAchievement = monthlyWeeks.reduce((sum, w) => sum + (w.achievementRate || 0), 0) / monthlyWeeks.length;
-      const isPlatinum = avgAchievement > 80;
+      // Calculate average rating for each unique week (Health, Relationship, Career, Money)
+      const weeksWithAvgRating = uniqueWeeks.map(week => {
+        const ratings = [
+          week.currentH || 0,
+          week.currentE || 0, 
+          week.currentR || 0,
+          week.currentC || 0
+        ];
+        const avgRating = ratings.reduce((sum, r) => sum + r, 0) / 4;
+        return {
+          weekNumber: week.weekNumber,
+          avgRating,
+          createdAt: week.createdAt
+        };
+      });
+
+      // Find consecutive 4 weeks with rating 8+
+      let consecutiveCount = 0;
+      let startWeek = 0;
+      let isPlatinum = false;
+
+      for (let i = 0; i < weeksWithAvgRating.length; i++) {
+        if (weeksWithAvgRating[i].avgRating >= 8) {
+          if (consecutiveCount === 0) {
+            startWeek = weeksWithAvgRating[i].weekNumber;
+          }
+          consecutiveCount++;
+          
+          // Check if consecutive (week numbers should be sequential)
+          if (i > 0 && weeksWithAvgRating[i].weekNumber !== weeksWithAvgRating[i - 1].weekNumber + 1) {
+            consecutiveCount = 1; // Reset if not consecutive
+            startWeek = weeksWithAvgRating[i].weekNumber;
+          }
+          
+          if (consecutiveCount >= 4) {
+            isPlatinum = true;
+            break;
+          }
+        } else {
+          consecutiveCount = 0;
+        }
+      }
+
+      // Calculate current progress (last 4 weeks average rating)
+      const last4Weeks = weeksWithAvgRating.slice(-4);
+      const currentProgress = last4Weeks.reduce((sum, w) => sum + w.avgRating, 0) / last4Weeks.length;
 
       if (isPlatinum) {
         // Award Platinum badge
         const progress = await storage.getPlatinumProgress(userId) || await storage.createPlatinumProgress({ userId });
         
         const platinumBadge = {
-          id: `platinum-${month}-${year}`,
+          id: `platinum-consecutive-${startWeek}-${startWeek + 3}`,
           name: 'Platinum Standards',
           achievedAt: new Date().toISOString(),
-          description: `Achieved >80% monthly progress in ${month}/${year}`
+          description: `Achieved 8+ rating for 4 consecutive weeks (Week ${startWeek}-${startWeek + 3})`
         };
 
         const existingBadges = progress.badges || [];
@@ -1972,12 +2025,17 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
 
         res.json({ 
           eligible: true, 
-          progress: avgAchievement, 
+          progress: currentProgress, 
           badge: platinumBadge,
           alreadyAwarded: alreadyHas 
         });
       } else {
-        res.json({ eligible: false, progress: avgAchievement });
+        res.json({ 
+          eligible: false, 
+          progress: currentProgress,
+          consecutiveWeeks: consecutiveCount,
+          message: `${consecutiveCount}/4 consecutive weeks with 8+ rating`
+        });
       }
     } catch (error) {
       console.error("Error checking platinum badge:", error);

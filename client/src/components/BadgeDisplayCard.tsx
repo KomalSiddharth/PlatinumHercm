@@ -78,26 +78,26 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
         <CardDescription className="text-yellow-600/80 dark:text-yellow-500/80">Track your platinum progress and badges</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Current Month Progress */}
+        {/* Current Progress - Consecutive Weeks */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-yellow-400 dark:text-yellow-300">Monthly Progress</span>
-            <span className="text-sm font-bold text-yellow-500 dark:text-yellow-400">{progressPercentage.toFixed(0)}%</span>
+            <span className="text-sm font-medium text-yellow-400 dark:text-yellow-300">Avg Rating (Last 4 Weeks)</span>
+            <span className="text-sm font-bold text-yellow-500 dark:text-yellow-400">{progressPercentage.toFixed(1)}/10</span>
           </div>
           <div className="h-3 bg-gray-800 dark:bg-gray-950 rounded-full overflow-hidden border-2 border-yellow-600/50 dark:border-yellow-500/50">
             <div 
               className={`h-full transition-all duration-500 ${
-                progressPercentage > 80 
+                progressPercentage >= 8 
                   ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 dark:from-yellow-400 dark:to-yellow-500' 
                   : 'bg-gradient-to-r from-gray-600 to-gray-500 dark:from-gray-500 dark:to-gray-600'
               }`}
-              style={{ width: `${Math.min(progressPercentage, 100)}%` }}
+              style={{ width: `${Math.min((progressPercentage / 10) * 100, 100)}%` }}
             />
           </div>
           <p className="text-xs text-yellow-500/90 dark:text-yellow-400/90">
             {isEligible 
               ? '🎉 Eligible for Platinum Badge!' 
-              : `${(80 - progressPercentage).toFixed(0)}% more for Platinum Badge`}
+              : (badgeData as any)?.message || `Need 8+ rating for 4 consecutive weeks`}
           </p>
         </div>
 
@@ -133,7 +133,7 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
             <div className="text-center py-6 border-2 border-dashed border-yellow-600/50 dark:border-yellow-500/50 rounded-lg bg-gray-900/50 dark:bg-black/50">
               <Trophy className="h-12 w-12 mx-auto text-yellow-600/60 dark:text-yellow-500/60 mb-2" />
               <p className="text-sm text-yellow-500/80 dark:text-yellow-400/80">
-                Achieve 80%+ monthly progress to earn Platinum Badge
+                Maintain 8+ rating for 4 consecutive weeks to earn Platinum Badge
               </p>
             </div>
           )}

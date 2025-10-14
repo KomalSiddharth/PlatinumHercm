@@ -21,7 +21,7 @@ The dashboard employs a clean, responsive "New York" style design using shadcn/u
 - **Automatic Week Progression**: The system automatically advances to the next week after 7 days from creation, saving data and providing a new template.
 - **PDF Export**: Generates weekly and monthly HRCM reports.
 - **Email Notifications**: Optional weekly check-in reminders and Platinum badge notifications.
-- **Platinum Badge System**: Awards a "Platinum Standards" badge for achieving >80% monthly progress.
+- **Platinum Badge System**: Awards a "Platinum Standards" badge for maintaining an average rating of 8+ across all 4 HRCM categories for 4 consecutive weeks.
 - **Smart AI Insights**: ML-powered analysis of HRCM patterns, trends, predictions, and recommendations.
 - **ML-Based Target Recommendations**: Intelligent target suggestions based on historical performance.
 - **Next Week Target Rating**: Uses the same standards-based logic as Current Week rating, with progression badges displaying when at max rating.
