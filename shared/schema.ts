@@ -375,3 +375,39 @@ export const insertRatingProgressionSchema = createInsertSchema(ratingProgressio
 
 export type InsertRatingProgression = z.infer<typeof insertRatingProgressionSchema>;
 export type RatingProgression = typeof ratingProgression.$inferSelect;
+
+// Course Videos - Videos for each course (provided by admin/coach)
+export const courseVideos = pgTable("course_videos", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  courseId: varchar("course_id").notNull(), // Course identifier (e.g., 'health-mastery')
+  title: varchar("title").notNull(),
+  videoUrl: varchar("video_url").notNull(),
+  orderIndex: integer("order_index").notNull(), // Display order
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertCourseVideoSchema = createInsertSchema(courseVideos).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertCourseVideo = z.infer<typeof insertCourseVideoSchema>;
+export type CourseVideo = typeof courseVideos.$inferSelect;
+
+// Course Video Completions - Track which videos users have completed
+export const courseVideoCompletions = pgTable("course_video_completions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  videoId: varchar("video_id").notNull().references(() => courseVideos.id),
+  completedAt: timestamp("completed_at").defaultNow(),
+});
+
+export const insertCourseVideoCompletionSchema = createInsertSchema(courseVideoCompletions).omit({
+  id: true,
+  completedAt: true,
+});
+
+export type InsertCourseVideoCompletion = z.infer<typeof insertCourseVideoCompletionSchema>;
+export type CourseVideoCompletion = typeof courseVideoCompletions.$inferSelect;
