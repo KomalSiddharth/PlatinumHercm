@@ -218,6 +218,7 @@ export const recommendCoursesRequestSchema = z.object({
   feelings: z.string(),
   beliefs: z.string(),
   actions: z.string(),
+  excludeCourseNames: z.array(z.string()).optional(), // Exclude previously recommended courses for variety
 });
 
 export type RecommendCoursesRequest = z.infer<typeof recommendCoursesRequestSchema>;

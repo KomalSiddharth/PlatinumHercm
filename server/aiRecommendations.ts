@@ -27,12 +27,14 @@ interface AIRecommendation {
 export async function getAIRecommendations(
   courses: EnhancedCourseData[],
   hercmData: HERCMInput,
-  topN: number = 3
+  topN: number = 3,
+  excludeCourseNames: string[] = []
 ): Promise<AIRecommendation[]> {
   
-  // Filter courses by HERCM category
+  // Filter courses by HERCM category and exclude previously recommended courses
   const relevantCourses = courses.filter(course =>
-    course.hercmAreas.some(area => area.toLowerCase() === hercmData.category.toLowerCase())
+    course.hercmAreas.some(area => area.toLowerCase() === hercmData.category.toLowerCase()) &&
+    !excludeCourseNames.includes(course.courseName)
   );
 
   if (relevantCourses.length === 0) {
@@ -109,7 +111,7 @@ Return ONLY valid JSON in this exact format:
           aiInsight: rec.insight || ''
         };
       })
-      .filter((rec: AIRecommendation) => rec.course); // Filter out invalid course IDs
+      .filter((rec: AIRecommendation) => rec.course && rec.score >= 50); // Filter out invalid course IDs and courses below 50% match
 
     return recommendations;
 

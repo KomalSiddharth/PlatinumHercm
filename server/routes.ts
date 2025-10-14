@@ -857,7 +857,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         feelings: validatedData.feelings,
         beliefs: validatedData.beliefs,
         actions: validatedData.actions,
-      }, 3);
+      }, 3, validatedData.excludeCourseNames || []);
       
       res.json(recommendations);
     } catch (error) {
@@ -869,7 +869,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get single AI course recommendation for HRCM table
   app.post('/api/courses/recommend-single', isAuthenticated, async (req: any, res) => {
     try {
-      const { category, currentRating, problems, feelings, beliefs, actions } = req.body;
+      const { category, currentRating, problems, feelings, beliefs, actions, excludeCourseNames } = req.body;
       
       // Validate inputs
       if (!category) {
@@ -887,7 +887,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         feelings: feelings || '',
         beliefs: beliefs || '',
         actions: actions || '',
-      }, 1);
+      }, 1, excludeCourseNames || []);
       
       if (recommendations.length === 0) {
         return res.json({ 

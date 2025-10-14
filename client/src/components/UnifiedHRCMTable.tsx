@@ -301,6 +301,11 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
     setLoadingCourses(prev => new Set(prev).add(category));
 
     try {
+      // Exclude current course to get different recommendations when input changes
+      const excludeCourseNames = belief.courseSuggestion?.courseName 
+        ? [belief.courseSuggestion.courseName] 
+        : [];
+      
       const response = await apiRequest('POST', '/api/courses/recommend', {
         category: category,
         currentRating: belief.currentRating,
@@ -308,6 +313,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
         feelings: belief.currentFeelings || '',
         beliefs: belief.currentBelief || '',
         actions: belief.currentActions || '',
+        excludeCourseNames: excludeCourseNames,
       });
 
       const recommendations = await response.json();
@@ -617,13 +623,19 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
     setLoadingCourses(prev => new Set(prev).add(category));
 
     try {
+      // Exclude current course to provide variety when refreshing
+      const excludeCourseNames = belief.courseSuggestion?.courseName 
+        ? [belief.courseSuggestion.courseName] 
+        : [];
+        
       const response = await apiRequest('POST', '/api/courses/recommend-single', {
         category: belief.category,
         currentRating: belief.currentRating,
         problems: belief.problems,
         feelings: belief.currentFeelings,
         beliefs: belief.currentBelief,
-        actions: belief.currentActions
+        actions: belief.currentActions,
+        excludeCourseNames: excludeCourseNames
       });
 
       const data = await response.json();
@@ -1144,9 +1156,6 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                             <div className="flex-1 text-left">
                               <div className="text-xs text-cyan-700 dark:text-cyan-400 font-medium" data-testid={`text-course-${belief.category.toLowerCase()}`}>
                                 {belief.courseSuggestion.courseName}
-                              </div>
-                              <div className="text-xs text-cyan-600 dark:text-cyan-500">
-                                {belief.courseSuggestion.matchScore}
                               </div>
                             </div>
                             <ChevronDown className={`w-4 h-4 text-cyan-600 dark:text-cyan-400 transition-transform ${!collapsedCourses.has(belief.category) ? 'rotate-180' : ''}`} />
