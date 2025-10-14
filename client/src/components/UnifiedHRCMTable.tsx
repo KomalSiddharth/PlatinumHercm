@@ -489,6 +489,59 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
     }
   });
 
+  // Get AI course recommendation for a category
+  const getAICourseRecommendation = async (category: string) => {
+    const belief = beliefs.find(b => b.category === category);
+    if (!belief) return;
+
+    // Set loading state
+    setLoadingCourses(prev => new Set(prev).add(category));
+
+    try {
+      const response = await apiRequest('POST', '/api/courses/recommend-single', {
+        category: belief.category,
+        currentRating: belief.currentRating,
+        problems: belief.problems,
+        feelings: belief.currentFeelings,
+        beliefs: belief.currentBelief,
+        actions: belief.currentActions
+      });
+
+      const data = await response.json();
+
+      // Update belief with course suggestion
+      setBeliefs(prev => prev.map(b => 
+        b.category === category 
+          ? { 
+              ...b, 
+              courseSuggestion: `${data.courseName} (${data.score}% match)\nLink: ${data.courseLink}`
+            }
+          : b
+      ));
+
+      toast({
+        title: "AI Course Recommended",
+        description: `Found: ${data.courseName}`,
+      });
+
+      // Auto-save the updated course suggestion
+      saveWeekData();
+    } catch (error) {
+      console.error('Error getting AI course recommendation:', error);
+      toast({
+        title: "Failed to get AI course",
+        description: "Please try again or fill in more HRCM data",
+        variant: "destructive"
+      });
+    } finally {
+      setLoadingCourses(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(category);
+        return newSet;
+      });
+    }
+  };
+
   // Automatic week progression: Check if 7 days have passed since week creation
   useEffect(() => {
     if (!Array.isArray(allWeeksData) || !onWeekChange) return;
@@ -917,7 +970,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                   {loadingCourses.has(belief.category) ? (
                     <div className="flex items-center gap-2">
                       <Loader2 className="w-4 h-4 animate-spin text-cyan-600" />
-                      <span className="text-xs text-muted-foreground">Loading...</span>
+                      <span className="text-xs text-muted-foreground">AI analyzing...</span>
                     </div>
                   ) : belief.courseSuggestion ? (
                     (() => {
@@ -942,11 +995,31 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                               View Course →
                             </a>
                           )}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 px-2 text-xs mt-1"
+                            onClick={() => getAICourseRecommendation(belief.category)}
+                            data-testid={`button-refresh-course-${belief.category.toLowerCase()}`}
+                          >
+                            <Sparkles className="w-3 h-3 mr-1" />
+                            Refresh
+                          </Button>
                         </div>
                       );
                     })()
                   ) : (
-                    <span className="text-xs text-muted-foreground italic">Fill problems to get recommendations</span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 px-2 text-xs"
+                      onClick={() => getAICourseRecommendation(belief.category)}
+                      disabled={!belief.problems && !belief.currentFeelings}
+                      data-testid={`button-get-course-${belief.category.toLowerCase()}`}
+                    >
+                      <Sparkles className="w-3 h-3 mr-1" />
+                      Get AI Course
+                    </Button>
                   )}
                 </TableCell>
 
