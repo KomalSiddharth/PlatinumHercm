@@ -8,6 +8,7 @@ import { recommendCoursesRequestSchema } from "@shared/schema";
 import { getAIRecommendations, generateAffirmation } from "./aiRecommendations";
 import { generateHRCMWeeklyPDF, generateMonthlyProgressPDF } from "./pdfExport";
 import { emailService } from "./emailService";
+import { validateAndCapRating, updateRatingProgression, getRatingCaps, getRatingProgressionStatus } from "./ratingProgression";
 import OpenAI from "openai";
 
 const openai = new OpenAI({
@@ -259,6 +260,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // Apply rating caps before calculating improvements
+      if (weekData.currentH !== null) {
+        const healthResult = await validateAndCapRating(userId, 'health', weekData.currentH);
+        weekData.currentH = healthResult.cappedRating;
+      }
+      if (weekData.currentE !== null) {
+        const relationshipResult = await validateAndCapRating(userId, 'relationship', weekData.currentE);
+        weekData.currentE = relationshipResult.cappedRating;
+      }
+      if (weekData.currentR !== null) {
+        const careerResult = await validateAndCapRating(userId, 'career', weekData.currentR);
+        weekData.currentR = careerResult.cappedRating;
+      }
+      if (weekData.currentC !== null) {
+        const moneyResult = await validateAndCapRating(userId, 'money', weekData.currentC);
+        weekData.currentC = moneyResult.cappedRating;
+      }
+      
       // Calculate improvements if targets exist
       if (weekData.targetH !== null && weekData.currentH !== null) {
         weekData.improvementH = weekData.currentH - (weekData.targetH || 0);
@@ -290,6 +309,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         week = await storage.createHercmWeek(weekData);
       }
+      
+      // Update rating progression after saving
+      if (weekData.currentH !== null) {
+        await updateRatingProgression(userId, 'health', weekData.currentH);
+      }
+      if (weekData.currentE !== null) {
+        await updateRatingProgression(userId, 'relationship', weekData.currentE);
+      }
+      if (weekData.currentR !== null) {
+        await updateRatingProgression(userId, 'career', weekData.currentR);
+      }
+      if (weekData.currentC !== null) {
+        await updateRatingProgression(userId, 'money', weekData.currentC);
+      }
+      
       res.json(week);
     } catch (error) {
       console.error("Error saving week with comparison:", error);
@@ -344,6 +378,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching platinum progress:", error);
       res.status(500).json({ message: "Failed to fetch progress" });
+    }
+  });
+
+  // Rating Progression routes
+  app.get('/api/rating-progression/caps', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const caps = await getRatingCaps(userId);
+      res.json(caps);
+    } catch (error) {
+      console.error("Error fetching rating caps:", error);
+      res.status(500).json({ message: "Failed to fetch rating caps" });
+    }
+  });
+
+  app.get('/api/rating-progression/status', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const status = await getRatingProgressionStatus(userId);
+      res.json(status || {
+        healthMaxRating: 7,
+        relationshipMaxRating: 7,
+        careerMaxRating: 7,
+        moneyMaxRating: 7,
+        healthWeeksAtMax: 0,
+        relationshipWeeksAtMax: 0,
+        careerWeeksAtMax: 0,
+        moneyWeeksAtMax: 0,
+      });
+    } catch (error) {
+      console.error("Error fetching rating progression status:", error);
+      res.status(500).json({ message: "Failed to fetch rating progression status" });
     }
   });
 
