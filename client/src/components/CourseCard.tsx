@@ -51,39 +51,39 @@ export default function CourseCard({
   const gradientClass = categoryColors[category as keyof typeof categoryColors] || categoryColors.default;
 
   return (
-    <Card className="hover-elevate">
-      <div className="flex items-center gap-4 p-4">
+    <div className={`${gradientClass} rounded-lg p-6 hover-elevate shadow-lg`}>
+      <div className="flex items-center gap-4">
         {/* Colorful Icon */}
-        <div className={`w-16 h-16 rounded-xl ${gradientClass} flex items-center justify-center flex-shrink-0 shadow-lg`}>
+        <div className="w-16 h-16 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0 border-2 border-white/40">
           <span className="text-3xl font-bold text-white">{firstLetter}</span>
         </div>
 
         {/* Course Info */}
         <div className="flex-1 min-w-0 space-y-2">
           <div>
-            <h3 className="font-semibold text-lg line-clamp-1">{title}</h3>
-            <p className="text-sm text-muted-foreground">{source}</p>
+            <h3 className="font-semibold text-lg line-clamp-1 text-white">{title}</h3>
+            <p className="text-sm text-white/80">{source}</p>
           </div>
 
           <div className="flex items-center gap-4 flex-wrap">
-            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+            <div className="flex items-center gap-1 text-sm text-white/90">
               <Clock className="w-4 h-4" />
               <span>{estimatedHours}h</span>
             </div>
             
-            <Badge variant={config.variant} className={`gap-1 ${config.color}`}>
+            <Badge variant="secondary" className="gap-1 bg-white/20 text-white border-white/40">
               <GraduationCap className="w-3 h-3" />
               {config.label}
             </Badge>
 
             <div className="flex flex-wrap gap-1">
               {tags.slice(0, 2).map((tag, idx) => (
-                <Badge key={idx} variant="secondary" className="text-xs">
+                <Badge key={idx} variant="secondary" className="text-xs bg-white/20 text-white border-white/40">
                   {tag}
                 </Badge>
               ))}
               {tags.length > 2 && (
-                <Badge variant="secondary" className="text-xs">
+                <Badge variant="secondary" className="text-xs bg-white/20 text-white border-white/40">
                   +{tags.length - 2}
                 </Badge>
               )}
@@ -94,10 +94,15 @@ export default function CourseCard({
           {status !== 'not_started' && (
             <div className="space-y-1">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Progress</span>
-                <span className="font-medium">{progressPercent}%</span>
+                <span className="text-white/80">Progress</span>
+                <span className="font-medium text-white">{progressPercent}%</span>
               </div>
-              <Progress value={progressPercent} className="h-2" />
+              <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-white/80 transition-all duration-300"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
             </div>
           )}
         </div>
@@ -108,7 +113,7 @@ export default function CourseCard({
             variant="secondary"
             size="sm"
             onClick={() => onUpdateProgress(id)}
-            className="bg-gradient-to-r from-primary/10 to-accent/10 hover:from-primary/20 hover:to-accent/20 border border-primary/30"
+            className="bg-white/20 hover:bg-white/30 text-white border-white/40"
             data-testid={`button-update-${id}`}
           >
             Update
@@ -117,7 +122,7 @@ export default function CourseCard({
             <Button
               variant="ghost"
               size="sm"
-              className="gap-1"
+              className="gap-1 text-white hover:bg-white/20"
               onClick={() => {
                 window.open(url, '_blank');
                 onVisit(id);
@@ -130,6 +135,6 @@ export default function CourseCard({
           )}
         </div>
       </div>
-    </Card>
+    </div>
   );
 }
