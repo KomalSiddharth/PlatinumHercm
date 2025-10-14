@@ -83,6 +83,27 @@ The dashboard features a clean, responsive design with "New York" style shadcn/u
 - Uses `/api/admin/search-user-by-name` when in admin panel
 - Protected by `isAuthenticated` middleware (team endpoint) or `isAdmin` (admin endpoint)
 
+### October 14, 2025 - Daily Rituals Simplification
+
+**Simplified Daily Rituals Interface**
+- Removed pause/resume button - rituals are always active
+- Removed edit button - rituals cannot be edited after creation
+- Removed points allocation option - all rituals auto-allocated 10 points
+- Updated all existing rituals to have 10 points
+
+**Daily Rituals Changes:**
+1. **Auto-Point Allocation**: All new rituals automatically receive 10 points
+2. **Simplified Controls**: Only history and delete buttons visible on ritual cards
+3. **Database Update**: Executed SQL to update all existing rituals to 10 points
+4. **Add Button Updated**: Changed from "Add" to "Add (10 pts)" to indicate fixed points
+5. **Code Cleanup**: Removed unused handlers and mutations (toggleActive, edit, save)
+
+**User Impact:**
+- Simpler, cleaner ritual management interface
+- No need to choose points when adding rituals
+- Consistent 10-point system across all rituals
+- Cannot pause or edit rituals after creation (only delete)
+
 ### October 13, 2025 - UI Improvements and Column Width Optimization
 
 **Column Width Optimization**

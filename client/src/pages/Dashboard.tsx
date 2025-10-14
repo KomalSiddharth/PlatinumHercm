@@ -8,7 +8,6 @@ import RitualCard from '@/components/RitualCard';
 import CourseCard from '@/components/CourseCard';
 import ProfileModal from '@/components/ProfileModal';
 import RitualHistoryModal from '@/components/RitualHistoryModal';
-import EditRitualModal from '@/components/EditRitualModal';
 import UpdateProgressModal from '@/components/UpdateProgressModal';
 import HRCMHistoryModal from '@/components/HRCMHistoryModal';
 import BadgeDisplayCard from '@/components/BadgeDisplayCard';
@@ -20,7 +19,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import { Trophy, Pause, Play, History as HistoryIcon, Edit3, Trash2 } from 'lucide-react';
+import { Trophy, Pause, History as HistoryIcon, Trash2 } from 'lucide-react';
 import type { Ritual as DbRitual, RitualCompletion } from '@shared/schema';
 
 interface Ritual {
@@ -80,7 +79,6 @@ export default function Dashboard() {
   const [activeSection, setActiveSection] = useState('hrcm');
   const [profileOpen, setProfileOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
   const [progressOpen, setProgressOpen] = useState(false);
   const [hrcmHistoryOpen, setHrcmHistoryOpen] = useState(false);
   const [selectedRitual, setSelectedRitual] = useState<Ritual | null>(null);
@@ -249,85 +247,12 @@ export default function Dashboard() {
     }
   };
 
-  // Mutation: Toggle ritual active status
-  const toggleActiveMutation = useMutation({
-    mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
-      const response = await apiRequest('PATCH', `/api/rituals/${id}`, {
-        isActive: !isActive,
-      });
-      return response.json();
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/rituals'] });
-      
-      const ritual = rituals.find(r => r.id === variables.id);
-      toast({
-        title: variables.isActive ? 'Ritual Paused' : 'Ritual Resumed',
-        description: variables.isActive 
-          ? `${ritual?.title} has been paused.`
-          : `${ritual?.title} is now active again.`
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to update ritual',
-        variant: 'destructive'
-      });
-    }
-  });
-  
-  const handleToggleActive = (id: string) => {
-    const ritual = rituals.find(r => r.id === id);
-    if (ritual) {
-      toggleActiveMutation.mutate({ id, isActive: ritual.active });
-    }
-  };
-
   const handleViewHistory = (id: string) => {
     const ritual = rituals.find(r => r.id === id);
     if (ritual) {
       setSelectedRitual(ritual);
       setHistoryOpen(true);
     }
-  };
-
-  const handleEditRitual = (id: string) => {
-    const ritual = rituals.find(r => r.id === id);
-    if (ritual) {
-      setSelectedRitual(ritual);
-      setEditOpen(true);
-    }
-  };
-
-  // Mutation: Update ritual
-  const updateRitualMutation = useMutation({
-    mutationFn: async (updatedRitual: { id: string; title: string; recurrence: string; points: number }) => {
-      const frequency = updatedRitual.recurrence === 'mon-fri' ? 'weekly' : 'daily';
-      const response = await apiRequest('PATCH', `/api/rituals/${updatedRitual.id}`, {
-        title: updatedRitual.title,
-        frequency,
-      });
-      return response.json();
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/rituals'] });
-      toast({
-        title: 'Ritual Updated',
-        description: `${variables.title} has been updated.`
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to update ritual',
-        variant: 'destructive'
-      });
-    }
-  });
-  
-  const handleSaveEdit = (updatedRitual: { id: string; title: string; recurrence: string; points: number }) => {
-    updateRitualMutation.mutate(updatedRitual);
   };
 
   // Mutation: Delete ritual
@@ -669,21 +594,12 @@ export default function Dashboard() {
       />
 
       {selectedRitual && (
-        <>
-          <RitualHistoryModal
-            open={historyOpen}
-            onOpenChange={setHistoryOpen}
-            ritualTitle={selectedRitual.title}
-            history={selectedRitual.history}
-          />
-
-          <EditRitualModal
-            open={editOpen}
-            onOpenChange={setEditOpen}
-            ritual={selectedRitual}
-            onSave={handleSaveEdit}
-          />
-        </>
+        <RitualHistoryModal
+          open={historyOpen}
+          onOpenChange={setHistoryOpen}
+          ritualTitle={selectedRitual.title}
+          history={selectedRitual.history}
+        />
       )}
 
       {selectedCourse && (
