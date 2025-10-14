@@ -70,7 +70,7 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
   };
 
   // Fetch all snapshots from database
-  const { data: allSnapshotsData } = useQuery({
+  const { data: allSnapshotsData, isLoading } = useQuery({
     queryKey: ['/api/hercm/weeks'],
   });
 
@@ -142,7 +142,11 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
           <p className="text-muted-foreground mt-1">View all your HRCM table edits with exact date and time (oldest to newest, left to right)</p>
         </div>
 
-        {snapshots.length === 0 ? (
+        {isLoading ? (
+          <div className="text-center py-12 border-2 border-dashed border-orange-300 dark:border-orange-700 rounded-lg">
+            <p className="text-muted-foreground">Loading history...</p>
+          </div>
+        ) : snapshots.length === 0 ? (
           <div className="text-center py-12 border-2 border-dashed border-orange-300 dark:border-orange-700 rounded-lg">
             <p className="text-muted-foreground">No history yet. Save your HRCM table to see snapshots here with date & time!</p>
           </div>
