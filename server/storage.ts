@@ -103,6 +103,7 @@ export interface IStorage {
   getCoursesByUserCategoryWeek(userId: string, category: string, weekNumber: number): Promise<Course | undefined>;
   createCourse(course: InsertCourse): Promise<Course>;
   updateCourse(id: string, course: Partial<InsertCourse>): Promise<Course>;
+  updateCourseProgress(courseId: string, progress: number): Promise<Course>;
   
   // Course Videos operations
   getCourseVideos(courseId: string): Promise<CourseVideo[]>;
@@ -540,6 +541,20 @@ export class DatabaseStorage implements IStorage {
       .set({ ...courseData, updatedAt: new Date() } as any)
       .where(eq(courses.id, id))
       .returning();
+    return course;
+  }
+
+  async updateCourseProgress(courseId: string, progress: number): Promise<Course> {
+    const [course] = await db
+      .update(courses)
+      .set({ progress, updatedAt: new Date() } as any)
+      .where(eq(courses.id, courseId))
+      .returning();
+    
+    if (!course) {
+      throw new Error(`Course with id ${courseId} not found`);
+    }
+    
     return course;
   }
 

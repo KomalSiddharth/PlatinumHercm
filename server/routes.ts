@@ -1599,12 +1599,43 @@ Return ONLY valid JSON in this exact format:
         return res.status(401).json({ message: "User not authenticated" });
       }
       
-      const { videoId } = req.body;
+      const { videoId, courseId } = req.body;
+      if (!videoId || !courseId) {
+        return res.status(400).json({ message: "videoId and courseId are required" });
+      }
+      
+      // Verify course exists
+      const allVideos = await storage.getCourseVideos(courseId);
+      if (allVideos.length === 0) {
+        return res.status(404).json({ message: "Course or videos not found" });
+      }
+      
+      // Toggle the completion
       const result = await storage.toggleVideoCompletion(userId, videoId);
-      res.json(result);
+      
+      // Recalculate course progress
+      const completedVideos = await storage.getCourseVideoCompletions(userId, courseId);
+      const progress = Math.round((completedVideos.length / allVideos.length) * 100);
+      
+      // Update the course progress
+      await storage.updateCourseProgress(courseId, progress);
+      
+      res.json({ 
+        ...result, 
+        progress,
+        completedCount: completedVideos.length,
+        totalCount: allVideos.length
+      });
     } catch (error) {
       console.error("Error toggling video completion:", error);
-      res.status(500).json({ message: "Failed to toggle video completion" });
+      const errorMessage = error instanceof Error ? error.message : "Failed to toggle video completion";
+      
+      // Check if it's a "not found" error
+      if (errorMessage.includes('not found')) {
+        return res.status(404).json({ message: errorMessage });
+      }
+      
+      res.status(500).json({ message: errorMessage });
     }
   });
 
