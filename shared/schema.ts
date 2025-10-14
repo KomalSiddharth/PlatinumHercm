@@ -333,3 +333,39 @@ export const insertCourseSchema = createInsertSchema(courses).omit({
 
 export type InsertCourse = z.infer<typeof insertCourseSchema>;
 export type Course = typeof courses.$inferSelect;
+
+// Rating Progression - Track allowed max ratings and consecutive weeks
+export const ratingProgression = pgTable("rating_progression", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id).unique(),
+  
+  // Maximum allowed rating for each category (starts at 7)
+  healthMaxRating: integer("health_max_rating").default(7).notNull(),
+  relationshipMaxRating: integer("relationship_max_rating").default(7).notNull(),
+  careerMaxRating: integer("career_max_rating").default(7).notNull(),
+  moneyMaxRating: integer("money_max_rating").default(7).notNull(),
+  
+  // Consecutive weeks at current max rating for each category
+  healthWeeksAtMax: integer("health_weeks_at_max").default(0).notNull(),
+  relationshipWeeksAtMax: integer("relationship_weeks_at_max").default(0).notNull(),
+  careerWeeksAtMax: integer("career_weeks_at_max").default(0).notNull(),
+  moneyWeeksAtMax: integer("money_weeks_at_max").default(0).notNull(),
+  
+  // Last rating achieved for tracking consistency
+  healthLastRating: integer("health_last_rating").default(0).notNull(),
+  relationshipLastRating: integer("relationship_last_rating").default(0).notNull(),
+  careerLastRating: integer("career_last_rating").default(0).notNull(),
+  moneyLastRating: integer("money_last_rating").default(0).notNull(),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertRatingProgressionSchema = createInsertSchema(ratingProgression).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertRatingProgression = z.infer<typeof insertRatingProgressionSchema>;
+export type RatingProgression = typeof ratingProgression.$inferSelect;

@@ -9,6 +9,7 @@ import {
   rituals,
   ritualCompletions,
   courses,
+  ratingProgression,
   type User,
   type UpsertUser,
   type HercmWeek,
@@ -27,6 +28,8 @@ import {
   type InsertRitualCompletion,
   type Course,
   type InsertCourse,
+  type RatingProgression,
+  type InsertRatingProgression,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, count, sql } from "drizzle-orm";
@@ -94,6 +97,11 @@ export interface IStorage {
   getCoursesByUserCategoryWeek(userId: string, category: string, weekNumber: number): Promise<Course | undefined>;
   createCourse(course: InsertCourse): Promise<Course>;
   updateCourse(id: string, course: Partial<InsertCourse>): Promise<Course>;
+  
+  // Rating Progression operations
+  getRatingProgression(userId: string): Promise<RatingProgression | undefined>;
+  upsertRatingProgression(userId: string, progression: Partial<InsertRatingProgression>): Promise<RatingProgression>;
+  updateRatingProgression(userId: string, progression: Partial<InsertRatingProgression>): Promise<RatingProgression>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -519,6 +527,38 @@ export class DatabaseStorage implements IStorage {
       .where(eq(courses.id, id))
       .returning();
     return course;
+  }
+
+  // Rating Progression operations
+  async getRatingProgression(userId: string): Promise<RatingProgression | undefined> {
+    const [progression] = await db
+      .select()
+      .from(ratingProgression)
+      .where(eq(ratingProgression.userId, userId));
+    return progression;
+  }
+
+  async upsertRatingProgression(userId: string, progressionData: Partial<InsertRatingProgression>): Promise<RatingProgression> {
+    const existing = await this.getRatingProgression(userId);
+    
+    if (existing) {
+      return await this.updateRatingProgression(userId, progressionData);
+    } else {
+      const [progression] = await db
+        .insert(ratingProgression)
+        .values({ userId, ...progressionData } as any)
+        .returning();
+      return progression;
+    }
+  }
+
+  async updateRatingProgression(userId: string, progressionData: Partial<InsertRatingProgression>): Promise<RatingProgression> {
+    const [progression] = await db
+      .update(ratingProgression)
+      .set({ ...progressionData, updatedAt: new Date() } as any)
+      .where(eq(ratingProgression.userId, userId))
+      .returning();
+    return progression;
   }
 }
 
