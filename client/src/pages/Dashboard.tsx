@@ -591,36 +591,6 @@ export default function Dashboard() {
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    onClick={() => handleEditRitual(ritual.id)}
-                                    data-testid={`button-edit-${ritual.id}`}
-                                    className="w-8 h-8"
-                                  >
-                                    <Edit3 className="w-4 h-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Edit</TooltipContent>
-                              </Tooltip>
-                              
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleToggleActive(ritual.id)}
-                                    data-testid={`button-pause-${ritual.id}`}
-                                    className="w-8 h-8"
-                                  >
-                                    {ritual.active ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>{ritual.active ? 'Pause' : 'Resume'}</TooltipContent>
-                              </Tooltip>
-                              
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
                                     onClick={() => handleDeleteRitual(ritual.id)}
                                     data-testid={`button-delete-${ritual.id}`}
                                     className="w-8 h-8"
