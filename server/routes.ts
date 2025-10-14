@@ -9,6 +9,7 @@ import { getAIRecommendations, generateAffirmation } from "./aiRecommendations";
 import { generateHRCMWeeklyPDF, generateMonthlyProgressPDF } from "./pdfExport";
 import { emailService } from "./emailService";
 import { validateAndCapRating, updateRatingProgression, getRatingCaps, getRatingProgressionStatus } from "./ratingProgression";
+import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import OpenAI from "openai";
 
 const openai = new OpenAI({
@@ -1931,6 +1932,81 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
     } catch (error) {
       console.error("Error checking platinum badge:", error);
       res.status(500).json({ message: "Failed to check badge eligibility" });
+    }
+  });
+
+  // Object Storage endpoints for profile pictures
+  app.get("/objects/:objectPath(*)", isAuthenticated, async (req: any, res) => {
+    const userId = req.user?.claims?.sub || req.session.userEmail;
+    const objectStorageService = new ObjectStorageService();
+    try {
+      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+      const canAccess = await objectStorageService.canAccessObjectEntity({
+        objectFile,
+        userId: userId,
+        requestedPermission: undefined,
+      });
+      if (!canAccess) {
+        return res.sendStatus(401);
+      }
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error checking object access:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.sendStatus(404);
+      }
+      return res.sendStatus(500);
+    }
+  });
+
+  app.post("/api/objects/upload", isAuthenticated, async (req: any, res) => {
+    try {
+      const objectStorageService = new ObjectStorageService();
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      res.json({ uploadURL });
+    } catch (error) {
+      console.error("Error getting upload URL:", error);
+      res.status(500).json({ message: "Failed to get upload URL" });
+    }
+  });
+
+  app.put("/api/profile/picture", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      if (!req.body.profileImageURL) {
+        return res.status(400).json({ error: "profileImageURL is required" });
+      }
+
+      const objectStorageService = new ObjectStorageService();
+      const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
+        req.body.profileImageURL,
+        {
+          owner: userId,
+          visibility: "public",
+        },
+      );
+
+      // Update user profile with the new image URL
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      await storage.upsertUser({
+        ...user,
+        profileImageUrl: objectPath,
+      });
+
+      res.status(200).json({
+        objectPath: objectPath,
+      });
+    } catch (error) {
+      console.error("Error setting profile picture:", error);
+      res.status(500).json({ error: "Internal server error" });
     }
   });
 
