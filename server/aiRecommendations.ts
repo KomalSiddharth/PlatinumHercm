@@ -155,7 +155,7 @@ Return ONLY valid JSON in this exact format:
 
   try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-5-mini",
+      model: "gpt-5",
       messages: [
         { role: "system", content: "You are an expert affirmation coach who creates powerful, personalized affirmations. Always respond with valid JSON." },
         { role: "user", content: prompt }
