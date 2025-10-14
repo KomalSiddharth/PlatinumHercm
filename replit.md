@@ -48,32 +48,40 @@ The dashboard features a clean, responsive design with "New York" style shadcn/u
 
 ## Recent Changes
 
-### October 14, 2025 - User Activity Search Feature for Coaches/Trainers
+### October 14, 2025 - Team Activity Search in User Dashboard
 
-**New Admin Feature: User Activity Search**
-- Added "User Activity" tab in Admin Panel for coaches/trainers to monitor users
-- Search users by name or email with real-time results
-- Compact, organized display of user HRCM activity
+**New Team Activity Feature in User Dashboard**
+- Added "Team Activity" navigation tab in user dashboard
+- Users can search and view team members' HRCM progress
+- Same compact card interface as admin panel
+- Accessible to all authenticated users (not just admins)
 
-**User Activity Display:**
-1. **Search Functionality**: 
-   - Search by name or email (case-insensitive)
-   - Returns all matching users with their latest activity
-2. **Compact User Cards**:
-   - User profile with name, email, current week number
+**Navigation & Access:**
+1. **Dashboard Navigation**: New "Team Activity" tab alongside HRCM, Daily Rituals, and Courses
+2. **Scroll-to-Section**: Clicking navigation scrolls to Team Activity section
+3. **Purple-themed Section**: Distinct purple background and borders for Team Activity
+
+**Search Functionality:**
+1. **Search by Name/Email**: Case-insensitive search across all team members
+2. **Real-time Results**: Instant display of matching users
+3. **Compact User Cards**:
+   - User avatar, name, and email
+   - Current week number and total weeks tracked
    - Overall score with color-coded badge (green ≥8, amber ≥5, red <5)
-   - HRCM ratings grid showing all 4 categories (Health 💪, Relationship ❤️, Career 💼, Money 💰)
-   - Each rating displayed with color-coded badge (0-10 scale)
-   - Problem descriptions for each category (truncated for space)
-   - Total weeks count
+   - HRCM ratings grid: Health 💪, Relationship ❤️, Career 💼, Money 💰
+   - Color-coded rating badges (0-10 scale)
+   - Problem descriptions (truncated to 2 lines)
 
-**Backend API:**
-- `GET /api/admin/search-user-by-name?name={query}` - Search users with compact activity data
-- Returns user info, latest week ratings, problems, and total weeks
+**Backend APIs:**
+- `GET /api/team/search-users?name={query}` - User dashboard endpoint (all authenticated users)
+- `GET /api/admin/search-user-by-name?name={query}` - Admin panel endpoint (admin only)
+- Both return: user info, latest week ratings, problems, and total weeks
 
-**Access:**
-- Admin-only feature (protected by isAdmin middleware)
-- Available in Admin Panel → User Activity tab
+**Implementation Details:**
+- `UserActivitySearch` component accepts optional `apiEndpoint` prop
+- Defaults to `/api/team/search-users` for user dashboard
+- Uses `/api/admin/search-user-by-name` when in admin panel
+- Protected by `isAuthenticated` middleware (team endpoint) or `isAdmin` (admin endpoint)
 
 ### October 13, 2025 - UI Improvements and Column Width Optimization
 
