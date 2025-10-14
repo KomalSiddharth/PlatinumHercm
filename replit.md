@@ -90,14 +90,24 @@ The dashboard features a clean, responsive design with "New York" style shadcn/u
 - Removed monthly view and month selector from analytics dialog
 - Now displays all weeks data instead of monthly grouping
 - Changed title from "Monthly Progress Analytics" to "Weekly Progress Analytics"
-- Charts show complete historical data across all weeks
-- Improvement summary now shows "Overall Improvement Summary" instead of monthly
+- Charts show complete historical data across all weeks (when data is available)
+- Removed "Week-over-Week Progress" comparison section
+- Replaced "Overall Improvement Summary" with "Current Week Progress" showing graphical progress bars
+
+**New Analytics Structure:**
+1. **Progress Analytics** section with charts (conditionally rendered when data available):
+   - Overall Progress Trend (LineChart showing all weeks)
+   - HRCM Area Progress Comparison (BarChart showing all weeks)
+2. **Current Week Progress** section with graphical progress bars:
+   - 4 cards displaying Health 💪, Relationship ❤️, Career 💼, Money 💰
+   - Each card shows: category icon, name, percentage, and colored progress bar
+   - Progress bar colors: Green (≥80%), Amber (≥50%), Red (<50%)
 
 **User Experience:**
 - Single view of all progress without month switching
-- Cleaner interface with automatic updates
-- Historical data visualization across entire tracking period
-- Progressive improvement metrics from first to latest week
+- Cleaner, more focused interface with graphical current week progress
+- Historical data visualization in charts (when available)
+- Real-time visual feedback through color-coded progress bars
 
 ### October 14, 2025 - Team Activity Search in User Dashboard
 
