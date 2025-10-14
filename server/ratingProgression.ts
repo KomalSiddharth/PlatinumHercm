@@ -19,21 +19,25 @@ const categoryFieldMap = {
     maxRating: 'healthMaxRating' as const,
     weeksAtMax: 'healthWeeksAtMax' as const,
     lastRating: 'healthLastRating' as const,
+    lastCountedWeek: 'healthLastCountedWeek' as const,
   },
   relationship: {
     maxRating: 'relationshipMaxRating' as const,
     weeksAtMax: 'relationshipWeeksAtMax' as const,
     lastRating: 'relationshipLastRating' as const,
+    lastCountedWeek: 'relationshipLastCountedWeek' as const,
   },
   career: {
     maxRating: 'careerMaxRating' as const,
     weeksAtMax: 'careerWeeksAtMax' as const,
     lastRating: 'careerLastRating' as const,
+    lastCountedWeek: 'careerLastCountedWeek' as const,
   },
   money: {
     maxRating: 'moneyMaxRating' as const,
     weeksAtMax: 'moneyWeeksAtMax' as const,
     lastRating: 'moneyLastRating' as const,
+    lastCountedWeek: 'moneyLastCountedWeek' as const,
   },
 };
 
@@ -75,7 +79,8 @@ export async function validateAndCapRating(
 export async function updateRatingProgression(
   userId: string,
   category: 'health' | 'relationship' | 'career' | 'money',
-  actualRating: number
+  actualRating: number,
+  weekNumber: number
 ): Promise<void> {
   let progression = await storage.getRatingProgression(userId);
   
@@ -89,12 +94,20 @@ export async function updateRatingProgression(
   const maxAllowed = progression[fields.maxRating];
   const lastRating = progression[fields.lastRating];
   const currentWeeksAtMax = progression[fields.weeksAtMax];
+  const lastCountedWeek = progression[fields.lastCountedWeek];
+
+  // Only count progression if this is a strictly later week than last counted
+  // This prevents replaying the same week or editing historical weeks from manipulating progression
+  if (weekNumber <= lastCountedWeek) {
+    // Ignore this save - it's a replay or historical edit
+    return;
+  }
 
   // Check if user achieved max rating
   if (actualRating === maxAllowed) {
-    // Check if this is consistent with last week
-    if (lastRating === maxAllowed) {
-      // Increment weeks at max
+    // Check if this is consistent with last week (consecutive weeks at max)
+    if (lastRating === maxAllowed && lastCountedWeek === weekNumber - 1) {
+      // Increment weeks at max (consecutive)
       const newWeeksAtMax = currentWeeksAtMax + 1;
       
       // Check if we should increment max rating (after 4 consecutive weeks)
@@ -104,19 +117,22 @@ export async function updateRatingProgression(
           [fields.maxRating]: maxAllowed + 1,
           [fields.weeksAtMax]: 0,
           [fields.lastRating]: actualRating,
+          [fields.lastCountedWeek]: weekNumber,
         });
       } else {
         // Just increment weeks counter
         await storage.updateRatingProgression(userId, {
           [fields.weeksAtMax]: newWeeksAtMax,
           [fields.lastRating]: actualRating,
+          [fields.lastCountedWeek]: weekNumber,
         });
       }
     } else {
-      // First week at max, start counting
+      // First week at max OR broke the consecutive streak, start counting from 1
       await storage.updateRatingProgression(userId, {
         [fields.weeksAtMax]: 1,
         [fields.lastRating]: actualRating,
+        [fields.lastCountedWeek]: weekNumber,
       });
     }
   } else {
@@ -124,6 +140,7 @@ export async function updateRatingProgression(
     await storage.updateRatingProgression(userId, {
       [fields.weeksAtMax]: 0,
       [fields.lastRating]: actualRating,
+      [fields.lastCountedWeek]: weekNumber,
     });
   }
 }

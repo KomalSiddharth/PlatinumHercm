@@ -310,18 +310,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         week = await storage.createHercmWeek(weekData);
       }
       
-      // Update rating progression after saving
+      // Update rating progression after saving (pass weekNumber to prevent replay attacks)
       if (weekData.currentH !== null) {
-        await updateRatingProgression(userId, 'health', weekData.currentH);
+        await updateRatingProgression(userId, 'health', weekData.currentH, weekData.weekNumber);
       }
       if (weekData.currentE !== null) {
-        await updateRatingProgression(userId, 'relationship', weekData.currentE);
+        await updateRatingProgression(userId, 'relationship', weekData.currentE, weekData.weekNumber);
       }
       if (weekData.currentR !== null) {
-        await updateRatingProgression(userId, 'career', weekData.currentR);
+        await updateRatingProgression(userId, 'career', weekData.currentR, weekData.weekNumber);
       }
       if (weekData.currentC !== null) {
-        await updateRatingProgression(userId, 'money', weekData.currentC);
+        await updateRatingProgression(userId, 'money', weekData.currentC, weekData.weekNumber);
       }
       
       res.json(week);

@@ -357,6 +357,12 @@ export const ratingProgression = pgTable("rating_progression", {
   careerLastRating: integer("career_last_rating").default(0).notNull(),
   moneyLastRating: integer("money_last_rating").default(0).notNull(),
   
+  // Last week number counted for progression (to prevent replaying same week)
+  healthLastCountedWeek: integer("health_last_counted_week").default(0).notNull(),
+  relationshipLastCountedWeek: integer("relationship_last_counted_week").default(0).notNull(),
+  careerLastCountedWeek: integer("career_last_counted_week").default(0).notNull(),
+  moneyLastCountedWeek: integer("money_last_counted_week").default(0).notNull(),
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

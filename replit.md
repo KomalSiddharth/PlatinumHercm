@@ -48,6 +48,42 @@ The dashboard features a clean, responsive design with "New York" style shadcn/u
 
 ## Recent Changes
 
+### October 14, 2025 - Rating Increment Constraint System
+
+**New Rating Progression System**
+- **Initial Max Rating**: All users start with a maximum rating of 7 for all HRCM categories
+- **Progressive Increment**: After maintaining the maximum rating for 4 consecutive weeks, the allowed maximum increases by 1
+- **Category-Specific Tracking**: Each category (Health, Relationship, Career, Money) tracks progression independently
+
+**Rating Constraint Logic:**
+1. **Week 1-4**: Max rating capped at 7 (even if checklist completion suggests higher)
+2. **After 4 Consecutive Weeks at 7**: Max rating automatically increments to 8
+3. **Weeks 5-8 at 8**: Max rating increments to 9
+4. **Pattern Continues**: Maximum rating can eventually reach 10
+
+**Progression Tracking:**
+- New database table `rating_progression` tracks user-specific max ratings and weeks at max
+- Backend automatically validates and caps ratings based on user's current allowed maximum
+- Frontend displays current max and progression status (e.g., "7/7" with "3/4 weeks" badge)
+- Ratings reset if user doesn't maintain max for 4 consecutive weeks
+
+**User Experience:**
+- Rating buttons show "current/max" (e.g., "7/7" instead of "7/10")
+- Small badge appears showing progression status when at max (e.g., "2/4 weeks")
+- System automatically increments max rating after 4 consecutive weeks
+- Each HRCM category progresses independently
+
+**API Endpoints:**
+- `GET /api/rating-progression/caps` - Get current max ratings for all categories
+- `GET /api/rating-progression/status` - Get detailed progression status (weeks at max, last rating, etc.)
+- Auto-tracking happens during week save operations
+
+**Security & Integrity:**
+- **Replay Protection**: System tracks `lastCountedWeek` to prevent users from repeatedly saving the same week to manipulate progression
+- **Consecutive Week Validation**: Only consecutive weeks (weekNumber - 1) count toward the 4-week requirement
+- **Historical Edit Protection**: Editing old weeks does not affect progression once a later week has been saved
+- **Strict Progression**: Users must genuinely maintain max rating for 4 consecutive weeks to unlock the next level
+
 ### October 14, 2025 - Team Activity Search in User Dashboard
 
 **New Team Activity Feature in User Dashboard**
