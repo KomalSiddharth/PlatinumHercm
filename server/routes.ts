@@ -92,7 +92,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           nextWeekTarget: week.healthNextTarget || '',
           nextActions: week.healthNextActions || '',
           checklist: week.healthChecklist || [],
-          courseSuggestion: week.healthCourseSuggestion || '',
+          courseSuggestion: week.healthCourseSuggestion || null,
           affirmationSuggestion: week.healthAffirmation || ''
         },
         {
@@ -108,7 +108,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           nextWeekTarget: week.relationshipNextTarget || '',
           nextActions: week.relationshipNextActions || '',
           checklist: week.relationshipChecklist || [],
-          courseSuggestion: week.relationshipCourseSuggestion || '',
+          courseSuggestion: week.relationshipCourseSuggestion || null,
           affirmationSuggestion: week.relationshipAffirmation || ''
         },
         {
@@ -124,7 +124,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           nextWeekTarget: week.careerNextTarget || '',
           nextActions: week.careerNextActions || '',
           checklist: week.careerChecklist || [],
-          courseSuggestion: week.careerCourseSuggestion || '',
+          courseSuggestion: week.careerCourseSuggestion || null,
           affirmationSuggestion: week.careerAffirmation || ''
         },
         {
@@ -140,7 +140,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           nextWeekTarget: week.moneyNextTarget || '',
           nextActions: week.moneyNextActions || '',
           checklist: week.moneyChecklist || [],
-          courseSuggestion: week.moneyCourseSuggestion || '',
+          courseSuggestion: week.moneyCourseSuggestion || null,
           affirmationSuggestion: week.moneyAffirmation || ''
         }
       ];
@@ -256,7 +256,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           weekData[`${prefix}NextActions`] = belief.nextActions || '';
           
           // Map course and affirmation
-          weekData[`${prefix}CourseSuggestion`] = belief.courseSuggestion || '';
+          weekData[`${prefix}CourseSuggestion`] = belief.courseSuggestion || null;
           weekData[`${prefix}Affirmation`] = belief.affirmationSuggestion || '';
           
           // Map checklist
