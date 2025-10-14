@@ -1091,16 +1091,33 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                   </Badge>
                 </TableCell>
 
-                {/* Next Week - Rating (Auto-calculated: Current + 1, Read-only) */}
+                {/* Next Week - Rating (Click to set via Standards) */}
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top">
-                  <div className="flex items-center justify-center">
-                    <Badge 
-                      variant="secondary" 
-                      className="w-12 justify-center font-bold text-base bg-blue-100 dark:bg-blue-900 border-blue-300 dark:border-blue-700"
-                      data-testid={`badge-target-rating-${belief.category.toLowerCase()}`}
+                  <div className="flex flex-col items-center gap-1">
+                    <Button
+                      variant="outline"
+                      onClick={() => handleOpenStandardsDialog(belief.category)}
+                      className="w-16 h-9 text-center font-semibold"
+                      data-testid={`button-next-${belief.category.toLowerCase()}-rating`}
                     >
-                      {belief.targetRating}
-                    </Badge>
+                      {belief.targetRating}/10
+                    </Button>
+                    {ratingCaps && (() => {
+                      const categoryLower = belief.category.toLowerCase();
+                      const maxRating = ratingCaps[categoryLower as keyof typeof ratingCaps] || 7;
+                      if (belief.targetRating >= maxRating) {
+                        const statusData = ratingProgressionStatus?.[categoryLower as keyof typeof ratingProgressionStatus];
+                        const weeksAtMax = statusData?.weeksAtMax || 0;
+                        if (weeksAtMax > 0 && weeksAtMax < 4) {
+                          return (
+                            <Badge variant="secondary" className="text-xs px-2 py-0">
+                              {weeksAtMax}/4 weeks
+                            </Badge>
+                          );
+                        }
+                      }
+                      return null;
+                    })()}
                   </div>
                 </TableCell>
 
