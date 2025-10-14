@@ -38,6 +38,19 @@ interface ChecklistItem {
   checked: boolean;
 }
 
+interface CourseModule {
+  id: string;
+  name: string;
+  completed: boolean;
+}
+
+interface CourseSuggestion {
+  courseName: string;
+  link: string;
+  matchScore: string;
+  modules: CourseModule[];
+}
+
 interface HRCMBelief {
   category: 'Health' | 'Relationship' | 'Career' | 'Money';
   // Current Week Data
@@ -54,7 +67,7 @@ interface HRCMBelief {
   nextActions: string;
   // AI Suggestions & Checklist
   checklist: ChecklistItem[];
-  courseSuggestion: string;
+  courseSuggestion: CourseSuggestion | null;
   affirmationSuggestion: string;
 }
 
@@ -79,7 +92,7 @@ const getBlankBeliefs = (): HRCMBelief[] => {
       nextWeekTarget: '',
       nextActions: '',
       checklist: [],
-      courseSuggestion: '',
+      courseSuggestion: null,
       affirmationSuggestion: 'I am healthy, strong, and full of energy. My body deserves care and nourishment.'
     },
     {
@@ -95,7 +108,7 @@ const getBlankBeliefs = (): HRCMBelief[] => {
       nextWeekTarget: '',
       nextActions: '',
       checklist: [],
-      courseSuggestion: '',
+      courseSuggestion: null,
       affirmationSuggestion: 'I attract loving relationships. I communicate with clarity, love, and respect.'
     },
     {
@@ -111,7 +124,7 @@ const getBlankBeliefs = (): HRCMBelief[] => {
       nextWeekTarget: '',
       nextActions: '',
       checklist: [],
-      courseSuggestion: '',
+      courseSuggestion: null,
       affirmationSuggestion: 'I am capable and skilled. Success flows to me naturally as I follow my purpose.'
     },
     {
@@ -127,7 +140,7 @@ const getBlankBeliefs = (): HRCMBelief[] => {
       nextWeekTarget: '',
       nextActions: '',
       checklist: [],
-      courseSuggestion: '',
+      courseSuggestion: null,
       affirmationSuggestion: 'I am a money magnet. Abundance flows to me from multiple sources with ease.'
     }
   ];
@@ -298,7 +311,18 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
           if (b.category === category) {
             return { 
               ...b, 
-              courseSuggestion: `${topCourse.course.courseName} (${topCourse.score}% match)\nLink: ${topCourse.course.link}` 
+              courseSuggestion: {
+                courseName: topCourse.course.courseName,
+                link: topCourse.course.link,
+                matchScore: `${topCourse.score}% match`,
+                modules: [
+                  { id: '1', name: 'Introduction & Overview', completed: false },
+                  { id: '2', name: 'Core Concepts', completed: false },
+                  { id: '3', name: 'Practical Applications', completed: false },
+                  { id: '4', name: 'Advanced Techniques', completed: false },
+                  { id: '5', name: 'Final Assessment', completed: false }
+                ]
+              }
             };
           }
           return b;
@@ -344,6 +368,36 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
             checklist: updatedChecklist,
             currentRating: newRating,
             targetRating: Math.min(newRating + 1, maxRating)
+          };
+        }
+        return belief;
+      });
+      
+      // Auto-save changes to database immediately
+      saveWeekMutation.mutate({
+        weekNumber,
+        year: new Date().getFullYear(),
+        beliefs: updated,
+      });
+      
+      return updated;
+    });
+  };
+
+  const handleCourseModuleToggle = (category: string, moduleId: string) => {
+    setBeliefs(prev => {
+      const updated = prev.map(belief => {
+        if (belief.category === category && belief.courseSuggestion) {
+          const updatedModules = belief.courseSuggestion.modules.map(module =>
+            module.id === moduleId ? { ...module, completed: !module.completed } : module
+          );
+          
+          return {
+            ...belief,
+            courseSuggestion: {
+              ...belief.courseSuggestion,
+              modules: updatedModules
+            }
           };
         }
         return belief;
@@ -572,7 +626,18 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
         b.category === category 
           ? { 
               ...b, 
-              courseSuggestion: `${data.courseName} (${data.score}% match)\nLink: ${data.courseLink}`
+              courseSuggestion: {
+                courseName: data.courseName,
+                link: data.courseLink,
+                matchScore: `${data.score}% match`,
+                modules: [
+                  { id: '1', name: 'Introduction & Overview', completed: false },
+                  { id: '2', name: 'Core Concepts', completed: false },
+                  { id: '3', name: 'Practical Applications', completed: false },
+                  { id: '4', name: 'Advanced Techniques', completed: false },
+                  { id: '5', name: 'Final Assessment', completed: false }
+                ]
+              }
             }
           : b
       ));
@@ -1034,41 +1099,57 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                       <span className="text-xs text-muted-foreground">AI analyzing...</span>
                     </div>
                   ) : belief.courseSuggestion ? (
-                    (() => {
-                      const lines = belief.courseSuggestion.split('\n');
-                      const courseName = lines[0] || '';
-                      const linkLine = lines.find(l => l.startsWith('Link:'));
-                      const link = linkLine ? linkLine.replace('Link:', '').trim() : '';
-                      
-                      return (
-                        <div className="space-y-1">
-                          <div className="text-xs text-cyan-700 dark:text-cyan-400 font-medium" data-testid={`text-course-${belief.category.toLowerCase()}`}>
-                            {courseName}
-                          </div>
-                          {link && (
-                            <a 
-                              href={link} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-xs text-blue-600 dark:text-blue-400 underline hover:text-blue-800 dark:hover:text-blue-300"
-                              data-testid={`link-course-${belief.category.toLowerCase()}`}
-                            >
-                              View Course →
-                            </a>
-                          )}
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-6 px-2 text-xs mt-1"
-                            onClick={() => getAICourseRecommendation(belief.category)}
-                            data-testid={`button-refresh-course-${belief.category.toLowerCase()}`}
-                          >
-                            <Sparkles className="w-3 h-3 mr-1" />
-                            Refresh
-                          </Button>
+                    <div className="space-y-2">
+                      <div className="space-y-1">
+                        <div className="text-xs text-cyan-700 dark:text-cyan-400 font-medium" data-testid={`text-course-${belief.category.toLowerCase()}`}>
+                          {belief.courseSuggestion.courseName}
                         </div>
-                      );
-                    })()
+                        <div className="text-xs text-cyan-600 dark:text-cyan-500">
+                          {belief.courseSuggestion.matchScore}
+                        </div>
+                        {belief.courseSuggestion.link && (
+                          <a 
+                            href={belief.courseSuggestion.link} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-xs text-blue-600 dark:text-blue-400 underline hover:text-blue-800 dark:hover:text-blue-300 block"
+                            data-testid={`link-course-${belief.category.toLowerCase()}`}
+                          >
+                            View Course →
+                          </a>
+                        )}
+                      </div>
+                      <div className="space-y-1 border-t border-cyan-200 dark:border-cyan-800 pt-2">
+                        <div className="text-xs font-medium text-cyan-600 dark:text-cyan-400">Modules:</div>
+                        {belief.courseSuggestion.modules.map((module) => (
+                          <div key={module.id} className="flex items-center gap-2">
+                            <Checkbox
+                              id={`course-${belief.category}-${module.id}`}
+                              checked={module.completed}
+                              onCheckedChange={() => handleCourseModuleToggle(belief.category, module.id)}
+                              className="h-3 w-3"
+                              data-testid={`checkbox-module-${belief.category.toLowerCase()}-${module.id}`}
+                            />
+                            <label
+                              htmlFor={`course-${belief.category}-${module.id}`}
+                              className={`text-xs cursor-pointer ${module.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}
+                            >
+                              {module.name}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 px-2 text-xs w-full"
+                        onClick={() => getAICourseRecommendation(belief.category)}
+                        data-testid={`button-refresh-course-${belief.category.toLowerCase()}`}
+                      >
+                        <Sparkles className="w-3 h-3 mr-1" />
+                        Refresh Course
+                      </Button>
+                    </div>
                   ) : (
                     <Button
                       size="sm"
