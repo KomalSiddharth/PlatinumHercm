@@ -755,17 +755,25 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
         </div>
       </div>
 
-      {/* Weekly Progress Analytics Dialog */}
-      <Dialog open={showComparison} onOpenChange={setShowComparison}>
-        <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Weekly Progress Analytics</DialogTitle>
-          </DialogHeader>
+      {/* Weekly Progress Analytics - Inline Display */}
+      {showComparison && (
+        <div className="mb-6 space-y-6 border-2 border-teal-500 dark:border-teal-600 rounded-lg p-6 bg-gradient-to-br from-teal-50/50 to-cyan-50/50 dark:from-teal-950/20 dark:to-cyan-950/20">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-teal-900 dark:text-teal-100">Weekly Progress Analytics</h3>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setShowComparison(false)}
+              data-testid="button-close-analytics"
+            >
+              ✕ Close
+            </Button>
+          </div>
           
           <div className="space-y-6">
             {/* Analytics Charts */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Progress Analytics</h3>
+              <h3 className="text-base font-semibold">Progress Analytics</h3>
               
               {/* Progress Trend Chart - All Weeks */}
               {allWeeksForAnalytics.length > 0 && (
@@ -868,8 +876,8 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
               </div>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
 
       {/* Current Week Table */}
       <div className="border-2 border-red-800 dark:border-red-900 rounded-lg overflow-x-auto shadow-lg">
