@@ -552,7 +552,8 @@ export default function Dashboard() {
           </div>
         </section>
 
-        <section ref={teamRef} id="team" className="scroll-mt-20 bg-purple-50 dark:bg-purple-950/40 p-6 rounded-lg border-2 border-purple-200 dark:border-purple-800">
+        {/* Team Activity Section - Hidden as per user request */}
+        {/* <section ref={teamRef} id="team" className="scroll-mt-20 bg-purple-50 dark:bg-purple-950/40 p-6 rounded-lg border-2 border-purple-200 dark:border-purple-800">
           <div className="space-y-6">
             <div>
               <h2 className="text-3xl font-bold">Team Activity</h2>
@@ -561,7 +562,7 @@ export default function Dashboard() {
 
             <UserActivitySearch />
           </div>
-        </section>
+        </section> */}
 
         {/* Achievements, Badges & Leaderboard Section */}
         <section className="scroll-mt-20">
