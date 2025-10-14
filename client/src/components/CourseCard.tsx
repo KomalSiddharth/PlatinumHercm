@@ -2,7 +2,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Clock, ExternalLink, GraduationCap } from 'lucide-react';
+import { ExternalLink, GraduationCap } from 'lucide-react';
 
 interface CourseCardProps {
   id: string;
@@ -66,11 +66,6 @@ export default function CourseCard({
           </div>
 
           <div className="flex items-center gap-4 flex-wrap">
-            <div className="flex items-center gap-1 text-sm text-white/90">
-              <Clock className="w-4 h-4" />
-              <span>{estimatedHours}h</span>
-            </div>
-            
             <Badge variant="secondary" className="gap-1 bg-white/20 text-white border-white/40">
               <GraduationCap className="w-3 h-3" />
               {config.label}
@@ -90,34 +85,23 @@ export default function CourseCard({
             </div>
           </div>
 
-          {/* Progress Bar */}
-          {status !== 'not_started' && (
-            <div className="space-y-1">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-white/80">Progress</span>
-                <span className="font-medium text-white">{progressPercent}%</span>
-              </div>
-              <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-white/80 transition-all duration-300"
-                  style={{ width: `${progressPercent}%` }}
-                />
-              </div>
+          {/* Progress Bar - Always visible */}
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-white/80">Progress</span>
+              <span className="font-medium text-white">{progressPercent}%</span>
             </div>
-          )}
+            <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-white/80 transition-all duration-300"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+          </div>
         </div>
 
-        {/* Action Buttons */}
+        {/* Action Button */}
         <div className="flex gap-2 flex-shrink-0">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => onUpdateProgress(id)}
-            className="bg-white/20 hover:bg-white/30 text-white border-white/40"
-            data-testid={`button-update-${id}`}
-          >
-            Update
-          </Button>
           {url && (
             <Button
               variant="ghost"
