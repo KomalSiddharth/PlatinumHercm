@@ -31,7 +31,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface ChecklistItem {
   id: string;
@@ -201,7 +200,6 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
   const [editingField, setEditingField] = useState<{ category: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState('');
   const [loadingCourses, setLoadingCourses] = useState<Set<string>>(new Set());
-  const [showComparison, setShowComparison] = useState(false);
   const [showStandardsDialog, setShowStandardsDialog] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const lastFocusedButton = useRef<HTMLButtonElement | null>(null);
@@ -247,19 +245,6 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
   }>({
     queryKey: ['/api/rating-progression/status'],
   });
-
-  // Process ALL weeks data for analytics (not just current month)
-  const allWeeksForAnalytics = Array.isArray(allWeeksData) 
-    ? allWeeksData
-        .sort((a: any, b: any) => a.weekNumber - b.weekNumber)
-        .map((weekDataFromAPI: any) => {
-          const beliefs = weekDataFromAPI?.beliefs || getWeekBeliefs(weekDataFromAPI.weekNumber);
-          const progress = beliefs.length > 0
-            ? Math.round(beliefs.reduce((sum: number, b: any) => sum + calculateProgress(b.checklist || []), 0) / beliefs.length)
-            : 0;
-          return { week: weekDataFromAPI.weekNumber, beliefs, progress };
-        })
-    : [];
 
   useEffect(() => {
     // Priority: Use actual database data if available, otherwise use demo/blank template
@@ -738,9 +723,8 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
         </div>
         <div className="flex items-center gap-3">
           <Badge 
-            className={`${getProgressColor(weeklyProgress)} cursor-pointer hover-elevate active-elevate-2`} 
+            className={getProgressColor(weeklyProgress)} 
             data-testid="badge-weekly-progress"
-            onClick={() => setShowComparison(true)}
           >
             {weeklyProgress}% Weekly Progress
           </Badge>
@@ -754,130 +738,6 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
           </Button>
         </div>
       </div>
-
-      {/* Weekly Progress Analytics - Inline Display */}
-      {showComparison && (
-        <div className="mb-6 space-y-6 border-2 border-teal-500 dark:border-teal-600 rounded-lg p-6 bg-gradient-to-br from-teal-50/50 to-cyan-50/50 dark:from-teal-950/20 dark:to-cyan-950/20">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-teal-900 dark:text-teal-100">Weekly Progress Analytics</h3>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => setShowComparison(false)}
-              data-testid="button-close-analytics"
-            >
-              ✕ Close
-            </Button>
-          </div>
-          
-          <div className="space-y-6">
-            {/* Analytics Charts */}
-            <div className="space-y-4">
-              <h3 className="text-base font-semibold">Progress Analytics</h3>
-              
-              {/* Progress Trend Chart - All Weeks */}
-              {allWeeksForAnalytics.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">Overall Progress Trend</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ResponsiveContainer width="100%" height={250}>
-                      <LineChart data={allWeeksForAnalytics.map(({ week, progress }) => ({
-                        week: `Week ${week}`,
-                        progress
-                      }))}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="week" />
-                        <YAxis domain={[0, 100]} />
-                        <Tooltip />
-                        <Line type="monotone" dataKey="progress" stroke="#0d9488" strokeWidth={2} dot={{ r: 4 }} />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* HRCM Area Comparison - All Weeks */}
-              {allWeeksForAnalytics.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">HRCM Area Progress Comparison</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={['Health', 'Relationship', 'Career', 'Money'].map(category => {
-                        const dataPoint: any = { area: category };
-                        allWeeksForAnalytics.forEach(({ week, beliefs }) => {
-                          const belief = beliefs.find((b: any) => b.category === category);
-                          dataPoint[`Week ${week}`] = calculateProgress(belief?.checklist || []);
-                        });
-                        return dataPoint;
-                      })}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="area" />
-                        <YAxis domain={[0, 100]} />
-                        <Tooltip />
-                        <Legend />
-                        {allWeeksForAnalytics.map(({ week }, index) => (
-                          <Bar 
-                            key={week} 
-                            dataKey={`Week ${week}`} 
-                            fill={['#94a3b8', '#64748b', '#0d9488', '#14b8a6'][index % 4]} 
-                          />
-                        ))}
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Current Week Progress - Graphical */}
-              <div className="space-y-3">
-                <h3 className="text-base font-semibold">Current Week Progress</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {['Health', 'Relationship', 'Career', 'Money'].map((category) => {
-                    const currentBelief = beliefs.find((b: any) => b.category === category);
-                    const currentProgress = calculateProgress(currentBelief?.checklist || []);
-                    const categoryIcon = {
-                      'Health': '💪',
-                      'Relationship': '❤️',
-                      'Career': '💼',
-                      'Money': '💰'
-                    }[category];
-                    
-                    return (
-                      <Card key={category} className="p-4">
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <span className="text-lg">{categoryIcon}</span>
-                              <p className="text-sm font-semibold">{category}</p>
-                            </div>
-                            <span className={`text-lg font-bold ${currentProgress >= 80 ? 'text-green-600' : currentProgress >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
-                              {currentProgress}%
-                            </span>
-                          </div>
-                          <div className="w-full bg-muted rounded-full h-3">
-                            <div 
-                              className={`h-3 rounded-full transition-all ${
-                                currentProgress >= 80 ? 'bg-green-500' : 
-                                currentProgress >= 50 ? 'bg-amber-500' : 
-                                'bg-red-500'
-                              }`}
-                              style={{ width: `${currentProgress}%` }}
-                            />
-                          </div>
-                        </div>
-                      </Card>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Current Week Table */}
       <div className="border-2 border-red-800 dark:border-red-900 rounded-lg overflow-x-auto shadow-lg">
