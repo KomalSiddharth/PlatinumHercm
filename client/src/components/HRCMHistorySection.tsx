@@ -195,8 +195,8 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
                 </div>
 
                 {/* Snapshot Table */}
-                <div className="border-2 border-red-300 dark:border-red-700 rounded-lg overflow-hidden shadow-lg">
-                  <div className="bg-gradient-to-r from-red-500 to-red-600 dark:from-red-600 dark:to-red-700 px-4 py-3 border-b-2 border-red-300 dark:border-red-800">
+                <div className="border-2 border-red-800 dark:border-red-900 rounded-lg overflow-hidden shadow-lg">
+                  <div className="px-4 py-3 border-b-2 border-red-900 dark:border-red-950" style={{ backgroundColor: '#bc0000' }}>
                     <h3 className="font-bold text-white text-xl text-center drop-shadow-md">
                       Snapshot from {formatDateTime(selectedSnapshot.createdAt)}
                     </h3>
@@ -204,16 +204,16 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead>
-                        <tr className="bg-gradient-to-r from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-950/40">
+                        <tr className="bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-950/30 dark:to-pink-950/30">
                           <th className="p-3 text-left text-sm font-bold border-r">HRCM Area</th>
-                          <th className="p-3 text-left text-sm font-semibold bg-red-100 dark:bg-red-900/40 w-[80px]">Rating</th>
-                          <th className="p-3 text-left text-sm font-semibold bg-red-100 dark:bg-red-900/40 w-[180px]">Problems</th>
-                          <th className="p-3 text-left text-sm font-semibold bg-red-100 dark:bg-red-900/40 w-[150px]">Feelings</th>
-                          <th className="p-3 text-left text-sm font-semibold bg-red-100 dark:bg-red-900/40 w-[180px]">Beliefs/Reasons</th>
-                          <th className="p-3 text-left text-sm font-semibold bg-red-100 dark:bg-red-900/40 w-[180px] border-r">Actions</th>
-                          <th className="p-3 text-left text-sm font-semibold bg-gradient-to-r from-red-100 to-red-200 dark:from-red-900/40 dark:to-red-900/50 w-[180px]">AI Course</th>
-                          <th className="p-3 text-left text-sm font-semibold bg-gradient-to-r from-red-100 to-red-200 dark:from-red-900/40 dark:to-red-900/50 w-[200px]">Checklist (3)</th>
-                          <th className="p-3 text-center text-sm font-semibold bg-gradient-to-r from-red-100 to-red-200 dark:from-red-900/40 dark:to-red-900/50 w-[100px]">Progress</th>
+                          <th className="p-3 text-left text-sm font-semibold bg-rose-100 dark:bg-rose-900/40 w-[80px]">Rating</th>
+                          <th className="p-3 text-left text-sm font-semibold bg-rose-100 dark:bg-rose-900/40 w-[180px]">Problems</th>
+                          <th className="p-3 text-left text-sm font-semibold bg-rose-100 dark:bg-rose-900/40 w-[150px]">Feelings</th>
+                          <th className="p-3 text-left text-sm font-semibold bg-rose-100 dark:bg-rose-900/40 w-[180px]">Beliefs/Reasons</th>
+                          <th className="p-3 text-left text-sm font-semibold bg-rose-100 dark:bg-rose-900/40 w-[180px] border-r">Actions</th>
+                          <th className="p-3 text-left text-sm font-semibold bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/40 dark:to-blue-900/40 w-[180px]">AI Course</th>
+                          <th className="p-3 text-left text-sm font-semibold bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900/40 dark:to-violet-900/40 w-[200px]">Checklist (3)</th>
+                          <th className="p-3 text-center text-sm font-semibold bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 w-[100px]">Progress</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -239,10 +239,10 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
                             <td className="p-2 bg-red-50/30 dark:bg-red-950/10 border-r">
                               <div className="text-xs">{area.currentActions || '-'}</div>
                             </td>
-                            <td className="p-2 bg-red-50/30 dark:bg-red-950/10">
+                            <td className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10">
                               <div className="text-xs">{area.courseSuggestion || '-'}</div>
                             </td>
-                            <td className="p-2 bg-red-50/30 dark:bg-red-950/10">
+                            <td className="p-2 bg-purple-50/30 dark:bg-purple-950/10">
                               <div className="space-y-1">
                                 {area.checklist && area.checklist.length > 0 ? area.checklist.map((item) => (
                                   <div key={item.id} className="flex items-center gap-2">
@@ -258,7 +258,7 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
                                 )) : <span className="text-xs text-muted-foreground">-</span>}
                               </div>
                             </td>
-                            <td className="p-2 text-center bg-red-50/30 dark:bg-red-950/10">
+                            <td className="p-2 text-center bg-emerald-50/30 dark:bg-emerald-950/10">
                               <Badge className={getProgressColor(area.progress)}>
                                 {area.progress}%
                               </Badge>
