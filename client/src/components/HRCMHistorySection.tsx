@@ -155,8 +155,8 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
         ) : (
           <div className="space-y-6">
             {/* Timeline Overview */}
-            <div className="space-y-3 bg-rose-50/50 dark:bg-rose-950/20 p-4 rounded-lg border border-rose-200 dark:border-rose-800">
-              <h3 className="text-sm font-semibold text-rose-900 dark:text-rose-100">Snapshot Timeline (Oldest → Newest)</h3>
+            <div className="space-y-3 p-4 rounded-lg border-2 shadow-lg" style={{ backgroundColor: '#00008c20', borderColor: '#00008c' }}>
+              <h3 className="text-sm font-semibold" style={{ color: '#00008c' }}>Snapshot Timeline (Oldest → Newest)</h3>
               <div className="flex gap-2 flex-wrap">
                 {displaySnapshots.map((snapshot, index) => (
                   <Button
@@ -165,9 +165,10 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
                     onClick={() => setSelectedSnapshotId(snapshot.id === selectedSnapshotId ? null : snapshot.id)}
                     className={`flex flex-col items-start gap-1 h-auto py-2 px-3 ${
                       selectedSnapshotId === snapshot.id 
-                        ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-red-600' 
-                        : 'border-rose-300 dark:border-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40'
+                        ? 'text-white border-2' 
+                        : 'hover:bg-blue-50 dark:hover:bg-blue-950/40'
                     }`}
+                    style={selectedSnapshotId === snapshot.id ? { backgroundColor: '#00008c', borderColor: '#00008c' } : { borderColor: '#00008c80' }}
                     data-testid={`button-snapshot-${index + 1}`}
                   >
                     <div className="flex items-center gap-2">
