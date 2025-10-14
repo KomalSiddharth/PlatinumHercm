@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { format } from 'date-fns';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface ChecklistItem {
   id: string;
@@ -183,6 +184,126 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
                     </span>
                   </Button>
                 ))}
+              </div>
+            </div>
+
+            {/* Progress Graphs */}
+            <div className="space-y-6">
+              {/* Overall Progress Graph */}
+              <div className="p-4 rounded-lg border-2 shadow-lg bg-white dark:bg-gray-900" style={{ borderColor: '#00008c' }}>
+                <h3 className="text-lg font-bold mb-4" style={{ color: '#00008c' }}>Overall Weekly Progress</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={displaySnapshots.map(s => ({
+                    week: `Week ${s.weekNumber}`,
+                    progress: s.overallProgress
+                  }))}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="week" />
+                    <YAxis domain={[0, 100]} />
+                    <Tooltip />
+                    <Legend />
+                    <Line type="monotone" dataKey="progress" stroke="#00008c" strokeWidth={3} name="Overall Progress %" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Category-Specific Graphs in 2x2 Layout */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Health Graph */}
+                <div className="p-4 rounded-lg border-2 shadow-lg bg-white dark:bg-gray-900" style={{ borderColor: '#00008c' }}>
+                  <h3 className="text-lg font-bold mb-4" style={{ color: '#00008c' }}>Health Progress</h3>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <LineChart data={displaySnapshots.map(s => {
+                      const healthArea = s.areas.find(a => a.category === 'Health');
+                      return {
+                        week: `Week ${s.weekNumber}`,
+                        rating: healthArea?.currentRating || 0,
+                        progress: healthArea?.progress || 0
+                      };
+                    })}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="week" />
+                      <YAxis yAxisId="left" domain={[0, 10]} />
+                      <YAxis yAxisId="right" orientation="right" domain={[0, 100]} />
+                      <Tooltip />
+                      <Legend />
+                      <Line yAxisId="left" type="monotone" dataKey="rating" stroke="#ef4444" strokeWidth={2} name="Rating" />
+                      <Line yAxisId="right" type="monotone" dataKey="progress" stroke="#10b981" strokeWidth={2} name="Progress %" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Relationship Graph */}
+                <div className="p-4 rounded-lg border-2 shadow-lg bg-white dark:bg-gray-900" style={{ borderColor: '#00008c' }}>
+                  <h3 className="text-lg font-bold mb-4" style={{ color: '#00008c' }}>Relationship Progress</h3>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <LineChart data={displaySnapshots.map(s => {
+                      const relArea = s.areas.find(a => a.category === 'Relationship');
+                      return {
+                        week: `Week ${s.weekNumber}`,
+                        rating: relArea?.currentRating || 0,
+                        progress: relArea?.progress || 0
+                      };
+                    })}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="week" />
+                      <YAxis yAxisId="left" domain={[0, 10]} />
+                      <YAxis yAxisId="right" orientation="right" domain={[0, 100]} />
+                      <Tooltip />
+                      <Legend />
+                      <Line yAxisId="left" type="monotone" dataKey="rating" stroke="#f59e0b" strokeWidth={2} name="Rating" />
+                      <Line yAxisId="right" type="monotone" dataKey="progress" stroke="#10b981" strokeWidth={2} name="Progress %" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Career Graph */}
+                <div className="p-4 rounded-lg border-2 shadow-lg bg-white dark:bg-gray-900" style={{ borderColor: '#00008c' }}>
+                  <h3 className="text-lg font-bold mb-4" style={{ color: '#00008c' }}>Career Progress</h3>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <LineChart data={displaySnapshots.map(s => {
+                      const careerArea = s.areas.find(a => a.category === 'Career');
+                      return {
+                        week: `Week ${s.weekNumber}`,
+                        rating: careerArea?.currentRating || 0,
+                        progress: careerArea?.progress || 0
+                      };
+                    })}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="week" />
+                      <YAxis yAxisId="left" domain={[0, 10]} />
+                      <YAxis yAxisId="right" orientation="right" domain={[0, 100]} />
+                      <Tooltip />
+                      <Legend />
+                      <Line yAxisId="left" type="monotone" dataKey="rating" stroke="#3b82f6" strokeWidth={2} name="Rating" />
+                      <Line yAxisId="right" type="monotone" dataKey="progress" stroke="#10b981" strokeWidth={2} name="Progress %" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Money Graph */}
+                <div className="p-4 rounded-lg border-2 shadow-lg bg-white dark:bg-gray-900" style={{ borderColor: '#00008c' }}>
+                  <h3 className="text-lg font-bold mb-4" style={{ color: '#00008c' }}>Money Progress</h3>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <LineChart data={displaySnapshots.map(s => {
+                      const moneyArea = s.areas.find(a => a.category === 'Money');
+                      return {
+                        week: `Week ${s.weekNumber}`,
+                        rating: moneyArea?.currentRating || 0,
+                        progress: moneyArea?.progress || 0
+                      };
+                    })}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="week" />
+                      <YAxis yAxisId="left" domain={[0, 10]} />
+                      <YAxis yAxisId="right" orientation="right" domain={[0, 100]} />
+                      <Tooltip />
+                      <Legend />
+                      <Line yAxisId="left" type="monotone" dataKey="rating" stroke="#8b5cf6" strokeWidth={2} name="Rating" />
+                      <Line yAxisId="right" type="monotone" dataKey="progress" stroke="#10b981" strokeWidth={2} name="Progress %" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </div>
 
