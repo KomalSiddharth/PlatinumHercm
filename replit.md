@@ -45,3 +45,50 @@ The dashboard features a clean, responsive design with "New York" style shadcn/u
 - **PDF Generation**: `pdfkit`.
 - **Scheduled Tasks**: `node-cron` for automated reminders and badge checks.
 - **Database Driver**: `@neondatabase/serverless` for PostgreSQL.
+
+## Recent Changes
+
+### October 14, 2025 - User Activity Search Feature for Coaches/Trainers
+
+**New Admin Feature: User Activity Search**
+- Added "User Activity" tab in Admin Panel for coaches/trainers to monitor users
+- Search users by name or email with real-time results
+- Compact, organized display of user HRCM activity
+
+**User Activity Display:**
+1. **Search Functionality**: 
+   - Search by name or email (case-insensitive)
+   - Returns all matching users with their latest activity
+2. **Compact User Cards**:
+   - User profile with name, email, current week number
+   - Overall score with color-coded badge (green ≥8, amber ≥5, red <5)
+   - HRCM ratings grid showing all 4 categories (Health 💪, Relationship ❤️, Career 💼, Money 💰)
+   - Each rating displayed with color-coded badge (0-10 scale)
+   - Problem descriptions for each category (truncated for space)
+   - Total weeks count
+
+**Backend API:**
+- `GET /api/admin/search-user-by-name?name={query}` - Search users with compact activity data
+- Returns user info, latest week ratings, problems, and total weeks
+
+**Access:**
+- Admin-only feature (protected by isAdmin middleware)
+- Available in Admin Panel → User Activity tab
+
+### October 13, 2025 - UI Improvements and Column Width Optimization
+
+**Column Width Optimization**
+- Reduced column widths in Current Week and Next Week tables to eliminate horizontal scrolling
+- Progress column: 100px → 70px
+- Rating column: 80px → 60px  
+- Other columns optimized to fit all columns on screen without scrolling
+
+**UI Simplification**
+- Removed AI Auto-Fill button for cleaner interface
+- Maintains automatic week progression feature (moves to next week after 7 days)
+
+**Week Display Behavior**
+- Current week clearly displayed at top (e.g., "Week 1 - HRCM Tracker")
+- Automatic progression to next week after 7 days from week creation
+- Previous week data automatically saved before progression
+- New week starts with blank columns for fresh data entry

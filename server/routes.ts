@@ -382,6 +382,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin: Search user by name with compact activity
+  app.get('/api/admin/search-user-by-name', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { name } = req.query;
+      if (!name || typeof name !== 'string') {
+        return res.status(400).json({ message: "Name parameter required" });
+      }
+
+      const users = await storage.getAllUsers();
+      const matchedUsers = users.filter(u => {
+        const fullName = `${u.firstName || ''} ${u.lastName || ''}`.toLowerCase();
+        const email = (u.email || '').toLowerCase();
+        const searchTerm = name.toLowerCase();
+        return fullName.includes(searchTerm) || email.includes(searchTerm);
+      });
+
+      if (matchedUsers.length === 0) {
+        return res.status(404).json({ message: "No users found" });
+      }
+
+      // Get compact activity for each matched user
+      const usersWithActivity = await Promise.all(
+        matchedUsers.map(async (user) => {
+          const weeks = await storage.getHercmWeeksByUser(user.id);
+          const latestWeek = weeks.length > 0 ? weeks[weeks.length - 1] : null;
+          
+          return {
+            id: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            latestWeek: latestWeek ? {
+              weekNumber: latestWeek.weekNumber,
+              healthRating: latestWeek.currentH || 0,
+              relationshipRating: latestWeek.currentE || 0,
+              careerRating: latestWeek.currentR || 0,
+              moneyRating: latestWeek.currentC || 0,
+              healthProblem: latestWeek.healthProblems || '',
+              relationshipProblem: latestWeek.relationshipProblems || '',
+              careerProblem: latestWeek.careerProblems || '',
+              moneyProblem: latestWeek.moneyProblems || '',
+              overallScore: latestWeek.overallScore || 0,
+            } : null,
+            totalWeeks: weeks.length,
+          };
+        })
+      );
+
+      res.json(usersWithActivity);
+    } catch (error) {
+      console.error("Error searching user by name:", error);
+      res.status(500).json({ message: "Failed to search user" });
+    }
+  });
+
   app.get('/api/admin/user/:userId/weeks', isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { userId } = req.params;

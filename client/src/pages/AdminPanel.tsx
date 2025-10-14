@@ -37,10 +37,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import UserDetailView from '@/components/UserDetailView';
+import UserActivitySearch from '@/components/UserActivitySearch';
 
 export default function AdminPanel() {
   const [, setLocation] = useLocation();
-  const [activeTab, setActiveTab] = useState<'approved' | 'team' | 'logs' | 'analytics'>('approved');
+  const [activeTab, setActiveTab] = useState<'approved' | 'team' | 'logs' | 'analytics' | 'activity'>('approved');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -454,6 +455,17 @@ export default function AdminPanel() {
                 data-testid="tab-analytics"
               >
                 User Analytics
+              </button>
+              <button 
+                onClick={() => setActiveTab('activity')}
+                className={`pb-3 border-b-2 transition-colors ${
+                  activeTab === 'activity' 
+                    ? 'border-blue-600 text-blue-600 font-medium' 
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                }`}
+                data-testid="tab-activity"
+              >
+                User Activity
               </button>
             </div>
           </div>
@@ -963,6 +975,13 @@ export default function AdminPanel() {
                   </Card>
                 </>
               )}
+            </div>
+          )}
+
+          {/* User Activity Search Tab Content */}
+          {activeTab === 'activity' && (
+            <div className="p-6">
+              <UserActivitySearch />
             </div>
           )}
         </div>
