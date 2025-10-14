@@ -12,6 +12,7 @@ import EditRitualModal from '@/components/EditRitualModal';
 import UpdateProgressModal from '@/components/UpdateProgressModal';
 import HRCMHistoryModal from '@/components/HRCMHistoryModal';
 import BadgeDisplayCard from '@/components/BadgeDisplayCard';
+import UserActivitySearch from '@/components/UserActivitySearch';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
@@ -142,6 +143,7 @@ export default function Dashboard() {
   const hrcmRef = useRef<HTMLDivElement>(null);
   const ritualsRef = useRef<HTMLDivElement>(null);
   const coursesRef = useRef<HTMLDivElement>(null);
+  const teamRef = useRef<HTMLDivElement>(null);
 
   const [currentWeek, setCurrentWeek] = useState(1);
   
@@ -162,7 +164,8 @@ export default function Dashboard() {
     const refs = {
       hrcm: hrcmRef,
       rituals: ritualsRef,
-      courses: coursesRef
+      courses: coursesRef,
+      team: teamRef
     };
 
     refs[section as keyof typeof refs]?.current?.scrollIntoView({
@@ -656,6 +659,17 @@ export default function Dashboard() {
                 />
               ))}
             </div>
+          </div>
+        </section>
+
+        <section ref={teamRef} id="team" className="scroll-mt-20 bg-purple-50 dark:bg-purple-950/40 p-6 rounded-lg border-2 border-purple-200 dark:border-purple-800">
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-3xl font-bold">Team Activity</h2>
+              <p className="text-muted-foreground mt-1">Search and monitor team members' HRCM progress</p>
+            </div>
+
+            <UserActivitySearch />
           </div>
         </section>
 
