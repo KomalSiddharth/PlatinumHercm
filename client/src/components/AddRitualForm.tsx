@@ -35,16 +35,6 @@ export default function AddRitualForm({ onAdd = () => {} }: AddRitualFormProps) 
             className="flex-1"
             data-testid="input-ritual-title"
           />
-          <Select value={recurrence} onValueChange={setRecurrence}>
-            <SelectTrigger className="w-full sm:w-32" data-testid="select-recurrence">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="daily">Daily</SelectItem>
-              <SelectItem value="mon-fri">Mon-Fri</SelectItem>
-              <SelectItem value="custom">Custom</SelectItem>
-            </SelectContent>
-          </Select>
           <Button 
             type="submit" 
             className="gap-2 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90" 

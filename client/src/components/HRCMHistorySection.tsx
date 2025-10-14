@@ -135,19 +135,19 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
   const displaySnapshots = [...snapshots].reverse();
 
   return (
-    <div className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 p-6 rounded-lg border-2 border-orange-200 dark:border-orange-800" data-testid="section-hercm-history">
+    <div className="bg-blue-50 dark:bg-blue-950/40 p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800" data-testid="section-hercm-history">
       <div className="space-y-6">
         <div>
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">HRCM History</h2>
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">HRCM History</h2>
           <p className="text-muted-foreground mt-1">View all your HRCM table edits with exact date and time (oldest to newest, left to right)</p>
         </div>
 
         {isLoading ? (
-          <div className="text-center py-12 border-2 border-dashed border-orange-300 dark:border-orange-700 rounded-lg">
+          <div className="text-center py-12 border-2 border-dashed border-blue-300 dark:border-blue-700 rounded-lg">
             <p className="text-muted-foreground">Loading history...</p>
           </div>
         ) : snapshots.length === 0 ? (
-          <div className="text-center py-12 border-2 border-dashed border-orange-300 dark:border-orange-700 rounded-lg">
+          <div className="text-center py-12 border-2 border-dashed border-blue-300 dark:border-blue-700 rounded-lg">
             <p className="text-muted-foreground">No history yet. Save your HRCM table to see snapshots here with date & time!</p>
           </div>
         ) : (

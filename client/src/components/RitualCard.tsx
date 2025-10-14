@@ -59,17 +59,14 @@ export default function RitualCard({
             <h3 className={`font-medium ${completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
               {title}
             </h3>
-            <div className="flex items-center gap-2 mt-1">
-              <Badge variant="outline" className="text-xs">
-                {recurrenceLabels[recurrence]}
-              </Badge>
-              {!active && (
+            {!active && (
+              <div className="flex items-center gap-2 mt-1">
                 <Badge variant="secondary" className="text-xs gap-1">
                   <Pause className="w-3 h-3" />
                   Paused
                 </Badge>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-1">
