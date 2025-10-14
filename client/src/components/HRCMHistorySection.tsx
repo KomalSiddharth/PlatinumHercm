@@ -138,7 +138,9 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
     <div className="bg-blue-50 dark:bg-blue-950/40 p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800" data-testid="section-hercm-history">
       <div className="space-y-6">
         <div>
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">HRCM History</h2>
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+            HRCM History
+          </h2>
           <p className="text-muted-foreground mt-1">View all your HRCM table edits with exact date and time (oldest to newest, left to right)</p>
         </div>
 
