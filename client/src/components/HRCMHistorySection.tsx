@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -118,6 +118,14 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
       });
     }
   }
+
+  // Auto-select the newest snapshot when data loads
+  useEffect(() => {
+    if (snapshots.length > 0 && !selectedSnapshotId) {
+      // Auto-select the first snapshot (newest one)
+      setSelectedSnapshotId(snapshots[0].id);
+    }
+  }, [snapshots, selectedSnapshotId]);
 
   const selectedSnapshot = selectedSnapshotId 
     ? snapshots.find(s => s.id === selectedSnapshotId)
@@ -258,12 +266,6 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
               </div>
             )}
 
-            {/* Show message when no snapshot selected */}
-            {!selectedSnapshotId && (
-              <div className="text-center py-8 text-muted-foreground">
-                <p>Click on any snapshot above to view its complete HRCM data with exact date & time</p>
-              </div>
-            )}
           </div>
         )}
       </div>
