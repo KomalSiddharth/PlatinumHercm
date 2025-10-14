@@ -155,15 +155,19 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
         ) : (
           <div className="space-y-6">
             {/* Timeline Overview */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-semibold">Snapshot Timeline (Oldest → Newest)</h3>
+            <div className="space-y-3 bg-rose-50/50 dark:bg-rose-950/20 p-4 rounded-lg border border-rose-200 dark:border-rose-800">
+              <h3 className="text-sm font-semibold text-rose-900 dark:text-rose-100">Snapshot Timeline (Oldest → Newest)</h3>
               <div className="flex gap-2 flex-wrap">
                 {displaySnapshots.map((snapshot, index) => (
                   <Button
                     key={snapshot.id}
                     variant={selectedSnapshotId === snapshot.id ? "default" : "outline"}
                     onClick={() => setSelectedSnapshotId(snapshot.id === selectedSnapshotId ? null : snapshot.id)}
-                    className="flex flex-col items-start gap-1 h-auto py-2 px-3"
+                    className={`flex flex-col items-start gap-1 h-auto py-2 px-3 ${
+                      selectedSnapshotId === snapshot.id 
+                        ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-red-600' 
+                        : 'border-rose-300 dark:border-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40'
+                    }`}
                     data-testid={`button-snapshot-${index + 1}`}
                   >
                     <div className="flex items-center gap-2">
@@ -173,7 +177,7 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
                         {snapshot.overallProgress}%
                       </Badge>
                     </div>
-                    <span className="text-xs text-muted-foreground whitespace-nowrap">
+                    <span className={`text-xs whitespace-nowrap ${selectedSnapshotId === snapshot.id ? 'text-white/80' : 'text-muted-foreground'}`}>
                       {formatDateTime(snapshot.createdAt)}
                     </span>
                   </Button>

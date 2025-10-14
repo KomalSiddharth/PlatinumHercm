@@ -525,7 +525,10 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
       });
 
       // Auto-save the updated course suggestion
-      saveWeekData();
+      saveWeekMutation.mutate({
+        weekNumber,
+        beliefs
+      });
     } catch (error) {
       console.error('Error getting AI course recommendation:', error);
       toast({
@@ -607,7 +610,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
     
     // Save the editing info before clearing it
     const { category, field } = editingField;
-    let updatedBelief: HRCMBelief | undefined = undefined;
+    let updatedBelief: HRCMBelief | undefined;
     
     // Build updated beliefs array with checklist
     const updatedBeliefs = beliefs.map(belief => {
