@@ -234,6 +234,29 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
     queryKey: ['/api/hercm/weeks'],
   });
 
+  // Fetch rating caps and progression status
+  const { data: ratingCaps } = useQuery<{
+    health: number;
+    relationship: number;
+    career: number;
+    money: number;
+  }>({
+    queryKey: ['/api/rating-progression/caps'],
+  });
+
+  const { data: ratingProgression } = useQuery<{
+    healthMaxRating: number;
+    relationshipMaxRating: number;
+    careerMaxRating: number;
+    moneyMaxRating: number;
+    healthWeeksAtMax: number;
+    relationshipWeeksAtMax: number;
+    careerWeeksAtMax: number;
+    moneyWeeksAtMax: number;
+  }>({
+    queryKey: ['/api/rating-progression/status'],
+  });
+
   // Show all 12 months in dropdown
   const totalMonths = 12;
 
@@ -320,16 +343,17 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
   const handleRatingChange = (category: string, newRating: number) => {
     setBeliefs(prev => prev.map(belief => {
       if (belief.category === category) {
-        // All categories now have max rating of 10
-        const maxRating = 10;
+        // Get category-specific max rating from API (defaults to 7 if not loaded)
+        const categoryLower = category.toLowerCase();
+        const maxRating = ratingCaps?.[categoryLower as keyof typeof ratingCaps] || 7;
         
-        // Cap both current and target ratings at 10
+        // Cap both current and target ratings at max allowed
         const cappedRating = Math.min(newRating, maxRating);
         
         return {
           ...belief,
           currentRating: cappedRating,
-          targetRating: Math.min(cappedRating + 1, maxRating) // Auto-increment by 1, capped at 10
+          targetRating: Math.min(cappedRating + 1, maxRating) // Auto-increment by 1, capped at max
         };
       }
       return belief;
@@ -437,7 +461,7 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
     setShowStandardsDialog(true);
   };
 
-  // Toggle a standard and recalculate rating (scaled to 10)
+  // Toggle a standard and recalculate rating (capped at user's max allowed)
   const handleStandardToggle = (category: string, itemId: string) => {
     setBeliefs(prev => prev.map(belief => {
       if (belief.category === category) {
@@ -448,13 +472,20 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
         // Calculate scaled rating out of 10 based on percentage of standards checked
         const checkedCount = updatedChecklist.filter(item => item.checked).length;
         const totalStandards = updatedChecklist.length;
-        const newRating = Math.round((checkedCount / totalStandards) * 10);
+        const calculatedRating = Math.round((checkedCount / totalStandards) * 10);
+        
+        // Get category-specific max rating from API (defaults to 7 if not loaded)
+        const categoryLower = category.toLowerCase();
+        const maxRating = ratingCaps?.[categoryLower as keyof typeof ratingCaps] || 7;
+        
+        // Cap the rating at user's allowed max
+        const newRating = Math.min(calculatedRating, maxRating);
         
         return {
           ...belief,
           checklist: updatedChecklist,
           currentRating: newRating,
-          targetRating: Math.min(newRating + 1, 10) // Target is +1, capped at 10
+          targetRating: Math.min(newRating + 1, maxRating) // Target is +1, capped at max
         };
       }
       return belief;
@@ -469,6 +500,8 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/hercm/weeks'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/rating-progression/caps'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/rating-progression/status'] });
       toast({
         title: 'Saved!',
         description: 'Your changes have been saved successfully.',
@@ -915,14 +948,29 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
 
                 {/* Current Week - Rating */}
                 <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10 align-top">
-                  <Button
-                    variant="outline"
-                    onClick={() => handleOpenStandardsDialog(belief.category)}
-                    className="w-16 h-9 text-center font-semibold"
-                    data-testid={`button-${belief.category.toLowerCase()}-rating`}
-                  >
-                    {belief.currentRating}/10
-                  </Button>
+                  <div className="flex flex-col gap-1">
+                    <Button
+                      variant="outline"
+                      onClick={() => handleOpenStandardsDialog(belief.category)}
+                      className="w-16 h-9 text-center font-semibold"
+                      data-testid={`button-${belief.category.toLowerCase()}-rating`}
+                    >
+                      {belief.currentRating}/{ratingCaps?.[belief.category.toLowerCase() as keyof typeof ratingCaps] || 7}
+                    </Button>
+                    {ratingProgression && (() => {
+                      const categoryLower = belief.category.toLowerCase();
+                      const weeksAtMax = ratingProgression[`${categoryLower}WeeksAtMax` as keyof typeof ratingProgression] || 0;
+                      const maxRating = ratingCaps?.[categoryLower as keyof typeof ratingCaps] || 7;
+                      if (belief.currentRating === maxRating && weeksAtMax > 0) {
+                        return (
+                          <Badge variant="secondary" className="text-[10px] px-1 py-0 h-5 justify-center">
+                            {weeksAtMax}/4 weeks
+                          </Badge>
+                        );
+                      }
+                      return null;
+                    })()}
+                  </div>
                 </TableCell>
 
                 {/* Current Week - Problems */}
