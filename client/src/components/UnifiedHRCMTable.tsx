@@ -302,11 +302,27 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
   const handleChecklistToggle = (category: string, itemId: string) => {
     setBeliefs(prev => prev.map(belief => {
       if (belief.category === category) {
+        const updatedChecklist = belief.checklist.map(item =>
+          item.id === itemId ? { ...item, checked: !item.checked } : item
+        );
+        
+        // Calculate scaled rating out of 10 based on percentage of standards checked
+        const checkedCount = updatedChecklist.filter(item => item.checked).length;
+        const totalStandards = updatedChecklist.length;
+        const calculatedRating = Math.round((checkedCount / totalStandards) * 10);
+        
+        // Get category-specific max rating from API (defaults to 7 if not loaded)
+        const categoryLower = category.toLowerCase();
+        const maxRating = ratingCaps?.[categoryLower as keyof typeof ratingCaps] || 7;
+        
+        // Cap the rating at user's allowed max
+        const newRating = Math.min(calculatedRating, maxRating);
+        
         return {
           ...belief,
-          checklist: belief.checklist.map(item =>
-            item.id === itemId ? { ...item, checked: !item.checked } : item
-          )
+          checklist: updatedChecklist,
+          currentRating: newRating,
+          targetRating: Math.min(newRating + 1, maxRating)
         };
       }
       return belief;
