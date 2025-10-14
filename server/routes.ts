@@ -852,6 +852,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get single AI course recommendation for HRCM table
+  app.post('/api/courses/recommend-single', isAuthenticated, async (req: any, res) => {
+    try {
+      const { category, currentRating, problems, feelings, beliefs, actions } = req.body;
+      
+      // Validate inputs
+      if (!category) {
+        return res.status(400).json({ message: "Category is required" });
+      }
+      
+      // Get user's sheet URL or use default
+      const userId = req.session.userEmail || (req.user?.claims?.sub);
+      const user = userId ? await storage.getUser(userId) : null;
+      const sheetUrl = user?.courseSheetUrl || "https://docs.google.com/spreadsheets/d/1pZaS2wnzwgk6VqB7KvchX2bfCmucvrhTf3Q6qAJG7Cw/edit?gid=314426355#gid=314426355";
+      
+      // Fetch courses from Google Sheets
+      const courses = await fetchEnhancedCourseData(sheetUrl);
+      
+      // Get AI-powered recommendations (get top 1)
+      const recommendations = await getAIRecommendations(courses, {
+        category,
+        rating: currentRating || 1,
+        problems: problems || '',
+        feelings: feelings || '',
+        beliefs: beliefs || '',
+        actions: actions || '',
+      }, 1);
+      
+      if (recommendations.length === 0) {
+        return res.json({ 
+          courseName: "No matching course found", 
+          courseLink: "",
+          score: 0,
+          reason: "No courses available for this category"
+        });
+      }
+      
+      const topRecommendation = recommendations[0];
+      res.json({
+        courseName: topRecommendation.course.courseName,
+        courseLink: topRecommendation.course.link,
+        score: topRecommendation.score,
+        reason: topRecommendation.aiInsight,
+        matchReasons: topRecommendation.matchReasons
+      });
+    } catch (error) {
+      console.error("Error getting AI course recommendation:", error);
+      res.status(500).json({ 
+        message: "Failed to get course recommendation", 
+        courseName: "Error loading course",
+        courseLink: "",
+        score: 0
+      });
+    }
+  });
+
   // AI Auto-fill next week goals based on current week data
   app.post('/api/hercm/auto-fill-next-week', isAuthenticated, async (req: any, res) => {
     try {
