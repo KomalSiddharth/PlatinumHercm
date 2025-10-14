@@ -149,7 +149,7 @@ Return ONLY valid JSON in this exact format:
           aiInsight: rec.insight || ''
         };
       })
-      .filter((rec: AIRecommendation) => rec.course && rec.score >= 50); // Filter out invalid course IDs and courses below 50% match
+      .filter((rec: AIRecommendation) => rec.course && rec.score >= 10); // Filter out invalid course IDs and courses below 10% match
 
     return recommendations;
 
