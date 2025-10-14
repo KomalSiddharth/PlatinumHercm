@@ -1102,12 +1102,12 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                     >
                       {belief.targetRating}/10
                     </Button>
-                    {ratingCaps && (() => {
+                    {ratingCaps && ratingProgression && (() => {
                       const categoryLower = belief.category.toLowerCase();
                       const maxRating = ratingCaps[categoryLower as keyof typeof ratingCaps] || 7;
                       if (belief.targetRating >= maxRating) {
-                        const statusData = ratingProgressionStatus?.[categoryLower as keyof typeof ratingProgressionStatus];
-                        const weeksAtMax = statusData?.weeksAtMax || 0;
+                        const weeksAtMaxKey = `${categoryLower}WeeksAtMax` as keyof typeof ratingProgression;
+                        const weeksAtMax = ratingProgression[weeksAtMaxKey] || 0;
                         if (weeksAtMax > 0 && weeksAtMax < 4) {
                           return (
                             <Badge variant="secondary" className="text-xs px-2 py-0">
