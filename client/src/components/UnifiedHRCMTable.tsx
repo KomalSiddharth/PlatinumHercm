@@ -1069,7 +1069,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                       <Loader2 className="w-4 h-4 animate-spin text-cyan-600" />
                       <span className="text-xs text-muted-foreground">AI analyzing...</span>
                     </div>
-                  ) : belief.courseSuggestion && belief.courseSuggestion.courses.length > 0 ? (
+                  ) : belief.courseSuggestion?.courses?.length > 0 ? (
                     <div className="space-y-1">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-medium text-cyan-600 dark:text-cyan-400">
