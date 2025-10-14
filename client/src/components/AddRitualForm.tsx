@@ -12,18 +12,16 @@ interface AddRitualFormProps {
 export default function AddRitualForm({ onAdd = () => {} }: AddRitualFormProps) {
   const [title, setTitle] = useState('');
   const [recurrence, setRecurrence] = useState('daily');
-  const [points, setPoints] = useState(50);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
 
-    onAdd({ title, recurrence, points });
-    console.log('Ritual added:', { title, recurrence, points });
+    onAdd({ title, recurrence, points: 10 });
+    console.log('Ritual added:', { title, recurrence, points: 10 });
 
     setTitle('');
     setRecurrence('daily');
-    setPoints(50);
   };
 
   return (
@@ -47,23 +45,13 @@ export default function AddRitualForm({ onAdd = () => {} }: AddRitualFormProps) 
               <SelectItem value="custom">Custom</SelectItem>
             </SelectContent>
           </Select>
-          <Input
-            type="number"
-            min="10"
-            max="500"
-            step="10"
-            value={points}
-            onChange={(e) => setPoints(parseInt(e.target.value) || 50)}
-            className="w-full sm:w-24"
-            data-testid="input-points"
-          />
           <Button 
             type="submit" 
             className="gap-2 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90" 
             data-testid="button-add-ritual"
           >
             <Plus className="w-4 h-4" />
-            Add
+            Add (10 pts)
           </Button>
         </form>
       </CardContent>
