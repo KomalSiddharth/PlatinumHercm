@@ -143,7 +143,9 @@ const getWeekBeliefs = (week: number): HRCMBelief[] => {
 const calculateProgress = (checklist: ChecklistItem[]): number => {
   if (checklist.length === 0) return 0;
   const completed = checklist.filter(item => item.checked).length;
-  return Math.round((completed / checklist.length) * 100);
+  const percentage = Math.round((completed / checklist.length) * 100);
+  // Cap progress at 70% maximum
+  return Math.min(percentage, 70);
 };
 
 const getProgressColor = (progress: number) => {
@@ -248,13 +250,31 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
   useEffect(() => {
     // Priority: Use actual database data if available, otherwise use demo/blank template
     if (weekData?.beliefs) {
-      // Database has data for this week - use it
-      setBeliefs(weekData.beliefs);
+      // Database has data for this week - recalculate ratings based on checked items
+      const recalculatedBeliefs = weekData.beliefs.map(belief => {
+        const checkedCount = belief.checklist.filter(item => item.checked).length;
+        const totalStandards = belief.checklist.length;
+        const calculatedRating = Math.round((checkedCount / totalStandards) * 10);
+        
+        // Get category-specific max rating cap
+        const categoryLower = belief.category.toLowerCase();
+        const maxRating = ratingCaps?.[categoryLower as keyof typeof ratingCaps] || 7;
+        
+        // Cap the rating at user's allowed max
+        const newRating = Math.min(calculatedRating, maxRating);
+        
+        return {
+          ...belief,
+          currentRating: newRating,
+          targetRating: Math.min(newRating + 1, maxRating)
+        };
+      });
+      setBeliefs(recalculatedBeliefs);
     } else {
       // No database data - use demo/blank template immediately (don't wait for loading)
       setBeliefs(getWeekBeliefs(weekNumber));
     }
-  }, [weekNumber, weekData]);
+  }, [weekNumber, weekData, ratingCaps]);
 
   // Fetch AI course recommendations
   const fetchCourseRecommendation = async (category: string, belief: HRCMBelief) => {
