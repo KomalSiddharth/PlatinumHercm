@@ -821,40 +821,42 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
                   </CardContent>
                 </Card>
 
-                {/* Improvement Summary - Overall Progress */}
-                <div className="space-y-2">
-                  <h3 className="text-base font-semibold">Overall Improvement Summary</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {/* Current Week Progress - Graphical */}
+                <div className="space-y-3">
+                  <h3 className="text-base font-semibold">Current Week Progress</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {['Health', 'Relationship', 'Career', 'Money'].map((category) => {
-                      const firstWeekData = allWeeksForAnalytics[0];
-                      const lastWeekData = allWeeksForAnalytics[allWeeksForAnalytics.length - 1];
-                      
-                      const firstBelief = firstWeekData.beliefs.find((b: any) => b.category === category);
-                      const lastBelief = lastWeekData.beliefs.find((b: any) => b.category === category);
-                      
-                      const firstProgress = calculateProgress(firstBelief?.checklist || []);
-                      const lastProgress = calculateProgress(lastBelief?.checklist || []);
-                      const improvement = lastProgress - firstProgress;
+                      const currentBelief = beliefs.find((b: any) => b.category === category);
+                      const currentProgress = calculateProgress(currentBelief?.checklist || []);
+                      const categoryIcon = {
+                        'Health': '💪',
+                        'Relationship': '❤️',
+                        'Career': '💼',
+                        'Money': '💰'
+                      }[category];
                       
                       return (
-                        <Card key={category} className="p-3">
-                          <div className="space-y-1">
-                            <p className="text-sm font-medium">{category}</p>
-                            <div className="flex items-center gap-2">
-                              {improvement > 0 ? (
-                                <ArrowUp className="w-4 h-4 text-green-600" />
-                              ) : improvement < 0 ? (
-                                <ArrowDown className="w-4 h-4 text-red-600" />
-                              ) : (
-                                <span className="w-4 h-4">-</span>
-                              )}
-                              <span className={`text-lg font-bold ${improvement > 0 ? 'text-green-600' : improvement < 0 ? 'text-red-600' : 'text-muted-foreground'}`}>
-                                {improvement > 0 ? '+' : ''}{improvement}%
+                        <Card key={category} className="p-4">
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <span className="text-lg">{categoryIcon}</span>
+                                <p className="text-sm font-semibold">{category}</p>
+                              </div>
+                              <span className={`text-lg font-bold ${currentProgress >= 80 ? 'text-green-600' : currentProgress >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
+                                {currentProgress}%
                               </span>
                             </div>
-                            <p className="text-xs text-muted-foreground">
-                              Week {firstWeekData.week}: {firstProgress}% → Week {lastWeekData.week}: {lastProgress}%
-                            </p>
+                            <div className="w-full bg-muted rounded-full h-3">
+                              <div 
+                                className={`h-3 rounded-full transition-all ${
+                                  currentProgress >= 80 ? 'bg-green-500' : 
+                                  currentProgress >= 50 ? 'bg-amber-500' : 
+                                  'bg-red-500'
+                                }`}
+                                style={{ width: `${currentProgress}%` }}
+                              />
+                            </div>
                           </div>
                         </Card>
                       );
@@ -862,9 +864,6 @@ export default function UnifiedHRCMTable({ weekNumber, onViewHistory, onWeekChan
                   </div>
                 </div>
               </div>
-
-              {/* Text Comparison */}
-              <WeekComparison comparisons={comparisonData} />
             </div>
           ) : (
             <p className="text-muted-foreground text-center py-8">
