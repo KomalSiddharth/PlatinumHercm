@@ -205,7 +205,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!userId) {
         return res.status(401).json({ message: "User not authenticated" });
       }
-      const weekData = { ...req.body, userId };
+      const weekData = { 
+        ...req.body, 
+        userId,
+        year: req.body.year || new Date().getFullYear() // Add current year if not provided
+      };
       
       // Map beliefs array to category-specific database columns
       if (weekData.beliefs && Array.isArray(weekData.beliefs)) {
