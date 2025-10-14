@@ -135,15 +135,14 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
   const displaySnapshots = [...snapshots].reverse();
 
   return (
-    <div className="bg-red-50 dark:bg-red-950/40 p-6 rounded-lg border-2 border-red-200 dark:border-red-800" data-testid="section-hercm-history">
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent">
-            HRCM History
-          </h2>
-          <p className="text-muted-foreground mt-1">View all your HRCM table edits with exact date and time (oldest to newest, left to right)</p>
-        </div>
-
+    <div className="border-2 border-red-800 dark:border-red-900 rounded-lg overflow-x-auto shadow-lg" data-testid="section-hercm-history">
+      <div className="px-4 py-3 border-b-2 border-red-900 dark:border-red-950" style={{ backgroundColor: '#bc0000' }}>
+        <h2 className="font-bold text-white text-xl text-center drop-shadow-md">
+          HRCM History
+        </h2>
+        <p className="text-white/80 text-sm text-center mt-1">View all your HRCM table edits with exact date and time (oldest to newest, left to right)</p>
+      </div>
+      <div className="space-y-6 p-6">
         {isLoading ? (
           <div className="text-center py-12 border-2 border-dashed border-red-300 dark:border-red-700 rounded-lg">
             <p className="text-muted-foreground">Loading history...</p>
