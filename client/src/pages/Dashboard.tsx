@@ -91,7 +91,7 @@ export default function Dashboard() {
   const todayDate = useMemo(() => getTodayDate(), []);
   
   // Fetch current user data
-  const { data: currentUser } = useQuery<{ id: string; email: string; firstName?: string; lastName?: string; isAdmin?: boolean }>({
+  const { data: currentUser } = useQuery<{ id: string; email: string; firstName?: string; lastName?: string; isAdmin?: boolean; profileImageUrl?: string | null }>({
     queryKey: ['/api/auth/user'],
   });
   
@@ -422,6 +422,7 @@ export default function Dashboard() {
         userName={userName}
         userPoints={totalPoints}
         isAdmin={false}
+        profileImageUrl={currentUser?.profileImageUrl}
         activeSection={activeSection}
         onNavigate={scrollToSection}
         onProfileClick={() => setProfileOpen(true)}
@@ -588,8 +589,12 @@ export default function Dashboard() {
         userName={userName}
         userEmail={userEmail}
         totalPoints={totalPoints}
+        profileImageUrl={currentUser?.profileImageUrl}
         onSave={handleSaveProfile}
         onLogout={handleLogout}
+        onProfileImageUpdate={() => {
+          queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+        }}
       />
 
       <HRCMHistoryModal
