@@ -26,7 +26,7 @@ The dashboard employs a clean, responsive "New York" style design using shadcn/u
 - **ML-Based Target Recommendations**: Intelligent target suggestions based on historical performance.
 - **Next Week Target Rating**: Uses the same standards-based logic as Current Week rating, with progression badges displaying when at max rating.
 - **Date-Based HRCM History**: Every HRCM table save creates a new timestamped snapshot, providing a complete edit history. The history section is automatically visible on page load with the newest snapshot selected.
-- **Rating Increment Constraint System**: Users start with a max rating of 7, which progressively increases by 1 after maintaining the current max for 4 consecutive weeks, up to a maximum of 10. This is tracked independently per category.
+- **Rating Increment Constraint System**: Users start with a max rating of 7, which progressively increases to 8 after maintaining a rating of 7 for 4 consecutive weeks. The maximum rating is permanently capped at 8 - users can never achieve a rating of 9 or 10, regardless of checklist completion. This is tracked independently per category. The UI displays ratings out of 10, but the backend enforces the hard cap at 8.
 - **Weekly Progress Analytics**: Redesigned analytics focus on weekly data across all weeks, including overall progress trends, HRCM area comparisons, and current week progress with graphical bars. Monthly views have been removed.
 - **Team Activity Search**: A new "Team Activity" tab in the user dashboard allows users to search and view team members' HRCM progress with compact user cards.
 - **Simplified Daily Rituals**: Rituals are always active, cannot be edited after creation, and automatically allocate 10 points.

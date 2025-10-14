@@ -111,26 +111,29 @@ export async function updateRatingProgression(
       const newWeeksAtMax = currentWeeksAtMax + 1;
       
       // Check if we should increment max rating (after 4 consecutive weeks)
-      if (newWeeksAtMax >= 4) {
-        // Increment max rating by 1 and reset weeks counter
+      // HARD CAP: Max rating can never exceed 8 (no 9 or 10 allowed)
+      if (newWeeksAtMax >= 4 && maxAllowed < 8) {
+        // Increment max rating by 1 (capped at 8) and reset weeks counter
         await storage.updateRatingProgression(userId, {
-          [fields.maxRating]: maxAllowed + 1,
+          [fields.maxRating]: Math.min(maxAllowed + 1, 8),
           [fields.weeksAtMax]: 0,
           [fields.lastRating]: actualRating,
           [fields.lastCountedWeek]: weekNumber,
         });
       } else {
-        // Just increment weeks counter
+        // Just increment weeks counter (only if not already at max cap of 8)
+        // If already at 8, no point tracking consecutive weeks
         await storage.updateRatingProgression(userId, {
-          [fields.weeksAtMax]: newWeeksAtMax,
+          [fields.weeksAtMax]: maxAllowed < 8 ? newWeeksAtMax : 0,
           [fields.lastRating]: actualRating,
           [fields.lastCountedWeek]: weekNumber,
         });
       }
     } else {
       // First week at max OR broke the consecutive streak, start counting from 1
+      // If already at max cap of 8, no point tracking consecutive weeks
       await storage.updateRatingProgression(userId, {
-        [fields.weeksAtMax]: 1,
+        [fields.weeksAtMax]: maxAllowed < 8 ? 1 : 0,
         [fields.lastRating]: actualRating,
         [fields.lastCountedWeek]: weekNumber,
       });

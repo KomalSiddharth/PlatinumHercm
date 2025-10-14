@@ -326,7 +326,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
         return {
           ...belief,
           currentRating: cappedRating,
-          targetRating: Math.min(cappedRating + 1, maxRating) // Auto-increment by 1, capped at max
+          targetRating: Math.min(cappedRating + 1, maxRating) // Auto-increment by 1, capped at user's max (which is capped at 8)
         };
       }
       return belief;
@@ -458,7 +458,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
           ...belief,
           checklist: updatedChecklist,
           currentRating: newRating,
-          targetRating: Math.min(newRating + 1, maxRating) // Target is +1, capped at max
+          targetRating: Math.min(newRating + 1, maxRating) // Target is +1, capped at user's max (which is capped at 8)
         };
       }
       return belief;
@@ -833,7 +833,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                       className="w-16 h-9 text-center font-semibold"
                       data-testid={`button-${belief.category.toLowerCase()}-rating`}
                     >
-                      {belief.currentRating}/{ratingCaps?.[belief.category.toLowerCase() as keyof typeof ratingCaps] || 7}
+                      {belief.currentRating}/10
                     </Button>
                     {ratingProgression && (() => {
                       const categoryLower = belief.category.toLowerCase();
