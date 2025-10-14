@@ -9,7 +9,6 @@ interface DashboardHeaderProps {
   userName?: string;
   userPoints?: number;
   isAdmin?: boolean;
-  profileImageUrl?: string | null;
   onNavigate?: (section: string) => void;
   activeSection?: string;
   onProfileClick?: () => void;
@@ -19,7 +18,6 @@ export default function DashboardHeader({
   userName = 'User',
   userPoints = 0,
   isAdmin = false,
-  profileImageUrl,
   onNavigate = () => {},
   activeSection = 'hrcm',
   onProfileClick = () => {}
@@ -99,9 +97,7 @@ export default function DashboardHeader({
               className="relative"
             >
               <Avatar className="w-8 h-8">
-                {profileImageUrl && (
-                  <AvatarImage src={profileImageUrl} alt={displayName} />
-                )}
+                <AvatarImage src="" />
                 <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-white text-sm font-medium">
                   {displayName.charAt(0).toUpperCase()}
                 </AvatarFallback>

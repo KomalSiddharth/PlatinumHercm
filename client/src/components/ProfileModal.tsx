@@ -9,13 +9,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Trophy, Mail, User, LogOut, Camera } from 'lucide-react';
-import { ObjectUploader } from './ObjectUploader';
-import { apiRequest } from '@/lib/queryClient';
-import type { UploadResult } from '@uppy/core';
-import { useToast } from '@/hooks/use-toast';
+import { Trophy, Mail, User, LogOut } from 'lucide-react';
 
 interface ProfileModalProps {
   open: boolean;
@@ -23,10 +19,8 @@ interface ProfileModalProps {
   userName: string;
   userEmail: string;
   totalPoints: number;
-  profileImageUrl?: string | null;
   onSave?: (data: { name: string; email: string }) => void;
   onLogout?: () => void;
-  onProfileImageUpdate?: () => void;
 }
 
 export default function ProfileModal({
@@ -35,73 +29,17 @@ export default function ProfileModal({
   userName,
   userEmail,
   totalPoints,
-  profileImageUrl,
   onSave = () => {},
-  onLogout = () => {},
-  onProfileImageUpdate = () => {}
+  onLogout = () => {}
 }: ProfileModalProps) {
   const [name, setName] = useState(userName);
   const [email, setEmail] = useState(userEmail);
   const [isEditing, setIsEditing] = useState(false);
-  const [isUploadingImage, setIsUploadingImage] = useState(false);
-  const { toast } = useToast();
 
   const handleSave = () => {
     onSave({ name, email });
     setIsEditing(false);
     console.log('Profile updated:', { name, email });
-  };
-
-  const handleGetUploadParameters = async () => {
-    const response = await fetch('/api/objects/upload', {
-      method: 'POST',
-      credentials: 'include',
-    });
-    
-    if (!response.ok) {
-      toast({
-        title: "Upload Error",
-        description: "Failed to prepare file upload. Please try again.",
-        variant: "destructive",
-      });
-      throw new Error('Failed to get upload URL');
-    }
-    
-    const data = await response.json();
-    return {
-      method: 'PUT' as const,
-      url: data.uploadURL,
-    };
-  };
-
-  const handleUploadComplete = async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
-    if (result.successful && result.successful.length > 0) {
-      setIsUploadingImage(true);
-      try {
-        const uploadedFile = result.successful[0];
-        const uploadURL = uploadedFile.uploadURL;
-
-        await apiRequest('/api/profile/picture', 'PUT', {
-          profileImageURL: uploadURL,
-        });
-
-        toast({
-          title: "Profile picture updated",
-          description: "Your profile picture has been updated successfully.",
-        });
-
-        onProfileImageUpdate();
-      } catch (error) {
-        console.error('Error updating profile picture:', error);
-        toast({
-          title: "Error",
-          description: "Failed to update profile picture. Please try again.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsUploadingImage(false);
-      }
-    }
   };
 
   return (
@@ -114,29 +52,11 @@ export default function ProfileModal({
 
         <div className="space-y-6">
           <div className="flex flex-col items-center gap-4">
-            <div className="relative">
-              <Avatar className="w-24 h-24">
-                {profileImageUrl && (
-                  <AvatarImage src={profileImageUrl} alt={name} />
-                )}
-                <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-white text-3xl font-bold">
-                  {name.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="absolute -bottom-2 -right-2">
-                <ObjectUploader
-                  maxNumberOfFiles={1}
-                  maxFileSize={5242880}
-                  onGetUploadParameters={handleGetUploadParameters}
-                  onComplete={handleUploadComplete}
-                  variant="secondary"
-                  size="icon"
-                  buttonClassName="rounded-full h-10 w-10 shadow-lg"
-                >
-                  <Camera className="w-4 h-4" />
-                </ObjectUploader>
-              </div>
-            </div>
+            <Avatar className="w-24 h-24">
+              <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-white text-3xl font-bold">
+                {name.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
             <div className="text-center">
               <h3 className="text-xl font-semibold">{name}</h3>
               <p className="text-sm text-muted-foreground">{email}</p>
