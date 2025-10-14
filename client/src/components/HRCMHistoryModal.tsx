@@ -206,7 +206,7 @@ const getTrendIcon = (current: number, previous: number) => {
 };
 
 export default function HRCMHistoryModal({ open, onOpenChange, currentWeek }: HRCMHistoryModalProps) {
-  const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
+  const [selectedWeek, setSelectedWeek] = useState<number | null>(1);
 
   // Helper function to calculate progress
   const calculateProgress = (checklist: ChecklistItem[]): number => {
@@ -299,17 +299,7 @@ export default function HRCMHistoryModal({ open, onOpenChange, currentWeek }: HR
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto" data-testid="modal-hercm-history">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
-            <span>HRCM History</span>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onOpenChange(false)}
-              data-testid="button-close-history"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </DialogTitle>
+          <DialogTitle>HRCM History</DialogTitle>
           <DialogDescription>
             View exact snapshots of your HRCM table for each completed week
           </DialogDescription>
