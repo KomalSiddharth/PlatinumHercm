@@ -681,30 +681,24 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
     }
   }, [allWeeksData, weekNumber, onWeekChange, beliefs, toast]);
 
-  // Track if this is the first render to prevent auto-fetch on mount
-  const hasInitialized = useRef(false);
-  
-  // Auto-trigger: Get AI course recommendation when rating changes
+  // Auto-trigger: Get AI course recommendation when rating changes OR on mount
   useEffect(() => {
-    // Skip on first render (initial mount)
-    if (!hasInitialized.current) {
-      hasInitialized.current = true;
-      return;
-    }
-    
     beliefs.forEach((belief) => {
       // Check if category has rating > 0
       const hasRating = belief.currentRating > 0;
+      const noCourseYet = !belief.courseSuggestion || !belief.courseSuggestion.courses || belief.courseSuggestion.courses.length === 0;
       const notLoading = !loadingCourses.has(belief.category);
       
-      // Auto-fetch courses whenever rating changes (triggers optional)
-      // This will re-fetch even if courses exist, to get rating-appropriate count
-      if (hasRating && notLoading) {
+      // Auto-fetch courses if:
+      // 1. Has rating > 0
+      // 2. No courses exist yet OR rating changed (via dependency array)
+      // 3. Not currently loading
+      if (hasRating && noCourseYet && notLoading) {
         console.log(`Auto-fetching courses for ${belief.category} with rating ${belief.currentRating}`);
         getAICourseRecommendation(belief.category);
       }
     });
-  }, [beliefs.map(b => b.currentRating).join(',')]);
+  }, [beliefs.map(b => `${b.currentRating}|${b.courseSuggestion?.courses?.length || 0}`).join(',')]);
 
   const startEdit = (category: string, field: string, currentValue: string, buttonElement?: HTMLButtonElement) => {
     // Store the button element for focus restoration
