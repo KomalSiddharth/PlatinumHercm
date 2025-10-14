@@ -4,6 +4,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, isAdmin } from "./replitAuth";
 import { fetchCourseData, findMatchingCourse, recommendCourses, fetchEnhancedCourseData } from "./googleSheets";
+import { parseCourseCSV } from "./csvCourseParser";
 import { recommendCoursesRequestSchema, insertCourseVideoSchema } from "@shared/schema";
 import { getAIRecommendations, generateAffirmation } from "./aiRecommendations";
 import { generateHRCMWeeklyPDF, generateMonthlyProgressPDF } from "./pdfExport";
@@ -881,13 +882,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Category is required" });
       }
       
-      // Get user's sheet URL or use default
-      const userId = req.session.userEmail || (req.user?.claims?.sub);
-      const user = userId ? await storage.getUser(userId) : null;
-      const sheetUrl = user?.courseSheetUrl || "https://docs.google.com/spreadsheets/d/1pZaS2wnzwgk6VqB7KvchX2bfCmucvrhTf3Q6qAJG7Cw/edit?gid=314426355#gid=314426355";
-      
-      // Fetch courses from Google Sheets
-      const courses = await fetchEnhancedCourseData(sheetUrl);
+      // Fetch courses from CSV file
+      const courses = await parseCourseCSV();
       
       // Get AI-powered recommendations (get top 1)
       const recommendations = await getAIRecommendations(courses, {
