@@ -48,27 +48,32 @@ The dashboard features a clean, responsive design with "New York" style shadcn/u
 
 ## Recent Changes
 
-### October 14, 2025 - HRCM History Inline Display
+### October 14, 2025 - Auto-Visible Date-Based HRCM History
 
-**HRCM History Section Redesign**
-- Removed Weekly Progress Analytics dialog completely
-- Removed "View History" button from HRCM table header
-- Added inline HRCM History section displayed below Achievements & Badges section
-- Shows complete historical snapshots of all saved weeks
+**Date-Wise Snapshot System**
+- Every HRCM table save creates a new timestamped snapshot (instead of updating existing week)
+- Multiple snapshots can exist per week, each with unique date/time stamp
+- Backend stores all snapshots sorted by createdAt timestamp
+- Complete edit history preserved with exact date and time for every save
+
+**HRCM History Section - Auto-Visible Design**
+- Inline section displayed below Achievements & Badges (no separate dialog/button required)
+- **Automatic Display**: History table automatically visible on page load without clicking
+- **Auto-Selection**: Newest snapshot automatically selected and displayed when page loads
+- **Smart Loading States**: Shows "Loading history..." while fetching, prevents flash of empty messages
 
 **History Display Features:**
-- Week Timeline: Interactive buttons showing all saved weeks with progress badges
-- Trend Indicators: Visual icons (up/down/neutral) showing week-over-week progress changes
-- Week Snapshot Table: Exact replica of HRCM table structure for selected week
-- Color-Coded Progress: Green (≥80%), Amber (≥50%), Red (<50%)
-- Read-Only Checklists: Disabled checkboxes showing historical completion status
+- **Snapshot Timeline**: Numbered buttons (#1, #2, #3...) showing all saves chronologically (oldest → newest, left to right)
+- **Date/Time Labels**: Each snapshot shows formatted date/time (e.g., "Oct 14, 2025 - 8:22 AM")
+- **Progress Badges**: Color-coded badges on timeline (Green ≥80%, Amber ≥50%, Red <50%)
+- **Snapshot Table**: Complete HRCM data replica showing: Rating, Problems, Feelings, Beliefs/Reasons, Actions, AI Course, Checklist (3 items), Progress
+- **Read-Only Checklists**: Disabled checkboxes showing historical completion status
 
 **User Experience:**
-- Click week button to toggle snapshot view
-- Timeline shows overall progress percentage for each week
-- Gradient orange/amber background for distinct visual section
-- Empty state message when no historical data exists
-- Snapshots show: Rating, Problems, Feelings, Beliefs/Reasons, Actions, AI Course, Checklist (3 items), Progress
+- History table immediately visible with newest snapshot displayed (no button clicks needed)
+- Click timeline buttons to view different snapshots
+- Gradient orange/amber background for visual distinction
+- Each save creates permanent snapshot record with exact timestamp
 
 ### October 14, 2025 - Rating Increment Constraint System
 
