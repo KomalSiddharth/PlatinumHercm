@@ -1235,17 +1235,15 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                   </Badge>
                 </TableCell>
 
-                {/* Next Week - Rating (Click to set via Standards) */}
+                {/* Next Week - Rating (Auto-calculated: Current + 1, Locked) */}
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top">
                   <div className="flex flex-col items-center gap-1">
-                    <Button
-                      variant="outline"
-                      onClick={() => handleOpenStandardsDialog(belief.category)}
-                      className="w-16 h-9 text-center font-semibold"
-                      data-testid={`button-next-${belief.category.toLowerCase()}-rating`}
+                    <div
+                      className="w-16 h-9 flex items-center justify-center text-center font-semibold border-2 border-muted bg-muted/20 rounded-md text-muted-foreground cursor-not-allowed"
+                      data-testid={`text-next-${belief.category.toLowerCase()}-rating`}
                     >
-                      {belief.targetRating}/10
-                    </Button>
+                      {(belief.currentRating || 0) + 1}/10
+                    </div>
                     {ratingCaps && ratingProgression && (() => {
                       const categoryLower = belief.category.toLowerCase();
                       const maxRating = ratingCaps[categoryLower as keyof typeof ratingCaps] || 7;
