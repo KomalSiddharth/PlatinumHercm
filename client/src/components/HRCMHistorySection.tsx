@@ -163,7 +163,7 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
   const displaySnapshots = latestSnapshotsByWeek.sort((a, b) => a.weekNumber - b.weekNumber);
 
   return (
-    <div className="bg-gradient-to-br from-rose-50/80 to-pink-50/80 dark:from-rose-950/20 dark:to-pink-950/20 p-6 rounded-lg border-2 border-red-800 dark:border-red-900 shadow-lg" data-testid="section-hercm-history">
+    <div className="bg-gradient-to-br from-blue-50/80 to-cyan-50/80 dark:from-blue-950/20 dark:to-cyan-950/20 p-6 rounded-lg border-2 border-blue-800 dark:border-blue-900 shadow-lg" data-testid="section-hercm-history">
       <div className="space-y-6">
         <div>
           <h2 className="text-3xl font-bold" style={{ color: '#00008c' }}>
