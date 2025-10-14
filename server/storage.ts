@@ -166,22 +166,26 @@ export class DatabaseStorage implements IStorage {
 
   // HERCM Week operations
   async getHercmWeek(userId: string, weekNumber: number): Promise<HercmWeek | undefined> {
+    // Get the LATEST snapshot for this week number (for displaying current week)
     const [week] = await db
       .select()
       .from(hercmWeeks)
       .where(and(
         eq(hercmWeeks.userId, userId),
         eq(hercmWeeks.weekNumber, weekNumber)
-      ));
+      ))
+      .orderBy(desc(hercmWeeks.createdAt))
+      .limit(1);
     return week;
   }
 
   async getHercmWeeksByUser(userId: string): Promise<HercmWeek[]> {
+    // Get ALL snapshots sorted by date (newest first) for history display
     return await db
       .select()
       .from(hercmWeeks)
       .where(eq(hercmWeeks.userId, userId))
-      .orderBy(desc(hercmWeeks.weekNumber));
+      .orderBy(desc(hercmWeeks.createdAt));
   }
 
   async createHercmWeek(weekData: InsertHercmWeek): Promise<HercmWeek> {
