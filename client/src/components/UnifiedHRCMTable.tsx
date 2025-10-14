@@ -1295,15 +1295,33 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
               const currentStandards = categoryBelief?.checklist || [];
               const checkedCount = currentStandards.filter(item => item.checked).length;
               const totalStandards = currentStandards.length;
-              const scaledRating = Math.round((checkedCount / totalStandards) * 10);
+              
+              // Get max rating cap for this category
+              const categoryLower = selectedCategory.toLowerCase();
+              const maxRating = ratingCaps?.[categoryLower as keyof typeof ratingCaps] || 7;
+              
+              // Calculate scaled rating and cap it at maxRating
+              const rawScaledRating = Math.round((checkedCount / totalStandards) * 10);
+              const scaledRating = Math.min(rawScaledRating, maxRating);
+              
+              // Check for progression badge display
+              const weeksAtMax = ratingProgression?.[`${categoryLower}WeeksAtMax` as keyof typeof ratingProgression] || 0;
+              const showProgressionBadge = scaledRating === maxRating && weeksAtMax > 0;
               
               return (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                     <span className="font-semibold">Current {selectedCategory} Rating:</span>
-                    <Badge className="text-lg px-4 py-1" variant="default">
-                      {scaledRating}/10
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge className="text-lg px-4 py-1" variant="default">
+                        {scaledRating}/10
+                      </Badge>
+                      {showProgressionBadge && (
+                        <Badge variant="secondary" className="text-xs px-2 py-0 h-5">
+                          {weeksAtMax}/4 weeks
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                   
                   <div className="text-xs text-muted-foreground text-center">
