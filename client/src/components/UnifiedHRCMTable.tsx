@@ -44,17 +44,15 @@ interface ChecklistItem {
   checked: boolean;
 }
 
-interface CourseModule {
+interface Course {
   id: string;
   name: string;
+  link: string;
   completed: boolean;
 }
 
 interface CourseSuggestion {
-  courseName: string;
-  link: string;
-  matchScore: string;
-  modules: CourseModule[];
+  courses: Course[]; // Rating-based courses (max 7)
 }
 
 interface HRCMBelief {
@@ -97,7 +95,7 @@ const getBlankBeliefs = (): HRCMBelief[] => {
       nextFeelings: '',
       nextWeekTarget: '',
       nextActions: '',
-      checklist: [],
+      checklist: HEALTH_STANDARDS.map(std => ({ ...std })),
       courseSuggestion: null,
       affirmationSuggestion: 'I am healthy, strong, and full of energy. My body deserves care and nourishment.'
     },
@@ -296,60 +294,37 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
     }
   }, [weekNumber, weekData, ratingCaps]);
 
-  // Fetch AI course recommendations
-  const fetchCourseRecommendation = async (category: string, belief: HRCMBelief) => {
-    setLoadingCourses(prev => new Set(prev).add(category));
-
-    try {
-      // Exclude current course to get different recommendations when input changes
-      const excludeCourseNames = belief.courseSuggestion?.courseName 
-        ? [belief.courseSuggestion.courseName] 
-        : [];
-      
-      const response = await apiRequest('POST', '/api/courses/recommend', {
-        category: category,
-        currentRating: belief.currentRating,
-        problems: belief.problems || '',
-        feelings: belief.currentFeelings || '',
-        beliefs: belief.currentBelief || '',
-        actions: belief.currentActions || '',
-        excludeCourseNames: excludeCourseNames,
+  // Toggle course completion checkbox
+  const handleCourseToggle = (category: string, courseId: string) => {
+    setBeliefs(prev => {
+      const updated = prev.map(belief => {
+        if (belief.category === category && belief.courseSuggestion) {
+          const updatedCourses = belief.courseSuggestion.courses.map(course =>
+            course.id === courseId ? { ...course, completed: !course.completed } : course
+          );
+          
+          return {
+            ...belief,
+            courseSuggestion: {
+              courses: updatedCourses
+            }
+          };
+        }
+        return belief;
       });
-
-      const recommendations = await response.json();
       
-      if (recommendations && recommendations.length > 0) {
-        const topCourse = recommendations[0];
-        setBeliefs(prev => prev.map(b => {
-          if (b.category === category) {
-            return { 
-              ...b, 
-              courseSuggestion: {
-                courseName: topCourse.course.courseName,
-                link: topCourse.course.link,
-                matchScore: `${topCourse.score}% match`,
-                modules: [
-                  { id: '1', name: 'Introduction & Overview', completed: false },
-                  { id: '2', name: 'Core Concepts', completed: false },
-                  { id: '3', name: 'Practical Applications', completed: false },
-                  { id: '4', name: 'Advanced Techniques', completed: false },
-                  { id: '5', name: 'Final Assessment', completed: false }
-                ]
-              }
-            };
-          }
-          return b;
-        }));
-      }
-    } catch (error) {
-      console.error('Failed to fetch course recommendation:', error);
-    } finally {
-      setLoadingCourses(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(category);
-        return newSet;
-      });
-    }
+      // Auto-save with updated beliefs (not stale)
+      setTimeout(() => {
+        saveWeekMutation.mutate({
+          weekNumber,
+          month: new Date().getMonth() + 1,
+          year: new Date().getFullYear(),
+          beliefs: updated
+        });
+      }, 500);
+      
+      return updated;
+    });
   };
 
   const weeklyProgress = beliefs.length > 0
@@ -381,36 +356,6 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
             checklist: updatedChecklist,
             currentRating: newRating,
             targetRating: Math.min(newRating + 1, maxRating)
-          };
-        }
-        return belief;
-      });
-      
-      // Auto-save changes to database immediately
-      saveWeekMutation.mutate({
-        weekNumber,
-        year: new Date().getFullYear(),
-        beliefs: updated,
-      });
-      
-      return updated;
-    });
-  };
-
-  const handleCourseModuleToggle = (category: string, moduleId: string) => {
-    setBeliefs(prev => {
-      const updated = prev.map(belief => {
-        if (belief.category === category && belief.courseSuggestion) {
-          const updatedModules = belief.courseSuggestion.modules.map(module =>
-            module.id === moduleId ? { ...module, completed: !module.completed } : module
-          );
-          
-          return {
-            ...belief,
-            courseSuggestion: {
-              ...belief.courseSuggestion,
-              modules: updatedModules
-            }
           };
         }
         return belief;
@@ -614,7 +559,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
     }
   });
 
-  // Get AI course recommendation for a category
+  // Get rating-based AI course recommendations for a category
   const getAICourseRecommendation = async (category: string) => {
     const belief = beliefs.find(b => b.category === category);
     if (!belief) return;
@@ -623,9 +568,9 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
     setLoadingCourses(prev => new Set(prev).add(category));
 
     try {
-      // Exclude current course to provide variety when refreshing
-      const excludeCourseNames = belief.courseSuggestion?.courseName 
-        ? [belief.courseSuggestion.courseName] 
+      // Exclude current courses to provide variety when refreshing
+      const excludeCourseNames = belief.courseSuggestion?.courses
+        ? belief.courseSuggestion.courses.map(c => c.name)
         : [];
         
       const response = await apiRequest('POST', '/api/courses/recommend-single', {
@@ -640,30 +585,22 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
 
       const data = await response.json();
 
-      // Update belief with course suggestion
+      // Update belief with rating-based courses
       setBeliefs(prev => prev.map(b => 
         b.category === category 
           ? { 
               ...b, 
               courseSuggestion: {
-                courseName: data.courseName,
-                link: data.courseLink,
-                matchScore: `${data.score}% match`,
-                modules: [
-                  { id: '1', name: 'Introduction & Overview', completed: false },
-                  { id: '2', name: 'Core Concepts', completed: false },
-                  { id: '3', name: 'Practical Applications', completed: false },
-                  { id: '4', name: 'Advanced Techniques', completed: false },
-                  { id: '5', name: 'Final Assessment', completed: false }
-                ]
+                courses: data.courses || []
               }
             }
           : b
       ));
 
+      const courseCount = data.courses?.length || 0;
       toast({
-        title: "AI Course Recommended",
-        description: `Found: ${data.courseName}`,
+        title: "AI Courses Recommended",
+        description: `Found ${courseCount} course${courseCount !== 1 ? 's' : ''} based on your rating`,
       });
 
       // Auto-save the updated course suggestion
@@ -674,7 +611,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
     } catch (error) {
       console.error('Error getting AI course recommendation:', error);
       toast({
-        title: "Failed to get AI course",
+        title: "Failed to get AI courses",
         description: "Please try again or fill in more HRCM data",
         variant: "destructive"
       });
@@ -812,7 +749,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
     
     // Fetch AI course recommendation if current week field was edited
     if (updatedBelief && ['problems', 'currentFeelings', 'currentBelief', 'currentActions'].includes(field)) {
-      await fetchCourseRecommendation(category, updatedBelief);
+      await getAICourseRecommendation(category);
     }
     
     // Generate fresh affirmation if next week target was edited
@@ -1125,95 +1062,52 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                   )}
                 </TableCell>
 
-                {/* AI Course - Collapsible Design */}
+                {/* AI Course - Rating-based courses with checkboxes */}
                 <TableCell className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10 align-top">
                   {loadingCourses.has(belief.category) ? (
                     <div className="flex items-center gap-2">
                       <Loader2 className="w-4 h-4 animate-spin text-cyan-600" />
                       <span className="text-xs text-muted-foreground">AI analyzing...</span>
                     </div>
-                  ) : belief.courseSuggestion ? (
-                    <Collapsible
-                      open={!collapsedCourses.has(belief.category)}
-                      onOpenChange={(open) => {
-                        setCollapsedCourses(prev => {
-                          const newSet = new Set(prev);
-                          if (open) {
-                            newSet.delete(belief.category);
-                          } else {
-                            newSet.add(belief.category);
-                          }
-                          return newSet;
-                        });
-                      }}
-                    >
-                      <div className="space-y-2">
-                        <CollapsibleTrigger asChild>
-                          <button 
-                            className="w-full flex items-center justify-between gap-2 p-2 rounded-md hover:bg-cyan-100/50 dark:hover:bg-cyan-900/30 transition-colors"
-                            data-testid={`button-toggle-course-${belief.category.toLowerCase()}`}
-                          >
-                            <div className="flex-1 text-left">
-                              <div className="text-xs text-cyan-700 dark:text-cyan-400 font-medium" data-testid={`text-course-${belief.category.toLowerCase()}`}>
-                                {belief.courseSuggestion.courseName}
-                              </div>
-                            </div>
-                            <ChevronDown className={`w-4 h-4 text-cyan-600 dark:text-cyan-400 transition-transform ${!collapsedCourses.has(belief.category) ? 'rotate-180' : ''}`} />
-                          </button>
-                        </CollapsibleTrigger>
-                        
-                        <CollapsibleContent className="space-y-2">
-                          {belief.courseSuggestion.link && (
-                            <a 
-                              href={belief.courseSuggestion.link} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-xs text-blue-600 dark:text-blue-400 underline hover:text-blue-800 dark:hover:text-blue-300 block px-2"
-                              data-testid={`link-course-${belief.category.toLowerCase()}`}
-                            >
-                              🔗 View Course
-                            </a>
-                          )}
-                          
-                          {belief.courseSuggestion?.modules && belief.courseSuggestion.modules.length > 0 && (
-                            <div className="space-y-1 border-t border-cyan-200 dark:border-cyan-800 pt-2 px-2">
-                              <div className="text-xs font-medium text-cyan-600 dark:text-cyan-400">Lessons:</div>
-                              {belief.courseSuggestion.modules.map((module) => (
-                                <div key={module.id} className="flex items-center gap-2">
-                                  <Checkbox
-                                    id={`course-${belief.category}-${module.id}`}
-                                    checked={module.completed}
-                                    onCheckedChange={() => handleCourseModuleToggle(belief.category, module.id)}
-                                    className="h-3 w-3"
-                                    data-testid={`checkbox-module-${belief.category.toLowerCase()}-${module.id}`}
-                                  />
-                                  <label
-                                    htmlFor={`course-${belief.category}-${module.id}`}
-                                    className={`text-xs cursor-pointer ${module.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}
-                                  >
-                                    {module.name}
-                                  </label>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                          
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-6 px-2 text-xs w-full"
-                            onClick={() => getAICourseRecommendation(belief.category)}
-                            data-testid={`button-refresh-course-${belief.category.toLowerCase()}`}
-                          >
-                            <Sparkles className="w-3 h-3 mr-1" />
-                            Refresh Course
-                          </Button>
-                        </CollapsibleContent>
+                  ) : belief.courseSuggestion && belief.courseSuggestion.courses.length > 0 ? (
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-medium text-cyan-600 dark:text-cyan-400">
+                          AI Courses ({belief.courseSuggestion.courses.length})
+                        </span>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-5 px-1 text-xs"
+                          onClick={() => getAICourseRecommendation(belief.category)}
+                          data-testid={`button-refresh-course-${belief.category.toLowerCase()}`}
+                        >
+                          <Sparkles className="w-3 h-3" />
+                        </Button>
                       </div>
-                    </Collapsible>
+                      {belief.courseSuggestion.courses.map((course) => (
+                        <div key={course.id} className="flex items-center gap-2 py-0.5">
+                          <Checkbox
+                            checked={course.completed}
+                            onCheckedChange={() => handleCourseToggle(belief.category, course.id)}
+                            className="h-3 w-3"
+                            data-testid={`checkbox-course-${belief.category.toLowerCase()}-${course.id}`}
+                          />
+                          <a
+                            href={course.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`text-xs hover:underline flex-1 ${course.completed ? 'line-through text-muted-foreground' : 'text-cyan-700 dark:text-cyan-400'}`}
+                            data-testid={`link-course-${belief.category.toLowerCase()}-${course.id}`}
+                          >
+                            {course.name}
+                          </a>
+                        </div>
+                      ))}
+                    </div>
                   ) : (
                     <div className="text-xs text-muted-foreground italic px-2">
-                      Fill triggers to get AI course...
+                      Fill triggers to get AI courses...
                     </div>
                   )}
                 </TableCell>

@@ -866,7 +866,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get single AI course recommendation for HRCM table
+  // Get rating-based AI course recommendations for HRCM table
   app.post('/api/courses/recommend-single', isAuthenticated, async (req: any, res) => {
     try {
       const { category, currentRating, problems, feelings, beliefs, actions, excludeCourseNames } = req.body;
@@ -876,43 +876,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Category is required" });
       }
       
+      // Calculate number of courses based on rating (max 7)
+      const rating = Math.max(1, Math.min(currentRating || 1, 7)); // Clamp between 1-7
+      const numberOfCourses = rating;
+      
       // Fetch courses from CSV file
       const courses = await parseCourseCSV();
       
-      // Get AI-powered recommendations (get top 1)
+      // Get AI-powered recommendations (rating-based count)
       const recommendations = await getAIRecommendations(courses, {
         category,
-        rating: currentRating || 1,
+        rating: rating,
         problems: problems || '',
         feelings: feelings || '',
         beliefs: beliefs || '',
         actions: actions || '',
-      }, 1, excludeCourseNames || []);
+      }, numberOfCourses, excludeCourseNames || []);
       
       if (recommendations.length === 0) {
         return res.json({ 
-          courseName: "No matching course found", 
-          courseLink: "",
-          score: 0,
-          reason: "No courses available for this category"
+          courses: []
         });
       }
       
-      const topRecommendation = recommendations[0];
+      // Map recommendations to course format
+      const mappedCourses = recommendations.map((rec, index) => ({
+        id: `course-${index + 1}`,
+        name: rec.course.courseName,
+        link: rec.course.link,
+        completed: false
+      }));
+      
       res.json({
-        courseName: topRecommendation.course.courseName,
-        courseLink: topRecommendation.course.link,
-        score: topRecommendation.score,
-        reason: topRecommendation.aiInsight,
-        matchReasons: topRecommendation.matchReasons
+        courses: mappedCourses
       });
     } catch (error) {
       console.error("Error getting AI course recommendation:", error);
       res.status(500).json({ 
-        message: "Failed to get course recommendation", 
-        courseName: "Error loading course",
-        courseLink: "",
-        score: 0
+        message: "Failed to get course recommendation",
+        courses: []
       });
     }
   });
