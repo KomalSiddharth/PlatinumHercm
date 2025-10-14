@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,12 +34,31 @@ interface UserActivitySearchProps {
 export default function UserActivitySearch({ apiEndpoint = '/api/team/search-users' }: UserActivitySearchProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [recentUsers, setRecentUsers] = useState<UserActivity[]>([]);
   const { toast } = useToast();
 
   const { data: users, isLoading, error } = useQuery<UserActivity[]>({
     queryKey: [`${apiEndpoint}?name=${searchTerm}`],
     enabled: !!searchTerm,
   });
+
+  // Update recent users when new search results arrive
+  useEffect(() => {
+    if (users && users.length > 0) {
+      setRecentUsers(prevRecent => {
+        // Add new users to the beginning
+        const updated = [...users, ...prevRecent];
+        
+        // Remove duplicates (keep first occurrence)
+        const uniqueUsers = updated.filter((user, index, self) =>
+          index === self.findIndex(u => u.id === user.id)
+        );
+        
+        // Keep only last 2 users
+        return uniqueUsers.slice(0, 2);
+      });
+    }
+  }, [users]);
 
   const handleSearch = () => {
     if (!searchQuery.trim()) {
@@ -118,13 +137,13 @@ export default function UserActivitySearch({ apiEndpoint = '/api/team/search-use
         </Card>
       )}
 
-      {users && users.length > 0 && (
+      {recentUsers.length > 0 && (
         <div className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            Found {users.length} user{users.length > 1 ? 's' : ''}
+            Showing {recentUsers.length} recent search{recentUsers.length > 1 ? 'es' : ''}
           </p>
           
-          {users.map((user) => (
+          {recentUsers.map((user) => (
             <Card key={user.id} className="hover-elevate" data-testid={`card-user-${user.id}`}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">

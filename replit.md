@@ -82,6 +82,8 @@ The dashboard features a clean, responsive design with "New York" style shadcn/u
 - Defaults to `/api/team/search-users` for user dashboard
 - Uses `/api/admin/search-user-by-name` when in admin panel
 - Protected by `isAuthenticated` middleware (team endpoint) or `isAdmin` (admin endpoint)
+- **Search History Limit**: Only shows last 2 unique searched users (most recent searches)
+- Automatically removes duplicates and maintains chronological order
 
 ### October 14, 2025 - Daily Rituals Simplification
 
