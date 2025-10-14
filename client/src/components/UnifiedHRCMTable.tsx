@@ -320,33 +320,44 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
     : 0;
 
   const handleChecklistToggle = (category: string, itemId: string) => {
-    setBeliefs(prev => prev.map(belief => {
-      if (belief.category === category) {
-        const updatedChecklist = belief.checklist.map(item =>
-          item.id === itemId ? { ...item, checked: !item.checked } : item
-        );
-        
-        // Calculate scaled rating out of 10 based on percentage of standards checked
-        const checkedCount = updatedChecklist.filter(item => item.checked).length;
-        const totalStandards = updatedChecklist.length;
-        const calculatedRating = Math.round((checkedCount / totalStandards) * 10);
-        
-        // Get category-specific max rating from API (defaults to 7 if not loaded)
-        const categoryLower = category.toLowerCase();
-        const maxRating = ratingCaps?.[categoryLower as keyof typeof ratingCaps] || 7;
-        
-        // Cap the rating at user's allowed max
-        const newRating = Math.min(calculatedRating, maxRating);
-        
-        return {
-          ...belief,
-          checklist: updatedChecklist,
-          currentRating: newRating,
-          targetRating: Math.min(newRating + 1, maxRating)
-        };
-      }
-      return belief;
-    }));
+    setBeliefs(prev => {
+      const updated = prev.map(belief => {
+        if (belief.category === category) {
+          const updatedChecklist = belief.checklist.map(item =>
+            item.id === itemId ? { ...item, checked: !item.checked } : item
+          );
+          
+          // Calculate scaled rating out of 10 based on percentage of standards checked
+          const checkedCount = updatedChecklist.filter(item => item.checked).length;
+          const totalStandards = updatedChecklist.length;
+          const calculatedRating = Math.round((checkedCount / totalStandards) * 10);
+          
+          // Get category-specific max rating from API (defaults to 7 if not loaded)
+          const categoryLower = category.toLowerCase();
+          const maxRating = ratingCaps?.[categoryLower as keyof typeof ratingCaps] || 7;
+          
+          // Cap the rating at user's allowed max
+          const newRating = Math.min(calculatedRating, maxRating);
+          
+          return {
+            ...belief,
+            checklist: updatedChecklist,
+            currentRating: newRating,
+            targetRating: Math.min(newRating + 1, maxRating)
+          };
+        }
+        return belief;
+      });
+      
+      // Auto-save changes to database immediately
+      saveWeekMutation.mutate({
+        weekNumber,
+        year: new Date().getFullYear(),
+        beliefs: updated,
+      });
+      
+      return updated;
+    });
   };
 
   const handleRatingChange = (category: string, newRating: number) => {
@@ -472,33 +483,44 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
 
   // Toggle a standard and recalculate rating (capped at user's max allowed)
   const handleStandardToggle = (category: string, itemId: string) => {
-    setBeliefs(prev => prev.map(belief => {
-      if (belief.category === category) {
-        const updatedChecklist = belief.checklist.map(item =>
-          item.id === itemId ? { ...item, checked: !item.checked } : item
-        );
-        
-        // Calculate scaled rating out of 10 based on percentage of standards checked
-        const checkedCount = updatedChecklist.filter(item => item.checked).length;
-        const totalStandards = updatedChecklist.length;
-        const calculatedRating = Math.round((checkedCount / totalStandards) * 10);
-        
-        // Get category-specific max rating from API (defaults to 7 if not loaded)
-        const categoryLower = category.toLowerCase();
-        const maxRating = ratingCaps?.[categoryLower as keyof typeof ratingCaps] || 7;
-        
-        // Cap the rating at user's allowed max
-        const newRating = Math.min(calculatedRating, maxRating);
-        
-        return {
-          ...belief,
-          checklist: updatedChecklist,
-          currentRating: newRating,
-          targetRating: Math.min(newRating + 1, maxRating) // Target is +1, capped at user's max (which is capped at 8)
-        };
-      }
-      return belief;
-    }));
+    setBeliefs(prev => {
+      const updated = prev.map(belief => {
+        if (belief.category === category) {
+          const updatedChecklist = belief.checklist.map(item =>
+            item.id === itemId ? { ...item, checked: !item.checked } : item
+          );
+          
+          // Calculate scaled rating out of 10 based on percentage of standards checked
+          const checkedCount = updatedChecklist.filter(item => item.checked).length;
+          const totalStandards = updatedChecklist.length;
+          const calculatedRating = Math.round((checkedCount / totalStandards) * 10);
+          
+          // Get category-specific max rating from API (defaults to 7 if not loaded)
+          const categoryLower = category.toLowerCase();
+          const maxRating = ratingCaps?.[categoryLower as keyof typeof ratingCaps] || 7;
+          
+          // Cap the rating at user's allowed max
+          const newRating = Math.min(calculatedRating, maxRating);
+          
+          return {
+            ...belief,
+            checklist: updatedChecklist,
+            currentRating: newRating,
+            targetRating: Math.min(newRating + 1, maxRating) // Target is +1, capped at user's max (which is capped at 8)
+          };
+        }
+        return belief;
+      });
+      
+      // Auto-save changes to database immediately
+      saveWeekMutation.mutate({
+        weekNumber,
+        year: new Date().getFullYear(),
+        beliefs: updated,
+      });
+      
+      return updated;
+    });
   };
 
   // Mutation for saving week data to database
