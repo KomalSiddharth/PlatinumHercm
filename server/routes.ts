@@ -876,9 +876,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Category is required" });
       }
       
-      // Calculate number of courses based on rating (max 7)
+      // Calculate number of courses based on rating (inverse relationship)
+      // Lower rating = More courses (beginners need more options)
+      // Higher rating = Less courses (advanced need focused learning)
       const rating = Math.max(1, Math.min(currentRating || 1, 7)); // Clamp between 1-7
-      const numberOfCourses = rating;
+      
+      let numberOfCourses: number;
+      if (rating < 3) {
+        numberOfCourses = 5; // Rating 1-2: 5 courses
+      } else if (rating < 5) {
+        numberOfCourses = 3; // Rating 3-4: 3 courses
+      } else {
+        numberOfCourses = 2; // Rating 5-7: 2 courses
+      }
       
       // Fetch courses from CSV file
       const courses = await parseCourseCSV();
@@ -899,13 +909,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Map recommendations to course format
-      const mappedCourses = recommendations.map((rec, index) => ({
-        id: `course-${index + 1}`,
-        name: rec.course.courseName,
-        link: rec.course.link,
-        completed: false
-      }));
+      // Map recommendations to course format and ensure uniqueness
+      const seenCourseNames = new Set<string>();
+      const mappedCourses = recommendations
+        .filter(rec => {
+          // Remove duplicates by course name
+          if (seenCourseNames.has(rec.course.courseName)) {
+            return false;
+          }
+          seenCourseNames.add(rec.course.courseName);
+          return true;
+        })
+        .map((rec, index) => ({
+          id: `course-${index + 1}`,
+          name: rec.course.courseName,
+          link: rec.course.link,
+          completed: false
+        }));
       
       res.json({
         courses: mappedCourses
