@@ -84,6 +84,21 @@ The dashboard features a clean, responsive design with "New York" style shadcn/u
 - **Historical Edit Protection**: Editing old weeks does not affect progression once a later week has been saved
 - **Strict Progression**: Users must genuinely maintain max rating for 4 consecutive weeks to unlock the next level
 
+### October 14, 2025 - Weekly Progress Analytics Redesign
+
+**Redesigned Weekly Progress Analytics**
+- Removed monthly view and month selector from analytics dialog
+- Now displays all weeks data instead of monthly grouping
+- Changed title from "Monthly Progress Analytics" to "Weekly Progress Analytics"
+- Charts show complete historical data across all weeks
+- Improvement summary now shows "Overall Improvement Summary" instead of monthly
+
+**User Experience:**
+- Single view of all progress without month switching
+- Cleaner interface with automatic updates
+- Historical data visualization across entire tracking period
+- Progressive improvement metrics from first to latest week
+
 ### October 14, 2025 - Team Activity Search in User Dashboard
 
 **New Team Activity Feature in User Dashboard**
