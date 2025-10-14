@@ -57,6 +57,16 @@ export default function ProfileModal({
       method: 'POST',
       credentials: 'include',
     });
+    
+    if (!response.ok) {
+      toast({
+        title: "Upload Error",
+        description: "Failed to prepare file upload. Please try again.",
+        variant: "destructive",
+      });
+      throw new Error('Failed to get upload URL');
+    }
+    
     const data = await response.json();
     return {
       method: 'PUT' as const,
