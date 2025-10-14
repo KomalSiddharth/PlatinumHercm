@@ -675,20 +675,21 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
     }
   }, [allWeeksData, weekNumber, onWeekChange, beliefs, toast]);
 
-  // Auto-trigger: Get AI course recommendation when user fills triggers
+  // Auto-trigger: Get AI course recommendation based on rating (triggers optional)
   useEffect(() => {
     beliefs.forEach((belief) => {
-      // Check if user has filled any trigger data and no course exists yet
-      const hasTriggers = belief.problems || belief.currentFeelings || belief.currentBelief || belief.currentActions;
+      // Check if category has rating but no course exists yet
+      const hasRating = belief.currentRating > 0;
       const noCourse = !belief.courseSuggestion;
       const notLoading = !loadingCourses.has(belief.category);
       
-      if (hasTriggers && noCourse && notLoading) {
-        // Auto-fetch course recommendation
+      // Auto-fetch if has rating and no course (triggers are now optional)
+      if (hasRating && noCourse && notLoading) {
+        // Auto-fetch course recommendation based on rating
         getAICourseRecommendation(belief.category);
       }
     });
-  }, [beliefs.map(b => `${b.problems}|${b.currentFeelings}|${b.currentBelief}|${b.currentActions}`).join(',')]);
+  }, [beliefs.map(b => `${b.currentRating}|${b.problems}|${b.currentFeelings}|${b.currentBelief}|${b.currentActions}`).join(',')]);
 
   const startEdit = (category: string, field: string, currentValue: string, buttonElement?: HTMLButtonElement) => {
     // Store the button element for focus restoration
@@ -1106,9 +1107,16 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                       ))}
                     </div>
                   ) : (
-                    <div className="text-xs text-muted-foreground italic px-2">
-                      Fill triggers to get AI courses...
-                    </div>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 px-2 text-xs w-full"
+                      onClick={() => getAICourseRecommendation(belief.category)}
+                      data-testid={`button-get-courses-${belief.category.toLowerCase()}`}
+                    >
+                      <Sparkles className="w-3 h-3 mr-1" />
+                      Get AI Courses
+                    </Button>
                   )}
                 </TableCell>
 

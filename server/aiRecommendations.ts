@@ -52,7 +52,11 @@ export async function getAIRecommendations(
     actionSuggestions: course.actionSuggestions.join(', ')
   }));
 
-  const prompt = `You are an expert life coach analyzing a user's HERCM (Health, Relationship, Career, Money) data to recommend the best courses.
+  // Check if user has filled triggers (problems/feelings/beliefs/actions)
+  const hasUserInput = hercmData.problems || hercmData.feelings || hercmData.beliefs || hercmData.actions;
+  
+  const prompt = hasUserInput 
+    ? `You are an expert life coach analyzing a user's HERCM (Health, Relationship, Career, Money) data to recommend the best courses.
 
 **User's Current State (${hercmData.category}):**
 - Current Rating: ${hercmData.rating}/10
@@ -79,6 +83,40 @@ Return ONLY valid JSON in this exact format:
     {
       "courseId": 0,
       "score": 95,
+      "reasons": ["reason 1", "reason 2"],
+      "insight": "personalized insight here"
+    }
+  ]
+}`
+    : `You are an expert life coach recommending courses based on rating and category.
+
+**User's Current State:**
+- Category: ${hercmData.category}
+- Current Rating: ${hercmData.rating}/10
+- User has not filled in specific problems yet
+
+**Available Courses:**
+${JSON.stringify(coursesSummary, null, 2)}
+
+**Task:**
+Since the user is at rating ${hercmData.rating}/10 in ${hercmData.category}, recommend the top ${topN} most popular and foundational courses that would help someone at this level improve.
+
+For beginners (rating 1-3), focus on foundational courses.
+For intermediate (rating 4-6), focus on skill-building courses.
+For advanced (rating 7+), focus on mastery and optimization courses.
+
+For each recommended course, provide:
+1. Course ID (from the list above)
+2. Match score (70-90) - based on category match and level appropriateness
+3. 2-3 reasons why this course is good for someone at this rating level
+4. A motivating insight explaining how this course will help them progress
+
+Return ONLY valid JSON in this exact format:
+{
+  "recommendations": [
+    {
+      "courseId": 0,
+      "score": 85,
       "reasons": ["reason 1", "reason 2"],
       "insight": "personalized insight here"
     }
