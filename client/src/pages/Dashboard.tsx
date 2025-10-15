@@ -377,6 +377,16 @@ export default function Dashboard() {
     select: (data: any) => data.modules || []
   });
 
+  // Fetch Career Mastery modules
+  const { data: careerMasteryModules = [] } = useQuery<Array<{
+    id: string;
+    title: string;
+    url?: string;
+  }>>({
+    queryKey: ['/api/courses/career-mastery-modules'],
+    select: (data: any) => data.modules || []
+  });
+
   // Track completed modules for each course
   const [completedModules, setCompletedModules] = useState<Record<string, string[]>>({
     'health-mastery': []
