@@ -18,6 +18,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import WeekComparison from './WeekComparison';
 import HRCMHistoryModal from './HRCMHistoryModal';
+import { EnhancedAnalyticsDialog } from './EnhancedAnalyticsDialog';
 import {
   Dialog,
   DialogContent,
@@ -1710,71 +1711,12 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
         </DialogContent>
       </Dialog>
 
-      {/* Weekly Progress Analytics Dialog */}
-      <Dialog open={progressOpen} onOpenChange={setProgressOpen}>
-        <DialogContent className="sm:max-w-3xl">
-          <DialogHeader>
-            <DialogTitle className="text-2xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Week {weekNumber} - Progress Analytics
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-6 py-4">
-            {/* Overall Progress */}
-            <div className="text-center">
-              <div className="text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                {weeklyProgress}%
-              </div>
-              <p className="text-sm text-muted-foreground mt-2">Overall Weekly Progress</p>
-            </div>
-
-            {/* Individual HRCM Progress Bars */}
-            <div className="space-y-4">
-              {beliefs.map((belief) => {
-                const progress = calculateProgress(belief.checklist);
-                return (
-                  <div key={belief.category} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">{belief.category}</span>
-                      <span className="text-sm font-bold">{progress}%</span>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-4 overflow-hidden">
-                      <div 
-                        className={`h-full transition-all duration-500 ${
-                          belief.category === 'Health' ? 'bg-gradient-to-r from-red-500 to-orange-500' :
-                          belief.category === 'Relationship' ? 'bg-gradient-to-r from-blue-500 to-cyan-500' :
-                          belief.category === 'Career' ? 'bg-gradient-to-r from-purple-500 to-pink-500' :
-                          'bg-gradient-to-r from-green-500 to-emerald-500'
-                        }`}
-                        style={{ width: `${progress}%` }}
-                      />
-                    </div>
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>{belief.checklist.filter(c => c.checked).length}/{belief.checklist.length} standards completed</span>
-                      <span>Rating: {belief.currentRating}/10</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Summary Stats */}
-            <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-              <div className="text-center p-4 bg-muted/30 rounded-lg">
-                <div className="text-2xl font-bold text-primary">
-                  {beliefs.reduce((sum, b) => sum + b.checklist.filter(c => c.checked).length, 0)}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">Total Standards Completed</p>
-              </div>
-              <div className="text-center p-4 bg-muted/30 rounded-lg">
-                <div className="text-2xl font-bold text-accent">
-                  {(beliefs.reduce((sum, b) => sum + b.currentRating, 0) / beliefs.length).toFixed(1)}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">Average Rating</p>
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Enhanced Weekly Progress Analytics Dialog */}
+      <EnhancedAnalyticsDialog
+        open={progressOpen}
+        onOpenChange={setProgressOpen}
+        currentWeek={weekNumber}
+      />
 
       {/* HRCM History Modal */}
       <HRCMHistoryModal 
