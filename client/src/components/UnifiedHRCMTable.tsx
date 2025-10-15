@@ -223,6 +223,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
   const [showStandardsDialog, setShowStandardsDialog] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [collapsedCourses, setCollapsedCourses] = useState<Set<string>>(new Set());
+  const [unifiedAssignment, setUnifiedAssignment] = useState<AssignmentLesson[]>([]);
   const lastFocusedButton = useRef<HTMLButtonElement | null>(null);
   const hasAutoProgressed = useRef<Set<number>>(new Set()); // Track which weeks have been auto-progressed
   const { toast} = useToast();
@@ -272,9 +273,12 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
     if (weekData?.beliefs) {
       // Use saved ratings from database - DO NOT recalculate based on checklist
       setBeliefs(weekData.beliefs);
+      // Load unified assignment from week data
+      setUnifiedAssignment((weekData as any).unifiedAssignment || []);
     } else {
       // No database data - use demo/blank template immediately (don't wait for loading)
       setBeliefs(getWeekBeliefs(weekNumber));
+      setUnifiedAssignment([]);
     }
   }, [weekNumber, weekData, ratingCaps]);
 
@@ -696,6 +700,28 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
       
       return updated;
     });
+  };
+
+  // Toggle unified assignment lesson completion
+  const handleUnifiedAssignmentToggle = async (lessonId: string) => {
+    try {
+      const response = await apiRequest('POST', '/api/unified-assignment/toggle-lesson', {
+        weekNumber,
+        lessonId
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setUnifiedAssignment(data.assignment || []);
+      }
+    } catch (error) {
+      console.error('Error toggling unified assignment lesson:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update lesson',
+        variant: 'destructive'
+      });
+    }
   };
 
   // Toggle result checklist item
@@ -1513,96 +1539,41 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                   )}
                 </TableCell>
 
-                {/* Assignment - AI Course Recommendations + Imported Lessons */}
-                <TableCell className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10 align-top">
-                  {loadingAssignments && loadingAssignments.has(belief.category) ? (
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin text-cyan-600" />
-                      <span className="text-xs text-muted-foreground">AI analyzing...</span>
-                    </div>
-                  ) : belief.assignment && (belief.assignment.courses?.length > 0 || belief.assignment.lessons?.length > 0) ? (
-                    <div className="space-y-2">
-                      {/* AI Courses */}
-                      {belief.assignment.courses && belief.assignment.courses.length > 0 && (
-                        <div>
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-medium text-cyan-600 dark:text-cyan-400">
-                              AI Courses ({belief.assignment.courses.length})
-                            </span>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-5 px-1 text-xs"
-                              onClick={() => getAssignmentRecommendation(belief.category)}
-                              data-testid={`button-refresh-assignment-${belief.category.toLowerCase()}`}
+                {/* Unified Assignment Column - Show only for first row with rowspan */}
+                {belief.category === 'Health' && (
+                  <TableCell rowSpan={4} className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10 align-top">
+                    {unifiedAssignment && unifiedAssignment.length > 0 ? (
+                      <div className="space-y-1">
+                        <div className="text-xs font-medium text-cyan-600 dark:text-cyan-400 mb-2">
+                          Course Lessons ({unifiedAssignment.length})
+                        </div>
+                        {unifiedAssignment.map((lesson) => (
+                          <div key={lesson.id} className="flex items-center gap-2 py-0.5">
+                            <Checkbox
+                              checked={lesson.completed}
+                              onCheckedChange={() => handleUnifiedAssignmentToggle(lesson.id)}
+                              className="h-3 w-3"
+                              data-testid={`checkbox-unified-assignment-${lesson.id}`}
+                            />
+                            <a
+                              href={lesson.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs hover:underline flex-1 text-cyan-700 dark:text-cyan-400"
+                              data-testid={`link-unified-assignment-${lesson.id}`}
                             >
-                              <Sparkles className="w-3 h-3" />
-                            </Button>
+                              {lesson.lessonName}
+                            </a>
                           </div>
-                          
-                          {belief.assignment.courses.map((course) => (
-                            <div key={course.id} className="flex items-center gap-2 py-0.5">
-                              <Checkbox
-                                checked={course.completed}
-                                onCheckedChange={() => handleAssignmentCourseToggle(belief.category, course.id)}
-                                className="h-3 w-3"
-                                data-testid={`checkbox-assignment-course-${belief.category.toLowerCase()}-${course.id}`}
-                              />
-                              <a
-                                href={course.link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-xs hover:underline flex-1 text-cyan-700 dark:text-cyan-400"
-                                data-testid={`link-assignment-course-${belief.category.toLowerCase()}-${course.id}`}
-                              >
-                                {course.courseName}
-                              </a>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Imported Lessons */}
-                      {belief.assignment.lessons && belief.assignment.lessons.length > 0 && (
-                        <div className="border-t pt-2">
-                          <div className="text-xs font-medium text-purple-600 dark:text-purple-400 mb-1">
-                            Course Lessons ({belief.assignment.lessons.length})
-                          </div>
-                          {belief.assignment.lessons.map((lesson) => (
-                            <div key={lesson.id} className="flex items-center gap-2 py-0.5">
-                              <Checkbox
-                                checked={lesson.completed}
-                                onCheckedChange={() => handleAssignmentLessonToggle(belief.category, lesson.id)}
-                                className="h-3 w-3"
-                                data-testid={`checkbox-assignment-lesson-${belief.category.toLowerCase()}-${lesson.id}`}
-                              />
-                              <a
-                                href={lesson.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-xs hover:underline flex-1 text-purple-700 dark:text-purple-400"
-                                data-testid={`link-assignment-lesson-${belief.category.toLowerCase()}-${lesson.id}`}
-                              >
-                                {lesson.lessonName}
-                              </a>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => getAssignmentRecommendation(belief.category)}
-                      className="text-xs h-7"
-                      data-testid={`button-get-assignment-${belief.category.toLowerCase()}`}
-                    >
-                      <Sparkles className="w-3 h-3 mr-1" />
-                      Get AI Courses
-                    </Button>
-                  )}
-                </TableCell>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-xs text-muted-foreground italic text-center py-4">
+                        No assignments yet. Check lessons in Course Tracker to add them here.
+                      </div>
+                    )}
+                  </TableCell>
+                )}
 
                 {/* Checklist */}
                 <TableCell className="p-2 bg-purple-50/30 dark:bg-purple-950/10 align-top">
