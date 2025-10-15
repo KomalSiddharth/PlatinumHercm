@@ -31,6 +31,11 @@ The dashboard employs a clean, responsive "New York" style design using shadcn/u
 - **Strict Authentication** (Oct 2025): Dashboard and Admin Panel are now strictly protected. Users cannot access these pages via direct URL without authentication - automatic redirect to login page enforced. Admin Panel accessible only to admin users; regular users are redirected to dashboard.
 - **Date-Based HRCM History**: Every HRCM table save creates a new timestamped snapshot, providing a complete edit history. The history section is automatically visible on page load with the newest snapshot selected.
 - **Rating Increment Constraint System**: Users start with a max rating of 7, which progressively increases to 8 after maintaining a rating of 7 for 4 consecutive weeks. The maximum rating is permanently capped at 8 - users can never achieve a rating of 9 or 10, regardless of checklist completion. This is tracked independently per category. The UI displays ratings out of 10, but the backend enforces the hard cap at 8.
+- **Platinum Standards (4 per area)**: Each HRCM area has exactly 4 predefined platinum standards for consistency:
+  - **Health**: Eat clean meals, Drink 8–10 glasses water, Move 30 mins daily, Sleep 7–8 hrs no late screens
+  - **Relationship**: Communicated with respect and kindness, Practiced active and empathetic listening, Showed appreciation and gratitude to others, Resolved conflicts peacefully and constructively
+  - **Career**: Added significant value in all work tasks, Focused on serving others and contributing positively, Invested time in developing professional skills, Maintained positive and productive work mindset
+  - **Money**: Practiced abundance mindset and generosity, Developed money-making skills and opportunities, Made wise and conscious financial decisions, Expressed gratitude for financial blessings
 - **Weekly Progress Analytics**: Redesigned analytics focus on weekly data across all weeks, including overall progress trends, HRCM area comparisons, and current week progress with graphical bars. Monthly views have been removed.
 - **Team Activity Search**: A new "Team Activity" tab in the user dashboard allows users to search and view team members' HRCM progress with compact user cards.
 - **Simplified Daily Rituals**: Rituals are always active, cannot be edited after creation, and automatically allocate 10 points.

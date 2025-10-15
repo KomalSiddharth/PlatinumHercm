@@ -139,7 +139,7 @@ const getBlankBeliefs = (): HRCMBelief[] => {
       nextFeelings: '',
       nextWeekTarget: '',
       nextActions: '',
-      checklist: [],
+      checklist: CAREER_STANDARDS.map(std => ({ ...std })),
       assignment: { courses: [], lessons: [] }
     },
     {
@@ -154,7 +154,7 @@ const getBlankBeliefs = (): HRCMBelief[] => {
       nextFeelings: '',
       nextWeekTarget: '',
       nextActions: '',
-      checklist: [],
+      checklist: MONEY_STANDARDS.map(std => ({ ...std })),
       assignment: { courses: [], lessons: [] }
     }
   ];
@@ -185,10 +185,10 @@ const getProgressColor = (progress: number) => {
 
 // Health Standards - Predefined checklist for Health category (4 standards)
 const HEALTH_STANDARDS: ChecklistItem[] = [
-  { id: 'health-std-1', text: 'Started day with healthy routine (water, exercise, breakfast)', checked: false },
-  { id: 'health-std-2', text: 'Completed daily physical activity goals', checked: false },
-  { id: 'health-std-3', text: 'Maintained positive emotional state throughout the day', checked: false },
-  { id: 'health-std-4', text: 'Practiced self-care and wellness habits', checked: false },
+  { id: 'health-std-1', text: 'Eat clean meals', checked: false },
+  { id: 'health-std-2', text: 'Drink 8–10 glasses water', checked: false },
+  { id: 'health-std-3', text: 'Move 30 mins daily', checked: false },
+  { id: 'health-std-4', text: 'Sleep 7–8 hrs, no late screens', checked: false },
 ];
 
 // Relationship Standards - Predefined checklist for Relationship category (4 standards)
@@ -342,8 +342,8 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
           // Check if this is the old format by looking for health-std-* IDs
           const hasNewFormat = existingChecklist.some(item => item.id.startsWith('health-std-'));
           
-          if (!hasNewFormat || existingChecklist.length !== 10) {
-            // Replace with new 10 health standards
+          if (!hasNewFormat || existingChecklist.length !== 4) {
+            // Replace with new 4 health standards
             return {
               ...b,
               checklist: HEALTH_STANDARDS.map(std => ({ ...std })),
@@ -365,8 +365,8 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
           // Check if this is the old format by looking for relationship-std-* IDs
           const hasNewFormat = existingChecklist.some(item => item.id.startsWith('relationship-std-'));
           
-          if (!hasNewFormat || existingChecklist.length !== 6) {
-            // Replace with new 6 relationship standards
+          if (!hasNewFormat || existingChecklist.length !== 4) {
+            // Replace with new 4 relationship standards
             return {
               ...b,
               checklist: RELATIONSHIP_STANDARDS.map(std => ({ ...std })),
@@ -388,8 +388,8 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
           // Check if this is the old format by looking for career-std-* IDs
           const hasNewFormat = existingChecklist.some(item => item.id.startsWith('career-std-'));
           
-          if (!hasNewFormat || existingChecklist.length !== 5) {
-            // Replace with new 5 career standards
+          if (!hasNewFormat || existingChecklist.length !== 4) {
+            // Replace with new 4 career standards
             return {
               ...b,
               checklist: CAREER_STANDARDS.map(std => ({ ...std })),
@@ -411,8 +411,8 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
           // Check if this is the old format by looking for money-std-* IDs
           const hasNewFormat = existingChecklist.some(item => item.id.startsWith('money-std-'));
           
-          if (!hasNewFormat || existingChecklist.length !== 5) {
-            // Replace with new 5 money standards
+          if (!hasNewFormat || existingChecklist.length !== 4) {
+            // Replace with new 4 money standards
             return {
               ...b,
               checklist: MONEY_STANDARDS.map(std => ({ ...std })),
