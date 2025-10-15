@@ -157,12 +157,25 @@ const getWeekBeliefs = (week: number): HRCMBelief[] => {
   return getBlankBeliefs();
 };
 
-const calculateProgress = (checklist: ChecklistItem[]): number => {
-  if (checklist.length === 0) return 0;
-  const completed = checklist.filter(item => item.checked).length;
-  const percentage = Math.round((completed / checklist.length) * 100);
+const calculateProgress = (checklist: ChecklistItem[], courseSuggestion?: { courses: Array<{ completed: boolean }> } | null): number => {
+  // Calculate checklist progress
+  const checklistProgress = checklist.length > 0 
+    ? (checklist.filter(item => item.checked).length / checklist.length) * 100
+    : 0;
+  
+  // Calculate AI course completion progress
+  const courseProgress = courseSuggestion?.courses && courseSuggestion.courses.length > 0
+    ? (courseSuggestion.courses.filter(course => course.completed).length / courseSuggestion.courses.length) * 100
+    : 0;
+  
+  // Combine both progresses (average of checklist and courses)
+  const totalItems = (checklist.length > 0 ? 1 : 0) + (courseSuggestion?.courses?.length ? 1 : 0);
+  const combinedProgress = totalItems > 0
+    ? Math.round((checklistProgress + courseProgress) / totalItems)
+    : 0;
+  
   // Cap progress at 70% maximum
-  return Math.min(percentage, 70);
+  return Math.min(combinedProgress, 70);
 };
 
 const getProgressColor = (progress: number) => {
@@ -328,7 +341,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
   };
 
   const weeklyProgress = beliefs.length > 0
-    ? Math.round(beliefs.reduce((sum, b) => sum + calculateProgress(b.checklist), 0) / beliefs.length)
+    ? Math.round(beliefs.reduce((sum, b) => sum + calculateProgress(b.checklist, b.courseSuggestion), 0) / beliefs.length)
     : 0;
 
   const handleChecklistToggle = (category: string, itemId: string) => {
@@ -1153,8 +1166,8 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
 
                 {/* Progress */}
                 <TableCell className="p-2 text-center bg-emerald-50/30 dark:bg-emerald-950/10 align-top">
-                  <Badge className={getProgressColor(calculateProgress(belief.checklist))} data-testid={`badge-progress-${belief.category.toLowerCase()}`}>
-                    {calculateProgress(belief.checklist)}%
+                  <Badge className={getProgressColor(calculateProgress(belief.checklist, belief.courseSuggestion))} data-testid={`badge-progress-${belief.category.toLowerCase()}`}>
+                    {calculateProgress(belief.checklist, belief.courseSuggestion)}%
                   </Badge>
                 </TableCell>
               </TableRow>
@@ -1372,8 +1385,8 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
 
                 {/* Progress */}
                 <TableCell className="p-2 text-center bg-emerald-50/30 dark:bg-emerald-950/10 align-top">
-                  <Badge className={getProgressColor(calculateProgress(belief.checklist))} data-testid={`badge-next-progress-${belief.category.toLowerCase()}`}>
-                    {calculateProgress(belief.checklist)}%
+                  <Badge className={getProgressColor(calculateProgress(belief.checklist, belief.courseSuggestion))} data-testid={`badge-next-progress-${belief.category.toLowerCase()}`}>
+                    {calculateProgress(belief.checklist, belief.courseSuggestion)}%
                   </Badge>
                 </TableCell>
               </TableRow>
