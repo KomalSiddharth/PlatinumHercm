@@ -864,9 +864,9 @@ export default function Dashboard() {
       progressPercent: 0,
       category: 'default',
       lessons: [
-        { id: 'db-1', title: 'Demartini Method Part 1', url: 'https://www.miteshkhatri.com/DemartiniMethod', completed: false },
-        { id: 'db-2', title: 'Demartini Method Part 2', url: '', completed: false },
-        { id: 'db-3', title: 'Demartini Method Part 3', url: '', completed: false },
+        { id: 'db-1', title: 'Part 1', url: 'https://www.miteshkhatri.com/DemartiniMethod', completed: false },
+        { id: 'db-2', title: 'Part 2', url: 'https://coaching.miteshkhatri.com/products/dr-demartini-breakthrough-follow-up-session-with-imk/categories/2152256524/posts/2165255550', completed: false },
+        { id: 'db-3', title: 'Part 3', url: 'https://coaching.miteshkhatri.com/products/dr-demartini-breakthrough-follow-up-session-with-imk/categories/2152256524/posts/2165255553', completed: false },
       ]
     },
     {
