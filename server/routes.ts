@@ -2481,6 +2481,138 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
     }
   });
 
+  // Unified Assignment Endpoints (single column for all HRCM areas)
+  
+  // Add lesson to unified assignment (auto-add when checked in Course Tracker)
+  app.post('/api/unified-assignment/add-lesson', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const { weekNumber, lesson } = req.body;
+
+      if (!weekNumber || !lesson) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      // Fetch the week by weekNumber
+      const weeks = await storage.getHercmWeeksByUser(userId);
+      const week = weeks.find((w: any) => w.weekNumber === weekNumber);
+      
+      if (!week) {
+        return res.status(404).json({ message: "Week not found" });
+      }
+
+      // Get current unified assignment
+      const currentAssignment = (week.unifiedAssignment as any) || [];
+
+      // Check if lesson already exists
+      const lessonExists = currentAssignment.some((l: any) => l.id === lesson.id);
+      
+      if (lessonExists) {
+        return res.json({ success: true, assignment: currentAssignment, message: "Lesson already in assignment" });
+      }
+
+      // Add lesson to unified assignment
+      const updatedAssignment = [...currentAssignment, { 
+        id: lesson.id,
+        courseId: lesson.courseId,
+        courseName: lesson.courseName,
+        lessonName: lesson.lessonName,
+        url: lesson.url || '',
+        completed: false
+      }];
+
+      // Update the week
+      await storage.updateHercmWeek(week.id, { unifiedAssignment: updatedAssignment });
+
+      res.json({ success: true, assignment: updatedAssignment });
+    } catch (error) {
+      console.error("Error adding lesson to unified assignment:", error);
+      res.status(500).json({ message: "Failed to add lesson" });
+    }
+  });
+
+  // Toggle lesson completion in unified assignment
+  app.post('/api/unified-assignment/toggle-lesson', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const { weekNumber, lessonId } = req.body;
+
+      if (!weekNumber || !lessonId) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      // Fetch the week by weekNumber
+      const weeks = await storage.getHercmWeeksByUser(userId);
+      const week = weeks.find((w: any) => w.weekNumber === weekNumber);
+      
+      if (!week) {
+        return res.status(404).json({ message: "Week not found" });
+      }
+
+      // Get current unified assignment
+      const currentAssignment = (week.unifiedAssignment as any) || [];
+
+      // Toggle the lesson completion
+      const updatedAssignment = currentAssignment.map((lesson: any) => 
+        lesson.id === lessonId ? { ...lesson, completed: !lesson.completed } : lesson
+      );
+
+      // Update the week
+      await storage.updateHercmWeek(week.id, { unifiedAssignment: updatedAssignment });
+
+      res.json({ success: true, assignment: updatedAssignment });
+    } catch (error) {
+      console.error("Error toggling lesson in unified assignment:", error);
+      res.status(500).json({ message: "Failed to toggle lesson" });
+    }
+  });
+
+  // Remove lesson from unified assignment
+  app.post('/api/unified-assignment/remove-lesson', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const { weekNumber, lessonId } = req.body;
+
+      if (!weekNumber || !lessonId) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      // Fetch the week by weekNumber
+      const weeks = await storage.getHercmWeeksByUser(userId);
+      const week = weeks.find((w: any) => w.weekNumber === weekNumber);
+      
+      if (!week) {
+        return res.status(404).json({ message: "Week not found" });
+      }
+
+      // Get current unified assignment
+      const currentAssignment = (week.unifiedAssignment as any) || [];
+
+      // Remove the lesson
+      const updatedAssignment = currentAssignment.filter((lesson: any) => lesson.id !== lessonId);
+
+      // Update the week
+      await storage.updateHercmWeek(week.id, { unifiedAssignment: updatedAssignment });
+
+      res.json({ success: true, assignment: updatedAssignment });
+    } catch (error) {
+      console.error("Error removing lesson from unified assignment:", error);
+      res.status(500).json({ message: "Failed to remove lesson" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
