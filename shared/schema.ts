@@ -117,6 +117,10 @@ export const hercmWeeks = pgTable("hercm_weeks", {
   healthNextActions: varchar("health_next_actions"),
   healthAssignment: jsonb("health_assignment").$type<{ courses: { id: string; courseName: string; link: string; completed: boolean }[]; lessons: { id: string; courseId: string; courseName: string; lessonName: string; url: string; completed: boolean }[] }>(),
   healthChecklist: jsonb("health_checklist").$type<{ id: string; text: string; checked: boolean }[]>(),
+  healthResultChecklist: jsonb("health_result_checklist").$type<{ id: string; text: string; checked: boolean }[]>(),
+  healthFeelingsChecklist: jsonb("health_feelings_checklist").$type<{ id: string; text: string; checked: boolean }[]>(),
+  healthBeliefsChecklist: jsonb("health_beliefs_checklist").$type<{ id: string; text: string; checked: boolean }[]>(),
+  healthActionsChecklist: jsonb("health_actions_checklist").$type<{ id: string; text: string; checked: boolean }[]>(),
   
   // Relationship
   relationshipProblems: varchar("relationship_problems"),
@@ -129,6 +133,10 @@ export const hercmWeeks = pgTable("hercm_weeks", {
   relationshipNextActions: varchar("relationship_next_actions"),
   relationshipAssignment: jsonb("relationship_assignment").$type<{ courses: { id: string; courseName: string; link: string; completed: boolean }[]; lessons: { id: string; courseId: string; courseName: string; lessonName: string; url: string; completed: boolean }[] }>(),
   relationshipChecklist: jsonb("relationship_checklist").$type<{ id: string; text: string; checked: boolean }[]>(),
+  relationshipResultChecklist: jsonb("relationship_result_checklist").$type<{ id: string; text: string; checked: boolean }[]>(),
+  relationshipFeelingsChecklist: jsonb("relationship_feelings_checklist").$type<{ id: string; text: string; checked: boolean }[]>(),
+  relationshipBeliefsChecklist: jsonb("relationship_beliefs_checklist").$type<{ id: string; text: string; checked: boolean }[]>(),
+  relationshipActionsChecklist: jsonb("relationship_actions_checklist").$type<{ id: string; text: string; checked: boolean }[]>(),
   
   // Career
   careerProblems: varchar("career_problems"),
@@ -141,6 +149,10 @@ export const hercmWeeks = pgTable("hercm_weeks", {
   careerNextActions: varchar("career_next_actions"),
   careerAssignment: jsonb("career_assignment").$type<{ courses: { id: string; courseName: string; link: string; completed: boolean }[]; lessons: { id: string; courseId: string; courseName: string; lessonName: string; url: string; completed: boolean }[] }>(),
   careerChecklist: jsonb("career_checklist").$type<{ id: string; text: string; checked: boolean }[]>(),
+  careerResultChecklist: jsonb("career_result_checklist").$type<{ id: string; text: string; checked: boolean }[]>(),
+  careerFeelingsChecklist: jsonb("career_feelings_checklist").$type<{ id: string; text: string; checked: boolean }[]>(),
+  careerBeliefsChecklist: jsonb("career_beliefs_checklist").$type<{ id: string; text: string; checked: boolean }[]>(),
+  careerActionsChecklist: jsonb("career_actions_checklist").$type<{ id: string; text: string; checked: boolean }[]>(),
   
   // Money
   moneyProblems: varchar("money_problems"),
@@ -153,6 +165,10 @@ export const hercmWeeks = pgTable("hercm_weeks", {
   moneyNextActions: varchar("money_next_actions"),
   moneyAssignment: jsonb("money_assignment").$type<{ courses: { id: string; courseName: string; link: string; completed: boolean }[]; lessons: { id: string; courseId: string; courseName: string; lessonName: string; url: string; completed: boolean }[] }>(),
   moneyChecklist: jsonb("money_checklist").$type<{ id: string; text: string; checked: boolean }[]>(),
+  moneyResultChecklist: jsonb("money_result_checklist").$type<{ id: string; text: string; checked: boolean }[]>(),
+  moneyFeelingsChecklist: jsonb("money_feelings_checklist").$type<{ id: string; text: string; checked: boolean }[]>(),
+  moneyBeliefsChecklist: jsonb("money_beliefs_checklist").$type<{ id: string; text: string; checked: boolean }[]>(),
+  moneyActionsChecklist: jsonb("money_actions_checklist").$type<{ id: string; text: string; checked: boolean }[]>(),
   
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

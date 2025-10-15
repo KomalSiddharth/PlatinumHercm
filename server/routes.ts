@@ -142,7 +142,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           nextWeekTarget: week.healthNextTarget || '',
           nextActions: week.healthNextActions || '',
           checklist: week.healthChecklist || [],
-          assignment: week.healthAssignment || { courses: [], lessons: [] }
+          assignment: week.healthAssignment || { courses: [], lessons: [] },
+          resultChecklist: week.healthResultChecklist || [],
+          feelingsChecklist: week.healthFeelingsChecklist || [],
+          beliefsChecklist: week.healthBeliefsChecklist || [],
+          actionsChecklist: week.healthActionsChecklist || []
         },
         {
           category: 'Relationship',
@@ -157,7 +161,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           nextWeekTarget: week.relationshipNextTarget || '',
           nextActions: week.relationshipNextActions || '',
           checklist: week.relationshipChecklist || [],
-          assignment: week.relationshipAssignment || { courses: [], lessons: [] }
+          assignment: week.relationshipAssignment || { courses: [], lessons: [] },
+          resultChecklist: week.relationshipResultChecklist || [],
+          feelingsChecklist: week.relationshipFeelingsChecklist || [],
+          beliefsChecklist: week.relationshipBeliefsChecklist || [],
+          actionsChecklist: week.relationshipActionsChecklist || []
         },
         {
           category: 'Career',
@@ -172,7 +180,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           nextWeekTarget: week.careerNextTarget || '',
           nextActions: week.careerNextActions || '',
           checklist: week.careerChecklist || [],
-          assignment: week.careerAssignment || { courses: [], lessons: [] }
+          assignment: week.careerAssignment || { courses: [], lessons: [] },
+          resultChecklist: week.careerResultChecklist || [],
+          feelingsChecklist: week.careerFeelingsChecklist || [],
+          beliefsChecklist: week.careerBeliefsChecklist || [],
+          actionsChecklist: week.careerActionsChecklist || []
         },
         {
           category: 'Money',
@@ -187,7 +199,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           nextWeekTarget: week.moneyNextTarget || '',
           nextActions: week.moneyNextActions || '',
           checklist: week.moneyChecklist || [],
-          assignment: week.moneyAssignment || { courses: [], lessons: [] }
+          assignment: week.moneyAssignment || { courses: [], lessons: [] },
+          resultChecklist: week.moneyResultChecklist || [],
+          feelingsChecklist: week.moneyFeelingsChecklist || [],
+          beliefsChecklist: week.moneyBeliefsChecklist || [],
+          actionsChecklist: week.moneyActionsChecklist || []
         }
       ];
       
@@ -319,8 +335,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Map assignment
           weekData[`${prefix}Assignment`] = belief.assignment || { courses: [], lessons: [] };
           
-          // Map checklist
+          // Map checklist (Current Week Platinum Standards)
           weekData[`${prefix}Checklist`] = belief.checklist || [];
+          
+          // Map Next Week Target checklists
+          weekData[`${prefix}ResultChecklist`] = belief.resultChecklist || [];
+          weekData[`${prefix}FeelingsChecklist`] = belief.feelingsChecklist || [];
+          weekData[`${prefix}BeliefsChecklist`] = belief.beliefsChecklist || [];
+          weekData[`${prefix}ActionsChecklist`] = belief.actionsChecklist || [];
         });
       }
       
