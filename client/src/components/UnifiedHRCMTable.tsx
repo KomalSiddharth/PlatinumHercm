@@ -576,24 +576,9 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
     generateNextWeekMutation.mutate();
   };
 
-  // Calculate if user can generate next week (after 7 days)
-  const canGenerateNextWeek = weekData?.createdAt 
-    ? (() => {
-        const createdAt = new Date(weekData.createdAt);
-        const now = new Date();
-        const daysDiff = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
-        return daysDiff >= 7;
-      })()
-    : false;
-
-  const nextWeekUnlockDate = weekData?.createdAt
-    ? (() => {
-        const createdAt = new Date(weekData.createdAt);
-        const unlockDate = new Date(createdAt);
-        unlockDate.setDate(unlockDate.getDate() + 7);
-        return unlockDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
-      })()
-    : '';
+  // Generate Next Week is always unlocked
+  const canGenerateNextWeek = true;
+  const nextWeekUnlockDate = '';
 
   // Get rating-based AI assignment course recommendations for Next Week
   const getAssignmentRecommendation = async (category: string) => {
@@ -1040,8 +1025,8 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
           <Button
             size="sm"
             onClick={handleGenerateNextWeek}
-            disabled={generateNextWeekMutation.isPending || !canGenerateNextWeek}
-            className="bg-gradient-to-r from-pink-600 to-coral-600 hover:from-pink-700 hover:to-coral-700 text-white relative"
+            disabled={generateNextWeekMutation.isPending}
+            className="bg-gradient-to-r from-pink-600 to-coral-600 hover:from-pink-700 hover:to-coral-700 text-white"
             data-testid="button-generate-next-week"
           >
             {generateNextWeekMutation.isPending ? (
@@ -1050,11 +1035,6 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
               <TrendingUp className="w-4 h-4 mr-2" />
             )}
             Generate Next Week
-            {!canGenerateNextWeek && nextWeekUnlockDate && (
-              <span className="absolute -bottom-5 right-0 text-[10px] text-muted-foreground whitespace-nowrap">
-                Unlocks: {nextWeekUnlockDate}
-              </span>
-            )}
           </Button>
         </div>
       </div>
