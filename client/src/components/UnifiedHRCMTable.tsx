@@ -79,6 +79,11 @@ interface HRCMBelief {
   nextFeelings: string;
   nextWeekTarget: string;
   nextActions: string;
+  // Next Week Checklists
+  resultChecklist?: ChecklistItem[];
+  feelingsChecklist?: ChecklistItem[];
+  beliefsChecklist?: ChecklistItem[];
+  actionsChecklist?: ChecklistItem[];
   // Checklist & Assignment
   checklist: ChecklistItem[];
   assignment?: Assignment;
@@ -621,6 +626,78 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
     });
   };
 
+  // Toggle result checklist item
+  const handleResultChecklistToggle = (category: string, itemId: string) => {
+    setBeliefs(prev => {
+      const updated = prev.map(belief => {
+        if (belief.category === category && belief.resultChecklist) {
+          const updatedChecklist = belief.resultChecklist.map(item =>
+            item.id === itemId ? { ...item, checked: !item.checked } : item
+          );
+          return { ...belief, resultChecklist: updatedChecklist };
+        }
+        return belief;
+      });
+      
+      saveWeekMutation.mutate({ weekNumber, year: new Date().getFullYear(), beliefs: updated });
+      return updated;
+    });
+  };
+
+  // Toggle feelings checklist item
+  const handleFeelingsChecklistToggle = (category: string, itemId: string) => {
+    setBeliefs(prev => {
+      const updated = prev.map(belief => {
+        if (belief.category === category && belief.feelingsChecklist) {
+          const updatedChecklist = belief.feelingsChecklist.map(item =>
+            item.id === itemId ? { ...item, checked: !item.checked } : item
+          );
+          return { ...belief, feelingsChecklist: updatedChecklist };
+        }
+        return belief;
+      });
+      
+      saveWeekMutation.mutate({ weekNumber, year: new Date().getFullYear(), beliefs: updated });
+      return updated;
+    });
+  };
+
+  // Toggle beliefs checklist item
+  const handleBeliefsChecklistToggle = (category: string, itemId: string) => {
+    setBeliefs(prev => {
+      const updated = prev.map(belief => {
+        if (belief.category === category && belief.beliefsChecklist) {
+          const updatedChecklist = belief.beliefsChecklist.map(item =>
+            item.id === itemId ? { ...item, checked: !item.checked } : item
+          );
+          return { ...belief, beliefsChecklist: updatedChecklist };
+        }
+        return belief;
+      });
+      
+      saveWeekMutation.mutate({ weekNumber, year: new Date().getFullYear(), beliefs: updated });
+      return updated;
+    });
+  };
+
+  // Toggle actions checklist item
+  const handleActionsChecklistToggle = (category: string, itemId: string) => {
+    setBeliefs(prev => {
+      const updated = prev.map(belief => {
+        if (belief.category === category && belief.actionsChecklist) {
+          const updatedChecklist = belief.actionsChecklist.map(item =>
+            item.id === itemId ? { ...item, checked: !item.checked } : item
+          );
+          return { ...belief, actionsChecklist: updatedChecklist };
+        }
+        return belief;
+      });
+      
+      saveWeekMutation.mutate({ weekNumber, year: new Date().getFullYear(), beliefs: updated });
+      return updated;
+    });
+  };
+
   // Automatic week progression: Check if 7 days have passed since week creation
   useEffect(() => {
     if (!Array.isArray(allWeeksData) || !onWeekChange) return;
@@ -693,20 +770,31 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
       if (belief.category === category) {
         let updated = { ...belief, [field]: editValue } as HRCMBelief;
         
-        // Auto-generate checklist from currentActions or nextActions field
-        if ((field === 'currentActions' || field === 'nextActions') && editValue.trim()) {
-          const actionLines = editValue
+        // Auto-generate checklist from Next Week fields
+        if (editValue.trim()) {
+          const lines = editValue
             .split('\n')
             .map(line => line.trim())
             .filter(line => line.length > 0);
           
-          const checklist: ChecklistItem[] = actionLines.map((action, index) => ({
-            id: `${category}-action-${index}`,
-            text: action.replace(/^[-•*]\s*/, ''), // Remove bullet points
+          const checklist: ChecklistItem[] = lines.map((line, index) => ({
+            id: `${category}-${field}-${index}`,
+            text: line.replace(/^[-•*]\s*/, ''), // Remove bullet points
             checked: false
           }));
           
-          updated = { ...updated, checklist };
+          // Store in appropriate checklist field
+          if (field === 'result') {
+            updated = { ...updated, resultChecklist: checklist };
+          } else if (field === 'nextFeelings') {
+            updated = { ...updated, feelingsChecklist: checklist };
+          } else if (field === 'nextWeekTarget') {
+            updated = { ...updated, beliefsChecklist: checklist };
+          } else if (field === 'nextActions') {
+            updated = { ...updated, actionsChecklist: checklist };
+          } else if (field === 'currentActions') {
+            updated = { ...updated, checklist };
+          }
         }
         
         updatedBelief = updated;
@@ -1107,10 +1195,34 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                           cancelEdit();
                         }
                       }}
+                      placeholder="Enter each item on a new line..."
                       className="min-h-[60px] text-xs border-0"
                       autoFocus
                       data-testid={`textarea-next-problems-${belief.category.toLowerCase()}`}
                     />
+                  ) : belief.resultChecklist && belief.resultChecklist.length > 0 ? (
+                    <div className="p-2 space-y-1">
+                      {belief.resultChecklist.map((item) => (
+                        <div key={item.id} className="flex items-center gap-2">
+                          <Checkbox
+                            checked={item.checked}
+                            onCheckedChange={() => handleResultChecklistToggle(belief.category, item.id)}
+                            className="h-3 w-3"
+                            data-testid={`checkbox-result-${belief.category.toLowerCase()}-${item.id}`}
+                          />
+                          <span className="text-xs">{item.text}</span>
+                        </div>
+                      ))}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => startEdit(belief.category, 'result', belief.result, e.currentTarget as HTMLButtonElement)}
+                        className="text-xs h-6 mt-1"
+                      >
+                        <Edit2 className="w-3 h-3 mr-1" />
+                        Edit
+                      </Button>
+                    </div>
                   ) : (
                     <button
                       className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
@@ -1119,7 +1231,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                       aria-label="Edit target result"
                       data-testid={`text-next-problems-${belief.category.toLowerCase()}`}
                     >
-                      {belief.result || <span className="text-muted-foreground italic">Click to add target result...</span>}
+                      <span className="text-muted-foreground italic">Click to add target result...</span>
                     </button>
                   )}
                 </TableCell>
@@ -1136,10 +1248,34 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                           cancelEdit();
                         }
                       }}
+                      placeholder="Enter each item on a new line..."
                       className="min-h-[60px] text-xs border-0"
                       autoFocus
                       data-testid={`textarea-next-feelings-${belief.category.toLowerCase()}`}
                     />
+                  ) : belief.feelingsChecklist && belief.feelingsChecklist.length > 0 ? (
+                    <div className="p-2 space-y-1">
+                      {belief.feelingsChecklist.map((item) => (
+                        <div key={item.id} className="flex items-center gap-2">
+                          <Checkbox
+                            checked={item.checked}
+                            onCheckedChange={() => handleFeelingsChecklistToggle(belief.category, item.id)}
+                            className="h-3 w-3"
+                            data-testid={`checkbox-feelings-${belief.category.toLowerCase()}-${item.id}`}
+                          />
+                          <span className="text-xs">{item.text}</span>
+                        </div>
+                      ))}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => startEdit(belief.category, 'nextFeelings', belief.nextFeelings, e.currentTarget as HTMLButtonElement)}
+                        className="text-xs h-6 mt-1"
+                      >
+                        <Edit2 className="w-3 h-3 mr-1" />
+                        Edit
+                      </Button>
+                    </div>
                   ) : (
                     <button
                       className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
@@ -1148,7 +1284,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                       aria-label="Edit next week feelings"
                       data-testid={`text-next-feelings-${belief.category.toLowerCase()}`}
                     >
-                      {belief.nextFeelings || <span className="text-muted-foreground italic">Click to add feelings...</span>}
+                      <span className="text-muted-foreground italic">Click to add feelings...</span>
                     </button>
                   )}
                 </TableCell>
@@ -1165,10 +1301,34 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                           cancelEdit();
                         }
                       }}
+                      placeholder="Enter each item on a new line..."
                       className="min-h-[60px] text-xs border-0"
                       autoFocus
                       data-testid={`textarea-next-beliefs-${belief.category.toLowerCase()}`}
                     />
+                  ) : belief.beliefsChecklist && belief.beliefsChecklist.length > 0 ? (
+                    <div className="p-2 space-y-1">
+                      {belief.beliefsChecklist.map((item) => (
+                        <div key={item.id} className="flex items-center gap-2">
+                          <Checkbox
+                            checked={item.checked}
+                            onCheckedChange={() => handleBeliefsChecklistToggle(belief.category, item.id)}
+                            className="h-3 w-3"
+                            data-testid={`checkbox-beliefs-${belief.category.toLowerCase()}-${item.id}`}
+                          />
+                          <span className="text-xs">{item.text}</span>
+                        </div>
+                      ))}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => startEdit(belief.category, 'nextWeekTarget', belief.nextWeekTarget, e.currentTarget as HTMLButtonElement)}
+                        className="text-xs h-6 mt-1"
+                      >
+                        <Edit2 className="w-3 h-3 mr-1" />
+                        Edit
+                      </Button>
+                    </div>
                   ) : (
                     <button
                       className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
@@ -1177,7 +1337,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                       aria-label="Edit next week beliefs"
                       data-testid={`text-next-beliefs-${belief.category.toLowerCase()}`}
                     >
-                      {belief.nextWeekTarget || <span className="text-muted-foreground italic">Click to add beliefs...</span>}
+                      <span className="text-muted-foreground italic">Click to add beliefs...</span>
                     </button>
                   )}
                 </TableCell>
@@ -1194,10 +1354,34 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                           cancelEdit();
                         }
                       }}
+                      placeholder="Enter each item on a new line..."
                       className="min-h-[60px] text-xs border-0"
                       autoFocus
                       data-testid={`textarea-next-actions-${belief.category.toLowerCase()}`}
                     />
+                  ) : belief.actionsChecklist && belief.actionsChecklist.length > 0 ? (
+                    <div className="p-2 space-y-1">
+                      {belief.actionsChecklist.map((item) => (
+                        <div key={item.id} className="flex items-center gap-2">
+                          <Checkbox
+                            checked={item.checked}
+                            onCheckedChange={() => handleActionsChecklistToggle(belief.category, item.id)}
+                            className="h-3 w-3"
+                            data-testid={`checkbox-actions-${belief.category.toLowerCase()}-${item.id}`}
+                          />
+                          <span className="text-xs">{item.text}</span>
+                        </div>
+                      ))}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => startEdit(belief.category, 'nextActions', belief.nextActions, e.currentTarget as HTMLButtonElement)}
+                        className="text-xs h-6 mt-1"
+                      >
+                        <Edit2 className="w-3 h-3 mr-1" />
+                        Edit
+                      </Button>
+                    </div>
                   ) : (
                     <button
                       className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
@@ -1206,7 +1390,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                       aria-label="Edit next week actions"
                       data-testid={`text-next-actions-${belief.category.toLowerCase()}`}
                     >
-                      {belief.nextActions || <span className="text-muted-foreground italic">Click to add actions...</span>}
+                      <span className="text-muted-foreground italic">Click to add actions...</span>
                     </button>
                   )}
                 </TableCell>
@@ -1250,7 +1434,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                                 href={course.link}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className={`text-xs hover:underline flex-1 ${course.completed ? 'line-through text-muted-foreground' : 'text-cyan-700 dark:text-cyan-400'}`}
+                                className="text-xs hover:underline flex-1 text-cyan-700 dark:text-cyan-400"
                                 data-testid={`link-assignment-course-${belief.category.toLowerCase()}-${course.id}`}
                               >
                                 {course.courseName}
@@ -1278,7 +1462,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                                 href={lesson.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className={`text-xs hover:underline flex-1 ${lesson.completed ? 'line-through text-muted-foreground' : 'text-purple-700 dark:text-purple-400'}`}
+                                className="text-xs hover:underline flex-1 text-purple-700 dark:text-purple-400"
                                 data-testid={`link-assignment-lesson-${belief.category.toLowerCase()}-${lesson.id}`}
                               >
                                 {lesson.lessonName}
@@ -1312,7 +1496,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                           onCheckedChange={() => handleChecklistToggle(belief.category, item.id)}
                           data-testid={`checkbox-next-${belief.category.toLowerCase()}-${item.id}`}
                         />
-                        <span className={`text-xs ${item.checked ? 'line-through text-muted-foreground' : ''}`}>
+                        <span className="text-xs">
                           {item.text}
                         </span>
                       </div>
