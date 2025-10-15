@@ -1,13 +1,8 @@
-import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CalendarIcon, Clock } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface RefinedHistoryModalProps {
@@ -17,44 +12,15 @@ interface RefinedHistoryModalProps {
 }
 
 export function RefinedHistoryModal({ open, onOpenChange, currentWeek }: RefinedHistoryModalProps) {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
-  const [selectedSnapshot, setSelectedSnapshot] = useState<string | null>(null);
-
   // Fetch all weeks from database
   const { data: allWeeksData } = useQuery<any[]>({
     queryKey: ['/api/hercm/weeks'],
     enabled: open,
   });
 
-  // Filter snapshots by selected date and month
-  const filteredSnapshots = (allWeeksData || []).filter((week: any) => {
-    const weekDate = new Date(week.createdAt);
-    if (selectedDate) {
-      return (
-        weekDate.getDate() === selectedDate.getDate() &&
-        weekDate.getMonth() === selectedDate.getMonth() &&
-        weekDate.getFullYear() === selectedDate.getFullYear()
-      );
-    }
-    return weekDate.getMonth() === selectedMonth;
-  }) || [];
-
-  // Group by date for better organization
-  const groupedByDate = filteredSnapshots.reduce((acc: any, week: any) => {
-    const dateKey = format(new Date(week.createdAt), 'yyyy-MM-dd');
-    if (!acc[dateKey]) {
-      acc[dateKey] = [];
-    }
-    acc[dateKey].push(week);
-    return acc;
-  }, {});
-
-  // Sort dates descending (newest first)
-  const sortedDates = Object.keys(groupedByDate).sort((a, b) => b.localeCompare(a));
-
-  const selectedWeekData = selectedSnapshot 
-    ? filteredSnapshots.find((w: any) => w.id === selectedSnapshot)
+  // Get the most recent snapshot
+  const mostRecentSnapshot = allWeeksData && allWeeksData.length > 0
+    ? [...allWeeksData].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0]
     : null;
 
   return (
@@ -62,112 +28,21 @@ export function RefinedHistoryModal({ open, onOpenChange, currentWeek }: Refined
       <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            HRCM History - Recent Snapshots
+            HRCM History - Most Recent Snapshot
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Filter Controls */}
-          <div className="flex flex-wrap items-center gap-4 p-4 bg-muted/30 rounded-lg">
-            {/* Date Picker */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" data-testid="button-select-date">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {selectedDate ? format(selectedDate, 'PPP') : 'Pick a date'}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-
-            {/* Month Filter */}
-            <Select 
-              value={selectedMonth.toString()} 
-              onValueChange={(v) => {
-                setSelectedMonth(Number(v));
-                setSelectedDate(undefined);
-              }}
-            >
-              <SelectTrigger className="w-40" data-testid="select-month">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {[
-                  'January', 'February', 'March', 'April', 'May', 'June',
-                  'July', 'August', 'September', 'October', 'November', 'December'
-                ].map((month, idx) => (
-                  <SelectItem key={idx} value={idx.toString()}>
-                    {month}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setSelectedDate(new Date());
-                setSelectedMonth(new Date().getMonth());
-              }}
-              data-testid="button-reset-filters"
-            >
-              Today
-            </Button>
-          </div>
-
-          {/* Snapshots Timeline */}
-          {sortedDates.length > 0 ? (
+          {mostRecentSnapshot ? (
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold">Recent Changes</h3>
-              
-              {sortedDates.map((dateKey) => (
-                <div key={dateKey} className="space-y-2">
-                  <div className="text-sm font-medium text-muted-foreground">
-                    {format(new Date(dateKey), 'EEEE, MMMM d, yyyy')}
-                  </div>
-                  <div className="flex gap-2 flex-wrap">
-                    {groupedByDate[dateKey]
-                      .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                      .map((week: any) => (
-                        <Button
-                          key={week.id}
-                          variant={selectedSnapshot === week.id ? "default" : "outline"}
-                          onClick={() => setSelectedSnapshot(week.id === selectedSnapshot ? null : week.id)}
-                          className="flex items-center gap-2"
-                          data-testid={`button-snapshot-${week.id}`}
-                        >
-                          <Clock className="w-4 h-4" />
-                          {format(new Date(week.createdAt), 'h:mm a')}
-                          <Badge variant="secondary">Week {week.weekNumber}</Badge>
-                        </Button>
-                      ))}
-                  </div>
+              <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-primary" />
+                  <h3 className="text-sm font-medium">
+                    Last Updated: {format(new Date(mostRecentSnapshot.createdAt), 'EEEE, MMMM d, yyyy - h:mm a')}
+                  </h3>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">
-                No snapshots found for {selectedDate ? format(selectedDate, 'PPP') : 'this month'}
-              </p>
-            </div>
-          )}
-
-          {/* Selected Snapshot Details */}
-          {selectedWeekData && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">
-                  Snapshot from {format(new Date(selectedWeekData.createdAt), 'PPP p')}
-                </h3>
-                <Badge>Week {selectedWeekData.weekNumber}</Badge>
+                <Badge variant="secondary">Week {mostRecentSnapshot.weekNumber}</Badge>
               </div>
 
               {/* Current Week Table */}
@@ -189,12 +64,12 @@ export function RefinedHistoryModal({ open, onOpenChange, currentWeek }: Refined
                       {['Health', 'Relationship', 'Career', 'Money'].map((category) => {
                         const prefix = category.toLowerCase();
                         const ratingMap: Record<string, any> = {
-                          health: selectedWeekData.currentH,
-                          relationship: selectedWeekData.currentE,
-                          career: selectedWeekData.currentR,
-                          money: selectedWeekData.currentC,
+                          health: mostRecentSnapshot.currentH,
+                          relationship: mostRecentSnapshot.currentE,
+                          career: mostRecentSnapshot.currentR,
+                          money: mostRecentSnapshot.currentC,
                         };
-                        const checklist = selectedWeekData[`${prefix}Checklist`] || [];
+                        const checklist = mostRecentSnapshot[`${prefix}Checklist`] || [];
                         const progress = checklist.length > 0 
                           ? Math.round((checklist.filter((c: any) => c.checked).length / checklist.length) * 100)
                           : 0;
@@ -249,12 +124,12 @@ export function RefinedHistoryModal({ open, onOpenChange, currentWeek }: Refined
                     <tbody>
                       {['Health', 'Relationship', 'Career', 'Money'].map((category) => {
                         const prefix = category.toLowerCase();
-                        const nextChecklist = selectedWeekData[`next${category}Checklist`] || [];
+                        const nextChecklist = mostRecentSnapshot[`next${category}Checklist`] || [];
                         const ratingMap: Record<string, any> = {
-                          health: selectedWeekData.nextHealthRating,
-                          relationship: selectedWeekData.nextRelationshipRating,
-                          career: selectedWeekData.nextCareerRating,
-                          money: selectedWeekData.nextMoneyRating,
+                          health: mostRecentSnapshot.nextHealthRating,
+                          relationship: mostRecentSnapshot.nextRelationshipRating,
+                          career: mostRecentSnapshot.nextCareerRating,
+                          money: mostRecentSnapshot.nextMoneyRating,
                         };
 
                         return (
@@ -276,7 +151,7 @@ export function RefinedHistoryModal({ open, onOpenChange, currentWeek }: Refined
                               </div>
                             </td>
                             <td className="p-2 text-xs">
-                              {selectedWeekData[`${prefix}ResultChecklist`]?.map((item: any) => (
+                              {mostRecentSnapshot[`${prefix}ResultChecklist`]?.map((item: any) => (
                                 <div key={item.id} className="flex items-center gap-1 mb-1">
                                   <Checkbox checked={item.checked} disabled className="h-3 w-3" />
                                   <span>{item.text}</span>
@@ -284,7 +159,7 @@ export function RefinedHistoryModal({ open, onOpenChange, currentWeek }: Refined
                               )) || '-'}
                             </td>
                             <td className="p-2 text-xs">
-                              {selectedWeekData[`${prefix}FeelingsChecklist`]?.map((item: any) => (
+                              {mostRecentSnapshot[`${prefix}FeelingsChecklist`]?.map((item: any) => (
                                 <div key={item.id} className="flex items-center gap-1 mb-1">
                                   <Checkbox checked={item.checked} disabled className="h-3 w-3" />
                                   <span>{item.text}</span>
@@ -292,7 +167,7 @@ export function RefinedHistoryModal({ open, onOpenChange, currentWeek }: Refined
                               )) || '-'}
                             </td>
                             <td className="p-2 text-xs">
-                              {selectedWeekData[`${prefix}BeliefsChecklist`]?.map((item: any) => (
+                              {mostRecentSnapshot[`${prefix}BeliefsChecklist`]?.map((item: any) => (
                                 <div key={item.id} className="flex items-center gap-1 mb-1">
                                   <Checkbox checked={item.checked} disabled className="h-3 w-3" />
                                   <span>{item.text}</span>
@@ -300,7 +175,7 @@ export function RefinedHistoryModal({ open, onOpenChange, currentWeek }: Refined
                               )) || '-'}
                             </td>
                             <td className="p-2 text-xs">
-                              {selectedWeekData[`${prefix}ActionsChecklist`]?.map((item: any) => (
+                              {mostRecentSnapshot[`${prefix}ActionsChecklist`]?.map((item: any) => (
                                 <div key={item.id} className="flex items-center gap-1 mb-1">
                                   <Checkbox checked={item.checked} disabled className="h-3 w-3" />
                                   <span>{item.text}</span>
@@ -315,11 +190,9 @@ export function RefinedHistoryModal({ open, onOpenChange, currentWeek }: Refined
                 </div>
               </div>
             </div>
-          )}
-
-          {!selectedSnapshot && filteredSnapshots.length > 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              <p>Select a snapshot from the timeline above to view details</p>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No history available yet. Start tracking your HRCM progress!</p>
             </div>
           )}
         </div>
