@@ -55,6 +55,27 @@ interface CourseSuggestion {
   courses: Course[]; // Rating-based courses (max 7)
 }
 
+interface AssignmentLesson {
+  id: string;
+  courseId: string;
+  courseName: string;
+  lessonName: string;
+  url: string;
+  completed: boolean;
+}
+
+interface AssignmentCourse {
+  id: string;
+  courseName: string;
+  link: string;
+  completed: boolean;
+}
+
+interface Assignment {
+  courses: AssignmentCourse[];
+  lessons: AssignmentLesson[];
+}
+
 interface HRCMBelief {
   category: 'Health' | 'Relationship' | 'Career' | 'Money';
   // Current Week Data
@@ -72,7 +93,7 @@ interface HRCMBelief {
   // AI Suggestions & Checklist
   checklist: ChecklistItem[];
   courseSuggestion: CourseSuggestion | null;
-  affirmationSuggestion: string;
+  assignment?: Assignment;
 }
 
 interface UnifiedHRCMTableProps {
@@ -97,7 +118,7 @@ const getBlankBeliefs = (): HRCMBelief[] => {
       nextActions: '',
       checklist: HEALTH_STANDARDS.map(std => ({ ...std })),
       courseSuggestion: null,
-      affirmationSuggestion: 'I am healthy, strong, and full of energy. My body deserves care and nourishment.'
+      assignment: { courses: [], lessons: [] }
     },
     {
       category: 'Relationship',
@@ -113,7 +134,7 @@ const getBlankBeliefs = (): HRCMBelief[] => {
       nextActions: '',
       checklist: [],
       courseSuggestion: null,
-      affirmationSuggestion: 'I attract loving relationships. I communicate with clarity, love, and respect.'
+      assignment: { courses: [], lessons: [] }
     },
     {
       category: 'Career',
@@ -129,7 +150,7 @@ const getBlankBeliefs = (): HRCMBelief[] => {
       nextActions: '',
       checklist: [],
       courseSuggestion: null,
-      affirmationSuggestion: 'I am capable and skilled. Success flows to me naturally as I follow my purpose.'
+      assignment: { courses: [], lessons: [] }
     },
     {
       category: 'Money',
@@ -145,7 +166,7 @@ const getBlankBeliefs = (): HRCMBelief[] => {
       nextActions: '',
       checklist: [],
       courseSuggestion: null,
-      affirmationSuggestion: 'I am a money magnet. Abundance flows to me from multiple sources with ease.'
+      assignment: { courses: [], lessons: [] }
     }
   ];
 };
@@ -231,6 +252,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
   const [editingField, setEditingField] = useState<{ category: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState('');
   const [loadingCourses, setLoadingCourses] = useState<Set<string>>(new Set());
+  const [loadingAssignments, setLoadingAssignments] = useState<Set<string>>(new Set());
   const [showStandardsDialog, setShowStandardsDialog] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [collapsedCourses, setCollapsedCourses] = useState<Set<string>>(new Set());
@@ -612,6 +634,125 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
     }
   };
 
+  // Get rating-based AI assignment course recommendations for Next Week
+  const getAssignmentRecommendation = async (category: string) => {
+    const belief = beliefs.find(b => b.category === category);
+    if (!belief) return;
+
+    setLoadingAssignments(prev => new Set(prev).add(category));
+
+    try {
+      const response = await apiRequest('POST', '/api/courses/recommend-assignment', {
+        category: belief.category,
+        currentRating: belief.currentRating,
+        problems: belief.result,
+        feelings: belief.nextFeelings,
+        beliefs: belief.nextWeekTarget,
+        actions: belief.nextActions,
+      });
+
+      const data = await response.json();
+
+      setBeliefs(prev => {
+        const updated = prev.map(b => 
+          b.category === category 
+            ? { 
+                ...b, 
+                assignment: {
+                  courses: data.courses || [],
+                  lessons: b.assignment?.lessons || []
+                }
+              }
+            : b
+        );
+        
+        saveWeekMutation.mutate({
+          weekNumber,
+          beliefs: updated
+        });
+        
+        return updated;
+      });
+
+      const courseCount = data.courses?.length || 0;
+      toast({
+        title: "AI Assignment Courses Added",
+        description: `Found ${courseCount} course${courseCount !== 1 ? 's' : ''} for next week`,
+      });
+    } catch (error: any) {
+      console.error('Error getting assignment recommendation:', error);
+      toast({
+        title: "Failed to get assignment courses",
+        description: error?.message || "Please try again",
+        variant: "destructive"
+      });
+    } finally {
+      setLoadingAssignments(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(category);
+        return newSet;
+      });
+    }
+  };
+
+  // Toggle assignment course completion checkbox
+  const handleAssignmentCourseToggle = (category: string, courseId: string) => {
+    setBeliefs(prev => {
+      const updated = prev.map(belief => {
+        if (belief.category === category && belief.assignment) {
+          const updatedCourses = belief.assignment.courses?.map(course =>
+            course.id === courseId ? { ...course, completed: !course.completed } : course
+          );
+          
+          return {
+            ...belief,
+            assignment: {
+              ...belief.assignment,
+              courses: updatedCourses || []
+            }
+          };
+        }
+        return belief;
+      });
+      
+      saveWeekMutation.mutate({
+        weekNumber,
+        beliefs: updated
+      });
+      
+      return updated;
+    });
+  };
+
+  // Toggle assignment lesson completion checkbox
+  const handleAssignmentLessonToggle = (category: string, lessonId: string) => {
+    setBeliefs(prev => {
+      const updated = prev.map(belief => {
+        if (belief.category === category && belief.assignment) {
+          const updatedLessons = belief.assignment.lessons?.map(lesson =>
+            lesson.id === lessonId ? { ...lesson, completed: !lesson.completed } : lesson
+          );
+          
+          return {
+            ...belief,
+            assignment: {
+              ...belief.assignment,
+              lessons: updatedLessons || []
+            }
+          };
+        }
+        return belief;
+      });
+      
+      saveWeekMutation.mutate({
+        weekNumber,
+        beliefs: updated
+      });
+      
+      return updated;
+    });
+  };
+
   // Automatic week progression: Check if 7 days have passed since week creation
   useEffect(() => {
     if (!Array.isArray(allWeeksData) || !onWeekChange) return;
@@ -748,43 +889,9 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
       await getAICourseRecommendation(category);
     }
     
-    // Generate fresh affirmation if next week target was edited
-    if (updatedBelief && field === 'nextWeekTarget' && editValue.trim()) {
-      try {
-        const response = await apiRequest('POST', '/api/affirmations/generate', {
-          category: category,
-          currentRating: updatedBelief.currentRating || 1,
-          problems: updatedBelief.problems || '',
-          currentFeelings: updatedBelief.currentFeelings || '',
-          currentBelief: updatedBelief.currentBelief || '',
-          currentActions: updatedBelief.currentActions || '',
-          nextWeekTarget: editValue,
-        });
-        
-        const data = await response.json();
-        
-        // Update affirmation in the beliefs array
-        const beliefsWithAffirmation = updatedBeliefs.map(belief => {
-          if (belief.category === category) {
-            return { ...belief, affirmationSuggestion: data.affirmation };
-          }
-          return belief;
-        });
-        
-        setBeliefs(beliefsWithAffirmation);
-        
-        // Save with the new affirmation
-        saveWeekMutation.mutate({
-          weekNumber,
-          year: new Date().getFullYear(),
-          beliefs: beliefsWithAffirmation,
-        });
-        
-        return; // Early return to avoid duplicate save
-      } catch (error) {
-        console.error('Error generating affirmation:', error);
-        // Continue with normal save if affirmation generation fails
-      }
+    // Get AI assignment recommendations if next week fields were edited
+    if (updatedBelief && ['result', 'nextFeelings', 'nextWeekTarget', 'nextActions'].includes(field) && editValue.trim()) {
+      // Don't auto-generate, user will click the button to get recommendations
     }
     
     // Save to database with complete updated beliefs including checklist
@@ -1354,11 +1461,95 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                   )}
                 </TableCell>
 
-                {/* AI Course */}
+                {/* Assignment - AI Course Recommendations + Imported Lessons */}
                 <TableCell className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10 align-top">
-                  <div className="text-xs italic text-cyan-700 dark:text-cyan-400" data-testid={`text-next-course-${belief.category.toLowerCase()}`}>
-                    {belief.affirmationSuggestion}
-                  </div>
+                  {loadingAssignments && loadingAssignments.has(belief.category) ? (
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin text-cyan-600" />
+                      <span className="text-xs text-muted-foreground">AI analyzing...</span>
+                    </div>
+                  ) : belief.assignment && (belief.assignment.courses?.length > 0 || belief.assignment.lessons?.length > 0) ? (
+                    <div className="space-y-2">
+                      {/* AI Courses */}
+                      {belief.assignment.courses && belief.assignment.courses.length > 0 && (
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-medium text-cyan-600 dark:text-cyan-400">
+                              AI Courses ({belief.assignment.courses.length})
+                            </span>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-5 px-1 text-xs"
+                              onClick={() => getAssignmentRecommendation(belief.category)}
+                              data-testid={`button-refresh-assignment-${belief.category.toLowerCase()}`}
+                            >
+                              <Sparkles className="w-3 h-3" />
+                            </Button>
+                          </div>
+                          
+                          {belief.assignment.courses.map((course) => (
+                            <div key={course.id} className="flex items-center gap-2 py-0.5">
+                              <Checkbox
+                                checked={course.completed}
+                                onCheckedChange={() => handleAssignmentCourseToggle(belief.category, course.id)}
+                                className="h-3 w-3"
+                                data-testid={`checkbox-assignment-course-${belief.category.toLowerCase()}-${course.id}`}
+                              />
+                              <a
+                                href={course.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`text-xs hover:underline flex-1 ${course.completed ? 'line-through text-muted-foreground' : 'text-cyan-700 dark:text-cyan-400'}`}
+                                data-testid={`link-assignment-course-${belief.category.toLowerCase()}-${course.id}`}
+                              >
+                                {course.courseName}
+                              </a>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Imported Lessons */}
+                      {belief.assignment.lessons && belief.assignment.lessons.length > 0 && (
+                        <div className="border-t pt-2">
+                          <div className="text-xs font-medium text-purple-600 dark:text-purple-400 mb-1">
+                            Course Lessons ({belief.assignment.lessons.length})
+                          </div>
+                          {belief.assignment.lessons.map((lesson) => (
+                            <div key={lesson.id} className="flex items-center gap-2 py-0.5">
+                              <Checkbox
+                                checked={lesson.completed}
+                                onCheckedChange={() => handleAssignmentLessonToggle(belief.category, lesson.id)}
+                                className="h-3 w-3"
+                                data-testid={`checkbox-assignment-lesson-${belief.category.toLowerCase()}-${lesson.id}`}
+                              />
+                              <a
+                                href={lesson.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`text-xs hover:underline flex-1 ${lesson.completed ? 'line-through text-muted-foreground' : 'text-purple-700 dark:text-purple-400'}`}
+                                data-testid={`link-assignment-lesson-${belief.category.toLowerCase()}-${lesson.id}`}
+                              >
+                                {lesson.lessonName}
+                              </a>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => getAssignmentRecommendation(belief.category)}
+                      className="text-xs h-7"
+                      data-testid={`button-get-assignment-${belief.category.toLowerCase()}`}
+                    >
+                      <Sparkles className="w-3 h-3 mr-1" />
+                      Get AI Courses
+                    </Button>
+                  )}
                 </TableCell>
 
                 {/* Checklist */}
