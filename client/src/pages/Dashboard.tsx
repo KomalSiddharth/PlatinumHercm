@@ -621,6 +621,8 @@ export default function Dashboard() {
                   modules = wealthMasteryModules;
                 } else if (course.id === 'relationship-mastery') {
                   modules = relationshipMasteryModules;
+                } else if (course.id === 'career-mastery') {
+                  modules = careerMasteryModules;
                 }
 
                 return (
