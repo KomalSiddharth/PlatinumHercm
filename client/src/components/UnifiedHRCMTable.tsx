@@ -1097,7 +1097,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                       <span className="text-xs text-muted-foreground">AI analyzing...</span>
                     </div>
                   ) : belief.courseSuggestion?.courses?.length ? (
-                    <div className="space-y-1">
+                    <div className="space-y-2">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-medium text-cyan-600 dark:text-cyan-400">
                           AI Courses ({belief.courseSuggestion?.courses?.length || 0})
@@ -1112,6 +1112,33 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                           <Sparkles className="w-3 h-3" />
                         </Button>
                       </div>
+                      
+                      {/* Overall Course Progress Bar */}
+                      {(() => {
+                        const totalCourses = belief.courseSuggestion?.courses?.length || 0;
+                        const completedCourses = belief.courseSuggestion?.courses?.filter(c => c.completed).length || 0;
+                        const courseProgress = totalCourses > 0 ? Math.round((completedCourses / totalCourses) * 100) : 0;
+                        
+                        return (
+                          <div className="space-y-1 mb-2" data-testid={`course-progress-${belief.category.toLowerCase()}`}>
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] text-muted-foreground">
+                                Progress: {completedCourses}/{totalCourses}
+                              </span>
+                              <span className="text-[10px] font-medium text-cyan-600 dark:text-cyan-400">
+                                {courseProgress}%
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                              <div 
+                                className="bg-cyan-600 dark:bg-cyan-400 h-1.5 rounded-full transition-all duration-300"
+                                style={{ width: `${courseProgress}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })()}
+                      
                       {belief.courseSuggestion?.courses?.map((course) => (
                         <div key={course.id} className="flex items-center gap-2 py-0.5">
                           <Checkbox
