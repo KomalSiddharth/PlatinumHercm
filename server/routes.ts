@@ -1556,6 +1556,62 @@ Return ONLY valid JSON in this exact format:
     }
   });
 
+  // Course Lesson Completion endpoints
+  app.get('/api/lessons/:courseName', isAuthenticated, async (req: any, res) => {
+    try {
+      const { courseName } = req.params;
+      const { getHealthMasteryLessons, getWealthMasteryLessons, getRelationshipMasteryLessons } = await import('./csvLessonParser.js');
+      
+      let lessons = [];
+      if (courseName.includes('Health')) {
+        lessons = getHealthMasteryLessons();
+      } else if (courseName.includes('Wealth') || courseName.includes('Money')) {
+        lessons = getWealthMasteryLessons();
+      } else if (courseName.includes('Relationship')) {
+        lessons = getRelationshipMasteryLessons();
+      }
+      
+      res.json(lessons);
+    } catch (error) {
+      console.error("Error fetching lessons:", error);
+      res.status(500).json({ message: "Failed to fetch lessons" });
+    }
+  });
+
+  app.get('/api/lessons/:courseName/completions', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const { courseName } = req.params;
+      const completedLessons = await storage.getCourseLessonCompletions(userId, courseName);
+      res.json(completedLessons);
+    } catch (error) {
+      console.error("Error fetching lesson completions:", error);
+      res.status(500).json({ message: "Failed to fetch lesson completions" });
+    }
+  });
+
+  app.post('/api/lessons/:courseName/toggle', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const { courseName } = req.params;
+      const { lessonTitle } = req.body;
+      
+      const result = await storage.toggleLessonCompletion(userId, courseName, lessonTitle);
+      res.json(result);
+    } catch (error) {
+      console.error("Error toggling lesson completion:", error);
+      res.status(500).json({ message: "Failed to toggle lesson completion" });
+    }
+  });
+
   // Leaderboard endpoint - Multi-user ritual points
   app.get('/api/leaderboard', isAuthenticated, async (req: any, res) => {
     try {
