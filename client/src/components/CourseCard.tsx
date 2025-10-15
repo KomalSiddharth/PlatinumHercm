@@ -1,8 +1,19 @@
-import { Card } from '@/components/ui/card';
+import { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { ExternalLink, GraduationCap } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { GraduationCap, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+
+interface CourseModule {
+  id: string;
+  title: string;
+  url?: string;
+}
 
 interface CourseCardProps {
   id: string;
@@ -13,8 +24,11 @@ interface CourseCardProps {
   estimatedHours: number;
   status: 'not_started' | 'in_progress' | 'completed';
   progressPercent: number;
+  modules?: CourseModule[];
+  completedModules?: string[];
   onUpdateProgress?: (id: string) => void;
   onVisit?: (id: string) => void;
+  onModuleToggle?: (courseId: string, moduleId: string, completed: boolean) => void;
   category?: string;
 }
 
@@ -40,15 +54,43 @@ export default function CourseCard({
   tags,
   source,
   estimatedHours,
-  status,
-  progressPercent,
+  status: initialStatus,
+  progressPercent: initialProgress,
+  modules = [],
+  completedModules = [],
   onUpdateProgress = () => {},
   onVisit = () => {},
+  onModuleToggle = () => {},
   category = 'default'
 }: CourseCardProps) {
-  const config = statusConfig[status];
+  const [isOpen, setIsOpen] = useState(false);
+  const [localCompletedModules, setLocalCompletedModules] = useState<string[]>(completedModules);
+  
+  // Calculate progress and status based on module completion
+  const totalModules = modules.length || 1;
+  const completedCount = localCompletedModules.length;
+  const calculatedProgress = Math.round((completedCount / totalModules) * 100);
+  
+  // Auto-determine status based on progress
+  const calculatedStatus: 'not_started' | 'in_progress' | 'completed' = 
+    calculatedProgress === 0 ? 'not_started' :
+    calculatedProgress === 100 ? 'completed' : 'in_progress';
+  
+  const config = statusConfig[calculatedStatus];
   const firstLetter = title.charAt(0).toUpperCase();
   const gradientClass = categoryColors[category as keyof typeof categoryColors] || categoryColors.default;
+
+  const handleModuleToggle = (moduleId: string, completed: boolean) => {
+    const newCompleted = completed 
+      ? [...localCompletedModules, moduleId]
+      : localCompletedModules.filter(id => id !== moduleId);
+    
+    setLocalCompletedModules(newCompleted);
+    onModuleToggle(id, moduleId, completed);
+  };
+
+  // Show dropdown only if modules exist
+  const showDropdown = modules.length > 0;
 
   return (
     <div className={`${gradientClass} rounded-lg p-6 hover-elevate shadow-lg`}>
@@ -77,11 +119,6 @@ export default function CourseCard({
                   {tag}
                 </Badge>
               ))}
-              {tags.length > 2 && (
-                <Badge variant="secondary" className="text-xs bg-white/20 text-white border-white/40">
-                  +{tags.length - 2}
-                </Badge>
-              )}
             </div>
           </div>
 
@@ -89,36 +126,82 @@ export default function CourseCard({
           <div className="space-y-1">
             <div className="flex items-center justify-between text-sm">
               <span className="text-white/80">Progress</span>
-              <span className="font-medium text-white">{progressPercent}%</span>
+              <span className="font-medium text-white">{calculatedProgress}%</span>
             </div>
             <div className="h-2 bg-white/20 rounded-full overflow-hidden">
               <div 
                 className="h-full bg-white/80 transition-all duration-300"
-                style={{ width: `${progressPercent}%` }}
+                style={{ width: `${calculatedProgress}%` }}
               />
             </div>
           </div>
         </div>
 
-        {/* Action Button */}
-        <div className="flex gap-2 flex-shrink-0">
-          {url && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="gap-1 text-white hover:bg-white/20"
-              onClick={() => {
-                window.open(url, '_blank');
-                onVisit(id);
-              }}
-              data-testid={`button-visit-${id}`}
-            >
-              <ExternalLink className="w-4 h-4" />
-              Visit
-            </Button>
-          )}
-        </div>
+        {/* Dropdown Button for Modules */}
+        {showDropdown && (
+          <div className="flex-shrink-0">
+            <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+              <CollapsibleTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1 text-white hover:bg-white/20"
+                  data-testid={`button-modules-${id}`}
+                >
+                  {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  Modules
+                </Button>
+              </CollapsibleTrigger>
+            </Collapsible>
+          </div>
+        )}
       </div>
+
+      {/* Collapsible Module List */}
+      {showDropdown && (
+        <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+          <CollapsibleContent className="mt-4">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 space-y-2">
+              <p className="text-sm text-white/80 font-medium mb-3">
+                {completedCount}/{totalModules} modules completed
+              </p>
+              {modules.map((module) => (
+                <div 
+                  key={module.id} 
+                  className="flex items-center gap-3 p-2 rounded hover:bg-white/10 transition-colors"
+                  data-testid={`module-item-${module.id}`}
+                >
+                  <Checkbox
+                    checked={localCompletedModules.includes(module.id)}
+                    onCheckedChange={(checked) => handleModuleToggle(module.id, checked as boolean)}
+                    className="border-white/40 data-[state=checked]:bg-white data-[state=checked]:text-primary"
+                    data-testid={`checkbox-module-${module.id}`}
+                  />
+                  <label className="text-sm text-white cursor-pointer flex-1" onClick={() => {
+                    const isChecked = localCompletedModules.includes(module.id);
+                    handleModuleToggle(module.id, !isChecked);
+                  }}>
+                    {module.title}
+                  </label>
+                  {module.url && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 text-white/60 hover:text-white hover:bg-white/20"
+                      onClick={() => window.open(module.url, '_blank')}
+                      data-testid={`button-module-link-${module.id}`}
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      )}
     </div>
   );
 }

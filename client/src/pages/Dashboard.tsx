@@ -347,6 +347,41 @@ export default function Dashboard() {
     }
   };
 
+  // Fetch Health Mastery modules
+  const { data: healthMasteryModules = [] } = useQuery<Array<{
+    id: string;
+    title: string;
+    url?: string;
+  }>>({
+    queryKey: ['/api/courses/health-mastery-modules'],
+    select: (data: any) => data.modules || []
+  });
+
+  // Track completed modules for each course
+  const [completedModules, setCompletedModules] = useState<Record<string, string[]>>({
+    'health-mastery': []
+  });
+
+  const handleModuleToggle = (courseId: string, moduleId: string, completed: boolean) => {
+    setCompletedModules(prev => {
+      const current = prev[courseId] || [];
+      const updated = completed 
+        ? [...current, moduleId]
+        : current.filter(id => id !== moduleId);
+      
+      return {
+        ...prev,
+        [courseId]: updated
+      };
+    });
+
+    // Auto-save toast
+    toast({
+      title: completed ? 'Module Completed!' : 'Module Unmarked',
+      description: completed ? 'Progress updated successfully' : 'Progress reverted',
+    });
+  };
+
   const [courses, setCourses] = useState<Array<{
     id: string;
     title: string;
@@ -362,7 +397,7 @@ export default function Dashboard() {
       id: 'health-mastery',
       title: 'Health Mastery Course',
       url: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym',
-      tags: ['Health', 'Wellness', 'Fitness'],
+      tags: ['Health', 'Wellness'],
       source: 'Mitesh Khatri Coaching',
       estimatedHours: 20,
       status: 'not_started',
@@ -551,8 +586,11 @@ export default function Dashboard() {
                 <CourseCard 
                   key={course.id} 
                   {...course}
+                  modules={course.id === 'health-mastery' ? healthMasteryModules : []}
+                  completedModules={completedModules[course.id] || []}
                   onUpdateProgress={handleUpdateCourseProgress}
                   onVisit={handleVisitCourse}
+                  onModuleToggle={handleModuleToggle}
                 />
               ))}
             </div>
