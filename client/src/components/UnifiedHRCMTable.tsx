@@ -681,24 +681,28 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
     }
   }, [allWeeksData, weekNumber, onWeekChange, beliefs, toast]);
 
+  // Track previous ratings to detect changes
+  const prevRatings = useRef<Map<string, number>>(new Map());
+
   // Auto-trigger: Get AI course recommendation when rating changes OR on mount
   useEffect(() => {
     beliefs.forEach((belief) => {
-      // Check if category has rating > 0
       const hasRating = belief.currentRating > 0;
-      const noCourseYet = !belief.courseSuggestion || !belief.courseSuggestion.courses || belief.courseSuggestion.courses.length === 0;
       const notLoading = !loadingCourses.has(belief.category);
+      const prevRating = prevRatings.current.get(belief.category) || 0;
+      const ratingChanged = prevRating !== belief.currentRating;
       
       // Auto-fetch courses if:
       // 1. Has rating > 0
-      // 2. No courses exist yet OR rating changed (via dependency array)
+      // 2. Rating changed (new rating OR different from previous)
       // 3. Not currently loading
-      if (hasRating && noCourseYet && notLoading) {
-        console.log(`Auto-fetching courses for ${belief.category} with rating ${belief.currentRating}`);
+      if (hasRating && ratingChanged && notLoading) {
+        console.log(`Auto-fetching courses for ${belief.category} - rating changed from ${prevRating} to ${belief.currentRating}`);
         getAICourseRecommendation(belief.category);
+        prevRatings.current.set(belief.category, belief.currentRating);
       }
     });
-  }, [beliefs.map(b => `${b.currentRating}|${b.courseSuggestion?.courses?.length || 0}`).join(',')]);
+  }, [beliefs.map(b => b.currentRating).join(',')]);
 
   const startEdit = (category: string, field: string, currentValue: string, buttonElement?: HTMLButtonElement) => {
     // Store the button element for focus restoration
@@ -1079,11 +1083,11 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                       <Loader2 className="w-4 h-4 animate-spin text-cyan-600" />
                       <span className="text-xs text-muted-foreground">AI analyzing...</span>
                     </div>
-                  ) : belief.courseSuggestion?.courses?.length > 0 ? (
+                  ) : belief.courseSuggestion?.courses?.length ? (
                     <div className="space-y-1">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-medium text-cyan-600 dark:text-cyan-400">
-                          AI Courses ({belief.courseSuggestion.courses.length})
+                          AI Courses ({belief.courseSuggestion?.courses?.length || 0})
                         </span>
                         <Button
                           size="sm"
@@ -1095,7 +1099,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                           <Sparkles className="w-3 h-3" />
                         </Button>
                       </div>
-                      {belief.courseSuggestion.courses.map((course) => (
+                      {belief.courseSuggestion?.courses?.map((course) => (
                         <div key={course.id} className="flex items-center gap-2 py-0.5">
                           <Checkbox
                             checked={course.completed}
