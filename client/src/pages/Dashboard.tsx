@@ -1153,7 +1153,7 @@ export default function Dashboard() {
           </div>
         </section>
 
-        <section ref={coursesRef} id="courses" className="scroll-mt-20 bg-emerald-50 dark:bg-emerald-950/40 p-6 rounded-lg border-2 border-emerald-200 dark:border-emerald-800">
+        <section ref={coursesRef} id="courses" className="scroll-mt-20 bg-green-100 dark:bg-green-900/60 p-6 rounded-lg border-2 border-green-400 dark:border-green-600">
           <div className="space-y-6">
             <div>
               <h2 className="text-3xl font-bold">Course Tracker</h2>
