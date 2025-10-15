@@ -583,12 +583,11 @@ export default function Dashboard() {
       progressPercent: 0,
       category: 'default',
       lessons: [
-        { id: 'ps-1', title: 'What is Practical Spirituality', url: '', completed: false },
-        { id: 'ps-2', title: 'The Oneness Meditation Experience', url: '', completed: false },
-        { id: 'ps-3', title: 'Meditation Experience Sharing', url: '', completed: false },
-        { id: 'ps-4', title: 'Loving Accepting Your Dark Side', url: '', completed: false },
-        { id: 'ps-5', title: 'If I Am Energy Then', url: '', completed: false },
-        { id: 'ps-6', title: 'How to Create Balance in your Life', url: '', completed: false },
+        { id: 'ps-1', title: 'Practical Spirituality With My Guru', url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2151628144', completed: false },
+        { id: 'ps-2', title: '6th Nov - Part 1', url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2151628144/posts/2162812399', completed: false },
+        { id: 'ps-3', title: '6th Nov - Spirituality Q&A', url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2151628144/posts/2162811998', completed: false },
+        { id: 'ps-4', title: '20th Nov - Meditation & 4 Questions Exercise of Byron Katie with GD', url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2151628144/posts/2163187094', completed: false },
+        { id: 'ps-5', title: '27th Nov - Practical Spirituality with Sahil', url: '', completed: false },
       ]
     },
     {
@@ -752,30 +751,6 @@ export default function Dashboard() {
         { id: 'dc-1', title: 'Lesson 1 - Depression To Celebration', url: 'https://coaching.miteshkhatri.com/products/depression-to-celebration/categories/2151886711/posts/2163826138', completed: false },
         { id: 'dc-2', title: 'Lesson 2 - Depression To Celebration', url: 'https://coaching.miteshkhatri.com/products/depression-to-celebration/categories/2151886711/posts/2163857695', completed: false },
       ]
-    },
-    {
-      id: 'handwriting-frequency',
-      title: 'Handwriting Frequency Course',
-      url: '#',
-      tags: ['Handwriting', 'Frequency'],
-      source: 'Mitesh Khatri',
-      estimatedHours: 12,
-      status: 'not_started',
-      progressPercent: 0,
-      category: 'default',
-      lessons: []
-    },
-    {
-      id: 'investing-saving',
-      title: 'Investing & Saving',
-      url: '#',
-      tags: ['Finance', 'Investment'],
-      source: 'Mitesh Khatri',
-      estimatedHours: 18,
-      status: 'not_started',
-      progressPercent: 0,
-      category: 'Money',
-      lessons: []
     },
     {
       id: 'demartini-breakthrough',
