@@ -88,6 +88,8 @@ export default function Dashboard() {
   const [totalPoints, setTotalPoints] = useState(0);
   
   const todayDate = useMemo(() => getTodayDate(), []);
+  const currentMonth = useMemo(() => new Date().getMonth(), []);
+  const currentYear = useMemo(() => new Date().getFullYear(), []);
   
   // Fetch current user data
   const { data: currentUser } = useQuery<{ id: string; email: string; firstName?: string; lastName?: string; isAdmin?: boolean }>({
@@ -110,9 +112,14 @@ export default function Dashboard() {
     queryKey: ['/api/rituals'],
   });
   
-  // Fetch today's ritual completions
+  // Fetch today's ritual completions (for today's status)
   const { data: todayCompletions = [] } = useQuery<RitualCompletion[]>({
     queryKey: ['/api/ritual-completions', todayDate],
+  });
+
+  // Fetch monthly ritual completions (for history)
+  const { data: monthlyCompletions = [] } = useQuery<RitualCompletion[]>({
+    queryKey: ['/api/ritual-completions/month', currentYear, currentMonth],
   });
   
   // Map database rituals to Dashboard Ritual interface
@@ -121,9 +128,8 @@ export default function Dashboard() {
       // Use points from database instead of calculating
       const points = dbRitual.points || calculatePoints(dbRitual.frequency);
       const isCompleted = todayCompletions.some(c => c.ritualId === dbRitual.id);
-      // For now, history only shows today's completion
-      // TODO: Fetch all completions for the month when viewing history
-      const ritualCompletions = todayCompletions.filter(c => c.ritualId === dbRitual.id);
+      // Get this ritual's completions from monthly data
+      const ritualCompletions = monthlyCompletions.filter(c => c.ritualId === dbRitual.id);
       
       return {
         id: dbRitual.id,
@@ -135,7 +141,7 @@ export default function Dashboard() {
         history: generateCurrentMonthHistory(ritualCompletions)
       };
     });
-  }, [dbRituals, todayCompletions]);
+  }, [dbRituals, todayCompletions, monthlyCompletions]);
 
   const hrcmRef = useRef<HTMLDivElement>(null);
   const ritualsRef = useRef<HTMLDivElement>(null);
@@ -221,6 +227,7 @@ export default function Dashboard() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['/api/ritual-completions', todayDate] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ritual-completions/month', currentYear, currentMonth] });
       
       const ritual = rituals.find(r => r.id === variables.id);
       if (ritual && !variables.isCompleted) {

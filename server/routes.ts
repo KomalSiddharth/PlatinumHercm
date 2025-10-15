@@ -1503,6 +1503,22 @@ Return ONLY valid JSON in this exact format:
     }
   });
 
+  app.get('/api/ritual-completions/month/:year/:month', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const { year, month } = req.params;
+      const completions = await storage.getRitualCompletionsByMonth(userId, parseInt(year), parseInt(month));
+      res.json(completions);
+    } catch (error) {
+      console.error("Error fetching monthly ritual completions:", error);
+      res.status(500).json({ message: "Failed to fetch monthly ritual completions" });
+    }
+  });
+
   app.post('/api/ritual-completions', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.session.userEmail;
