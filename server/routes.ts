@@ -72,10 +72,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const weekNumber = parseInt(req.params.weekNumber);
-      const week = await storage.getHercmWeek(userId, weekNumber);
+      let week = await storage.getHercmWeek(userId, weekNumber);
       
       if (!week) {
         return res.json(null);
+      }
+
+      // Check if 7 days have passed since week creation
+      const weekCreatedAt = new Date(week.createdAt);
+      const now = new Date();
+      const daysDiff = Math.floor((now.getTime() - weekCreatedAt.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (daysDiff >= 7) {
+        // Auto-create new week with empty current week and prefilled next week
+        const newWeekNumber = weekNumber + 1;
+        
+        // Check if next week already exists
+        const existingNextWeek = await storage.getHercmWeek(userId, newWeekNumber);
+        
+        if (!existingNextWeek) {
+          // Create new week with prefilled next week data from previous week's next week section
+          const newWeekData = {
+            userId,
+            weekNumber: newWeekNumber,
+            year: now.getFullYear(),
+            
+            // Current week - empty ratings (will be set manually)
+            currentH: 0,
+            currentE: 0,
+            currentR: 0,
+            currentC: 0,
+            
+            // Next week - prefilled from previous week's next week section
+            targetH: week.targetH || 0,
+            targetE: week.targetE || 0,
+            targetR: week.targetR || 0,
+            targetC: week.targetC || 0,
+            
+            // Next week affirmations and checklist from previous week
+            healthAffirmation: week.healthAffirmation || '',
+            healthChecklist: week.healthChecklist || [],
+            relationshipAffirmation: week.relationshipAffirmation || '',
+            relationshipChecklist: week.relationshipChecklist || [],
+            careerAffirmation: week.careerAffirmation || '',
+            careerChecklist: week.careerChecklist || [],
+            moneyAffirmation: week.moneyAffirmation || '',
+            moneyChecklist: week.moneyChecklist || [],
+          };
+          
+          await storage.createHercmWeek(newWeekData);
+        }
+        
+        // Return the new week data with indicator for frontend
+        week = await storage.getHercmWeek(userId, newWeekNumber) || week;
       }
       
       // Transform database format back to beliefs array for frontend

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -62,6 +62,33 @@ export default function AdminPanel() {
   const [searchedUser, setSearchedUser] = useState<any>(null);
   
   const { toast } = useToast();
+
+  // Check if user is admin
+  const { data: currentUser, isLoading: userLoading } = useQuery<{ id: string; email: string; firstName?: string; lastName?: string; isAdmin?: boolean }>({
+    queryKey: ['/api/auth/user'],
+    retry: false,
+  });
+
+  // Redirect non-admin users to dashboard
+  useEffect(() => {
+    if (!userLoading && (!currentUser || !currentUser.isAdmin)) {
+      setLocation('/dashboard');
+    }
+  }, [currentUser, userLoading, setLocation]);
+
+  // Show loading while checking authentication
+  if (userLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
+  }
+
+  // Don't render if not admin
+  if (!currentUser || !currentUser.isAdmin) {
+    return null;
+  }
 
   const { data: approvedEmails = [], isLoading } = useQuery<ApprovedEmail[]>({
     queryKey: ['/api/admin/approved-emails'],

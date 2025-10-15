@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import DashboardHeader from '@/components/DashboardHeader';
 import UnifiedHRCMTable from '@/components/UnifiedHRCMTable';
@@ -77,6 +78,7 @@ const calculatePoints = (frequency: string): number => {
 
 export default function Dashboard() {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [activeSection, setActiveSection] = useState('hrcm');
   const [profileOpen, setProfileOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -93,9 +95,17 @@ export default function Dashboard() {
   const currentYear = useMemo(() => new Date().getFullYear(), []);
   
   // Fetch current user data
-  const { data: currentUser } = useQuery<{ id: string; email: string; firstName?: string; lastName?: string; isAdmin?: boolean }>({
+  const { data: currentUser, isLoading: userLoading, error: userError } = useQuery<{ id: string; email: string; firstName?: string; lastName?: string; isAdmin?: boolean }>({
     queryKey: ['/api/auth/user'],
+    retry: false,
   });
+  
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!userLoading && !currentUser) {
+      setLocation('/');
+    }
+  }, [currentUser, userLoading, setLocation]);
   
   // Update userName and userEmail when user data is fetched
   useEffect(() => {
@@ -107,6 +117,20 @@ export default function Dashboard() {
       setUserEmail(currentUser.email || '');
     }
   }, [currentUser]);
+  
+  // Show loading state while checking authentication
+  if (userLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Skeleton className="h-12 w-64" />
+      </div>
+    );
+  }
+  
+  // Don't render dashboard if not authenticated
+  if (!currentUser) {
+    return null;
+  }
   
   // Fetch rituals from database
   const { data: dbRituals = [], isLoading: ritualsLoading } = useQuery<DbRitual[]>({
