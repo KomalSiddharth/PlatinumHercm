@@ -77,23 +77,31 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
               </Select>
             </div>
 
-            {/* Month Picker */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-64" data-testid="button-select-month">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {format(selectedDate, 'MMMM yyyy')}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={(date) => date && setSelectedDate(date)}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+            {/* Month Selector (only for monthly view) */}
+            {viewType === 'monthly' && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Month:</span>
+                <Select 
+                  value={selectedDate.getMonth().toString()} 
+                  onValueChange={(v) => {
+                    const newDate = new Date(selectedDate);
+                    newDate.setMonth(Number(v));
+                    setSelectedDate(newDate);
+                  }}
+                >
+                  <SelectTrigger className="w-40" data-testid="select-month">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {monthNames.map((month, idx) => (
+                      <SelectItem key={idx} value={idx.toString()}>
+                        {month}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             {/* Week Selector (for weekly view) */}
             {viewType === 'weekly' && (
@@ -166,33 +174,56 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {['Health', 'Relationship', 'Career', 'Money'].map((category, idx) => {
                   const colors = ['from-red-500 to-orange-500', 'from-blue-500 to-cyan-500', 'from-purple-500 to-pink-500', 'from-green-500 to-emerald-500'];
-                  const avgProgress = Math.round(currentData.reduce((sum: number, d: any) => sum + (d[category as keyof typeof d] as number), 0) / currentData.length);
+                  
+                  // Show specific week/month data instead of average
+                  let progress = 0;
+                  if (viewType === 'weekly') {
+                    const weekData = currentData.find((d: any) => d.week === `W${selectedWeek}`);
+                    progress = weekData ? (weekData[category as keyof typeof weekData] as number) : 0;
+                  } else {
+                    const monthData = currentData.find((d: any) => d.month === monthNames[selectedDate.getMonth()].substring(0, 3));
+                    progress = monthData ? (monthData[category as keyof typeof monthData] as number) : 0;
+                  }
                   
                   return (
                     <div key={category} className="p-6 bg-muted/30 rounded-lg space-y-3">
                       <h3 className="text-sm font-medium text-muted-foreground">{category}</h3>
                       <div className={`text-3xl font-bold bg-gradient-to-r ${colors[idx]} bg-clip-text text-transparent`}>
-                        {avgProgress}%
+                        {Math.round(progress)}%
                       </div>
                       <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
                         <div 
                           className={`h-full bg-gradient-to-r ${colors[idx]}`}
-                          style={{ width: `${avgProgress}%` }}
+                          style={{ width: `${progress}%` }}
                         />
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        {viewType === 'weekly' ? 'Weekly' : 'Monthly'} Average
+                        {viewType === 'weekly' ? `Week ${selectedWeek}` : monthNames[selectedDate.getMonth()]} Progress
                       </p>
                     </div>
                   );
                 })}
               </div>
 
-              {/* Overall Stats */}
+              {/* Overall Stats for specific period */}
               <div className="grid grid-cols-3 gap-4 pt-4 border-t">
                 <div className="text-center p-4 bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg">
                   <div className="text-2xl font-bold text-primary">
-                    {Math.round(currentData.reduce((sum: number, d: any) => sum + (d.Health as number) + (d.Relationship as number) + (d.Career as number) + (d.Money as number), 0) / (currentData.length * 4))}%
+                    {(() => {
+                      let total = 0;
+                      if (viewType === 'weekly') {
+                        const weekData = currentData.find((d: any) => d.week === `W${selectedWeek}`);
+                        if (weekData) {
+                          total = Math.round(((weekData.Health as number) + (weekData.Relationship as number) + (weekData.Career as number) + (weekData.Money as number)) / 4);
+                        }
+                      } else {
+                        const monthData = currentData.find((d: any) => d.month === monthNames[selectedDate.getMonth()].substring(0, 3));
+                        if (monthData) {
+                          total = Math.round(((monthData.Health as number) + (monthData.Relationship as number) + (monthData.Career as number) + (monthData.Money as number)) / 4);
+                        }
+                      }
+                      return total;
+                    })()}%
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">Overall Progress</p>
                 </div>
@@ -205,9 +236,9 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                 </div>
                 <div className="text-center p-4 bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg">
                   <div className="text-2xl font-bold text-primary">
-                    {currentData.length}
+                    {viewType === 'weekly' ? `Week ${selectedWeek}` : monthNames[selectedDate.getMonth()]}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">{viewType === 'weekly' ? 'Weeks' : 'Months'} Tracked</p>
+                  <p className="text-xs text-muted-foreground mt-1">Selected Period</p>
                 </div>
               </div>
             </TabsContent>
