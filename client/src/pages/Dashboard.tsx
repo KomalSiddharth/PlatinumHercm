@@ -368,6 +368,13 @@ export default function Dashboard() {
     });
   };
 
+  interface CourseLesson {
+    id: string;
+    title: string;
+    url?: string;
+    completed: boolean;
+  }
+
   const [courses, setCourses] = useState<Array<{
     id: string;
     title: string;
@@ -378,39 +385,80 @@ export default function Dashboard() {
     status: 'not_started' | 'in_progress' | 'completed';
     progressPercent: number;
     category: string;
+    lessons: CourseLesson[];
   }>>([
     {
       id: 'basic-loa',
       title: 'Basic Law of Attraction',
-      url: '#',
+      url: 'https://www.miteshkhatri.com/Basic',
       tags: ['LOA', 'Manifestation'],
       source: 'Mitesh Khatri',
       estimatedHours: 15,
       status: 'not_started',
       progressPercent: 0,
-      category: 'default'
+      category: 'default',
+      lessons: [
+        { id: 'bloa-1', title: 'What are the 4 Levels of LOA', url: '', completed: false },
+        { id: 'bloa-2', title: 'What is Law of Attraction', url: '', completed: false },
+        { id: 'bloa-3', title: 'Why LOA Works', url: '', completed: false },
+        { id: 'bloa-4', title: 'What is The FORMULA of LOA', url: '', completed: false },
+        { id: 'bloa-5', title: 'Four Rules of Tuning Perfect Affirmations', url: '', completed: false },
+        { id: 'bloa-6', title: 'Four Areas of Tuning Affirmations', url: '', completed: false },
+        { id: 'bloa-7', title: 'Three Type of Affirmations for Success', url: '', completed: false },
+        { id: 'bloa-8', title: 'How to Prepare Your Affirmations', url: '', completed: false },
+        { id: 'bloa-9', title: 'How to Practice Affirmations in the Right Way', url: '', completed: false },
+        { id: 'bloa-10', title: 'How to Clear Negative Energy with HO OPONO OPONO', url: '', completed: false },
+      ]
     },
     {
       id: 'advance-loa',
       title: 'Advance Law of Attraction',
-      url: '#',
+      url: 'https://www.miteshkhatri.com/ALOAL01',
       tags: ['LOA', 'Advanced'],
       source: 'Mitesh Khatri',
       estimatedHours: 20,
       status: 'not_started',
       progressPercent: 0,
-      category: 'default'
+      category: 'default',
+      lessons: [
+        { id: 'aloa-1', title: 'Upgrading Your Emotional Frequency', url: 'https://www.miteshkhatri.com/ALOAL1', completed: false },
+        { id: 'aloa-2', title: 'Match your FTBA Frequency with your Goal', url: 'https://www.miteshkhatri.com/FTBA', completed: false },
+        { id: 'aloa-3', title: 'Make Your Positive Emotional Conditions Easy', url: 'https://www.miteshkhatri.com/EmotionalPurpose', completed: false },
+        { id: 'aloa-4', title: 'Balancing your Yin-Yang Frequency', url: 'https://www.miteshkhatri.com/YinYang', completed: false },
+        { id: 'aloa-5', title: 'The Source of your Action - Your Values', url: 'https://www.miteshkhatri.com/Values', completed: false },
+        { id: 'aloa-6', title: 'Seven Chakras Understanding Energizing Activation', url: 'https://www.miteshkhatri.com/Chakras', completed: false },
+        { id: 'aloa-7', title: 'Seven Energy Needs - Align Your Needs with Wants', url: 'https://www.miteshkhatri.com/Needs', completed: false },
+        { id: 'aloa-8', title: 'Big Small Life Questions to Change Frequency', url: 'https://www.miteshkhatri.com/Questions', completed: false },
+        { id: 'aloa-9', title: 'Change your Limiting Beliefs in 10 Mins', url: 'https://www.miteshkhatri.com/LimitingBeliefs', completed: false },
+        { id: 'aloa-10', title: 'Advance Ho Oponopono', url: 'https://www.miteshkhatri.com/AdvanceHo', completed: false },
+        { id: 'aloa-11', title: 'Removing all your Fears in 1 Hour', url: 'https://www.miteshkhatri.com/RemoveFear', completed: false },
+        { id: 'aloa-12', title: 'Integration Exercise of ALOA Lessons', url: 'https://www.miteshkhatri.com/ALOAIntegration', completed: false },
+      ]
     },
     {
       id: 'wealth-mastery',
       title: 'Wealth Mastery',
-      url: '#',
+      url: 'https://www.miteshkhatri.com/MoneyAssessment',
       tags: ['Wealth', 'Money'],
       source: 'Mitesh Khatri',
       estimatedHours: 25,
       status: 'not_started',
       progressPercent: 0,
-      category: 'Money'
+      category: 'Money',
+      lessons: [
+        { id: 'wm-1', title: 'Recognizing your Money Blocks', url: 'https://www.miteshkhatri.com/MoneyAssessment', completed: false },
+        { id: 'wm-2', title: 'Release Negative Money Frequency with EFT', url: 'https://www.miteshkhatri.com/MoneyEFT', completed: false },
+        { id: 'wm-3', title: 'Happy Millionaire Emotions', url: 'https://www.miteshkhatri.com/MoneyEmotions', completed: false },
+        { id: 'wm-4', title: 'Happy Millionaire Beliefs', url: 'https://www.miteshkhatri.com/MoneyBeliefs', completed: false },
+        { id: 'wm-5', title: 'Happy Millionaire Actions', url: 'https://www.miteshkhatri.com/MoneyActions', completed: false },
+        { id: 'wm-6', title: 'Attracting Ultimate Financial Freedom with SDE', url: 'https://www.miteshkhatri.com/FinancialFreedom', completed: false },
+        { id: 'wm-7', title: 'Multiple Money Making Skills', url: 'https://www.miteshkhatri.com/MSI', completed: false },
+        { id: 'wm-8', title: 'Match your Needs with Your Goals', url: 'https://www.miteshkhatri.com/MoneyNeeds', completed: false },
+        { id: 'wm-9', title: 'How to Write Your 1st Book Fast and Easy', url: 'https://www.miteshkhatri.com/BookWriting', completed: false },
+        { id: 'wm-10', title: 'Changing your Emotional Frequency for Money', url: 'https://www.miteshkhatri.com/WML10', completed: false },
+        { id: 'wm-11', title: 'PMDSPM System to Manage Money', url: 'https://www.miteshkhatri.com/PMDSPM', completed: false },
+        { id: 'wm-12', title: 'How to Invest & Multiply Money like a Millionaire', url: 'https://www.miteshkhatri.com/WML15', completed: false },
+      ]
     },
     {
       id: 'nlp',
@@ -421,18 +469,51 @@ export default function Dashboard() {
       estimatedHours: 30,
       status: 'not_started',
       progressPercent: 0,
-      category: 'default'
+      category: 'default',
+      lessons: [
+        { id: 'nlp-1', title: 'Generalization Deletion and Distortion Filters', url: 'https://www.miteshkhatri.com/GDD', completed: false },
+        { id: 'nlp-2', title: 'Primary and Sub-Modalities of VAK', url: 'https://www.miteshkhatri.com/VAK', completed: false },
+        { id: 'nlp-3', title: 'Like to Dislike anything in just 5 Mins', url: 'https://www.miteshkhatri.com/LikeDislike', completed: false },
+        { id: 'nlp-4', title: 'Dislike to Like anything in just 5 Mins', url: 'https://www.miteshkhatri.com/DislikeLike', completed: false },
+        { id: 'nlp-5', title: 'Anchoring - Automatic Emotional Programmes', url: 'https://www.miteshkhatri.com/Anchoring', completed: false },
+        { id: 'nlp-6', title: 'Swish Technique to Change Small Habits', url: 'https://www.miteshkhatri.com/Swish', completed: false },
+        { id: 'nlp-7', title: 'Stack Anchoring', url: 'https://www.miteshkhatri.com/StackingAnchors', completed: false },
+        { id: 'nlp-8', title: 'Eye Accessing Cues', url: 'https://www.miteshkhatri.com/Eyes', completed: false },
+        { id: 'nlp-9', title: 'Pre-Framing Re-Framing Post-Framing', url: 'https://www.miteshkhatri.com/Framing', completed: false },
+        { id: 'nlp-10', title: 'Removing Any FEAR in just 5 Mins', url: 'https://www.miteshkhatri.com/Fear', completed: false },
+        { id: 'nlp-11', title: 'Cure Any Phobia in just 10 Mins', url: 'https://www.miteshkhatri.com/Phobia', completed: false },
+        { id: 'nlp-12', title: 'Belief Transfer in just 10 Mins', url: 'https://www.miteshkhatri.com/Beliefs', completed: false },
+        { id: 'nlp-13', title: 'Modelling - Science of Replicating Success', url: 'https://www.miteshkhatri.com/Modeling', completed: false },
+        { id: 'nlp-14', title: 'Rapport Building Conversational Hypnosis', url: 'https://www.miteshkhatri.com/RapportBuilding', completed: false },
+        { id: 'nlp-15', title: 'Transformational Vocabulary', url: 'https://www.miteshkhatri.com/Vocabulary', completed: false },
+        { id: 'nlp-16', title: 'Conversational Hypnosis', url: 'https://www.miteshkhatri.com/ConversationalHypnosis', completed: false },
+        { id: 'nlp-17', title: 'Timeline Therapy to Change Emotions Memories', url: 'https://www.miteshkhatri.com/Timeline', completed: false },
+      ]
     },
     {
       id: 'hooponopono-eft',
       title: "Ho'Oponopono + EFT Certification Course",
-      url: '#',
+      url: 'https://www.miteshkhatri.com/HOOPL1',
       tags: ['Healing', 'EFT'],
       source: 'Mitesh Khatri',
       estimatedHours: 18,
       status: 'not_started',
       progressPercent: 0,
-      category: 'default'
+      category: 'default',
+      lessons: [
+        { id: 'ho-1', title: 'Demonstration of Advance Ho Oponpono', url: 'https://www.miteshkhatri.com/HOOPL1', completed: false },
+        { id: 'ho-2', title: 'Understanding Practice of Basic Vs Advance', url: 'https://www.miteshkhatri.com/AdvanceHope', completed: false },
+        { id: 'ho-3', title: 'Ho Oponopono Letting Go Technique', url: 'https://www.miteshkhatri.com/LettingGo', completed: false },
+        { id: 'ho-4', title: 'NLP Balloon Healing Technique', url: 'https://www.miteshkhatri.com/Balloon', completed: false },
+        { id: 'ho-5', title: 'Emotional Freedom Technique EFT', url: 'https://www.miteshkhatri.com/EFT', completed: false },
+        { id: 'ho-6', title: 'Love Ponopono Healing Technique', url: 'https://www.miteshkhatri.com/LovePono', completed: false },
+        { id: 'ho-7', title: 'How Much Money You Can Make As a Healer', url: 'https://www.miteshkhatri.com/HOOPL6', completed: false },
+        { id: 'ho-8', title: 'Ready Script for Inviting People', url: 'https://www.miteshkhatri.com/HoWebinar', completed: false },
+        { id: 'ho-9', title: 'Free Webinar - Prepare People', url: 'https://www.miteshkhatri.com/HOOPL8', completed: false },
+        { id: 'ho-10', title: 'Free Webinar - Tears of Joy Experience', url: 'https://www.miteshkhatri.com/HOOPL9', completed: false },
+        { id: 'ho-11', title: 'Remote Healing Technique', url: 'https://www.miteshkhatri.com/RemoteHealing', completed: false },
+        { id: 'ho-12', title: 'How to Attract Unlimited Students from YouTube', url: 'https://www.miteshkhatri.com/HoYouTube', completed: false },
+      ]
     },
     {
       id: 'manifest-chakra',
@@ -443,18 +524,31 @@ export default function Dashboard() {
       estimatedHours: 16,
       status: 'not_started',
       progressPercent: 0,
-      category: 'default'
+      category: 'default',
+      lessons: []
     },
     {
       id: 'relationship-mastery',
       title: 'Relationship Mastery with Mitesh Khatri',
-      url: '#',
+      url: 'https://www.miteshkhatri.com/Source',
       tags: ['Relationships', 'Communication'],
       source: 'Mitesh Khatri',
       estimatedHours: 18,
       status: 'not_started',
       progressPercent: 0,
-      category: 'Relationship'
+      category: 'Relationship',
+      lessons: [
+        { id: 'rm-1', title: 'The Source of your Relationships - Your Parents', url: 'https://www.miteshkhatri.com/Source', completed: false },
+        { id: 'rm-2', title: 'Master Loving Accepting Yourself with Reflection', url: 'https://www.miteshkhatri.com/Reflection', completed: false },
+        { id: 'rm-3', title: 'Understand Difference Between Men Vs Women', url: 'https://www.miteshkhatri.com/MenWomen', completed: false },
+        { id: 'rm-4', title: 'Ritual Of Relating', url: 'https://www.miteshkhatri.com/Rituals', completed: false },
+        { id: 'rm-5', title: 'Understand your partner through FIRO-B', url: 'https://www.miteshkhatri.com/FiroB', completed: false },
+        { id: 'rm-6', title: 'Fulfilling Each others Needs', url: 'https://www.miteshkhatri.com/RNeeds', completed: false },
+        { id: 'rm-7', title: 'Balance Perspective to Master Acceptance', url: 'https://www.miteshkhatri.com/Balance', completed: false },
+        { id: 'rm-8', title: 'Trust Bank Account', url: 'https://www.miteshkhatri.com/TBA', completed: false },
+        { id: 'rm-9', title: 'Rapport Building', url: 'https://www.miteshkhatri.com/Rapport', completed: false },
+        { id: 'rm-10', title: 'How to Break Up Easily Let People Go with Love', url: 'https://www.miteshkhatri.com/BreakUp', completed: false },
+      ]
     },
     {
       id: 'practical-spirituality',
@@ -465,40 +559,71 @@ export default function Dashboard() {
       estimatedHours: 20,
       status: 'not_started',
       progressPercent: 0,
-      category: 'default'
+      category: 'default',
+      lessons: [
+        { id: 'ps-1', title: 'What is Practical Spirituality', url: '', completed: false },
+        { id: 'ps-2', title: 'The Oneness Meditation Experience', url: '', completed: false },
+        { id: 'ps-3', title: 'Meditation Experience Sharing', url: '', completed: false },
+        { id: 'ps-4', title: 'Loving Accepting Your Dark Side', url: '', completed: false },
+        { id: 'ps-5', title: 'If I Am Energy Then', url: '', completed: false },
+        { id: 'ps-6', title: 'How to Create Balance in your Life', url: '', completed: false },
+      ]
     },
     {
       id: 'life-coaching',
       title: 'Life Coaching',
-      url: '#',
+      url: 'https://www.miteshkhatri.com/CoachingDemo',
       tags: ['Coaching', 'Career'],
       source: 'Mitesh Khatri',
       estimatedHours: 22,
       status: 'not_started',
       progressPercent: 0,
-      category: 'Career'
+      category: 'Career',
+      lessons: [
+        { id: 'lc-1', title: 'Demo of Life Coaching Framework', url: 'https://www.miteshkhatri.com/CoachingDemo', completed: false },
+        { id: 'lc-2', title: 'Understanding the Life Coaching Framework', url: 'https://www.miteshkhatri.com/CoachingFramework', completed: false },
+        { id: 'lc-3', title: 'Health Coaching Blueprint', url: 'https://www.miteshkhatri.com/HealthCoaching', completed: false },
+        { id: 'lc-4', title: 'Relationship Coaching Blueprint', url: 'https://www.miteshkhatri.com/RelationshipCoaching', completed: false },
+        { id: 'lc-5', title: 'Career Coaching Blueprint', url: 'https://www.miteshkhatri.com/CareerCoaching', completed: false },
+        { id: 'lc-6', title: 'Webinar Selling Formula Explained', url: 'https://www.miteshkhatri.com/WebinarSelling', completed: false },
+        { id: 'lc-7', title: 'Discovery call Method to Convert Client', url: 'https://www.miteshkhatri.com/ClarityCall', completed: false },
+        { id: 'lc-8', title: 'How to Create 3 Levels of Sales Funnel', url: 'https://www.miteshkhatri.com/SalesFunnel', completed: false },
+      ]
     },
     {
       id: 'corporate-trainer',
       title: 'Corporate Train The Trainer by Mitesh Khatri',
-      url: '#',
+      url: 'https://www.miteshkhatri.com/CoporateTraining',
       tags: ['Corporate', 'Training'],
       source: 'Mitesh Khatri',
       estimatedHours: 24,
       status: 'not_started',
       progressPercent: 0,
-      category: 'Career'
+      category: 'Career',
+      lessons: [
+        { id: 'ct-1', title: 'Manifest your Corporate Training Career', url: 'https://www.miteshkhatri.com/CoporateTraining', completed: false },
+        { id: 'ct-2', title: 'How to Prove Your Results after Every Module', url: '', completed: false },
+        { id: 'ct-3', title: 'How to Design Content Part 1', url: '', completed: false },
+        { id: 'ct-4', title: 'How to Design Content Part 2', url: '', completed: false },
+        { id: 'ct-5', title: 'Business Communication Skills Demo', url: '', completed: false },
+        { id: 'ct-6', title: 'Experience Team Building with Ready Design', url: '', completed: false },
+      ]
     },
     {
       id: 'loa-certification',
       title: 'Law Of Attraction Certification',
-      url: '#',
+      url: 'https://www.miteshkhatri.com/LOACoach',
       tags: ['LOA', 'Certification'],
       source: 'Mitesh Khatri',
       estimatedHours: 28,
       status: 'not_started',
       progressPercent: 0,
-      category: 'default'
+      category: 'default',
+      lessons: [
+        { id: 'loac-1', title: 'LOA Certification Lesson 1', url: 'https://www.miteshkhatri.com/LOACoach', completed: false },
+        { id: 'loac-2', title: 'What Content to Teach for Free', url: '', completed: false },
+        { id: 'loac-3', title: 'How to Invite People for Paid Sessions', url: '', completed: false },
+      ]
     },
     {
       id: 'loa-dmp-certification',
@@ -509,18 +634,32 @@ export default function Dashboard() {
       estimatedHours: 30,
       status: 'not_started',
       progressPercent: 0,
-      category: 'default'
+      category: 'default',
+      lessons: [
+        { id: 'dmp-1', title: 'The Power & Potential of DMP', url: '', completed: false },
+        { id: 'dmp-2', title: 'Technical Equipments Required for DMP', url: '', completed: false },
+        { id: 'dmp-3', title: 'Visible Framework on DMP - The Iron Man Suite', url: '', completed: false },
+        { id: 'dmp-4', title: 'How Much Money You Can Make with DMP', url: '', completed: false },
+      ]
     },
     {
       id: 'loa-vastu',
       title: 'LOA With Vastu Frequency',
-      url: '#',
+      url: 'https://www.miteshkhatri.com/VastuCourse',
       tags: ['LOA', 'Vastu'],
       source: 'Mitesh Khatri',
       estimatedHours: 16,
       status: 'not_started',
       progressPercent: 0,
-      category: 'default'
+      category: 'default',
+      lessons: [
+        { id: 'vastu-1', title: 'Science of Directions Elements & Impact', url: 'https://www.miteshkhatri.com/VastuCourse', completed: false },
+        { id: 'vastu-2', title: 'Importance of 7 Chakras and Impact on Vastu', url: '', completed: false },
+        { id: 'vastu-3', title: 'Alternatives for All Vastu Rooms', url: '', completed: false },
+        { id: 'vastu-4', title: 'Understanding Plot Shapes & Extensions', url: '', completed: false },
+        { id: 'vastu-5', title: 'Vastu Remedies with Crystals', url: '', completed: false },
+        { id: 'vastu-6', title: 'LOA Remedies For Vastu', url: '', completed: false },
+      ]
     },
     {
       id: 'health-mastery',
@@ -531,7 +670,17 @@ export default function Dashboard() {
       estimatedHours: 20,
       status: 'not_started',
       progressPercent: 0,
-      category: 'Health'
+      category: 'Health',
+      lessons: [
+        { id: 'hm-1', title: 'What is Health - An Eye Opening Session', url: '', completed: false },
+        { id: 'hm-2', title: 'Breaking Health Limiting Beliefs', url: '', completed: false },
+        { id: 'hm-3', title: 'Creating a Lifestyle Diet Plan', url: '', completed: false },
+        { id: 'hm-4', title: 'Transforming your Health Habits Part 1', url: '', completed: false },
+        { id: 'hm-5', title: 'Transforming Habits Part 2', url: '', completed: false },
+        { id: 'hm-6', title: 'Integrating 7 Master Steps', url: '', completed: false },
+        { id: 'hm-7', title: 'Raise your Health Standards', url: '', completed: false },
+        { id: 'hm-8', title: 'How to Design Workout', url: '', completed: false },
+      ]
     },
     {
       id: 'depression-celebration',
@@ -542,7 +691,11 @@ export default function Dashboard() {
       estimatedHours: 14,
       status: 'not_started',
       progressPercent: 0,
-      category: 'Health'
+      category: 'Health',
+      lessons: [
+        { id: 'dc-1', title: 'Depression To Celebration Lesson 1', url: '', completed: false },
+        { id: 'dc-2', title: 'Depression To Celebration Lesson 2', url: '', completed: false },
+      ]
     },
     {
       id: 'handwriting-frequency',
@@ -553,7 +706,8 @@ export default function Dashboard() {
       estimatedHours: 12,
       status: 'not_started',
       progressPercent: 0,
-      category: 'default'
+      category: 'default',
+      lessons: []
     },
     {
       id: 'investing-saving',
@@ -564,18 +718,24 @@ export default function Dashboard() {
       estimatedHours: 18,
       status: 'not_started',
       progressPercent: 0,
-      category: 'Money'
+      category: 'Money',
+      lessons: []
     },
     {
       id: 'demartini-breakthrough',
       title: 'Dr. Demartini BreakThrough Follow Up Session With IMK',
-      url: '#',
+      url: 'https://www.miteshkhatri.com/DemartiniMethod',
       tags: ['Breakthrough', 'Coaching'],
       source: 'Mitesh Khatri',
       estimatedHours: 10,
       status: 'not_started',
       progressPercent: 0,
-      category: 'default'
+      category: 'default',
+      lessons: [
+        { id: 'db-1', title: 'Demartini Method Part 1', url: 'https://www.miteshkhatri.com/DemartiniMethod', completed: false },
+        { id: 'db-2', title: 'Demartini Method Part 2', url: '', completed: false },
+        { id: 'db-3', title: 'Demartini Method Part 3', url: '', completed: false },
+      ]
     },
     {
       id: 'demartini-values',
@@ -586,7 +746,16 @@ export default function Dashboard() {
       estimatedHours: 15,
       status: 'not_started',
       progressPercent: 0,
-      category: 'default'
+      category: 'default',
+      lessons: [
+        { id: 'dv-1', title: 'Importance Of Values', url: '', completed: false },
+        { id: 'dv-2', title: 'Impact of Values', url: '', completed: false },
+        { id: 'dv-3', title: 'Dr. Demartini Values Recognition Method', url: '', completed: false },
+        { id: 'dv-4', title: 'How to Change Your Values', url: '', completed: false },
+        { id: 'dv-5', title: 'How to Associate with Values', url: '', completed: false },
+        { id: 'dv-6', title: 'How To Understand Someone Values', url: '', completed: false },
+        { id: 'dv-7', title: 'How To Sell By Values', url: '', completed: false },
+      ]
     }
   ]);
 
@@ -768,12 +937,24 @@ export default function Dashboard() {
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <span className="font-medium">Overall Course Progress</span>
-                <span className="font-semibold">0%</span>
+                <span className="font-semibold">
+                  {(() => {
+                    const totalLessons = courses.reduce((sum, c) => sum + c.lessons.length, 0);
+                    const completedLessons = courses.reduce((sum, c) => sum + c.lessons.filter(l => l.completed).length, 0);
+                    return totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+                  })()}%
+                </span>
               </div>
               <div className="h-3 bg-white/50 dark:bg-black/20 rounded-full overflow-hidden">
                 <div 
                   className="h-full bg-gradient-to-r from-teal-500 to-emerald-500 transition-all duration-300"
-                  style={{ width: '0%' }}
+                  style={{ 
+                    width: `${(() => {
+                      const totalLessons = courses.reduce((sum, c) => sum + c.lessons.length, 0);
+                      const completedLessons = courses.reduce((sum, c) => sum + c.lessons.filter(l => l.completed).length, 0);
+                      return totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+                    })()}%`
+                  }}
                 />
               </div>
             </div>
@@ -782,31 +963,105 @@ export default function Dashboard() {
             <Card>
               <CardContent className="p-4">
                 <div className="space-y-3">
-                  {courses.map((course, index) => (
-                    <Collapsible key={course.id}>
-                      <div className={`flex items-center gap-3 p-3 rounded-lg hover-elevate ${index !== courses.length - 1 ? 'border-b' : ''}`}>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-sm">{course.title}</h3>
-                          <p className="text-xs text-muted-foreground">{course.source}</p>
+                  {courses.map((course, index) => {
+                    const completedLessons = course.lessons.filter(l => l.completed).length;
+                    const totalLessons = course.lessons.length;
+                    const progress = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+
+                    return (
+                      <Collapsible key={course.id}>
+                        <div className={`flex items-center gap-3 p-3 rounded-lg hover-elevate ${index !== courses.length - 1 ? 'border-b' : ''}`}>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-semibold text-sm">{course.title}</h3>
+                              {totalLessons > 0 && (
+                                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">
+                                  {completedLessons}/{totalLessons}
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground">{course.source}</p>
+                            {totalLessons > 0 && (
+                              <div className="mt-1.5 flex items-center gap-2">
+                                <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                                  <div 
+                                    className="h-full bg-teal-500 transition-all duration-300"
+                                    style={{ width: `${progress}%` }}
+                                  />
+                                </div>
+                                <span className="text-[10px] text-muted-foreground font-medium">{progress}%</span>
+                              </div>
+                            )}
+                          </div>
+                          {totalLessons > 0 && (
+                            <CollapsibleTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="gap-1"
+                                data-testid={`button-expand-${course.id}`}
+                              >
+                                <ChevronDown className="w-4 h-4" />
+                              </Button>
+                            </CollapsibleTrigger>
+                          )}
                         </div>
-                        <CollapsibleTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="gap-1"
-                            data-testid={`button-expand-${course.id}`}
-                          >
-                            <ChevronDown className="w-4 h-4" />
-                          </Button>
-                        </CollapsibleTrigger>
-                      </div>
-                      <CollapsibleContent className="px-3 pb-3">
-                        <div className="bg-muted/30 rounded-lg p-3 mt-2">
-                          <p className="text-xs text-muted-foreground mb-2">Lessons coming soon...</p>
-                        </div>
-                      </CollapsibleContent>
-                    </Collapsible>
-                  ))}
+                        <CollapsibleContent className="px-3 pb-3">
+                          {totalLessons > 0 ? (
+                            <div className="bg-muted/30 rounded-lg p-3 mt-2 space-y-2">
+                              {course.lessons.map((lesson) => (
+                                <div key={lesson.id} className="flex items-start gap-2">
+                                  <Checkbox
+                                    checked={lesson.completed}
+                                    onCheckedChange={(checked) => {
+                                      setCourses(prev => prev.map(c => 
+                                        c.id === course.id
+                                          ? {
+                                              ...c,
+                                              lessons: c.lessons.map(l =>
+                                                l.id === lesson.id
+                                                  ? { ...l, completed: checked as boolean }
+                                                  : l
+                                              )
+                                            }
+                                          : c
+                                      ));
+                                      toast({
+                                        title: checked ? 'Lesson Completed!' : 'Lesson Unchecked',
+                                        description: checked ? '✓ Progress updated' : 'Marked as incomplete',
+                                      });
+                                    }}
+                                    className="mt-0.5"
+                                    data-testid={`checkbox-lesson-${lesson.id}`}
+                                  />
+                                  <label className={`text-xs cursor-pointer flex-1 ${lesson.completed ? 'line-through text-muted-foreground' : ''}`}>
+                                    {lesson.title}
+                                  </label>
+                                  {lesson.url && (
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-5 w-5"
+                                      onClick={() => window.open(lesson.url, '_blank')}
+                                      data-testid={`button-lesson-link-${lesson.id}`}
+                                    >
+                                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                      </svg>
+                                    </Button>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="bg-muted/30 rounded-lg p-3 mt-2">
+                              <p className="text-xs text-muted-foreground">No lessons available yet</p>
+                            </div>
+                          )}
+                        </CollapsibleContent>
+                      </Collapsible>
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
