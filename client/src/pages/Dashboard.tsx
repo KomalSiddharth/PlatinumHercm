@@ -344,50 +344,8 @@ export default function Dashboard() {
     }
   };
 
-  // Fetch Health Mastery modules
-  const { data: healthMasteryModules = [] } = useQuery<Array<{
-    id: string;
-    title: string;
-    url?: string;
-  }>>({
-    queryKey: ['/api/courses/health-mastery-modules'],
-    select: (data: any) => data.modules || []
-  });
-
-  // Fetch Wealth Mastery modules
-  const { data: wealthMasteryModules = [] } = useQuery<Array<{
-    id: string;
-    title: string;
-    url?: string;
-  }>>({
-    queryKey: ['/api/courses/wealth-mastery-modules'],
-    select: (data: any) => data.modules || []
-  });
-
-  // Fetch Relationship Mastery modules
-  const { data: relationshipMasteryModules = [] } = useQuery<Array<{
-    id: string;
-    title: string;
-    url?: string;
-  }>>({
-    queryKey: ['/api/courses/relationship-mastery-modules'],
-    select: (data: any) => data.modules || []
-  });
-
-  // Fetch Career Mastery modules
-  const { data: careerMasteryModules = [] } = useQuery<Array<{
-    id: string;
-    title: string;
-    url?: string;
-  }>>({
-    queryKey: ['/api/courses/career-mastery-modules'],
-    select: (data: any) => data.modules || []
-  });
-
   // Track completed modules for each course
-  const [completedModules, setCompletedModules] = useState<Record<string, string[]>>({
-    'health-mastery': []
-  });
+  const [completedModules, setCompletedModules] = useState<Record<string, string[]>>({});
 
   const handleModuleToggle = (courseId: string, moduleId: string, completed: boolean) => {
     setCompletedModules(prev => {
@@ -421,48 +379,213 @@ export default function Dashboard() {
     category: string;
   }>>([
     {
-      id: 'health-mastery',
-      title: 'Health Mastery Course',
-      url: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym',
-      tags: ['Health', 'Wellness'],
-      source: 'Mitesh Khatri Coaching',
+      id: 'basic-loa',
+      title: 'Basic Law of Attraction',
+      url: '#',
+      tags: ['LOA', 'Manifestation'],
+      source: 'Mitesh Khatri',
+      estimatedHours: 15,
+      status: 'not_started',
+      progressPercent: 0,
+      category: 'default'
+    },
+    {
+      id: 'advance-loa',
+      title: 'Advance Law of Attraction',
+      url: '#',
+      tags: ['LOA', 'Advanced'],
+      source: 'Mitesh Khatri',
       estimatedHours: 20,
       status: 'not_started',
       progressPercent: 0,
-      category: 'Health'
+      category: 'default'
     },
     {
       id: 'wealth-mastery',
-      title: 'Wealth Mastery Course',
-      url: 'https://www.miteshkhatri.com/MoneyAssessment',
-      tags: ['Finance', 'Money', 'Investment'],
-      source: 'Mitesh Khatri Coaching',
+      title: 'Wealth Mastery',
+      url: '#',
+      tags: ['Wealth', 'Money'],
+      source: 'Mitesh Khatri',
       estimatedHours: 25,
       status: 'not_started',
       progressPercent: 0,
       category: 'Money'
     },
     {
+      id: 'nlp',
+      title: 'NLP - Neuro Linguistic Programming',
+      url: '#',
+      tags: ['NLP', 'Psychology'],
+      source: 'Mitesh Khatri',
+      estimatedHours: 30,
+      status: 'not_started',
+      progressPercent: 0,
+      category: 'default'
+    },
+    {
+      id: 'hooponopono-eft',
+      title: "Ho'Oponopono + EFT Certification Course",
+      url: '#',
+      tags: ['Healing', 'EFT'],
+      source: 'Mitesh Khatri',
+      estimatedHours: 18,
+      status: 'not_started',
+      progressPercent: 0,
+      category: 'default'
+    },
+    {
+      id: 'manifest-chakra',
+      title: 'Manifest With Chakra by Mitesh Khatri',
+      url: '#',
+      tags: ['Chakra', 'Energy'],
+      source: 'Mitesh Khatri',
+      estimatedHours: 16,
+      status: 'not_started',
+      progressPercent: 0,
+      category: 'default'
+    },
+    {
       id: 'relationship-mastery',
-      title: 'Relationship Mastery Course',
-      url: 'https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri',
-      tags: ['Relationships', 'Communication', 'Connection'],
-      source: 'Mitesh Khatri Coaching',
+      title: 'Relationship Mastery with Mitesh Khatri',
+      url: '#',
+      tags: ['Relationships', 'Communication'],
+      source: 'Mitesh Khatri',
       estimatedHours: 18,
       status: 'not_started',
       progressPercent: 0,
       category: 'Relationship'
     },
     {
-      id: 'career-mastery',
-      title: 'Career Mastery Course',
-      url: 'https://coaching.miteshkhatri.com/products/lead-business',
-      tags: ['Career', 'Growth', 'Success'],
-      source: 'Mitesh Khatri Coaching',
+      id: 'practical-spirituality',
+      title: 'Practical Spirituality By IMK',
+      url: '#',
+      tags: ['Spirituality', 'Growth'],
+      source: 'Mitesh Khatri',
+      estimatedHours: 20,
+      status: 'not_started',
+      progressPercent: 0,
+      category: 'default'
+    },
+    {
+      id: 'life-coaching',
+      title: 'Life Coaching',
+      url: '#',
+      tags: ['Coaching', 'Career'],
+      source: 'Mitesh Khatri',
       estimatedHours: 22,
       status: 'not_started',
       progressPercent: 0,
       category: 'Career'
+    },
+    {
+      id: 'corporate-trainer',
+      title: 'Corporate Train The Trainer by Mitesh Khatri',
+      url: '#',
+      tags: ['Corporate', 'Training'],
+      source: 'Mitesh Khatri',
+      estimatedHours: 24,
+      status: 'not_started',
+      progressPercent: 0,
+      category: 'Career'
+    },
+    {
+      id: 'loa-certification',
+      title: 'Law Of Attraction Certification',
+      url: '#',
+      tags: ['LOA', 'Certification'],
+      source: 'Mitesh Khatri',
+      estimatedHours: 28,
+      status: 'not_started',
+      progressPercent: 0,
+      category: 'default'
+    },
+    {
+      id: 'loa-dmp-certification',
+      title: 'LOA & DMP Certification',
+      url: '#',
+      tags: ['LOA', 'DMP'],
+      source: 'Mitesh Khatri',
+      estimatedHours: 30,
+      status: 'not_started',
+      progressPercent: 0,
+      category: 'default'
+    },
+    {
+      id: 'loa-vastu',
+      title: 'LOA With Vastu Frequency',
+      url: '#',
+      tags: ['LOA', 'Vastu'],
+      source: 'Mitesh Khatri',
+      estimatedHours: 16,
+      status: 'not_started',
+      progressPercent: 0,
+      category: 'default'
+    },
+    {
+      id: 'health-mastery',
+      title: 'Health Mastery & Happy Gym',
+      url: '#',
+      tags: ['Health', 'Fitness'],
+      source: 'Mitesh Khatri',
+      estimatedHours: 20,
+      status: 'not_started',
+      progressPercent: 0,
+      category: 'Health'
+    },
+    {
+      id: 'depression-celebration',
+      title: 'Depression To Celebration',
+      url: '#',
+      tags: ['Mental Health', 'Wellness'],
+      source: 'Mitesh Khatri',
+      estimatedHours: 14,
+      status: 'not_started',
+      progressPercent: 0,
+      category: 'Health'
+    },
+    {
+      id: 'handwriting-frequency',
+      title: 'Handwriting Frequency Course',
+      url: '#',
+      tags: ['Handwriting', 'Frequency'],
+      source: 'Mitesh Khatri',
+      estimatedHours: 12,
+      status: 'not_started',
+      progressPercent: 0,
+      category: 'default'
+    },
+    {
+      id: 'investing-saving',
+      title: 'Investing & Saving',
+      url: '#',
+      tags: ['Finance', 'Investment'],
+      source: 'Mitesh Khatri',
+      estimatedHours: 18,
+      status: 'not_started',
+      progressPercent: 0,
+      category: 'Money'
+    },
+    {
+      id: 'demartini-breakthrough',
+      title: 'Dr. Demartini BreakThrough Follow Up Session With IMK',
+      url: '#',
+      tags: ['Breakthrough', 'Coaching'],
+      source: 'Mitesh Khatri',
+      estimatedHours: 10,
+      status: 'not_started',
+      progressPercent: 0,
+      category: 'default'
+    },
+    {
+      id: 'demartini-values',
+      title: "Dr. John Demartini's Values By Mitesh Khatri",
+      url: '#',
+      tags: ['Values', 'Growth'],
+      source: 'Mitesh Khatri',
+      estimatedHours: 15,
+      status: 'not_started',
+      progressPercent: 0,
+      category: 'default'
     }
   ]);
 
@@ -641,31 +764,17 @@ export default function Dashboard() {
             </div>
 
             <div className="space-y-4">
-              {courses.map((course) => {
-                // Determine which modules to pass based on course ID
-                let modules: Array<{ id: string; title: string; url?: string }> = [];
-                if (course.id === 'health-mastery') {
-                  modules = healthMasteryModules;
-                } else if (course.id === 'wealth-mastery') {
-                  modules = wealthMasteryModules;
-                } else if (course.id === 'relationship-mastery') {
-                  modules = relationshipMasteryModules;
-                } else if (course.id === 'career-mastery') {
-                  modules = careerMasteryModules;
-                }
-
-                return (
-                  <CourseCard 
-                    key={course.id} 
-                    {...course}
-                    modules={modules}
-                    completedModules={completedModules[course.id] || []}
-                    onUpdateProgress={handleUpdateCourseProgress}
-                    onVisit={handleVisitCourse}
-                    onModuleToggle={handleModuleToggle}
-                  />
-                );
-              })}
+              {courses.map((course) => (
+                <CourseCard 
+                  key={course.id} 
+                  {...course}
+                  modules={[]}
+                  completedModules={completedModules[course.id] || []}
+                  onUpdateProgress={handleUpdateCourseProgress}
+                  onVisit={handleVisitCourse}
+                  onModuleToggle={handleModuleToggle}
+                />
+              ))}
             </div>
           </div>
         </section>
