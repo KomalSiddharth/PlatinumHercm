@@ -924,8 +924,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: `course-${index + 1}`,
           name: rec.course.courseName,
           link: rec.course.link,
-          completed: false,
-          videoProgress: 0  // Default video progress
+          completed: false
         }));
       
       res.json({

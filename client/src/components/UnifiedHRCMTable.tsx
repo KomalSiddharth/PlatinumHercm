@@ -4,9 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Sparkles, Check, X, TrendingUp, History, Edit2, Save, Loader2, ArrowUp, ArrowDown, Play } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
-import { Slider } from '@/components/ui/slider';
+import { Sparkles, Check, X, TrendingUp, History, Edit2, Save, Loader2, ArrowUp, ArrowDown } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -51,7 +49,6 @@ interface Course {
   name: string;
   link: string;
   completed: boolean;
-  videoProgress: number; // 0-100 percentage of video watched
 }
 
 interface CourseSuggestion {
@@ -304,39 +301,6 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
         if (belief.category === category && belief.courseSuggestion) {
           const updatedCourses = belief.courseSuggestion.courses.map(course =>
             course.id === courseId ? { ...course, completed: !course.completed } : course
-          );
-          
-          return {
-            ...belief,
-            courseSuggestion: {
-              courses: updatedCourses
-            }
-          };
-        }
-        return belief;
-      });
-      
-      // Auto-save with updated beliefs (not stale)
-      setTimeout(() => {
-        saveWeekMutation.mutate({
-          weekNumber,
-          month: new Date().getMonth() + 1,
-          year: new Date().getFullYear(),
-          beliefs: updated
-        });
-      }, 500);
-      
-      return updated;
-    });
-  };
-
-  // Update video progress for a course
-  const handleVideoProgressUpdate = (category: string, courseId: string, progress: number) => {
-    setBeliefs(prev => {
-      const updated = prev.map(belief => {
-        if (belief.category === category && belief.courseSuggestion) {
-          const updatedCourses = belief.courseSuggestion.courses.map(course =>
-            course.id === courseId ? { ...course, videoProgress: progress } : course
           );
           
           return {
@@ -1132,45 +1096,22 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                         </Button>
                       </div>
                       {belief.courseSuggestion.courses.map((course) => (
-                        <div key={course.id} className="space-y-1 py-1 border-b border-cyan-200/50 dark:border-cyan-800/30 last:border-0">
-                          <div className="flex items-center gap-2">
-                            <Checkbox
-                              checked={course.completed}
-                              onCheckedChange={() => handleCourseToggle(belief.category, course.id)}
-                              className="h-3 w-3"
-                              data-testid={`checkbox-course-${belief.category.toLowerCase()}-${course.id}`}
-                            />
-                            <a
-                              href={course.link}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className={`text-xs hover:underline flex-1 ${course.completed ? 'line-through text-muted-foreground' : 'text-cyan-700 dark:text-cyan-400'}`}
-                              data-testid={`link-course-${belief.category.toLowerCase()}-${course.id}`}
-                            >
-                              {course.name}
-                            </a>
-                          </div>
-                          
-                          {/* Video Progress Section */}
-                          <div className="ml-5 space-y-1">
-                            <div className="flex items-center gap-2">
-                              <Play className="w-3 h-3 text-cyan-600 dark:text-cyan-400" />
-                              <span className="text-xs text-muted-foreground">Video Progress: {course.videoProgress || 0}%</span>
-                            </div>
-                            <Progress 
-                              value={course.videoProgress || 0} 
-                              className="h-1.5"
-                              data-testid={`progress-video-${belief.category.toLowerCase()}-${course.id}`}
-                            />
-                            <Slider
-                              value={[course.videoProgress || 0]}
-                              onValueChange={([value]) => handleVideoProgressUpdate(belief.category, course.id, value)}
-                              max={100}
-                              step={5}
-                              className="w-full"
-                              data-testid={`slider-video-${belief.category.toLowerCase()}-${course.id}`}
-                            />
-                          </div>
+                        <div key={course.id} className="flex items-center gap-2 py-0.5">
+                          <Checkbox
+                            checked={course.completed}
+                            onCheckedChange={() => handleCourseToggle(belief.category, course.id)}
+                            className="h-3 w-3"
+                            data-testid={`checkbox-course-${belief.category.toLowerCase()}-${course.id}`}
+                          />
+                          <a
+                            href={course.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`text-xs hover:underline flex-1 ${course.completed ? 'line-through text-muted-foreground' : 'text-cyan-700 dark:text-cyan-400'}`}
+                            data-testid={`link-course-${belief.category.toLowerCase()}-${course.id}`}
+                          >
+                            {course.name}
+                          </a>
                         </div>
                       ))}
                     </div>
