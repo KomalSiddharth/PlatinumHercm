@@ -741,22 +741,6 @@ export default function Dashboard() {
       ]
     },
     {
-      id: 'loa-certification',
-      title: 'Law Of Attraction Certification',
-      url: 'https://www.miteshkhatri.com/LOACoach',
-      tags: ['LOA', 'Certification'],
-      source: 'Mitesh Khatri',
-      estimatedHours: 28,
-      status: 'not_started',
-      progressPercent: 0,
-      category: 'default',
-      lessons: [
-        { id: 'loac-1', title: 'LOA Certification Lesson 1', url: 'https://www.miteshkhatri.com/LOACoach', completed: false },
-        { id: 'loac-2', title: 'What Content to Teach for Free', url: '', completed: false },
-        { id: 'loac-3', title: 'How to Invite People for Paid Sessions', url: '', completed: false },
-      ]
-    },
-    {
       id: 'loa-dmp-certification',
       title: 'LOA & DMP Certification',
       url: '#',
