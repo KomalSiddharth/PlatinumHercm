@@ -357,6 +357,26 @@ export default function Dashboard() {
     select: (data: any) => data.modules || []
   });
 
+  // Fetch Wealth Mastery modules
+  const { data: wealthMasteryModules = [] } = useQuery<Array<{
+    id: string;
+    title: string;
+    url?: string;
+  }>>({
+    queryKey: ['/api/courses/wealth-mastery-modules'],
+    select: (data: any) => data.modules || []
+  });
+
+  // Fetch Relationship Mastery modules
+  const { data: relationshipMasteryModules = [] } = useQuery<Array<{
+    id: string;
+    title: string;
+    url?: string;
+  }>>({
+    queryKey: ['/api/courses/relationship-mastery-modules'],
+    select: (data: any) => data.modules || []
+  });
+
   // Track completed modules for each course
   const [completedModules, setCompletedModules] = useState<Record<string, string[]>>({
     'health-mastery': []
