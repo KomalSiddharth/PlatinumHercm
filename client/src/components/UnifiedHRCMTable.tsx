@@ -1097,7 +1097,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                           onCheckedChange={() => handleChecklistToggle(belief.category, item.id)}
                           data-testid={`checkbox-${belief.category.toLowerCase()}-${item.id}`}
                         />
-                        <span className={`text-xs ${item.checked ? 'line-through text-muted-foreground' : ''}`}>
+                        <span className="text-xs">
                           {item.text}
                         </span>
                       </div>
@@ -1584,7 +1584,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                         />
                         <label 
                           htmlFor={standard.id} 
-                          className={`text-sm cursor-pointer flex-1 ${standard.checked ? 'text-muted-foreground line-through' : ''}`}
+                          className="text-sm cursor-pointer flex-1"
                         >
                           {standard.text}
                         </label>
