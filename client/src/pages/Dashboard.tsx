@@ -749,8 +749,8 @@ export default function Dashboard() {
       progressPercent: 0,
       category: 'Health',
       lessons: [
-        { id: 'dc-1', title: 'Depression To Celebration Lesson 1', url: '', completed: false },
-        { id: 'dc-2', title: 'Depression To Celebration Lesson 2', url: '', completed: false },
+        { id: 'dc-1', title: 'Lesson 1 - Depression To Celebration', url: 'https://coaching.miteshkhatri.com/products/depression-to-celebration/categories/2151886711/posts/2163826138', completed: false },
+        { id: 'dc-2', title: 'Lesson 2 - Depression To Celebration', url: '', completed: false },
       ]
     },
     {
