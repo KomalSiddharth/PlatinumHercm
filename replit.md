@@ -25,7 +25,6 @@ The dashboard employs a clean, responsive "New York" style design using shadcn/u
 - **Smart AI Insights**: ML-powered analysis of HRCM patterns, trends, predictions, and recommendations.
 - **ML-Based Target Recommendations**: Intelligent target suggestions based on historical performance.
 - **Next Week Target Rating**: Uses the same standards-based logic as Current Week rating, with progression badges displaying when at max rating.
-- **Manual Rating Input** (Oct 2025): Ratings in Current Week table are now manually editable via input fields. Checklist completion is completely independent from ratings - checking/unchecking checklist items does NOT affect the rating values. Users have full control to set ratings as needed.
 - **Weekly Auto-Reset** (Oct 2025): After exactly 7 days from week creation, the system automatically creates a new empty week. Current Week table becomes empty for fresh data entry. Next Week Target table auto-prefills with the previous week's affirmations and checklist items for seamless weekly progression.
 - **Strict Authentication** (Oct 2025): Dashboard and Admin Panel are now strictly protected. Users cannot access these pages via direct URL without authentication - automatic redirect to login page enforced. Admin Panel accessible only to admin users; regular users are redirected to dashboard.
 - **Date-Based HRCM History**: Every HRCM table save creates a new timestamped snapshot, providing a complete edit history. The history section is automatically visible on page load with the newest snapshot selected.

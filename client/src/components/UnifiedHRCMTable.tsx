@@ -355,34 +355,23 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
   };
 
   const handleRatingChange = (category: string, newRating: number) => {
-    setBeliefs(prev => {
-      const updated = prev.map(belief => {
-        if (belief.category === category) {
-          // Get category-specific max rating from API (defaults to 7 if not loaded)
-          const categoryLower = category.toLowerCase();
-          const maxRating = ratingCaps?.[categoryLower as keyof typeof ratingCaps] || 7;
-          
-          // Cap both current and target ratings at max allowed
-          const cappedRating = Math.min(newRating, maxRating);
-          
-          return {
-            ...belief,
-            currentRating: cappedRating,
-            targetRating: Math.min(cappedRating + 1, maxRating) // Auto-increment by 1, capped at user's max (which is capped at 8)
-          };
-        }
-        return belief;
-      });
-
-      // Auto-save changes to database immediately
-      saveWeekMutation.mutate({
-        weekNumber,
-        year: new Date().getFullYear(),
-        beliefs: updated,
-      });
-
-      return updated;
-    });
+    setBeliefs(prev => prev.map(belief => {
+      if (belief.category === category) {
+        // Get category-specific max rating from API (defaults to 7 if not loaded)
+        const categoryLower = category.toLowerCase();
+        const maxRating = ratingCaps?.[categoryLower as keyof typeof ratingCaps] || 7;
+        
+        // Cap both current and target ratings at max allowed
+        const cappedRating = Math.min(newRating, maxRating);
+        
+        return {
+          ...belief,
+          currentRating: cappedRating,
+          targetRating: Math.min(cappedRating + 1, maxRating) // Auto-increment by 1, capped at user's max (which is capped at 8)
+        };
+      }
+      return belief;
+    }));
   };
 
   // Open standards dialog for a category
@@ -928,18 +917,14 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                 {/* Current Week - Rating */}
                 <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10 align-top">
                   <div className="flex flex-col gap-1">
-                    <Input
-                      type="number"
-                      min="0"
-                      max="10"
-                      value={belief.currentRating}
-                      onChange={(e) => {
-                        const val = parseInt(e.target.value) || 0;
-                        handleRatingChange(belief.category, val);
-                      }}
+                    <Button
+                      variant="outline"
+                      onClick={() => handleOpenStandardsDialog(belief.category)}
                       className="w-16 h-9 text-center font-semibold"
-                      data-testid={`input-${belief.category.toLowerCase()}-rating`}
-                    />
+                      data-testid={`button-${belief.category.toLowerCase()}-rating`}
+                    >
+                      {belief.currentRating}/10
+                    </Button>
                     {ratingProgression && (() => {
                       const categoryLower = belief.category.toLowerCase();
                       const weeksAtMax = ratingProgression[`${categoryLower}WeeksAtMax` as keyof typeof ratingProgression] || 0;
