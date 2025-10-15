@@ -45,11 +45,21 @@ const generateCurrentMonthHistory = (completions: RitualCompletion[] = []) => {
   const month = now.getMonth();
   
   const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const todayDay = now.getDate();
   
   const history = [];
   for (let day = 1; day <= daysInMonth; day++) {
     const date = new Date(year, month, day);
-    const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    let dateStr: string;
+    
+    if (day === todayDay) {
+      dateStr = 'Today';
+    } else if (day === todayDay - 1) {
+      dateStr = 'Yesterday';
+    } else {
+      dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+    
     const isoDate = date.toISOString().split('T')[0];
     const isCompleted = completions.some(c => c.date === isoDate);
     
