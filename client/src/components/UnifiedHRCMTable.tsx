@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Sparkles, Check, X, TrendingUp, History, Save, Loader2, ArrowUp, ArrowDown } from 'lucide-react';
+import { Sparkles, Check, X, TrendingUp, Save, Loader2, ArrowUp, ArrowDown } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -223,7 +223,6 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
   const [showStandardsDialog, setShowStandardsDialog] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [collapsedCourses, setCollapsedCourses] = useState<Set<string>>(new Set());
-  const [showHistory, setShowHistory] = useState(true); // History section visible by default
   const lastFocusedButton = useRef<HTMLButtonElement | null>(null);
   const hasAutoProgressed = useRef<Set<number>>(new Set()); // Track which weeks have been auto-progressed
   const { toast} = useToast();
@@ -981,16 +980,6 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
           >
             {weeklyProgress}% Weekly Progress
           </Badge>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowHistory(!showHistory)}
-            data-testid="button-view-history"
-          >
-            <History className="w-4 h-4 mr-2" />
-            View History
-          </Button>
           
           <Button
             size="sm"
@@ -1751,103 +1740,6 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
         </DialogContent>
       </Dialog>
 
-      {/* HRCM History Section */}
-      {showHistory && allWeeksData && Array.isArray(allWeeksData) && allWeeksData.length > 0 && (
-        <div className="mt-6 border-2 border-primary/30 rounded-lg p-4 bg-gradient-to-br from-blue-50/50 to-purple-50/50 dark:from-blue-950/20 dark:to-purple-950/20">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              HRCM History
-            </h3>
-            <Badge variant="secondary">{allWeeksData.length} snapshots</Badge>
-          </div>
-          
-          <div className="space-y-2">
-            {allWeeksData.map((snapshot: any, index: number) => {
-              const snapshotDate = snapshot.createdAt 
-                ? new Date(snapshot.createdAt).toLocaleString('en-GB', { 
-                    day: '2-digit', 
-                    month: 'short', 
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })
-                : 'Unknown date';
-              
-              const isCurrentWeek = snapshot.weekNumber === weekNumber;
-              
-              return (
-                <Collapsible key={snapshot.id || index}>
-                  <div className={`border rounded-lg ${isCurrentWeek ? 'border-primary bg-primary/5' : 'border-border'}`}>
-                    <CollapsibleTrigger className="w-full hover-elevate">
-                      <div className="flex items-center justify-between p-3" data-testid={`history-snapshot-${index}`}>
-                        <div className="flex items-center gap-3">
-                          <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                          <div className="text-left">
-                            <div className="font-semibold">
-                              Week {snapshot.weekNumber}
-                              {isCurrentWeek && (
-                                <Badge variant="default" className="ml-2 text-xs">Current</Badge>
-                              )}
-                            </div>
-                            <div className="text-xs text-muted-foreground">{snapshotDate}</div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-xs">
-                            H: {snapshot.currentH || 0}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            R: {snapshot.currentE || 0}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            C: {snapshot.currentR || 0}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            M: {snapshot.currentC || 0}
-                          </Badge>
-                        </div>
-                      </div>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <div className="px-3 pb-3 pt-1 border-t space-y-2">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
-                          <div>
-                            <span className="font-semibold text-muted-foreground">Health:</span>
-                            <p className="mt-1">{snapshot.healthProblems || 'No data'}</p>
-                          </div>
-                          <div>
-                            <span className="font-semibold text-muted-foreground">Relationship:</span>
-                            <p className="mt-1">{snapshot.relationshipProblems || 'No data'}</p>
-                          </div>
-                          <div>
-                            <span className="font-semibold text-muted-foreground">Career:</span>
-                            <p className="mt-1">{snapshot.careerProblems || 'No data'}</p>
-                          </div>
-                          <div>
-                            <span className="font-semibold text-muted-foreground">Money:</span>
-                            <p className="mt-1">{snapshot.moneyProblems || 'No data'}</p>
-                          </div>
-                        </div>
-                        {index !== 0 && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => onWeekChange && onWeekChange(snapshot.weekNumber)}
-                            className="w-full mt-2"
-                            data-testid={`button-view-week-${snapshot.weekNumber}`}
-                          >
-                            View Week {snapshot.weekNumber}
-                          </Button>
-                        )}
-                      </div>
-                    </CollapsibleContent>
-                  </div>
-                </Collapsible>
-              );
-            })}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
