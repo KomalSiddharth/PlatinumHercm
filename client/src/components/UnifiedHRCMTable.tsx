@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Sparkles, Check, X, TrendingUp, History, Edit2, Save, Loader2, ArrowUp, ArrowDown } from 'lucide-react';
+import { Sparkles, Check, X, TrendingUp, History, Save, Loader2, ArrowUp, ArrowDown } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -1201,9 +1201,14 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                       data-testid={`textarea-next-problems-${belief.category.toLowerCase()}`}
                     />
                   ) : belief.resultChecklist && belief.resultChecklist.length > 0 ? (
-                    <div className="p-2 space-y-1">
+                    <button
+                      className="w-full text-left p-2 space-y-1 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
+                      onClick={(e) => startEdit(belief.category, 'result', belief.result, e.currentTarget)}
+                      type="button"
+                      data-testid={`button-edit-result-${belief.category.toLowerCase()}`}
+                    >
                       {belief.resultChecklist.map((item) => (
-                        <div key={item.id} className="flex items-center gap-2">
+                        <div key={item.id} className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                           <Checkbox
                             checked={item.checked}
                             onCheckedChange={() => handleResultChecklistToggle(belief.category, item.id)}
@@ -1213,16 +1218,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                           <span className="text-xs">{item.text}</span>
                         </div>
                       ))}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => startEdit(belief.category, 'result', belief.result, e.currentTarget as HTMLButtonElement)}
-                        className="text-xs h-6 mt-1"
-                      >
-                        <Edit2 className="w-3 h-3 mr-1" />
-                        Edit
-                      </Button>
-                    </div>
+                    </button>
                   ) : (
                     <button
                       className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
@@ -1254,9 +1250,14 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                       data-testid={`textarea-next-feelings-${belief.category.toLowerCase()}`}
                     />
                   ) : belief.feelingsChecklist && belief.feelingsChecklist.length > 0 ? (
-                    <div className="p-2 space-y-1">
+                    <button
+                      className="w-full text-left p-2 space-y-1 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
+                      onClick={(e) => startEdit(belief.category, 'nextFeelings', belief.nextFeelings, e.currentTarget)}
+                      type="button"
+                      data-testid={`button-edit-feelings-${belief.category.toLowerCase()}`}
+                    >
                       {belief.feelingsChecklist.map((item) => (
-                        <div key={item.id} className="flex items-center gap-2">
+                        <div key={item.id} className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                           <Checkbox
                             checked={item.checked}
                             onCheckedChange={() => handleFeelingsChecklistToggle(belief.category, item.id)}
@@ -1266,16 +1267,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                           <span className="text-xs">{item.text}</span>
                         </div>
                       ))}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => startEdit(belief.category, 'nextFeelings', belief.nextFeelings, e.currentTarget as HTMLButtonElement)}
-                        className="text-xs h-6 mt-1"
-                      >
-                        <Edit2 className="w-3 h-3 mr-1" />
-                        Edit
-                      </Button>
-                    </div>
+                    </button>
                   ) : (
                     <button
                       className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
@@ -1307,9 +1299,14 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                       data-testid={`textarea-next-beliefs-${belief.category.toLowerCase()}`}
                     />
                   ) : belief.beliefsChecklist && belief.beliefsChecklist.length > 0 ? (
-                    <div className="p-2 space-y-1">
+                    <button
+                      className="w-full text-left p-2 space-y-1 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
+                      onClick={(e) => startEdit(belief.category, 'nextWeekTarget', belief.nextWeekTarget, e.currentTarget)}
+                      type="button"
+                      data-testid={`button-edit-beliefs-${belief.category.toLowerCase()}`}
+                    >
                       {belief.beliefsChecklist.map((item) => (
-                        <div key={item.id} className="flex items-center gap-2">
+                        <div key={item.id} className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                           <Checkbox
                             checked={item.checked}
                             onCheckedChange={() => handleBeliefsChecklistToggle(belief.category, item.id)}
@@ -1319,16 +1316,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                           <span className="text-xs">{item.text}</span>
                         </div>
                       ))}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => startEdit(belief.category, 'nextWeekTarget', belief.nextWeekTarget, e.currentTarget as HTMLButtonElement)}
-                        className="text-xs h-6 mt-1"
-                      >
-                        <Edit2 className="w-3 h-3 mr-1" />
-                        Edit
-                      </Button>
-                    </div>
+                    </button>
                   ) : (
                     <button
                       className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
@@ -1360,9 +1348,14 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                       data-testid={`textarea-next-actions-${belief.category.toLowerCase()}`}
                     />
                   ) : belief.actionsChecklist && belief.actionsChecklist.length > 0 ? (
-                    <div className="p-2 space-y-1">
+                    <button
+                      className="w-full text-left p-2 space-y-1 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
+                      onClick={(e) => startEdit(belief.category, 'nextActions', belief.nextActions, e.currentTarget)}
+                      type="button"
+                      data-testid={`button-edit-actions-${belief.category.toLowerCase()}`}
+                    >
                       {belief.actionsChecklist.map((item) => (
-                        <div key={item.id} className="flex items-center gap-2">
+                        <div key={item.id} className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                           <Checkbox
                             checked={item.checked}
                             onCheckedChange={() => handleActionsChecklistToggle(belief.category, item.id)}
@@ -1372,16 +1365,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                           <span className="text-xs">{item.text}</span>
                         </div>
                       ))}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => startEdit(belief.category, 'nextActions', belief.nextActions, e.currentTarget as HTMLButtonElement)}
-                        className="text-xs h-6 mt-1"
-                      >
-                        <Edit2 className="w-3 h-3 mr-1" />
-                        Edit
-                      </Button>
-                    </div>
+                    </button>
                   ) : (
                     <button
                       className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
