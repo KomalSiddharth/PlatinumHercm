@@ -21,6 +21,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Trophy, Pause, History as HistoryIcon, Trash2, ChevronDown } from 'lucide-react';
 import type { Ritual as DbRitual, RitualCompletion } from '@shared/schema';
 
@@ -86,6 +87,8 @@ export default function Dashboard() {
   const [progressOpen, setProgressOpen] = useState(false);
   const [selectedRitual, setSelectedRitual] = useState<Ritual | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
+  const [assignmentDialogOpen, setAssignmentDialogOpen] = useState(false);
+  const [pendingAssignmentLessons, setPendingAssignmentLessons] = useState<AssignmentLesson[]>([]);
   
   const [userName, setUserName] = useState('User');
   const [userEmail, setUserEmail] = useState('');
@@ -372,6 +375,15 @@ export default function Dashboard() {
     id: string;
     title: string;
     url?: string;
+    completed: boolean;
+  }
+
+  interface AssignmentLesson {
+    id: string;
+    courseId: string;
+    courseName: string;
+    lessonName: string;
+    url: string;
     completed: boolean;
   }
 
@@ -1278,6 +1290,29 @@ export default function Dashboard() {
                                   )}
                                 </div>
                               ))}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full mt-3 text-white border-white/30 hover:bg-white/10"
+                                onClick={() => {
+                                  // Add all lessons from this course to Assignment column
+                                  const assignmentLessons: AssignmentLesson[] = course.lessons.map(lesson => ({
+                                    id: `${course.id}-${lesson.id}`,
+                                    courseId: course.id,
+                                    courseName: course.title,
+                                    lessonName: lesson.title,
+                                    url: lesson.url || '',
+                                    completed: false
+                                  }));
+                                  
+                                  // Store lessons and open category selection dialog
+                                  setPendingAssignmentLessons(assignmentLessons);
+                                  setAssignmentDialogOpen(true);
+                                }}
+                                data-testid={`button-add-to-assignment-${course.id}`}
+                              >
+                                Add to Assignment Column
+                              </Button>
                             </div>
                           ) : (
                             <div className="bg-white/5 rounded-lg p-3 mt-2">
@@ -1349,6 +1384,59 @@ export default function Dashboard() {
           onUpdate={handleSaveCourseProgress}
         />
       )}
+
+      {/* Assignment Category Selection Dialog */}
+      <Dialog open={assignmentDialogOpen} onOpenChange={setAssignmentDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Select HRCM Category</DialogTitle>
+            <DialogDescription>
+              Choose which category to add these {pendingAssignmentLessons.length} lessons to in the Assignment column
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-3 mt-4">
+            {['Health', 'Relationship', 'Career', 'Money'].map((category) => (
+              <Button
+                key={category}
+                variant="outline"
+                className="h-20 text-lg font-semibold hover-elevate"
+                onClick={async () => {
+                  try {
+                    const response = await apiRequest('POST', '/api/assignment/add-lessons', {
+                      weekNumber: currentWeek,
+                      category,
+                      lessons: pendingAssignmentLessons,
+                    });
+
+                    if (response.ok) {
+                      // Invalidate the HRCM query to refresh the data
+                      queryClient.invalidateQueries({ queryKey: ['/api/hercm', currentWeek] });
+                      
+                      toast({
+                        title: 'Lessons Added!',
+                        description: `${pendingAssignmentLessons.length} lessons added to ${category} Assignment`,
+                      });
+                      
+                      setAssignmentDialogOpen(false);
+                      setPendingAssignmentLessons([]);
+                    }
+                  } catch (error) {
+                    console.error('Error adding lessons:', error);
+                    toast({
+                      title: 'Error',
+                      description: 'Failed to add lessons. Please try again.',
+                      variant: 'destructive',
+                    });
+                  }
+                }}
+                data-testid={`button-category-${category.toLowerCase()}`}
+              >
+                {category}
+              </Button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -2248,7 +2248,57 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
     }
   });
 
-  // Add course lessons to Assignment column
+  // Add course lessons to Assignment column (using weekNumber)
+  app.post('/api/assignment/add-lessons', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const { weekNumber, category, lessons } = req.body;
+
+      if (!weekNumber || !category || !lessons || !Array.isArray(lessons)) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      // Fetch the week by weekNumber
+      const weeks = await storage.getHercmWeeksByUser(userId);
+      const week = weeks.find((w: any) => w.weekNumber === weekNumber);
+      
+      if (!week) {
+        return res.status(404).json({ message: "Week not found" });
+      }
+
+      // Get the assignment field for the category
+      const prefix = category.toLowerCase();
+      const assignmentField = `${prefix}Assignment` as keyof typeof week;
+      const currentAssignment = (week[assignmentField] as any) || { courses: [], lessons: [] };
+
+      // Add lessons to the assignment
+      // Merge with existing lessons (avoid duplicates)
+      const existingLessonIds = new Set(currentAssignment.lessons?.map((l: any) => l.id) || []);
+      const filteredNewLessons = lessons.filter((l: any) => !existingLessonIds.has(l.id));
+
+      const updatedAssignment = {
+        courses: currentAssignment.courses || [],
+        lessons: [...(currentAssignment.lessons || []), ...filteredNewLessons]
+      };
+
+      // Update the week
+      const updateData: any = {};
+      updateData[assignmentField] = updatedAssignment;
+      
+      await storage.updateHercmWeek(week.id, updateData);
+
+      res.json({ success: true, assignment: updatedAssignment });
+    } catch (error) {
+      console.error("Error adding lessons to assignment:", error);
+      res.status(500).json({ message: "Failed to add lessons" });
+    }
+  });
+
+  // Legacy endpoint (using weekId) - keeping for compatibility
   app.post('/api/hercm/assignment/add-lessons', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.session.userEmail;
