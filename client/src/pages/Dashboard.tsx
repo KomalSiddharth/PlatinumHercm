@@ -21,7 +21,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Trophy, Pause, History as HistoryIcon, Trash2, ChevronDown } from 'lucide-react';
+import { Trophy, Pause, History as HistoryIcon, Trash2, ChevronDown, Book } from 'lucide-react';
 import type { Ritual as DbRitual, RitualCompletion } from '@shared/schema';
 
 interface Ritual {
@@ -155,14 +155,6 @@ export default function Dashboard() {
   const teamRef = useRef<HTMLDivElement>(null);
 
   const [currentWeek, setCurrentWeek] = useState(1);
-  
-  // Calculate total points from completed rituals
-  useEffect(() => {
-    const points = rituals
-      .filter(r => r.completed)
-      .reduce((sum, r) => sum + r.points, 0);
-    setTotalPoints(points);
-  }, [rituals]);
 
   const scrollToSection = (section: string) => {
     const refs = {
@@ -377,6 +369,7 @@ export default function Dashboard() {
     title: string;
     url?: string;
     completed: boolean;
+    points?: number; // Points awarded for completing this lesson (default: 10)
   }
 
   interface AssignmentLesson {
@@ -999,6 +992,23 @@ export default function Dashboard() {
     }
   ]);
 
+  // Calculate total points from completed rituals and lessons
+  useEffect(() => {
+    const ritualPoints = rituals
+      .filter(r => r.completed)
+      .reduce((sum, r) => sum + r.points, 0);
+    
+    const lessonPoints = courses
+      .reduce((sum, course) => {
+        const completedLessonPoints = course.lessons
+          .filter(l => l.completed)
+          .reduce((lessonSum, lesson) => lessonSum + (lesson.points || 10), 0);
+        return sum + completedLessonPoints;
+      }, 0);
+    
+    setTotalPoints(ritualPoints + lessonPoints);
+  }, [rituals, courses]);
+
   // Fetch live leaderboard data
   const { data: leaderboardData = [] } = useQuery<Array<{
     rank: number;
@@ -1168,9 +1178,25 @@ export default function Dashboard() {
 
         <section ref={coursesRef} id="courses" className="scroll-mt-20 bg-green-100 dark:bg-green-900/60 p-6 rounded-lg border-2 border-green-400 dark:border-green-600">
           <div className="space-y-6">
-            <div>
-              <h2 className="text-3xl font-bold">Course Tracker</h2>
-              <p className="text-muted-foreground mt-1">Manage your learning journey and skill development</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-3xl font-bold">Course Tracker</h2>
+                <p className="text-muted-foreground mt-1">Manage your learning journey and skill development</p>
+              </div>
+              <div className="flex items-center gap-2 bg-gradient-to-r from-teal-500 to-emerald-500 text-white px-4 py-2 rounded-lg">
+                <Book className="w-5 h-5" />
+                <span className="font-bold text-lg" data-testid="text-lesson-points">
+                  {(() => {
+                    const lessonPoints = courses.reduce((sum, course) => {
+                      const completedLessonPoints = course.lessons
+                        .filter(l => l.completed)
+                        .reduce((lessonSum, lesson) => lessonSum + (lesson.points || 10), 0);
+                      return sum + completedLessonPoints;
+                    }, 0);
+                    return lessonPoints;
+                  })()} pts
+                </span>
+              </div>
             </div>
 
             {/* Overall Progress Bar */}
@@ -1290,21 +1316,30 @@ export default function Dashboard() {
                                     className="mt-0.5"
                                     data-testid={`checkbox-lesson-${lesson.id}`}
                                   />
-                                  {lesson.url ? (
-                                    <a
-                                      href={lesson.url}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className={`text-xs cursor-pointer flex-1 hover:underline ${lesson.completed ? 'line-through text-muted-foreground' : 'text-primary hover:text-primary/80'}`}
-                                      data-testid={`link-lesson-${lesson.id}`}
+                                  <div className="flex-1 flex items-center justify-between gap-2">
+                                    {lesson.url ? (
+                                      <a
+                                        href={lesson.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={`text-xs cursor-pointer flex-1 hover:underline ${lesson.completed ? 'line-through text-muted-foreground' : 'text-primary hover:text-primary/80'}`}
+                                        data-testid={`link-lesson-${lesson.id}`}
+                                      >
+                                        {lesson.title}
+                                      </a>
+                                    ) : (
+                                      <span className={`text-xs flex-1 ${lesson.completed ? 'line-through text-muted-foreground' : ''}`}>
+                                        {lesson.title}
+                                      </span>
+                                    )}
+                                    <Badge 
+                                      variant={lesson.completed ? "secondary" : "default"} 
+                                      className="text-[10px] px-1.5 py-0 h-5"
+                                      data-testid={`badge-points-${lesson.id}`}
                                     >
-                                      {lesson.title}
-                                    </a>
-                                  ) : (
-                                    <span className={`text-xs flex-1 ${lesson.completed ? 'line-through text-muted-foreground' : ''}`}>
-                                      {lesson.title}
-                                    </span>
-                                  )}
+                                      +{lesson.points || 10} pts
+                                    </Badge>
+                                  </div>
                                 </div>
                               ))}
                               <Button
