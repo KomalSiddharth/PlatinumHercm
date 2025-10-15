@@ -1,9 +1,14 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Clock, TrendingUp } from 'lucide-react';
-import { format } from 'date-fns';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { Clock, TrendingUp, Calendar as CalendarIcon } from 'lucide-react';
+import { format, startOfDay, endOfDay, isSameDay } from 'date-fns';
+import { cn } from '@/lib/utils';
 import {
   Table,
   TableBody,
@@ -20,37 +25,86 @@ interface RefinedHistoryModalProps {
 }
 
 export function RefinedHistoryModal({ open, onOpenChange, currentWeek }: RefinedHistoryModalProps) {
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+
   // Fetch all weeks from database
   const { data: allWeeksData } = useQuery<any[]>({
     queryKey: ['/api/hercm/weeks'],
     enabled: open,
   });
 
-  // Get the most recent snapshot
-  const mostRecentSnapshot = allWeeksData && allWeeksData.length > 0
-    ? [...allWeeksData].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0]
-    : null;
+  // Get the most recent snapshot for the selected date
+  const getSnapshotForDate = () => {
+    if (!allWeeksData || !selectedDate) return null;
+
+    // Filter snapshots for the selected date
+    const snapshotsForDate = allWeeksData.filter(snapshot => {
+      const snapshotDate = new Date(snapshot.createdAt);
+      return isSameDay(snapshotDate, selectedDate);
+    });
+
+    // Return the most recent snapshot for that date
+    if (snapshotsForDate.length === 0) return null;
+    
+    return [...snapshotsForDate].sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )[0];
+  };
+
+  const displaySnapshot = getSnapshotForDate();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            HRCM History - Most Recent Snapshot
+            HRCM History
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
-          {mostRecentSnapshot ? (
+          {/* Calendar Date Picker */}
+          <div className="flex items-center gap-4 p-4 bg-muted/30 rounded-lg">
+            <div className="flex items-center gap-2">
+              <CalendarIcon className="w-5 h-5 text-primary" />
+              <span className="font-medium">Select Date:</span>
+            </div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-[280px] justify-start text-left font-normal",
+                    !selectedDate && "text-muted-foreground"
+                  )}
+                  data-testid="button-select-date"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {selectedDate ? format(selectedDate, "MMMM dd, yyyy") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  initialFocus
+                  data-testid="calendar-picker"
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {displaySnapshot ? (
             <div className="space-y-4">
               <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-primary" />
                   <h3 className="text-sm font-medium">
-                    Last Updated: {format(new Date(mostRecentSnapshot.createdAt), 'EEEE, MMMM d, yyyy - h:mm a')}
+                    Last Updated: {format(new Date(displaySnapshot.createdAt), 'EEEE, MMMM d, yyyy - h:mm a')}
                   </h3>
                 </div>
-                <Badge variant="secondary">Week {mostRecentSnapshot.weekNumber}</Badge>
+                <Badge variant="secondary">Week {displaySnapshot.weekNumber}</Badge>
               </div>
 
               {/* Current Week Table - Exact Structure */}
@@ -79,36 +133,36 @@ export function RefinedHistoryModal({ open, onOpenChange, currentWeek }: Refined
                       {['Health', 'Relationship', 'Career', 'Money'].map((category) => {
                         const prefix = category.toLowerCase();
                         const ratingMap: Record<string, any> = {
-                          health: mostRecentSnapshot.currentH,
-                          relationship: mostRecentSnapshot.currentE,
-                          career: mostRecentSnapshot.currentR,
-                          money: mostRecentSnapshot.currentC,
+                          health: displaySnapshot.currentH,
+                          relationship: displaySnapshot.currentE,
+                          career: displaySnapshot.currentR,
+                          money: displaySnapshot.currentC,
                         };
                         const resultsMap: Record<string, any> = {
-                          health: mostRecentSnapshot.healthProblems,
-                          relationship: mostRecentSnapshot.relationshipProblems,
-                          career: mostRecentSnapshot.careerProblems,
-                          money: mostRecentSnapshot.moneyProblems,
+                          health: displaySnapshot.healthProblems,
+                          relationship: displaySnapshot.relationshipProblems,
+                          career: displaySnapshot.careerProblems,
+                          money: displaySnapshot.moneyProblems,
                         };
                         const feelingsMap: Record<string, any> = {
-                          health: mostRecentSnapshot.healthCurrentFeelings,
-                          relationship: mostRecentSnapshot.relationshipCurrentFeelings,
-                          career: mostRecentSnapshot.careerCurrentFeelings,
-                          money: mostRecentSnapshot.moneyCurrentFeelings,
+                          health: displaySnapshot.healthCurrentFeelings,
+                          relationship: displaySnapshot.relationshipCurrentFeelings,
+                          career: displaySnapshot.careerCurrentFeelings,
+                          money: displaySnapshot.moneyCurrentFeelings,
                         };
                         const beliefsMap: Record<string, any> = {
-                          health: mostRecentSnapshot.healthCurrentBelief,
-                          relationship: mostRecentSnapshot.relationshipCurrentBelief,
-                          career: mostRecentSnapshot.careerCurrentBelief,
-                          money: mostRecentSnapshot.moneyCurrentBelief,
+                          health: displaySnapshot.healthCurrentBelief,
+                          relationship: displaySnapshot.relationshipCurrentBelief,
+                          career: displaySnapshot.careerCurrentBelief,
+                          money: displaySnapshot.moneyCurrentBelief,
                         };
                         const actionsMap: Record<string, any> = {
-                          health: mostRecentSnapshot.healthCurrentActions,
-                          relationship: mostRecentSnapshot.relationshipCurrentActions,
-                          career: mostRecentSnapshot.careerCurrentActions,
-                          money: mostRecentSnapshot.moneyCurrentActions,
+                          health: displaySnapshot.healthCurrentActions,
+                          relationship: displaySnapshot.relationshipCurrentActions,
+                          career: displaySnapshot.careerCurrentActions,
+                          money: displaySnapshot.moneyCurrentActions,
                         };
-                        const checklist = mostRecentSnapshot[`${prefix}Checklist`] || [];
+                        const checklist = displaySnapshot[`${prefix}Checklist`] || [];
                         const progress = checklist.length > 0 
                           ? Math.round((checklist.filter((c: any) => c.checked).length / checklist.length) * 100)
                           : 0;
@@ -185,12 +239,12 @@ export function RefinedHistoryModal({ open, onOpenChange, currentWeek }: Refined
                       {['Health', 'Relationship', 'Career', 'Money'].map((category, index) => {
                         const prefix = category.toLowerCase();
                         const ratingMap: Record<string, any> = {
-                          health: mostRecentSnapshot.nextHealthRating,
-                          relationship: mostRecentSnapshot.nextRelationshipRating,
-                          career: mostRecentSnapshot.nextCareerRating,
-                          money: mostRecentSnapshot.nextMoneyRating,
+                          health: displaySnapshot.nextHealthRating,
+                          relationship: displaySnapshot.nextRelationshipRating,
+                          career: displaySnapshot.nextCareerRating,
+                          money: displaySnapshot.nextMoneyRating,
                         };
-                        const nextChecklist = mostRecentSnapshot[`next${category}Checklist`] || [];
+                        const nextChecklist = displaySnapshot[`next${category}Checklist`] || [];
                         const progress = nextChecklist.length > 0 
                           ? Math.round((nextChecklist.filter((c: any) => c.checked).length / nextChecklist.length) * 100)
                           : 0;
@@ -208,7 +262,7 @@ export function RefinedHistoryModal({ open, onOpenChange, currentWeek }: Refined
                               </div>
                             </TableCell>
                             <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top text-xs">
-                              {mostRecentSnapshot[`${prefix}ResultChecklist`]?.map((item: any) => (
+                              {displaySnapshot[`${prefix}ResultChecklist`]?.map((item: any) => (
                                 <div key={item.id} className="flex items-center gap-1 mb-1">
                                   <Checkbox checked={item.checked} disabled className="h-3 w-3" />
                                   <span>{item.text}</span>
@@ -216,7 +270,7 @@ export function RefinedHistoryModal({ open, onOpenChange, currentWeek }: Refined
                               )) || <span className="text-muted-foreground italic">-</span>}
                             </TableCell>
                             <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top text-xs">
-                              {mostRecentSnapshot[`${prefix}FeelingsChecklist`]?.map((item: any) => (
+                              {displaySnapshot[`${prefix}FeelingsChecklist`]?.map((item: any) => (
                                 <div key={item.id} className="flex items-center gap-1 mb-1">
                                   <Checkbox checked={item.checked} disabled className="h-3 w-3" />
                                   <span>{item.text}</span>
@@ -224,7 +278,7 @@ export function RefinedHistoryModal({ open, onOpenChange, currentWeek }: Refined
                               )) || <span className="text-muted-foreground italic">-</span>}
                             </TableCell>
                             <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top text-xs">
-                              {mostRecentSnapshot[`${prefix}BeliefsChecklist`]?.map((item: any) => (
+                              {displaySnapshot[`${prefix}BeliefsChecklist`]?.map((item: any) => (
                                 <div key={item.id} className="flex items-center gap-1 mb-1">
                                   <Checkbox checked={item.checked} disabled className="h-3 w-3" />
                                   <span>{item.text}</span>
@@ -232,7 +286,7 @@ export function RefinedHistoryModal({ open, onOpenChange, currentWeek }: Refined
                               )) || <span className="text-muted-foreground italic">-</span>}
                             </TableCell>
                             <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top border-r text-xs">
-                              {mostRecentSnapshot[`${prefix}ActionsChecklist`]?.map((item: any) => (
+                              {displaySnapshot[`${prefix}ActionsChecklist`]?.map((item: any) => (
                                 <div key={item.id} className="flex items-center gap-1 mb-1">
                                   <Checkbox checked={item.checked} disabled className="h-3 w-3" />
                                   <span>{item.text}</span>
@@ -243,7 +297,7 @@ export function RefinedHistoryModal({ open, onOpenChange, currentWeek }: Refined
                             {index === 0 && (
                               <TableCell rowSpan={4} className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10 align-top">
                                 <div className="space-y-2">
-                                  {mostRecentSnapshot.unifiedAssignment?.lessons?.map((lesson: any) => (
+                                  {displaySnapshot.unifiedAssignment?.lessons?.map((lesson: any) => (
                                     <div key={lesson.lessonId} className="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded border text-xs">
                                       <Checkbox checked={lesson.completed} disabled className="h-3 w-3" />
                                       <div className="flex-1">
@@ -278,7 +332,12 @@ export function RefinedHistoryModal({ open, onOpenChange, currentWeek }: Refined
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No history available yet. Start tracking your HRCM progress!</p>
+              <p className="text-muted-foreground">
+                {selectedDate 
+                  ? `No history available for ${format(selectedDate, "MMMM dd, yyyy")}. Please select another date.`
+                  : "Please select a date to view history."
+                }
+              </p>
             </div>
           )}
         </div>
