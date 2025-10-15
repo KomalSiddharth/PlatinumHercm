@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Sparkles, Check, X, TrendingUp, Save, Loader2, ArrowUp, ArrowDown } from 'lucide-react';
+import { Sparkles, Check, X, TrendingUp, Save, Loader2, ArrowUp, ArrowDown, History } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -17,6 +17,7 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import WeekComparison from './WeekComparison';
+import HRCMHistoryModal from './HRCMHistoryModal';
 import {
   Dialog,
   DialogContent,
@@ -225,6 +226,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
   const [collapsedCourses, setCollapsedCourses] = useState<Set<string>>(new Set());
   const [unifiedAssignment, setUnifiedAssignment] = useState<AssignmentLesson[]>([]);
   const [progressOpen, setProgressOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const lastFocusedButton = useRef<HTMLButtonElement | null>(null);
   const hasAutoProgressed = useRef<Set<number>>(new Set()); // Track which weeks have been auto-progressed
   const { toast} = useToast();
@@ -1011,17 +1013,12 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
           
           <Button
             size="sm"
-            onClick={() => saveWeekMutation.mutate({ weekNumber, year: new Date().getFullYear(), beliefs })}
-            disabled={saveWeekMutation.isPending}
+            onClick={() => setHistoryOpen(true)}
             className="bg-gradient-to-r from-pink-600 to-red-600 hover:from-pink-700 hover:to-red-700 text-white"
-            data-testid="button-save-week"
+            data-testid="button-history"
           >
-            {saveWeekMutation.isPending ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <Save className="w-4 h-4 mr-2" />
-            )}
-            Save Week
+            <History className="w-4 h-4 mr-2" />
+            History
           </Button>
           
           <Button
@@ -1778,6 +1775,13 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* HRCM History Modal */}
+      <HRCMHistoryModal 
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        currentWeek={weekNumber}
+      />
 
     </div>
   );
