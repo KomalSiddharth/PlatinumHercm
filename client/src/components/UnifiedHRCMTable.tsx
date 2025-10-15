@@ -1258,7 +1258,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
               size="sm"
               onClick={handleAIAutoFill}
               disabled={aiAutoFillMutation.isPending}
-              className="bg-gradient-to-r from-pink-600 to-coral-600 hover:from-pink-700 hover:to-coral-700 text-white border border-white/20"
+              className="bg-gradient-to-r from-pink-600 to-red-600 hover:from-pink-700 hover:to-red-700 text-white border border-white/20"
               data-testid="button-ai-autofill"
             >
               {aiAutoFillMutation.isPending ? (
