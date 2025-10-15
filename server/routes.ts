@@ -446,6 +446,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Analytics routes
+  app.get('/api/analytics/progress', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const { viewType, year, month, week } = req.query;
+      const weeks = await storage.getHercmWeeksByUser(userId);
+
+      if (viewType === 'weekly') {
+        // Group by week and calculate averages
+        const weeklyData = [];
+        const weekMap = new Map();
+
+        weeks.forEach((w: any) => {
+          if (!weekMap.has(w.weekNumber)) {
+            weekMap.set(w.weekNumber, []);
+          }
+          weekMap.get(w.weekNumber).push(w);
+        });
+
+        for (const [weekNum, weekData] of weekMap.entries()) {
+          const latest = weekData[weekData.length - 1]; // Get latest snapshot
+          const healthProgress = latest.healthChecklist ? JSON.parse(latest.healthChecklist).filter((c: any) => c.checked).length / 4 * 100 : 0;
+          const relationshipProgress = latest.relationshipChecklist ? JSON.parse(latest.relationshipChecklist).filter((c: any) => c.checked).length / 4 * 100 : 0;
+          const careerProgress = latest.careerChecklist ? JSON.parse(latest.careerChecklist).filter((c: any) => c.checked).length / 4 * 100 : 0;
+          const moneyProgress = latest.moneyChecklist ? JSON.parse(latest.moneyChecklist).filter((c: any) => c.checked).length / 4 * 100 : 0;
+
+          weeklyData.push({
+            week: `W${weekNum}`,
+            Health: Math.round(healthProgress),
+            Relationship: Math.round(relationshipProgress),
+            Career: Math.round(careerProgress),
+            Money: Math.round(moneyProgress),
+          });
+        }
+
+        res.json({ weeklyData: weeklyData.slice(-5) }); // Last 5 weeks
+      } else if (viewType === 'monthly') {
+        // Group by month and calculate averages
+        const monthlyData = [];
+        const monthMap = new Map();
+
+        weeks.forEach((w: any) => {
+          const createdDate = new Date(w.createdAt);
+          const monthKey = `${createdDate.getFullYear()}-${createdDate.getMonth()}`;
+          if (!monthMap.has(monthKey)) {
+            monthMap.set(monthKey, []);
+          }
+          monthMap.get(monthKey).push(w);
+        });
+
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        
+        for (const [monthKey, monthWeeks] of monthMap.entries()) {
+          const [year, month] = monthKey.split('-');
+          const avgHealth = Math.round(monthWeeks.reduce((sum: number, w: any) => {
+            const progress = w.healthChecklist ? JSON.parse(w.healthChecklist).filter((c: any) => c.checked).length / 4 * 100 : 0;
+            return sum + progress;
+          }, 0) / monthWeeks.length);
+
+          const avgRelationship = Math.round(monthWeeks.reduce((sum: number, w: any) => {
+            const progress = w.relationshipChecklist ? JSON.parse(w.relationshipChecklist).filter((c: any) => c.checked).length / 4 * 100 : 0;
+            return sum + progress;
+          }, 0) / monthWeeks.length);
+
+          const avgCareer = Math.round(monthWeeks.reduce((sum: number, w: any) => {
+            const progress = w.careerChecklist ? JSON.parse(w.careerChecklist).filter((c: any) => c.checked).length / 4 * 100 : 0;
+            return sum + progress;
+          }, 0) / monthWeeks.length);
+
+          const avgMoney = Math.round(monthWeeks.reduce((sum: number, w: any) => {
+            const progress = w.moneyChecklist ? JSON.parse(w.moneyChecklist).filter((c: any) => c.checked).length / 4 * 100 : 0;
+            return sum + progress;
+          }, 0) / monthWeeks.length);
+
+          monthlyData.push({
+            month: monthNames[parseInt(month)],
+            Health: avgHealth,
+            Relationship: avgRelationship,
+            Career: avgCareer,
+            Money: avgMoney,
+          });
+        }
+
+        res.json({ monthlyData: monthlyData.slice(-12) }); // Last 12 months
+      } else {
+        res.json({ weeklyData: [], monthlyData: [] });
+      }
+    } catch (error) {
+      console.error("Error fetching analytics:", error);
+      res.status(500).json({ message: "Failed to fetch analytics" });
+    }
+  });
+
   // Platinum Progress routes
   app.get('/api/platinum/progress', isAuthenticated, async (req: any, res) => {
     try {
