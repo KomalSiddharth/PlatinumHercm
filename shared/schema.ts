@@ -412,3 +412,20 @@ export const insertCourseVideoCompletionSchema = createInsertSchema(courseVideoC
 
 export type InsertCourseVideoCompletion = z.infer<typeof insertCourseVideoCompletionSchema>;
 export type CourseVideoCompletion = typeof courseVideoCompletions.$inferSelect;
+
+// Course Lesson Completions - Track CSV lesson completions by course name and lesson title
+export const courseLessonCompletions = pgTable("course_lesson_completions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  courseName: varchar("course_name").notNull(), // e.g., "Health Mastery & Happy Gym"
+  lessonTitle: varchar("lesson_title").notNull(), // e.g., "Lesson 1: What is Health"
+  completedAt: timestamp("completed_at").defaultNow(),
+});
+
+export const insertCourseLessonCompletionSchema = createInsertSchema(courseLessonCompletions).omit({
+  id: true,
+  completedAt: true,
+});
+
+export type InsertCourseLessonCompletion = z.infer<typeof insertCourseLessonCompletionSchema>;
+export type CourseLessonCompletion = typeof courseLessonCompletions.$inferSelect;
