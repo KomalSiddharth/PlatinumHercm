@@ -1642,6 +1642,56 @@ Return ONLY valid JSON in this exact format:
     }
   });
 
+  // Get Wealth Mastery course modules from CSV (MUST be before /:weekNumber route!)
+  app.get('/api/courses/wealth-mastery-modules', isAuthenticated, async (req: any, res) => {
+    try {
+      // Fetch all courses from CSV
+      const courses = await parseCourseCSV();
+      
+      // Filter for Wealth Mastery courses only
+      const wealthMasteryCourses = courses.filter(course => 
+        course.courseName.toLowerCase().includes('wealth mastery')
+      );
+      
+      // Map to module format
+      const modules = wealthMasteryCourses.map((course, index) => ({
+        id: `wm-module-${index + 1}`,
+        title: course.courseName,
+        url: course.link || undefined
+      }));
+      
+      res.json({ modules });
+    } catch (error) {
+      console.error("Error fetching Wealth Mastery modules:", error);
+      res.status(500).json({ message: "Failed to fetch modules", modules: [] });
+    }
+  });
+
+  // Get Relationship Mastery course modules from CSV (MUST be before /:weekNumber route!)
+  app.get('/api/courses/relationship-mastery-modules', isAuthenticated, async (req: any, res) => {
+    try {
+      // Fetch all courses from CSV
+      const courses = await parseCourseCSV();
+      
+      // Filter for Relationship Mastery courses only
+      const relationshipMasteryCourses = courses.filter(course => 
+        course.courseName.toLowerCase().includes('relationship mastery')
+      );
+      
+      // Map to module format
+      const modules = relationshipMasteryCourses.map((course, index) => ({
+        id: `rm-module-${index + 1}`,
+        title: course.courseName,
+        url: course.link || undefined
+      }));
+      
+      res.json({ modules });
+    } catch (error) {
+      console.error("Error fetching Relationship Mastery modules:", error);
+      res.status(500).json({ message: "Failed to fetch modules", modules: [] });
+    }
+  });
+
   // Courses endpoints
   app.get('/api/courses/:weekNumber', isAuthenticated, async (req: any, res) => {
     try {
