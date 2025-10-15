@@ -12,7 +12,6 @@ import {
   ratingProgression,
   courseVideos,
   courseVideoCompletions,
-  courseLessonCompletions,
   type User,
   type UpsertUser,
   type HercmWeek,
@@ -37,8 +36,6 @@ import {
   type InsertCourseVideo,
   type CourseVideoCompletion,
   type InsertCourseVideoCompletion,
-  type CourseLessonCompletion,
-  type InsertCourseLessonCompletion,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, count, sql } from "drizzle-orm";
@@ -121,10 +118,6 @@ export interface IStorage {
   getRatingProgression(userId: string): Promise<RatingProgression | undefined>;
   upsertRatingProgression(userId: string, progression: Partial<InsertRatingProgression>): Promise<RatingProgression>;
   updateRatingProgression(userId: string, progression: Partial<InsertRatingProgression>): Promise<RatingProgression>;
-  
-  // Course Lesson Completions operations
-  getCourseLessonCompletions(userId: string, courseName: string): Promise<string[]>; // Returns completed lesson titles
-  toggleLessonCompletion(userId: string, courseName: string, lessonTitle: string): Promise<{ completed: boolean }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -683,49 +676,6 @@ export class DatabaseStorage implements IStorage {
       .where(eq(ratingProgression.userId, userId))
       .returning();
     return progression;
-  }
-
-  // Course Lesson Completions operations
-  async getCourseLessonCompletions(userId: string, courseName: string): Promise<string[]> {
-    const completions = await db
-      .select()
-      .from(courseLessonCompletions)
-      .where(and(
-        eq(courseLessonCompletions.userId, userId),
-        eq(courseLessonCompletions.courseName, courseName)
-      ));
-    
-    return completions.map(c => c.lessonTitle);
-  }
-
-  async toggleLessonCompletion(userId: string, courseName: string, lessonTitle: string): Promise<{ completed: boolean }> {
-    // Check if completion already exists
-    const [existing] = await db
-      .select()
-      .from(courseLessonCompletions)
-      .where(and(
-        eq(courseLessonCompletions.userId, userId),
-        eq(courseLessonCompletions.courseName, courseName),
-        eq(courseLessonCompletions.lessonTitle, lessonTitle)
-      ));
-
-    if (existing) {
-      // Delete completion (uncomplete)
-      await db
-        .delete(courseLessonCompletions)
-        .where(and(
-          eq(courseLessonCompletions.userId, userId),
-          eq(courseLessonCompletions.courseName, courseName),
-          eq(courseLessonCompletions.lessonTitle, lessonTitle)
-        ));
-      return { completed: false };
-    } else {
-      // Create completion (complete)
-      await db
-        .insert(courseLessonCompletions)
-        .values({ userId, courseName, lessonTitle } as any);
-      return { completed: true };
-    }
   }
 }
 

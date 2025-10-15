@@ -5,7 +5,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Sparkles, Check, X, TrendingUp, History, Edit2, Save, Loader2, ArrowUp, ArrowDown } from 'lucide-react';
-import CourseLessonDropdown from './CourseLessonDropdown';
 import {
   Table,
   TableBody,
@@ -1159,16 +1158,6 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                           </a>
                         </div>
                       ))}
-                      
-                      {/* CSV Lesson Dropdown for Health Mastery */}
-                      {belief.category === 'Health' && (
-                        <div className="mt-3 pt-2 border-t border-cyan-200 dark:border-cyan-800">
-                          <CourseLessonDropdown 
-                            courseName="Health Mastery & Happy Gym" 
-                            category="Health"
-                          />
-                        </div>
-                      )}
                     </div>
                   ) : (
                     <Button
