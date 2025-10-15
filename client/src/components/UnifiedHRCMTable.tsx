@@ -1247,8 +1247,8 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
 
       {/* Next Week Table */}
       <div className="border-2 border-green-600 dark:border-green-800 rounded-lg overflow-x-auto shadow-lg">
-        <div className="bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-700 dark:to-emerald-700 px-4 py-3 border-b-2 border-green-700 dark:border-green-900 relative">
-          <h3 className="font-bold text-white text-xl text-center drop-shadow-md flex items-center justify-center gap-2">
+        <div className="bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-700 dark:to-emerald-700 px-4 py-3 border-b-2 border-green-700 dark:border-green-900 flex items-center justify-center relative">
+          <h3 className="font-bold text-white text-xl drop-shadow-md flex items-center gap-2">
             <TrendingUp className="w-5 h-5" />
             Next Week Target
           </h3>
@@ -1256,7 +1256,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
             size="sm"
             onClick={handleAIAutoFill}
             disabled={aiAutoFillMutation.isPending}
-            className="absolute right-4 top-1/2 -translate-y-1/2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white border border-white/20"
+            className="absolute right-4 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white border border-white/20"
             data-testid="button-ai-autofill"
           >
             {aiAutoFillMutation.isPending ? (
