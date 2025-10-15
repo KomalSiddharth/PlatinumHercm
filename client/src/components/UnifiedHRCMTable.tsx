@@ -1132,22 +1132,45 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                         </Button>
                       </div>
                       {belief.courseSuggestion.courses.map((course) => (
-                        <div key={course.id} className="flex items-center gap-2 py-0.5">
-                          <Checkbox
-                            checked={course.completed}
-                            onCheckedChange={() => handleCourseToggle(belief.category, course.id)}
-                            className="h-3 w-3"
-                            data-testid={`checkbox-course-${belief.category.toLowerCase()}-${course.id}`}
-                          />
-                          <a
-                            href={course.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={`text-xs hover:underline flex-1 ${course.completed ? 'line-through text-muted-foreground' : 'text-cyan-700 dark:text-cyan-400'}`}
-                            data-testid={`link-course-${belief.category.toLowerCase()}-${course.id}`}
-                          >
-                            {course.name}
-                          </a>
+                        <div key={course.id} className="space-y-1 py-1 border-b border-cyan-200/50 dark:border-cyan-800/30 last:border-0">
+                          <div className="flex items-center gap-2">
+                            <Checkbox
+                              checked={course.completed}
+                              onCheckedChange={() => handleCourseToggle(belief.category, course.id)}
+                              className="h-3 w-3"
+                              data-testid={`checkbox-course-${belief.category.toLowerCase()}-${course.id}`}
+                            />
+                            <a
+                              href={course.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`text-xs hover:underline flex-1 ${course.completed ? 'line-through text-muted-foreground' : 'text-cyan-700 dark:text-cyan-400'}`}
+                              data-testid={`link-course-${belief.category.toLowerCase()}-${course.id}`}
+                            >
+                              {course.name}
+                            </a>
+                          </div>
+                          
+                          {/* Video Progress Section */}
+                          <div className="ml-5 space-y-1">
+                            <div className="flex items-center gap-2">
+                              <Play className="w-3 h-3 text-cyan-600 dark:text-cyan-400" />
+                              <span className="text-xs text-muted-foreground">Video Progress: {course.videoProgress || 0}%</span>
+                            </div>
+                            <Progress 
+                              value={course.videoProgress || 0} 
+                              className="h-1.5"
+                              data-testid={`progress-video-${belief.category.toLowerCase()}-${course.id}`}
+                            />
+                            <Slider
+                              value={[course.videoProgress || 0]}
+                              onValueChange={([value]) => handleVideoProgressUpdate(belief.category, course.id, value)}
+                              max={100}
+                              step={5}
+                              className="w-full"
+                              data-testid={`slider-video-${belief.category.toLowerCase()}-${course.id}`}
+                            />
+                          </div>
                         </div>
                       ))}
                     </div>
