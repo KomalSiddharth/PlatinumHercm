@@ -3,7 +3,7 @@ import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Loader2, Mail } from 'lucide-react';
 import mkLogo from '@assets/Screenshot 2025-10-11 130038_1760168623219.png';
 
@@ -30,11 +30,18 @@ export default function Login() {
     try {
       await apiRequest('POST', '/api/auth/login', { email });
       
+      // Invalidate user query to refetch auth state
+      await queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      
       toast({
         title: "Login Successful",
         description: "Welcome to Platinum HRCM Dashboard"
       });
-      setLocation('/dashboard');
+      
+      // Small delay to ensure auth state is updated
+      setTimeout(() => {
+        setLocation('/dashboard');
+      }, 100);
     } catch (error: any) {
       toast({
         title: "Login Failed",
