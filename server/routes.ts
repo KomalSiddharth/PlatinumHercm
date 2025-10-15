@@ -142,7 +142,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           nextWeekTarget: week.healthNextTarget || '',
           nextActions: week.healthNextActions || '',
           checklist: week.healthChecklist || [],
-          courseSuggestion: week.healthCourseSuggestion || null,
           assignment: week.healthAssignment || { courses: [], lessons: [] }
         },
         {
@@ -158,7 +157,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           nextWeekTarget: week.relationshipNextTarget || '',
           nextActions: week.relationshipNextActions || '',
           checklist: week.relationshipChecklist || [],
-          courseSuggestion: week.relationshipCourseSuggestion || null,
           assignment: week.relationshipAssignment || { courses: [], lessons: [] }
         },
         {
@@ -174,7 +172,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           nextWeekTarget: week.careerNextTarget || '',
           nextActions: week.careerNextActions || '',
           checklist: week.careerChecklist || [],
-          courseSuggestion: week.careerCourseSuggestion || null,
           assignment: week.careerAssignment || { courses: [], lessons: [] }
         },
         {
@@ -190,7 +187,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           nextWeekTarget: week.moneyNextTarget || '',
           nextActions: week.moneyNextActions || '',
           checklist: week.moneyChecklist || [],
-          courseSuggestion: week.moneyCourseSuggestion || null,
           assignment: week.moneyAssignment || { courses: [], lessons: [] }
         }
       ];
@@ -320,8 +316,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           weekData[`${prefix}NextTarget`] = belief.nextWeekTarget || '';
           weekData[`${prefix}NextActions`] = belief.nextActions || '';
           
-          // Map course and assignment
-          weekData[`${prefix}CourseSuggestion`] = belief.courseSuggestion || null;
+          // Map assignment
           weekData[`${prefix}Assignment`] = belief.assignment || { courses: [], lessons: [] };
           
           // Map checklist

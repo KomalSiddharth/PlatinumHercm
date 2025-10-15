@@ -115,7 +115,6 @@ export const hercmWeeks = pgTable("hercm_weeks", {
   healthNextFeelings: varchar("health_next_feelings"),
   healthNextTarget: varchar("health_next_target"),
   healthNextActions: varchar("health_next_actions"),
-  healthCourseSuggestion: jsonb("health_course_suggestion").$type<{ courses: { id: string; courseName: string; link: string; completed: boolean }[] }>(),
   healthAssignment: jsonb("health_assignment").$type<{ courses: { id: string; courseName: string; link: string; completed: boolean }[]; lessons: { id: string; courseId: string; courseName: string; lessonName: string; url: string; completed: boolean }[] }>(),
   healthChecklist: jsonb("health_checklist").$type<{ id: string; text: string; checked: boolean }[]>(),
   
@@ -128,7 +127,6 @@ export const hercmWeeks = pgTable("hercm_weeks", {
   relationshipNextFeelings: varchar("relationship_next_feelings"),
   relationshipNextTarget: varchar("relationship_next_target"),
   relationshipNextActions: varchar("relationship_next_actions"),
-  relationshipCourseSuggestion: jsonb("relationship_course_suggestion").$type<{ courses: { id: string; courseName: string; link: string; completed: boolean }[] }>(),
   relationshipAssignment: jsonb("relationship_assignment").$type<{ courses: { id: string; courseName: string; link: string; completed: boolean }[]; lessons: { id: string; courseId: string; courseName: string; lessonName: string; url: string; completed: boolean }[] }>(),
   relationshipChecklist: jsonb("relationship_checklist").$type<{ id: string; text: string; checked: boolean }[]>(),
   
@@ -141,7 +139,6 @@ export const hercmWeeks = pgTable("hercm_weeks", {
   careerNextFeelings: varchar("career_next_feelings"),
   careerNextTarget: varchar("career_next_target"),
   careerNextActions: varchar("career_next_actions"),
-  careerCourseSuggestion: jsonb("career_course_suggestion").$type<{ courses: { id: string; courseName: string; link: string; completed: boolean }[] }>(),
   careerAssignment: jsonb("career_assignment").$type<{ courses: { id: string; courseName: string; link: string; completed: boolean }[]; lessons: { id: string; courseId: string; courseName: string; lessonName: string; url: string; completed: boolean }[] }>(),
   careerChecklist: jsonb("career_checklist").$type<{ id: string; text: string; checked: boolean }[]>(),
   
@@ -154,7 +151,6 @@ export const hercmWeeks = pgTable("hercm_weeks", {
   moneyNextFeelings: varchar("money_next_feelings"),
   moneyNextTarget: varchar("money_next_target"),
   moneyNextActions: varchar("money_next_actions"),
-  moneyCourseSuggestion: jsonb("money_course_suggestion").$type<{ courses: { id: string; courseName: string; link: string; completed: boolean }[] }>(),
   moneyAssignment: jsonb("money_assignment").$type<{ courses: { id: string; courseName: string; link: string; completed: boolean }[]; lessons: { id: string; courseId: string; courseName: string; lessonName: string; url: string; completed: boolean }[] }>(),
   moneyChecklist: jsonb("money_checklist").$type<{ id: string; text: string; checked: boolean }[]>(),
   
