@@ -223,12 +223,13 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
   const [showStandardsDialog, setShowStandardsDialog] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [collapsedCourses, setCollapsedCourses] = useState<Set<string>>(new Set());
+  const [showHistory, setShowHistory] = useState(true); // History section visible by default
   const lastFocusedButton = useRef<HTMLButtonElement | null>(null);
   const hasAutoProgressed = useRef<Set<number>>(new Set()); // Track which weeks have been auto-progressed
   const { toast} = useToast();
 
   // Fetch current week data from database
-  const { data: weekData, isLoading } = useQuery<{ beliefs?: HRCMBelief[] }>({
+  const { data: weekData, isLoading } = useQuery<{ beliefs?: HRCMBelief[]; createdAt?: string }>({
     queryKey: ['/api/hercm/week', weekNumber],
     enabled: weekNumber > 0,
   });
@@ -496,6 +497,103 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
       });
     }
   });
+
+  // AI Auto-Fill Next Week mutation
+  const aiAutoFillMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/hercm/ai-autofill-next-week', {
+        beliefs: beliefs.map(b => ({
+          category: b.category,
+          currentRating: b.currentRating,
+          problems: b.problems,
+          currentFeelings: b.currentFeelings,
+          currentBelief: b.currentBelief,
+          currentActions: b.currentActions,
+        }))
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setBeliefs(prev => prev.map(belief => {
+        const aiData = data.find((d: any) => d.category === belief.category);
+        return aiData ? {
+          ...belief,
+          result: aiData.result || belief.result,
+          nextFeelings: aiData.feelings || belief.nextFeelings,
+          nextWeekTarget: aiData.target || belief.nextWeekTarget,
+          nextActions: aiData.actions || belief.nextActions,
+        } : belief;
+      }));
+      
+      toast({
+        title: 'AI Auto-Fill Complete!',
+        description: 'Next week suggestions have been generated.',
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to generate AI suggestions.',
+        variant: 'destructive',
+      });
+    }
+  });
+
+  // Generate Next Week mutation
+  const generateNextWeekMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/hercm/generate-next-week', {
+        weekNumber,
+        beliefs
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/hercm/weeks'] });
+      toast({
+        title: 'Next Week Created!',
+        description: `Week ${weekNumber + 1} has been generated.`,
+      });
+      if (onWeekChange) {
+        onWeekChange(weekNumber + 1);
+      }
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to generate next week.',
+        variant: 'destructive',
+      });
+    }
+  });
+
+  // Handlers
+  const handleAIAutoFill = () => {
+    aiAutoFillMutation.mutate();
+  };
+
+  const handleGenerateNextWeek = () => {
+    generateNextWeekMutation.mutate();
+  };
+
+  // Calculate if user can generate next week (after 7 days)
+  const canGenerateNextWeek = weekData?.createdAt 
+    ? (() => {
+        const createdAt = new Date(weekData.createdAt);
+        const now = new Date();
+        const daysDiff = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
+        return daysDiff >= 7;
+      })()
+    : false;
+
+  const nextWeekUnlockDate = weekData?.createdAt
+    ? (() => {
+        const createdAt = new Date(weekData.createdAt);
+        const unlockDate = new Date(createdAt);
+        unlockDate.setDate(unlockDate.getDate() + 7);
+        return unlockDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      })()
+    : '';
 
   // Get rating-based AI assignment course recommendations for Next Week
   const getAssignmentRecommendation = async (category: string) => {
@@ -898,6 +996,66 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
           >
             {weeklyProgress}% Weekly Progress
           </Badge>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowHistory(!showHistory)}
+            data-testid="button-view-history"
+          >
+            <History className="w-4 h-4 mr-2" />
+            View History
+          </Button>
+          
+          <Button
+            size="sm"
+            onClick={() => saveWeekMutation.mutate({ weekNumber, year: new Date().getFullYear(), beliefs })}
+            disabled={saveWeekMutation.isPending}
+            className="bg-gradient-to-r from-pink-600 to-red-600 hover:from-pink-700 hover:to-red-700 text-white"
+            data-testid="button-save-week"
+          >
+            {saveWeekMutation.isPending ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4 mr-2" />
+            )}
+            Save Week
+          </Button>
+          
+          <Button
+            size="sm"
+            onClick={handleAIAutoFill}
+            disabled={aiAutoFillMutation.isPending}
+            className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white"
+            data-testid="button-ai-autofill"
+          >
+            {aiAutoFillMutation.isPending ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Sparkles className="w-4 h-4 mr-2" />
+            )}
+            AI Auto-Fill Next Week
+          </Button>
+          
+          <Button
+            size="sm"
+            onClick={handleGenerateNextWeek}
+            disabled={generateNextWeekMutation.isPending || !canGenerateNextWeek}
+            className="bg-gradient-to-r from-pink-600 to-coral-600 hover:from-pink-700 hover:to-coral-700 text-white relative"
+            data-testid="button-generate-next-week"
+          >
+            {generateNextWeekMutation.isPending ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <TrendingUp className="w-4 h-4 mr-2" />
+            )}
+            Generate Next Week
+            {!canGenerateNextWeek && nextWeekUnlockDate && (
+              <span className="absolute -bottom-5 right-0 text-[10px] text-muted-foreground whitespace-nowrap">
+                Unlocks: {nextWeekUnlockDate}
+              </span>
+            )}
+          </Button>
         </div>
       </div>
 
@@ -1612,6 +1770,104 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* HRCM History Section */}
+      {showHistory && allWeeksData && Array.isArray(allWeeksData) && allWeeksData.length > 0 && (
+        <div className="mt-6 border-2 border-primary/30 rounded-lg p-4 bg-gradient-to-br from-blue-50/50 to-purple-50/50 dark:from-blue-950/20 dark:to-purple-950/20">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              HRCM History
+            </h3>
+            <Badge variant="secondary">{allWeeksData.length} snapshots</Badge>
+          </div>
+          
+          <div className="space-y-2">
+            {allWeeksData.map((snapshot: any, index: number) => {
+              const snapshotDate = snapshot.createdAt 
+                ? new Date(snapshot.createdAt).toLocaleString('en-GB', { 
+                    day: '2-digit', 
+                    month: 'short', 
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })
+                : 'Unknown date';
+              
+              const isCurrentWeek = snapshot.weekNumber === weekNumber;
+              
+              return (
+                <Collapsible key={snapshot.id || index}>
+                  <div className={`border rounded-lg ${isCurrentWeek ? 'border-primary bg-primary/5' : 'border-border'}`}>
+                    <CollapsibleTrigger className="w-full hover-elevate">
+                      <div className="flex items-center justify-between p-3" data-testid={`history-snapshot-${index}`}>
+                        <div className="flex items-center gap-3">
+                          <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                          <div className="text-left">
+                            <div className="font-semibold">
+                              Week {snapshot.weekNumber}
+                              {isCurrentWeek && (
+                                <Badge variant="default" className="ml-2 text-xs">Current</Badge>
+                              )}
+                            </div>
+                            <div className="text-xs text-muted-foreground">{snapshotDate}</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-xs">
+                            H: {snapshot.currentH || 0}
+                          </Badge>
+                          <Badge variant="outline" className="text-xs">
+                            R: {snapshot.currentE || 0}
+                          </Badge>
+                          <Badge variant="outline" className="text-xs">
+                            C: {snapshot.currentR || 0}
+                          </Badge>
+                          <Badge variant="outline" className="text-xs">
+                            M: {snapshot.currentC || 0}
+                          </Badge>
+                        </div>
+                      </div>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="px-3 pb-3 pt-1 border-t space-y-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+                          <div>
+                            <span className="font-semibold text-muted-foreground">Health:</span>
+                            <p className="mt-1">{snapshot.healthProblems || 'No data'}</p>
+                          </div>
+                          <div>
+                            <span className="font-semibold text-muted-foreground">Relationship:</span>
+                            <p className="mt-1">{snapshot.relationshipProblems || 'No data'}</p>
+                          </div>
+                          <div>
+                            <span className="font-semibold text-muted-foreground">Career:</span>
+                            <p className="mt-1">{snapshot.careerProblems || 'No data'}</p>
+                          </div>
+                          <div>
+                            <span className="font-semibold text-muted-foreground">Money:</span>
+                            <p className="mt-1">{snapshot.moneyProblems || 'No data'}</p>
+                          </div>
+                        </div>
+                        {index !== 0 && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => onWeekChange && onWeekChange(snapshot.weekNumber)}
+                            className="w-full mt-2"
+                            data-testid={`button-view-week-${snapshot.weekNumber}`}
+                          >
+                            View Week {snapshot.weekNumber}
+                          </Button>
+                        )}
+                      </div>
+                    </CollapsibleContent>
+                  </div>
+                </Collapsible>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
