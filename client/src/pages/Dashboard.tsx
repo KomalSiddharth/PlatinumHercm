@@ -1325,28 +1325,6 @@ export default function Dashboard() {
                                   </div>
                                 </div>
                               ))}
-                              <Button
-                                size="sm"
-                                className="w-full mt-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white"
-                                onClick={() => {
-                                  // Add all lessons from this course to Assignment column
-                                  const assignmentLessons: AssignmentLesson[] = course.lessons.map(lesson => ({
-                                    id: `${course.id}-${lesson.id}`,
-                                    courseId: course.id,
-                                    courseName: course.title,
-                                    lessonName: lesson.title,
-                                    url: lesson.url || '',
-                                    completed: false
-                                  }));
-                                  
-                                  // Store lessons and open category selection dialog
-                                  setPendingAssignmentLessons(assignmentLessons);
-                                  setAssignmentDialogOpen(true);
-                                }}
-                                data-testid={`button-add-to-assignment-${course.id}`}
-                              >
-                                Add to Assignment Column
-                              </Button>
                             </div>
                           ) : (
                             <div className="bg-white/5 rounded-lg p-3 mt-2">
