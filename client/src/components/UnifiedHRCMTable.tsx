@@ -281,26 +281,8 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
   useEffect(() => {
     // Priority: Use actual database data if available, otherwise use demo/blank template
     if (weekData?.beliefs) {
-      // Database has data for this week - recalculate ratings based on checked items
-      const recalculatedBeliefs = weekData.beliefs.map(belief => {
-        const checkedCount = belief.checklist.filter(item => item.checked).length;
-        const totalStandards = belief.checklist.length;
-        const calculatedRating = Math.round((checkedCount / totalStandards) * 10);
-        
-        // Get category-specific max rating cap
-        const categoryLower = belief.category.toLowerCase();
-        const maxRating = ratingCaps?.[categoryLower as keyof typeof ratingCaps] || 7;
-        
-        // Cap the rating at user's allowed max
-        const newRating = Math.min(calculatedRating, maxRating);
-        
-        return {
-          ...belief,
-          currentRating: newRating,
-          targetRating: Math.min(newRating + 1, maxRating)
-        };
-      });
-      setBeliefs(recalculatedBeliefs);
+      // Use saved ratings from database - DO NOT recalculate based on checklist
+      setBeliefs(weekData.beliefs);
     } else {
       // No database data - use demo/blank template immediately (don't wait for loading)
       setBeliefs(getWeekBeliefs(weekNumber));
@@ -352,23 +334,10 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
             item.id === itemId ? { ...item, checked: !item.checked } : item
           );
           
-          // Calculate scaled rating out of 10 based on percentage of standards checked
-          const checkedCount = updatedChecklist.filter(item => item.checked).length;
-          const totalStandards = updatedChecklist.length;
-          const calculatedRating = Math.round((checkedCount / totalStandards) * 10);
-          
-          // Get category-specific max rating from API (defaults to 7 if not loaded)
-          const categoryLower = category.toLowerCase();
-          const maxRating = ratingCaps?.[categoryLower as keyof typeof ratingCaps] || 7;
-          
-          // Cap the rating at user's allowed max
-          const newRating = Math.min(calculatedRating, maxRating);
-          
+          // Only update checklist, DO NOT change rating
           return {
             ...belief,
-            checklist: updatedChecklist,
-            currentRating: newRating,
-            targetRating: Math.min(newRating + 1, maxRating)
+            checklist: updatedChecklist
           };
         }
         return belief;
@@ -386,23 +355,34 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
   };
 
   const handleRatingChange = (category: string, newRating: number) => {
-    setBeliefs(prev => prev.map(belief => {
-      if (belief.category === category) {
-        // Get category-specific max rating from API (defaults to 7 if not loaded)
-        const categoryLower = category.toLowerCase();
-        const maxRating = ratingCaps?.[categoryLower as keyof typeof ratingCaps] || 7;
-        
-        // Cap both current and target ratings at max allowed
-        const cappedRating = Math.min(newRating, maxRating);
-        
-        return {
-          ...belief,
-          currentRating: cappedRating,
-          targetRating: Math.min(cappedRating + 1, maxRating) // Auto-increment by 1, capped at user's max (which is capped at 8)
-        };
-      }
-      return belief;
-    }));
+    setBeliefs(prev => {
+      const updated = prev.map(belief => {
+        if (belief.category === category) {
+          // Get category-specific max rating from API (defaults to 7 if not loaded)
+          const categoryLower = category.toLowerCase();
+          const maxRating = ratingCaps?.[categoryLower as keyof typeof ratingCaps] || 7;
+          
+          // Cap both current and target ratings at max allowed
+          const cappedRating = Math.min(newRating, maxRating);
+          
+          return {
+            ...belief,
+            currentRating: cappedRating,
+            targetRating: Math.min(cappedRating + 1, maxRating) // Auto-increment by 1, capped at user's max (which is capped at 8)
+          };
+        }
+        return belief;
+      });
+
+      // Auto-save changes to database immediately
+      saveWeekMutation.mutate({
+        weekNumber,
+        year: new Date().getFullYear(),
+        beliefs: updated,
+      });
+
+      return updated;
+    });
   };
 
   // Open standards dialog for a category
@@ -948,14 +928,18 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                 {/* Current Week - Rating */}
                 <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10 align-top">
                   <div className="flex flex-col gap-1">
-                    <Button
-                      variant="outline"
-                      onClick={() => handleOpenStandardsDialog(belief.category)}
+                    <Input
+                      type="number"
+                      min="0"
+                      max="10"
+                      value={belief.currentRating}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value) || 0;
+                        handleRatingChange(belief.category, val);
+                      }}
                       className="w-16 h-9 text-center font-semibold"
-                      data-testid={`button-${belief.category.toLowerCase()}-rating`}
-                    >
-                      {belief.currentRating}/10
-                    </Button>
+                      data-testid={`input-${belief.category.toLowerCase()}-rating`}
+                    />
                     {ratingProgression && (() => {
                       const categoryLower = belief.category.toLowerCase();
                       const weeksAtMax = ratingProgression[`${categoryLower}WeeksAtMax` as keyof typeof ratingProgression] || 0;
