@@ -15,12 +15,13 @@ import HRCMHistorySection from '@/components/HRCMHistorySection';
 import UserActivitySearch from '@/components/UserActivitySearch';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import { Trophy, Pause, History as HistoryIcon, Trash2 } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Trophy, Pause, History as HistoryIcon, Trash2, ChevronDown } from 'lucide-react';
 import type { Ritual as DbRitual, RitualCompletion } from '@shared/schema';
 
 interface Ritual {
@@ -763,19 +764,52 @@ export default function Dashboard() {
               <p className="text-muted-foreground mt-1">Manage your learning journey and skill development</p>
             </div>
 
-            <div className="space-y-4">
-              {courses.map((course) => (
-                <CourseCard 
-                  key={course.id} 
-                  {...course}
-                  modules={[]}
-                  completedModules={completedModules[course.id] || []}
-                  onUpdateProgress={handleUpdateCourseProgress}
-                  onVisit={handleVisitCourse}
-                  onModuleToggle={handleModuleToggle}
+            {/* Overall Progress Bar */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-medium">Overall Course Progress</span>
+                <span className="font-semibold">0%</span>
+              </div>
+              <div className="h-3 bg-white/50 dark:bg-black/20 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-teal-500 to-emerald-500 transition-all duration-300"
+                  style={{ width: '0%' }}
                 />
-              ))}
+              </div>
             </div>
+
+            {/* Single Card with Course List */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="space-y-3">
+                  {courses.map((course, index) => (
+                    <Collapsible key={course.id}>
+                      <div className={`flex items-center gap-3 p-3 rounded-lg hover-elevate ${index !== courses.length - 1 ? 'border-b' : ''}`}>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-sm">{course.title}</h3>
+                          <p className="text-xs text-muted-foreground">{course.source}</p>
+                        </div>
+                        <CollapsibleTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="gap-1"
+                            data-testid={`button-expand-${course.id}`}
+                          >
+                            <ChevronDown className="w-4 h-4" />
+                          </Button>
+                        </CollapsibleTrigger>
+                      </div>
+                      <CollapsibleContent className="px-3 pb-3">
+                        <div className="bg-muted/30 rounded-lg p-3 mt-2">
+                          <p className="text-xs text-muted-foreground mb-2">Lessons coming soon...</p>
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </section>
 
