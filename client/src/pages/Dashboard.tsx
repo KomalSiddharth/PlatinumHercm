@@ -11,7 +11,6 @@ import ProfileModal from '@/components/ProfileModal';
 import RitualHistoryModal from '@/components/RitualHistoryModal';
 import UpdateProgressModal from '@/components/UpdateProgressModal';
 import BadgeDisplayCard from '@/components/BadgeDisplayCard';
-import HRCMHistorySection from '@/components/HRCMHistorySection';
 import UserActivitySearch from '@/components/UserActivitySearch';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -1363,11 +1362,6 @@ export default function Dashboard() {
             leaderboardEntries={leaderboardEntries} 
             currentUserId={currentUser?.id}
           />
-        </section>
-
-        {/* HRCM History Section */}
-        <section className="scroll-mt-20">
-          <HRCMHistorySection currentWeek={currentWeek} />
         </section>
       </main>
 
