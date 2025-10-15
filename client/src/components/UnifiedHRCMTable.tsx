@@ -44,17 +44,6 @@ interface ChecklistItem {
   checked: boolean;
 }
 
-interface Course {
-  id: string;
-  name: string;
-  link: string;
-  completed: boolean;
-}
-
-interface CourseSuggestion {
-  courses: Course[]; // Rating-based courses (max 7)
-}
-
 interface AssignmentLesson {
   id: string;
   courseId: string;
@@ -90,9 +79,8 @@ interface HRCMBelief {
   nextFeelings: string;
   nextWeekTarget: string;
   nextActions: string;
-  // AI Suggestions & Checklist
+  // Checklist & Assignment
   checklist: ChecklistItem[];
-  courseSuggestion: CourseSuggestion | null;
   assignment?: Assignment;
 }
 
@@ -117,7 +105,6 @@ const getBlankBeliefs = (): HRCMBelief[] => {
       nextWeekTarget: '',
       nextActions: '',
       checklist: HEALTH_STANDARDS.map(std => ({ ...std })),
-      courseSuggestion: null,
       assignment: { courses: [], lessons: [] }
     },
     {
@@ -133,7 +120,6 @@ const getBlankBeliefs = (): HRCMBelief[] => {
       nextWeekTarget: '',
       nextActions: '',
       checklist: [],
-      courseSuggestion: null,
       assignment: { courses: [], lessons: [] }
     },
     {
@@ -149,7 +135,6 @@ const getBlankBeliefs = (): HRCMBelief[] => {
       nextWeekTarget: '',
       nextActions: '',
       checklist: [],
-      courseSuggestion: null,
       assignment: { courses: [], lessons: [] }
     },
     {
@@ -165,7 +150,6 @@ const getBlankBeliefs = (): HRCMBelief[] => {
       nextWeekTarget: '',
       nextActions: '',
       checklist: [],
-      courseSuggestion: null,
       assignment: { courses: [], lessons: [] }
     }
   ];
@@ -178,25 +162,14 @@ const getWeekBeliefs = (week: number): HRCMBelief[] => {
   return getBlankBeliefs();
 };
 
-const calculateProgress = (checklist: ChecklistItem[], courseSuggestion?: { courses: Array<{ completed: boolean }> } | null): number => {
-  // Calculate checklist progress
+const calculateProgress = (checklist: ChecklistItem[]): number => {
+  // Calculate checklist progress only
   const checklistProgress = checklist.length > 0 
     ? (checklist.filter(item => item.checked).length / checklist.length) * 100
     : 0;
   
-  // Calculate AI course completion progress
-  const courseProgress = courseSuggestion?.courses && courseSuggestion.courses.length > 0
-    ? (courseSuggestion.courses.filter(course => course.completed).length / courseSuggestion.courses.length) * 100
-    : 0;
-  
-  // Combine both progresses (average of checklist and courses)
-  const totalItems = (checklist.length > 0 ? 1 : 0) + (courseSuggestion?.courses?.length ? 1 : 0);
-  const combinedProgress = totalItems > 0
-    ? Math.round((checklistProgress + courseProgress) / totalItems)
-    : 0;
-  
   // Cap progress at 70% maximum
-  return Math.min(combinedProgress, 70);
+  return Math.min(Math.round(checklistProgress), 70);
 };
 
 const getProgressColor = (progress: number) => {
@@ -251,7 +224,6 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
   const [beliefs, setBeliefs] = useState<HRCMBelief[]>([]);
   const [editingField, setEditingField] = useState<{ category: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState('');
-  const [loadingCourses, setLoadingCourses] = useState<Set<string>>(new Set());
   const [loadingAssignments, setLoadingAssignments] = useState<Set<string>>(new Set());
   const [showStandardsDialog, setShowStandardsDialog] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -311,41 +283,8 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
     }
   }, [weekNumber, weekData, ratingCaps]);
 
-  // Toggle course completion checkbox
-  const handleCourseToggle = (category: string, courseId: string) => {
-    setBeliefs(prev => {
-      const updated = prev.map(belief => {
-        if (belief.category === category && belief.courseSuggestion) {
-          const updatedCourses = belief.courseSuggestion.courses.map(course =>
-            course.id === courseId ? { ...course, completed: !course.completed } : course
-          );
-          
-          return {
-            ...belief,
-            courseSuggestion: {
-              courses: updatedCourses
-            }
-          };
-        }
-        return belief;
-      });
-      
-      // Auto-save with updated beliefs (not stale)
-      setTimeout(() => {
-        saveWeekMutation.mutate({
-          weekNumber,
-          month: new Date().getMonth() + 1,
-          year: new Date().getFullYear(),
-          beliefs: updated
-        });
-      }, 500);
-      
-      return updated;
-    });
-  };
-
   const weeklyProgress = beliefs.length > 0
-    ? Math.round(beliefs.reduce((sum, b) => sum + calculateProgress(b.checklist, b.courseSuggestion), 0) / beliefs.length)
+    ? Math.round(beliefs.reduce((sum, b) => sum + calculateProgress(b.checklist), 0) / beliefs.length)
     : 0;
 
   const handleChecklistToggle = (category: string, itemId: string) => {
@@ -563,77 +502,6 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
     }
   });
 
-  // Get rating-based AI course recommendations for a category
-  const getAICourseRecommendation = async (category: string) => {
-    const belief = beliefs.find(b => b.category === category);
-    if (!belief) return;
-
-    // Set loading state
-    setLoadingCourses(prev => new Set(prev).add(category));
-
-    try {
-      // Exclude current courses to provide variety when refreshing
-      const excludeCourseNames = belief.courseSuggestion?.courses
-        ? belief.courseSuggestion.courses.map(c => c.name)
-        : [];
-        
-      const response = await apiRequest('POST', '/api/courses/recommend-single', {
-        category: belief.category,
-        currentRating: belief.currentRating,
-        problems: belief.problems,
-        feelings: belief.currentFeelings,
-        beliefs: belief.currentBelief,
-        actions: belief.currentActions,
-        excludeCourseNames: excludeCourseNames
-      });
-
-      const data = await response.json();
-
-      // Update belief with rating-based courses
-      setBeliefs(prev => {
-        const updated = prev.map(b => 
-          b.category === category 
-            ? { 
-                ...b, 
-                courseSuggestion: {
-                  courses: data.courses || []
-                }
-              }
-            : b
-        );
-        
-        // Auto-save with updated beliefs (not stale)
-        saveWeekMutation.mutate({
-          weekNumber,
-          beliefs: updated
-        });
-        
-        return updated;
-      });
-
-      const courseCount = data.courses?.length || 0;
-      toast({
-        title: "AI Courses Recommended",
-        description: `Found ${courseCount} course${courseCount !== 1 ? 's' : ''} based on your rating`,
-      });
-    } catch (error: any) {
-      console.error('Error getting AI course recommendation:', error);
-      console.error('Error message:', error?.message);
-      console.error('Error response:', error?.response);
-      toast({
-        title: "Failed to get AI courses",
-        description: error?.message || "Please try again or fill in more HRCM data",
-        variant: "destructive"
-      });
-    } finally {
-      setLoadingCourses(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(category);
-        return newSet;
-      });
-    }
-  };
-
   // Get rating-based AI assignment course recommendations for Next Week
   const getAssignmentRecommendation = async (category: string) => {
     const belief = beliefs.find(b => b.category === category);
@@ -804,29 +672,6 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
     }
   }, [allWeeksData, weekNumber, onWeekChange, beliefs, toast]);
 
-  // Track previous ratings to detect changes
-  const prevRatings = useRef<Map<string, number>>(new Map());
-
-  // Auto-trigger: Get AI course recommendation when rating changes OR on mount
-  useEffect(() => {
-    beliefs.forEach((belief) => {
-      const hasRating = belief.currentRating > 0;
-      const notLoading = !loadingCourses.has(belief.category);
-      const prevRating = prevRatings.current.get(belief.category) || 0;
-      const ratingChanged = prevRating !== belief.currentRating;
-      
-      // Auto-fetch courses if:
-      // 1. Has rating > 0
-      // 2. Rating changed (new rating OR different from previous)
-      // 3. Not currently loading
-      if (hasRating && ratingChanged && notLoading) {
-        console.log(`Auto-fetching courses for ${belief.category} - rating changed from ${prevRating} to ${belief.currentRating}`);
-        getAICourseRecommendation(belief.category);
-        prevRatings.current.set(belief.category, belief.currentRating);
-      }
-    });
-  }, [beliefs.map(b => b.currentRating).join(',')]);
-
   const startEdit = (category: string, field: string, currentValue: string, buttonElement?: HTMLButtonElement) => {
     // Store the button element for focus restoration
     if (buttonElement) {
@@ -883,11 +728,6 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
         lastFocusedButton.current = null;
       }
     }, 0);
-    
-    // Fetch AI course recommendation if current week field was edited
-    if (updatedBelief && ['problems', 'currentFeelings', 'currentBelief', 'currentActions'].includes(field)) {
-      await getAICourseRecommendation(category);
-    }
     
     // Get AI assignment recommendations if next week fields were edited
     if (updatedBelief && ['result', 'nextFeelings', 'nextWeekTarget', 'nextActions'].includes(field) && editValue.trim()) {
@@ -1001,12 +841,6 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
               <TableHead className="min-w-[140px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Beliefs/Reasons</TableHead>
               <TableHead className="min-w-[140px] bg-rose-100 dark:bg-rose-900/40 font-semibold border-r">Actions</TableHead>
               
-              <TableHead className="min-w-[130px] bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/40 dark:to-blue-900/40 font-semibold">
-                <div className="flex items-center gap-1">
-                  <Sparkles className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
-                  AI Course
-                </div>
-              </TableHead>
               <TableHead className="min-w-[150px] bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900/40 dark:to-violet-900/40 font-semibold">Platinum Standards</TableHead>
               <TableHead className="min-w-[70px] bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 font-semibold text-center">Progress</TableHead>
             </TableRow>
@@ -1165,90 +999,6 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                   )}
                 </TableCell>
 
-                {/* AI Course - Rating-based courses with checkboxes */}
-                <TableCell className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10 align-top">
-                  {loadingCourses.has(belief.category) ? (
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin text-cyan-600" />
-                      <span className="text-xs text-muted-foreground">AI analyzing...</span>
-                    </div>
-                  ) : belief.courseSuggestion?.courses?.length ? (
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-medium text-cyan-600 dark:text-cyan-400">
-                          AI Courses ({belief.courseSuggestion?.courses?.length || 0})
-                        </span>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-5 px-1 text-xs"
-                          onClick={() => getAICourseRecommendation(belief.category)}
-                          data-testid={`button-refresh-course-${belief.category.toLowerCase()}`}
-                        >
-                          <Sparkles className="w-3 h-3" />
-                        </Button>
-                      </div>
-                      
-                      {/* Overall Course Progress Bar */}
-                      {(() => {
-                        const totalCourses = belief.courseSuggestion?.courses?.length || 0;
-                        const completedCourses = belief.courseSuggestion?.courses?.filter(c => c.completed).length || 0;
-                        const courseProgress = totalCourses > 0 ? Math.round((completedCourses / totalCourses) * 100) : 0;
-                        
-                        return (
-                          <div className="space-y-1 mb-2" data-testid={`course-progress-${belief.category.toLowerCase()}`}>
-                            <div className="flex items-center justify-between">
-                              <span className="text-[10px] text-muted-foreground">
-                                Progress: {completedCourses}/{totalCourses}
-                              </span>
-                              <span className="text-[10px] font-medium text-cyan-600 dark:text-cyan-400">
-                                {courseProgress}%
-                              </span>
-                            </div>
-                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-                              <div 
-                                className="bg-cyan-600 dark:bg-cyan-400 h-1.5 rounded-full transition-all duration-300"
-                                style={{ width: `${courseProgress}%` }}
-                              />
-                            </div>
-                          </div>
-                        );
-                      })()}
-                      
-                      {belief.courseSuggestion?.courses?.map((course) => (
-                        <div key={course.id} className="flex items-center gap-2 py-0.5">
-                          <Checkbox
-                            checked={course.completed}
-                            onCheckedChange={() => handleCourseToggle(belief.category, course.id)}
-                            className="h-3 w-3"
-                            data-testid={`checkbox-course-${belief.category.toLowerCase()}-${course.id}`}
-                          />
-                          <a
-                            href={course.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={`text-xs hover:underline flex-1 ${course.completed ? 'line-through text-muted-foreground' : 'text-cyan-700 dark:text-cyan-400'}`}
-                            data-testid={`link-course-${belief.category.toLowerCase()}-${course.id}`}
-                          >
-                            {course.name}
-                          </a>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-6 px-2 text-xs w-full"
-                      onClick={() => getAICourseRecommendation(belief.category)}
-                      data-testid={`button-get-courses-${belief.category.toLowerCase()}`}
-                    >
-                      <Sparkles className="w-3 h-3 mr-1" />
-                      Get AI Courses
-                    </Button>
-                  )}
-                </TableCell>
-
                 {/* Checklist */}
                 <TableCell className="p-2 bg-purple-50/30 dark:bg-purple-950/10 align-top">
                   <div className="space-y-1">
@@ -1269,8 +1019,8 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
 
                 {/* Progress */}
                 <TableCell className="p-2 text-center bg-emerald-50/30 dark:bg-emerald-950/10 align-top">
-                  <Badge className={getProgressColor(calculateProgress(belief.checklist, belief.courseSuggestion))} data-testid={`badge-progress-${belief.category.toLowerCase()}`}>
-                    {calculateProgress(belief.checklist, belief.courseSuggestion)}%
+                  <Badge className={getProgressColor(calculateProgress(belief.checklist))} data-testid={`badge-progress-${belief.category.toLowerCase()}`}>
+                    {calculateProgress(belief.checklist)}%
                   </Badge>
                 </TableCell>
               </TableRow>
@@ -1572,8 +1322,8 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
 
                 {/* Progress */}
                 <TableCell className="p-2 text-center bg-emerald-50/30 dark:bg-emerald-950/10 align-top">
-                  <Badge className={getProgressColor(calculateProgress(belief.checklist, belief.courseSuggestion))} data-testid={`badge-next-progress-${belief.category.toLowerCase()}`}>
-                    {calculateProgress(belief.checklist, belief.courseSuggestion)}%
+                  <Badge className={getProgressColor(calculateProgress(belief.checklist))} data-testid={`badge-next-progress-${belief.category.toLowerCase()}`}>
+                    {calculateProgress(belief.checklist)}%
                   </Badge>
                 </TableCell>
               </TableRow>
