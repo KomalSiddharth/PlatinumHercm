@@ -17,7 +17,7 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import WeekComparison from './WeekComparison';
-import HRCMHistoryModal from './HRCMHistoryModal';
+import { RefinedHistoryModal } from './RefinedHistoryModal';
 import { EnhancedAnalyticsDialog } from './EnhancedAnalyticsDialog';
 import {
   Dialog,
@@ -1718,8 +1718,8 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
         currentWeek={weekNumber}
       />
 
-      {/* HRCM History Modal */}
-      <HRCMHistoryModal 
+      {/* HRCM Refined History Modal */}
+      <RefinedHistoryModal 
         open={historyOpen}
         onOpenChange={setHistoryOpen}
         currentWeek={weekNumber}

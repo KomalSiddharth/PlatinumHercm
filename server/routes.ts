@@ -459,7 +459,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (viewType === 'weekly') {
         // Group by week and calculate averages
-        const weeklyData = [];
+        const weeklyData: Array<{ week: string; Health: number; Relationship: number; Career: number; Money: number }> = [];
         const weekMap = new Map();
 
         weeks.forEach((w: any) => {
@@ -469,7 +469,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           weekMap.get(w.weekNumber).push(w);
         });
 
-        for (const [weekNum, weekData] of weekMap.entries()) {
+        Array.from(weekMap.entries()).forEach(([weekNum, weekData]) => {
           const latest = weekData[weekData.length - 1]; // Get latest snapshot
           const healthProgress = latest.healthChecklist ? JSON.parse(latest.healthChecklist).filter((c: any) => c.checked).length / 4 * 100 : 0;
           const relationshipProgress = latest.relationshipChecklist ? JSON.parse(latest.relationshipChecklist).filter((c: any) => c.checked).length / 4 * 100 : 0;
@@ -483,12 +483,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             Career: Math.round(careerProgress),
             Money: Math.round(moneyProgress),
           });
-        }
+        });
 
         res.json({ weeklyData: weeklyData.slice(-5) }); // Last 5 weeks
       } else if (viewType === 'monthly') {
         // Group by month and calculate averages
-        const monthlyData = [];
+        const monthlyData: Array<{ month: string; Health: number; Relationship: number; Career: number; Money: number }> = [];
         const monthMap = new Map();
 
         weeks.forEach((w: any) => {
@@ -502,7 +502,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         
-        for (const [monthKey, monthWeeks] of monthMap.entries()) {
+        Array.from(monthMap.entries()).forEach(([monthKey, monthWeeks]) => {
           const [year, month] = monthKey.split('-');
           const avgHealth = Math.round(monthWeeks.reduce((sum: number, w: any) => {
             const progress = w.healthChecklist ? JSON.parse(w.healthChecklist).filter((c: any) => c.checked).length / 4 * 100 : 0;
@@ -531,7 +531,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             Career: avgCareer,
             Money: avgMoney,
           });
-        }
+        });
 
         res.json({ monthlyData: monthlyData.slice(-12) }); // Last 12 months
       } else {
