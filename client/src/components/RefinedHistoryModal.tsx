@@ -2,8 +2,16 @@ import { useQuery } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Clock } from 'lucide-react';
+import { Clock, TrendingUp } from 'lucide-react';
 import { format } from 'date-fns';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface RefinedHistoryModalProps {
   open: boolean;
@@ -25,7 +33,7 @@ export function RefinedHistoryModal({ open, onOpenChange, currentWeek }: Refined
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             HRCM History - Most Recent Snapshot
@@ -45,22 +53,29 @@ export function RefinedHistoryModal({ open, onOpenChange, currentWeek }: Refined
                 <Badge variant="secondary">Week {mostRecentSnapshot.weekNumber}</Badge>
               </div>
 
-              {/* Current Week Table */}
-              <div className="border-2 border-rose-300 dark:border-rose-700 rounded-lg overflow-hidden">
-                <div className="bg-gradient-to-r from-rose-400 to-pink-500 dark:from-rose-600 dark:to-pink-700 px-4 py-2">
-                  <h4 className="font-bold text-white text-center">Current Week</h4>
+              {/* Current Week Table - Exact Structure */}
+              <div className="border rounded-lg overflow-hidden">
+                <div className="bg-gradient-to-r from-rose-400 to-pink-500 dark:from-rose-600 dark:to-pink-700 px-4 py-3">
+                  <h3 className="text-base font-bold text-white flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5" />
+                    Current Week
+                  </h3>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="bg-muted/30">
-                        <th className="p-2 text-left font-medium">Area</th>
-                        <th className="p-2 text-left font-medium">Rating</th>
-                        <th className="p-2 text-left font-medium">Platinum Standards</th>
-                        <th className="p-2 text-center font-medium">Progress</th>
-                      </tr>
-                    </thead>
-                    <tbody>
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-950/30 dark:to-pink-950/30">
+                        <TableHead className="font-bold border-r min-w-[100px]">HRCM Area</TableHead>
+                        <TableHead className="min-w-[60px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Rating</TableHead>
+                        <TableHead className="min-w-[140px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Results</TableHead>
+                        <TableHead className="min-w-[140px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Feelings</TableHead>
+                        <TableHead className="min-w-[140px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Beliefs/Reasons</TableHead>
+                        <TableHead className="min-w-[140px] bg-rose-100 dark:bg-rose-900/40 font-semibold border-r">Actions</TableHead>
+                        <TableHead className="min-w-[150px] bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900/40 dark:to-violet-900/40 font-semibold">Platinum Standards</TableHead>
+                        <TableHead className="min-w-[70px] bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 font-semibold text-center">Progress</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {['Health', 'Relationship', 'Career', 'Money'].map((category) => {
                         const prefix = category.toLowerCase();
                         const ratingMap: Record<string, any> = {
@@ -69,124 +84,195 @@ export function RefinedHistoryModal({ open, onOpenChange, currentWeek }: Refined
                           career: mostRecentSnapshot.currentR,
                           money: mostRecentSnapshot.currentC,
                         };
+                        const resultsMap: Record<string, any> = {
+                          health: mostRecentSnapshot.healthProblems,
+                          relationship: mostRecentSnapshot.relationshipProblems,
+                          career: mostRecentSnapshot.careerProblems,
+                          money: mostRecentSnapshot.moneyProblems,
+                        };
+                        const feelingsMap: Record<string, any> = {
+                          health: mostRecentSnapshot.healthCurrentFeelings,
+                          relationship: mostRecentSnapshot.relationshipCurrentFeelings,
+                          career: mostRecentSnapshot.careerCurrentFeelings,
+                          money: mostRecentSnapshot.moneyCurrentFeelings,
+                        };
+                        const beliefsMap: Record<string, any> = {
+                          health: mostRecentSnapshot.healthCurrentBelief,
+                          relationship: mostRecentSnapshot.relationshipCurrentBelief,
+                          career: mostRecentSnapshot.careerCurrentBelief,
+                          money: mostRecentSnapshot.moneyCurrentBelief,
+                        };
+                        const actionsMap: Record<string, any> = {
+                          health: mostRecentSnapshot.healthCurrentActions,
+                          relationship: mostRecentSnapshot.relationshipCurrentActions,
+                          career: mostRecentSnapshot.careerCurrentActions,
+                          money: mostRecentSnapshot.moneyCurrentActions,
+                        };
                         const checklist = mostRecentSnapshot[`${prefix}Checklist`] || [];
                         const progress = checklist.length > 0 
                           ? Math.round((checklist.filter((c: any) => c.checked).length / checklist.length) * 100)
                           : 0;
 
                         return (
-                          <tr key={category} className="border-t">
-                            <td className="p-2">
-                              <Badge variant="outline">{category}</Badge>
-                            </td>
-                            <td className="p-2 font-medium">
-                              {ratingMap[prefix as keyof typeof ratingMap] || '-'}/10
-                            </td>
-                            <td className="p-2">
+                          <TableRow key={category} className="border-b">
+                            <TableCell className="font-semibold border-r bg-muted/20 align-top">
+                              <Badge variant="outline" className="font-semibold">
+                                {category}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10 align-top">
+                              <div className="w-16 h-9 flex items-center justify-center text-center font-semibold border rounded-md bg-muted/20">
+                                {ratingMap[prefix as keyof typeof ratingMap] || 0}
+                              </div>
+                            </TableCell>
+                            <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10 align-top text-xs">
+                              {resultsMap[prefix as keyof typeof resultsMap] || <span className="text-muted-foreground italic">-</span>}
+                            </TableCell>
+                            <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10 align-top text-xs">
+                              {feelingsMap[prefix as keyof typeof feelingsMap] || <span className="text-muted-foreground italic">-</span>}
+                            </TableCell>
+                            <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10 align-top text-xs">
+                              {beliefsMap[prefix as keyof typeof beliefsMap] || <span className="text-muted-foreground italic">-</span>}
+                            </TableCell>
+                            <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10 align-top border-r text-xs">
+                              {actionsMap[prefix as keyof typeof actionsMap] || <span className="text-muted-foreground italic">-</span>}
+                            </TableCell>
+                            <TableCell className="p-2 bg-purple-50/30 dark:bg-purple-950/10 align-top">
                               <div className="space-y-1">
                                 {checklist.map((item: any) => (
                                   <div key={item.id} className="flex items-center gap-2 text-xs">
                                     <Checkbox checked={item.checked} disabled />
-                                    <span className={item.checked ? 'opacity-70' : ''}>{item.text}</span>
+                                    <span>{item.text}</span>
                                   </div>
                                 ))}
                               </div>
-                            </td>
-                            <td className="p-2 text-center">
-                              <Badge>{progress}%</Badge>
-                            </td>
-                          </tr>
+                            </TableCell>
+                            <TableCell className="p-2 bg-emerald-50/30 dark:bg-emerald-950/10 text-center align-top">
+                              <Badge className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white">{progress}%</Badge>
+                            </TableCell>
+                          </TableRow>
                         );
                       })}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                 </div>
               </div>
 
-              {/* Next Week Target Table */}
-              <div className="border-2 border-teal-300 dark:border-teal-700 rounded-lg overflow-hidden">
-                <div className="bg-gradient-to-r from-teal-400 to-cyan-500 dark:from-teal-600 dark:to-cyan-700 px-4 py-2">
-                  <h4 className="font-bold text-white text-center">Next Week Target</h4>
+              {/* Next Week Target Table - Exact Structure */}
+              <div className="border rounded-lg overflow-hidden">
+                <div className="bg-gradient-to-r from-teal-400 to-emerald-500 dark:from-teal-600 dark:to-emerald-700 px-4 py-3">
+                  <h3 className="text-base font-bold text-white flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5" />
+                    Next Week Target
+                  </h3>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="bg-muted/30">
-                        <th className="p-2 text-left font-medium">Area</th>
-                        <th className="p-2 text-left font-medium">Rating</th>
-                        <th className="p-2 text-left font-medium">Platinum Standards</th>
-                        <th className="p-2 text-left font-medium">Results</th>
-                        <th className="p-2 text-left font-medium">Feelings</th>
-                        <th className="p-2 text-left font-medium">Beliefs</th>
-                        <th className="p-2 text-left font-medium">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {['Health', 'Relationship', 'Career', 'Money'].map((category) => {
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gradient-to-r from-teal-50 to-emerald-50 dark:from-teal-950/30 dark:to-emerald-950/30">
+                        <TableHead className="font-bold border-r min-w-[100px]">HRCM Area</TableHead>
+                        <TableHead className="min-w-[60px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Rating</TableHead>
+                        <TableHead className="min-w-[140px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Results</TableHead>
+                        <TableHead className="min-w-[140px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Feelings</TableHead>
+                        <TableHead className="min-w-[140px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Beliefs/Reasons</TableHead>
+                        <TableHead className="min-w-[140px] bg-blue-100 dark:bg-blue-900/40 font-semibold border-r">Actions</TableHead>
+                        <TableHead className="min-w-[200px] bg-cyan-100 dark:bg-cyan-900/40 font-semibold">Assignment</TableHead>
+                        <TableHead className="min-w-[150px] bg-amber-100 dark:bg-amber-900/40 font-semibold">Platinum Standards</TableHead>
+                        <TableHead className="min-w-[70px] bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 font-semibold text-center">Progress</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {['Health', 'Relationship', 'Career', 'Money'].map((category, index) => {
                         const prefix = category.toLowerCase();
-                        const nextChecklist = mostRecentSnapshot[`next${category}Checklist`] || [];
                         const ratingMap: Record<string, any> = {
                           health: mostRecentSnapshot.nextHealthRating,
                           relationship: mostRecentSnapshot.nextRelationshipRating,
                           career: mostRecentSnapshot.nextCareerRating,
                           money: mostRecentSnapshot.nextMoneyRating,
                         };
+                        const nextChecklist = mostRecentSnapshot[`next${category}Checklist`] || [];
+                        const progress = nextChecklist.length > 0 
+                          ? Math.round((nextChecklist.filter((c: any) => c.checked).length / nextChecklist.length) * 100)
+                          : 0;
 
                         return (
-                          <tr key={category} className="border-t">
-                            <td className="p-2">
-                              <Badge variant="outline">{category}</Badge>
-                            </td>
-                            <td className="p-2 font-medium">
-                              {ratingMap[prefix as keyof typeof ratingMap] || '-'}/10
-                            </td>
-                            <td className="p-2">
-                              <div className="space-y-1">
-                                {nextChecklist.map((item: any) => (
-                                  <div key={item.id} className="flex items-center gap-2 text-xs">
-                                    <Checkbox checked={item.checked} disabled />
-                                    <span className={item.checked ? 'opacity-70' : ''}>{item.text}</span>
-                                  </div>
-                                ))}
+                          <TableRow key={category} className="border-b">
+                            <TableCell className="font-semibold border-r bg-muted/20 align-top">
+                              <Badge variant="outline" className="font-semibold">
+                                {category}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top">
+                              <div className="w-16 h-9 flex items-center justify-center text-center font-semibold border rounded-md bg-muted/20">
+                                {ratingMap[prefix as keyof typeof ratingMap] || 0}
                               </div>
-                            </td>
-                            <td className="p-2 text-xs">
+                            </TableCell>
+                            <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top text-xs">
                               {mostRecentSnapshot[`${prefix}ResultChecklist`]?.map((item: any) => (
                                 <div key={item.id} className="flex items-center gap-1 mb-1">
                                   <Checkbox checked={item.checked} disabled className="h-3 w-3" />
                                   <span>{item.text}</span>
                                 </div>
-                              )) || '-'}
-                            </td>
-                            <td className="p-2 text-xs">
+                              )) || <span className="text-muted-foreground italic">-</span>}
+                            </TableCell>
+                            <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top text-xs">
                               {mostRecentSnapshot[`${prefix}FeelingsChecklist`]?.map((item: any) => (
                                 <div key={item.id} className="flex items-center gap-1 mb-1">
                                   <Checkbox checked={item.checked} disabled className="h-3 w-3" />
                                   <span>{item.text}</span>
                                 </div>
-                              )) || '-'}
-                            </td>
-                            <td className="p-2 text-xs">
+                              )) || <span className="text-muted-foreground italic">-</span>}
+                            </TableCell>
+                            <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top text-xs">
                               {mostRecentSnapshot[`${prefix}BeliefsChecklist`]?.map((item: any) => (
                                 <div key={item.id} className="flex items-center gap-1 mb-1">
                                   <Checkbox checked={item.checked} disabled className="h-3 w-3" />
                                   <span>{item.text}</span>
                                 </div>
-                              )) || '-'}
-                            </td>
-                            <td className="p-2 text-xs">
+                              )) || <span className="text-muted-foreground italic">-</span>}
+                            </TableCell>
+                            <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top border-r text-xs">
                               {mostRecentSnapshot[`${prefix}ActionsChecklist`]?.map((item: any) => (
                                 <div key={item.id} className="flex items-center gap-1 mb-1">
                                   <Checkbox checked={item.checked} disabled className="h-3 w-3" />
                                   <span>{item.text}</span>
                                 </div>
-                              )) || '-'}
-                            </td>
-                          </tr>
+                              )) || <span className="text-muted-foreground italic">-</span>}
+                            </TableCell>
+                            {/* Unified Assignment Column with rowspan */}
+                            {index === 0 && (
+                              <TableCell rowSpan={4} className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10 align-top">
+                                <div className="space-y-2">
+                                  {mostRecentSnapshot.unifiedAssignment?.lessons?.map((lesson: any) => (
+                                    <div key={lesson.lessonId} className="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded border text-xs">
+                                      <Checkbox checked={lesson.completed} disabled className="h-3 w-3" />
+                                      <div className="flex-1">
+                                        <div className="font-medium">{lesson.title}</div>
+                                        <div className="text-[10px] text-muted-foreground">{lesson.courseTitle}</div>
+                                      </div>
+                                    </div>
+                                  )) || <span className="text-muted-foreground italic">No assignments</span>}
+                                </div>
+                              </TableCell>
+                            )}
+                            <TableCell className="p-2 bg-amber-50/30 dark:bg-amber-950/10 align-top">
+                              <div className="space-y-1">
+                                {nextChecklist.map((item: any) => (
+                                  <div key={item.id} className="flex items-center gap-2 text-xs">
+                                    <Checkbox checked={item.checked} disabled />
+                                    <span>{item.text}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </TableCell>
+                            <TableCell className="p-2 bg-emerald-50/30 dark:bg-emerald-950/10 text-center align-top">
+                              <Badge className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white">{progress}%</Badge>
+                            </TableCell>
+                          </TableRow>
                         );
                       })}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                 </div>
               </div>
             </div>
