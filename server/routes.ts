@@ -79,7 +79,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if 7 days have passed since week creation
-      const weekCreatedAt = new Date(week.createdAt);
+      const weekCreatedAt = week.createdAt ? new Date(week.createdAt) : new Date();
       const now = new Date();
       const daysDiff = Math.floor((now.getTime() - weekCreatedAt.getTime()) / (1000 * 60 * 60 * 24));
       

@@ -100,51 +100,28 @@ export default function Dashboard() {
     retry: false,
   });
   
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!userLoading && !currentUser) {
-      setLocation('/');
-    }
-  }, [currentUser, userLoading, setLocation]);
-  
-  // Update userName and userEmail when user data is fetched
-  useEffect(() => {
-    if (currentUser) {
-      const fullName = currentUser.firstName && currentUser.lastName 
-        ? `${currentUser.firstName} ${currentUser.lastName}`
-        : currentUser.firstName || currentUser.lastName || currentUser.email || 'User';
-      setUserName(fullName || 'User');
-      setUserEmail(currentUser.email || '');
-    }
-  }, [currentUser]);
-  
-  // Show loading state while checking authentication
-  if (userLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Skeleton className="h-12 w-64" />
-      </div>
-    );
-  }
-  
-  // Don't render dashboard if not authenticated
-  if (!currentUser) {
-    return null;
-  }
-  
   // Fetch rituals from database
   const { data: dbRituals = [], isLoading: ritualsLoading } = useQuery<DbRitual[]>({
     queryKey: ['/api/rituals'],
+    enabled: !!currentUser, // Only fetch when user is authenticated
   });
   
   // Fetch today's ritual completions (for today's status)
   const { data: todayCompletions = [] } = useQuery<RitualCompletion[]>({
     queryKey: ['/api/ritual-completions', todayDate],
+    enabled: !!currentUser,
   });
 
   // Fetch monthly ritual completions (for history)
   const { data: monthlyCompletions = [] } = useQuery<RitualCompletion[]>({
     queryKey: ['/api/ritual-completions/month', currentYear, currentMonth],
+    enabled: !!currentUser,
+  });
+
+  // Fetch user's HRCM weeks to check 7-day restriction
+  const { data: userWeeks = [], isLoading: loadingWeeks, isError: weeksError } = useQuery<any[]>({
+    queryKey: ['/api/hercm/weeks'],
+    enabled: !!currentUser,
   });
   
   // Map database rituals to Dashboard Ritual interface
@@ -174,11 +151,6 @@ export default function Dashboard() {
   const teamRef = useRef<HTMLDivElement>(null);
 
   const [currentWeek, setCurrentWeek] = useState(1);
-  
-  // Fetch user's HRCM weeks to check 7-day restriction
-  const { data: userWeeks = [], isLoading: loadingWeeks, isError: weeksError } = useQuery<any[]>({
-    queryKey: ['/api/hercm/weeks'],
-  });
   
   // Calculate total points from completed rituals
   useEffect(() => {
@@ -507,6 +479,38 @@ export default function Dashboard() {
   });
 
   const leaderboardEntries = leaderboardData;
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!userLoading && !currentUser) {
+      setLocation('/');
+    }
+  }, [currentUser, userLoading, setLocation]);
+  
+  // Update userName and userEmail when user data is fetched
+  useEffect(() => {
+    if (currentUser) {
+      const fullName = currentUser.firstName && currentUser.lastName 
+        ? `${currentUser.firstName} ${currentUser.lastName}`
+        : currentUser.firstName || currentUser.lastName || currentUser.email || 'User';
+      setUserName(fullName || 'User');
+      setUserEmail(currentUser.email || '');
+    }
+  }, [currentUser]);
+
+  // Show loading state while checking authentication
+  if (userLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Skeleton className="h-12 w-64" />
+      </div>
+    );
+  }
+  
+  // Don't render dashboard if not authenticated
+  if (!currentUser) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-background">
