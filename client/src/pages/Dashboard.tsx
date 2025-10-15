@@ -1165,16 +1165,16 @@ export default function Dashboard() {
           </div>
         </section>
 
-        <section ref={coursesRef} id="courses" className="scroll-mt-20 p-6 rounded-lg border-2" style={{ backgroundColor: '#00008c', borderColor: '#0000cc' }}>
+        <section ref={coursesRef} id="courses" className="scroll-mt-20 bg-green-100 dark:bg-green-900/60 p-6 rounded-lg border-2 border-green-400 dark:border-green-600">
           <div className="space-y-6">
             <div>
-              <h2 className="text-3xl font-bold text-white">Course Tracker</h2>
-              <p className="text-white/80 mt-1">Manage your learning journey and skill development</p>
+              <h2 className="text-3xl font-bold">Course Tracker</h2>
+              <p className="text-muted-foreground mt-1">Manage your learning journey and skill development</p>
             </div>
 
             {/* Overall Progress Bar */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm text-white">
+              <div className="flex items-center justify-between text-sm">
                 <span className="font-medium">Overall Course Progress</span>
                 <span className="font-semibold">
                   {(() => {
@@ -1184,7 +1184,7 @@ export default function Dashboard() {
                   })()}%
                 </span>
               </div>
-              <div className="h-3 bg-white/50 dark:bg-black/20 rounded-full overflow-hidden">
+              <div className="h-3 bg-muted rounded-full overflow-hidden">
                 <div 
                   className="h-full bg-gradient-to-r from-teal-500 to-emerald-500 transition-all duration-300"
                   style={{ 
@@ -1199,7 +1199,7 @@ export default function Dashboard() {
             </div>
 
             {/* Single Card with Course List */}
-            <Card className="bg-white/10 border-white/20">
+            <Card>
               <CardContent className="p-4">
                 <div className="space-y-3">
                   {courses.map((course, index) => {
@@ -1209,26 +1209,26 @@ export default function Dashboard() {
 
                     return (
                       <Collapsible key={course.id}>
-                        <div className={`flex items-center gap-3 p-3 rounded-lg hover-elevate ${index !== courses.length - 1 ? 'border-b border-white/20' : ''}`}>
+                        <div className={`flex items-center gap-3 p-3 rounded-lg hover-elevate ${index !== courses.length - 1 ? 'border-b' : ''}`}>
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
-                              <h3 className="font-semibold text-sm text-white">{course.title}</h3>
+                              <h3 className="font-semibold text-sm">{course.title}</h3>
                               {totalLessons > 0 && (
-                                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 bg-white/20 text-white border-white/30">
+                                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">
                                   {completedLessons}/{totalLessons}
                                 </Badge>
                               )}
                             </div>
-                            <p className="text-xs text-white/70">{course.source}</p>
+                            <p className="text-xs text-muted-foreground">{course.source}</p>
                             {totalLessons > 0 && (
                               <div className="mt-1.5 flex items-center gap-2">
-                                <div className="flex-1 h-1.5 bg-white/20 rounded-full overflow-hidden">
+                                <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
                                   <div 
                                     className="h-full bg-teal-400 transition-all duration-300"
                                     style={{ width: `${progress}%` }}
                                   />
                                 </div>
-                                <span className="text-[10px] text-white/80 font-medium">{progress}%</span>
+                                <span className="text-[10px] text-muted-foreground font-medium">{progress}%</span>
                               </div>
                             )}
                           </div>
@@ -1237,7 +1237,7 @@ export default function Dashboard() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="gap-1 text-white hover:bg-white/10"
+                                className="gap-1"
                                 data-testid={`button-expand-${course.id}`}
                               >
                                 <ChevronDown className="w-4 h-4" />
@@ -1247,7 +1247,7 @@ export default function Dashboard() {
                         </div>
                         <CollapsibleContent className="px-3 pb-3">
                           {totalLessons > 0 ? (
-                            <div className="bg-white/5 rounded-lg p-3 mt-2 space-y-2">
+                            <div className="bg-muted/30 rounded-lg p-3 mt-2 space-y-2">
                               {course.lessons.map((lesson) => (
                                 <div key={lesson.id} className="flex items-start gap-2">
                                   <Checkbox
@@ -1294,13 +1294,13 @@ export default function Dashboard() {
                                       href={lesson.url}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className={`text-xs cursor-pointer flex-1 hover:underline ${lesson.completed ? 'line-through text-gray-400' : 'text-blue-400 hover:text-blue-300'}`}
+                                      className={`text-xs cursor-pointer flex-1 hover:underline ${lesson.completed ? 'line-through text-muted-foreground' : 'text-primary hover:text-primary/80'}`}
                                       data-testid={`link-lesson-${lesson.id}`}
                                     >
                                       {lesson.title}
                                     </a>
                                   ) : (
-                                    <span className={`text-xs flex-1 ${lesson.completed ? 'line-through text-gray-400' : 'text-white'}`}>
+                                    <span className={`text-xs flex-1 ${lesson.completed ? 'line-through text-muted-foreground' : ''}`}>
                                       {lesson.title}
                                     </span>
                                   )}
