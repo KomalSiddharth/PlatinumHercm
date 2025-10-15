@@ -32,6 +32,7 @@ The dashboard employs a clean, responsive "New York" style design using shadcn/u
 - **Simplified Daily Rituals**: Rituals are always active, cannot be edited after creation, and automatically allocate 10 points.
 - **Course Section Enhancement**: Removed time display and "Update" button. Includes a video checklist functionality where progress bars automatically update based on video completion percentage.
 - **AI Course Module Checkboxes** (Oct 2025): Course suggestions now stored as jsonb with structured module data. Each course displays 5 modules with checkboxes for completion tracking. Module completion state auto-saves on toggle. History section displays course data properly. User auto-creation prevents FK constraint violations during OIDC auth.
+- **Course Tracker Mastery Modules** (Oct 2025): Health, Wealth, Relationship, and Career Mastery courses now feature dropdown module tracking from CSV data. Each course card has a "Modules" button that reveals checkboxes for all course lessons. Progress bars and status labels auto-update based on checkbox completion. Module counts: Health (9 modules), Wealth (17 modules), Relationship (13 modules), Career (10 Life Coaching modules).
 
 ## External Dependencies
 
