@@ -1024,21 +1024,6 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
           
           <Button
             size="sm"
-            onClick={handleAIAutoFill}
-            disabled={aiAutoFillMutation.isPending}
-            className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white"
-            data-testid="button-ai-autofill"
-          >
-            {aiAutoFillMutation.isPending ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <Sparkles className="w-4 h-4 mr-2" />
-            )}
-            AI Auto-Fill Next Week
-          </Button>
-          
-          <Button
-            size="sm"
             onClick={handleGenerateNextWeek}
             disabled={generateNextWeekMutation.isPending}
             className="bg-gradient-to-r from-pink-600 to-coral-600 hover:from-pink-700 hover:to-coral-700 text-white"
@@ -1263,10 +1248,26 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
       {/* Next Week Table */}
       <div className="border-2 border-green-600 dark:border-green-800 rounded-lg overflow-x-auto shadow-lg">
         <div className="bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-700 dark:to-emerald-700 px-4 py-3 border-b-2 border-green-700 dark:border-green-900">
-          <h3 className="font-bold text-white text-xl text-center drop-shadow-md flex items-center justify-center gap-2">
-            <TrendingUp className="w-5 h-5" />
-            Next Week Target
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="font-bold text-white text-xl text-center drop-shadow-md flex items-center gap-2 flex-1">
+              <TrendingUp className="w-5 h-5" />
+              Next Week Target
+            </h3>
+            <Button
+              size="sm"
+              onClick={handleAIAutoFill}
+              disabled={aiAutoFillMutation.isPending}
+              className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white border border-white/20"
+              data-testid="button-ai-autofill"
+            >
+              {aiAutoFillMutation.isPending ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Sparkles className="w-4 h-4 mr-2" />
+              )}
+              AI Auto-Fill Next Week
+            </Button>
+          </div>
         </div>
         <Table>
           <TableHeader>
