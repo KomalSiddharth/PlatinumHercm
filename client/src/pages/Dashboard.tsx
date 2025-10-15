@@ -1322,13 +1322,13 @@ export default function Dashboard() {
                                         href={lesson.url}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className={`text-xs cursor-pointer flex-1 hover:underline ${lesson.completed ? 'line-through text-muted-foreground' : 'text-primary hover:text-primary/80'}`}
+                                        className="text-xs cursor-pointer flex-1 hover:underline text-primary hover:text-primary/80"
                                         data-testid={`link-lesson-${lesson.id}`}
                                       >
                                         {lesson.title}
                                       </a>
                                     ) : (
-                                      <span className={`text-xs flex-1 ${lesson.completed ? 'line-through text-muted-foreground' : ''}`}>
+                                      <span className="text-xs flex-1">
                                         {lesson.title}
                                       </span>
                                     )}
@@ -1343,9 +1343,8 @@ export default function Dashboard() {
                                 </div>
                               ))}
                               <Button
-                                variant="outline"
                                 size="sm"
-                                className="w-full mt-3 text-white border-white/30 hover:bg-white/10"
+                                className="w-full mt-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white"
                                 onClick={() => {
                                   // Add all lessons from this course to Assignment column
                                   const assignmentLessons: AssignmentLesson[] = course.lessons.map(lesson => ({
