@@ -591,6 +591,29 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
   };
 
   const handleGenerateNextWeek = () => {
+    // Reset all data fields (Rating, Results, Feelings, Beliefs/Reasons, Actions) in both tables
+    setBeliefs(prev => prev.map(belief => ({
+      ...belief,
+      // Current Week - Empty these fields
+      currentRating: 0,
+      problems: '',
+      currentFeelings: '',
+      currentBelief: '',
+      currentActions: '',
+      // Next Week Target - Empty these fields
+      targetRating: 0,
+      result: '',
+      nextFeelings: '',
+      nextWeekTarget: '',
+      nextActions: '',
+      // Clear checklists for next week target columns
+      resultChecklist: [],
+      feelingsChecklist: [],
+      beliefsChecklist: [],
+      actionsChecklist: [],
+    })));
+    
+    // Call API to generate next week
     generateNextWeekMutation.mutate();
   };
 
