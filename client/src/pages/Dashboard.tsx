@@ -602,17 +602,29 @@ export default function Dashboard() {
             </div>
 
             <div className="space-y-4">
-              {courses.map((course) => (
-                <CourseCard 
-                  key={course.id} 
-                  {...course}
-                  modules={course.id === 'health-mastery' ? healthMasteryModules : []}
-                  completedModules={completedModules[course.id] || []}
-                  onUpdateProgress={handleUpdateCourseProgress}
-                  onVisit={handleVisitCourse}
-                  onModuleToggle={handleModuleToggle}
-                />
-              ))}
+              {courses.map((course) => {
+                // Determine which modules to pass based on course ID
+                let modules: Array<{ id: string; title: string; url?: string }> = [];
+                if (course.id === 'health-mastery') {
+                  modules = healthMasteryModules;
+                } else if (course.id === 'wealth-mastery') {
+                  modules = wealthMasteryModules;
+                } else if (course.id === 'relationship-mastery') {
+                  modules = relationshipMasteryModules;
+                }
+
+                return (
+                  <CourseCard 
+                    key={course.id} 
+                    {...course}
+                    modules={modules}
+                    completedModules={completedModules[course.id] || []}
+                    onUpdateProgress={handleUpdateCourseProgress}
+                    onVisit={handleVisitCourse}
+                    onModuleToggle={handleModuleToggle}
+                  />
+                );
+              })}
             </div>
           </div>
         </section>
