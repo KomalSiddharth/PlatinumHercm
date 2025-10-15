@@ -1692,6 +1692,31 @@ Return ONLY valid JSON in this exact format:
     }
   });
 
+  // Get Career Mastery course modules from CSV (MUST be before /:weekNumber route!)
+  app.get('/api/courses/career-mastery-modules', isAuthenticated, async (req: any, res) => {
+    try {
+      // Fetch all courses from CSV
+      const courses = await parseCourseCSV();
+      
+      // Filter for Career Mastery courses only
+      const careerMasteryCourses = courses.filter(course => 
+        course.courseName.toLowerCase().includes('career mastery')
+      );
+      
+      // Map to module format
+      const modules = careerMasteryCourses.map((course, index) => ({
+        id: `cm-module-${index + 1}`,
+        title: course.courseName,
+        url: course.link && course.link !== '#' ? course.link : undefined
+      }));
+      
+      res.json({ modules });
+    } catch (error) {
+      console.error("Error fetching Career Mastery modules:", error);
+      res.status(500).json({ message: "Failed to fetch modules", modules: [] });
+    }
+  });
+
   // Courses endpoints
   app.get('/api/courses/:weekNumber', isAuthenticated, async (req: any, res) => {
     try {
