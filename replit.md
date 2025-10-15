@@ -11,7 +11,7 @@ Preferred communication style: Simple, everyday language.
 ### UI/UX Decisions
 The dashboard employs a clean, responsive "New York" style design using shadcn/ui components and the Inter font, supporting both light and dark modes. The color palette is Teal (Primary) and Coral (Accent). Key UI elements include a reorganized dashboard layout, row-wise daily rituals, and an enhanced admin panel. The HRCM rating system is standards-based, with all categories (Health, Relationship, Career, Money) scaled out of 10, calculated via predefined standards selected in a dialog. Column widths are optimized to prevent horizontal scrolling.
 
-**Achievement & Badges Section** (Oct 2025): Redesigned with Amber/Gold gradient theme (from-amber-950 to-yellow-950) featuring warm, premium achievement colors that complement the dashboard's Teal primary color scheme. Uses amber-300 to amber-600 shades for text, borders, and accents.
+**Achievement & Badges Section** (Oct 2025): Redesigned with light yellow theme (from-yellow-50 to-amber-100, dark:from-yellow-950/20 to-amber-950/20) featuring a bright, welcoming color palette. Headings use gradient text (from-primary to-accent) matching the ritual points header styling. User points displayed with same background as ritual points in header (bg-gradient-to-r from-primary to-accent). All text colors optimized for readability using gray tones (gray-800, gray-700 for light mode; gray-200, gray-300 for dark mode).
 
 ### Technical Implementations
 - **Frontend**: React with Vite, shadcn/ui (Radix UI primitives) and Tailwind CSS, TanStack Query for state management, and Wouter for routing.
