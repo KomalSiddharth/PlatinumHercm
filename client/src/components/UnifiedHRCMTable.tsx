@@ -1074,14 +1074,32 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                 {/* Current Week - Rating */}
                 <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10 align-top">
                   <div className="flex flex-col gap-1">
-                    <Button
-                      variant="outline"
-                      onClick={() => handleOpenStandardsDialog(belief.category)}
-                      className="w-16 h-9 text-center font-semibold"
-                      data-testid={`button-${belief.category.toLowerCase()}-rating`}
-                    >
-                      {belief.currentRating}/10
-                    </Button>
+                    <div className="relative">
+                      <Input
+                        type="number"
+                        min="0"
+                        max="10"
+                        value={belief.currentRating || 0}
+                        onChange={(e) => {
+                          const newRating = parseInt(e.target.value) || 0;
+                          const categoryLower = belief.category.toLowerCase();
+                          const maxRating = ratingCaps?.[categoryLower as keyof typeof ratingCaps] || 7;
+                          
+                          // Hard cap at 8 - never allow 9 or 10
+                          const hardCappedRating = Math.min(newRating, 8);
+                          // Apply progressive cap (7 or 8 based on weeks at max)
+                          const finalRating = Math.min(hardCappedRating, maxRating);
+                          
+                          handleRatingChange(belief.category, finalRating);
+                        }}
+                        onBlur={handleSave}
+                        className="w-16 h-9 text-center font-semibold pr-6"
+                        data-testid={`input-${belief.category.toLowerCase()}-rating`}
+                      />
+                      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">
+                        /10
+                      </span>
+                    </div>
                     {ratingProgression && (() => {
                       const categoryLower = belief.category.toLowerCase();
                       const weeksAtMax = ratingProgression[`${categoryLower}WeeksAtMax` as keyof typeof ratingProgression] || 0;
@@ -1089,7 +1107,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                       if (belief.currentRating === maxRating && weeksAtMax > 0) {
                         return (
                           <Badge variant="secondary" className="text-[10px] px-1 py-0 h-5 justify-center">
-                            {weeksAtMax}/4 weeks
+                            {weeksAtMax}/4 weeks {maxRating < 8 ? '→ unlock 8' : ''}
                           </Badge>
                         );
                       }
