@@ -1317,7 +1317,7 @@ export default function Dashboard() {
                                       </span>
                                     )}
                                     <Badge 
-                                      className="text-[10px] px-1.5 py-0 h-5 bg-gradient-to-r from-pink-600 to-red-600 text-white border-0"
+                                      className="text-[10px] px-1.5 py-0 h-5 bg-gradient-to-r from-primary to-accent text-white border-0"
                                       data-testid={`badge-points-${lesson.id}`}
                                     >
                                       +{lesson.points || 10} pts
