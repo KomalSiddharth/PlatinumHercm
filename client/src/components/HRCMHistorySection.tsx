@@ -12,19 +12,6 @@ interface ChecklistItem {
   checked: boolean;
 }
 
-interface CourseModule {
-  id: string;
-  name: string;
-  completed: boolean;
-}
-
-interface CourseSuggestion {
-  courseName: string;
-  link: string;
-  matchScore: string;
-  modules: CourseModule[];
-}
-
 interface HRCMArea {
   category: 'Health' | 'Relationship' | 'Career' | 'Money';
   currentRating?: number;
@@ -33,7 +20,6 @@ interface HRCMArea {
   currentBelief: string;
   currentActions?: string;
   nextWeekTarget: string;
-  courseSuggestion: CourseSuggestion | null;
   affirmation: string;
   checklist: ChecklistItem[];
   progress: number;
@@ -112,7 +98,6 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
           currentBelief: snapshot[`${prefix}CurrentBelief`] || '',
           currentActions: snapshot[`${prefix}CurrentActions`] || '',
           nextWeekTarget: snapshot[`${prefix}NextTarget`] || '',
-          courseSuggestion: snapshot[`${prefix}CourseSuggestion`] || null,
           affirmation: snapshot[`${prefix}Affirmation`] || '',
           checklist: snapshot[`${prefix}Checklist`] || [],
           progress: calculateProgress(snapshot[`${prefix}Checklist`] || []),
@@ -364,7 +349,6 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
                           <th className="p-3 text-left text-sm font-semibold bg-rose-100 dark:bg-rose-900/40 w-[150px]">Feelings</th>
                           <th className="p-3 text-left text-sm font-semibold bg-rose-100 dark:bg-rose-900/40 w-[180px]">Beliefs/Reasons</th>
                           <th className="p-3 text-left text-sm font-semibold bg-rose-100 dark:bg-rose-900/40 w-[180px] border-r">Actions</th>
-                          <th className="p-3 text-left text-sm font-semibold bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/40 dark:to-blue-900/40 w-[180px]">AI Course</th>
                           <th className="p-3 text-left text-sm font-semibold bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900/40 dark:to-violet-900/40 w-[200px]">Checklist (3)</th>
                           <th className="p-3 text-center text-sm font-semibold bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 w-[100px]">Progress</th>
                         </tr>
@@ -391,30 +375,6 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
                             </td>
                             <td className="p-2 bg-red-50/30 dark:bg-red-950/10 border-r align-top">
                               <div className="text-xs">{area.currentActions || '-'}</div>
-                            </td>
-                            <td className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10 align-top">
-                              {area.courseSuggestion ? (
-                                <div className="space-y-1">
-                                  <div className="text-xs font-medium text-cyan-700 dark:text-cyan-400">
-                                    {area.courseSuggestion.courseName}
-                                  </div>
-                                  <div className="text-xs text-cyan-600 dark:text-cyan-500">
-                                    {area.courseSuggestion.matchScore}
-                                  </div>
-                                  {area.courseSuggestion.link && (
-                                    <a 
-                                      href={area.courseSuggestion.link} 
-                                      target="_blank" 
-                                      rel="noopener noreferrer"
-                                      className="text-xs text-blue-600 dark:text-blue-400 underline hover:text-blue-800 dark:hover:text-blue-300 block"
-                                    >
-                                      View →
-                                    </a>
-                                  )}
-                                </div>
-                              ) : (
-                                <div className="text-xs text-muted-foreground">-</div>
-                              )}
                             </td>
                             <td className="p-2 bg-purple-50/30 dark:bg-purple-950/10 align-top">
                               <div className="space-y-1 pointer-events-none">

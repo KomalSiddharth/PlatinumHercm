@@ -26,7 +26,6 @@ interface HRCMArea {
   currentBelief: string;
   currentActions?: string;
   nextWeekTarget: string;
-  courseSuggestion: string;
   affirmation: string;
   checklist: ChecklistItem[];
   progress: number;
@@ -132,7 +131,6 @@ const generateHistoricalData = (currentWeek: number): WeekData[] => {
           currentBelief: week === 1 ? "I have anxiety because of financial problems" : week === 2 ? "I am building healthy habits" : "I feel energized and healthy",
           currentActions: week === 1 ? "Started breathing exercises" : week === 2 ? "Walking 3x per week" : "Daily exercise routine",
           nextWeekTarget: week === 1 ? "I create healthy habits that reduce my anxiety" : week === 2 ? "I maintain consistent healthy routines" : "I am a model of health and wellness",
-          courseSuggestion: week === 1 ? "Health Foundations - Module 1" : week === 2 ? "Health Foundations - Module 2" : "Advanced Health - Module 1",
           affirmation: week === 1 ? "I am disciplined and consistent" : week === 2 ? "Health flows through me naturally" : "I am vibrant and full of energy",
           checklist: healthChecklist,
           progress: healthProgress,
@@ -145,7 +143,6 @@ const generateHistoricalData = (currentWeek: number): WeekData[] => {
           currentBelief: week === 1 ? "I get angry at my family. My boss is not supporting me" : week === 2 ? "I am improving communication" : "My relationships are harmonious",
           currentActions: week === 1 ? "Practicing active listening" : week === 2 ? "Daily gratitude practice" : "Quality time with loved ones",
           nextWeekTarget: week === 1 ? "My boss and I have mutual respect. I communicate with love" : week === 2 ? "I express love and gratitude daily" : "I am surrounded by loving relationships",
-          courseSuggestion: week === 1 ? "Relationship Basics - Module 1" : week === 2 ? "Relationship Basics - Module 2" : "Advanced Communication - Module 1",
           affirmation: week === 1 ? "I am worthy of love and connection" : week === 2 ? "I attract positive relationships" : "Love surrounds me everywhere",
           checklist: relationshipChecklist,
           progress: relationshipProgress,
@@ -158,7 +155,6 @@ const generateHistoricalData = (currentWeek: number): WeekData[] => {
           currentBelief: week === 1 ? "I am not skilled enough for better opportunities" : week === 2 ? "I am developing valuable skills" : "I am confident in my abilities",
           currentActions: week === 1 ? "Updating resume" : week === 2 ? "Skill development courses" : "Networking actively",
           nextWeekTarget: week === 1 ? "I am worthy of success and recognition" : week === 2 ? "I attract great opportunities" : "Success comes to me naturally",
-          courseSuggestion: week === 1 ? "Career Growth - Module 1" : week === 2 ? "Career Growth - Module 2" : "Leadership Mastery - Module 1",
           affirmation: week === 1 ? "I am capable of achieving my dreams" : week === 2 ? "Opportunities flow to me" : "I am a leader in my field",
           checklist: careerChecklist,
           progress: careerProgress,
@@ -171,7 +167,6 @@ const generateHistoricalData = (currentWeek: number): WeekData[] => {
           currentBelief: week === 1 ? "I don't earn enough to save" : week === 2 ? "I am building financial discipline" : "Money flows to me abundantly",
           currentActions: week === 1 ? "Tracking expenses" : week === 2 ? "Saving 10% income" : "Multiple income streams",
           nextWeekTarget: week === 1 ? "Money flows to me naturally" : week === 2 ? "I create multiple income streams" : "I am financially abundant",
-          courseSuggestion: week === 1 ? "Financial Literacy - Module 1" : week === 2 ? "Financial Literacy - Module 2" : "Wealth Building - Module 1",
           affirmation: week === 1 ? "Money flows to me naturally" : week === 2 ? "I attract wealth effortlessly" : "I am a money magnet",
           checklist: moneyChecklist,
           progress: moneyProgress,
@@ -248,7 +243,6 @@ export default function HRCMHistoryModal({ open, onOpenChange, currentWeek }: HR
           currentBelief: weekData[`${prefix}CurrentBelief`] || '',
           currentActions: weekData[`${prefix}CurrentActions`] || '',
           nextWeekTarget: weekData[`${prefix}NextTarget`] || '',
-          courseSuggestion: weekData[`${prefix}CourseSuggestion`] || '',
           affirmation: weekData[`${prefix}Affirmation`] || '',
           checklist: weekData[`${prefix}Checklist`] || [],
           progress: calculateProgress(weekData[`${prefix}Checklist`] || []),
@@ -361,7 +355,6 @@ export default function HRCMHistoryModal({ open, onOpenChange, currentWeek }: HR
                         <th className="p-3 text-left text-sm font-semibold bg-rose-100 dark:bg-rose-900/40 w-[150px]">Feelings</th>
                         <th className="p-3 text-left text-sm font-semibold bg-rose-100 dark:bg-rose-900/40 w-[180px]">Beliefs/Reasons</th>
                         <th className="p-3 text-left text-sm font-semibold bg-rose-100 dark:bg-rose-900/40 w-[180px] border-r">Actions</th>
-                        <th className="p-3 text-left text-sm font-semibold bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/40 dark:to-blue-900/40 w-[180px]">AI Course</th>
                         <th className="p-3 text-left text-sm font-semibold bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900/40 dark:to-violet-900/40 w-[200px]">Checklist (3)</th>
                         <th className="p-3 text-center text-sm font-semibold bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 w-[100px]">Progress</th>
                       </tr>
@@ -388,9 +381,6 @@ export default function HRCMHistoryModal({ open, onOpenChange, currentWeek }: HR
                           </td>
                           <td className="p-2 bg-red-50/30 dark:bg-red-950/10 border-r">
                             <div className="text-xs">{area.currentActions || '-'}</div>
-                          </td>
-                          <td className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10">
-                            <div className="text-xs">{area.courseSuggestion || '-'}</div>
                           </td>
                           <td className="p-2 bg-purple-50/30 dark:bg-purple-950/10">
                             <div className="space-y-1">

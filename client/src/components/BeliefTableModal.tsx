@@ -32,7 +32,6 @@ interface Belief {
   currentBelief: string;
   nextWeekTarget: string;
   checklist: ChecklistItem[];
-  courseSuggestion: string;
   affirmationSuggestion: string;
   weekNumber: number;
 }
@@ -63,7 +62,6 @@ export default function BeliefTableModal({
         { id: '1-2', text: "Practice daily wealth affirmations", checked: true },
         { id: '1-3', text: "Read 1 chapter on financial literacy", checked: false }
       ],
-      courseSuggestion: "Money Mindset Mastery - Module 3",
       affirmationSuggestion: "Money flows to me easily and effortlessly"
     }
   ]);
@@ -89,7 +87,6 @@ export default function BeliefTableModal({
       checklist: [
         { id: `${Date.now()}-1`, text: 'AI will generate checklist items...', checked: false }
       ],
-      courseSuggestion: 'AI analyzing belief...',
       affirmationSuggestion: 'AI generating personalized affirmation...'
     };
 
@@ -214,12 +211,6 @@ export default function BeliefTableModal({
                     <TableHead className="w-[250px] font-bold">Next Week Target</TableHead>
                     <TableHead className="w-[200px] font-bold">
                       <div className="flex items-center gap-1">
-                        <Sparkles className="w-3 h-3 text-primary" />
-                        Course Suggestion
-                      </div>
-                    </TableHead>
-                    <TableHead className="w-[200px] font-bold">
-                      <div className="flex items-center gap-1">
                         <Sparkles className="w-3 h-3 text-accent" />
                         Affirmation
                       </div>
@@ -280,13 +271,6 @@ export default function BeliefTableModal({
                             {belief.nextWeekTarget}
                           </div>
                         )}
-                      </TableCell>
-
-                      {/* Course Suggestion */}
-                      <TableCell className="p-2">
-                        <div className="text-sm p-2 rounded bg-primary/5 border border-primary/20 min-h-[60px]" data-testid={`text-course-${belief.id}`}>
-                          {belief.courseSuggestion}
-                        </div>
                       </TableCell>
 
                       {/* Affirmation */}
