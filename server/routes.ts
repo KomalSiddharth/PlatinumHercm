@@ -1909,6 +1909,10 @@ Return ONLY valid JSON in this exact format:
       const user = await storage.getUser(userId);
       const week = await storage.getHercmWeek(userId, weekNumber);
 
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
       if (!week) {
         return res.status(404).json({ message: "Week not found" });
       }
@@ -1934,9 +1938,14 @@ Return ONLY valid JSON in this exact format:
       const year = parseInt(req.params.year);
       const user = await storage.getUser(userId);
       const allWeeks = await storage.getHercmWeeksByUser(userId);
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
       
       // Filter weeks for the specified month/year
       const monthlyWeeks = allWeeks.filter(w => {
+        if (!w.createdAt) return false;
         const weekDate = new Date(w.createdAt);
         return weekDate.getMonth() + 1 === month && weekDate.getFullYear() === year;
       });
@@ -2086,7 +2095,7 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
       const weekMap = new Map<number, typeof allWeeks[0]>();
       allWeeks.forEach(week => {
         const existing = weekMap.get(week.weekNumber);
-        if (!existing || new Date(week.createdAt) > new Date(existing.createdAt)) {
+        if (!existing || (week.createdAt && existing.createdAt && new Date(week.createdAt) > new Date(existing.createdAt))) {
           weekMap.set(week.weekNumber, week);
         }
       });
