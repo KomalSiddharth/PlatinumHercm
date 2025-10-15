@@ -4,7 +4,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Sparkles, Check, X, TrendingUp, History, Edit2, Save, Loader2, ArrowUp, ArrowDown } from 'lucide-react';
+import { Sparkles, Check, X, TrendingUp, History, Edit2, Save, Loader2, ArrowUp, ArrowDown, Play } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Slider } from '@/components/ui/slider';
 import {
   Table,
   TableBody,
@@ -49,6 +51,7 @@ interface Course {
   name: string;
   link: string;
   completed: boolean;
+  videoProgress: number; // 0-100 percentage of video watched
 }
 
 interface CourseSuggestion {
@@ -301,6 +304,39 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
         if (belief.category === category && belief.courseSuggestion) {
           const updatedCourses = belief.courseSuggestion.courses.map(course =>
             course.id === courseId ? { ...course, completed: !course.completed } : course
+          );
+          
+          return {
+            ...belief,
+            courseSuggestion: {
+              courses: updatedCourses
+            }
+          };
+        }
+        return belief;
+      });
+      
+      // Auto-save with updated beliefs (not stale)
+      setTimeout(() => {
+        saveWeekMutation.mutate({
+          weekNumber,
+          month: new Date().getMonth() + 1,
+          year: new Date().getFullYear(),
+          beliefs: updated
+        });
+      }, 500);
+      
+      return updated;
+    });
+  };
+
+  // Update video progress for a course
+  const handleVideoProgressUpdate = (category: string, courseId: string, progress: number) => {
+    setBeliefs(prev => {
+      const updated = prev.map(belief => {
+        if (belief.category === category && belief.courseSuggestion) {
+          const updatedCourses = belief.courseSuggestion.courses.map(course =>
+            course.id === courseId ? { ...course, videoProgress: progress } : course
           );
           
           return {
