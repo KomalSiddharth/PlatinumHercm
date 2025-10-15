@@ -319,23 +319,34 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
   };
 
   const handleRatingChange = (category: string, newRating: number) => {
-    setBeliefs(prev => prev.map(belief => {
-      if (belief.category === category) {
-        // Get category-specific max rating from API (defaults to 7 if not loaded)
-        const categoryLower = category.toLowerCase();
-        const maxRating = ratingCaps?.[categoryLower as keyof typeof ratingCaps] || 7;
-        
-        // Cap both current and target ratings at max allowed
-        const cappedRating = Math.min(newRating, maxRating);
-        
-        return {
-          ...belief,
-          currentRating: cappedRating,
-          targetRating: Math.min(cappedRating + 1, maxRating) // Auto-increment by 1, capped at user's max (which is capped at 8)
-        };
-      }
-      return belief;
-    }));
+    setBeliefs(prev => {
+      const updated = prev.map(belief => {
+        if (belief.category === category) {
+          // Get category-specific max rating from API (defaults to 7 if not loaded)
+          const categoryLower = category.toLowerCase();
+          const maxRating = ratingCaps?.[categoryLower as keyof typeof ratingCaps] || 7;
+          
+          // Cap both current and target ratings at max allowed
+          const cappedRating = Math.min(newRating, maxRating);
+          
+          return {
+            ...belief,
+            currentRating: cappedRating,
+            targetRating: Math.min(cappedRating + 1, maxRating) // Auto-increment by 1, capped at user's max (which is capped at 8)
+          };
+        }
+        return belief;
+      });
+      
+      // Auto-save changes to database immediately
+      saveWeekMutation.mutate({
+        weekNumber,
+        year: new Date().getFullYear(),
+        beliefs: updated,
+      });
+      
+      return updated;
+    });
   };
 
   // Open standards dialog for a category
@@ -1092,7 +1103,6 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                           
                           handleRatingChange(belief.category, finalRating);
                         }}
-                        onBlur={handleSave}
                         className="w-16 h-9 text-center font-semibold pr-6"
                         data-testid={`input-${belief.category.toLowerCase()}-rating`}
                       />
