@@ -37,7 +37,8 @@ export default function DashboardHeader({
   const navItems = [
     { id: 'hrcm', label: 'HRCM' },
     { id: 'rituals', label: 'Daily Rituals' },
-    { id: 'courses', label: 'Courses' }
+    { id: 'courses', label: 'Courses' },
+    { id: 'achievements', label: 'Achievements' }
   ];
 
   return (

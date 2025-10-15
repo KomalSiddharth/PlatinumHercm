@@ -151,6 +151,7 @@ export default function Dashboard() {
   const hrcmRef = useRef<HTMLDivElement>(null);
   const ritualsRef = useRef<HTMLDivElement>(null);
   const coursesRef = useRef<HTMLDivElement>(null);
+  const achievementsRef = useRef<HTMLDivElement>(null);
   const teamRef = useRef<HTMLDivElement>(null);
 
   const [currentWeek, setCurrentWeek] = useState(1);
@@ -168,6 +169,7 @@ export default function Dashboard() {
       hrcm: hrcmRef,
       rituals: ritualsRef,
       courses: coursesRef,
+      achievements: achievementsRef,
       team: teamRef
     };
 
@@ -1357,7 +1359,7 @@ export default function Dashboard() {
         </section> */}
 
         {/* Achievements, Badges & Leaderboard Section */}
-        <section className="scroll-mt-20">
+        <section ref={achievementsRef} id="achievements" className="scroll-mt-20">
           <BadgeDisplayCard 
             leaderboardEntries={leaderboardEntries} 
             currentUserId={currentUser?.id}
