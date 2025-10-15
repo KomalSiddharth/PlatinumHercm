@@ -1645,16 +1645,16 @@ Return ONLY valid JSON in this exact format:
         ...entry,
       }));
       
-      // Return only top 5 OR include current user if not in top 5
-      const top5 = rankedLeaderboard.slice(0, 5);
+      // Return only top 10 OR include current user if not in top 10
+      const top10 = rankedLeaderboard.slice(0, 10);
       const currentUserEntry = rankedLeaderboard.find(entry => entry.userId === currentUserId);
       
-      // If current user not in top 5, add them at the end
-      if (currentUserEntry && currentUserEntry.rank > 5) {
-        top5.push(currentUserEntry);
+      // If current user not in top 10, add them at the end
+      if (currentUserEntry && currentUserEntry.rank > 10) {
+        top10.push(currentUserEntry);
       }
       
-      res.json(top5);
+      res.json(top10);
     } catch (error) {
       console.error("Error fetching leaderboard:", error);
       res.status(500).json({ message: "Failed to fetch leaderboard" });
