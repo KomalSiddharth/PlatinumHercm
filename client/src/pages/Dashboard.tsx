@@ -48,9 +48,10 @@ const generateCurrentMonthHistory = (completions: RitualCompletion[] = []) => {
   
   const history = [];
   for (let day = 1; day <= daysInMonth; day++) {
+    // Create ISO date string directly without timezone conversion
+    const isoDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const date = new Date(year, month, day);
     const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    const isoDate = date.toISOString().split('T')[0];
     const isCompleted = completions.some(c => c.date === isoDate);
     
     history.push({
