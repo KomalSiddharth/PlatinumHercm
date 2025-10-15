@@ -544,18 +544,6 @@ export default function Dashboard() {
       ]
     },
     {
-      id: 'manifest-chakra',
-      title: 'Manifest With Chakra by Mitesh Khatri',
-      url: '#',
-      tags: ['Chakra', 'Energy'],
-      source: 'Mitesh Khatri',
-      estimatedHours: 16,
-      status: 'not_started',
-      progressPercent: 0,
-      category: 'default',
-      lessons: []
-    },
-    {
       id: 'relationship-mastery',
       title: 'Relationship Mastery with Mitesh Khatri',
       url: 'https://www.miteshkhatri.com/Source',
