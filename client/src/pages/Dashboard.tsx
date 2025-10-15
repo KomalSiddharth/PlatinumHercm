@@ -1263,7 +1263,7 @@ export default function Dashboard() {
                                 <div key={lesson.id} className="flex items-start gap-2">
                                   <Checkbox
                                     checked={lesson.completed}
-                                    onCheckedChange={(checked) => {
+                                    onCheckedChange={async (checked) => {
                                       setCourses(prev => prev.map(c => 
                                         c.id === course.id
                                           ? {
@@ -1277,25 +1277,44 @@ export default function Dashboard() {
                                           : c
                                       ));
                                       
-                                      // If checked, automatically add to Assignment column
+                                      // If checked, automatically add to unified assignment
                                       if (checked) {
-                                        const assignmentLesson: AssignmentLesson[] = [{
-                                          id: `${course.id}-${lesson.id}`,
-                                          courseId: course.id,
-                                          courseName: course.title,
-                                          lessonName: lesson.title,
-                                          url: lesson.url || '',
-                                          completed: false
-                                        }];
-                                        
-                                        setPendingAssignmentLessons(assignmentLesson);
-                                        setAssignmentDialogOpen(true);
+                                        try {
+                                          const response = await apiRequest('POST', '/api/unified-assignment/add-lesson', {
+                                            weekNumber: currentWeek,
+                                            lesson: {
+                                              id: `${course.id}-${lesson.id}`,
+                                              courseId: course.id,
+                                              courseName: course.title,
+                                              lessonName: lesson.title,
+                                              url: lesson.url || '',
+                                              completed: false
+                                            }
+                                          });
+                                          
+                                          if (response.ok) {
+                                            // Invalidate queries to refresh assignment data
+                                            queryClient.invalidateQueries({ queryKey: ['/api/hercm/week', currentWeek] });
+                                            
+                                            toast({
+                                              title: 'Added to Assignment!',
+                                              description: `${lesson.title} added to Assignment column`,
+                                            });
+                                          }
+                                        } catch (error) {
+                                          console.error('Error adding to assignment:', error);
+                                          toast({
+                                            title: 'Error',
+                                            description: 'Failed to add lesson to assignment',
+                                            variant: 'destructive'
+                                          });
+                                        }
+                                      } else {
+                                        toast({
+                                          title: 'Lesson Unchecked',
+                                          description: 'Marked as incomplete',
+                                        });
                                       }
-                                      
-                                      toast({
-                                        title: checked ? 'Lesson Completed!' : 'Lesson Unchecked',
-                                        description: checked ? 'Select category to add to Assignment' : 'Marked as incomplete',
-                                      });
                                     }}
                                     className="mt-0.5"
                                     data-testid={`checkbox-lesson-${lesson.id}`}
