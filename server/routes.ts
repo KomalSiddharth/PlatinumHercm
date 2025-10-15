@@ -109,14 +109,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             targetR: week.targetR || 0,
             targetC: week.targetC || 0,
             
-            // Next week affirmations and checklist from previous week
-            healthAffirmation: week.healthAffirmation || '',
+            // Next week assignments and checklist from previous week
+            healthAssignment: week.healthAssignment || { courses: [], lessons: [] },
             healthChecklist: week.healthChecklist || [],
-            relationshipAffirmation: week.relationshipAffirmation || '',
+            relationshipAssignment: week.relationshipAssignment || { courses: [], lessons: [] },
             relationshipChecklist: week.relationshipChecklist || [],
-            careerAffirmation: week.careerAffirmation || '',
+            careerAssignment: week.careerAssignment || { courses: [], lessons: [] },
             careerChecklist: week.careerChecklist || [],
-            moneyAffirmation: week.moneyAffirmation || '',
+            moneyAssignment: week.moneyAssignment || { courses: [], lessons: [] },
             moneyChecklist: week.moneyChecklist || [],
           };
           
@@ -143,7 +143,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           nextActions: week.healthNextActions || '',
           checklist: week.healthChecklist || [],
           courseSuggestion: week.healthCourseSuggestion || null,
-          affirmationSuggestion: week.healthAffirmation || ''
+          assignment: week.healthAssignment || { courses: [], lessons: [] }
         },
         {
           category: 'Relationship',
@@ -159,7 +159,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           nextActions: week.relationshipNextActions || '',
           checklist: week.relationshipChecklist || [],
           courseSuggestion: week.relationshipCourseSuggestion || null,
-          affirmationSuggestion: week.relationshipAffirmation || ''
+          assignment: week.relationshipAssignment || { courses: [], lessons: [] }
         },
         {
           category: 'Career',
@@ -175,7 +175,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           nextActions: week.careerNextActions || '',
           checklist: week.careerChecklist || [],
           courseSuggestion: week.careerCourseSuggestion || null,
-          affirmationSuggestion: week.careerAffirmation || ''
+          assignment: week.careerAssignment || { courses: [], lessons: [] }
         },
         {
           category: 'Money',
@@ -191,7 +191,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           nextActions: week.moneyNextActions || '',
           checklist: week.moneyChecklist || [],
           courseSuggestion: week.moneyCourseSuggestion || null,
-          affirmationSuggestion: week.moneyAffirmation || ''
+          assignment: week.moneyAssignment || { courses: [], lessons: [] }
         }
       ];
       
@@ -320,9 +320,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           weekData[`${prefix}NextTarget`] = belief.nextWeekTarget || '';
           weekData[`${prefix}NextActions`] = belief.nextActions || '';
           
-          // Map course and affirmation
+          // Map course and assignment
           weekData[`${prefix}CourseSuggestion`] = belief.courseSuggestion || null;
-          weekData[`${prefix}Affirmation`] = belief.affirmationSuggestion || '';
+          weekData[`${prefix}Assignment`] = belief.assignment || { courses: [], lessons: [] };
           
           // Map checklist
           weekData[`${prefix}Checklist`] = belief.checklist || [];
@@ -2245,6 +2245,172 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
     } catch (error) {
       console.error("Error checking platinum badge:", error);
       res.status(500).json({ message: "Failed to check badge eligibility" });
+    }
+  });
+
+  // Add course lessons to Assignment column
+  app.post('/api/hercm/assignment/add-lessons', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const { weekId, category, courseId, courseName, lessons } = req.body;
+
+      if (!weekId || !category || !lessons || !Array.isArray(lessons)) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      // Fetch the current week
+      const week = await storage.getHercmWeekById(weekId);
+      if (!week) {
+        return res.status(404).json({ message: "Week not found" });
+      }
+
+      // Get the assignment field for the category
+      const prefix = category.toLowerCase();
+      const assignmentField = `${prefix}Assignment` as keyof typeof week;
+      const currentAssignment = (week[assignmentField] as any) || { courses: [], lessons: [] };
+
+      // Add lessons to the assignment
+      const newLessons = lessons.map((lesson: any) => ({
+        id: lesson.id,
+        courseId: courseId,
+        courseName: courseName,
+        lessonName: lesson.title,
+        url: lesson.url,
+        completed: false
+      }));
+
+      // Merge with existing lessons (avoid duplicates)
+      const existingLessonIds = new Set(currentAssignment.lessons?.map((l: any) => l.id) || []);
+      const filteredNewLessons = newLessons.filter((l: any) => !existingLessonIds.has(l.id));
+
+      const updatedAssignment = {
+        courses: currentAssignment.courses || [],
+        lessons: [...(currentAssignment.lessons || []), ...filteredNewLessons]
+      };
+
+      // Update the week
+      const updateData: any = {};
+      updateData[assignmentField] = updatedAssignment;
+      
+      await storage.updateHercmWeek(weekId, updateData);
+
+      res.json({ success: true, assignment: updatedAssignment });
+    } catch (error) {
+      console.error("Error adding lessons to assignment:", error);
+      res.status(500).json({ message: "Failed to add lessons" });
+    }
+  });
+
+  // Toggle assignment lesson completion
+  app.post('/api/hercm/assignment/toggle-lesson', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const { weekId, category, lessonId } = req.body;
+
+      if (!weekId || !category || !lessonId) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      // Fetch the current week
+      const week = await storage.getHercmWeekById(weekId);
+      if (!week) {
+        return res.status(404).json({ message: "Week not found" });
+      }
+
+      // Get the assignment field for the category
+      const prefix = category.toLowerCase();
+      const assignmentField = `${prefix}Assignment` as keyof typeof week;
+      const currentAssignment = (week[assignmentField] as any) || { courses: [], lessons: [] };
+
+      // Toggle the lesson completion
+      const updatedLessons = (currentAssignment.lessons || []).map((lesson: any) => 
+        lesson.id === lessonId ? { ...lesson, completed: !lesson.completed } : lesson
+      );
+
+      const updatedAssignment = {
+        ...currentAssignment,
+        lessons: updatedLessons
+      };
+
+      // Update the week
+      const updateData: any = {};
+      updateData[assignmentField] = updatedAssignment;
+      
+      await storage.updateHercmWeek(weekId, updateData);
+
+      res.json({ success: true, assignment: updatedAssignment });
+    } catch (error) {
+      console.error("Error toggling lesson:", error);
+      res.status(500).json({ message: "Failed to toggle lesson" });
+    }
+  });
+
+  // Get AI course recommendations for Assignment (Next Week)
+  app.post('/api/courses/recommend-assignment', isAuthenticated, async (req: any, res) => {
+    try {
+      const { category, currentRating, problems, feelings, beliefs, actions } = req.body;
+      
+      if (!category) {
+        return res.status(400).json({ message: "Category is required" });
+      }
+      
+      // Use same logic as Current Week AI Course recommendations
+      const rating = Math.max(1, Math.min(currentRating || 1, 7));
+      
+      let numberOfCourses: number;
+      if (rating < 3) {
+        numberOfCourses = 5;
+      } else if (rating < 5) {
+        numberOfCourses = 3;
+      } else {
+        numberOfCourses = 2;
+      }
+      
+      const courses = await parseCourseCSV();
+      const recommendations = await getAIRecommendations(courses, {
+        category,
+        rating: rating,
+        problems: problems || '',
+        feelings: feelings || '',
+        beliefs: beliefs || '',
+        actions: actions || '',
+      }, numberOfCourses, []);
+      
+      if (recommendations.length === 0) {
+        return res.json({ courses: [] });
+      }
+      
+      const seenCourseNames = new Set<string>();
+      const mappedCourses = recommendations
+        .filter(rec => {
+          if (seenCourseNames.has(rec.course.courseName)) {
+            return false;
+          }
+          seenCourseNames.add(rec.course.courseName);
+          return true;
+        })
+        .map((rec, index) => ({
+          id: `assignment-course-${index + 1}`,
+          courseName: rec.course.courseName,
+          link: rec.course.link,
+          completed: false
+        }));
+      
+      res.json({ courses: mappedCourses });
+    } catch (error) {
+      console.error("Error getting assignment course recommendation:", error);
+      res.status(500).json({ 
+        message: "Failed to get course recommendation",
+        courses: []
+      });
     }
   });
 

@@ -50,6 +50,7 @@ export interface IStorage {
   
   // HERCM Week operations
   getHercmWeek(userId: string, weekNumber: number): Promise<HercmWeek | undefined>;
+  getHercmWeekById(id: string): Promise<HercmWeek | undefined>;
   getHercmWeeksByUser(userId: string): Promise<HercmWeek[]>;
   createHercmWeek(week: InsertHercmWeek): Promise<HercmWeek>;
   updateHercmWeek(id: string, week: Partial<InsertHercmWeek>): Promise<HercmWeek>;
@@ -177,6 +178,14 @@ export class DatabaseStorage implements IStorage {
       ))
       .orderBy(desc(hercmWeeks.createdAt))
       .limit(1);
+    return week;
+  }
+
+  async getHercmWeekById(id: string): Promise<HercmWeek | undefined> {
+    const [week] = await db
+      .select()
+      .from(hercmWeeks)
+      .where(eq(hercmWeeks.id, id));
     return week;
   }
 
