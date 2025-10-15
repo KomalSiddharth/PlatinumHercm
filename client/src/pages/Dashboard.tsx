@@ -1178,25 +1178,9 @@ export default function Dashboard() {
 
         <section ref={coursesRef} id="courses" className="scroll-mt-20 bg-green-100 dark:bg-green-900/60 p-6 rounded-lg border-2 border-green-400 dark:border-green-600">
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-3xl font-bold">Course Tracker</h2>
-                <p className="text-muted-foreground mt-1">Manage your learning journey and skill development</p>
-              </div>
-              <div className="flex items-center gap-2 bg-gradient-to-r from-teal-500 to-emerald-500 text-white px-4 py-2 rounded-lg">
-                <Book className="w-5 h-5" />
-                <span className="font-bold text-lg" data-testid="text-lesson-points">
-                  {(() => {
-                    const lessonPoints = courses.reduce((sum, course) => {
-                      const completedLessonPoints = course.lessons
-                        .filter(l => l.completed)
-                        .reduce((lessonSum, lesson) => lessonSum + (lesson.points || 10), 0);
-                      return sum + completedLessonPoints;
-                    }, 0);
-                    return lessonPoints;
-                  })()} pts
-                </span>
-              </div>
+            <div>
+              <h2 className="text-3xl font-bold">Course Tracker</h2>
+              <p className="text-muted-foreground mt-1">Manage your learning journey and skill development</p>
             </div>
 
             {/* Overall Progress Bar */}
@@ -1333,8 +1317,7 @@ export default function Dashboard() {
                                       </span>
                                     )}
                                     <Badge 
-                                      variant={lesson.completed ? "secondary" : "default"} 
-                                      className="text-[10px] px-1.5 py-0 h-5"
+                                      className="text-[10px] px-1.5 py-0 h-5 bg-gradient-to-r from-pink-600 to-red-600 text-white border-0"
                                       data-testid={`badge-points-${lesson.id}`}
                                     >
                                       +{lesson.points || 10} pts
