@@ -1265,9 +1265,25 @@ export default function Dashboard() {
                                             }
                                           : c
                                       ));
+                                      
+                                      // If checked, automatically add to Assignment column
+                                      if (checked) {
+                                        const assignmentLesson: AssignmentLesson[] = [{
+                                          id: `${course.id}-${lesson.id}`,
+                                          courseId: course.id,
+                                          courseName: course.title,
+                                          lessonName: lesson.title,
+                                          url: lesson.url || '',
+                                          completed: false
+                                        }];
+                                        
+                                        setPendingAssignmentLessons(assignmentLesson);
+                                        setAssignmentDialogOpen(true);
+                                      }
+                                      
                                       toast({
                                         title: checked ? 'Lesson Completed!' : 'Lesson Unchecked',
-                                        description: checked ? '✓ Progress updated' : 'Marked as incomplete',
+                                        description: checked ? 'Select category to add to Assignment' : 'Marked as incomplete',
                                       });
                                     }}
                                     className="mt-0.5"
