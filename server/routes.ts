@@ -1864,8 +1864,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       await storage.updateRecommendationStatus(id, 'accepted');
 
       // Get user's current week
-      const userEmail = await storage.getUser(userId);
-      const weeks = await storage.getHercmWeeksByUserId(userId);
+      const weeks = await storage.getHercmWeeksByUser(userId);
       const currentWeek = weeks.find((w: any) => w.weekNumber === weeks.length);
 
       if (currentWeek) {
@@ -1875,7 +1874,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
                          recommendation.hrcmArea === 'career' ? 'nextWeekR' : 'nextWeekC';
 
         // Get current Assignment array
-        const currentAssignments = currentWeek[areaField] || [];
+        const currentAssignments = Array.isArray(currentWeek[areaField]) ? currentWeek[areaField] : [];
         
         // Add the recommended course to Assignment
         const updatedAssignments = [
@@ -1887,7 +1886,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         ];
 
         // Update the week with new assignment
-        await storage.updateHercmWeek(currentWeek.id, userId, {
+        await storage.updateHercmWeek(currentWeek.id, {
           [areaField]: updatedAssignments
         });
       }
