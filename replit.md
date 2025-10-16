@@ -44,8 +44,11 @@ The dashboard employs a clean, responsive "New York" style design using shadcn/u
   - **User Activity Tab Removed**: Streamlined admin panel by removing redundant User Activity tab per user request.
   - **Approved Emails Data Filtering**: Both Team Analytics and User Analytics now exclusively display data from users with approved emails (status='active' in approved_emails table), ensuring accurate team metrics and analytics.
   - **Course Recommendation Management**: Added delete functionality for course recommendations with trash icon button. Admin can now remove recommendations via DELETE endpoint `/api/admin/recommendations/:id`. The `deleteRecommendation` method added to storage interface.
-  - **Recommended Course Integration**: When admin recommends a course to a user, it appears in the user's Assignment column. Users can accept (adds to Assignment with 📚 icon and reason) or dismiss recommendations. Accepted courses integrate seamlessly with the Next Week Target table.
+  - **Recommended Course Integration Fixed**: When admin recommends a course to a user, it appears in the user's Assignment column. Users can accept (adds to Assignment with course details and reason) or dismiss recommendations. Acceptance now works even for new users with no HRCM data by auto-creating first week. Accepted courses integrate seamlessly with the Next Week Target table's Assignment column using proper field names (healthAssignment, relationshipAssignment, careerAssignment, moneyAssignment).
   - **User Analytics Full Functionality**: User Analytics tab now fully operational with email search, summary cards (Total Users, Avg Achievement, Top Performers, Need Support), and charts (Achievement Rate Comparison, Overall Score Distribution). Data filtered to approved users only.
+  - **Weeks Calculation Fixed**: Expected weeks now calculated based on actual time elapsed since first week instead of using week numbers, providing realistic regularity metrics.
+  - **All Weeks Data Optimization**: "All Weeks Data" table now shows only the last updated entry per date, grouped by date to prevent duplicate entries and show most recent data.
+  - **Score & Achievement Documentation**: Added clear documentation explaining calculations - Overall Score = average of (H+R+C+M)/4 ratings (out of 10), Achievement Rate = percentage of targets met for the week.
 
 ## External Dependencies
 
