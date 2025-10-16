@@ -4,7 +4,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Sparkles, Check, X, TrendingUp, Save, Loader2, ArrowUp, ArrowDown, History } from 'lucide-react';
+import { Sparkles, Check, X, TrendingUp, Save, Loader2, ArrowUp, ArrowDown, History, Plus, MoreHorizontal } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import {
   Table,
   TableBody,
@@ -763,6 +768,147 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
     });
   };
 
+  // Add new checkpoint to a checklist
+  const handleAddCheckpoint = (category: string, checklistType: 'result' | 'feelings' | 'beliefs' | 'actions') => {
+    setBeliefs(prev => {
+      const updated = prev.map(belief => {
+        if (belief.category === category) {
+          const newItem: ChecklistItem = {
+            id: `${category}-${checklistType}-${Date.now()}`,
+            text: '',
+            checked: false
+          };
+          
+          if (checklistType === 'result') {
+            return { ...belief, resultChecklist: [...(belief.resultChecklist || []), newItem] };
+          } else if (checklistType === 'feelings') {
+            return { ...belief, feelingsChecklist: [...(belief.feelingsChecklist || []), newItem] };
+          } else if (checklistType === 'beliefs') {
+            return { ...belief, beliefsChecklist: [...(belief.beliefsChecklist || []), newItem] };
+          } else if (checklistType === 'actions') {
+            return { ...belief, actionsChecklist: [...(belief.actionsChecklist || []), newItem] };
+          }
+        }
+        return belief;
+      });
+      
+      saveWeekMutation.mutate({ weekNumber, year: new Date().getFullYear(), beliefs: updated });
+      return updated;
+    });
+  };
+
+  // Update checkpoint text
+  const handleUpdateCheckpointText = (category: string, itemId: string, text: string, checklistType: 'result' | 'feelings' | 'beliefs' | 'actions') => {
+    setBeliefs(prev => {
+      const updated = prev.map(belief => {
+        if (belief.category === category) {
+          if (checklistType === 'result' && belief.resultChecklist) {
+            const updatedChecklist = belief.resultChecklist.map(item =>
+              item.id === itemId ? { ...item, text } : item
+            );
+            return { ...belief, resultChecklist: updatedChecklist };
+          } else if (checklistType === 'feelings' && belief.feelingsChecklist) {
+            const updatedChecklist = belief.feelingsChecklist.map(item =>
+              item.id === itemId ? { ...item, text } : item
+            );
+            return { ...belief, feelingsChecklist: updatedChecklist };
+          } else if (checklistType === 'beliefs' && belief.beliefsChecklist) {
+            const updatedChecklist = belief.beliefsChecklist.map(item =>
+              item.id === itemId ? { ...item, text } : item
+            );
+            return { ...belief, beliefsChecklist: updatedChecklist };
+          } else if (checklistType === 'actions' && belief.actionsChecklist) {
+            const updatedChecklist = belief.actionsChecklist.map(item =>
+              item.id === itemId ? { ...item, text } : item
+            );
+            return { ...belief, actionsChecklist: updatedChecklist };
+          }
+        }
+        return belief;
+      });
+      
+      saveWeekMutation.mutate({ weekNumber, year: new Date().getFullYear(), beliefs: updated });
+      return updated;
+    });
+  };
+
+  // Compact Checklist View Component
+  const CompactChecklistView = ({ 
+    items, 
+    onToggle, 
+    onUpdateText,
+    onAddCheckpoint,
+    category,
+    checklistType 
+  }: { 
+    items: ChecklistItem[]; 
+    onToggle: (itemId: string) => void;
+    onUpdateText: (itemId: string, text: string) => void;
+    onAddCheckpoint: () => void;
+    category: string;
+    checklistType: string;
+  }) => {
+    const visibleItems = items.slice(0, 2);
+    const hiddenCount = items.length - 2;
+    
+    return (
+      <div className="space-y-1">
+        {visibleItems.map((item, index) => (
+          <div key={item.id} className="flex items-center gap-2">
+            <Checkbox
+              checked={item.checked}
+              onCheckedChange={() => onToggle(item.id)}
+              className="h-3 w-3"
+              data-testid={`checkbox-${checklistType}-${category.toLowerCase()}-${item.id}`}
+            />
+            <Input
+              value={item.text}
+              onChange={(e) => onUpdateText(item.id, e.target.value)}
+              placeholder="Type checkpoint..."
+              className="h-6 text-xs flex-1 border-0 bg-transparent focus-visible:ring-1 px-1"
+              data-testid={`input-${checklistType}-${category.toLowerCase()}-${item.id}`}
+            />
+          </div>
+        ))}
+        
+        {hiddenCount > 0 && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button 
+                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors w-full py-1"
+                data-testid={`button-show-more-${checklistType}-${category.toLowerCase()}`}
+              >
+                <MoreHorizontal className="w-3 h-3" />
+                <span>{hiddenCount} more item{hiddenCount > 1 ? 's' : ''}...</span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right" className="max-w-xs">
+              <div className="space-y-1">
+                {items.map((item) => (
+                  <div key={item.id} className="flex items-center gap-2 text-xs">
+                    <Checkbox checked={item.checked} disabled className="h-3 w-3" />
+                    <span>{item.text || '(empty)'}</span>
+                  </div>
+                ))}
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        )}
+        
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={onAddCheckpoint}
+          className="h-6 w-full text-xs text-muted-foreground hover:text-foreground gap-1"
+          data-testid={`button-add-checkpoint-${checklistType}-${category.toLowerCase()}`}
+        >
+          <Plus className="w-3 h-3" />
+          Add Checkpoint
+        </Button>
+      </div>
+    );
+  };
+
   // Automatic week progression: Check if 7 days have passed since week creation
   useEffect(() => {
     if (!Array.isArray(allWeeksData) || !onWeekChange) return;
@@ -1287,7 +1433,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                 </TableCell>
 
                 {/* Next Week - Problems */}
-                <TableCell className="p-0 bg-blue-50/30 dark:bg-blue-950/10 align-top">
+                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top">
                   {isEditing(belief.category, 'result') ? (
                     <Textarea
                       value={editValue}
@@ -1304,44 +1450,30 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                       data-testid={`textarea-next-problems-${belief.category.toLowerCase()}`}
                     />
                   ) : belief.resultChecklist && belief.resultChecklist.length > 0 ? (
-                    <div
-                      className="w-full p-2 space-y-1 hover:bg-muted/30 cursor-pointer rounded"
-                      onClick={(e) => {
-                        // Only open edit if we didn't click on the checkbox
-                        const target = e.target as HTMLElement;
-                        if (!target.closest('button[role="checkbox"]')) {
-                          startEdit(belief.category, 'result', belief.result, e.currentTarget as any);
-                        }
-                      }}
-                      data-testid={`button-edit-result-${belief.category.toLowerCase()}`}
-                    >
-                      {belief.resultChecklist.map((item) => (
-                        <div key={item.id} className="flex items-center gap-2">
-                          <Checkbox
-                            checked={item.checked}
-                            onCheckedChange={() => handleResultChecklistToggle(belief.category, item.id)}
-                            className="h-3 w-3"
-                            data-testid={`checkbox-result-${belief.category.toLowerCase()}-${item.id}`}
-                          />
-                          <span className="text-xs">{item.text}</span>
-                        </div>
-                      ))}
-                    </div>
+                    <CompactChecklistView
+                      items={belief.resultChecklist}
+                      onToggle={(itemId) => handleResultChecklistToggle(belief.category, itemId)}
+                      onUpdateText={(itemId, text) => handleUpdateCheckpointText(belief.category, itemId, text, 'result')}
+                      onAddCheckpoint={() => handleAddCheckpoint(belief.category, 'result')}
+                      category={belief.category}
+                      checklistType="result"
+                    />
                   ) : (
-                    <button
-                      className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
-                      onClick={(e) => startEdit(belief.category, 'result', belief.result, e.currentTarget)}
-                      type="button"
-                      aria-label="Edit target result"
-                      data-testid={`text-next-problems-${belief.category.toLowerCase()}`}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleAddCheckpoint(belief.category, 'result')}
+                      className="h-6 w-full text-xs text-muted-foreground hover:text-foreground gap-1"
+                      data-testid={`button-add-checkpoint-result-${belief.category.toLowerCase()}`}
                     >
-                      <span className="text-muted-foreground italic">Click to add target result...</span>
-                    </button>
+                      <Plus className="w-3 h-3" />
+                      Add Checkpoint
+                    </Button>
                   )}
                 </TableCell>
 
                 {/* Next Week - Feelings */}
-                <TableCell className="p-0 bg-blue-50/30 dark:bg-blue-950/10 align-top">
+                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top">
                   {isEditing(belief.category, 'nextFeelings') ? (
                     <Textarea
                       value={editValue}
@@ -1358,43 +1490,30 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                       data-testid={`textarea-next-feelings-${belief.category.toLowerCase()}`}
                     />
                   ) : belief.feelingsChecklist && belief.feelingsChecklist.length > 0 ? (
-                    <div
-                      className="w-full p-2 space-y-1 hover:bg-muted/30 cursor-pointer rounded"
-                      onClick={(e) => {
-                        const target = e.target as HTMLElement;
-                        if (!target.closest('button[role="checkbox"]')) {
-                          startEdit(belief.category, 'nextFeelings', belief.nextFeelings, e.currentTarget as any);
-                        }
-                      }}
-                      data-testid={`button-edit-feelings-${belief.category.toLowerCase()}`}
-                    >
-                      {belief.feelingsChecklist.map((item) => (
-                        <div key={item.id} className="flex items-center gap-2">
-                          <Checkbox
-                            checked={item.checked}
-                            onCheckedChange={() => handleFeelingsChecklistToggle(belief.category, item.id)}
-                            className="h-3 w-3"
-                            data-testid={`checkbox-feelings-${belief.category.toLowerCase()}-${item.id}`}
-                          />
-                          <span className="text-xs">{item.text}</span>
-                        </div>
-                      ))}
-                    </div>
+                    <CompactChecklistView
+                      items={belief.feelingsChecklist}
+                      onToggle={(itemId) => handleFeelingsChecklistToggle(belief.category, itemId)}
+                      onUpdateText={(itemId, text) => handleUpdateCheckpointText(belief.category, itemId, text, 'feelings')}
+                      onAddCheckpoint={() => handleAddCheckpoint(belief.category, 'feelings')}
+                      category={belief.category}
+                      checklistType="feelings"
+                    />
                   ) : (
-                    <button
-                      className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
-                      onClick={(e) => startEdit(belief.category, 'nextFeelings', belief.nextFeelings, e.currentTarget)}
-                      type="button"
-                      aria-label="Edit next week feelings"
-                      data-testid={`text-next-feelings-${belief.category.toLowerCase()}`}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleAddCheckpoint(belief.category, 'feelings')}
+                      className="h-6 w-full text-xs text-muted-foreground hover:text-foreground gap-1"
+                      data-testid={`button-add-checkpoint-feelings-${belief.category.toLowerCase()}`}
                     >
-                      <span className="text-muted-foreground italic">Click to add feelings...</span>
-                    </button>
+                      <Plus className="w-3 h-3" />
+                      Add Checkpoint
+                    </Button>
                   )}
                 </TableCell>
 
                 {/* Next Week - Beliefs/Reasons */}
-                <TableCell className="p-0 bg-blue-50/30 dark:bg-blue-950/10 align-top">
+                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top">
                   {isEditing(belief.category, 'nextWeekTarget') ? (
                     <Textarea
                       value={editValue}
@@ -1411,43 +1530,30 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                       data-testid={`textarea-next-beliefs-${belief.category.toLowerCase()}`}
                     />
                   ) : belief.beliefsChecklist && belief.beliefsChecklist.length > 0 ? (
-                    <div
-                      className="w-full p-2 space-y-1 hover:bg-muted/30 cursor-pointer rounded"
-                      onClick={(e) => {
-                        const target = e.target as HTMLElement;
-                        if (!target.closest('button[role="checkbox"]')) {
-                          startEdit(belief.category, 'nextWeekTarget', belief.nextWeekTarget, e.currentTarget as any);
-                        }
-                      }}
-                      data-testid={`button-edit-beliefs-${belief.category.toLowerCase()}`}
-                    >
-                      {belief.beliefsChecklist.map((item) => (
-                        <div key={item.id} className="flex items-center gap-2">
-                          <Checkbox
-                            checked={item.checked}
-                            onCheckedChange={() => handleBeliefsChecklistToggle(belief.category, item.id)}
-                            className="h-3 w-3"
-                            data-testid={`checkbox-beliefs-${belief.category.toLowerCase()}-${item.id}`}
-                          />
-                          <span className="text-xs">{item.text}</span>
-                        </div>
-                      ))}
-                    </div>
+                    <CompactChecklistView
+                      items={belief.beliefsChecklist}
+                      onToggle={(itemId) => handleBeliefsChecklistToggle(belief.category, itemId)}
+                      onUpdateText={(itemId, text) => handleUpdateCheckpointText(belief.category, itemId, text, 'beliefs')}
+                      onAddCheckpoint={() => handleAddCheckpoint(belief.category, 'beliefs')}
+                      category={belief.category}
+                      checklistType="beliefs"
+                    />
                   ) : (
-                    <button
-                      className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
-                      onClick={(e) => startEdit(belief.category, 'nextWeekTarget', belief.nextWeekTarget, e.currentTarget)}
-                      type="button"
-                      aria-label="Edit next week beliefs"
-                      data-testid={`text-next-beliefs-${belief.category.toLowerCase()}`}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleAddCheckpoint(belief.category, 'beliefs')}
+                      className="h-6 w-full text-xs text-muted-foreground hover:text-foreground gap-1"
+                      data-testid={`button-add-checkpoint-beliefs-${belief.category.toLowerCase()}`}
                     >
-                      <span className="text-muted-foreground italic">Click to add beliefs...</span>
-                    </button>
+                      <Plus className="w-3 h-3" />
+                      Add Checkpoint
+                    </Button>
                   )}
                 </TableCell>
 
                 {/* Next Week - Actions */}
-                <TableCell className="p-0 bg-blue-50/30 dark:bg-blue-950/10 border-r align-top">
+                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 border-r align-top">
                   {isEditing(belief.category, 'nextActions') ? (
                     <Textarea
                       value={editValue}
@@ -1464,38 +1570,25 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                       data-testid={`textarea-next-actions-${belief.category.toLowerCase()}`}
                     />
                   ) : belief.actionsChecklist && belief.actionsChecklist.length > 0 ? (
-                    <div
-                      className="w-full p-2 space-y-1 hover:bg-muted/30 cursor-pointer rounded"
-                      onClick={(e) => {
-                        const target = e.target as HTMLElement;
-                        if (!target.closest('button[role="checkbox"]')) {
-                          startEdit(belief.category, 'nextActions', belief.nextActions, e.currentTarget as any);
-                        }
-                      }}
-                      data-testid={`button-edit-actions-${belief.category.toLowerCase()}`}
-                    >
-                      {belief.actionsChecklist.map((item) => (
-                        <div key={item.id} className="flex items-center gap-2">
-                          <Checkbox
-                            checked={item.checked}
-                            onCheckedChange={() => handleActionsChecklistToggle(belief.category, item.id)}
-                            className="h-3 w-3"
-                            data-testid={`checkbox-actions-${belief.category.toLowerCase()}-${item.id}`}
-                          />
-                          <span className="text-xs">{item.text}</span>
-                        </div>
-                      ))}
-                    </div>
+                    <CompactChecklistView
+                      items={belief.actionsChecklist}
+                      onToggle={(itemId) => handleActionsChecklistToggle(belief.category, itemId)}
+                      onUpdateText={(itemId, text) => handleUpdateCheckpointText(belief.category, itemId, text, 'actions')}
+                      onAddCheckpoint={() => handleAddCheckpoint(belief.category, 'actions')}
+                      category={belief.category}
+                      checklistType="actions"
+                    />
                   ) : (
-                    <button
-                      className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
-                      onClick={(e) => startEdit(belief.category, 'nextActions', belief.nextActions, e.currentTarget)}
-                      type="button"
-                      aria-label="Edit next week actions"
-                      data-testid={`text-next-actions-${belief.category.toLowerCase()}`}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleAddCheckpoint(belief.category, 'actions')}
+                      className="h-6 w-full text-xs text-muted-foreground hover:text-foreground gap-1"
+                      data-testid={`button-add-checkpoint-actions-${belief.category.toLowerCase()}`}
                     >
-                      <span className="text-muted-foreground italic">Click to add actions...</span>
-                    </button>
+                      <Plus className="w-3 h-3" />
+                      Add Checkpoint
+                    </Button>
                   )}
                 </TableCell>
 
