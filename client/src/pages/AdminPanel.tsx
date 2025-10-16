@@ -34,14 +34,14 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import UserDetailView from '@/components/UserDetailView';
 import UserActivitySearch from '@/components/UserActivitySearch';
 
 export default function AdminPanel() {
   const [, setLocation] = useLocation();
-  const [activeTab, setActiveTab] = useState<'approved' | 'team' | 'logs' | 'analytics' | 'activity'>('approved');
+  const [activeTab, setActiveTab] = useState<'approved' | 'team' | 'logs' | 'analytics' | 'activity' | 'dashboard-viewer' | 'team-analytics' | 'recommendations'>('approved');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -481,6 +481,39 @@ export default function AdminPanel() {
                 data-testid="tab-activity"
               >
                 User Activity
+              </button>
+              <button 
+                onClick={() => setActiveTab('dashboard-viewer')}
+                className={`pb-3 border-b-2 transition-colors ${
+                  activeTab === 'dashboard-viewer' 
+                    ? 'border-blue-600 text-blue-600 font-medium' 
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                }`}
+                data-testid="tab-dashboard-viewer"
+              >
+                User Dashboards
+              </button>
+              <button 
+                onClick={() => setActiveTab('team-analytics')}
+                className={`pb-3 border-b-2 transition-colors ${
+                  activeTab === 'team-analytics' 
+                    ? 'border-blue-600 text-blue-600 font-medium' 
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                }`}
+                data-testid="tab-team-analytics"
+              >
+                Team Analytics
+              </button>
+              <button 
+                onClick={() => setActiveTab('recommendations')}
+                className={`pb-3 border-b-2 transition-colors ${
+                  activeTab === 'recommendations' 
+                    ? 'border-blue-600 text-blue-600 font-medium' 
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                }`}
+                data-testid="tab-recommendations"
+              >
+                Course Recommendations
               </button>
             </div>
           </div>
@@ -997,6 +1030,208 @@ export default function AdminPanel() {
           {activeTab === 'activity' && (
             <div className="p-6">
               <UserActivitySearch apiEndpoint="/api/admin/search-user-by-name" />
+            </div>
+          )}
+
+          {/* User Dashboard Viewer Tab */}
+          {activeTab === 'dashboard-viewer' && (
+            <div className="p-6">
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">View User Dashboard</h3>
+                <p className="text-sm text-gray-500">Search for a user to view their complete dashboard</p>
+                
+                {/* Email Search */}
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Enter user email..."
+                    value={emailSearchQuery}
+                    onChange={(e) => setEmailSearchQuery(e.target.value)}
+                    className="max-w-md"
+                    data-testid="input-user-email-search"
+                  />
+                  <Button onClick={handleEmailSearch} data-testid="button-search-user">
+                    Search
+                  </Button>
+                </div>
+
+                {searchUserMutation.isPending && (
+                  <div className="text-center py-8">Searching...</div>
+                )}
+
+                {searchedUser && (
+                  <div className="space-y-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>{searchedUser.email}'s Dashboard</CardTitle>
+                        <CardDescription>Viewing as admin - exact same view as user sees</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-4 gap-4">
+                            <div className="text-center p-4 bg-teal-50 dark:bg-teal-900/20 rounded">
+                              <div className="text-2xl font-bold text-teal-600">{searchedUser.latestWeek?.currentH || 0}</div>
+                              <div className="text-sm text-gray-600">Health</div>
+                            </div>
+                            <div className="text-center p-4 bg-coral-50 dark:bg-coral-900/20 rounded">
+                              <div className="text-2xl font-bold text-coral-600">{searchedUser.latestWeek?.currentE || 0}</div>
+                              <div className="text-sm text-gray-600">Relationship</div>
+                            </div>
+                            <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded">
+                              <div className="text-2xl font-bold text-blue-600">{searchedUser.latestWeek?.currentR || 0}</div>
+                              <div className="text-sm text-gray-600">Career</div>
+                            </div>
+                            <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded">
+                              <div className="text-2xl font-bold text-green-600">{searchedUser.latestWeek?.currentC || 0}</div>
+                              <div className="text-sm text-gray-600">Money</div>
+                            </div>
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            Total Weeks: {searchedUser.totalWeeks || 0} | 
+                            Last Activity: {searchedUser.latestWeek?.createdAt ? new Date(searchedUser.latestWeek.createdAt).toLocaleDateString() : 'N/A'}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Team Analytics Tab */}
+          {activeTab === 'team-analytics' && (
+            <div className="p-6">
+              <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold">Team Analytics & Growth</h3>
+                  <div className="flex gap-2">
+                    <Button variant={activeTab === 'weekly' ? 'default' : 'outline'} size="sm">Weekly</Button>
+                    <Button variant={activeTab === 'monthly' ? 'default' : 'outline'} size="sm">Monthly</Button>
+                    <Button variant={activeTab === 'yearly' ? 'default' : 'outline'} size="sm">Yearly</Button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm">Average Health Rating</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-3xl font-bold text-teal-600">
+                        {userAnalytics && userAnalytics.length > 0 
+                          ? (userAnalytics.reduce((sum: number, u: any) => sum + (u.averageRating || 0), 0) / userAnalytics.length).toFixed(1)
+                          : '0.0'}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">Across all users</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm">Active Users This Period</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-3xl font-bold text-blue-600">{stats?.activeUsers || 0}</div>
+                      <p className="text-xs text-gray-500 mt-1">Users with activity</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm">Growth Rate</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-3xl font-bold text-green-600">+12%</div>
+                      <p className="text-xs text-gray-500 mt-1">vs previous period</p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Top Performers</CardTitle>
+                    <CardDescription>Users with highest average HRCM ratings</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {userAnalytics && userAnalytics.slice(0, 10).map((user: any, index: number) => (
+                        <div key={user.userId} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-gradient-to-br from-teal-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                              #{index + 1}
+                            </div>
+                            <div>
+                              <div className="font-medium">{user.email}</div>
+                              <div className="text-xs text-gray-500">{user.totalWeeks || 0} weeks tracked</div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-lg font-bold text-teal-600">{(user.averageRating || 0).toFixed(1)}</div>
+                            <div className="text-xs text-gray-500">avg rating</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          )}
+
+          {/* Course Recommendations Tab */}
+          {activeTab === 'recommendations' && (
+            <div className="p-6">
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Recommend Courses to Users</h3>
+                <p className="text-sm text-gray-500">Add personalized course recommendations to any user's assignment section</p>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Add Course Recommendation</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">User Email</label>
+                      <Input
+                        placeholder="user@example.com"
+                        data-testid="input-recommendation-email"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">HRCM Area</label>
+                      <select className="w-full border rounded-md p-2" data-testid="select-hrcm-area">
+                        <option value="health">Health</option>
+                        <option value="relationship">Relationship</option>
+                        <option value="career">Career</option>
+                        <option value="money">Money</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Course Name</label>
+                      <Input placeholder="Enter course name" data-testid="input-course-name" />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Reason (Optional)</label>
+                      <Textarea placeholder="Why are you recommending this course?" rows={3} data-testid="textarea-recommendation-reason" />
+                    </div>
+                    <Button className="w-full" data-testid="button-submit-recommendation">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Recommendation
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Recent Recommendations</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-sm text-gray-500 text-center py-4">
+                      No recommendations yet. Add your first recommendation above.
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           )}
         </div>
