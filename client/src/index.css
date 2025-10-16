@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* LIGHT MODE - 9.5/10 Brand-Tinted Color Scheme */
+/* LIGHT MODE */
 :root {
   --button-outline: rgba(0,0,0, .10);
   --badge-outline: rgba(0,0,0, .05);
@@ -11,71 +11,56 @@
   --opaque-button-border-intensity: -8; /* In terms of percentages */
 
   /* Backgrounds applied on top of other backgrounds when hovered/active */
-  /* Brand-tinted elevation (subtle pink-blue glow) */
-  --elevate-1: rgba(236, 72, 153, .04); /* Pink tint */
-  --elevate-2: rgba(236, 72, 153, .09); /* Pink tint */
+  --elevate-1: rgba(0,0,0, .03);
+  --elevate-2: rgba(0,0,0, .08);
 
-  /* Pure white background */
-  --background: 0 0% 100%;
+  --background: 0 0% 98%;
 
-  /* Foreground text - slightly warm gray */
-  --foreground: 240 8% 12%;
+  --foreground: 240 10% 10%;
 
-  /* Border - subtle pink tint */
-  --border: 340 10% 90%;
+  --border: 240 6% 90%;
 
-  /* Card - subtle pink-blue tint (warmth) */
-  --card: 340 15% 98%;
+  --card: 0 0% 100%;
 
-  --card-foreground: 240 8% 12%;
+  --card-foreground: 240 10% 10%;
 
-  /* Card border - pink-tinted */
-  --card-border: 340 12% 92%;
+  --card-border: 240 5% 92%;
 
-  /* Sidebar - soft pink background */
-  --sidebar: 340 20% 96%;
+  --sidebar: 240 6% 95%;
 
-  --sidebar-foreground: 240 8% 12%;
+  --sidebar-foreground: 240 10% 10%;
 
-  /* Sidebar border - pink-tinted */
-  --sidebar-border: 340 15% 88%;
+  --sidebar-border: 240 6% 88%;
 
-  /* Primary - Keep brand pink-blue gradient */
   --sidebar-primary: 348 83% 58%;
 
   --sidebar-primary-foreground: 0 0% 100%;
 
-  /* Sidebar accent - subtle pink-blue */
-  --sidebar-accent: 340 15% 90%;
+  --sidebar-accent: 240 6% 90%;
 
   --sidebar-accent-foreground: 240 10% 15%;
 
   --sidebar-ring: 348 83% 58%;
 
-  /* Popover - subtle pink tint */
-  --popover: 340 15% 98%;
+  --popover: 0 0% 100%;
 
-  --popover-foreground: 240 8% 12%;
+  --popover-foreground: 240 10% 10%;
 
-  --popover-border: 340 12% 92%;
+  --popover-border: 240 5% 92%;
 
-  /* Primary - Brand color (Pink) */
   --primary: 348 83% 58%;
 
   --primary-foreground: 0 0% 100%;
 
-  /* Secondary - pink-tinted gray */
-  --secondary: 340 12% 92%;
+  --secondary: 240 6% 92%;
 
   --secondary-foreground: 240 10% 15%;
 
-  /* Muted - soft pink-gray */
-  --muted: 340 10% 94%;
+  --muted: 240 5% 94%;
 
   --muted-foreground: 240 5% 45%;
 
-  /* Accent - Purple (between pink-blue) */
-  --accent: 270 75% 65%;
+  --accent: 240 100% 60%;
 
   --accent-foreground: 0 0% 100%;
 
@@ -144,75 +129,60 @@
   --opaque-button-border-intensity: 9;  /* In terms of percentages */
 
   /* Backgrounds applied on top of other backgrounds when hovered/active */
-  /* Brand-tinted elevation with pink-purple glow */
-  --elevate-1: rgba(236, 72, 153, .08); /* Pink glow */
-  --elevate-2: rgba(236, 72, 153, .15); /* Stronger pink glow */
+  --elevate-1: rgba(255,255,255, .04);
+  --elevate-2: rgba(255,255,255, .09);
 
-  /* Deep background with subtle warmth */
-  --background: 260 15% 9%;
+  --background: 240 10% 8%;
 
-  /* Foreground with slight warmth */
-  --foreground: 340 8% 92%;
+  --foreground: 240 5% 95%;
 
-  /* Border with pink tint */
-  --border: 340 12% 20%;
+  --border: 240 10% 18%;
 
-  /* Card with pink-purple tint */
-  --card: 340 18% 13%;
+  --card: 240 10% 12%;
 
-  --card-foreground: 340 8% 92%;
+  --card-foreground: 240 5% 95%;
 
-  /* Card border with pink glow */
-  --card-border: 340 15% 22%;
+  --card-border: 240 10% 20%;
 
-  /* Sidebar with deep pink-purple */
-  --sidebar: 340 20% 11%;
+  --sidebar: 240 10% 10%;
 
-  --sidebar-foreground: 340 8% 92%;
+  --sidebar-foreground: 240 5% 95%;
 
-  /* Sidebar border with brand tint */
-  --sidebar-border: 340 15% 20%;
+  --sidebar-border: 240 10% 18%;
 
-  /* Primary - Keep brand pink (slightly brighter for dark mode) */
-  --sidebar-primary: 348 83% 60%;
+  --sidebar-primary: 348 83% 55%;
 
   --sidebar-primary-foreground: 0 0% 100%;
 
-  /* Sidebar accent with pink tint */
-  --sidebar-accent: 340 15% 20%;
+  --sidebar-accent: 240 10% 18%;
 
-  --sidebar-accent-foreground: 340 8% 92%;
+  --sidebar-accent-foreground: 240 5% 95%;
 
-  --sidebar-ring: 348 83% 60%;
+  --sidebar-ring: 348 83% 55%;
 
-  /* Popover with brand warmth */
-  --popover: 340 18% 15%;
+  --popover: 240 10% 15%;
 
-  --popover-foreground: 340 8% 92%;
+  --popover-foreground: 240 5% 95%;
 
-  --popover-border: 340 15% 24%;
+  --popover-border: 240 10% 22%;
 
-  /* Primary - Brand pink (brighter for dark bg) */
-  --primary: 348 83% 60%;
+  --primary: 348 83% 55%;
 
   --primary-foreground: 0 0% 100%;
 
-  /* Secondary with pink tint */
-  --secondary: 340 12% 22%;
+  --secondary: 240 10% 20%;
 
-  --secondary-foreground: 340 8% 92%;
+  --secondary-foreground: 240 5% 95%;
 
-  /* Muted with subtle pink */
-  --muted: 340 12% 20%;
+  --muted: 240 10% 18%;
 
-  --muted-foreground: 340 8% 65%;
+  --muted-foreground: 240 5% 65%;
 
-  /* Accent - Purple (brighter for dark) */
-  --accent: 270 75% 70%;
+  --accent: 240 100% 65%;
 
   --accent-foreground: 0 0% 100%;
 
-  --destructive: 0 84% 55%;
+  --destructive: 0 84% 50%;
 
   --destructive-foreground: 0 84% 98%;
 
