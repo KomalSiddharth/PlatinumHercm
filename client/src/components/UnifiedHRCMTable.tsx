@@ -530,142 +530,6 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
     }
   });
 
-  // AI Auto-Fill Next Week mutation
-  const aiAutoFillMutation = useMutation({
-    mutationFn: async () => {
-      console.log('AI Auto-Fill: Sending request with beliefs:', beliefs.map(b => ({
-        category: b.category,
-        currentRating: b.currentRating,
-        problems: b.problems,
-        currentFeelings: b.currentFeelings,
-        currentBelief: b.currentBelief,
-        currentActions: b.currentActions,
-      })));
-      
-      const response = await apiRequest('POST', '/api/hercm/ai-autofill-next-week', {
-        beliefs: beliefs.map(b => ({
-          category: b.category,
-          currentRating: b.currentRating,
-          problems: b.problems,
-          currentFeelings: b.currentFeelings,
-          currentBelief: b.currentBelief,
-          currentActions: b.currentActions,
-        }))
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      console.log('AI Auto-Fill: Received response:', data);
-      return data;
-    },
-    onSuccess: (data) => {
-      setBeliefs(prev => prev.map(belief => {
-        const aiData = data.find((d: any) => d.category === belief.category);
-        if (!aiData) return belief;
-
-        // Convert AI array responses to checkbox format
-        const resultChecklist: ChecklistItem[] = (aiData.result || []).map((text: string, index: number) => ({
-          id: `${belief.category}-result-ai-${index}`,
-          text: text,
-          checked: false
-        }));
-
-        const feelingsChecklist: ChecklistItem[] = (aiData.feelings || []).map((text: string, index: number) => ({
-          id: `${belief.category}-feelings-ai-${index}`,
-          text: text,
-          checked: false
-        }));
-
-        const beliefsChecklist: ChecklistItem[] = (aiData.target || []).map((text: string, index: number) => ({
-          id: `${belief.category}-beliefs-ai-${index}`,
-          text: text,
-          checked: false
-        }));
-
-        const actionsChecklist: ChecklistItem[] = (aiData.actions || []).map((text: string, index: number) => ({
-          id: `${belief.category}-actions-ai-${index}`,
-          text: text,
-          checked: false
-        }));
-
-        return {
-          ...belief,
-          // Store text versions for compatibility
-          result: (aiData.result || []).join('\n'),
-          nextFeelings: (aiData.feelings || []).join('\n'),
-          nextWeekTarget: (aiData.target || []).join('\n'),
-          nextActions: (aiData.actions || []).join('\n'),
-          // Store as checklists
-          resultChecklist,
-          feelingsChecklist,
-          beliefsChecklist,
-          actionsChecklist,
-        };
-      }));
-      
-      // Auto-save the AI-filled data
-      saveWeekMutation.mutate({
-        weekNumber,
-        year: new Date().getFullYear(),
-        beliefs: beliefs.map(belief => {
-          const aiData = data.find((d: any) => d.category === belief.category);
-          if (!aiData) return belief;
-
-          const resultChecklist: ChecklistItem[] = (aiData.result || []).map((text: string, index: number) => ({
-            id: `${belief.category}-result-ai-${index}`,
-            text: text,
-            checked: false
-          }));
-
-          const feelingsChecklist: ChecklistItem[] = (aiData.feelings || []).map((text: string, index: number) => ({
-            id: `${belief.category}-feelings-ai-${index}`,
-            text: text,
-            checked: false
-          }));
-
-          const beliefsChecklist: ChecklistItem[] = (aiData.target || []).map((text: string, index: number) => ({
-            id: `${belief.category}-beliefs-ai-${index}`,
-            text: text,
-            checked: false
-          }));
-
-          const actionsChecklist: ChecklistItem[] = (aiData.actions || []).map((text: string, index: number) => ({
-            id: `${belief.category}-actions-ai-${index}`,
-            text: text,
-            checked: false
-          }));
-
-          return {
-            ...belief,
-            result: (aiData.result || []).join('\n'),
-            nextFeelings: (aiData.feelings || []).join('\n'),
-            nextWeekTarget: (aiData.target || []).join('\n'),
-            nextActions: (aiData.actions || []).join('\n'),
-            resultChecklist,
-            feelingsChecklist,
-            beliefsChecklist,
-            actionsChecklist,
-          };
-        }),
-      });
-      
-      toast({
-        title: 'AI Auto-Fill Complete! ✨',
-        description: 'Next week suggestions generated and saved as checkboxes.',
-      });
-    },
-    onError: () => {
-      toast({
-        title: 'Error',
-        description: 'Failed to generate AI suggestions.',
-        variant: 'destructive',
-      });
-    }
-  });
-
   // Generate Next Week mutation
   const generateNextWeekMutation = useMutation({
     mutationFn: async () => {
@@ -695,10 +559,6 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
   });
 
   // Handlers
-  const handleAIAutoFill = () => {
-    aiAutoFillMutation.mutate();
-  };
-
   const handleGenerateNextWeek = () => {
     // Reset all data fields (Rating, Results, Feelings, Beliefs/Reasons, Actions) in both tables
     setBeliefs(prev => prev.map(belief => ({
@@ -1402,28 +1262,11 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
 
       {/* Next Week Table */}
       <div className="border-2 border-green-600 dark:border-green-800 rounded-lg overflow-x-auto shadow-lg">
-        <div className="bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-700 dark:to-emerald-700 py-3 border-b-2 border-green-700 dark:border-green-900 flex items-center justify-between">
-          <div className="flex-1"></div>
+        <div className="bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-700 dark:to-emerald-700 py-3 border-b-2 border-green-700 dark:border-green-900 flex items-center justify-center">
           <h3 className="font-bold text-white text-xl drop-shadow-md flex items-center gap-2">
             <TrendingUp className="w-5 h-5" />
             Next Week Target
           </h3>
-          <div className="flex-1 flex justify-end pr-4">
-            <Button
-              size="sm"
-              onClick={handleAIAutoFill}
-              disabled={aiAutoFillMutation.isPending}
-              className="bg-gradient-to-r from-pink-600 to-red-600 hover:from-pink-700 hover:to-red-700 text-white border border-white/20"
-              data-testid="button-ai-autofill"
-            >
-              {aiAutoFillMutation.isPending ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <Sparkles className="w-4 h-4 mr-2" />
-              )}
-              AI Auto-Fill Next Week
-            </Button>
-          </div>
         </div>
         <Table>
           <TableHeader>
