@@ -1102,69 +1102,119 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // AI Auto-fill next week goals based on current week data
-  app.post('/api/hercm/auto-fill-next-week', isAuthenticated, async (req: any, res) => {
+  // AI Auto-fill next week goals based on current week data (ALL 4 HRCM areas)
+  app.post('/api/hercm/ai-autofill-next-week', isAuthenticated, async (req: any, res) => {
     try {
-      const { category, currentRating, problems, currentFeelings, currentBelief, currentActions } = req.body;
+      const { beliefs } = req.body; // Array of all 4 HRCM beliefs with current week data
       
-      const prompt = `You are an expert life coach helping users set realistic and achievable goals for next week.
+      const prompt = `You are an expert life coach helping users set realistic and achievable goals for next week based on their current week performance.
 
-**User's Current Week Data (${category}):**
-- Current Rating: ${currentRating}/10
-- Problems: ${problems}
-- Current Feelings: ${currentFeelings}
-- Current Beliefs: ${currentBelief}
-- Current Actions: ${currentActions}
+**User's Current Week Data:**
+
+${beliefs.map((belief: any) => `
+**${belief.category}:**
+- Current Rating: ${belief.currentRating || 0}/10
+- Current Problems/Results: ${belief.problems || 'Not specified'}
+- Current Feelings: ${belief.currentFeelings || 'Not specified'}
+- Current Beliefs/Reasons: ${belief.currentBelief || 'Not specified'}
+- Current Actions: ${belief.currentActions || 'Not specified'}
+`).join('\n')}
 
 **Task:**
-Based on their current situation, suggest realistic next week goals that will help them improve incrementally.
+Based on their current week data, suggest specific, actionable next week targets for each HRCM area. Each suggestion should be:
+1. Realistic and achievable within a week
+2. Directly address their current problems/feelings/beliefs
+3. Provide concrete, measurable actions
 
-Provide the following:
-1. **Target Rating**: Suggest a realistic target rating for next week (current + 1 or 2 points max, never more than 10)
-2. **Expected Result**: What tangible outcome should they expect if they follow through (be specific and realistic)
-3. **Target Feelings**: Transform their negative feelings into positive ones (e.g., "Lazy" → "Active, Energetic")
-4. **Next Week Target**: A positive belief or affirmation to work towards (transform their limiting belief)
-5. **Next Actions**: 3-4 specific, actionable steps they should take next week
-6. **Affirmation**: A powerful, personal affirmation to support their transformation
+For EACH of the 4 categories (Health, Relationship, Career, Money), provide:
 
-Return ONLY valid JSON in this exact format:
-{
-  "targetRating": 5,
-  "expectedResult": "...",
-  "targetFeelings": "...",
-  "nextWeekTarget": "...",
-  "nextActions": "...",
-  "affirmation": "..."
-}`;
+1. **Results**: 2-3 specific, measurable outcomes they should aim for (based on current problems)
+2. **Feelings**: 2-3 positive feelings they should cultivate (transform current negative feelings)
+3. **Beliefs**: 2-3 empowering beliefs to adopt (replace limiting beliefs)
+4. **Actions**: 3-4 concrete action steps to take
+
+Return ONLY valid JSON in this EXACT format:
+[
+  {
+    "category": "Health",
+    "result": ["Result item 1", "Result item 2"],
+    "feelings": ["Feeling 1", "Feeling 2"],
+    "target": ["Belief 1", "Belief 2"],
+    "actions": ["Action 1", "Action 2", "Action 3"]
+  },
+  {
+    "category": "Relationship",
+    "result": ["Result item 1", "Result item 2"],
+    "feelings": ["Feeling 1", "Feeling 2"],
+    "target": ["Belief 1", "Belief 2"],
+    "actions": ["Action 1", "Action 2", "Action 3"]
+  },
+  {
+    "category": "Career",
+    "result": ["Result item 1", "Result item 2"],
+    "feelings": ["Feeling 1", "Feeling 2"],
+    "target": ["Belief 1", "Belief 2"],
+    "actions": ["Action 1", "Action 2", "Action 3"]
+  },
+  {
+    "category": "Money",
+    "result": ["Result item 1", "Result item 2"],
+    "feelings": ["Feeling 1", "Feeling 2"],
+    "target": ["Belief 1", "Belief 2"],
+    "actions": ["Action 1", "Action 2", "Action 3"]
+  }
+]`;
 
       // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
       const completion = await openai.chat.completions.create({
         model: "gpt-5",
         messages: [
-          { role: "system", content: "You are an expert life coach providing personalized goal suggestions. Always return valid JSON." },
+          { role: "system", content: "You are an expert life coach providing personalized goal suggestions. Always return valid JSON array with exactly 4 objects for Health, Relationship, Career, and Money in that exact order." },
           { role: "user", content: prompt }
         ],
         temperature: 0.7,
       });
 
-      const responseText = completion.choices[0]?.message?.content || '{}';
+      const responseText = completion.choices[0]?.message?.content || '[]';
       
       // Parse AI response
-      const aiSuggestion = JSON.parse(responseText);
+      const aiSuggestions = JSON.parse(responseText);
       
-      res.json(aiSuggestion);
+      res.json(aiSuggestions);
     } catch (error) {
       console.error("Error auto-filling next week goals:", error);
       
-      // Fallback: simple incremental logic
-      const fallback = {
-        targetRating: Math.min((req.body.currentRating || 1) + 1, 10),
-        expectedResult: "Incremental improvement in this area",
-        targetFeelings: "Positive, Motivated",
-        nextWeekTarget: "I am making progress every day",
-        nextActions: "Take small steps daily towards improvement",
-        affirmation: "I am capable of positive change"
-      };
+      // Fallback: simple suggestions for all 4 areas
+      const fallback = [
+        {
+          category: "Health",
+          result: ["Improve physical energy", "Better sleep quality"],
+          feelings: ["Energetic", "Refreshed"],
+          target: ["I prioritize my health", "I make healthy choices daily"],
+          actions: ["Exercise 30 mins daily", "Eat nutritious meals", "Sleep 7-8 hours"]
+        },
+        {
+          category: "Relationship",
+          result: ["Stronger connections", "Better communication"],
+          feelings: ["Connected", "Appreciated"],
+          target: ["I nurture my relationships", "I communicate with love"],
+          actions: ["Quality time with loved ones", "Active listening", "Express appreciation daily"]
+        },
+        {
+          category: "Career",
+          result: ["Increased productivity", "Skill improvement"],
+          feelings: ["Focused", "Accomplished"],
+          target: ["I am valuable and capable", "I create meaningful impact"],
+          actions: ["Complete key projects", "Learn new skill", "Network with peers"]
+        },
+        {
+          category: "Money",
+          result: ["Better financial decisions", "Increased savings"],
+          feelings: ["Abundant", "Secure"],
+          target: ["Money flows to me easily", "I am financially wise"],
+          actions: ["Track expenses", "Save portion of income", "Invest in growth"]
+        }
+      ];
       
       res.json(fallback);
     }
