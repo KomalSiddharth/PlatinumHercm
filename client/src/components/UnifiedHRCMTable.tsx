@@ -886,8 +886,11 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                   </button>
                 </TooltipTrigger>
                 {item.text && item.text.length > 50 && (
-                  <TooltipContent side="right" className="max-w-sm">
-                    <p className="text-xs whitespace-pre-wrap break-words">{item.text}</p>
+                  <TooltipContent side="top" align="start" className="max-w-md bg-popover border shadow-lg">
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase">Full Text:</p>
+                      <p className="text-xs whitespace-pre-wrap break-words leading-relaxed">{item.text}</p>
+                    </div>
                   </TooltipContent>
                 )}
               </Tooltip>
@@ -906,13 +909,13 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                 <span>{hiddenCount} more item{hiddenCount > 1 ? 's' : ''}...</span>
               </button>
             </TooltipTrigger>
-            <TooltipContent side="right" className="max-w-sm">
+            <TooltipContent side="top" align="start" className="max-w-md bg-popover border shadow-lg">
               <div className="space-y-2">
-                <p className="text-xs font-semibold mb-2">All Checkpoints:</p>
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase mb-2">All Checkpoints:</p>
                 {items.map((item) => (
                   <div key={item.id} className="flex items-start gap-2 text-xs">
                     <Checkbox checked={item.checked} disabled className="h-3 w-3 mt-0.5 shrink-0" />
-                    <span className="break-words whitespace-pre-wrap">{item.text || '(empty)'}</span>
+                    <span className="break-words whitespace-pre-wrap leading-relaxed">{item.text || '(empty)'}</span>
                   </div>
                 ))}
               </div>
@@ -1277,8 +1280,11 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                         </button>
                       </TooltipTrigger>
                       {belief.problems && belief.problems.length > 50 && (
-                        <TooltipContent side="right" className="max-w-md">
-                          <p className="text-xs whitespace-pre-wrap break-words">{belief.problems}</p>
+                        <TooltipContent side="top" align="start" className="max-w-md bg-popover border shadow-lg">
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-semibold text-muted-foreground uppercase">Full Text:</p>
+                            <p className="text-xs whitespace-pre-wrap break-words leading-relaxed">{belief.problems}</p>
+                          </div>
                         </TooltipContent>
                       )}
                     </Tooltip>
@@ -1317,8 +1323,11 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                         </button>
                       </TooltipTrigger>
                       {belief.currentFeelings && belief.currentFeelings.length > 50 && (
-                        <TooltipContent side="right" className="max-w-md">
-                          <p className="text-xs whitespace-pre-wrap break-words">{belief.currentFeelings}</p>
+                        <TooltipContent side="top" align="start" className="max-w-md bg-popover border shadow-lg">
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-semibold text-muted-foreground uppercase">Full Text:</p>
+                            <p className="text-xs whitespace-pre-wrap break-words leading-relaxed">{belief.currentFeelings}</p>
+                          </div>
                         </TooltipContent>
                       )}
                     </Tooltip>
@@ -1357,8 +1366,11 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                         </button>
                       </TooltipTrigger>
                       {belief.currentBelief && belief.currentBelief.length > 50 && (
-                        <TooltipContent side="right" className="max-w-md">
-                          <p className="text-xs whitespace-pre-wrap break-words">{belief.currentBelief}</p>
+                        <TooltipContent side="top" align="start" className="max-w-md bg-popover border shadow-lg">
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-semibold text-muted-foreground uppercase">Full Text:</p>
+                            <p className="text-xs whitespace-pre-wrap break-words leading-relaxed">{belief.currentBelief}</p>
+                          </div>
                         </TooltipContent>
                       )}
                     </Tooltip>
@@ -1397,8 +1409,11 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                         </button>
                       </TooltipTrigger>
                       {belief.currentActions && belief.currentActions.length > 50 && (
-                        <TooltipContent side="right" className="max-w-md">
-                          <p className="text-xs whitespace-pre-wrap break-words">{belief.currentActions}</p>
+                        <TooltipContent side="top" align="start" className="max-w-md bg-popover border shadow-lg">
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-semibold text-muted-foreground uppercase">Full Text:</p>
+                            <p className="text-xs whitespace-pre-wrap break-words leading-relaxed">{belief.currentActions}</p>
+                          </div>
                         </TooltipContent>
                       )}
                     </Tooltip>
