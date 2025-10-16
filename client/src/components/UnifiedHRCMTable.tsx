@@ -1324,7 +1324,16 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                   selected={selectedHistoryDate}
                   onSelect={(date) => {
                     setSelectedHistoryDate(date);
-                    setViewingHistory(!!date);
+                    if (date) {
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      const selected = new Date(date);
+                      selected.setHours(0, 0, 0, 0);
+                      // Only set viewingHistory to true if selected date is NOT today
+                      setViewingHistory(selected.getTime() !== today.getTime());
+                    } else {
+                      setViewingHistory(false);
+                    }
                   }}
                   initialFocus
                   data-testid="calendar-date-picker"
