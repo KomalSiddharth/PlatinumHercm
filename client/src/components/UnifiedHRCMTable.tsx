@@ -364,16 +364,16 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
     setSelectedCategory(category);
     
     if (category === 'Health') {
-      setBeliefs(prev => prev.map(b => {
+      const updatedBeliefs = beliefs.map(b => {
         if (b.category === 'Health') {
           const existingChecklist = b.checklist || [];
           
-          // Check if this is the old format (4 items) or needs update to 10 items
-          const hasOldFormat = existingChecklist.length === 4;
-          const hasNewFormat = existingChecklist.length === 10 && existingChecklist.some(item => item.id === 'health-std-1');
+          // Check if has the NEW format by looking for "Magic Water" text
+          const hasNewFormat = existingChecklist.length === 10 && 
+                               existingChecklist.some(item => item.text.includes('Magic Water'));
           
-          if (!hasNewFormat || hasOldFormat) {
-            // Replace with new 10 health standards
+          if (!hasNewFormat) {
+            // Always replace with new 10 health standards if not exactly matching
             return {
               ...b,
               checklist: HEALTH_STANDARDS.map(std => ({ ...std })),
@@ -386,7 +386,21 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
           return b;
         }
         return b;
-      }));
+      });
+      
+      setBeliefs(updatedBeliefs);
+      
+      // Auto-save if standards were updated
+      const healthBelief = updatedBeliefs.find(b => b.category === 'Health');
+      const oldHealthBelief = beliefs.find(b => b.category === 'Health');
+      
+      if (healthBelief && oldHealthBelief && healthBelief.checklist !== oldHealthBelief.checklist) {
+        saveWeekMutation.mutate({
+          weekNumber,
+          year: new Date().getFullYear(),
+          beliefs: updatedBeliefs,
+        });
+      }
     } else if (category === 'Relationship') {
       setBeliefs(prev => prev.map(b => {
         if (b.category === 'Relationship') {
