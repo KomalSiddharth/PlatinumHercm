@@ -68,6 +68,9 @@ export default function AdminPanel() {
   const [recCourseName, setRecCourseName] = useState('');
   const [recReason, setRecReason] = useState('');
   
+  // Team analytics period state
+  const [teamAnalyticsPeriod, setTeamAnalyticsPeriod] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
+  
   const { toast } = useToast();
 
   // Check if user is logged in (admin restrictions removed)
@@ -1063,7 +1066,14 @@ export default function AdminPanel() {
           {/* User Activity Search Tab Content */}
           {activeTab === 'activity' && (
             <div className="p-6">
-              <UserActivitySearch apiEndpoint="/api/admin/search-user-by-name" />
+              <UserActivitySearch 
+                apiEndpoint="/api/admin/search-user-by-name"
+                onViewDashboard={(userId) => {
+                  // Switch to dashboard viewer tab
+                  setActiveTab('dashboard-viewer');
+                  // Note: The dashboard viewer will need to be enhanced to accept a userId prop
+                }}
+              />
             </div>
           )}
 
@@ -1081,9 +1091,30 @@ export default function AdminPanel() {
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold">Team Analytics & Growth</h3>
                   <div className="flex gap-2">
-                    <Button variant={activeTab === 'weekly' ? 'default' : 'outline'} size="sm">Weekly</Button>
-                    <Button variant={activeTab === 'monthly' ? 'default' : 'outline'} size="sm">Monthly</Button>
-                    <Button variant={activeTab === 'yearly' ? 'default' : 'outline'} size="sm">Yearly</Button>
+                    <Button 
+                      variant={teamAnalyticsPeriod === 'weekly' ? 'default' : 'outline'} 
+                      size="sm"
+                      onClick={() => setTeamAnalyticsPeriod('weekly')}
+                      data-testid="button-period-weekly"
+                    >
+                      Weekly
+                    </Button>
+                    <Button 
+                      variant={teamAnalyticsPeriod === 'monthly' ? 'default' : 'outline'} 
+                      size="sm"
+                      onClick={() => setTeamAnalyticsPeriod('monthly')}
+                      data-testid="button-period-monthly"
+                    >
+                      Monthly
+                    </Button>
+                    <Button 
+                      variant={teamAnalyticsPeriod === 'yearly' ? 'default' : 'outline'} 
+                      size="sm"
+                      onClick={() => setTeamAnalyticsPeriod('yearly')}
+                      data-testid="button-period-yearly"
+                    >
+                      Yearly
+                    </Button>
                   </div>
                 </div>
 

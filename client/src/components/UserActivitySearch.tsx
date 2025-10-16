@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Search, User, TrendingUp, AlertCircle } from 'lucide-react';
+import { Search, User, TrendingUp, AlertCircle, Eye, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 interface UserActivity {
   id: string;
@@ -29,36 +30,18 @@ interface UserActivity {
 
 interface UserActivitySearchProps {
   apiEndpoint?: string;
+  onViewDashboard?: (userId: string) => void;
 }
 
-export default function UserActivitySearch({ apiEndpoint = '/api/team/search-users' }: UserActivitySearchProps) {
+export default function UserActivitySearch({ apiEndpoint = '/api/team/search-users', onViewDashboard }: UserActivitySearchProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [recentUsers, setRecentUsers] = useState<UserActivity[]>([]);
   const { toast } = useToast();
 
   const { data: users, isLoading, error } = useQuery<UserActivity[]>({
     queryKey: [`${apiEndpoint}?name=${searchTerm}`],
     enabled: !!searchTerm,
   });
-
-  // Update recent users when new search results arrive
-  useEffect(() => {
-    if (users && users.length > 0) {
-      setRecentUsers(prevRecent => {
-        // Add new users to the beginning
-        const updated = [...users, ...prevRecent];
-        
-        // Remove duplicates (keep first occurrence)
-        const uniqueUsers = updated.filter((user, index, self) =>
-          index === self.findIndex(u => u.id === user.id)
-        );
-        
-        // Keep only last 2 users
-        return uniqueUsers.slice(0, 2);
-      });
-    }
-  }, [users]);
 
   const handleSearch = () => {
     if (!searchQuery.trim()) {
@@ -97,6 +80,9 @@ export default function UserActivitySearch({ apiEndpoint = '/api/team/search-use
             <Search className="w-5 h-5" />
             Search User Activity
           </CardTitle>
+          <CardDescription>
+            Search by name or email to view team member HRCM activity
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex gap-2">
@@ -106,51 +92,66 @@ export default function UserActivitySearch({ apiEndpoint = '/api/team/search-use
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               data-testid="input-name-search"
+              className="flex-1"
             />
             <Button 
               onClick={handleSearch}
               disabled={isLoading}
               data-testid="button-search-by-name"
             >
-              <Search className="w-4 h-4 mr-2" />
-              Search
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Searching
+                </>
+              ) : (
+                <>
+                  <Search className="w-4 h-4 mr-2" />
+                  Search
+                </>
+              )}
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Results */}
+      {/* Loading State */}
       {isLoading && (
         <Card>
-          <CardContent className="p-6 text-center text-muted-foreground">
-            Searching...
+          <CardContent className="p-8 text-center">
+            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-primary" />
+            <p className="text-muted-foreground">Searching for users...</p>
           </CardContent>
         </Card>
       )}
 
+      {/* Error State */}
       {error && (
         <Card>
           <CardContent className="p-6 flex items-center justify-center gap-2 text-destructive">
             <AlertCircle className="w-5 h-5" />
-            <span>No users found</span>
+            <span>No users found matching "{searchTerm}"</span>
           </CardContent>
         </Card>
       )}
 
-      {recentUsers.length > 0 && (
+      {/* Results */}
+      {users && users.length > 0 && (
         <div className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            Showing {recentUsers.length} recent search{recentUsers.length > 1 ? 'es' : ''}
+            Found {users.length} user{users.length > 1 ? 's' : ''}
           </p>
           
-          {recentUsers.map((user) => (
+          {users.map((user) => (
             <Card key={user.id} className="hover-elevate" data-testid={`card-user-${user.id}`}>
               <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <User className="w-5 h-5 text-primary" />
-                    </div>
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3 flex-1">
+                    <Avatar className="w-10 h-10">
+                      <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                        {user.firstName?.[0]}{user.lastName?.[0]}
+                      </AvatarFallback>
+                    </Avatar>
                     <div>
                       <h3 className="font-semibold" data-testid={`text-user-name-${user.id}`}>
                         {user.firstName} {user.lastName}
@@ -160,13 +161,26 @@ export default function UserActivitySearch({ apiEndpoint = '/api/team/search-use
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <Badge variant="outline" className="mb-1">
-                      Week {user.latestWeek?.weekNumber || 0}
-                    </Badge>
-                    <p className="text-xs text-muted-foreground">
-                      {user.totalWeeks} total weeks
-                    </p>
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <Badge variant="outline" className="mb-1">
+                        Week {user.latestWeek?.weekNumber || 0}
+                      </Badge>
+                      <p className="text-xs text-muted-foreground">
+                        {user.totalWeeks} total weeks
+                      </p>
+                    </div>
+                    {onViewDashboard && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onViewDashboard(user.id)}
+                        data-testid={`button-view-dashboard-${user.id}`}
+                      >
+                        <Eye className="w-4 h-4 mr-1" />
+                        View Dashboard
+                      </Button>
+                    )}
                   </div>
                 </div>
               </CardHeader>
@@ -231,6 +245,16 @@ export default function UserActivitySearch({ apiEndpoint = '/api/team/search-use
             </Card>
           ))}
         </div>
+      )}
+
+      {/* Empty State */}
+      {!searchTerm && !isLoading && (
+        <Card className="border-dashed">
+          <CardContent className="p-8 text-center text-muted-foreground">
+            <User className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <p className="text-sm">Enter a name or email above to search for user activity</p>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
