@@ -101,15 +101,6 @@ export default function AdminPanel() {
     enabled: activeTab === 'analytics',
   });
 
-  // Show loading while checking authentication (after all hooks)
-  if (userLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading...</div>
-      </div>
-    );
-  }
-
   const searchUserMutation = useMutation({
     mutationFn: async (email: string) => {
       const response = await fetch(`/api/admin/search-user?email=${encodeURIComponent(email)}`);
@@ -257,6 +248,15 @@ export default function AdminPanel() {
       toast({ title: "Admin Deleted", description: "Admin user has been removed" });
     }
   });
+
+  // Show loading while checking authentication (after ALL hooks)
+  if (userLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
+  }
 
   const handleAddEmail = () => {
     if (!newEmail.trim()) {
