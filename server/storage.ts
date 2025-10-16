@@ -784,8 +784,8 @@ export class DatabaseStorage implements IStorage {
         money: Math.round(avgMoney * 10) / 10,
       },
       platinumStatus: {
-        achieved: platinumProgress?.healthPlatinumAchieved || false,
-        weeksAtEight: platinumProgress?.healthConsecutiveWeeksAtEight || 0,
+        achieved: platinumProgress?.platinumAchieved || false,
+        weeksAtEight: 0, // This would need to be calculated from rating progression
       },
     };
   }

@@ -1546,6 +1546,119 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
+  // New Admin Analytics & Dashboard Routes
+  
+  // Get user's complete dashboard data (for admin to view any user's dashboard)
+  app.get('/api/admin/user/:userId/dashboard', isAuthenticated, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const dashboardData = await storage.getUserDashboardData(userId);
+      res.json(dashboardData);
+    } catch (error) {
+      console.error("Error fetching user dashboard data:", error);
+      res.status(500).json({ message: "Failed to fetch user dashboard data" });
+    }
+  });
+
+  // Get user analytics with period filter (weekly/monthly/yearly)
+  app.get('/api/admin/user/:userId/analytics-period', isAuthenticated, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { period = 'monthly' } = req.query;
+      
+      if (!['weekly', 'monthly', 'yearly'].includes(period as string)) {
+        return res.status(400).json({ message: "Invalid period. Use: weekly, monthly, or yearly" });
+      }
+      
+      const analytics = await storage.getUserAnalytics(userId, period as 'weekly' | 'monthly' | 'yearly');
+      res.json(analytics);
+    } catch (error) {
+      console.error("Error fetching user analytics:", error);
+      res.status(500).json({ message: "Failed to fetch user analytics" });
+    }
+  });
+
+  // Get team analytics with period filter (weekly/monthly/yearly)
+  app.get('/api/admin/team-analytics', isAuthenticated, async (req, res) => {
+    try {
+      const { period = 'monthly' } = req.query;
+      
+      if (!['weekly', 'monthly', 'yearly'].includes(period as string)) {
+        return res.status(400).json({ message: "Invalid period. Use: weekly, monthly, or yearly" });
+      }
+      
+      const analytics = await storage.getTeamAnalytics(period as 'weekly' | 'monthly' | 'yearly');
+      res.json(analytics);
+    } catch (error) {
+      console.error("Error fetching team analytics:", error);
+      res.status(500).json({ message: "Failed to fetch team analytics" });
+    }
+  });
+
+  // Admin add course recommendation to user
+  app.post('/api/admin/recommend-course', isAuthenticated, async (req: any, res) => {
+    try {
+      const adminId = req.user?.claims?.sub || req.session.userEmail;
+      if (!adminId) {
+        return res.status(401).json({ message: "Admin not authenticated" });
+      }
+
+      const { userId, hrcmArea, courseId, courseName, lessonId, lessonName, lessonUrl, reason } = req.body;
+      
+      if (!userId || !hrcmArea || !courseId || !courseName) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      const recommendation = await storage.addCourseRecommendation({
+        userId,
+        adminId,
+        hrcmArea,
+        courseId,
+        courseName,
+        lessonId,
+        lessonName,
+        lessonUrl,
+        reason,
+        status: 'pending',
+      });
+
+      res.json(recommendation);
+    } catch (error) {
+      console.error("Error adding course recommendation:", error);
+      res.status(500).json({ message: "Failed to add course recommendation" });
+    }
+  });
+
+  // Get user's recommendations
+  app.get('/api/admin/user/:userId/recommendations', isAuthenticated, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const recommendations = await storage.getUserRecommendations(userId);
+      res.json(recommendations);
+    } catch (error) {
+      console.error("Error fetching recommendations:", error);
+      res.status(500).json({ message: "Failed to fetch recommendations" });
+    }
+  });
+
+  // Update recommendation status
+  app.put('/api/admin/recommendation/:id/status', isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      if (!['pending', 'accepted', 'completed'].includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+
+      const recommendation = await storage.updateRecommendationStatus(id, status);
+      res.json(recommendation);
+    } catch (error) {
+      console.error("Error updating recommendation status:", error);
+      res.status(500).json({ message: "Failed to update recommendation status" });
+    }
+  });
+
   // Rituals endpoints
   app.get('/api/rituals', isAuthenticated, async (req: any, res) => {
     try {
