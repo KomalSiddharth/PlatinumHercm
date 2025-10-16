@@ -323,28 +323,88 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
   useEffect(() => {
     // If viewing historical data
     if (viewingHistory) {
-      // If snapshot exists, use it
-      if (historicalSnapshot?.beliefs) {
-        const updatedBeliefs = historicalSnapshot.beliefs.map((belief: any) => {
-          let newChecklist: ChecklistItem[] = [];
-          
-          if (belief.category === 'Health') {
-            newChecklist = HEALTH_STANDARDS.map(std => ({ ...std }));
-          } else if (belief.category === 'Relationship') {
-            newChecklist = RELATIONSHIP_STANDARDS.map(std => ({ ...std }));
-          } else if (belief.category === 'Career') {
-            newChecklist = CAREER_STANDARDS.map(std => ({ ...std }));
-          } else if (belief.category === 'Money') {
-            newChecklist = MONEY_STANDARDS.map(std => ({ ...std }));
+      // If snapshot exists, convert database fields to beliefs array format
+      if (historicalSnapshot) {
+        const convertedBeliefs: HRCMBelief[] = [
+          {
+            category: 'Health',
+            currentRating: historicalSnapshot.currentH || 0,
+            problems: historicalSnapshot.healthProblems || '',
+            currentFeelings: historicalSnapshot.healthCurrentFeelings || '',
+            currentBelief: historicalSnapshot.healthCurrentBelief || '',
+            currentActions: historicalSnapshot.healthCurrentActions || '',
+            targetRating: historicalSnapshot.targetH || 0,
+            result: historicalSnapshot.healthResult || '',
+            nextFeelings: historicalSnapshot.healthNextFeelings || '',
+            nextWeekTarget: historicalSnapshot.healthNextWeekTarget || '',
+            nextActions: historicalSnapshot.healthNextActions || '',
+            resultChecklist: historicalSnapshot.healthResultChecklist || [],
+            feelingsChecklist: historicalSnapshot.healthFeelingsChecklist || [],
+            beliefsChecklist: historicalSnapshot.healthBeliefsChecklist || [],
+            actionsChecklist: historicalSnapshot.healthActionsChecklist || [],
+            checklist: historicalSnapshot.healthChecklist || [],
+            assignment: historicalSnapshot.healthAssignment || { courses: [], lessons: [] }
+          },
+          {
+            category: 'Relationship',
+            currentRating: historicalSnapshot.currentE || 0,
+            problems: historicalSnapshot.relationshipProblems || '',
+            currentFeelings: historicalSnapshot.relationshipCurrentFeelings || '',
+            currentBelief: historicalSnapshot.relationshipCurrentBelief || '',
+            currentActions: historicalSnapshot.relationshipCurrentActions || '',
+            targetRating: historicalSnapshot.targetE || 0,
+            result: historicalSnapshot.relationshipResult || '',
+            nextFeelings: historicalSnapshot.relationshipNextFeelings || '',
+            nextWeekTarget: historicalSnapshot.relationshipNextWeekTarget || '',
+            nextActions: historicalSnapshot.relationshipNextActions || '',
+            resultChecklist: historicalSnapshot.relationshipResultChecklist || [],
+            feelingsChecklist: historicalSnapshot.relationshipFeelingsChecklist || [],
+            beliefsChecklist: historicalSnapshot.relationshipBeliefsChecklist || [],
+            actionsChecklist: historicalSnapshot.relationshipActionsChecklist || [],
+            checklist: historicalSnapshot.relationshipChecklist || [],
+            assignment: historicalSnapshot.relationshipAssignment || { courses: [], lessons: [] }
+          },
+          {
+            category: 'Career',
+            currentRating: historicalSnapshot.currentR || 0,
+            problems: historicalSnapshot.careerProblems || '',
+            currentFeelings: historicalSnapshot.careerCurrentFeelings || '',
+            currentBelief: historicalSnapshot.careerCurrentBelief || '',
+            currentActions: historicalSnapshot.careerCurrentActions || '',
+            targetRating: historicalSnapshot.targetR || 0,
+            result: historicalSnapshot.careerResult || '',
+            nextFeelings: historicalSnapshot.careerNextFeelings || '',
+            nextWeekTarget: historicalSnapshot.careerNextWeekTarget || '',
+            nextActions: historicalSnapshot.careerNextActions || '',
+            resultChecklist: historicalSnapshot.careerResultChecklist || [],
+            feelingsChecklist: historicalSnapshot.careerFeelingsChecklist || [],
+            beliefsChecklist: historicalSnapshot.careerBeliefsChecklist || [],
+            actionsChecklist: historicalSnapshot.careerActionsChecklist || [],
+            checklist: historicalSnapshot.careerChecklist || [],
+            assignment: historicalSnapshot.careerAssignment || { courses: [], lessons: [] }
+          },
+          {
+            category: 'Money',
+            currentRating: historicalSnapshot.currentC || 0,
+            problems: historicalSnapshot.moneyProblems || '',
+            currentFeelings: historicalSnapshot.moneyCurrentFeelings || '',
+            currentBelief: historicalSnapshot.moneyCurrentBelief || '',
+            currentActions: historicalSnapshot.moneyCurrentActions || '',
+            targetRating: historicalSnapshot.targetC || 0,
+            result: historicalSnapshot.moneyResult || '',
+            nextFeelings: historicalSnapshot.moneyNextFeelings || '',
+            nextWeekTarget: historicalSnapshot.moneyNextWeekTarget || '',
+            nextActions: historicalSnapshot.moneyNextActions || '',
+            resultChecklist: historicalSnapshot.moneyResultChecklist || [],
+            feelingsChecklist: historicalSnapshot.moneyFeelingsChecklist || [],
+            beliefsChecklist: historicalSnapshot.moneyBeliefsChecklist || [],
+            actionsChecklist: historicalSnapshot.moneyActionsChecklist || [],
+            checklist: historicalSnapshot.moneyChecklist || [],
+            assignment: historicalSnapshot.moneyAssignment || { courses: [], lessons: [] }
           }
-          
-          return {
-            ...belief,
-            checklist: newChecklist
-          };
-        });
+        ];
         
-        setBeliefs(updatedBeliefs);
+        setBeliefs(convertedBeliefs);
         setUnifiedAssignment((historicalSnapshot as any).unifiedAssignment || []);
       } else {
         // No snapshot found (future date or no data for this date) - show blank
