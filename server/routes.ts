@@ -934,10 +934,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin analytics - Get all users progress summary
+  // Admin analytics - Get all users progress summary (approved users only)
   app.get('/api/admin/users-analytics', isAuthenticated, async (req, res) => {
     try {
-      const users = await storage.getAllUsers();
+      // Get approved emails
+      const approvedEmailsList = await storage.getApprovedEmails();
+      const approvedEmailSet = new Set(approvedEmailsList.filter(ae => ae.status === 'active').map(ae => ae.email));
+      
+      // Get all users and filter by approved emails
+      const allUsers = await storage.getAllUsers();
+      const users = allUsers.filter(u => approvedEmailSet.has(u.email));
+      
       const analytics = [];
       
       for (const user of users) {
