@@ -1175,7 +1175,8 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       responseText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       
       const parsed = JSON.parse(responseText);
-      const aiSuggestions = parsed.suggestions || [];
+      // Handle both "suggestions" and "data" keys (OpenAI sometimes uses different keys)
+      const aiSuggestions = parsed.suggestions || parsed.data || [];
       
       console.log('[AI Auto-Fill] Success! Parsed', aiSuggestions.length, 'suggestions');
       

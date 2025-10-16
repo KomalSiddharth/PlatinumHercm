@@ -368,11 +368,12 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
         if (b.category === 'Health') {
           const existingChecklist = b.checklist || [];
           
-          // Check if this is the old format by looking for health-std-* IDs
-          const hasNewFormat = existingChecklist.some(item => item.id.startsWith('health-std-'));
+          // Check if this is the old format (4 items) or needs update to 10 items
+          const hasOldFormat = existingChecklist.length === 4;
+          const hasNewFormat = existingChecklist.length === 10 && existingChecklist.some(item => item.id === 'health-std-1');
           
-          if (!hasNewFormat || existingChecklist.length !== 4) {
-            // Replace with new 4 health standards
+          if (!hasNewFormat || hasOldFormat) {
+            // Replace with new 10 health standards
             return {
               ...b,
               checklist: HEALTH_STANDARDS.map(std => ({ ...std })),
@@ -391,11 +392,12 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
         if (b.category === 'Relationship') {
           const existingChecklist = b.checklist || [];
           
-          // Check if this is the old format by looking for relationship-std-* IDs
-          const hasNewFormat = existingChecklist.some(item => item.id.startsWith('relationship-std-'));
+          // Check if needs update to 6 relationship standards
+          const hasOldFormat = existingChecklist.length === 4;
+          const hasNewFormat = existingChecklist.length === 6 && existingChecklist.some(item => item.id === 'relationship-std-1');
           
-          if (!hasNewFormat || existingChecklist.length !== 4) {
-            // Replace with new 4 relationship standards
+          if (!hasNewFormat || hasOldFormat) {
+            // Replace with new 6 relationship standards
             return {
               ...b,
               checklist: RELATIONSHIP_STANDARDS.map(std => ({ ...std })),
@@ -414,11 +416,12 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
         if (b.category === 'Career') {
           const existingChecklist = b.checklist || [];
           
-          // Check if this is the old format by looking for career-std-* IDs
-          const hasNewFormat = existingChecklist.some(item => item.id.startsWith('career-std-'));
+          // Check if needs update to 5 career standards
+          const hasOldFormat = existingChecklist.length === 4;
+          const hasNewFormat = existingChecklist.length === 5 && existingChecklist.some(item => item.id === 'career-std-1');
           
-          if (!hasNewFormat || existingChecklist.length !== 4) {
-            // Replace with new 4 career standards
+          if (!hasNewFormat || hasOldFormat) {
+            // Replace with new 5 career standards
             return {
               ...b,
               checklist: CAREER_STANDARDS.map(std => ({ ...std })),
@@ -437,11 +440,12 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
         if (b.category === 'Money') {
           const existingChecklist = b.checklist || [];
           
-          // Check if this is the old format by looking for money-std-* IDs
-          const hasNewFormat = existingChecklist.some(item => item.id.startsWith('money-std-'));
+          // Check if needs update to 5 money standards
+          const hasOldFormat = existingChecklist.length === 4;
+          const hasNewFormat = existingChecklist.length === 5 && existingChecklist.some(item => item.id === 'money-std-1');
           
-          if (!hasNewFormat || existingChecklist.length !== 4) {
-            // Replace with new 4 money standards
+          if (!hasNewFormat || hasOldFormat) {
+            // Replace with new 5 money standards
             return {
               ...b,
               checklist: MONEY_STANDARDS.map(std => ({ ...std })),
