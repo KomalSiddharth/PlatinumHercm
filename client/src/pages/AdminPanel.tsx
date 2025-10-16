@@ -61,6 +61,12 @@ export default function AdminPanel() {
   const [emailSearchQuery, setEmailSearchQuery] = useState('');
   const [searchedUser, setSearchedUser] = useState<any>(null);
   
+  // Course recommendation states
+  const [recUserEmail, setRecUserEmail] = useState('');
+  const [recHrcmArea, setRecHrcmArea] = useState('health');
+  const [recCourseName, setRecCourseName] = useState('');
+  const [recReason, setRecReason] = useState('');
+  
   const { toast } = useToast();
 
   // Check if user is logged in (admin restrictions removed)
@@ -246,6 +252,33 @@ export default function AdminPanel() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/team'] });
       toast({ title: "Admin Deleted", description: "Admin user has been removed" });
+    }
+  });
+
+  // Course Recommendations query and mutation
+  const { data: recommendations = [] } = useQuery<any[]>({
+    queryKey: ['/api/admin/recommendations'],
+    enabled: activeTab === 'recommendations',
+  });
+
+  const addRecommendationMutation = useMutation({
+    mutationFn: async (data: { userEmail: string; hrcmArea: string; courseName: string; reason?: string }) => {
+      return apiRequest('POST', '/api/admin/recommendations', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/recommendations'] });
+      toast({ title: "Recommendation Added", description: "Course recommendation has been sent to user" });
+      setRecUserEmail('');
+      setRecHrcmArea('health');
+      setRecCourseName('');
+      setRecReason('');
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Error", 
+        description: error.message || "Failed to add recommendation",
+        variant: "destructive" 
+      });
     }
   });
 
@@ -1194,12 +1227,19 @@ export default function AdminPanel() {
                       <label className="text-sm font-medium mb-2 block">User Email</label>
                       <Input
                         placeholder="user@example.com"
+                        value={recUserEmail}
+                        onChange={(e) => setRecUserEmail(e.target.value)}
                         data-testid="input-recommendation-email"
                       />
                     </div>
                     <div>
                       <label className="text-sm font-medium mb-2 block">HRCM Area</label>
-                      <select className="w-full border rounded-md p-2" data-testid="select-hrcm-area">
+                      <select 
+                        className="w-full border rounded-md p-2" 
+                        value={recHrcmArea}
+                        onChange={(e) => setRecHrcmArea(e.target.value)}
+                        data-testid="select-hrcm-area"
+                      >
                         <option value="health">Health</option>
                         <option value="relationship">Relationship</option>
                         <option value="career">Career</option>
@@ -1208,15 +1248,42 @@ export default function AdminPanel() {
                     </div>
                     <div>
                       <label className="text-sm font-medium mb-2 block">Course Name</label>
-                      <Input placeholder="Enter course name" data-testid="input-course-name" />
+                      <Input 
+                        placeholder="Enter course name" 
+                        value={recCourseName}
+                        onChange={(e) => setRecCourseName(e.target.value)}
+                        data-testid="input-course-name" 
+                      />
                     </div>
                     <div>
                       <label className="text-sm font-medium mb-2 block">Reason (Optional)</label>
-                      <Textarea placeholder="Why are you recommending this course?" rows={3} data-testid="textarea-recommendation-reason" />
+                      <Textarea 
+                        placeholder="Why are you recommending this course?" 
+                        rows={3}
+                        value={recReason}
+                        onChange={(e) => setRecReason(e.target.value)}
+                        data-testid="textarea-recommendation-reason" 
+                      />
                     </div>
-                    <Button className="w-full" data-testid="button-submit-recommendation">
+                    <Button 
+                      className="w-full" 
+                      onClick={() => {
+                        if (!recUserEmail || !recCourseName) {
+                          toast({ title: "Missing Fields", description: "Please fill in email and course name", variant: "destructive" });
+                          return;
+                        }
+                        addRecommendationMutation.mutate({
+                          userEmail: recUserEmail,
+                          hrcmArea: recHrcmArea,
+                          courseName: recCourseName,
+                          reason: recReason || undefined
+                        });
+                      }}
+                      disabled={addRecommendationMutation.isPending}
+                      data-testid="button-submit-recommendation"
+                    >
                       <Plus className="w-4 h-4 mr-2" />
-                      Add Recommendation
+                      {addRecommendationMutation.isPending ? 'Adding...' : 'Add Recommendation'}
                     </Button>
                   </CardContent>
                 </Card>
@@ -1226,9 +1293,30 @@ export default function AdminPanel() {
                     <CardTitle>Recent Recommendations</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-sm text-gray-500 text-center py-4">
-                      No recommendations yet. Add your first recommendation above.
-                    </div>
+                    {recommendations.length === 0 ? (
+                      <div className="text-sm text-gray-500 text-center py-4">
+                        No recommendations yet. Add your first recommendation above.
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {recommendations.map((rec: any) => (
+                          <div key={rec.id} className="p-3 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <div className="font-medium">{rec.courseName}</div>
+                                <div className="text-sm text-gray-500">
+                                  To: {rec.userEmail} • Area: {rec.hrcmArea}
+                                </div>
+                                {rec.reason && (
+                                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">{rec.reason}</div>
+                                )}
+                              </div>
+                              <Badge variant="outline">{rec.status || 'pending'}</Badge>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </div>

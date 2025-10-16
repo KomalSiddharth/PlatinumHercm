@@ -1269,17 +1269,24 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         return res.status(400).json({ message: "Email is required" });
       }
 
-      const approvedEmail = await storage.getApprovedEmail(email);
+      // Check if user is an admin first
+      const adminUser = await storage.getAdminUser(email);
+      const isAdmin = adminUser && adminUser.status === 'active';
       
-      if (!approvedEmail || approvedEmail.status !== 'active') {
-        // Log failed attempt
-        await storage.createAccessLog({
-          email,
-          status: 'failed',
-          ipAddress: req.ip || req.headers['x-forwarded-for'] as string || 'unknown',
-          userAgent: req.headers['user-agent'] || 'unknown'
-        });
-        return res.status(403).json({ message: "Your email is not approved. Please contact admin." });
+      // If not admin, check approved emails
+      if (!isAdmin) {
+        const approvedEmail = await storage.getApprovedEmail(email);
+        
+        if (!approvedEmail || approvedEmail.status !== 'active') {
+          // Log failed attempt
+          await storage.createAccessLog({
+            email,
+            status: 'failed',
+            ipAddress: req.ip || req.headers['x-forwarded-for'] as string || 'unknown',
+            userAgent: req.headers['user-agent'] || 'unknown'
+          });
+          return res.status(403).json({ message: "Your email is not approved. Please contact admin." });
+        }
       }
 
       await storage.incrementAccessCount(email);
@@ -1298,11 +1305,12 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         await storage.upsertUser({
           id: email,
           email: email,
+          isAdmin: isAdmin || false,
         });
       }
       
       req.session.userEmail = email;
-      req.session.isAdmin = false;
+      req.session.isAdmin = isAdmin || false;
       
       res.json({ success: true, message: "Login successful" });
     } catch (error) {
@@ -1592,6 +1600,54 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     } catch (error) {
       console.error("Error fetching team analytics:", error);
       res.status(500).json({ message: "Failed to fetch team analytics" });
+    }
+  });
+
+  // Admin course recommendations - Get all recommendations
+  app.get('/api/admin/recommendations', isAuthenticated, async (req, res) => {
+    try {
+      const recommendations = await storage.getAllCourseRecommendations();
+      res.json(recommendations);
+    } catch (error) {
+      console.error("Error fetching all recommendations:", error);
+      res.status(500).json({ message: "Failed to fetch recommendations" });
+    }
+  });
+
+  // Admin course recommendations - Create recommendation
+  app.post('/api/admin/recommendations', isAuthenticated, async (req: any, res) => {
+    try {
+      const adminId = req.user?.claims?.sub || req.session.userEmail;
+      if (!adminId) {
+        return res.status(401).json({ message: "Admin not authenticated" });
+      }
+
+      const { userEmail, hrcmArea, courseName, reason } = req.body;
+      
+      if (!userEmail || !hrcmArea || !courseName) {
+        return res.status(400).json({ message: "Missing required fields: userEmail, hrcmArea, courseName" });
+      }
+
+      // Get user ID from email
+      const user = await storage.getUserByEmail(userEmail);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const recommendation = await storage.addCourseRecommendation({
+        userId: user.id,
+        adminId,
+        hrcmArea,
+        courseId: courseName.toLowerCase().replace(/\s+/g, '-'),
+        courseName,
+        reason,
+        status: 'pending',
+      });
+
+      res.json(recommendation);
+    } catch (error) {
+      console.error("Error adding course recommendation:", error);
+      res.status(500).json({ message: "Failed to add course recommendation" });
     }
   });
 

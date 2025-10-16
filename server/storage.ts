@@ -149,6 +149,7 @@ export interface IStorage {
   // Admin Course Recommendations operations
   addCourseRecommendation(recommendation: any): Promise<any>;
   getUserRecommendations(userId: string): Promise<any[]>;
+  getAllCourseRecommendations(): Promise<any[]>;
   updateRecommendationStatus(id: string, status: string): Promise<any>;
 }
 
@@ -897,6 +898,13 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(adminCourseRecommendations)
       .where(eq(adminCourseRecommendations.userId, userId))
+      .orderBy(desc(adminCourseRecommendations.createdAt));
+  }
+
+  async getAllCourseRecommendations(): Promise<AdminCourseRecommendation[]> {
+    return await db
+      .select()
+      .from(adminCourseRecommendations)
       .orderBy(desc(adminCourseRecommendations.createdAt));
   }
 
