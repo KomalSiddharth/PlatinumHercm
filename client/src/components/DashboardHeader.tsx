@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Menu, X, Trophy, Moon, Sun, User as UserIcon } from 'lucide-react';
 import Logo from './Logo';
 import { Button } from '@/components/ui/button';
@@ -28,24 +28,10 @@ export default function DashboardHeader({
   // Safety check: Ensure userName is never null/undefined
   const displayName = userName || 'User';
 
-  // Initialize theme from localStorage or system preference on mount
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const shouldBeDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
-    
-    if (shouldBeDark) {
-      setDarkMode(true);
-      document.documentElement.classList.add('dark');
-    }
-  }, []);
-
   const toggleDarkMode = () => {
-    const newMode = !darkMode;
-    setDarkMode(newMode);
+    setDarkMode(!darkMode);
     document.documentElement.classList.toggle('dark');
-    // Persist theme preference
-    localStorage.setItem('theme', newMode ? 'dark' : 'light');
+    console.log('Dark mode toggled:', !darkMode);
   };
 
   const navItems = [
@@ -73,10 +59,10 @@ export default function DashboardHeader({
                 variant={activeSection === item.id ? 'default' : 'ghost'}
                 onClick={() => onNavigate(item.id)}
                 data-testid={`nav-${item.id}`}
-                className={`font-medium transition-all ${
+                className={`font-medium ${
                   activeSection === item.id 
-                    ? 'bg-brand-gradient text-white shadow-md hover:shadow-lg hover-lift' 
-                    : 'hover:text-primary'
+                    ? 'bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90' 
+                    : ''
                 }`}
               >
                 {item.label}
@@ -87,7 +73,7 @@ export default function DashboardHeader({
           <div className="flex items-center gap-3">
             <Badge 
               variant="secondary" 
-              className="gap-1 hidden sm:flex bg-brand-gradient text-white border-0 shadow-sm px-3 py-1.5" 
+              className="gap-1 hidden sm:flex bg-gradient-to-r from-primary to-accent text-white border-0" 
               data-testid="badge-points"
             >
               <Trophy className="w-4 h-4" />
@@ -99,7 +85,6 @@ export default function DashboardHeader({
               size="icon"
               onClick={toggleDarkMode}
               data-testid="button-theme-toggle"
-              className="hover:text-primary transition-colors"
             >
               {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </Button>
@@ -109,11 +94,11 @@ export default function DashboardHeader({
               size="icon"
               onClick={onProfileClick}
               data-testid="button-profile"
-              className="relative hover:scale-105 transition-transform"
+              className="relative"
             >
-              <Avatar className="w-8 h-8 ring-2 ring-primary/20">
+              <Avatar className="w-8 h-8">
                 <AvatarImage src="" />
-                <AvatarFallback className="bg-brand-gradient text-white text-sm font-medium">
+                <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-white text-sm font-medium">
                   {displayName.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
@@ -148,10 +133,10 @@ export default function DashboardHeader({
                     onNavigate(item.id);
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full justify-start font-medium transition-all ${
+                  className={`w-full justify-start ${
                     activeSection === item.id 
-                      ? 'bg-brand-gradient text-white shadow-md' 
-                      : 'hover:text-primary'
+                      ? 'bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90' 
+                      : ''
                   }`}
                   data-testid={`nav-mobile-${item.id}`}
                 >
@@ -159,7 +144,7 @@ export default function DashboardHeader({
                 </Button>
               ))}
               <div className="pt-2 mt-2 border-t">
-                <Badge variant="secondary" className="w-full justify-center gap-2 py-2 bg-brand-gradient text-white border-0">
+                <Badge variant="secondary" className="w-full justify-center gap-2 py-2 bg-gradient-to-r from-primary to-accent text-white border-0">
                   <Trophy className="w-4 h-4" />
                   <span className="font-semibold">{userPoints} Points</span>
                 </Badge>
