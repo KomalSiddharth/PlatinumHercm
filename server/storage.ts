@@ -799,15 +799,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTeamAnalytics(period: 'weekly' | 'monthly' | 'yearly') {
+    // Get approved emails
+    const approvedEmailsList = await db.select().from(approvedEmails).where(eq(approvedEmails.status, 'active'));
+    const approvedEmailSet = new Set(approvedEmailsList.map(ae => ae.email));
+    
+    // Get all users and filter by approved emails
     const allUsers = await this.getAllUsers();
-    const totalUsers = allUsers.length;
+    const approvedUsers = allUsers.filter(u => approvedEmailSet.has(u.email));
+    const totalUsers = approvedUsers.length;
+    
+    // Get only the user IDs from approved users
+    const approvedUserIds = new Set(approvedUsers.map(u => u.id));
 
-    // Get all weeks for all users
+    // Get all weeks for approved users only
     const allWeeksData = await db.select().from(hercmWeeks);
+    const approvedWeeksData = allWeeksData.filter(w => approvedUserIds.has(w.userId));
 
     // Filter based on period
     const now = new Date();
-    const filteredWeeks = allWeeksData.filter(week => {
+    const filteredWeeks = approvedWeeksData.filter(week => {
       if (!week.createdAt) return false;
       const weekDate = new Date(week.createdAt);
       if (period === 'weekly') {
@@ -832,8 +842,8 @@ export class DatabaseStorage implements IStorage {
     const avgCareer = filteredWeeks.reduce((sum, w) => sum + (w.currentR || 0), 0) / (filteredWeeks.length || 1);
     const avgMoney = filteredWeeks.reduce((sum, w) => sum + (w.currentC || 0), 0) / (filteredWeeks.length || 1);
 
-    // Calculate growth metrics
-    const newUsers = allUsers.filter(u => {
+    // Calculate growth metrics (only for approved users)
+    const newUsers = approvedUsers.filter(u => {
       if (!u.createdAt) return false;
       const userDate = new Date(u.createdAt);
       if (period === 'weekly') {
@@ -848,12 +858,12 @@ export class DatabaseStorage implements IStorage {
       }
     }).length;
 
-    // Calculate top performers
+    // Calculate top performers (only approved users)
     const userAverages = new Map<string, { total: number; count: number; email: string }>();
     for (const week of filteredWeeks) {
       const avg = ((week.currentH || 0) + (week.currentE || 0) + (week.currentR || 0) + (week.currentC || 0)) / 4;
       const existing = userAverages.get(week.userId) || { total: 0, count: 0, email: '' };
-      const user = allUsers.find(u => u.id === week.userId);
+      const user = approvedUsers.find(u => u.id === week.userId);
       userAverages.set(week.userId, {
         total: existing.total + avg,
         count: existing.count + 1,
