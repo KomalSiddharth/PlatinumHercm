@@ -12,6 +12,7 @@ import {
   ratingProgression,
   courseVideos,
   courseVideoCompletions,
+  adminCourseRecommendations,
   type User,
   type UpsertUser,
   type HercmWeek,
@@ -36,9 +37,11 @@ import {
   type InsertCourseVideo,
   type CourseVideoCompletion,
   type InsertCourseVideoCompletion,
+  type AdminCourseRecommendation,
+  type InsertAdminCourseRecommendation,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, count, sql } from "drizzle-orm";
+import { eq, desc, and, count, sql, gte, lte } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (Required for Replit Auth)
@@ -119,6 +122,34 @@ export interface IStorage {
   getRatingProgression(userId: string): Promise<RatingProgression | undefined>;
   upsertRatingProgression(userId: string, progression: Partial<InsertRatingProgression>): Promise<RatingProgression>;
   updateRatingProgression(userId: string, progression: Partial<InsertRatingProgression>): Promise<RatingProgression>;
+  
+  // Admin Analytics operations
+  getUserDashboardData(userId: string): Promise<{
+    user: User | undefined;
+    currentWeek: HercmWeek | undefined;
+    allWeeks: HercmWeek[];
+    platinumProgress: PlatinumProgress | undefined;
+    completedLessons: CourseVideoCompletion[];
+  }>;
+  getUserAnalytics(userId: string, period: 'weekly' | 'monthly' | 'yearly'): Promise<{
+    ratings: Array<{ date: string; health: number; relationship: number; career: number; money: number }>;
+    courseProgress: { total: number; completed: number };
+    averageRatings: { health: number; relationship: number; career: number; money: number };
+    platinumStatus: { achieved: boolean; weeksAtEight: number };
+  }>;
+  getTeamAnalytics(period: 'weekly' | 'monthly' | 'yearly'): Promise<{
+    totalUsers: number;
+    activeUsers: number;
+    averageRatings: { health: number; relationship: number; career: number; money: number };
+    growthMetrics: { newUsers: number; percentChange: number };
+    topPerformers: Array<{ userId: string; email: string; averageRating: number }>;
+    completionRates: { courses: number; rituals: number };
+  }>;
+  
+  // Admin Course Recommendations operations
+  addCourseRecommendation(recommendation: any): Promise<any>;
+  getUserRecommendations(userId: string): Promise<any[]>;
+  updateRecommendationStatus(id: string, status: string): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -678,6 +709,204 @@ export class DatabaseStorage implements IStorage {
       .where(eq(ratingProgression.userId, userId))
       .returning();
     return progression;
+  }
+
+  // Admin Analytics operations
+  async getUserDashboardData(userId: string) {
+    const user = await this.getUser(userId);
+    const allWeeks = await this.getHercmWeeksByUser(userId);
+    const currentWeek = allWeeks.length > 0 ? allWeeks[0] : undefined;
+    const platinumProgress = await this.getPlatinumProgress(userId);
+    const completedLessons = await db
+      .select()
+      .from(courseVideoCompletions)
+      .where(eq(courseVideoCompletions.userId, userId));
+
+    return {
+      user,
+      currentWeek,
+      allWeeks,
+      platinumProgress,
+      completedLessons,
+    };
+  }
+
+  async getUserAnalytics(userId: string, period: 'weekly' | 'monthly' | 'yearly') {
+    const weeks = await this.getHercmWeeksByUser(userId);
+    const completedLessons = await db
+      .select()
+      .from(courseVideoCompletions)
+      .where(eq(courseVideoCompletions.userId, userId));
+    const platinumProgress = await this.getPlatinumProgress(userId);
+
+    // Filter weeks based on period
+    const now = new Date();
+    const filteredWeeks = weeks.filter(week => {
+      if (!week.createdAt) return false;
+      const weekDate = new Date(week.createdAt);
+      if (period === 'weekly') {
+        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        return weekDate >= weekAgo;
+      } else if (period === 'monthly') {
+        const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        return weekDate >= monthAgo;
+      } else {
+        const yearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+        return weekDate >= yearAgo;
+      }
+    });
+
+    // Calculate ratings over time
+    const ratings = filteredWeeks.map(week => ({
+      date: week.createdAt?.toISOString() || '',
+      health: week.currentH || 0,
+      relationship: week.currentE || 0,
+      career: week.currentR || 0,
+      money: week.currentC || 0,
+    }));
+
+    // Calculate average ratings
+    const avgHealth = filteredWeeks.reduce((sum, w) => sum + (w.currentH || 0), 0) / (filteredWeeks.length || 1);
+    const avgRelationship = filteredWeeks.reduce((sum, w) => sum + (w.currentE || 0), 0) / (filteredWeeks.length || 1);
+    const avgCareer = filteredWeeks.reduce((sum, w) => sum + (w.currentR || 0), 0) / (filteredWeeks.length || 1);
+    const avgMoney = filteredWeeks.reduce((sum, w) => sum + (w.currentC || 0), 0) / (filteredWeeks.length || 1);
+
+    return {
+      ratings,
+      courseProgress: {
+        total: 100, // Placeholder - calculate from course data
+        completed: completedLessons.length,
+      },
+      averageRatings: {
+        health: Math.round(avgHealth * 10) / 10,
+        relationship: Math.round(avgRelationship * 10) / 10,
+        career: Math.round(avgCareer * 10) / 10,
+        money: Math.round(avgMoney * 10) / 10,
+      },
+      platinumStatus: {
+        achieved: platinumProgress?.healthPlatinumAchieved || false,
+        weeksAtEight: platinumProgress?.healthConsecutiveWeeksAtEight || 0,
+      },
+    };
+  }
+
+  async getTeamAnalytics(period: 'weekly' | 'monthly' | 'yearly') {
+    const allUsers = await this.getAllUsers();
+    const totalUsers = allUsers.length;
+
+    // Get all weeks for all users
+    const allWeeksData = await db.select().from(hercmWeeks);
+
+    // Filter based on period
+    const now = new Date();
+    const filteredWeeks = allWeeksData.filter(week => {
+      if (!week.createdAt) return false;
+      const weekDate = new Date(week.createdAt);
+      if (period === 'weekly') {
+        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        return weekDate >= weekAgo;
+      } else if (period === 'monthly') {
+        const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        return weekDate >= monthAgo;
+      } else {
+        const yearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+        return weekDate >= yearAgo;
+      }
+    });
+
+    // Calculate active users (users with data in period)
+    const activeUserIds = new Set(filteredWeeks.map(w => w.userId));
+    const activeUsers = activeUserIds.size;
+
+    // Calculate average ratings across all users
+    const avgHealth = filteredWeeks.reduce((sum, w) => sum + (w.currentH || 0), 0) / (filteredWeeks.length || 1);
+    const avgRelationship = filteredWeeks.reduce((sum, w) => sum + (w.currentE || 0), 0) / (filteredWeeks.length || 1);
+    const avgCareer = filteredWeeks.reduce((sum, w) => sum + (w.currentR || 0), 0) / (filteredWeeks.length || 1);
+    const avgMoney = filteredWeeks.reduce((sum, w) => sum + (w.currentC || 0), 0) / (filteredWeeks.length || 1);
+
+    // Calculate growth metrics
+    const newUsers = allUsers.filter(u => {
+      if (!u.createdAt) return false;
+      const userDate = new Date(u.createdAt);
+      if (period === 'weekly') {
+        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        return userDate >= weekAgo;
+      } else if (period === 'monthly') {
+        const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        return userDate >= monthAgo;
+      } else {
+        const yearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+        return userDate >= yearAgo;
+      }
+    }).length;
+
+    // Calculate top performers
+    const userAverages = new Map<string, { total: number; count: number; email: string }>();
+    for (const week of filteredWeeks) {
+      const avg = ((week.currentH || 0) + (week.currentE || 0) + (week.currentR || 0) + (week.currentC || 0)) / 4;
+      const existing = userAverages.get(week.userId) || { total: 0, count: 0, email: '' };
+      const user = allUsers.find(u => u.id === week.userId);
+      userAverages.set(week.userId, {
+        total: existing.total + avg,
+        count: existing.count + 1,
+        email: user?.email || '',
+      });
+    }
+
+    const topPerformers = Array.from(userAverages.entries())
+      .map(([userId, data]) => ({
+        userId,
+        email: data.email,
+        averageRating: Math.round((data.total / data.count) * 10) / 10,
+      }))
+      .sort((a, b) => b.averageRating - a.averageRating)
+      .slice(0, 10);
+
+    return {
+      totalUsers,
+      activeUsers,
+      averageRatings: {
+        health: Math.round(avgHealth * 10) / 10,
+        relationship: Math.round(avgRelationship * 10) / 10,
+        career: Math.round(avgCareer * 10) / 10,
+        money: Math.round(avgMoney * 10) / 10,
+      },
+      growthMetrics: {
+        newUsers,
+        percentChange: totalUsers > 0 ? Math.round((newUsers / totalUsers) * 100) : 0,
+      },
+      topPerformers,
+      completionRates: {
+        courses: 0, // Placeholder
+        rituals: 0, // Placeholder
+      },
+    };
+  }
+
+  // Admin Course Recommendations operations
+  async addCourseRecommendation(recommendation: InsertAdminCourseRecommendation): Promise<AdminCourseRecommendation> {
+    const [rec] = await db
+      .insert(adminCourseRecommendations)
+      .values(recommendation as any)
+      .returning();
+    return rec;
+  }
+
+  async getUserRecommendations(userId: string): Promise<AdminCourseRecommendation[]> {
+    return await db
+      .select()
+      .from(adminCourseRecommendations)
+      .where(eq(adminCourseRecommendations.userId, userId))
+      .orderBy(desc(adminCourseRecommendations.createdAt));
+  }
+
+  async updateRecommendationStatus(id: string, status: string): Promise<AdminCourseRecommendation> {
+    const [rec] = await db
+      .update(adminCourseRecommendations)
+      .set({ status } as any)
+      .where(eq(adminCourseRecommendations.id, id))
+      .returning();
+    return rec;
   }
 }
 
