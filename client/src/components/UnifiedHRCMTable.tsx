@@ -296,6 +296,14 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
   const getSnapshotForDate = () => {
     if (!allWeeksData || !selectedHistoryDate) return null;
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selected = new Date(selectedHistoryDate);
+    selected.setHours(0, 0, 0, 0);
+
+    // If selected date is in the future, return null (no data for future)
+    if (selected > today) return null;
+
     // Filter snapshots for the selected date
     const snapshotsForDate = (allWeeksData as any[]).filter(snapshot => {
       const snapshotDate = new Date(snapshot.createdAt);
@@ -313,29 +321,36 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
   const historicalSnapshot = getSnapshotForDate();
 
   useEffect(() => {
-    // If viewing historical data, use the snapshot
-    if (viewingHistory && historicalSnapshot?.beliefs) {
-      const updatedBeliefs = historicalSnapshot.beliefs.map((belief: any) => {
-        let newChecklist: ChecklistItem[] = [];
+    // If viewing historical data
+    if (viewingHistory) {
+      // If snapshot exists, use it
+      if (historicalSnapshot?.beliefs) {
+        const updatedBeliefs = historicalSnapshot.beliefs.map((belief: any) => {
+          let newChecklist: ChecklistItem[] = [];
+          
+          if (belief.category === 'Health') {
+            newChecklist = HEALTH_STANDARDS.map(std => ({ ...std }));
+          } else if (belief.category === 'Relationship') {
+            newChecklist = RELATIONSHIP_STANDARDS.map(std => ({ ...std }));
+          } else if (belief.category === 'Career') {
+            newChecklist = CAREER_STANDARDS.map(std => ({ ...std }));
+          } else if (belief.category === 'Money') {
+            newChecklist = MONEY_STANDARDS.map(std => ({ ...std }));
+          }
+          
+          return {
+            ...belief,
+            checklist: newChecklist
+          };
+        });
         
-        if (belief.category === 'Health') {
-          newChecklist = HEALTH_STANDARDS.map(std => ({ ...std }));
-        } else if (belief.category === 'Relationship') {
-          newChecklist = RELATIONSHIP_STANDARDS.map(std => ({ ...std }));
-        } else if (belief.category === 'Career') {
-          newChecklist = CAREER_STANDARDS.map(std => ({ ...std }));
-        } else if (belief.category === 'Money') {
-          newChecklist = MONEY_STANDARDS.map(std => ({ ...std }));
-        }
-        
-        return {
-          ...belief,
-          checklist: newChecklist
-        };
-      });
-      
-      setBeliefs(updatedBeliefs);
-      setUnifiedAssignment((historicalSnapshot as any).unifiedAssignment || []);
+        setBeliefs(updatedBeliefs);
+        setUnifiedAssignment((historicalSnapshot as any).unifiedAssignment || []);
+      } else {
+        // No snapshot found (future date or no data for this date) - show blank
+        setBeliefs(getBlankBeliefs());
+        setUnifiedAssignment([]);
+      }
       return;
     }
   }, [viewingHistory, historicalSnapshot]);
@@ -1276,9 +1291,22 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
             {/* Center: Heading */}
             <h3 className="font-bold text-white text-xl drop-shadow-md flex items-center gap-2">
               <Sparkles className="w-5 h-5" />
-              {viewingHistory && selectedHistoryDate 
-                ? `History - ${format(selectedHistoryDate, 'MMM dd, yyyy')}`
-                : 'Current Week'}
+              {(() => {
+                if (!viewingHistory || !selectedHistoryDate) return 'Current Week';
+                
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const selected = new Date(selectedHistoryDate);
+                selected.setHours(0, 0, 0, 0);
+                
+                // If selected date is today, show "Current Week"
+                if (selected.getTime() === today.getTime()) {
+                  return 'Current Week';
+                }
+                
+                // Otherwise show "History - date"
+                return `History - ${format(selectedHistoryDate, 'MMM dd, yyyy')}`;
+              })()}
             </h3>
 
             {/* Right: Spacer for balance */}
