@@ -848,26 +848,50 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
     category: string;
     checklistType: string;
   }) => {
+    const [editingId, setEditingId] = useState<string | null>(null);
     const visibleItems = items.slice(0, 2);
     const hiddenCount = items.length - 2;
     
     return (
-      <div className="space-y-1">
-        {visibleItems.map((item, index) => (
-          <div key={item.id} className="flex items-center gap-2">
+      <div className="space-y-1.5">
+        {visibleItems.map((item) => (
+          <div key={item.id} className="flex items-start gap-2 group">
             <Checkbox
               checked={item.checked}
               onCheckedChange={() => onToggle(item.id)}
-              className="h-3 w-3"
+              className="h-3 w-3 mt-0.5 shrink-0"
               data-testid={`checkbox-${checklistType}-${category.toLowerCase()}-${item.id}`}
             />
-            <Input
-              value={item.text}
-              onChange={(e) => onUpdateText(item.id, e.target.value)}
-              placeholder="Type checkpoint..."
-              className="h-6 text-xs flex-1 border-0 bg-transparent focus-visible:ring-1 px-1"
-              data-testid={`input-${checklistType}-${category.toLowerCase()}-${item.id}`}
-            />
+            {editingId === item.id ? (
+              <Textarea
+                value={item.text}
+                onChange={(e) => onUpdateText(item.id, e.target.value)}
+                onBlur={() => setEditingId(null)}
+                placeholder="Type checkpoint..."
+                className="min-h-[60px] text-xs flex-1 border bg-background/50 focus-visible:ring-1 p-2 resize-none"
+                autoFocus
+                data-testid={`textarea-${checklistType}-${category.toLowerCase()}-${item.id}`}
+              />
+            ) : (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => setEditingId(item.id)}
+                    className="flex-1 text-left text-xs py-0.5 px-1 rounded hover:bg-muted/30 transition-colors min-h-[20px] break-words"
+                    data-testid={`text-${checklistType}-${category.toLowerCase()}-${item.id}`}
+                  >
+                    <span className="line-clamp-2">
+                      {item.text || <span className="text-muted-foreground italic">Click to add text...</span>}
+                    </span>
+                  </button>
+                </TooltipTrigger>
+                {item.text && item.text.length > 50 && (
+                  <TooltipContent side="right" className="max-w-sm">
+                    <p className="text-xs whitespace-pre-wrap break-words">{item.text}</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            )}
           </div>
         ))}
         
@@ -875,19 +899,20 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
           <Tooltip>
             <TooltipTrigger asChild>
               <button 
-                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors w-full py-1"
+                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors w-full py-1 px-1"
                 data-testid={`button-show-more-${checklistType}-${category.toLowerCase()}`}
               >
                 <MoreHorizontal className="w-3 h-3" />
                 <span>{hiddenCount} more item{hiddenCount > 1 ? 's' : ''}...</span>
               </button>
             </TooltipTrigger>
-            <TooltipContent side="right" className="max-w-xs">
-              <div className="space-y-1">
+            <TooltipContent side="right" className="max-w-sm">
+              <div className="space-y-2">
+                <p className="text-xs font-semibold mb-2">All Checkpoints:</p>
                 {items.map((item) => (
-                  <div key={item.id} className="flex items-center gap-2 text-xs">
-                    <Checkbox checked={item.checked} disabled className="h-3 w-3" />
-                    <span>{item.text || '(empty)'}</span>
+                  <div key={item.id} className="flex items-start gap-2 text-xs">
+                    <Checkbox checked={item.checked} disabled className="h-3 w-3 mt-0.5 shrink-0" />
+                    <span className="break-words whitespace-pre-wrap">{item.text || '(empty)'}</span>
                   </div>
                 ))}
               </div>
@@ -899,7 +924,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
           size="sm"
           variant="ghost"
           onClick={onAddCheckpoint}
-          className="h-6 w-full text-xs text-muted-foreground hover:text-foreground gap-1"
+          className="h-7 w-full text-xs text-muted-foreground hover:text-foreground gap-1 mt-1"
           data-testid={`button-add-checkpoint-${checklistType}-${category.toLowerCase()}`}
         >
           <Plus className="w-3 h-3" />
