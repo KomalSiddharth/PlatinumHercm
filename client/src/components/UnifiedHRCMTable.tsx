@@ -1245,7 +1245,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                 </TableCell>
 
                 {/* Current Week - Problems */}
-                <TableCell className="p-0 bg-red-50/30 dark:bg-red-950/10 align-top">
+                <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10 align-top">
                   {isEditing(belief.category, 'problems') ? (
                     <Textarea
                       value={editValue}
@@ -1262,20 +1262,31 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                       data-testid={`textarea-problems-${belief.category.toLowerCase()}`}
                     />
                   ) : (
-                    <button
-                      className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
-                      onClick={(e) => startEdit(belief.category, 'problems', belief.problems, e.currentTarget)}
-                      type="button"
-                      aria-label="Edit problems"
-                      data-testid={`text-problems-${belief.category.toLowerCase()}`}
-                    >
-                      {belief.problems || <span className="text-muted-foreground italic">Click to add problems...</span>}
-                    </button>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded min-h-[40px]"
+                          onClick={(e) => startEdit(belief.category, 'problems', belief.problems, e.currentTarget)}
+                          type="button"
+                          aria-label="Edit problems"
+                          data-testid={`text-problems-${belief.category.toLowerCase()}`}
+                        >
+                          <span className="line-clamp-3 break-words whitespace-pre-wrap">
+                            {belief.problems || <span className="text-muted-foreground italic">Click to add problems...</span>}
+                          </span>
+                        </button>
+                      </TooltipTrigger>
+                      {belief.problems && belief.problems.length > 80 && (
+                        <TooltipContent side="right" className="max-w-sm">
+                          <p className="text-xs whitespace-pre-wrap break-words">{belief.problems}</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
                   )}
                 </TableCell>
 
                 {/* Current Week - Feelings */}
-                <TableCell className="p-0 bg-red-50/30 dark:bg-red-950/10 align-top">
+                <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10 align-top">
                   {isEditing(belief.category, 'currentFeelings') ? (
                     <Textarea
                       value={editValue}
@@ -1291,20 +1302,31 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                       data-testid={`textarea-feelings-${belief.category.toLowerCase()}`}
                     />
                   ) : (
-                    <button
-                      className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
-                      onClick={(e) => startEdit(belief.category, 'currentFeelings', belief.currentFeelings, e.currentTarget)}
-                      type="button"
-                      aria-label="Edit feelings"
-                      data-testid={`text-feelings-${belief.category.toLowerCase()}`}
-                    >
-                      {belief.currentFeelings || <span className="text-muted-foreground italic">Click to add feelings...</span>}
-                    </button>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded min-h-[40px]"
+                          onClick={(e) => startEdit(belief.category, 'currentFeelings', belief.currentFeelings, e.currentTarget)}
+                          type="button"
+                          aria-label="Edit feelings"
+                          data-testid={`text-feelings-${belief.category.toLowerCase()}`}
+                        >
+                          <span className="line-clamp-3 break-words whitespace-pre-wrap">
+                            {belief.currentFeelings || <span className="text-muted-foreground italic">Click to add feelings...</span>}
+                          </span>
+                        </button>
+                      </TooltipTrigger>
+                      {belief.currentFeelings && belief.currentFeelings.length > 80 && (
+                        <TooltipContent side="right" className="max-w-sm">
+                          <p className="text-xs whitespace-pre-wrap break-words">{belief.currentFeelings}</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
                   )}
                 </TableCell>
 
                 {/* Current Week - Beliefs */}
-                <TableCell className="p-0 bg-red-50/30 dark:bg-red-950/10 align-top">
+                <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10 align-top">
                   {isEditing(belief.category, 'currentBelief') ? (
                     <Textarea
                       value={editValue}
@@ -1320,20 +1342,31 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                       data-testid={`textarea-beliefs-${belief.category.toLowerCase()}`}
                     />
                   ) : (
-                    <button
-                      className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
-                      onClick={(e) => startEdit(belief.category, 'currentBelief', belief.currentBelief, e.currentTarget)}
-                      type="button"
-                      aria-label="Edit beliefs"
-                      data-testid={`text-beliefs-${belief.category.toLowerCase()}`}
-                    >
-                      {belief.currentBelief || <span className="text-muted-foreground italic">Click to add beliefs...</span>}
-                    </button>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded min-h-[40px]"
+                          onClick={(e) => startEdit(belief.category, 'currentBelief', belief.currentBelief, e.currentTarget)}
+                          type="button"
+                          aria-label="Edit beliefs"
+                          data-testid={`text-beliefs-${belief.category.toLowerCase()}`}
+                        >
+                          <span className="line-clamp-3 break-words whitespace-pre-wrap">
+                            {belief.currentBelief || <span className="text-muted-foreground italic">Click to add beliefs...</span>}
+                          </span>
+                        </button>
+                      </TooltipTrigger>
+                      {belief.currentBelief && belief.currentBelief.length > 80 && (
+                        <TooltipContent side="right" className="max-w-sm">
+                          <p className="text-xs whitespace-pre-wrap break-words">{belief.currentBelief}</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
                   )}
                 </TableCell>
 
                 {/* Current Week - Actions */}
-                <TableCell className="p-0 bg-red-50/30 dark:bg-red-950/10 border-r align-top">
+                <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10 border-r align-top">
                   {isEditing(belief.category, 'currentActions') ? (
                     <Textarea
                       value={editValue}
@@ -1349,15 +1382,26 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                       data-testid={`textarea-actions-${belief.category.toLowerCase()}`}
                     />
                   ) : (
-                    <button
-                      className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
-                      onClick={(e) => startEdit(belief.category, 'currentActions', belief.currentActions, e.currentTarget)}
-                      type="button"
-                      aria-label="Edit actions"
-                      data-testid={`text-actions-${belief.category.toLowerCase()}`}
-                    >
-                      {belief.currentActions || <span className="text-muted-foreground italic">Click to add actions...</span>}
-                    </button>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded min-h-[40px]"
+                          onClick={(e) => startEdit(belief.category, 'currentActions', belief.currentActions, e.currentTarget)}
+                          type="button"
+                          aria-label="Edit actions"
+                          data-testid={`text-actions-${belief.category.toLowerCase()}`}
+                        >
+                          <span className="line-clamp-3 break-words whitespace-pre-wrap">
+                            {belief.currentActions || <span className="text-muted-foreground italic">Click to add actions...</span>}
+                          </span>
+                        </button>
+                      </TooltipTrigger>
+                      {belief.currentActions && belief.currentActions.length > 80 && (
+                        <TooltipContent side="right" className="max-w-sm">
+                          <p className="text-xs whitespace-pre-wrap break-words">{belief.currentActions}</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
                   )}
                 </TableCell>
 
