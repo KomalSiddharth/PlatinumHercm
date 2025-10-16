@@ -69,15 +69,6 @@ export default function AdminPanel() {
     retry: false,
   });
 
-  // Show loading while checking authentication
-  if (userLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading...</div>
-      </div>
-    );
-  }
-
   const { data: approvedEmails = [], isLoading } = useQuery<ApprovedEmail[]>({
     queryKey: ['/api/admin/approved-emails'],
   });
@@ -109,6 +100,15 @@ export default function AdminPanel() {
     queryKey: ['/api/admin/users-analytics'],
     enabled: activeTab === 'analytics',
   });
+
+  // Show loading while checking authentication (after all hooks)
+  if (userLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
+  }
 
   const searchUserMutation = useMutation({
     mutationFn: async (email: string) => {
