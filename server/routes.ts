@@ -1109,29 +1109,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('[AI Auto-Fill] Starting request');
       
-      const prompt = `You are an expert life coach. Analyze the user's current week data and provide next week suggestions.
+      const prompt = `Analyze current week data and suggest next week targets.
 
-**Current Week Data:**
+Current Week:
 ${beliefs.map((belief: any) => `
-${belief.category}:
-- Rating: ${belief.currentRating || 0}/10
-- Problems: ${belief.problems || 'None'}
-- Feelings: ${belief.currentFeelings || 'None'}
-- Beliefs: ${belief.currentBelief || 'None'}  
-- Actions: ${belief.currentActions || 'None'}
+${belief.category}: Rating ${belief.currentRating}/10
+Problems: ${belief.problems || 'None'}
+Feelings: ${belief.currentFeelings || 'None'}
+Beliefs: ${belief.currentBelief || 'None'}  
+Actions: ${belief.currentActions || 'None'}
 `).join('\n')}
 
-Provide JSON array with 4 objects (Health, Relationship, Career, Money) in this format:
-[
-  {
-    "category": "Health",
-    "result": ["result1", "result2"],
-    "feelings": ["feeling1", "feeling2"],
-    "target": ["belief1", "belief2"],
-    "actions": ["action1", "action2", "action3"]
-  },
-  ...
-]`;
+Return ONLY a JSON object with "suggestions" array containing 4 objects:
+{
+  "suggestions": [
+    {
+      "category": "Health",
+      "result": ["specific result 1", "specific result 2"],
+      "feelings": ["positive feeling 1", "positive feeling 2"],
+      "target": ["empowering belief 1", "empowering belief 2"],
+      "actions": ["action 1", "action 2", "action 3"]
+    },
+    {
+      "category": "Relationship",
+      "result": ["result 1", "result 2"],
+      "feelings": ["feeling 1", "feeling 2"],
+      "target": ["belief 1", "belief 2"],
+      "actions": ["action 1", "action 2", "action 3"]
+    },
+    {
+      "category": "Career",
+      "result": ["result 1", "result 2"],
+      "feelings": ["feeling 1", "feeling 2"],
+      "target": ["belief 1", "belief 2"],
+      "actions": ["action 1", "action 2", "action 3"]
+    },
+    {
+      "category": "Money",
+      "result": ["result 1", "result 2"],
+      "feelings": ["feeling 1", "feeling 2"],
+      "target": ["belief 1", "belief 2"],
+      "actions": ["action 1", "action 2", "action 3"]
+    }
+  ]
+}`;
 
       console.log('[AI Auto-Fill] Calling OpenAI');
       
@@ -1139,20 +1160,23 @@ Provide JSON array with 4 objects (Health, Relationship, Career, Money) in this 
       const completion = await openai.chat.completions.create({
         model: "gpt-5",
         messages: [
-          { role: "system", content: "You are a life coach. Return only valid JSON array, no other text." },
+          { role: "system", content: "You are a life coach. Return ONLY valid JSON in the exact format requested, no markdown, no other text." },
           { role: "user", content: prompt }
-        ]
+        ],
+        response_format: { type: "json_object" }
       });
 
       console.log('[AI Auto-Fill] Response received');
       
-      let responseText = completion.choices[0]?.message?.content || '[]';
+      let responseText = completion.choices[0]?.message?.content || '{"suggestions":[]}';
       console.log('[AI Auto-Fill] Raw response:', responseText);
       
-      // Clean response - remove markdown code blocks if present
+      // Clean and parse
       responseText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       
-      const aiSuggestions = JSON.parse(responseText);
+      const parsed = JSON.parse(responseText);
+      const aiSuggestions = parsed.suggestions || [];
+      
       console.log('[AI Auto-Fill] Success! Parsed', aiSuggestions.length, 'suggestions');
       
       res.json(aiSuggestions);
