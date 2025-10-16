@@ -4,12 +4,14 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Sparkles, Check, X, TrendingUp, Save, Loader2, ArrowUp, ArrowDown, History, Plus, MoreHorizontal } from 'lucide-react';
+import { Sparkles, Check, X, TrendingUp, Save, Loader2, ArrowUp, ArrowDown, History, Plus, MoreHorizontal, Calendar as CalendarIcon } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Table,
   TableBody,
@@ -21,6 +23,7 @@ import {
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { format, isSameDay } from 'date-fns';
 import WeekComparison from './WeekComparison';
 import { RefinedHistoryModal } from './RefinedHistoryModal';
 import { EnhancedAnalyticsDialog } from './EnhancedAnalyticsDialog';
@@ -243,6 +246,8 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
   const [unifiedAssignment, setUnifiedAssignment] = useState<AssignmentLesson[]>([]);
   const [progressOpen, setProgressOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [selectedHistoryDate, setSelectedHistoryDate] = useState<Date | undefined>(undefined);
+  const [viewingHistory, setViewingHistory] = useState(false);
   const lastFocusedButton = useRef<HTMLButtonElement | null>(null);
   const hasAutoProgressed = useRef<Set<number>>(new Set()); // Track which weeks have been auto-progressed
   const { toast} = useToast();
@@ -287,7 +292,57 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
     queryKey: ['/api/rating-progression/status'],
   });
 
+  // Get the most recent snapshot for the selected date
+  const getSnapshotForDate = () => {
+    if (!allWeeksData || !selectedHistoryDate) return null;
+
+    // Filter snapshots for the selected date
+    const snapshotsForDate = (allWeeksData as any[]).filter(snapshot => {
+      const snapshotDate = new Date(snapshot.createdAt);
+      return isSameDay(snapshotDate, selectedHistoryDate);
+    });
+
+    // Return the most recent snapshot for that date
+    if (snapshotsForDate.length === 0) return null;
+    
+    return [...snapshotsForDate].sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )[0];
+  };
+
+  const historicalSnapshot = getSnapshotForDate();
+
   useEffect(() => {
+    // If viewing historical data, use the snapshot
+    if (viewingHistory && historicalSnapshot?.beliefs) {
+      const updatedBeliefs = historicalSnapshot.beliefs.map((belief: any) => {
+        let newChecklist: ChecklistItem[] = [];
+        
+        if (belief.category === 'Health') {
+          newChecklist = HEALTH_STANDARDS.map(std => ({ ...std }));
+        } else if (belief.category === 'Relationship') {
+          newChecklist = RELATIONSHIP_STANDARDS.map(std => ({ ...std }));
+        } else if (belief.category === 'Career') {
+          newChecklist = CAREER_STANDARDS.map(std => ({ ...std }));
+        } else if (belief.category === 'Money') {
+          newChecklist = MONEY_STANDARDS.map(std => ({ ...std }));
+        }
+        
+        return {
+          ...belief,
+          checklist: newChecklist
+        };
+      });
+      
+      setBeliefs(updatedBeliefs);
+      setUnifiedAssignment((historicalSnapshot as any).unifiedAssignment || []);
+      return;
+    }
+  }, [viewingHistory, historicalSnapshot]);
+
+  useEffect(() => {
+    // Skip if viewing history
+    if (viewingHistory) return;
     // Priority: Use actual database data if available, otherwise use demo/blank template
     if (weekData?.beliefs) {
       // FORCE UPDATE: Replace old checklists with new clean platinum standards
@@ -1175,10 +1230,60 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
       {/* Current Week Table */}
       <div className="border-2 border-red-800 dark:border-red-900 rounded-lg overflow-x-auto shadow-lg">
         <div className="px-4 py-3 border-b-2 border-red-900 dark:border-red-950" style={{ backgroundColor: '#bc0000' }}>
-          <h3 className="font-bold text-white text-xl text-center drop-shadow-md flex items-center justify-center gap-2">
-            <Sparkles className="w-5 h-5" />
-            Current Week
-          </h3>
+          <div className="flex items-center justify-between">
+            {/* Left: Calendar Icon */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-white hover:bg-white/20"
+                  data-testid="button-calendar-picker"
+                >
+                  <CalendarIcon className="w-5 h-5" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={selectedHistoryDate}
+                  onSelect={(date) => {
+                    setSelectedHistoryDate(date);
+                    setViewingHistory(!!date);
+                  }}
+                  initialFocus
+                  data-testid="calendar-date-picker"
+                />
+                {selectedHistoryDate && (
+                  <div className="p-3 border-t">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => {
+                        setSelectedHistoryDate(undefined);
+                        setViewingHistory(false);
+                      }}
+                      data-testid="button-clear-date"
+                    >
+                      Clear & Return to Current Week
+                    </Button>
+                  </div>
+                )}
+              </PopoverContent>
+            </Popover>
+
+            {/* Center: Heading */}
+            <h3 className="font-bold text-white text-xl drop-shadow-md flex items-center gap-2">
+              <Sparkles className="w-5 h-5" />
+              {viewingHistory && selectedHistoryDate 
+                ? `History - ${format(selectedHistoryDate, 'MMM dd, yyyy')}`
+                : 'Current Week'}
+            </h3>
+
+            {/* Right: Spacer for balance */}
+            <div className="w-10"></div>
+          </div>
         </div>
         <Table>
           <TableHeader>
@@ -1224,6 +1329,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                         
                         handleRatingChange(belief.category, finalRating);
                       }}
+                      disabled={viewingHistory}
                       className="w-16 h-9 text-center font-semibold"
                       data-testid={`input-${belief.category.toLowerCase()}-rating`}
                     />
@@ -1265,7 +1371,8 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                       <TooltipTrigger asChild>
                         <button
                           className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded min-h-[30px]"
-                          onClick={(e) => startEdit(belief.category, 'problems', belief.problems, e.currentTarget)}
+                          onClick={(e) => !viewingHistory && startEdit(belief.category, 'problems', belief.problems, e.currentTarget)}
+                          disabled={viewingHistory}
                           type="button"
                           aria-label="Edit problems"
                           data-testid={`text-problems-${belief.category.toLowerCase()}`}
@@ -1305,7 +1412,8 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                       <TooltipTrigger asChild>
                         <button
                           className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded min-h-[30px]"
-                          onClick={(e) => startEdit(belief.category, 'currentFeelings', belief.currentFeelings, e.currentTarget)}
+                          onClick={(e) => !viewingHistory && startEdit(belief.category, 'currentFeelings', belief.currentFeelings, e.currentTarget)}
+                          disabled={viewingHistory}
                           type="button"
                           aria-label="Edit feelings"
                           data-testid={`text-feelings-${belief.category.toLowerCase()}`}
@@ -1345,7 +1453,8 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                       <TooltipTrigger asChild>
                         <button
                           className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded min-h-[30px]"
-                          onClick={(e) => startEdit(belief.category, 'currentBelief', belief.currentBelief, e.currentTarget)}
+                          onClick={(e) => !viewingHistory && startEdit(belief.category, 'currentBelief', belief.currentBelief, e.currentTarget)}
+                          disabled={viewingHistory}
                           type="button"
                           aria-label="Edit beliefs"
                           data-testid={`text-beliefs-${belief.category.toLowerCase()}`}
@@ -1385,7 +1494,8 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                       <TooltipTrigger asChild>
                         <button
                           className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded min-h-[30px]"
-                          onClick={(e) => startEdit(belief.category, 'currentActions', belief.currentActions, e.currentTarget)}
+                          onClick={(e) => !viewingHistory && startEdit(belief.category, 'currentActions', belief.currentActions, e.currentTarget)}
+                          disabled={viewingHistory}
                           type="button"
                           aria-label="Edit actions"
                           data-testid={`text-actions-${belief.category.toLowerCase()}`}
@@ -1412,6 +1522,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                         <Checkbox
                           checked={item.checked}
                           onCheckedChange={() => handleChecklistToggle(belief.category, item.id)}
+                          disabled={viewingHistory}
                           data-testid={`checkbox-${belief.category.toLowerCase()}-${item.id}`}
                         />
                         <span className="text-xs">
