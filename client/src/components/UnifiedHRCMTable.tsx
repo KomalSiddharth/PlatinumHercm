@@ -364,16 +364,23 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
     setSelectedCategory(category);
     
     if (category === 'Health') {
-      const updatedBeliefs = beliefs.map(b => {
-        if (b.category === 'Health') {
-          const existingChecklist = b.checklist || [];
-          
-          // Check if has the NEW format by looking for "Magic Water" text
-          const hasNewFormat = existingChecklist.length === 10 && 
-                               existingChecklist.some(item => item.text.includes('Magic Water'));
-          
-          if (!hasNewFormat) {
-            // Always replace with new 10 health standards if not exactly matching
+      const currentHealthBelief = beliefs.find(b => b.category === 'Health');
+      const existingChecklist = currentHealthBelief?.checklist || [];
+      
+      console.log('🔍 Opening Health Standards Dialog');
+      console.log('Current checklist length:', existingChecklist.length);
+      console.log('Current checklist:', existingChecklist);
+      
+      // Check if has the NEW format by looking for "Magic Water" text
+      const hasNewFormat = existingChecklist.length === 10 && 
+                           existingChecklist.some(item => item.text.includes('Magic Water'));
+      
+      console.log('Has new format?', hasNewFormat);
+      
+      if (!hasNewFormat) {
+        console.log('❌ Updating to new 10 standards format');
+        const updatedBeliefs = beliefs.map(b => {
+          if (b.category === 'Health') {
             return {
               ...b,
               checklist: HEALTH_STANDARDS.map(std => ({ ...std })),
@@ -381,25 +388,19 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
               targetRating: 1
             };
           }
-          
-          // Already has new format, keep as is
           return b;
-        }
-        return b;
-      });
-      
-      setBeliefs(updatedBeliefs);
-      
-      // Auto-save if standards were updated
-      const healthBelief = updatedBeliefs.find(b => b.category === 'Health');
-      const oldHealthBelief = beliefs.find(b => b.category === 'Health');
-      
-      if (healthBelief && oldHealthBelief && healthBelief.checklist !== oldHealthBelief.checklist) {
+        });
+        
+        setBeliefs(updatedBeliefs);
+        
+        // Auto-save the updated standards
         saveWeekMutation.mutate({
           weekNumber,
           year: new Date().getFullYear(),
           beliefs: updatedBeliefs,
         });
+      } else {
+        console.log('✅ Already has correct 10 standards format');
       }
     } else if (category === 'Relationship') {
       setBeliefs(prev => prev.map(b => {
