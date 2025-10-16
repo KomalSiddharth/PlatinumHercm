@@ -1929,26 +1929,34 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       const currentWeek = weeks.find((w: any) => w.weekNumber === weeks.length);
 
       if (currentWeek) {
-        // Get the appropriate field based on HRCM area
-        const areaField = recommendation.hrcmArea === 'health' ? 'nextWeekH' : 
-                         recommendation.hrcmArea === 'relationship' ? 'nextWeekE' :
-                         recommendation.hrcmArea === 'career' ? 'nextWeekR' : 'nextWeekC';
+        // Get the appropriate Assignment field based on HRCM area
+        const assignmentField = recommendation.hrcmArea === 'health' ? 'healthAssignment' : 
+                                recommendation.hrcmArea === 'relationship' ? 'relationshipAssignment' :
+                                recommendation.hrcmArea === 'career' ? 'careerAssignment' : 'moneyAssignment';
 
-        // Get current Assignment array
-        const currentAssignments = Array.isArray(currentWeek[areaField]) ? currentWeek[areaField] : [];
+        // Get current Assignment data (courses and lessons arrays)
+        const currentAssignment = currentWeek[assignmentField] || { courses: [], lessons: [] };
         
-        // Add the recommended course to Assignment
-        const updatedAssignments = [
-          ...currentAssignments,
+        // Add the recommended course to the lessons array
+        const updatedLessons = [
+          ...currentAssignment.lessons,
           {
-            text: `📚 ${recommendation.courseName}${recommendation.reason ? ` - ${recommendation.reason}` : ''}`,
-            checked: false
+            id: recommendation.lessonId || recommendation.courseId,
+            courseId: recommendation.courseId,
+            courseName: recommendation.courseName,
+            lessonName: recommendation.lessonName || recommendation.courseName,
+            url: recommendation.lessonUrl || '',
+            completed: false,
+            reason: recommendation.reason || ''
           }
         ];
 
         // Update the week with new assignment
         await storage.updateHercmWeek(currentWeek.id, {
-          [areaField]: updatedAssignments
+          [assignmentField]: {
+            courses: currentAssignment.courses || [],
+            lessons: updatedLessons
+          }
         });
       }
 
