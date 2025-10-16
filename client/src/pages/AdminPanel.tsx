@@ -38,6 +38,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import UserDetailView from '@/components/UserDetailView';
 import UserActivitySearch from '@/components/UserActivitySearch';
+import AdminUserDashboardViewer from '@/components/AdminUserDashboardViewer';
 
 export default function AdminPanel() {
   const [, setLocation] = useLocation();
@@ -1069,65 +1070,7 @@ export default function AdminPanel() {
           {/* User Dashboard Viewer Tab */}
           {activeTab === 'dashboard-viewer' && (
             <div className="p-6">
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">View User Dashboard</h3>
-                <p className="text-sm text-gray-500">Search for a user to view their complete dashboard</p>
-                
-                {/* Email Search */}
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Enter user email..."
-                    value={emailSearchQuery}
-                    onChange={(e) => setEmailSearchQuery(e.target.value)}
-                    className="max-w-md"
-                    data-testid="input-user-email-search"
-                  />
-                  <Button onClick={handleEmailSearch} data-testid="button-search-user">
-                    Search
-                  </Button>
-                </div>
-
-                {searchUserMutation.isPending && (
-                  <div className="text-center py-8">Searching...</div>
-                )}
-
-                {searchedUser && (
-                  <div className="space-y-4">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>{searchedUser.email}'s Dashboard</CardTitle>
-                        <CardDescription>Viewing as admin - exact same view as user sees</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          <div className="grid grid-cols-4 gap-4">
-                            <div className="text-center p-4 bg-teal-50 dark:bg-teal-900/20 rounded">
-                              <div className="text-2xl font-bold text-teal-600">{searchedUser.latestWeek?.currentH || 0}</div>
-                              <div className="text-sm text-gray-600">Health</div>
-                            </div>
-                            <div className="text-center p-4 bg-coral-50 dark:bg-coral-900/20 rounded">
-                              <div className="text-2xl font-bold text-coral-600">{searchedUser.latestWeek?.currentE || 0}</div>
-                              <div className="text-sm text-gray-600">Relationship</div>
-                            </div>
-                            <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded">
-                              <div className="text-2xl font-bold text-blue-600">{searchedUser.latestWeek?.currentR || 0}</div>
-                              <div className="text-sm text-gray-600">Career</div>
-                            </div>
-                            <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded">
-                              <div className="text-2xl font-bold text-green-600">{searchedUser.latestWeek?.currentC || 0}</div>
-                              <div className="text-sm text-gray-600">Money</div>
-                            </div>
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            Total Weeks: {searchedUser.totalWeeks || 0} | 
-                            Last Activity: {searchedUser.latestWeek?.createdAt ? new Date(searchedUser.latestWeek.createdAt).toLocaleDateString() : 'N/A'}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                )}
-              </div>
+              <AdminUserDashboardViewer />
             </div>
           )}
 

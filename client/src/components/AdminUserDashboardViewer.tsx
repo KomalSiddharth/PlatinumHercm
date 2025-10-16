@@ -134,6 +134,7 @@ export default function AdminUserDashboardViewer() {
           </Card>
         ) : (
           <UnifiedHRCMTable 
+            weekNumber={dashboardData.currentWeek?.weekNumber || 1}
             viewAsUserId={selectedUserId} 
             isAdminView={true}
           />
