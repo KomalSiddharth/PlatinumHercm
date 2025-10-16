@@ -938,7 +938,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/admin/users-analytics', isAuthenticated, async (req, res) => {
     try {
       // Get approved emails
-      const approvedEmailsList = await storage.getApprovedEmails();
+      const approvedEmailsList = await storage.getAllApprovedEmails();
       const approvedEmailSet = new Set(approvedEmailsList.filter(ae => ae.status === 'active').map(ae => ae.email));
       
       // Get all users and filter by approved emails
