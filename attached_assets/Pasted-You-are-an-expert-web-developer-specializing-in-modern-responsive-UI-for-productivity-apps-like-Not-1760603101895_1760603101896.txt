@@ -1,0 +1,78 @@
+You are an expert web developer specializing in modern, responsive UI for productivity apps like Notion or Headspace. Update the Platinum HRCM app's design (based on the attached screenshots/code) to make it a 10/10 polished experience. Focus primarily on overhauling the color scheme for cohesion, brand alignment, and seamless light/dark mode support. Assume the app uses HTML/CSS/JS (likely Tailwind or vanilla CSS); generate updated code files accordingly.
+Core Goal: Create a unified color palette centered on the brand gradient (linear-gradient from hot pink #FF69B4 to royal blue #4169E1). Make it vibrant yet professional—energetic for motivation, calming for focus. Ensure all colors work beautifully in both light and dark modes with high contrast (at least 4.5:1 ratio for text). Add a dark mode toggle (use the existing moon icon ☾) that auto-detects system preference via prefers-color-scheme media query.
+New Color Palette (Define CSS Variables for Easy Switching):
+Use CSS custom properties (:root for light mode, [data-theme="dark"] for dark). Here's the exact palette—implement it globally:
+
+Brand Primary: #7C3AED (violet midpoint of gradient; use for buttons like HRCM, accents).
+Brand Gradient: linear-gradient(135deg, #FF69B4 0%, #7C3AED 50%, #4169E1 100%) (apply to key elements like nav buttons, progress bars).
+Success/Progress (Green): #10B981 (emerald; for Next Week Target, progress %).
+Warning/Current (Amber): #F59E0B (soft amber; for Current Week headers—less alarming than red).
+Error/Urgent: #EF4444 (soft red; sparingly, e.g., low ratings).
+Neutral Text: Light: #111827 (dark gray); Dark: #F9FAFB (off-white).
+Neutral Background: Light: #FFFFFF (white); Dark: #111827 (deep navy).
+Neutral Surface/Card: Light: #F8FAFC (light slate); Dark: #1F2937 (dark gray).
+Neutral Borders: Light: #E5E7EB (light gray); Dark: #374151 (mid gray).
+Yellow Accents (Achievements): Shift to #FCD34D (warm gold) for badges/leaderboard—ties into brand energy without clashing.
+
+Implement a theme switcher: Button toggles data-theme="dark" on <html>, with smooth CSS transitions (0.3s ease).
+Specific Changes by Section (Apply to Screenshots/Code):
+
+Global/Navigation Bar:
+
+Background: Light #FFFFFF / Dark #111827.
+HRCM Button: Brand gradient background, white text (#FFFFFF), rounded 12px, subtle shadow (0 4px 6px rgba(124,58,237,0.1)).
+Tab Links (Daily Rituals, etc.): Neutral text, hover: Brand primary underline or glow.
+Top Right Icons (Trophy, Moon, K): Brand primary on hover.
+
+
+HRCM Tracker Tables (Health, Relationships, Career, Money):
+
+Table Background: Neutral surface.
+Row Headers (e.g., Health): Brand primary text, light background tint (#F3E8FF).
+Ratings/Progress: Success green for positive (e.g., 8/10), warning amber for mid (e.g., 4/10), error red for low.
+Cells (Feelings, Beliefs, Actions): Light borders, subtle alternating row shades (e.g., #F8FAFC / white in light mode).
+Platinum Standards Checkboxes: Brand gradient on checked state.
+Progress %: Brand gradient bar (0% width fills to 100% with animation).
+
+
+Next/Current Week Headers:
+
+Next Week: Success green background (#10B981 with 0.1 opacity overlay), white text.
+Current Week: Warning amber background (#FCD34D with 0.1 opacity), dark text.
+Borders: Rounded 8px cards with neutral borders.
+
+
+Achievements & Badges Page:
+
+Overall Background: Neutral surface.
+Earned Badges Section: Warm gold (#FCD34D) accents for trophies, brand gradient borders.
+Leaderboard: Avatars with brand primary rings; rows alternate neutral surface shades; your row (Komal) highlighted with subtle glow.
+Avg Rating Bar: Brand gradient fill based on progress.
+
+
+Daily Rituals:
+
+Card Background: Blue tint (#DBEAFE light / #1E40AF dark with 0.05 opacity) for calm routine feel.
+Checkbox: Brand primary on checked.
+Add Button: Brand gradient, + icon in white.
+Points Badges (e.g., 10pts): Success green background.
+
+
+Courses Tracker:
+
+Card Background: Light green tint (#D1FAE5 light / #065F46 dark) for growth theme.
+Progress Bars: Brand gradient fill.
+Course Rows: Neutral text, hover: Brand primary underline.
+
+
+
+General Polish for 10/10 Feel:
+
+Typography: Use system fonts (Inter fallback to sans-serif). Headings: Bold 24px brand primary. Body: 16px neutral text. Line-height 1.6.
+Spacing/Padding: Increase generously—24px sections, 16px table cells, 12px buttons. Use CSS Grid/Flexbox for responsiveness (stack tables on mobile <768px).
+Shadows/Depth: Subtle elevation—cards: box-shadow 0 1px 3px rgba(0,0,0,0.1); buttons: 0 2px 4px rgba(124,58,237,0.2).
+Animations: Fade-in on load (0.5s), scale 1.05 on hover for buttons/checks. Use CSS transitions.
+Accessibility: ARIA labels on interactive elements, focus outlines in brand primary. Test contrast with tools like WAVE.
+Dark Mode Specifics: Invert images/icons if needed; ensure gradients remain vibrant (no washout). Default to light, toggle persists via localStorage.
+
+Generate full updated CSS file (or Tailwind config if applicable), preview in light/dark, and explain changes in comments. Output before/after screenshots if possible. Make it mobile-first responsive.
