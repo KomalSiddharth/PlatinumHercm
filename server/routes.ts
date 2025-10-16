@@ -1820,6 +1820,117 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
+  // User-facing: Get current user's pending recommendations
+  app.get('/api/user/recommendations', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const recommendations = await storage.getUserRecommendations(userId);
+      // Filter to show only pending recommendations to the user
+      const pendingRecommendations = recommendations.filter((r: any) => r.status === 'pending');
+      res.json(pendingRecommendations);
+    } catch (error) {
+      console.error("Error fetching user recommendations:", error);
+      res.status(500).json({ message: "Failed to fetch recommendations" });
+    }
+  });
+
+  // User-facing: Accept a recommendation (changes status to accepted and adds to Assignment)
+  app.post('/api/user/recommendations/:id/accept', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const { id } = req.params;
+      
+      // Get the recommendation and verify it belongs to this user
+      const recommendations = await storage.getUserRecommendations(userId);
+      const recommendation = recommendations.find((r: any) => r.id === id);
+      
+      if (!recommendation) {
+        return res.status(404).json({ message: "Recommendation not found" });
+      }
+
+      if (recommendation.userId !== userId) {
+        return res.status(403).json({ message: "Not authorized to accept this recommendation" });
+      }
+
+      // Update status to accepted
+      await storage.updateRecommendationStatus(id, 'accepted');
+
+      // Get user's current week
+      const userEmail = await storage.getUser(userId);
+      const weeks = await storage.getHercmWeeksByUserId(userId);
+      const currentWeek = weeks.find((w: any) => w.weekNumber === weeks.length);
+
+      if (currentWeek) {
+        // Get the appropriate field based on HRCM area
+        const areaField = recommendation.hrcmArea === 'health' ? 'nextWeekH' : 
+                         recommendation.hrcmArea === 'relationship' ? 'nextWeekE' :
+                         recommendation.hrcmArea === 'career' ? 'nextWeekR' : 'nextWeekC';
+
+        // Get current Assignment array
+        const currentAssignments = currentWeek[areaField] || [];
+        
+        // Add the recommended course to Assignment
+        const updatedAssignments = [
+          ...currentAssignments,
+          {
+            text: `📚 ${recommendation.courseName}${recommendation.reason ? ` - ${recommendation.reason}` : ''}`,
+            checked: false
+          }
+        ];
+
+        // Update the week with new assignment
+        await storage.updateHercmWeek(currentWeek.id, userId, {
+          [areaField]: updatedAssignments
+        });
+      }
+
+      res.json({ message: "Recommendation accepted and added to Assignment", recommendation });
+    } catch (error) {
+      console.error("Error accepting recommendation:", error);
+      res.status(500).json({ message: "Failed to accept recommendation" });
+    }
+  });
+
+  // User-facing: Dismiss a recommendation (changes status to dismissed)
+  app.post('/api/user/recommendations/:id/dismiss', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const { id } = req.params;
+      
+      // Get the recommendation and verify it belongs to this user
+      const recommendations = await storage.getUserRecommendations(userId);
+      const recommendation = recommendations.find((r: any) => r.id === id);
+      
+      if (!recommendation) {
+        return res.status(404).json({ message: "Recommendation not found" });
+      }
+
+      if (recommendation.userId !== userId) {
+        return res.status(403).json({ message: "Not authorized to dismiss this recommendation" });
+      }
+
+      // Update status to dismissed (we'll need to add this status to the schema)
+      await storage.updateRecommendationStatus(id, 'completed'); // Using 'completed' as dismissed for now
+
+      res.json({ message: "Recommendation dismissed", recommendation });
+    } catch (error) {
+      console.error("Error dismissing recommendation:", error);
+      res.status(500).json({ message: "Failed to dismiss recommendation" });
+    }
+  });
+
   // Rituals endpoints
   app.get('/api/rituals', isAuthenticated, async (req: any, res) => {
     try {
