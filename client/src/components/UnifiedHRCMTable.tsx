@@ -206,7 +206,7 @@ const RELATIONSHIP_STANDARDS: ChecklistItem[] = [
   { id: 'relationship-std-3', text: 'I Promise to Practice Excellent Conflict Management Skills', checked: false },
   { id: 'relationship-std-4', text: 'I Promise to End my Day with lots of Fun, Laughter, Hugs & Kisses with all my Family Members', checked: false },
   { id: 'relationship-std-5', text: 'I Promise to Appreciate People Generously & regularly say Thank You', checked: false },
-  { id: 'relationship-std-6', text: 'I Promise to Accept Mistakes today and Easily say "I Am Sorry, Please Forgive"', checked: false },
+  { id: 'relationship-std-6', text: 'I Promise to Accept Mistakes today and Easily say "I Am Sorry, Please Forgive Me."', checked: false },
 ];
 
 // Career Standards - Predefined checklist for Career category
@@ -363,118 +363,44 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
   const handleOpenStandardsDialog = (category: string) => {
     setSelectedCategory(category);
     
-    if (category === 'Health') {
-      const currentHealthBelief = beliefs.find(b => b.category === 'Health');
-      const existingChecklist = currentHealthBelief?.checklist || [];
-      
-      console.log('🔍 Opening Health Standards Dialog');
-      console.log('Current checklist length:', existingChecklist.length);
-      console.log('Current checklist:', existingChecklist);
-      
-      // Check if has the NEW format by looking for "Magic Water" text
-      const hasNewFormat = existingChecklist.length === 10 && 
-                           existingChecklist.some(item => item.text.includes('Magic Water'));
-      
-      console.log('Has new format?', hasNewFormat);
-      
-      if (!hasNewFormat) {
-        console.log('❌ Updating to new 10 standards format');
-        const updatedBeliefs = beliefs.map(b => {
-          if (b.category === 'Health') {
-            return {
-              ...b,
-              checklist: HEALTH_STANDARDS.map(std => ({ ...std })),
-              currentRating: 0,
-              targetRating: 1
-            };
-          }
-          return b;
+    // Force update to clean standards format for all categories
+    const updatedBeliefs = beliefs.map(b => {
+      if (b.category === category) {
+        let newChecklist: ChecklistItem[] = [];
+        
+        if (category === 'Health') {
+          newChecklist = HEALTH_STANDARDS.map(std => ({ ...std }));
+        } else if (category === 'Relationship') {
+          newChecklist = RELATIONSHIP_STANDARDS.map(std => ({ ...std }));
+        } else if (category === 'Career') {
+          newChecklist = CAREER_STANDARDS.map(std => ({ ...std }));
+        } else if (category === 'Money') {
+          newChecklist = MONEY_STANDARDS.map(std => ({ ...std }));
+        }
+        
+        // Preserve checked state from existing checklist
+        const existingChecklist = b.checklist || [];
+        const mergedChecklist = newChecklist.map(newItem => {
+          const existing = existingChecklist.find(e => e.id === newItem.id);
+          return existing ? { ...newItem, checked: existing.checked } : newItem;
         });
         
-        setBeliefs(updatedBeliefs);
-        
-        // Auto-save the updated standards
-        saveWeekMutation.mutate({
-          weekNumber,
-          year: new Date().getFullYear(),
-          beliefs: updatedBeliefs,
-        });
-      } else {
-        console.log('✅ Already has correct 10 standards format');
+        return {
+          ...b,
+          checklist: mergedChecklist
+        };
       }
-    } else if (category === 'Relationship') {
-      setBeliefs(prev => prev.map(b => {
-        if (b.category === 'Relationship') {
-          const existingChecklist = b.checklist || [];
-          
-          // Check if needs update to 6 relationship standards
-          const hasOldFormat = existingChecklist.length === 4;
-          const hasNewFormat = existingChecklist.length === 6 && existingChecklist.some(item => item.id === 'relationship-std-1');
-          
-          if (!hasNewFormat || hasOldFormat) {
-            // Replace with new 6 relationship standards
-            return {
-              ...b,
-              checklist: RELATIONSHIP_STANDARDS.map(std => ({ ...std })),
-              currentRating: 0,
-              targetRating: 1
-            };
-          }
-          
-          // Already has new format, keep as is
-          return b;
-        }
-        return b;
-      }));
-    } else if (category === 'Career') {
-      setBeliefs(prev => prev.map(b => {
-        if (b.category === 'Career') {
-          const existingChecklist = b.checklist || [];
-          
-          // Check if needs update to 5 career standards
-          const hasOldFormat = existingChecklist.length === 4;
-          const hasNewFormat = existingChecklist.length === 5 && existingChecklist.some(item => item.id === 'career-std-1');
-          
-          if (!hasNewFormat || hasOldFormat) {
-            // Replace with new 5 career standards
-            return {
-              ...b,
-              checklist: CAREER_STANDARDS.map(std => ({ ...std })),
-              currentRating: 0,
-              targetRating: 1
-            };
-          }
-          
-          // Already has new format, keep as is
-          return b;
-        }
-        return b;
-      }));
-    } else if (category === 'Money') {
-      setBeliefs(prev => prev.map(b => {
-        if (b.category === 'Money') {
-          const existingChecklist = b.checklist || [];
-          
-          // Check if needs update to 5 money standards
-          const hasOldFormat = existingChecklist.length === 4;
-          const hasNewFormat = existingChecklist.length === 5 && existingChecklist.some(item => item.id === 'money-std-1');
-          
-          if (!hasNewFormat || hasOldFormat) {
-            // Replace with new 5 money standards
-            return {
-              ...b,
-              checklist: MONEY_STANDARDS.map(std => ({ ...std })),
-              currentRating: 0,
-              targetRating: 1
-            };
-          }
-          
-          // Already has new format, keep as is
-          return b;
-        }
-        return b;
-      }));
-    }
+      return b;
+    });
+    
+    setBeliefs(updatedBeliefs);
+    
+    // Auto-save the updated standards
+    saveWeekMutation.mutate({
+      weekNumber,
+      year: new Date().getFullYear(),
+      beliefs: updatedBeliefs,
+    });
     
     setShowStandardsDialog(true);
   };
