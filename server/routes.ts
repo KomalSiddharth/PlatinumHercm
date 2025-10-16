@@ -1617,9 +1617,15 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   // Admin course recommendations - Create recommendation
   app.post('/api/admin/recommendations', isAuthenticated, async (req: any, res) => {
     try {
-      const adminId = req.user?.claims?.sub || req.session.userEmail;
-      if (!adminId) {
+      const adminEmail = req.user?.claims?.sub || req.session.userEmail;
+      if (!adminEmail) {
         return res.status(401).json({ message: "Admin not authenticated" });
+      }
+
+      // Get admin user ID from email
+      const admin = await storage.getUserByEmail(adminEmail);
+      if (!admin) {
+        return res.status(401).json({ message: "Admin user not found" });
       }
 
       const { userEmail, hrcmArea, courseName, reason } = req.body;
@@ -1628,7 +1634,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         return res.status(400).json({ message: "Missing required fields: userEmail, hrcmArea, courseName" });
       }
 
-      // Get user ID from email
+      // Get target user ID from email
       const user = await storage.getUserByEmail(userEmail);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
@@ -1636,7 +1642,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
 
       const recommendation = await storage.addCourseRecommendation({
         userId: user.id,
-        adminId,
+        adminId: admin.id,
         hrcmArea,
         courseId: courseName.toLowerCase().replace(/\s+/g, '-'),
         courseName,
