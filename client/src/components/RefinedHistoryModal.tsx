@@ -245,6 +245,7 @@ export function RefinedHistoryModal({ open, onOpenChange, currentWeek }: Refined
                           money: displaySnapshot.nextMoneyRating,
                         };
                         const nextChecklist = displaySnapshot[`next${category}Checklist`] || [];
+                        const platinumStandards = displaySnapshot[`${prefix}Checklist`] || [];
                         const progress = nextChecklist.length > 0 
                           ? Math.round((nextChecklist.filter((c: any) => c.checked).length / nextChecklist.length) * 100)
                           : 0;
@@ -311,12 +312,12 @@ export function RefinedHistoryModal({ open, onOpenChange, currentWeek }: Refined
                             )}
                             <TableCell className="p-2 bg-amber-50/30 dark:bg-amber-950/10 align-top">
                               <div className="space-y-1">
-                                {nextChecklist.map((item: any) => (
+                                {platinumStandards.length > 0 ? platinumStandards.map((item: any) => (
                                   <div key={item.id} className="flex items-center gap-2 text-xs">
-                                    <Checkbox checked={item.checked} disabled />
+                                    <Checkbox checked={item.checked} disabled className="h-3 w-3" />
                                     <span>{item.text}</span>
                                   </div>
-                                ))}
+                                )) : <span className="text-muted-foreground italic text-xs">No standards</span>}
                               </div>
                             </TableCell>
                             <TableCell className="p-2 bg-emerald-50/30 dark:bg-emerald-950/10 text-center align-top">
