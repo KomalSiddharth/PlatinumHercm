@@ -1107,93 +1107,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { beliefs } = req.body; // Array of all 4 HRCM beliefs with current week data
       
-      console.log('[AI Auto-Fill] Starting AI auto-fill request with beliefs:', JSON.stringify(beliefs, null, 2));
+      console.log('[AI Auto-Fill] Starting request');
       
-      const prompt = `You are an expert life coach helping users set realistic and achievable goals for next week based on their current week performance.
+      const prompt = `You are an expert life coach. Analyze the user's current week data and provide next week suggestions.
 
-**User's Current Week Data:**
-
+**Current Week Data:**
 ${beliefs.map((belief: any) => `
-**${belief.category}:**
-- Current Rating: ${belief.currentRating || 0}/10
-- Current Problems/Results: ${belief.problems || 'Not specified'}
-- Current Feelings: ${belief.currentFeelings || 'Not specified'}
-- Current Beliefs/Reasons: ${belief.currentBelief || 'Not specified'}
-- Current Actions: ${belief.currentActions || 'Not specified'}
+${belief.category}:
+- Rating: ${belief.currentRating || 0}/10
+- Problems: ${belief.problems || 'None'}
+- Feelings: ${belief.currentFeelings || 'None'}
+- Beliefs: ${belief.currentBelief || 'None'}  
+- Actions: ${belief.currentActions || 'None'}
 `).join('\n')}
 
-**Task:**
-Based on their current week data, suggest specific, actionable next week targets for each HRCM area. Each suggestion should be:
-1. Realistic and achievable within a week
-2. Directly address their current problems/feelings/beliefs
-3. Provide concrete, measurable actions
-
-For EACH of the 4 categories (Health, Relationship, Career, Money), provide:
-
-1. **Results**: 2-3 specific, measurable outcomes they should aim for (based on current problems)
-2. **Feelings**: 2-3 positive feelings they should cultivate (transform current negative feelings)
-3. **Beliefs**: 2-3 empowering beliefs to adopt (replace limiting beliefs)
-4. **Actions**: 3-4 concrete action steps to take
-
-Return ONLY valid JSON in this EXACT format:
+Provide JSON array with 4 objects (Health, Relationship, Career, Money) in this format:
 [
   {
     "category": "Health",
-    "result": ["Result item 1", "Result item 2"],
-    "feelings": ["Feeling 1", "Feeling 2"],
-    "target": ["Belief 1", "Belief 2"],
-    "actions": ["Action 1", "Action 2", "Action 3"]
+    "result": ["result1", "result2"],
+    "feelings": ["feeling1", "feeling2"],
+    "target": ["belief1", "belief2"],
+    "actions": ["action1", "action2", "action3"]
   },
-  {
-    "category": "Relationship",
-    "result": ["Result item 1", "Result item 2"],
-    "feelings": ["Feeling 1", "Feeling 2"],
-    "target": ["Belief 1", "Belief 2"],
-    "actions": ["Action 1", "Action 2", "Action 3"]
-  },
-  {
-    "category": "Career",
-    "result": ["Result item 1", "Result item 2"],
-    "feelings": ["Feeling 1", "Feeling 2"],
-    "target": ["Belief 1", "Belief 2"],
-    "actions": ["Action 1", "Action 2", "Action 3"]
-  },
-  {
-    "category": "Money",
-    "result": ["Result item 1", "Result item 2"],
-    "feelings": ["Feeling 1", "Feeling 2"],
-    "target": ["Belief 1", "Belief 2"],
-    "actions": ["Action 1", "Action 2", "Action 3"]
-  }
+  ...
 ]`;
 
-      console.log('[AI Auto-Fill] Calling OpenAI with prompt');
+      console.log('[AI Auto-Fill] Calling OpenAI');
       
       // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
-      // Note: gpt-5 does NOT support the temperature parameter - it always defaults to 1
       const completion = await openai.chat.completions.create({
         model: "gpt-5",
         messages: [
-          { role: "system", content: "You are an expert life coach providing personalized goal suggestions. Always return valid JSON array with exactly 4 objects for Health, Relationship, Career, and Money in that exact order." },
+          { role: "system", content: "You are a life coach. Return only valid JSON array, no other text." },
           { role: "user", content: prompt }
-        ],
-        response_format: { type: "json_object" },
+        ]
       });
 
-      console.log('[AI Auto-Fill] OpenAI response received');
+      console.log('[AI Auto-Fill] Response received');
       
-      const responseText = completion.choices[0]?.message?.content || '[]';
-      console.log('[AI Auto-Fill] Response text:', responseText);
+      let responseText = completion.choices[0]?.message?.content || '[]';
+      console.log('[AI Auto-Fill] Raw response:', responseText);
       
-      // Parse AI response
+      // Clean response - remove markdown code blocks if present
+      responseText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      
       const aiSuggestions = JSON.parse(responseText);
-      console.log('[AI Auto-Fill] Parsed suggestions:', JSON.stringify(aiSuggestions, null, 2));
+      console.log('[AI Auto-Fill] Success! Parsed', aiSuggestions.length, 'suggestions');
       
       res.json(aiSuggestions);
     } catch (error) {
-      console.error("[AI Auto-Fill] ERROR:", error);
-      console.error("[AI Auto-Fill] Error details:", error instanceof Error ? error.message : 'Unknown error');
-      console.error("[AI Auto-Fill] Error stack:", error instanceof Error ? error.stack : 'No stack');
+      console.error("[AI Auto-Fill] ERROR:", error instanceof Error ? error.message : error);
       
       // Fallback: simple suggestions for all 4 areas
       const fallback = [

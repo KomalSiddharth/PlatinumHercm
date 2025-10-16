@@ -185,36 +185,46 @@ const getProgressColor = (progress: number) => {
   return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
 };
 
-// Health Standards - Predefined checklist for Health category (4 standards)
+// Health Standards - Predefined checklist for Health category  
 const HEALTH_STANDARDS: ChecklistItem[] = [
-  { id: 'health-std-1', text: 'Eat clean meals', checked: false },
-  { id: 'health-std-2', text: 'Drink 8–10 glasses water', checked: false },
-  { id: 'health-std-3', text: 'Move 30 mins daily', checked: false },
-  { id: 'health-std-4', text: 'Sleep 7–8 hrs, no late screens', checked: false },
+  { id: 'health-std-1', text: 'I started my Day with Magic Water', checked: false },
+  { id: 'health-std-2', text: 'I started my Day with 10 Mins of Musical Workout for Squats & Pushups', checked: false },
+  { id: 'health-std-3', text: 'I started my Day with Healthy Breakfast', checked: false },
+  { id: 'health-std-4', text: 'I completed 100 Pushups & Squats today', checked: false },
+  { id: 'health-std-5', text: 'I Promise to say Cancel-Cancel every time I say something Negative', checked: false },
+  { id: 'health-std-6', text: 'I Promise to check my Emotional Frequency every 2 hours by Alarm', checked: false },
+  { id: 'health-std-7', text: 'I Promise to say this Affirmation – "I Am Responsible for my Feelings" 10 times today', checked: false },
+  { id: 'health-std-8', text: 'I Promise to Be Aware of my Emotional Rules and Make Positive Emotions Easy and Negative Emotions Difficult', checked: false },
+  { id: 'health-std-9', text: 'I Promise to Believe in myself more than Anybody else', checked: false },
+  { id: 'health-std-10', text: 'I Promise to Practice Walking-Talking Affirmations before doing any task today', checked: false },
 ];
 
-// Relationship Standards - Predefined checklist for Relationship category (4 standards)
+// Relationship Standards - Predefined checklist for Relationship category
 const RELATIONSHIP_STANDARDS: ChecklistItem[] = [
-  { id: 'relationship-std-1', text: 'Communicated with respect and kindness', checked: false },
-  { id: 'relationship-std-2', text: 'Practiced active and empathetic listening', checked: false },
-  { id: 'relationship-std-3', text: 'Showed appreciation and gratitude to others', checked: false },
-  { id: 'relationship-std-4', text: 'Resolved conflicts peacefully and constructively', checked: false },
+  { id: 'relationship-std-1', text: 'I Promise to talk to all my Relationships with Respect', checked: false },
+  { id: 'relationship-std-2', text: 'I Promise to Practice Great Listening Skills today', checked: false },
+  { id: 'relationship-std-3', text: 'I Promise to Practice Excellent Conflict Management Skills', checked: false },
+  { id: 'relationship-std-4', text: 'I Promise to End my Day with lots of Fun, Laughter, Hugs & Kisses with all my Family Members', checked: false },
+  { id: 'relationship-std-5', text: 'I Promise to Appreciate People Generously & regularly say Thank You', checked: false },
+  { id: 'relationship-std-6', text: 'I Promise to Accept Mistakes today and Easily say "I Am Sorry, Please Forgive"', checked: false },
 ];
 
-// Career Standards - Predefined checklist for Career category (4 standards)
+// Career Standards - Predefined checklist for Career category
 const CAREER_STANDARDS: ChecklistItem[] = [
-  { id: 'career-std-1', text: 'Added significant value in all work tasks', checked: false },
-  { id: 'career-std-2', text: 'Focused on serving others and contributing positively', checked: false },
-  { id: 'career-std-3', text: 'Invested time in developing professional skills', checked: false },
-  { id: 'career-std-4', text: 'Maintained positive and productive work mindset', checked: false },
+  { id: 'career-std-1', text: 'I Promise to Add 10x Value for any work I do today', checked: false },
+  { id: 'career-std-2', text: 'I Promise to Love what I do, even if I don\'t like it', checked: false },
+  { id: 'career-std-3', text: 'I Promise to focus on Serving & Adding Value rather than being Desperate for my Goals', checked: false },
+  { id: 'career-std-4', text: 'I Promise to Practice Walking-Talking Affirmations before doing any task related to my Career', checked: false },
+  { id: 'career-std-5', text: 'I Promise to End my work with this Affirmation – "My Career is Amazing, I Had a Great Day today."', checked: false },
 ];
 
-// Money Standards - Predefined checklist for Money category (4 standards)
+// Money Standards - Predefined checklist for Money category
 const MONEY_STANDARDS: ChecklistItem[] = [
-  { id: 'money-std-1', text: 'Practiced abundance mindset and generosity', checked: false },
-  { id: 'money-std-2', text: 'Developed money-making skills and opportunities', checked: false },
-  { id: 'money-std-3', text: 'Made wise and conscious financial decisions', checked: false },
-  { id: 'money-std-4', text: 'Expressed gratitude for financial blessings', checked: false },
+  { id: 'money-std-1', text: 'I Promise to Be Generous while Spending Money today and Be Happy for others Making Money', checked: false },
+  { id: 'money-std-2', text: 'I Promise to Be Comfortable to Ask for Money today', checked: false },
+  { id: 'money-std-3', text: 'I Promise to invest at least 15 mins today to work on developing More Money-Making Skills', checked: false },
+  { id: 'money-std-4', text: 'I Promise to Appreciate People Generously & Regularly say Thank You (to increase Money Flow Energy)', checked: false },
+  { id: 'money-std-5', text: 'I Promise to Practice Saying "Time for Double Happiness" every time something Negative happens about Money', checked: false },
 ];
 
 export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHRCMTableProps) {
