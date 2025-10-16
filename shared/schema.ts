@@ -427,3 +427,27 @@ export const insertCourseVideoCompletionSchema = createInsertSchema(courseVideoC
 
 export type InsertCourseVideoCompletion = z.infer<typeof insertCourseVideoCompletionSchema>;
 export type CourseVideoCompletion = typeof courseVideoCompletions.$inferSelect;
+
+// Admin Course Recommendations - Track courses recommended by admin to users
+export const adminCourseRecommendations = pgTable("admin_course_recommendations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id), // User who receives recommendation
+  adminId: varchar("admin_id").notNull().references(() => users.id), // Admin who recommended
+  hrcmArea: varchar("hrcm_area").notNull(), // 'health', 'relationship', 'career', 'money'
+  courseId: varchar("course_id").notNull(), // Frontend course ID
+  courseName: varchar("course_name").notNull(),
+  lessonId: varchar("lesson_id"), // Optional specific lesson
+  lessonName: varchar("lesson_name"),
+  lessonUrl: varchar("lesson_url"),
+  reason: varchar("reason"), // Optional reason for recommendation
+  status: varchar("status").default('pending').notNull(), // 'pending', 'accepted', 'completed'
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertAdminCourseRecommendationSchema = createInsertSchema(adminCourseRecommendations).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertAdminCourseRecommendation = z.infer<typeof insertAdminCourseRecommendationSchema>;
+export type AdminCourseRecommendation = typeof adminCourseRecommendations.$inferSelect;
