@@ -111,6 +111,19 @@ export default function AdminPanel() {
     enabled: activeTab === 'analytics',
   });
 
+  // Team analytics with period filter
+  const { data: teamAnalytics, isLoading: isLoadingTeamAnalytics } = useQuery<{
+    totalUsers: number;
+    activeUsers: number;
+    averageRatings: { health: number; relationship: number; career: number; money: number };
+    growthMetrics: { newUsers: number; percentChange: number };
+    topPerformers: Array<{ userId: string; email: string; averageRating: number }>;
+    completionRates: { courses: number; rituals: number };
+  }>({
+    queryKey: [`/api/admin/team-analytics?period=${teamAnalyticsPeriod}`],
+    enabled: activeTab === 'team-analytics',
+  });
+
   const searchUserMutation = useMutation({
     mutationFn: async (email: string) => {
       const response = await fetch(`/api/admin/search-user?email=${encodeURIComponent(email)}`);
@@ -1089,7 +1102,12 @@ export default function AdminPanel() {
             <div className="p-6">
               <div className="space-y-6">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold">Team Analytics & Growth</h3>
+                  <div>
+                    <h3 className="text-lg font-semibold">Team Analytics & Growth</h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Performance metrics for the selected time period
+                    </p>
+                  </div>
                   <div className="flex gap-2">
                     <Button 
                       variant={teamAnalyticsPeriod === 'weekly' ? 'default' : 'outline'} 
@@ -1118,69 +1136,181 @@ export default function AdminPanel() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-sm">Average Health Rating</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-3xl font-bold text-teal-600">
-                        {userAnalytics && userAnalytics.length > 0 
-                          ? (userAnalytics.reduce((sum: number, u: any) => sum + (u.averageRating || 0), 0) / userAnalytics.length).toFixed(1)
-                          : '0.0'}
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">Across all users</p>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-sm">Active Users This Period</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-3xl font-bold text-blue-600">{stats?.activeUsers || 0}</div>
-                      <p className="text-xs text-gray-500 mt-1">Users with activity</p>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-sm">Growth Rate</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-3xl font-bold text-green-600">+12%</div>
-                      <p className="text-xs text-gray-500 mt-1">vs previous period</p>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Top Performers</CardTitle>
-                    <CardDescription>Users with highest average HRCM ratings</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      {userAnalytics && userAnalytics.slice(0, 10).map((user: any, index: number) => (
-                        <div key={user.userId} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-gradient-to-br from-teal-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                              #{index + 1}
-                            </div>
-                            <div>
-                              <div className="font-medium">{user.email}</div>
-                              <div className="text-xs text-gray-500">{user.totalWeeks || 0} weeks tracked</div>
-                            </div>
+                {isLoadingTeamAnalytics ? (
+                  <div className="flex items-center justify-center py-12">
+                    <RefreshCw className="w-8 h-8 animate-spin text-primary" />
+                  </div>
+                ) : teamAnalytics ? (
+                  <>
+                    {/* HRCM Average Ratings Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <Card>
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-sm flex items-center gap-2">
+                            <span className="text-2xl">💪</span>
+                            Health
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-3xl font-bold text-coral-600" data-testid="metric-avg-health">
+                            {teamAnalytics.averageRatings.health.toFixed(1)}
                           </div>
-                          <div className="text-right">
-                            <div className="text-lg font-bold text-teal-600">{(user.averageRating || 0).toFixed(1)}</div>
-                            <div className="text-xs text-gray-500">avg rating</div>
+                          <p className="text-xs text-muted-foreground mt-1">Average rating</p>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-sm flex items-center gap-2">
+                            <span className="text-2xl">❤️</span>
+                            Relationship
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-3xl font-bold text-pink-600" data-testid="metric-avg-relationship">
+                            {teamAnalytics.averageRatings.relationship.toFixed(1)}
                           </div>
-                        </div>
-                      ))}
+                          <p className="text-xs text-muted-foreground mt-1">Average rating</p>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-sm flex items-center gap-2">
+                            <span className="text-2xl">💼</span>
+                            Career
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-3xl font-bold text-lavender-600" data-testid="metric-avg-career">
+                            {teamAnalytics.averageRatings.career.toFixed(1)}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">Average rating</p>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-sm flex items-center gap-2">
+                            <span className="text-2xl">💰</span>
+                            Money
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-3xl font-bold text-teal-600" data-testid="metric-avg-money">
+                            {teamAnalytics.averageRatings.money.toFixed(1)}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">Average rating</p>
+                        </CardContent>
+                      </Card>
                     </div>
-                  </CardContent>
-                </Card>
+
+                    {/* Key Metrics Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <Card>
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-sm">Total Users</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-3xl font-bold text-primary" data-testid="metric-total-users">
+                            {teamAnalytics.totalUsers}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">In the system</p>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-sm">Active Users</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-3xl font-bold text-blue-600" data-testid="metric-active-users">
+                            {teamAnalytics.activeUsers}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {teamAnalyticsPeriod === 'weekly' ? 'This week' : teamAnalyticsPeriod === 'monthly' ? 'This month' : 'This year'}
+                          </p>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-sm">Growth Rate</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="flex items-center gap-2">
+                            <div className="text-3xl font-bold text-green-600" data-testid="metric-growth-rate">
+                              {teamAnalytics.growthMetrics.percentChange > 0 ? '+' : ''}{teamAnalytics.growthMetrics.percentChange}%
+                            </div>
+                            {teamAnalytics.growthMetrics.percentChange > 0 ? (
+                              <TrendingUp className="w-6 h-6 text-green-600" />
+                            ) : (
+                              <TrendingDown className="w-6 h-6 text-red-600" />
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {teamAnalytics.growthMetrics.newUsers} new users in period
+                          </p>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Top Performers */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>🏆 Top Performers</CardTitle>
+                        <CardDescription>
+                          Users with highest average HRCM ratings in the {teamAnalyticsPeriod} period
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        {teamAnalytics.topPerformers.length === 0 ? (
+                          <div className="text-center py-8 text-muted-foreground">
+                            No active users in this period
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            {teamAnalytics.topPerformers.map((user, index) => (
+                              <div 
+                                key={user.userId} 
+                                className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover-elevate"
+                                data-testid={`top-performer-${index + 1}`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
+                                    index === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600' :
+                                    index === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-500' :
+                                    index === 2 ? 'bg-gradient-to-br from-orange-400 to-orange-600' :
+                                    'bg-gradient-to-br from-teal-500 to-blue-600'
+                                  }`}>
+                                    #{index + 1}
+                                  </div>
+                                  <div>
+                                    <div className="font-medium" data-testid={`performer-email-${index + 1}`}>
+                                      {user.email}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <div className="text-xl font-bold text-primary" data-testid={`performer-rating-${index + 1}`}>
+                                    {user.averageRating.toFixed(1)}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">avg rating</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </>
+                ) : (
+                  <Card>
+                    <CardContent className="py-12 text-center text-muted-foreground">
+                      No analytics data available
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </div>
           )}
