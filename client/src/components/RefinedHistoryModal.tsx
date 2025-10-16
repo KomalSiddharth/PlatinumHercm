@@ -298,15 +298,19 @@ export function RefinedHistoryModal({ open, onOpenChange, currentWeek }: Refined
                             {index === 0 && (
                               <TableCell rowSpan={4} className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10 align-top">
                                 <div className="space-y-2">
-                                  {displaySnapshot.unifiedAssignment?.lessons?.map((lesson: any) => (
-                                    <div key={lesson.lessonId} className="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded border text-xs">
-                                      <Checkbox checked={lesson.completed} disabled className="h-3 w-3" />
-                                      <div className="flex-1">
-                                        <div className="font-medium">{lesson.title}</div>
-                                        <div className="text-[10px] text-muted-foreground">{lesson.courseTitle}</div>
+                                  {displaySnapshot.unifiedAssignment && Array.isArray(displaySnapshot.unifiedAssignment) && displaySnapshot.unifiedAssignment.length > 0 ? (
+                                    displaySnapshot.unifiedAssignment.map((lesson: any) => (
+                                      <div key={lesson.id} className="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded border text-xs">
+                                        <Checkbox checked={lesson.completed} disabled className="h-3 w-3" />
+                                        <div className="flex-1">
+                                          <div className="font-medium">{lesson.lessonName}</div>
+                                          <div className="text-[10px] text-muted-foreground">{lesson.courseName}</div>
+                                        </div>
                                       </div>
-                                    </div>
-                                  )) || <span className="text-muted-foreground italic">No assignments</span>}
+                                    ))
+                                  ) : (
+                                    <span className="text-muted-foreground italic text-xs">No assignments</span>
+                                  )}
                                 </div>
                               </TableCell>
                             )}
