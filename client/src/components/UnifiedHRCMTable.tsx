@@ -285,8 +285,27 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
   useEffect(() => {
     // Priority: Use actual database data if available, otherwise use demo/blank template
     if (weekData?.beliefs) {
-      // Use saved ratings from database - DO NOT recalculate based on checklist
-      setBeliefs(weekData.beliefs);
+      // FORCE UPDATE: Replace old checklists with new clean platinum standards
+      const updatedBeliefs = weekData.beliefs.map(belief => {
+        let newChecklist: ChecklistItem[] = [];
+        
+        if (belief.category === 'Health') {
+          newChecklist = HEALTH_STANDARDS.map(std => ({ ...std }));
+        } else if (belief.category === 'Relationship') {
+          newChecklist = RELATIONSHIP_STANDARDS.map(std => ({ ...std }));
+        } else if (belief.category === 'Career') {
+          newChecklist = CAREER_STANDARDS.map(std => ({ ...std }));
+        } else if (belief.category === 'Money') {
+          newChecklist = MONEY_STANDARDS.map(std => ({ ...std }));
+        }
+        
+        return {
+          ...belief,
+          checklist: newChecklist
+        };
+      });
+      
+      setBeliefs(updatedBeliefs);
       // Load unified assignment from week data
       setUnifiedAssignment((weekData as any).unifiedAssignment || []);
     } else {
