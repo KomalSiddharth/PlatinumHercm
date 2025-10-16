@@ -1952,41 +1952,50 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       // Update status to accepted
       await storage.updateRecommendationStatus(id, 'accepted');
 
-      // Get user's current week
-      const weeks = await storage.getHercmWeeksByUser(user.id);
-      const currentWeek = weeks.find((w: any) => w.weekNumber === weeks.length);
+      // Get user's current week or create one if it doesn't exist
+      let weeks = await storage.getHercmWeeksByUser(user.id);
+      let currentWeek = weeks.length > 0 ? weeks[weeks.length - 1] : null;
 
-      if (currentWeek) {
-        // Get the appropriate Assignment field based on HRCM area
-        const assignmentField = recommendation.hrcmArea === 'health' ? 'healthAssignment' : 
-                                recommendation.hrcmArea === 'relationship' ? 'relationshipAssignment' :
-                                recommendation.hrcmArea === 'career' ? 'careerAssignment' : 'moneyAssignment';
-
-        // Get current Assignment data (courses and lessons arrays)
-        const currentAssignment = currentWeek[assignmentField] || { courses: [], lessons: [] };
-        
-        // Add the recommended course to the lessons array
-        const updatedLessons = [
-          ...currentAssignment.lessons,
-          {
-            id: recommendation.lessonId || recommendation.courseId,
-            courseId: recommendation.courseId,
-            courseName: recommendation.courseName,
-            lessonName: recommendation.lessonName || recommendation.courseName,
-            url: recommendation.lessonUrl || '',
-            completed: false,
-            reason: recommendation.reason || ''
-          }
-        ];
-
-        // Update the week with new assignment
-        await storage.updateHercmWeek(currentWeek.id, {
-          [assignmentField]: {
-            courses: currentAssignment.courses || [],
-            lessons: updatedLessons
-          }
+      // If user has no HRCM weeks, create the first week
+      if (!currentWeek) {
+        const newWeek = await storage.createHercmWeek({
+          userId: user.id,
+          weekNumber: 1,
+          year: new Date().getFullYear(),
+          weekStatus: 'active',
         });
+        currentWeek = newWeek;
       }
+
+      // Get the appropriate Assignment field based on HRCM area
+      const assignmentField = recommendation.hrcmArea === 'health' ? 'healthAssignment' : 
+                              recommendation.hrcmArea === 'relationship' ? 'relationshipAssignment' :
+                              recommendation.hrcmArea === 'career' ? 'careerAssignment' : 'moneyAssignment';
+
+      // Get current Assignment data (courses and lessons arrays)
+      const currentAssignment = currentWeek[assignmentField] || { courses: [], lessons: [] };
+      
+      // Add the recommended course to the lessons array
+      const updatedLessons = [
+        ...currentAssignment.lessons,
+        {
+          id: recommendation.lessonId || recommendation.courseId,
+          courseId: recommendation.courseId,
+          courseName: recommendation.courseName,
+          lessonName: recommendation.lessonName || recommendation.courseName,
+          url: recommendation.lessonUrl || '',
+          completed: false,
+          reason: recommendation.reason || ''
+        }
+      ];
+
+      // Update the week with new assignment
+      await storage.updateHercmWeek(currentWeek.id, {
+        [assignmentField]: {
+          courses: currentAssignment.courses || [],
+          lessons: updatedLessons
+        }
+      });
 
       res.json({ message: "Recommendation accepted and added to Assignment", recommendation });
     } catch (error) {
