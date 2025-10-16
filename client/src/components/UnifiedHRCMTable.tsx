@@ -977,7 +977,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     onUpdateText,
     onAddCheckpoint,
     category,
-    checklistType 
+    checklistType,
+    disabled = false
   }: { 
     items: ChecklistItem[]; 
     onToggle: (itemId: string) => void;
@@ -985,6 +986,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     onAddCheckpoint: () => void;
     category: string;
     checklistType: string;
+    disabled?: boolean;
   }) => {
     const [editingId, setEditingId] = useState<string | null>(null);
     const visibleItems = items.slice(0, 2);
@@ -996,11 +998,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           <div key={item.id} className="flex items-start gap-2 group">
             <Checkbox
               checked={item.checked}
-              onCheckedChange={() => onToggle(item.id)}
+              onCheckedChange={() => !disabled && onToggle(item.id)}
+              disabled={disabled}
               className="h-3 w-3 mt-0.5 shrink-0"
               data-testid={`checkbox-${checklistType}-${category.toLowerCase()}-${item.id}`}
             />
-            {editingId === item.id ? (
+            {editingId === item.id && !disabled ? (
               <Textarea
                 value={item.text}
                 onChange={(e) => onUpdateText(item.id, e.target.value)}
@@ -1014,8 +1017,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
-                    onClick={() => setEditingId(item.id)}
-                    className="flex-1 text-left text-xs py-0.5 px-1 rounded hover:bg-muted/30 transition-colors min-h-[20px] break-words"
+                    onClick={() => !disabled && setEditingId(item.id)}
+                    disabled={disabled}
+                    className="flex-1 text-left text-xs py-0.5 px-1 rounded hover:bg-muted/30 transition-colors min-h-[20px] break-words disabled:cursor-not-allowed"
                     data-testid={`text-${checklistType}-${category.toLowerCase()}-${item.id}`}
                   >
                     <span className="line-clamp-2">
@@ -1057,16 +1061,18 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           </Tooltip>
         )}
         
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={onAddCheckpoint}
-          className="h-7 w-full text-xs text-muted-foreground hover:text-foreground gap-1 mt-1"
-          data-testid={`button-add-checkpoint-${checklistType}-${category.toLowerCase()}`}
-        >
-          <Plus className="w-3 h-3" />
-          Add Checkpoint
-        </Button>
+        {!disabled && (
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={onAddCheckpoint}
+            className="h-7 w-full text-xs text-muted-foreground hover:text-foreground gap-1 mt-1"
+            data-testid={`button-add-checkpoint-${checklistType}-${category.toLowerCase()}`}
+          >
+            <Plus className="w-3 h-3" />
+            Add Checkpoint
+          </Button>
+        )}
       </div>
     );
   };
@@ -1276,37 +1282,41 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         </div>
         <div className="flex items-center gap-3">
           <Badge 
-            className={`${getProgressColor(weeklyProgress)} cursor-pointer hover:opacity-80 transition-opacity`}
-            onClick={() => setProgressOpen(true)}
+            className={`${getProgressColor(weeklyProgress)} ${!isAdminView ? 'cursor-pointer hover:opacity-80' : ''} transition-opacity`}
+            onClick={() => !isAdminView && setProgressOpen(true)}
             data-testid="badge-weekly-progress"
           >
             {weeklyProgress}% Weekly Progress
           </Badge>
           
-          <Button
-            size="sm"
-            onClick={() => setHistoryOpen(true)}
-            className="bg-gradient-to-r from-pink-600 to-red-600 hover:from-pink-700 hover:to-red-700 text-white"
-            data-testid="button-history"
-          >
-            <History className="w-4 h-4 mr-2" />
-            History
-          </Button>
-          
-          <Button
-            size="sm"
-            onClick={handleGenerateNextWeek}
-            disabled={generateNextWeekMutation.isPending}
-            className="bg-gradient-to-r from-pink-600 to-coral-600 hover:from-pink-700 hover:to-coral-700 text-white"
-            data-testid="button-generate-next-week"
-          >
-            {generateNextWeekMutation.isPending ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <TrendingUp className="w-4 h-4 mr-2" />
-            )}
-            Generate Next Week
-          </Button>
+          {!isAdminView && (
+            <>
+              <Button
+                size="sm"
+                onClick={() => setHistoryOpen(true)}
+                className="bg-gradient-to-r from-pink-600 to-red-600 hover:from-pink-700 hover:to-red-700 text-white"
+                data-testid="button-history"
+              >
+                <History className="w-4 h-4 mr-2" />
+                History
+              </Button>
+              
+              <Button
+                size="sm"
+                onClick={handleGenerateNextWeek}
+                disabled={generateNextWeekMutation.isPending}
+                className="bg-gradient-to-r from-pink-600 to-coral-600 hover:from-pink-700 hover:to-coral-700 text-white"
+                data-testid="button-generate-next-week"
+              >
+                {generateNextWeekMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <TrendingUp className="w-4 h-4 mr-2" />
+                )}
+                Generate Next Week
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -1434,7 +1444,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         
                         handleRatingChange(belief.category, finalRating);
                       }}
-                      disabled={viewingHistory}
+                      disabled={viewingHistory || isAdminView}
                       className="w-16 h-9 text-center font-semibold"
                       data-testid={`input-${belief.category.toLowerCase()}-rating`}
                     />
@@ -1476,8 +1486,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       <TooltipTrigger asChild>
                         <button
                           className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded min-h-[30px]"
-                          onClick={(e) => !viewingHistory && startEdit(belief.category, 'problems', belief.problems, e.currentTarget)}
-                          disabled={viewingHistory}
+                          onClick={(e) => !viewingHistory && !isAdminView && startEdit(belief.category, 'problems', belief.problems, e.currentTarget)}
+                          disabled={viewingHistory || isAdminView}
                           type="button"
                           aria-label="Edit problems"
                           data-testid={`text-problems-${belief.category.toLowerCase()}`}
@@ -1517,8 +1527,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       <TooltipTrigger asChild>
                         <button
                           className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded min-h-[30px]"
-                          onClick={(e) => !viewingHistory && startEdit(belief.category, 'currentFeelings', belief.currentFeelings, e.currentTarget)}
-                          disabled={viewingHistory}
+                          onClick={(e) => !viewingHistory && !isAdminView && startEdit(belief.category, 'currentFeelings', belief.currentFeelings, e.currentTarget)}
+                          disabled={viewingHistory || isAdminView}
                           type="button"
                           aria-label="Edit feelings"
                           data-testid={`text-feelings-${belief.category.toLowerCase()}`}
@@ -1558,8 +1568,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       <TooltipTrigger asChild>
                         <button
                           className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded min-h-[30px]"
-                          onClick={(e) => !viewingHistory && startEdit(belief.category, 'currentBelief', belief.currentBelief, e.currentTarget)}
-                          disabled={viewingHistory}
+                          onClick={(e) => !viewingHistory && !isAdminView && startEdit(belief.category, 'currentBelief', belief.currentBelief, e.currentTarget)}
+                          disabled={viewingHistory || isAdminView}
                           type="button"
                           aria-label="Edit beliefs"
                           data-testid={`text-beliefs-${belief.category.toLowerCase()}`}
@@ -1599,8 +1609,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       <TooltipTrigger asChild>
                         <button
                           className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded min-h-[30px]"
-                          onClick={(e) => !viewingHistory && startEdit(belief.category, 'currentActions', belief.currentActions, e.currentTarget)}
-                          disabled={viewingHistory}
+                          onClick={(e) => !viewingHistory && !isAdminView && startEdit(belief.category, 'currentActions', belief.currentActions, e.currentTarget)}
+                          disabled={viewingHistory || isAdminView}
                           type="button"
                           aria-label="Edit actions"
                           data-testid={`text-actions-${belief.category.toLowerCase()}`}
@@ -1627,7 +1637,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         <Checkbox
                           checked={item.checked}
                           onCheckedChange={() => handleChecklistToggle(belief.category, item.id)}
-                          disabled={viewingHistory}
+                          disabled={viewingHistory || isAdminView}
                           data-testid={`checkbox-${belief.category.toLowerCase()}-${item.id}`}
                         />
                         <span className="text-xs">
@@ -1741,8 +1751,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       onAddCheckpoint={() => handleAddCheckpoint(belief.category, 'result')}
                       category={belief.category}
                       checklistType="result"
+                      disabled={viewingHistory || isAdminView}
                     />
-                  ) : (
+                  ) : !viewingHistory && !isAdminView ? (
                     <Button
                       size="sm"
                       variant="ghost"
@@ -1753,6 +1764,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       <Plus className="w-3 h-3" />
                       Add Checkpoint
                     </Button>
+                  ) : (
+                    <p className="text-xs text-muted-foreground text-center py-2">No items</p>
                   )}
                 </TableCell>
 
@@ -1781,8 +1794,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       onAddCheckpoint={() => handleAddCheckpoint(belief.category, 'feelings')}
                       category={belief.category}
                       checklistType="feelings"
+                      disabled={viewingHistory || isAdminView}
                     />
-                  ) : (
+                  ) : !viewingHistory && !isAdminView ? (
                     <Button
                       size="sm"
                       variant="ghost"
@@ -1793,6 +1807,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       <Plus className="w-3 h-3" />
                       Add Checkpoint
                     </Button>
+                  ) : (
+                    <p className="text-xs text-muted-foreground text-center py-2">No items</p>
                   )}
                 </TableCell>
 
@@ -1821,8 +1837,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       onAddCheckpoint={() => handleAddCheckpoint(belief.category, 'beliefs')}
                       category={belief.category}
                       checklistType="beliefs"
+                      disabled={viewingHistory || isAdminView}
                     />
-                  ) : (
+                  ) : !viewingHistory && !isAdminView ? (
                     <Button
                       size="sm"
                       variant="ghost"
@@ -1833,6 +1850,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       <Plus className="w-3 h-3" />
                       Add Checkpoint
                     </Button>
+                  ) : (
+                    <p className="text-xs text-muted-foreground text-center py-2">No items</p>
                   )}
                 </TableCell>
 
@@ -1861,8 +1880,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       onAddCheckpoint={() => handleAddCheckpoint(belief.category, 'actions')}
                       category={belief.category}
                       checklistType="actions"
+                      disabled={viewingHistory || isAdminView}
                     />
-                  ) : (
+                  ) : !viewingHistory && !isAdminView ? (
                     <Button
                       size="sm"
                       variant="ghost"
@@ -1873,6 +1893,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       <Plus className="w-3 h-3" />
                       Add Checkpoint
                     </Button>
+                  ) : (
+                    <p className="text-xs text-muted-foreground text-center py-2">No items</p>
                   )}
                 </TableCell>
 
