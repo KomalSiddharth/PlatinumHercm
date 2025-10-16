@@ -1717,17 +1717,22 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   app.post('/api/admin/recommendations', isAuthenticated, async (req: any, res) => {
     try {
       const adminEmail = req.user?.claims?.sub || req.session.userEmail;
+      console.log('[DEBUG] POST /api/admin/recommendations - adminEmail:', adminEmail);
+      
       if (!adminEmail) {
         return res.status(401).json({ message: "Admin not authenticated" });
       }
 
       // Get admin user ID from email
       const admin = await storage.getUserByEmail(adminEmail);
+      console.log('[DEBUG] POST /api/admin/recommendations - admin user:', admin);
+      
       if (!admin) {
         return res.status(401).json({ message: "Admin user not found" });
       }
 
       const { userEmail, hrcmArea, courseName, reason } = req.body;
+      console.log('[DEBUG] POST /api/admin/recommendations - request body:', { userEmail, hrcmArea, courseName, reason });
       
       if (!userEmail || !hrcmArea || !courseName) {
         return res.status(400).json({ message: "Missing required fields: userEmail, hrcmArea, courseName" });
@@ -1735,10 +1740,14 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
 
       // Get target user ID from email
       const user = await storage.getUserByEmail(userEmail);
+      console.log('[DEBUG] POST /api/admin/recommendations - target user:', user);
+      
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
+      console.log('[DEBUG] POST /api/admin/recommendations - Creating recommendation with userId:', user.id);
+      
       const recommendation = await storage.addCourseRecommendation({
         userId: user.id,
         adminId: admin.id,
@@ -1749,6 +1758,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         status: 'pending',
       });
 
+      console.log('[DEBUG] POST /api/admin/recommendations - Created recommendation:', recommendation);
       res.json(recommendation);
     } catch (error) {
       console.error("Error adding course recommendation:", error);
