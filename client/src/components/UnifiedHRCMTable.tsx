@@ -534,18 +534,97 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
     onSuccess: (data) => {
       setBeliefs(prev => prev.map(belief => {
         const aiData = data.find((d: any) => d.category === belief.category);
-        return aiData ? {
+        if (!aiData) return belief;
+
+        // Convert AI array responses to checkbox format
+        const resultChecklist: ChecklistItem[] = (aiData.result || []).map((text: string, index: number) => ({
+          id: `${belief.category}-result-ai-${index}`,
+          text: text,
+          checked: false
+        }));
+
+        const feelingsChecklist: ChecklistItem[] = (aiData.feelings || []).map((text: string, index: number) => ({
+          id: `${belief.category}-feelings-ai-${index}`,
+          text: text,
+          checked: false
+        }));
+
+        const beliefsChecklist: ChecklistItem[] = (aiData.target || []).map((text: string, index: number) => ({
+          id: `${belief.category}-beliefs-ai-${index}`,
+          text: text,
+          checked: false
+        }));
+
+        const actionsChecklist: ChecklistItem[] = (aiData.actions || []).map((text: string, index: number) => ({
+          id: `${belief.category}-actions-ai-${index}`,
+          text: text,
+          checked: false
+        }));
+
+        return {
           ...belief,
-          result: aiData.result || belief.result,
-          nextFeelings: aiData.feelings || belief.nextFeelings,
-          nextWeekTarget: aiData.target || belief.nextWeekTarget,
-          nextActions: aiData.actions || belief.nextActions,
-        } : belief;
+          // Store text versions for compatibility
+          result: (aiData.result || []).join('\n'),
+          nextFeelings: (aiData.feelings || []).join('\n'),
+          nextWeekTarget: (aiData.target || []).join('\n'),
+          nextActions: (aiData.actions || []).join('\n'),
+          // Store as checklists
+          resultChecklist,
+          feelingsChecklist,
+          beliefsChecklist,
+          actionsChecklist,
+        };
       }));
       
+      // Auto-save the AI-filled data
+      saveWeekMutation.mutate({
+        weekNumber,
+        year: new Date().getFullYear(),
+        beliefs: beliefs.map(belief => {
+          const aiData = data.find((d: any) => d.category === belief.category);
+          if (!aiData) return belief;
+
+          const resultChecklist: ChecklistItem[] = (aiData.result || []).map((text: string, index: number) => ({
+            id: `${belief.category}-result-ai-${index}`,
+            text: text,
+            checked: false
+          }));
+
+          const feelingsChecklist: ChecklistItem[] = (aiData.feelings || []).map((text: string, index: number) => ({
+            id: `${belief.category}-feelings-ai-${index}`,
+            text: text,
+            checked: false
+          }));
+
+          const beliefsChecklist: ChecklistItem[] = (aiData.target || []).map((text: string, index: number) => ({
+            id: `${belief.category}-beliefs-ai-${index}`,
+            text: text,
+            checked: false
+          }));
+
+          const actionsChecklist: ChecklistItem[] = (aiData.actions || []).map((text: string, index: number) => ({
+            id: `${belief.category}-actions-ai-${index}`,
+            text: text,
+            checked: false
+          }));
+
+          return {
+            ...belief,
+            result: (aiData.result || []).join('\n'),
+            nextFeelings: (aiData.feelings || []).join('\n'),
+            nextWeekTarget: (aiData.target || []).join('\n'),
+            nextActions: (aiData.actions || []).join('\n'),
+            resultChecklist,
+            feelingsChecklist,
+            beliefsChecklist,
+            actionsChecklist,
+          };
+        }),
+      });
+      
       toast({
-        title: 'AI Auto-Fill Complete!',
-        description: 'Next week suggestions have been generated.',
+        title: 'AI Auto-Fill Complete! ✨',
+        description: 'Next week suggestions generated and saved as checkboxes.',
       });
     },
     onError: () => {
