@@ -1568,6 +1568,105 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
+  // Admin: Get specific user's HRCM week data
+  app.get('/api/admin/user/:userId/hercm/week/:weekNumber', isAuthenticated, async (req, res) => {
+    try {
+      const { userId, weekNumber: weekNumStr } = req.params;
+      const weekNumber = parseInt(weekNumStr);
+      
+      const week = await storage.getHercmWeek(userId, weekNumber);
+      
+      if (!week) {
+        return res.json(null);
+      }
+      
+      // Transform database format to beliefs array (same as regular user route)
+      const beliefs = [
+        {
+          category: 'Health',
+          currentRating: week.currentH || 1,
+          targetRating: week.targetH || 1,
+          problems: week.healthProblems || '',
+          currentFeelings: week.healthCurrentFeelings || '',
+          currentBelief: week.healthCurrentBelief || '',
+          currentActions: week.healthCurrentActions || '',
+          result: week.healthResult || '',
+          nextFeelings: week.healthNextFeelings || '',
+          nextWeekTarget: week.healthNextTarget || '',
+          nextActions: week.healthNextActions || '',
+          checklist: week.healthChecklist || [],
+          assignment: week.healthAssignment || { courses: [], lessons: [] },
+          resultChecklist: week.healthResultChecklist || [],
+          feelingsChecklist: week.healthFeelingsChecklist || [],
+          beliefsChecklist: week.healthBeliefsChecklist || [],
+          actionsChecklist: week.healthActionsChecklist || []
+        },
+        {
+          category: 'Relationship',
+          currentRating: week.currentE || 1,
+          targetRating: week.targetE || 1,
+          problems: week.relationshipProblems || '',
+          currentFeelings: week.relationshipCurrentFeelings || '',
+          currentBelief: week.relationshipCurrentBelief || '',
+          currentActions: week.relationshipCurrentActions || '',
+          result: week.relationshipResult || '',
+          nextFeelings: week.relationshipNextFeelings || '',
+          nextWeekTarget: week.relationshipNextTarget || '',
+          nextActions: week.relationshipNextActions || '',
+          checklist: week.relationshipChecklist || [],
+          assignment: week.relationshipAssignment || { courses: [], lessons: [] },
+          resultChecklist: week.relationshipResultChecklist || [],
+          feelingsChecklist: week.relationshipFeelingsChecklist || [],
+          beliefsChecklist: week.relationshipBeliefsChecklist || [],
+          actionsChecklist: week.relationshipActionsChecklist || []
+        },
+        {
+          category: 'Career',
+          currentRating: week.currentR || 1,
+          targetRating: week.targetR || 1,
+          problems: week.careerProblems || '',
+          currentFeelings: week.careerCurrentFeelings || '',
+          currentBelief: week.careerCurrentBelief || '',
+          currentActions: week.careerCurrentActions || '',
+          result: week.careerResult || '',
+          nextFeelings: week.careerNextFeelings || '',
+          nextWeekTarget: week.careerNextTarget || '',
+          nextActions: week.careerNextActions || '',
+          checklist: week.careerChecklist || [],
+          assignment: week.careerAssignment || { courses: [], lessons: [] },
+          resultChecklist: week.careerResultChecklist || [],
+          feelingsChecklist: week.careerFeelingsChecklist || [],
+          beliefsChecklist: week.careerBeliefsChecklist || [],
+          actionsChecklist: week.careerActionsChecklist || []
+        },
+        {
+          category: 'Money',
+          currentRating: week.currentC || 1,
+          targetRating: week.targetC || 1,
+          problems: week.moneyProblems || '',
+          currentFeelings: week.moneyCurrentFeelings || '',
+          currentBelief: week.moneyCurrentBelief || '',
+          currentActions: week.moneyCurrentActions || '',
+          result: week.moneyResult || '',
+          nextFeelings: week.moneyNextFeelings || '',
+          nextWeekTarget: week.moneyNextTarget || '',
+          nextActions: week.moneyNextActions || '',
+          checklist: week.moneyChecklist || [],
+          assignment: week.moneyAssignment || { courses: [], lessons: [] },
+          resultChecklist: week.moneyResultChecklist || [],
+          feelingsChecklist: week.moneyFeelingsChecklist || [],
+          beliefsChecklist: week.moneyBeliefsChecklist || [],
+          actionsChecklist: week.moneyActionsChecklist || []
+        }
+      ];
+      
+      res.json({ ...week, beliefs });
+    } catch (error) {
+      console.error("Error fetching admin user HRCM week:", error);
+      res.status(500).json({ message: "Failed to fetch week data" });
+    }
+  });
+
   // Get user analytics with period filter (weekly/monthly/yearly)
   app.get('/api/admin/user/:userId/analytics-period', isAuthenticated, async (req, res) => {
     try {

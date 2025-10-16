@@ -100,8 +100,10 @@ interface HRCMBelief {
 }
 
 interface UnifiedHRCMTableProps {
-  weekNumber: number;
+  weekNumber?: number;
   onWeekChange?: (newWeek: number) => void;
+  viewAsUserId?: string;
+  isAdminView?: boolean;
 }
 
 // Generate completely blank beliefs for a new week - absolutely no pre-filled data
@@ -235,7 +237,7 @@ const MONEY_STANDARDS: ChecklistItem[] = [
   { id: 'money-std-5', text: 'I Promise to Practice Saying "Time for Double Happiness" every time something Negative happens about Money', checked: false },
 ];
 
-export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHRCMTableProps) {
+export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsUserId, isAdminView = false }: UnifiedHRCMTableProps) {
   const [beliefs, setBeliefs] = useState<HRCMBelief[]>([]);
   const [editingField, setEditingField] = useState<{ category: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState('');
@@ -252,9 +254,15 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
   const hasAutoProgressed = useRef<Set<number>>(new Set()); // Track which weeks have been auto-progressed
   const { toast} = useToast();
 
+  // When in admin view mode, fetch data for the specific user
+  // Build query key based on admin view or regular user view
+  const weekQueryKey = isAdminView && viewAsUserId 
+    ? [`/api/admin/user/${viewAsUserId}/hercm/week`, weekNumber] 
+    : ['/api/hercm/week', weekNumber];
+
   // Fetch current week data from database
   const { data: weekData, isLoading } = useQuery<{ beliefs?: HRCMBelief[]; createdAt?: string }>({
-    queryKey: ['/api/hercm/week', weekNumber],
+    queryKey: weekQueryKey,
     enabled: weekNumber > 0,
   });
 
