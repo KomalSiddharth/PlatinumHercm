@@ -519,6 +519,15 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
   // AI Auto-Fill Next Week mutation
   const aiAutoFillMutation = useMutation({
     mutationFn: async () => {
+      console.log('AI Auto-Fill: Sending request with beliefs:', beliefs.map(b => ({
+        category: b.category,
+        currentRating: b.currentRating,
+        problems: b.problems,
+        currentFeelings: b.currentFeelings,
+        currentBelief: b.currentBelief,
+        currentActions: b.currentActions,
+      })));
+      
       const response = await apiRequest('POST', '/api/hercm/ai-autofill-next-week', {
         beliefs: beliefs.map(b => ({
           category: b.category,
@@ -529,7 +538,14 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
           currentActions: b.currentActions,
         }))
       });
-      return response.json();
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('AI Auto-Fill: Received response:', data);
+      return data;
     },
     onSuccess: (data) => {
       setBeliefs(prev => prev.map(belief => {

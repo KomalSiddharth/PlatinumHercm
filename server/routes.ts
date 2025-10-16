@@ -1107,6 +1107,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { beliefs } = req.body; // Array of all 4 HRCM beliefs with current week data
       
+      console.log('[AI Auto-Fill] Starting AI auto-fill request with beliefs:', JSON.stringify(beliefs, null, 2));
+      
       const prompt = `You are an expert life coach helping users set realistic and achievable goals for next week based on their current week performance.
 
 **User's Current Week Data:**
@@ -1165,24 +1167,33 @@ Return ONLY valid JSON in this EXACT format:
   }
 ]`;
 
+      console.log('[AI Auto-Fill] Calling OpenAI with prompt');
+      
       // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+      // Note: gpt-5 does NOT support the temperature parameter - it always defaults to 1
       const completion = await openai.chat.completions.create({
         model: "gpt-5",
         messages: [
           { role: "system", content: "You are an expert life coach providing personalized goal suggestions. Always return valid JSON array with exactly 4 objects for Health, Relationship, Career, and Money in that exact order." },
           { role: "user", content: prompt }
         ],
-        temperature: 0.7,
+        response_format: { type: "json_object" },
       });
 
+      console.log('[AI Auto-Fill] OpenAI response received');
+      
       const responseText = completion.choices[0]?.message?.content || '[]';
+      console.log('[AI Auto-Fill] Response text:', responseText);
       
       // Parse AI response
       const aiSuggestions = JSON.parse(responseText);
+      console.log('[AI Auto-Fill] Parsed suggestions:', JSON.stringify(aiSuggestions, null, 2));
       
       res.json(aiSuggestions);
     } catch (error) {
-      console.error("Error auto-filling next week goals:", error);
+      console.error("[AI Auto-Fill] ERROR:", error);
+      console.error("[AI Auto-Fill] Error details:", error instanceof Error ? error.message : 'Unknown error');
+      console.error("[AI Auto-Fill] Error stack:", error instanceof Error ? error.stack : 'No stack');
       
       // Fallback: simple suggestions for all 4 areas
       const fallback = [
