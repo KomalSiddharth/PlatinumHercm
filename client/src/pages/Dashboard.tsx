@@ -992,6 +992,46 @@ export default function Dashboard() {
     }
   ]);
 
+  // Load lesson completions from database on mount
+  useEffect(() => {
+    const loadCompletions = async () => {
+      if (!currentUser) return;
+      
+      try {
+        // Fetch completions for all courses
+        const allCompletions: Record<string, string[]> = {};
+        
+        for (const course of courses) {
+          try {
+            const response = await fetch(`/api/course-video-completions/${course.id}`);
+            if (response.ok) {
+              const completions = await response.json();
+              // Store video IDs that are completed
+              allCompletions[course.id] = completions.map((c: any) => c.videoId);
+            }
+          } catch (error) {
+            console.error(`Failed to fetch completions for ${course.id}:`, error);
+          }
+        }
+        
+        // Update courses state with completion status
+        setCourses(prevCourses => 
+          prevCourses.map(course => ({
+            ...course,
+            lessons: course.lessons.map(lesson => ({
+              ...lesson,
+              completed: allCompletions[course.id]?.includes(`${course.id}-${lesson.id}`) || false
+            }))
+          }))
+        );
+      } catch (error) {
+        console.error('Error loading lesson completions:', error);
+      }
+    };
+    
+    loadCompletions();
+  }, [currentUser]); // Only run when user is loaded
+
   // Calculate total points from completed rituals and lessons
   useEffect(() => {
     const ritualPoints = rituals
@@ -1264,6 +1304,7 @@ export default function Dashboard() {
                                   <Checkbox
                                     checked={lesson.completed}
                                     onCheckedChange={async (checked) => {
+                                      // Update local state first for immediate UI feedback
                                       setCourses(prev => prev.map(c => 
                                         c.id === course.id
                                           ? {
@@ -1277,10 +1318,20 @@ export default function Dashboard() {
                                           : c
                                       ));
                                       
-                                      // If checked, automatically add to unified assignment
-                                      if (checked) {
-                                        try {
-                                          const response = await apiRequest('POST', '/api/unified-assignment/add-lesson', {
+                                      try {
+                                        // Toggle completion in database
+                                        const toggleResponse = await apiRequest('POST', '/api/course-video-completions/toggle', {
+                                          videoId: `${course.id}-${lesson.id}`,
+                                          courseId: course.id
+                                        });
+                                        
+                                        if (!toggleResponse.ok) {
+                                          throw new Error('Failed to toggle lesson completion');
+                                        }
+                                        
+                                        // If checked, add to unified assignment
+                                        if (checked) {
+                                          const assignmentResponse = await apiRequest('POST', '/api/unified-assignment/add-lesson', {
                                             weekNumber: currentWeek,
                                             lesson: {
                                               id: `${course.id}-${lesson.id}`,
@@ -1292,27 +1343,40 @@ export default function Dashboard() {
                                             }
                                           });
                                           
-                                          if (response.ok) {
+                                          if (assignmentResponse.ok) {
                                             // Invalidate queries to refresh assignment data
                                             queryClient.invalidateQueries({ queryKey: ['/api/hercm/week', currentWeek] });
                                             
                                             toast({
-                                              title: 'Added to Assignment!',
+                                              title: 'Lesson Completed!',
                                               description: `${lesson.title} added to Assignment column`,
                                             });
                                           }
-                                        } catch (error) {
-                                          console.error('Error adding to assignment:', error);
+                                        } else {
                                           toast({
-                                            title: 'Error',
-                                            description: 'Failed to add lesson to assignment',
-                                            variant: 'destructive'
+                                            title: 'Lesson Unchecked',
+                                            description: 'Marked as incomplete',
                                           });
                                         }
-                                      } else {
+                                      } catch (error) {
+                                        console.error('Error updating lesson:', error);
+                                        // Revert local state on error
+                                        setCourses(prev => prev.map(c => 
+                                          c.id === course.id
+                                            ? {
+                                                ...c,
+                                                lessons: c.lessons.map(l =>
+                                                  l.id === lesson.id
+                                                    ? { ...l, completed: !checked }
+                                                    : l
+                                                )
+                                              }
+                                            : c
+                                        ));
                                         toast({
-                                          title: 'Lesson Unchecked',
-                                          description: 'Marked as incomplete',
+                                          title: 'Error',
+                                          description: 'Failed to update lesson status',
+                                          variant: 'destructive'
                                         });
                                       }
                                     }}
