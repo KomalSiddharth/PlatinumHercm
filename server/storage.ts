@@ -901,11 +901,27 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(adminCourseRecommendations.createdAt));
   }
 
-  async getAllCourseRecommendations(): Promise<AdminCourseRecommendation[]> {
-    return await db
-      .select()
+  async getAllCourseRecommendations(): Promise<any[]> {
+    const recs = await db
+      .select({
+        id: adminCourseRecommendations.id,
+        userId: adminCourseRecommendations.userId,
+        adminId: adminCourseRecommendations.adminId,
+        hrcmArea: adminCourseRecommendations.hrcmArea,
+        courseId: adminCourseRecommendations.courseId,
+        courseName: adminCourseRecommendations.courseName,
+        lessonId: adminCourseRecommendations.lessonId,
+        lessonName: adminCourseRecommendations.lessonName,
+        lessonUrl: adminCourseRecommendations.lessonUrl,
+        reason: adminCourseRecommendations.reason,
+        status: adminCourseRecommendations.status,
+        createdAt: adminCourseRecommendations.createdAt,
+        userEmail: users.email,
+      })
       .from(adminCourseRecommendations)
+      .leftJoin(users, eq(adminCourseRecommendations.userId, users.id))
       .orderBy(desc(adminCourseRecommendations.createdAt));
+    return recs;
   }
 
   async updateRecommendationStatus(id: string, status: string): Promise<AdminCourseRecommendation> {

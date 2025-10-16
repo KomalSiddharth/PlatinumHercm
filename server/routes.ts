@@ -1824,13 +1824,35 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   app.get('/api/user/recommendations', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.session.userEmail;
+      console.log('[DEBUG] /api/user/recommendations - userId from auth:', userId);
+      
       if (!userId) {
         return res.status(401).json({ message: "User not authenticated" });
       }
 
-      const recommendations = await storage.getUserRecommendations(userId);
+      // Try to get user by ID first, then by email if ID doesn't work
+      let user = await storage.getUser(userId);
+      console.log('[DEBUG] /api/user/recommendations - user from getUser:', user);
+      
+      if (!user && typeof userId === 'string' && userId.includes('@')) {
+        // If userId is an email, try to find user by email
+        user = await storage.getUserByEmail(userId);
+        console.log('[DEBUG] /api/user/recommendations - user from getUserByEmail:', user);
+      }
+
+      if (!user) {
+        console.log('[DEBUG] /api/user/recommendations - no user found, returning empty array');
+        return res.json([]); // Return empty array if user not found
+      }
+
+      // Get recommendations by the user's database ID
+      const recommendations = await storage.getUserRecommendations(user.id);
+      console.log('[DEBUG] /api/user/recommendations - recommendations for user.id', user.id, ':', recommendations);
+      
       // Filter to show only pending recommendations to the user
       const pendingRecommendations = recommendations.filter((r: any) => r.status === 'pending');
+      console.log('[DEBUG] /api/user/recommendations - pending recommendations:', pendingRecommendations);
+      
       res.json(pendingRecommendations);
     } catch (error) {
       console.error("Error fetching user recommendations:", error);
@@ -1848,15 +1870,25 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
 
       const { id } = req.params;
       
+      // Try to get user by ID first, then by email if ID doesn't work
+      let user = await storage.getUser(userId);
+      if (!user && typeof userId === 'string' && userId.includes('@')) {
+        user = await storage.getUserByEmail(userId);
+      }
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
       // Get the recommendation and verify it belongs to this user
-      const recommendations = await storage.getUserRecommendations(userId);
+      const recommendations = await storage.getUserRecommendations(user.id);
       const recommendation = recommendations.find((r: any) => r.id === id);
       
       if (!recommendation) {
         return res.status(404).json({ message: "Recommendation not found" });
       }
 
-      if (recommendation.userId !== userId) {
+      if (recommendation.userId !== user.id) {
         return res.status(403).json({ message: "Not authorized to accept this recommendation" });
       }
 
@@ -1864,7 +1896,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       await storage.updateRecommendationStatus(id, 'accepted');
 
       // Get user's current week
-      const weeks = await storage.getHercmWeeksByUser(userId);
+      const weeks = await storage.getHercmWeeksByUser(user.id);
       const currentWeek = weeks.find((w: any) => w.weekNumber === weeks.length);
 
       if (currentWeek) {
@@ -1908,15 +1940,25 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
 
       const { id } = req.params;
       
+      // Try to get user by ID first, then by email if ID doesn't work
+      let user = await storage.getUser(userId);
+      if (!user && typeof userId === 'string' && userId.includes('@')) {
+        user = await storage.getUserByEmail(userId);
+      }
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
       // Get the recommendation and verify it belongs to this user
-      const recommendations = await storage.getUserRecommendations(userId);
+      const recommendations = await storage.getUserRecommendations(user.id);
       const recommendation = recommendations.find((r: any) => r.id === id);
       
       if (!recommendation) {
         return res.status(404).json({ message: "Recommendation not found" });
       }
 
-      if (recommendation.userId !== userId) {
+      if (recommendation.userId !== user.id) {
         return res.status(403).json({ message: "Not authorized to dismiss this recommendation" });
       }
 
