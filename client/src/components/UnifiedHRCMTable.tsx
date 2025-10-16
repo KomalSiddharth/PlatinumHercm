@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Sparkles, Check, X, TrendingUp, Save, Loader2, ArrowUp, ArrowDown, History } from 'lucide-react';
+import { Sparkles, Check, X, TrendingUp, Save, Loader2, ArrowUp, ArrowDown, History, Award } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -362,46 +362,6 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
   // Open standards dialog for a category
   const handleOpenStandardsDialog = (category: string) => {
     setSelectedCategory(category);
-    
-    // Force update to clean standards format for all categories
-    const updatedBeliefs = beliefs.map(b => {
-      if (b.category === category) {
-        let newChecklist: ChecklistItem[] = [];
-        
-        if (category === 'Health') {
-          newChecklist = HEALTH_STANDARDS.map(std => ({ ...std }));
-        } else if (category === 'Relationship') {
-          newChecklist = RELATIONSHIP_STANDARDS.map(std => ({ ...std }));
-        } else if (category === 'Career') {
-          newChecklist = CAREER_STANDARDS.map(std => ({ ...std }));
-        } else if (category === 'Money') {
-          newChecklist = MONEY_STANDARDS.map(std => ({ ...std }));
-        }
-        
-        // Preserve checked state from existing checklist
-        const existingChecklist = b.checklist || [];
-        const mergedChecklist = newChecklist.map(newItem => {
-          const existing = existingChecklist.find(e => e.id === newItem.id);
-          return existing ? { ...newItem, checked: existing.checked } : newItem;
-        });
-        
-        return {
-          ...b,
-          checklist: mergedChecklist
-        };
-      }
-      return b;
-    });
-    
-    setBeliefs(updatedBeliefs);
-    
-    // Auto-save the updated standards
-    saveWeekMutation.mutate({
-      weekNumber,
-      year: new Date().getFullYear(),
-      beliefs: updatedBeliefs,
-    });
-    
     setShowStandardsDialog(true);
   };
 
@@ -1173,20 +1133,16 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
 
                 {/* Checklist */}
                 <TableCell className="p-2 bg-purple-50/30 dark:bg-purple-950/10 align-top">
-                  <div className="space-y-1">
-                    {belief.checklist.map((item) => (
-                      <div key={item.id} className="flex items-center gap-2">
-                        <Checkbox
-                          checked={item.checked}
-                          onCheckedChange={() => handleChecklistToggle(belief.category, item.id)}
-                          data-testid={`checkbox-${belief.category.toLowerCase()}-${item.id}`}
-                        />
-                        <span className="text-xs">
-                          {item.text}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleOpenStandardsDialog(belief.category)}
+                    className="w-full"
+                    data-testid={`button-${belief.category.toLowerCase()}-standards`}
+                  >
+                    <Award className="w-4 h-4 mr-2" />
+                    View Standards ({belief.checklist.filter(i => i.checked).length}/{belief.checklist.length})
+                  </Button>
                 </TableCell>
 
                 {/* Progress */}
