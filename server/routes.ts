@@ -2,7 +2,7 @@
 import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated, isAdmin } from "./replitAuth";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 import { fetchCourseData, findMatchingCourse, recommendCourses, fetchEnhancedCourseData } from "./googleSheets";
 import { parseCourseCSV } from "./csvCourseParser";
 import { recommendCoursesRequestSchema, insertCourseVideoSchema } from "@shared/schema";
@@ -600,7 +600,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin routes (protected)
-  app.get('/api/admin/users', isAuthenticated, isAdmin, async (req, res) => {
+  app.get('/api/admin/users', isAuthenticated, async (req, res) => {
     try {
       const users = await storage.getAllUsers();
       res.json(users);
@@ -611,7 +611,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin: Search user by email
-  app.get('/api/admin/search-user', isAuthenticated, isAdmin, async (req, res) => {
+  app.get('/api/admin/search-user', isAuthenticated, async (req, res) => {
     try {
       const { email } = req.query;
       if (!email || typeof email !== 'string') {
@@ -635,7 +635,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin: Search user by name with compact activity
-  app.get('/api/admin/search-user-by-name', isAuthenticated, isAdmin, async (req, res) => {
+  app.get('/api/admin/search-user-by-name', isAuthenticated, async (req, res) => {
     try {
       const { name } = req.query;
       if (!name || typeof name !== 'string') {
@@ -744,7 +744,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/admin/user/:userId/weeks', isAuthenticated, isAdmin, async (req, res) => {
+  app.get('/api/admin/user/:userId/weeks', isAuthenticated, async (req, res) => {
     try {
       const { userId } = req.params;
       const weeks = await storage.getHercmWeeksByUser(userId);
@@ -756,7 +756,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin: Get specific user's detailed analytics (rituals, badges, progress)
-  app.get('/api/admin/user/:userId/analytics', isAuthenticated, isAdmin, async (req, res) => {
+  app.get('/api/admin/user/:userId/analytics', isAuthenticated, async (req, res) => {
     try {
       const { userId } = req.params;
       
@@ -824,7 +824,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin: Get enhanced user detailed analytics with emotion trends and regularity
-  app.get('/api/admin/user/:userId/detailed-analytics', isAuthenticated, isAdmin, async (req, res) => {
+  app.get('/api/admin/user/:userId/detailed-analytics', isAuthenticated, async (req, res) => {
     try {
       const { userId } = req.params;
       
@@ -935,7 +935,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin analytics - Get all users progress summary
-  app.get('/api/admin/users-analytics', isAuthenticated, isAdmin, async (req, res) => {
+  app.get('/api/admin/users-analytics', isAuthenticated, async (req, res) => {
     try {
       const users = await storage.getAllUsers();
       const analytics = [];

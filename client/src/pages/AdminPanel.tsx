@@ -63,18 +63,11 @@ export default function AdminPanel() {
   
   const { toast } = useToast();
 
-  // Check if user is admin
+  // Check if user is logged in (admin restrictions removed)
   const { data: currentUser, isLoading: userLoading } = useQuery<{ id: string; email: string; firstName?: string; lastName?: string; isAdmin?: boolean }>({
     queryKey: ['/api/auth/user'],
     retry: false,
   });
-
-  // Redirect non-admin users to dashboard
-  useEffect(() => {
-    if (!userLoading && (!currentUser || !currentUser.isAdmin)) {
-      setLocation('/dashboard');
-    }
-  }, [currentUser, userLoading, setLocation]);
 
   // Show loading while checking authentication
   if (userLoading) {
@@ -83,11 +76,6 @@ export default function AdminPanel() {
         <div className="text-lg">Loading...</div>
       </div>
     );
-  }
-
-  // Don't render if not admin
-  if (!currentUser || !currentUser.isAdmin) {
-    return null;
   }
 
   const { data: approvedEmails = [], isLoading } = useQuery<ApprovedEmail[]>({
