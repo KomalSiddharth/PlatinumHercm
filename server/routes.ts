@@ -2015,37 +2015,19 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         return res.status(400).json({ message: "videoId and courseId are required" });
       }
       
-      // Verify course exists
-      const allVideos = await storage.getCourseVideos(courseId);
-      if (allVideos.length === 0) {
-        return res.status(404).json({ message: "Course or videos not found" });
-      }
-      
-      // Toggle the completion
+      // Toggle the completion (no need to verify course as courses are frontend-only)
       const result = await storage.toggleVideoCompletion(userId, videoId);
       
-      // Recalculate course progress
+      // Get completed count for this course
       const completedVideos = await storage.getCourseVideoCompletions(userId, courseId);
-      const progress = Math.round((completedVideos.length / allVideos.length) * 100);
-      
-      // Update the course progress
-      await storage.updateCourseProgress(courseId, progress);
       
       res.json({ 
         ...result, 
-        progress,
-        completedCount: completedVideos.length,
-        totalCount: allVideos.length
+        completedCount: completedVideos.length
       });
     } catch (error) {
       console.error("Error toggling video completion:", error);
       const errorMessage = error instanceof Error ? error.message : "Failed to toggle video completion";
-      
-      // Check if it's a "not found" error
-      if (errorMessage.includes('not found')) {
-        return res.status(404).json({ message: errorMessage });
-      }
-      
       res.status(500).json({ message: errorMessage });
     }
   });

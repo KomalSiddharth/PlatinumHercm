@@ -1270,7 +1270,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                           aria-label="Edit problems"
                           data-testid={`text-problems-${belief.category.toLowerCase()}`}
                         >
-                          <span className="line-clamp-2 break-words">
+                          <span className="break-words whitespace-pre-wrap">
                             {belief.problems || <span className="text-muted-foreground italic">Click to add...</span>}
                           </span>
                         </button>
@@ -1310,7 +1310,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                           aria-label="Edit feelings"
                           data-testid={`text-feelings-${belief.category.toLowerCase()}`}
                         >
-                          <span className="line-clamp-2 break-words">
+                          <span className="break-words whitespace-pre-wrap">
                             {belief.currentFeelings || <span className="text-muted-foreground italic">Click to add...</span>}
                           </span>
                         </button>
@@ -1350,7 +1350,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                           aria-label="Edit beliefs"
                           data-testid={`text-beliefs-${belief.category.toLowerCase()}`}
                         >
-                          <span className="line-clamp-2 break-words">
+                          <span className="break-words whitespace-pre-wrap">
                             {belief.currentBelief || <span className="text-muted-foreground italic">Click to add...</span>}
                           </span>
                         </button>
@@ -1390,7 +1390,7 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                           aria-label="Edit actions"
                           data-testid={`text-actions-${belief.category.toLowerCase()}`}
                         >
-                          <span className="line-clamp-2 break-words">
+                          <span className="break-words whitespace-pre-wrap">
                             {belief.currentActions || <span className="text-muted-foreground italic">Click to add...</span>}
                           </span>
                         </button>
