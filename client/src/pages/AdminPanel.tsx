@@ -299,6 +299,23 @@ export default function AdminPanel() {
     }
   });
 
+  const deleteRecommendationMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return apiRequest('DELETE', `/api/admin/recommendations/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/recommendations'] });
+      toast({ title: "Recommendation Deleted", description: "Course recommendation has been removed" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Error", 
+        description: error.message || "Failed to delete recommendation",
+        variant: "destructive" 
+      });
+    }
+  });
+
   // Show loading while checking authentication (after ALL hooks)
   if (userLoading) {
     return (
@@ -1382,7 +1399,7 @@ export default function AdminPanel() {
                         {recommendations.map((rec: any) => (
                           <div key={rec.id} className="p-3 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
                             <div className="flex justify-between items-start">
-                              <div>
+                              <div className="flex-1">
                                 <div className="font-medium">{rec.courseName}</div>
                                 <div className="text-sm text-gray-500">
                                   To: {rec.userEmail} • Area: {rec.hrcmArea}
@@ -1391,7 +1408,19 @@ export default function AdminPanel() {
                                   <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">{rec.reason}</div>
                                 )}
                               </div>
-                              <Badge variant="outline">{rec.status || 'pending'}</Badge>
+                              <div className="flex items-center gap-2">
+                                <Badge variant="outline">{rec.status || 'pending'}</Badge>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => deleteRecommendationMutation.mutate(rec.id)}
+                                  disabled={deleteRecommendationMutation.isPending}
+                                  className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+                                  data-testid={`button-delete-recommendation-${rec.id}`}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         ))}

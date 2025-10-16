@@ -151,6 +151,7 @@ export interface IStorage {
   getUserRecommendations(userId: string): Promise<any[]>;
   getAllCourseRecommendations(): Promise<any[]>;
   updateRecommendationStatus(id: string, status: string): Promise<any>;
+  deleteRecommendation(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -937,6 +938,12 @@ export class DatabaseStorage implements IStorage {
       .where(eq(adminCourseRecommendations.id, id))
       .returning();
     return rec;
+  }
+
+  async deleteRecommendation(id: string): Promise<void> {
+    await db
+      .delete(adminCourseRecommendations)
+      .where(eq(adminCourseRecommendations.id, id));
   }
 }
 

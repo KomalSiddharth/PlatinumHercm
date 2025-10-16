@@ -1766,6 +1766,18 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
+  // Admin delete course recommendation
+  app.delete('/api/admin/recommendations/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteRecommendation(id);
+      res.json({ message: "Recommendation deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting recommendation:", error);
+      res.status(500).json({ message: "Failed to delete recommendation" });
+    }
+  });
+
   // Admin add course recommendation to user
   app.post('/api/admin/recommend-course', isAuthenticated, async (req: any, res) => {
     try {
