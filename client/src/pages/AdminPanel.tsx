@@ -42,7 +42,7 @@ import AdminUserDashboardViewer from '@/components/AdminUserDashboardViewer';
 
 export default function AdminPanel() {
   const [, setLocation] = useLocation();
-  const [activeTab, setActiveTab] = useState<'approved' | 'team' | 'logs' | 'analytics' | 'activity' | 'dashboard-viewer' | 'team-analytics' | 'recommendations'>('approved');
+  const [activeTab, setActiveTab] = useState<'approved' | 'team' | 'logs' | 'analytics' | 'dashboard-viewer' | 'team-analytics' | 'recommendations'>('approved');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -520,17 +520,6 @@ export default function AdminPanel() {
                 data-testid="tab-analytics"
               >
                 User Analytics
-              </button>
-              <button 
-                onClick={() => setActiveTab('activity')}
-                className={`pb-3 border-b-2 transition-colors ${
-                  activeTab === 'activity' 
-                    ? 'border-blue-600 text-blue-600 font-medium' 
-                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-                }`}
-                data-testid="tab-activity"
-              >
-                User Activity
               </button>
               <button 
                 onClick={() => setActiveTab('dashboard-viewer')}
@@ -1076,19 +1065,6 @@ export default function AdminPanel() {
             </div>
           )}
 
-          {/* User Activity Search Tab Content */}
-          {activeTab === 'activity' && (
-            <div className="p-6">
-              <UserActivitySearch 
-                apiEndpoint="/api/admin/search-user-by-name"
-                onViewDashboard={(userId) => {
-                  // Switch to dashboard viewer tab
-                  setActiveTab('dashboard-viewer');
-                  // Note: The dashboard viewer will need to be enhanced to accept a userId prop
-                }}
-              />
-            </div>
-          )}
 
           {/* User Dashboard Viewer Tab */}
           {activeTab === 'dashboard-viewer' && (
