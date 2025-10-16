@@ -416,7 +416,7 @@ export type CourseVideo = typeof courseVideos.$inferSelect;
 export const courseVideoCompletions = pgTable("course_video_completions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id),
-  videoId: varchar("video_id").notNull().references(() => courseVideos.id),
+  videoId: varchar("video_id").notNull(), // No FK constraint - courses are frontend-only
   completedAt: timestamp("completed_at").defaultNow(),
 });
 

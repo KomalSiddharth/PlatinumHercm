@@ -609,21 +609,14 @@ export class DatabaseStorage implements IStorage {
 
   // Course Video Completions operations
   async getCourseVideoCompletions(userId: string, courseId: string): Promise<CourseVideoCompletion[]> {
-    // Get all video IDs for the course first
-    const videos = await this.getCourseVideos(courseId);
-    const videoIds = videos.map(v => v.id);
-    
-    if (videoIds.length === 0) {
-      return [];
-    }
-    
-    // Then get completions for those videos
+    // Get all completions for this user where videoId starts with courseId
+    // (Since courses are frontend-only, we use videoId pattern matching)
     return await db
       .select()
       .from(courseVideoCompletions)
       .where(and(
         eq(courseVideoCompletions.userId, userId),
-        sql`${courseVideoCompletions.videoId} IN (${sql.join(videoIds.map(id => sql`${id}`), sql`, `)})`
+        sql`${courseVideoCompletions.videoId} LIKE ${courseId + '-%'}`
       ));
   }
 
