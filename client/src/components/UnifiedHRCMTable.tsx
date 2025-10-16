@@ -111,7 +111,7 @@ const getBlankBeliefs = (): HRCMBelief[] => {
       nextFeelings: '',
       nextWeekTarget: '',
       nextActions: '',
-      checklist: HEALTH_STANDARDS.map(std => ({ ...std })),
+      checklist: [],
       assignment: { courses: [], lessons: [] }
     },
     {
@@ -126,7 +126,7 @@ const getBlankBeliefs = (): HRCMBelief[] => {
       nextFeelings: '',
       nextWeekTarget: '',
       nextActions: '',
-      checklist: RELATIONSHIP_STANDARDS.map(std => ({ ...std })),
+      checklist: [],
       assignment: { courses: [], lessons: [] }
     },
     {
@@ -141,7 +141,7 @@ const getBlankBeliefs = (): HRCMBelief[] => {
       nextFeelings: '',
       nextWeekTarget: '',
       nextActions: '',
-      checklist: CAREER_STANDARDS.map(std => ({ ...std })),
+      checklist: [],
       assignment: { courses: [], lessons: [] }
     },
     {
@@ -156,7 +156,7 @@ const getBlankBeliefs = (): HRCMBelief[] => {
       nextFeelings: '',
       nextWeekTarget: '',
       nextActions: '',
-      checklist: MONEY_STANDARDS.map(std => ({ ...std })),
+      checklist: [],
       assignment: { courses: [], lessons: [] }
     }
   ];
@@ -185,55 +185,11 @@ const getProgressColor = (progress: number) => {
   return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
 };
 
-// Health Standards - Predefined checklist for Health category  
-const HEALTH_STANDARDS: ChecklistItem[] = [
-  { id: 'health-std-1', text: 'I started my Day with Magic Water', checked: false },
-  { id: 'health-std-2', text: 'I started my Day with 10 Mins of Musical Workout for Squats & Pushups', checked: false },
-  { id: 'health-std-3', text: 'I started my Day with Healthy Breakfast', checked: false },
-  { id: 'health-std-4', text: 'I completed 100 Pushups & Squats today', checked: false },
-  { id: 'health-std-5', text: 'I Promise to say Cancel-Cancel every time I say something Negative', checked: false },
-  { id: 'health-std-6', text: 'I Promise to check my Emotional Frequency every 2 hours by Alarm', checked: false },
-  { id: 'health-std-7', text: 'I Promise to say this Affirmation – "I Am Responsible for my Feelings" 10 times today', checked: false },
-  { id: 'health-std-8', text: 'I Promise to Be Aware of my Emotional Rules and Make Positive Emotions Easy and Negative Emotions Difficult', checked: false },
-  { id: 'health-std-9', text: 'I Promise to Believe in myself more than Anybody else', checked: false },
-  { id: 'health-std-10', text: 'I Promise to Practice Walking-Talking Affirmations before doing any task today', checked: false },
-];
-
-// Relationship Standards - Predefined checklist for Relationship category
-const RELATIONSHIP_STANDARDS: ChecklistItem[] = [
-  { id: 'relationship-std-1', text: 'I Promise to talk to all my Relationships with Respect', checked: false },
-  { id: 'relationship-std-2', text: 'I Promise to Practice Great Listening Skills today', checked: false },
-  { id: 'relationship-std-3', text: 'I Promise to Practice Excellent Conflict Management Skills', checked: false },
-  { id: 'relationship-std-4', text: 'I Promise to End my Day with lots of Fun, Laughter, Hugs & Kisses with all my Family Members', checked: false },
-  { id: 'relationship-std-5', text: 'I Promise to Appreciate People Generously & regularly say Thank You', checked: false },
-  { id: 'relationship-std-6', text: 'I Promise to Accept Mistakes today and Easily say "I Am Sorry, Please Forgive"', checked: false },
-];
-
-// Career Standards - Predefined checklist for Career category
-const CAREER_STANDARDS: ChecklistItem[] = [
-  { id: 'career-std-1', text: 'I Promise to Add 10x Value for any work I do today', checked: false },
-  { id: 'career-std-2', text: 'I Promise to Love what I do, even if I don\'t like it', checked: false },
-  { id: 'career-std-3', text: 'I Promise to focus on Serving & Adding Value rather than being Desperate for my Goals', checked: false },
-  { id: 'career-std-4', text: 'I Promise to Practice Walking-Talking Affirmations before doing any task related to my Career', checked: false },
-  { id: 'career-std-5', text: 'I Promise to End my work with this Affirmation – "My Career is Amazing, I Had a Great Day today."', checked: false },
-];
-
-// Money Standards - Predefined checklist for Money category
-const MONEY_STANDARDS: ChecklistItem[] = [
-  { id: 'money-std-1', text: 'I Promise to Be Generous while Spending Money today and Be Happy for others Making Money', checked: false },
-  { id: 'money-std-2', text: 'I Promise to Be Comfortable to Ask for Money today', checked: false },
-  { id: 'money-std-3', text: 'I Promise to invest at least 15 mins today to work on developing More Money-Making Skills', checked: false },
-  { id: 'money-std-4', text: 'I Promise to Appreciate People Generously & Regularly say Thank You (to increase Money Flow Energy)', checked: false },
-  { id: 'money-std-5', text: 'I Promise to Practice Saying "Time for Double Happiness" every time something Negative happens about Money', checked: false },
-];
-
 export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHRCMTableProps) {
   const [beliefs, setBeliefs] = useState<HRCMBelief[]>([]);
   const [editingField, setEditingField] = useState<{ category: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState('');
   const [loadingAssignments, setLoadingAssignments] = useState<Set<string>>(new Set());
-  const [showStandardsDialog, setShowStandardsDialog] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [collapsedCourses, setCollapsedCourses] = useState<Set<string>>(new Set());
   const [unifiedAssignment, setUnifiedAssignment] = useState<AssignmentLesson[]>([]);
   const [progressOpen, setProgressOpen] = useState(false);
@@ -357,111 +313,6 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
       
       return updated;
     });
-  };
-
-  // Open standards dialog for a category
-  const handleOpenStandardsDialog = (category: string) => {
-    setSelectedCategory(category);
-    
-    if (category === 'Health') {
-      setBeliefs(prev => prev.map(b => {
-        if (b.category === 'Health') {
-          const existingChecklist = b.checklist || [];
-          
-          // Check if this is the old format (4 items) or needs update to 10 items
-          const hasOldFormat = existingChecklist.length === 4;
-          const hasNewFormat = existingChecklist.length === 10 && existingChecklist.some(item => item.id === 'health-std-1');
-          
-          if (!hasNewFormat || hasOldFormat) {
-            // Replace with new 10 health standards
-            return {
-              ...b,
-              checklist: HEALTH_STANDARDS.map(std => ({ ...std })),
-              currentRating: 0,
-              targetRating: 1
-            };
-          }
-          
-          // Already has new format, keep as is
-          return b;
-        }
-        return b;
-      }));
-    } else if (category === 'Relationship') {
-      setBeliefs(prev => prev.map(b => {
-        if (b.category === 'Relationship') {
-          const existingChecklist = b.checklist || [];
-          
-          // Check if needs update to 6 relationship standards
-          const hasOldFormat = existingChecklist.length === 4;
-          const hasNewFormat = existingChecklist.length === 6 && existingChecklist.some(item => item.id === 'relationship-std-1');
-          
-          if (!hasNewFormat || hasOldFormat) {
-            // Replace with new 6 relationship standards
-            return {
-              ...b,
-              checklist: RELATIONSHIP_STANDARDS.map(std => ({ ...std })),
-              currentRating: 0,
-              targetRating: 1
-            };
-          }
-          
-          // Already has new format, keep as is
-          return b;
-        }
-        return b;
-      }));
-    } else if (category === 'Career') {
-      setBeliefs(prev => prev.map(b => {
-        if (b.category === 'Career') {
-          const existingChecklist = b.checklist || [];
-          
-          // Check if needs update to 5 career standards
-          const hasOldFormat = existingChecklist.length === 4;
-          const hasNewFormat = existingChecklist.length === 5 && existingChecklist.some(item => item.id === 'career-std-1');
-          
-          if (!hasNewFormat || hasOldFormat) {
-            // Replace with new 5 career standards
-            return {
-              ...b,
-              checklist: CAREER_STANDARDS.map(std => ({ ...std })),
-              currentRating: 0,
-              targetRating: 1
-            };
-          }
-          
-          // Already has new format, keep as is
-          return b;
-        }
-        return b;
-      }));
-    } else if (category === 'Money') {
-      setBeliefs(prev => prev.map(b => {
-        if (b.category === 'Money') {
-          const existingChecklist = b.checklist || [];
-          
-          // Check if needs update to 5 money standards
-          const hasOldFormat = existingChecklist.length === 4;
-          const hasNewFormat = existingChecklist.length === 5 && existingChecklist.some(item => item.id === 'money-std-1');
-          
-          if (!hasNewFormat || hasOldFormat) {
-            // Replace with new 5 money standards
-            return {
-              ...b,
-              checklist: MONEY_STANDARDS.map(std => ({ ...std })),
-              currentRating: 0,
-              targetRating: 1
-            };
-          }
-          
-          // Already has new format, keep as is
-          return b;
-        }
-        return b;
-      }));
-    }
-    
-    setShowStandardsDialog(true);
   };
 
   // Toggle a standard and recalculate rating (capped at user's max allowed)
@@ -1059,9 +910,6 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
               <TableHead className="min-w-[140px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Feelings</TableHead>
               <TableHead className="min-w-[140px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Beliefs/Reasons</TableHead>
               <TableHead className="min-w-[140px] bg-rose-100 dark:bg-rose-900/40 font-semibold border-r">Actions</TableHead>
-              
-              <TableHead className="min-w-[150px] bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900/40 dark:to-violet-900/40 font-semibold">Platinum Standards</TableHead>
-              <TableHead className="min-w-[70px] bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 font-semibold text-center">Progress</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -1229,31 +1077,6 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                     </button>
                   )}
                 </TableCell>
-
-                {/* Checklist */}
-                <TableCell className="p-2 bg-purple-50/30 dark:bg-purple-950/10 align-top">
-                  <div className="space-y-1">
-                    {belief.checklist.map((item) => (
-                      <div key={item.id} className="flex items-center gap-2">
-                        <Checkbox
-                          checked={item.checked}
-                          onCheckedChange={() => handleChecklistToggle(belief.category, item.id)}
-                          data-testid={`checkbox-${belief.category.toLowerCase()}-${item.id}`}
-                        />
-                        <span className="text-xs">
-                          {item.text}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </TableCell>
-
-                {/* Progress */}
-                <TableCell className="p-2 text-center bg-emerald-50/30 dark:bg-emerald-950/10 align-top">
-                  <Badge className={getProgressColor(calculateProgress(belief.checklist))} data-testid={`badge-progress-${belief.category.toLowerCase()}`}>
-                    {calculateProgress(belief.checklist)}%
-                  </Badge>
-                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -1284,8 +1107,6 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                   Assignment
                 </div>
               </TableHead>
-              <TableHead className="min-w-[150px] bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900/40 dark:to-violet-900/40 font-semibold">Platinum Standards</TableHead>
-              <TableHead className="min-w-[70px] bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 font-semibold text-center">Progress</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -1574,142 +1395,11 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                     )}
                   </TableCell>
                 )}
-
-                {/* Checklist */}
-                <TableCell className="p-2 bg-purple-50/30 dark:bg-purple-950/10 align-top">
-                  <div className="space-y-1">
-                    {belief.checklist.map((item) => (
-                      <div key={item.id} className="flex items-center gap-2">
-                        <Checkbox
-                          checked={item.checked}
-                          onCheckedChange={() => handleChecklistToggle(belief.category, item.id)}
-                          data-testid={`checkbox-next-${belief.category.toLowerCase()}-${item.id}`}
-                        />
-                        <span className="text-xs">
-                          {item.text}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </TableCell>
-
-                {/* Progress */}
-                <TableCell className="p-2 text-center bg-emerald-50/30 dark:bg-emerald-950/10 align-top">
-                  <Badge className={getProgressColor(calculateProgress(belief.checklist))} data-testid={`badge-next-progress-${belief.category.toLowerCase()}`}>
-                    {calculateProgress(belief.checklist)}%
-                  </Badge>
-                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
-
-      {/* Standards Dialog (All Categories) */}
-      <Dialog open={showStandardsDialog} onOpenChange={setShowStandardsDialog}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              {selectedCategory} Standards Checklist
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 mt-4">
-            <p className="text-sm text-muted-foreground">
-              Select the standards you've completed today. Your {selectedCategory?.toLowerCase()} rating will be calculated automatically and scaled to a rating out of 10.
-            </p>
-            
-            {selectedCategory && (() => {
-              const categoryBelief = beliefs.find(b => b.category === selectedCategory);
-              const currentStandards = categoryBelief?.checklist || [];
-              const checkedCount = currentStandards.filter(item => item.checked).length;
-              const totalStandards = currentStandards.length;
-              
-              // Get max rating cap for this category
-              const categoryLower = selectedCategory.toLowerCase();
-              const maxRating = ratingCaps?.[categoryLower as keyof typeof ratingCaps] || 7;
-              
-              // Calculate scaled rating and cap it at maxRating
-              const rawScaledRating = Math.round((checkedCount / totalStandards) * 10);
-              const scaledRating = Math.min(rawScaledRating, maxRating);
-              
-              // Check for progression badge display
-              const weeksAtMax = ratingProgression?.[`${categoryLower}WeeksAtMax` as keyof typeof ratingProgression] || 0;
-              const showProgressionBadge = scaledRating === maxRating && weeksAtMax > 0;
-              
-              return (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                    <span className="font-semibold">Current {selectedCategory} Rating:</span>
-                    <div className="flex items-center gap-2">
-                      <Badge className="text-lg px-4 py-1" variant="default">
-                        {scaledRating}/10
-                      </Badge>
-                      {showProgressionBadge && (
-                        <Badge variant="secondary" className="text-xs px-2 py-0 h-5">
-                          {weeksAtMax}/4 weeks
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="text-xs text-muted-foreground text-center">
-                    {checkedCount} of {totalStandards} standards completed
-                  </div>
-                  
-                  <div className="space-y-3">
-                    {currentStandards.map((standard) => (
-                      <div 
-                        key={standard.id} 
-                        className="flex items-start gap-3 p-3 rounded-lg hover-elevate border"
-                        data-testid={`standard-item-${standard.id}`}
-                      >
-                        <Checkbox
-                          id={standard.id}
-                          checked={standard.checked}
-                          onCheckedChange={() => handleStandardToggle(selectedCategory, standard.id)}
-                          className="mt-1"
-                          data-testid={`checkbox-standard-${standard.id}`}
-                        />
-                        <label 
-                          htmlFor={standard.id} 
-                          className="text-sm cursor-pointer flex-1"
-                        >
-                          {standard.text}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <div className="flex justify-end gap-2 pt-4 border-t">
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowStandardsDialog(false)}
-                      data-testid="button-close-standards"
-                    >
-                      Close
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        setShowStandardsDialog(false);
-                        // Save the updated data
-                        saveWeekMutation.mutate({
-                          weekNumber,
-                          year: new Date().getFullYear(),
-                          beliefs,
-                        });
-                      }}
-                      data-testid="button-save-standards"
-                    >
-                      <Save className="w-4 h-4 mr-2" />
-                      Save & Close
-                    </Button>
-                  </div>
-                </div>
-              );
-            })()}
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Enhanced Weekly Progress Analytics Dialog */}
       <EnhancedAnalyticsDialog
