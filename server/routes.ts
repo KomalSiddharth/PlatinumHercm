@@ -865,7 +865,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Calculate expected weeks based on actual time since first week
       let expectedWeeks = 0;
-      if (sortedWeeks.length > 0) {
+      if (sortedWeeks.length > 0 && sortedWeeks[0].createdAt && sortedWeeks[sortedWeeks.length - 1].createdAt) {
         const firstWeekDate = new Date(sortedWeeks[0].createdAt);
         const lastWeekDate = new Date(sortedWeeks[sortedWeeks.length - 1].createdAt);
         const daysDiff = Math.floor((lastWeekDate.getTime() - firstWeekDate.getTime()) / (1000 * 60 * 60 * 24));
@@ -889,11 +889,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Progress summary
+      // Score Calculation: overallScore = average of (currentH + currentE + currentR + currentC) / 4
+      // Achievement Rate: achievementRate = percentage of targets met for the week
       const latestWeek = sortedWeeks[sortedWeeks.length - 1] || null;
       const progressSummary = latestWeek ? {
         currentWeek: latestWeek.weekNumber,
-        overallScore: latestWeek.overallScore || 0,
-        achievementRate: latestWeek.achievementRate || 0,
+        overallScore: latestWeek.overallScore || 0, // Average HRCM rating (out of 10)
+        achievementRate: latestWeek.achievementRate || 0, // % of targets achieved
         currentStreak: platinumProgress?.currentStreak || 0,
         totalBadges: platinumProgress?.badges?.length || 0,
       } : null;
@@ -901,15 +903,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Compact weekly data - group by date and show only last updated per date
       const weeksByDate = new Map<string, typeof sortedWeeks[0]>();
       for (const week of sortedWeeks) {
+        if (!week.createdAt) continue;
         const dateKey = new Date(week.createdAt).toISOString().split('T')[0]; // YYYY-MM-DD
         const existing = weeksByDate.get(dateKey);
-        if (!existing || new Date(week.updatedAt) > new Date(existing.updatedAt)) {
+        if (!existing || (week.updatedAt && existing.updatedAt && new Date(week.updatedAt) > new Date(existing.updatedAt))) {
           weeksByDate.set(dateKey, week);
         }
       }
       
       const compactWeeklyData = Array.from(weeksByDate.values())
-        .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+        .filter(week => week.createdAt !== null)
+        .sort((a, b) => {
+          const aDate = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const bDate = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          return aDate - bDate;
+        })
         .map(week => ({
           week: week.weekNumber,
           date: week.createdAt,
