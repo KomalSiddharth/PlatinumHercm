@@ -1265,19 +1265,19 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <button
-                          className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded min-h-[40px]"
+                          className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded min-h-[30px]"
                           onClick={(e) => startEdit(belief.category, 'problems', belief.problems, e.currentTarget)}
                           type="button"
                           aria-label="Edit problems"
                           data-testid={`text-problems-${belief.category.toLowerCase()}`}
                         >
-                          <span className="line-clamp-3 break-words whitespace-pre-wrap">
-                            {belief.problems || <span className="text-muted-foreground italic">Click to add problems...</span>}
+                          <span className="line-clamp-2 break-words">
+                            {belief.problems || <span className="text-muted-foreground italic">Click to add...</span>}
                           </span>
                         </button>
                       </TooltipTrigger>
-                      {belief.problems && belief.problems.length > 80 && (
-                        <TooltipContent side="right" className="max-w-sm">
+                      {belief.problems && belief.problems.length > 50 && (
+                        <TooltipContent side="right" className="max-w-md">
                           <p className="text-xs whitespace-pre-wrap break-words">{belief.problems}</p>
                         </TooltipContent>
                       )}
@@ -1305,19 +1305,19 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <button
-                          className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded min-h-[40px]"
+                          className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded min-h-[30px]"
                           onClick={(e) => startEdit(belief.category, 'currentFeelings', belief.currentFeelings, e.currentTarget)}
                           type="button"
                           aria-label="Edit feelings"
                           data-testid={`text-feelings-${belief.category.toLowerCase()}`}
                         >
-                          <span className="line-clamp-3 break-words whitespace-pre-wrap">
-                            {belief.currentFeelings || <span className="text-muted-foreground italic">Click to add feelings...</span>}
+                          <span className="line-clamp-2 break-words">
+                            {belief.currentFeelings || <span className="text-muted-foreground italic">Click to add...</span>}
                           </span>
                         </button>
                       </TooltipTrigger>
-                      {belief.currentFeelings && belief.currentFeelings.length > 80 && (
-                        <TooltipContent side="right" className="max-w-sm">
+                      {belief.currentFeelings && belief.currentFeelings.length > 50 && (
+                        <TooltipContent side="right" className="max-w-md">
                           <p className="text-xs whitespace-pre-wrap break-words">{belief.currentFeelings}</p>
                         </TooltipContent>
                       )}
@@ -1345,19 +1345,19 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <button
-                          className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded min-h-[40px]"
+                          className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded min-h-[30px]"
                           onClick={(e) => startEdit(belief.category, 'currentBelief', belief.currentBelief, e.currentTarget)}
                           type="button"
                           aria-label="Edit beliefs"
                           data-testid={`text-beliefs-${belief.category.toLowerCase()}`}
                         >
-                          <span className="line-clamp-3 break-words whitespace-pre-wrap">
-                            {belief.currentBelief || <span className="text-muted-foreground italic">Click to add beliefs...</span>}
+                          <span className="line-clamp-2 break-words">
+                            {belief.currentBelief || <span className="text-muted-foreground italic">Click to add...</span>}
                           </span>
                         </button>
                       </TooltipTrigger>
-                      {belief.currentBelief && belief.currentBelief.length > 80 && (
-                        <TooltipContent side="right" className="max-w-sm">
+                      {belief.currentBelief && belief.currentBelief.length > 50 && (
+                        <TooltipContent side="right" className="max-w-md">
                           <p className="text-xs whitespace-pre-wrap break-words">{belief.currentBelief}</p>
                         </TooltipContent>
                       )}
@@ -1385,19 +1385,19 @@ export default function UnifiedHRCMTable({ weekNumber, onWeekChange }: UnifiedHR
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <button
-                          className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded min-h-[40px]"
+                          className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded min-h-[30px]"
                           onClick={(e) => startEdit(belief.category, 'currentActions', belief.currentActions, e.currentTarget)}
                           type="button"
                           aria-label="Edit actions"
                           data-testid={`text-actions-${belief.category.toLowerCase()}`}
                         >
-                          <span className="line-clamp-3 break-words whitespace-pre-wrap">
-                            {belief.currentActions || <span className="text-muted-foreground italic">Click to add actions...</span>}
+                          <span className="line-clamp-2 break-words">
+                            {belief.currentActions || <span className="text-muted-foreground italic">Click to add...</span>}
                           </span>
                         </button>
                       </TooltipTrigger>
-                      {belief.currentActions && belief.currentActions.length > 80 && (
-                        <TooltipContent side="right" className="max-w-sm">
+                      {belief.currentActions && belief.currentActions.length > 50 && (
+                        <TooltipContent side="right" className="max-w-md">
                           <p className="text-xs whitespace-pre-wrap break-words">{belief.currentActions}</p>
                         </TooltipContent>
                       )}
