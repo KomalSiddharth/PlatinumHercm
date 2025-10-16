@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Sparkles, Check, X, TrendingUp, Save, Loader2, ArrowUp, ArrowDown, History, Plus, MoreHorizontal, Calendar as CalendarIcon } from 'lucide-react';
+import { Sparkles, Check, X, TrendingUp, Save, Loader2, ArrowUp, ArrowDown, Plus, MoreHorizontal, Calendar as CalendarIcon } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -1291,16 +1291,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           
           {!isAdminView && (
             <>
-              <Button
-                size="sm"
-                onClick={() => setHistoryOpen(true)}
-                className="bg-gradient-to-r from-pink-600 to-red-600 hover:from-pink-700 hover:to-red-700 text-white"
-                data-testid="button-history"
-              >
-                <History className="w-4 h-4 mr-2" />
-                History
-              </Button>
-              
               <Button
                 size="sm"
                 onClick={handleGenerateNextWeek}
