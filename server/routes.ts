@@ -41,7 +41,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "User not authenticated" });
       }
       
-      const user = await storage.getUser(userId);
+      // Try to get user by ID first
+      let user = await storage.getUser(userId);
+      
+      // If not found and userId looks like an email, try getUserByEmail
+      if (!user && typeof userId === 'string' && userId.includes('@')) {
+        console.log(`[AUTH/USER] User not found by ID, trying email lookup for ${userId}`);
+        user = await storage.getUserByEmail(userId);
+      }
+      
       console.log(`[AUTH/USER] User lookup result for ${userId}:`, user ? 'Found' : 'Not found');
       
       // If user not found, return 404 instead of empty response
