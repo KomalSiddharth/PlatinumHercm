@@ -114,6 +114,7 @@ interface UnifiedHRCMTableProps {
 }
 
 // Generate completely blank beliefs for a new week - absolutely no pre-filled data
+// Uses fallback hardcoded constants (will be replaced with dynamic data in component)
 const getBlankBeliefs = (): HRCMBelief[] => {
   return [
     {
@@ -307,6 +308,24 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     queryKey: ['/api/rating-progression/status'],
   });
 
+  // Fetch dynamic platinum standards from database
+  const { data: platinumStandardsData = [] } = useQuery<any[]>({
+    queryKey: ['/api/platinum-standards'],
+  });
+
+  // Transform platinum standards into ChecklistItem format
+  const getPlatinumStandardsForCategory = (category: string): ChecklistItem[] => {
+    const categoryLower = category.toLowerCase();
+    const standards = platinumStandardsData.filter((s: any) => s.category === categoryLower && s.isActive);
+    return standards
+      .sort((a: any, b: any) => a.orderIndex - b.orderIndex)
+      .map((s: any, index: number) => ({
+        id: `${categoryLower}-std-${index + 1}`,
+        text: s.standardText,
+        checked: false
+      }));
+  };
+
   // Get the most recent snapshot for the selected date
   const getSnapshotForDate = () => {
     if (!allWeeksData || !selectedHistoryDate) return null;
@@ -435,19 +454,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     if (viewingHistory) return;
     // Priority: Use actual database data if available, otherwise use demo/blank template
     if (weekData?.beliefs) {
-      // FORCE UPDATE: Replace old checklists with new clean platinum standards
+      // FORCE UPDATE: Replace old checklists with dynamic platinum standards from database
       const updatedBeliefs = weekData.beliefs.map(belief => {
-        let newChecklist: ChecklistItem[] = [];
-        
-        if (belief.category === 'Health') {
-          newChecklist = HEALTH_STANDARDS.map(std => ({ ...std }));
-        } else if (belief.category === 'Relationship') {
-          newChecklist = RELATIONSHIP_STANDARDS.map(std => ({ ...std }));
-        } else if (belief.category === 'Career') {
-          newChecklist = CAREER_STANDARDS.map(std => ({ ...std }));
-        } else if (belief.category === 'Money') {
-          newChecklist = MONEY_STANDARDS.map(std => ({ ...std }));
-        }
+        const newChecklist = getPlatinumStandardsForCategory(belief.category);
         
         return {
           ...belief,
@@ -532,20 +541,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   const handleOpenStandardsDialog = (category: string) => {
     setSelectedCategory(category);
     
-    // Force update to clean standards format for all categories
+    // Force update to dynamic platinum standards for the selected category
     const updatedBeliefs = beliefs.map(b => {
       if (b.category === category) {
-        let newChecklist: ChecklistItem[] = [];
-        
-        if (category === 'Health') {
-          newChecklist = HEALTH_STANDARDS.map(std => ({ ...std }));
-        } else if (category === 'Relationship') {
-          newChecklist = RELATIONSHIP_STANDARDS.map(std => ({ ...std }));
-        } else if (category === 'Career') {
-          newChecklist = CAREER_STANDARDS.map(std => ({ ...std }));
-        } else if (category === 'Money') {
-          newChecklist = MONEY_STANDARDS.map(std => ({ ...std }));
-        }
+        const newChecklist = getPlatinumStandardsForCategory(category);
         
         // Preserve checked state from existing checklist
         const existingChecklist = b.checklist || [];
