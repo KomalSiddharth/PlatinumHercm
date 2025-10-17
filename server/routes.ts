@@ -1998,6 +1998,136 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
+  // ===== PLATINUM STANDARDS ROUTES (Admin) =====
+  
+  // Get all platinum standards (admin view)
+  app.get('/api/admin/platinum-standards', isAuthenticated, async (req, res) => {
+    try {
+      const standards = await storage.getAllPlatinumStandards();
+      res.json(standards);
+    } catch (error) {
+      console.error("Error fetching platinum standards:", error);
+      res.status(500).json({ message: "Failed to fetch platinum standards" });
+    }
+  });
+
+  // Get active platinum standards (public endpoint for users)
+  app.get('/api/platinum-standards', isAuthenticated, async (req, res) => {
+    try {
+      const standards = await storage.getActivePlatinumStandards();
+      res.json(standards);
+    } catch (error) {
+      console.error("Error fetching active platinum standards:", error);
+      res.status(500).json({ message: "Failed to fetch platinum standards" });
+    }
+  });
+
+  // Get platinum standards by category
+  app.get('/api/platinum-standards/:category', isAuthenticated, async (req, res) => {
+    try {
+      const { category } = req.params;
+      const standards = await storage.getPlatinumStandardsByCategory(category);
+      res.json(standards);
+    } catch (error) {
+      console.error("Error fetching platinum standards by category:", error);
+      res.status(500).json({ message: "Failed to fetch platinum standards" });
+    }
+  });
+
+  // Add new platinum standard (admin only)
+  app.post('/api/admin/platinum-standards', isAuthenticated, async (req: any, res) => {
+    try {
+      const adminEmail = req.user?.claims?.sub || req.session.userEmail;
+      const admin = await storage.getUserByEmail(adminEmail);
+      
+      if (!admin?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { category, standardText, orderIndex, isActive } = req.body;
+      
+      if (!category || !standardText) {
+        return res.status(400).json({ message: "Missing required fields: category, standardText" });
+      }
+
+      const newStandard = await storage.addPlatinumStandard({
+        category,
+        standardText,
+        orderIndex: orderIndex || 0,
+        isActive: isActive !== undefined ? isActive : true,
+      });
+
+      res.json(newStandard);
+    } catch (error) {
+      console.error("Error adding platinum standard:", error);
+      res.status(500).json({ message: "Failed to add platinum standard" });
+    }
+  });
+
+  // Update platinum standard (admin only)
+  app.put('/api/admin/platinum-standards/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const adminEmail = req.user?.claims?.sub || req.session.userEmail;
+      const admin = await storage.getUserByEmail(adminEmail);
+      
+      if (!admin?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { id } = req.params;
+      const updates = req.body;
+      
+      const updatedStandard = await storage.updatePlatinumStandard(id, updates);
+      res.json(updatedStandard);
+    } catch (error) {
+      console.error("Error updating platinum standard:", error);
+      res.status(500).json({ message: "Failed to update platinum standard" });
+    }
+  });
+
+  // Delete platinum standard (admin only)
+  app.delete('/api/admin/platinum-standards/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const adminEmail = req.user?.claims?.sub || req.session.userEmail;
+      const admin = await storage.getUserByEmail(adminEmail);
+      
+      if (!admin?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { id } = req.params;
+      await storage.deletePlatinumStandard(id);
+      res.json({ message: "Platinum standard deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting platinum standard:", error);
+      res.status(500).json({ message: "Failed to delete platinum standard" });
+    }
+  });
+
+  // Reorder platinum standards (admin only)
+  app.put('/api/admin/platinum-standards/reorder', isAuthenticated, async (req: any, res) => {
+    try {
+      const adminEmail = req.user?.claims?.sub || req.session.userEmail;
+      const admin = await storage.getUserByEmail(adminEmail);
+      
+      if (!admin?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { updates } = req.body; // Array of { id, orderIndex }
+      
+      if (!Array.isArray(updates)) {
+        return res.status(400).json({ message: "Updates must be an array" });
+      }
+
+      await storage.reorderPlatinumStandards(updates);
+      res.json({ message: "Platinum standards reordered successfully" });
+    } catch (error) {
+      console.error("Error reordering platinum standards:", error);
+      res.status(500).json({ message: "Failed to reorder platinum standards" });
+    }
+  });
+
   // User-facing: Get current user's pending recommendations
   app.get('/api/user/recommendations', isAuthenticated, async (req: any, res) => {
     try {
