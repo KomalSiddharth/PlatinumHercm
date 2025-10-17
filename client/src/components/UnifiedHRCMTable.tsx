@@ -615,10 +615,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       const response = await apiRequest('POST', '/api/hercm/save-with-comparison', weekData);
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/hercm/weeks'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/rating-progression/caps'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/rating-progression/status'] });
+    onSuccess: async () => {
+      // Invalidate and refetch to ensure UI updates immediately
+      await queryClient.invalidateQueries({ queryKey: ['/api/hercm/weeks'] });
+      await queryClient.refetchQueries({ queryKey: ['/api/hercm/weeks'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/rating-progression/caps'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/rating-progression/status'] });
       toast({
         title: 'Saved!',
         description: 'Your changes have been saved successfully.',
