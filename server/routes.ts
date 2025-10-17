@@ -231,6 +231,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Generate Next Week - carries forward unchecked assignments
+  app.post('/api/hercm/generate-next-week', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const { weekNumber, beliefs } = req.body;
+      const nextWeekNumber = weekNumber + 1;
+      
+      // Get unchecked lessons from current week's assignments
+      const uncheckedAssignments: any = {
+        health: { courses: [], lessons: [] },
+        relationship: { courses: [], lessons: [] },
+        career: { courses: [], lessons: [] },
+        money: { courses: [], lessons: [] }
+      };
+      
+      if (beliefs && Array.isArray(beliefs)) {
+        beliefs.forEach((belief: any) => {
+          const category = belief.category.toLowerCase();
+          if (belief.assignment && belief.assignment.lessons) {
+            // Filter only unchecked lessons
+            const uncheckedLessons = belief.assignment.lessons.filter((l: any) => !l.completed);
+            uncheckedAssignments[category] = {
+              courses: belief.assignment.courses || [],
+              lessons: uncheckedLessons
+            };
+          }
+        });
+      }
+      
+      // Create new week with carried-forward assignments
+      const newWeekData = {
+        userId,
+        weekNumber: nextWeekNumber,
+        year: new Date().getFullYear(),
+        currentH: 1,
+        currentE: 1,
+        currentR: 1,
+        currentC: 1,
+        currentM: 1,
+        healthAssignment: uncheckedAssignments.health,
+        relationshipAssignment: uncheckedAssignments.relationship,
+        careerAssignment: uncheckedAssignments.career,
+        moneyAssignment: uncheckedAssignments.money
+      };
+      
+      await storage.createHercmWeek(newWeekData as any);
+      
+      res.json({ success: true, weekNumber: nextWeekNumber });
+    } catch (error) {
+      console.error("Error generating next week:", error);
+      res.status(500).json({ message: "Failed to generate next week" });
+    }
+  });
+
   // Auto-fill next week goals based on current week data
   app.post('/api/hercm/auto-fill-goals', isAuthenticated, async (req: any, res) => {
     try {
