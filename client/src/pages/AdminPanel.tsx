@@ -23,7 +23,8 @@ import {
   TrendingUp,
   TrendingDown,
   Eye,
-  BarChart3
+  BarChart3,
+  Pencil
 } from 'lucide-react';
 import type { ApprovedEmail, AdminUser, AccessLog } from '@shared/schema';
 import {
