@@ -1133,6 +1133,27 @@ export default function Dashboard() {
         { id: 'is-6', title: '15th Nov - Build Your Long-Term Equity Portfolio!', url: 'https://coaching.miteshkhatri.com/products/investing-saving/categories/2153151407/posts/2182831105', completed: false },
         { id: 'is-7', title: '29th Nov - Make Investing Easy and Profitable Body', url: 'https://coaching.miteshkhatri.com/products/investing-saving/categories/2153151407/posts/2183181791', completed: false },
       ]
+    },
+    {
+      id: 'imk-bonuses',
+      title: 'IMK Bonuses',
+      url: 'https://coaching.miteshkhatri.com/products/imk-bonuses',
+      tags: ['Bonus', 'Free Lessons'],
+      source: 'Mitesh Khatri',
+      estimatedHours: 8,
+      status: 'not_started',
+      progressPercent: 0,
+      category: 'default',
+      lessons: [
+        { id: 'imk-1', title: 'Bonus Lessons', url: 'https://coaching.miteshkhatri.com/products/imk-bonuses/categories/2155326213/posts/2177658710', completed: false },
+        { id: 'imk-2', title: 'Advance LOA Lesson 1 Free', url: 'https://coaching.miteshkhatri.com/products/imk-bonuses/categories/2155326213/posts/2177658707', completed: false },
+        { id: 'imk-3', title: 'Ho Oponopono Healer Lesson 1 Free', url: 'https://coaching.miteshkhatri.com/products/imk-bonuses/categories/2155326213/posts/2177658712', completed: false },
+        { id: 'imk-4', title: 'Wealth Mastery Lesson 1 Free', url: 'https://coaching.miteshkhatri.com/products/imk-bonuses/categories/2155326213/posts/2177658712', completed: false },
+        { id: 'imk-5', title: 'Handwriting Frequency Lesson 1 Free', url: 'https://coaching.miteshkhatri.com/products/imk-bonuses/categories/2155326213/posts/2177658708', completed: false },
+        { id: 'imk-6', title: 'Health Mastery Lesson 1 Free', url: 'https://coaching.miteshkhatri.com/products/imk-bonuses/categories/2155326213/posts/2177658706', completed: false },
+        { id: 'imk-7', title: 'Relationship Mastery Lesson 1 Free', url: 'https://coaching.miteshkhatri.com/products/imk-bonuses/categories/2155326213/posts/2177658711', completed: false },
+        { id: 'imk-8', title: 'Practical Spirituality Lesson 1', url: 'https://coaching.miteshkhatri.com/products/imk-bonuses/categories/2155326213/posts/2177658709', completed: false },
+      ]
     }
   ]);
 
