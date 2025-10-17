@@ -13,6 +13,11 @@ import {
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from '@/components/ui/hover-card';
+import {
   Table,
   TableBody,
   TableCell,
@@ -1623,23 +1628,62 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   )}
                 </TableCell>
 
-                {/* Checklist */}
+                {/* Platinum Standards - Compact with Hover Popup */}
                 <TableCell className="p-2 bg-purple-50/30 dark:bg-purple-950/10 align-top">
-                  <div className="space-y-1">
-                    {belief.checklist.map((item) => (
-                      <div key={item.id} className="flex items-center gap-2">
-                        <Checkbox
-                          checked={item.checked}
-                          onCheckedChange={() => handleChecklistToggle(belief.category, item.id)}
-                          disabled={viewingHistory || isAdminView}
-                          data-testid={`checkbox-${belief.category.toLowerCase()}-${item.id}`}
-                        />
-                        <span className="text-xs">
-                          {item.text}
-                        </span>
+                  <HoverCard openDelay={200}>
+                    <HoverCardTrigger asChild>
+                      <div className="cursor-pointer">
+                        {/* Show first 2 standards */}
+                        <div className="space-y-1">
+                          {belief.checklist.slice(0, 2).map((item) => (
+                            <div key={item.id} className="flex items-center gap-2">
+                              <Checkbox
+                                checked={item.checked}
+                                onCheckedChange={() => handleChecklistToggle(belief.category, item.id)}
+                                disabled={viewingHistory || isAdminView}
+                                data-testid={`checkbox-${belief.category.toLowerCase()}-${item.id}`}
+                                className="h-3 w-3"
+                              />
+                              <span className="text-xs line-clamp-1">
+                                {item.text}
+                              </span>
+                            </div>
+                          ))}
+                          {/* Show "X more items" if more than 2 */}
+                          {belief.checklist.length > 2 && (
+                            <div className="text-xs text-muted-foreground italic pl-5">
+                              + {belief.checklist.length - 2} more items...
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    ))}
-                  </div>
+                    </HoverCardTrigger>
+                    <HoverCardContent 
+                      side="left" 
+                      align="start" 
+                      className="w-96 max-h-[400px] overflow-y-auto"
+                    >
+                      <div className="space-y-2">
+                        <h4 className="font-semibold text-sm mb-3">
+                          {belief.category} Platinum Standards
+                        </h4>
+                        {belief.checklist.map((item) => (
+                          <div key={item.id} className="flex items-start gap-2 py-1">
+                            <Checkbox
+                              checked={item.checked}
+                              onCheckedChange={() => handleChecklistToggle(belief.category, item.id)}
+                              disabled={viewingHistory || isAdminView}
+                              data-testid={`checkbox-popup-${belief.category.toLowerCase()}-${item.id}`}
+                              className="h-4 w-4 mt-0.5"
+                            />
+                            <span className="text-xs leading-relaxed">
+                              {item.text}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </HoverCardContent>
+                  </HoverCard>
                 </TableCell>
 
                 {/* Progress */}
@@ -1969,22 +2013,62 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   </TableCell>
                 )}
 
-                {/* Checklist */}
+                {/* Platinum Standards - Compact with Hover Popup */}
                 <TableCell className="p-2 bg-purple-50/30 dark:bg-purple-950/10 align-top">
-                  <div className="space-y-1">
-                    {belief.checklist.map((item) => (
-                      <div key={item.id} className="flex items-center gap-2">
-                        <Checkbox
-                          checked={item.checked}
-                          onCheckedChange={() => handleChecklistToggle(belief.category, item.id)}
-                          data-testid={`checkbox-next-${belief.category.toLowerCase()}-${item.id}`}
-                        />
-                        <span className="text-xs">
-                          {item.text}
-                        </span>
+                  <HoverCard openDelay={200}>
+                    <HoverCardTrigger asChild>
+                      <div className="cursor-pointer">
+                        {/* Show first 2 standards */}
+                        <div className="space-y-1">
+                          {belief.checklist.slice(0, 2).map((item) => (
+                            <div key={item.id} className="flex items-center gap-2">
+                              <Checkbox
+                                checked={item.checked}
+                                onCheckedChange={() => handleChecklistToggle(belief.category, item.id)}
+                                disabled={viewingHistory || isAdminView}
+                                data-testid={`checkbox-next-${belief.category.toLowerCase()}-${item.id}`}
+                                className="h-3 w-3"
+                              />
+                              <span className="text-xs line-clamp-1">
+                                {item.text}
+                              </span>
+                            </div>
+                          ))}
+                          {/* Show "X more items" if more than 2 */}
+                          {belief.checklist.length > 2 && (
+                            <div className="text-xs text-muted-foreground italic pl-5">
+                              + {belief.checklist.length - 2} more items...
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    ))}
-                  </div>
+                    </HoverCardTrigger>
+                    <HoverCardContent 
+                      side="left" 
+                      align="start" 
+                      className="w-96 max-h-[400px] overflow-y-auto"
+                    >
+                      <div className="space-y-2">
+                        <h4 className="font-semibold text-sm mb-3">
+                          {belief.category} Platinum Standards
+                        </h4>
+                        {belief.checklist.map((item) => (
+                          <div key={item.id} className="flex items-start gap-2 py-1">
+                            <Checkbox
+                              checked={item.checked}
+                              onCheckedChange={() => handleChecklistToggle(belief.category, item.id)}
+                              disabled={viewingHistory || isAdminView}
+                              data-testid={`checkbox-next-popup-${belief.category.toLowerCase()}-${item.id}`}
+                              className="h-4 w-4 mt-0.5"
+                            />
+                            <span className="text-xs leading-relaxed">
+                              {item.text}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </HoverCardContent>
+                  </HoverCard>
                 </TableCell>
 
                 {/* Progress */}
