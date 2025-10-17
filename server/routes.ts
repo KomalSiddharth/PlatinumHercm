@@ -75,7 +75,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "User not authenticated" });
       }
       
-      const weeks = await storage.getHercmWeeksByUser(userId);
+      // Get actual user to ensure we use correct user ID
+      let user = await storage.getUser(userId);
+      if (!user && typeof userId === 'string' && userId.includes('@')) {
+        user = await storage.getUserByEmail(userId);
+      }
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      const weeks = await storage.getHercmWeeksByUser(user.id);
       res.json(weeks);
     } catch (error) {
       console.error("Error fetching HRCM weeks:", error);
@@ -91,8 +101,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "User not authenticated" });
       }
       
+      // Get actual user to ensure we use correct user ID
+      let user = await storage.getUser(userId);
+      if (!user && typeof userId === 'string' && userId.includes('@')) {
+        user = await storage.getUserByEmail(userId);
+      }
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
       const weekNumber = parseInt(req.params.weekNumber);
-      let week = await storage.getHercmWeek(userId, weekNumber);
+      let week = await storage.getHercmWeek(user.id, weekNumber);
       
       if (!week) {
         return res.json(null);
