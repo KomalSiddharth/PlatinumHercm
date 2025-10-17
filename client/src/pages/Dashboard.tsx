@@ -1673,7 +1673,7 @@ export default function Dashboard() {
         {/* Course Recommendations */}
         <CourseRecommendations />
         
-        <section ref={hrcmRef} id="hrcm" className="scroll-mt-20 p-6 rounded-lg border-2" style={{ backgroundColor: '#00008c', borderColor: '#0000cc' }}>
+        <section ref={hrcmRef} id="hrcm" className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
           <UnifiedHRCMTable 
             weekNumber={currentWeek}
             onWeekChange={handleWeekChange}
@@ -1782,18 +1782,18 @@ export default function Dashboard() {
           </div>
         </section>
 
-        <section ref={coursesRef} id="courses" className="scroll-mt-20 p-6 rounded-lg border-2" style={{ backgroundColor: '#00008c', borderColor: '#0000cc' }}>
+        <section ref={coursesRef} id="courses" className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
           <div className="space-y-6">
             <div>
-              <h2 className="text-3xl font-bold text-white">Course Tracker</h2>
-              <p className="text-white/80 mt-1">Manage your learning journey and skill development</p>
+              <h2 className="text-3xl font-bold">Course Tracker</h2>
+              <p className="text-muted-foreground mt-1">Manage your learning journey and skill development</p>
             </div>
 
             {/* Overall Progress Bar */}
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="font-medium text-white">Overall Course Progress</span>
-                <span className="font-semibold text-white">
+                <span className="font-medium">Overall Course Progress</span>
+                <span className="font-semibold">
                   {(() => {
                     const totalLessons = courses.reduce((sum, c) => sum + c.lessons.length, 0);
                     const completedLessons = courses.reduce((sum, c) => sum + c.lessons.filter(l => l.completed).length, 0);
@@ -1801,9 +1801,9 @@ export default function Dashboard() {
                   })()}%
                 </span>
               </div>
-              <div className="h-3 bg-white/20 rounded-full overflow-hidden border-2 border-white/30">
+              <div className="h-3 bg-muted rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-gradient-to-r from-primary to-accent transition-all duration-300"
+                  className="h-full bg-gradient-to-r from-teal-500 to-emerald-500 transition-all duration-300"
                   style={{ 
                     width: `${(() => {
                       const totalLessons = courses.reduce((sum, c) => sum + c.lessons.length, 0);
@@ -2003,7 +2003,7 @@ export default function Dashboard() {
         </section> */}
 
         {/* Achievements, Badges & Leaderboard Section */}
-        <section ref={achievementsRef} id="achievements" className="scroll-mt-20 p-6 rounded-lg border-2" style={{ backgroundColor: '#00008c', borderColor: '#0000cc' }}>
+        <section ref={achievementsRef} id="achievements" className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
           <BadgeDisplayCard 
             leaderboardEntries={leaderboardEntries} 
             currentUserId={currentUser?.id}

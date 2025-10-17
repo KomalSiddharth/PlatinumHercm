@@ -142,8 +142,8 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
         {/* Leaderboard Section */}
         <div className="space-y-3 pt-4 border-t border-white/20">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium flex items-center gap-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              <Trophy className="h-4 w-4 text-primary" />
+            <h3 className="text-sm font-medium flex items-center gap-2 text-red-600">
+              <Trophy className="h-4 w-4 text-red-600" />
               Leaderboard
             </h3>
             <Badge variant="outline" className="capitalize text-xs bg-white/10 text-white border-white/30">
