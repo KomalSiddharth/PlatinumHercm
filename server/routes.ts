@@ -32,13 +32,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      // Handle both OIDC auth (req.user.claims.sub) and email-based auth (req.session.userEmail)
-      const userId = req.user?.claims?.sub || req.session.userEmail;
+      // Prioritize email-based session auth to match login flow
+      const userId = req.session.userEmail || req.user?.claims?.sub;
+      console.log(`[AUTH/USER] Fetching user - session.userEmail=${req.session.userEmail}, claims.sub=${req.user?.claims?.sub}, userId=${userId}`);
+      
       if (!userId) {
+        console.log('[AUTH/USER] No userId found - returning 401');
         return res.status(401).json({ message: "User not authenticated" });
       }
       
       const user = await storage.getUser(userId);
+      console.log(`[AUTH/USER] User lookup result for ${userId}:`, user ? 'Found' : 'Not found');
+      
+      // If user not found, return 404 instead of empty response
+      if (!user) {
+        console.log(`[AUTH/USER] User not found for userId=${userId} - returning 404`);
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      console.log(`[AUTH/USER] Returning user:`, user.id);
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -1394,18 +1406,31 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       
       // Check if user exists, create only if doesn't exist
       const existingUser = await storage.getUserByEmail(email);
+      console.log(`[LOGIN] User lookup for ${email}:`, existingUser ? 'Found' : 'Not found');
+      
       if (!existingUser) {
-        await storage.upsertUser({
+        console.log(`[LOGIN] Creating new user with id=${email}, email=${email}`);
+        const newUser = await storage.upsertUser({
           id: email,
           email: email,
           isAdmin: isAdmin || false,
         });
+        console.log(`[LOGIN] User created:`, newUser);
       }
       
       req.session.userEmail = email;
       req.session.isAdmin = isAdmin || false;
+      console.log(`[LOGIN] Session set: userEmail=${email}, isAdmin=${isAdmin}`);
       
-      res.json({ success: true, message: "Login successful" });
+      // Save session before responding to ensure it's written to store
+      req.session.save((err) => {
+        if (err) {
+          console.error('[LOGIN] Session save error:', err);
+          return res.status(500).json({ message: "Failed to save session" });
+        }
+        console.log('[LOGIN] Session saved successfully');
+        res.json({ success: true, message: "Login successful" });
+      });
     } catch (error) {
       console.error("Error during login:", error);
       res.status(500).json({ message: "Login failed" });
