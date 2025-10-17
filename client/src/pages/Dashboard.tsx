@@ -1222,6 +1222,26 @@ export default function Dashboard() {
         { id: 'pgm-18', title: '27th Dec - Penial Gland Meditation & Manifestation', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2155800332/posts/2183837562', completed: false },
         { id: 'pgm-19', title: '17th Jan - Walking Meditation 1st Session', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2155800332/posts/2183837562', completed: false },
       ]
+    },
+    {
+      id: 'platinum-healing-sessions',
+      title: 'Platinum Healing Sessions',
+      url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2152549237',
+      tags: ['Healing', 'Breakthrough'],
+      source: 'Mitesh Khatri',
+      estimatedHours: 10,
+      status: 'not_started',
+      progressPercent: 0,
+      category: 'Health',
+      lessons: [
+        { id: 'phs-1', title: '16th March - Platinum Healing', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2152549237/posts/2166391299', completed: false },
+        { id: 'phs-2', title: '15th March - Platinum Healing', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2152549237/posts/2166391313', completed: false },
+        { id: 'phs-3', title: 'Platinum Special Q&A', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2152549237/posts/2166599553', completed: false },
+        { id: 'phs-4', title: 'Inspiration With Disha - Platinum Member Interview', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2152549237/posts/2166708935', completed: false },
+        { id: 'phs-5', title: '5th April Breakthrough Session with Siddhesh', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2152549237/posts/2166932642', completed: false },
+        { id: 'phs-6', title: '27th April - Platinum Healing', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2152549237/posts/2167596909', completed: false },
+        { id: 'phs-7', title: 'Money Management Session with Indu Khatri', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2153196828/posts/2169413312', completed: false },
+      ]
     }
   ]);
 
