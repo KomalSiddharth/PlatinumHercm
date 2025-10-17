@@ -198,9 +198,9 @@ const calculateProgress = (checklist: ChecklistItem[]): number => {
 };
 
 const getProgressColor = (progress: number) => {
-  if (progress >= 80) return 'bg-emerald-green/20 text-emerald-green dark:bg-emerald-green/30 dark:text-emerald-green';
-  if (progress >= 50) return 'bg-golden-yellow/20 text-golden-yellow dark:bg-golden-yellow/30 dark:text-golden-yellow';
-  return 'bg-coral-red/20 text-coral-red dark:bg-coral-red/30 dark:text-coral-red';
+  if (progress >= 80) return 'bg-gradient-to-r from-emerald-green/30 to-golden-yellow/30 text-emerald-green dark:from-emerald-green/40 dark:to-golden-yellow/40 dark:text-emerald-green emerald-glow smooth-transition';
+  if (progress >= 50) return 'bg-gradient-to-r from-golden-yellow/30 to-coral-red/20 text-golden-yellow dark:from-golden-yellow/40 dark:to-coral-red/30 dark:text-golden-yellow golden-glow smooth-transition';
+  return 'bg-gradient-to-r from-coral-red/30 to-coral-red/20 text-coral-red dark:from-coral-red/40 dark:to-coral-red/30 dark:text-coral-red coral-glow smooth-transition';
 };
 
 // Health Standards - Predefined checklist for Health category  
@@ -1290,7 +1290,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         </div>
         <div className="flex items-center gap-3">
           <Badge 
-            className={`${getProgressColor(weeklyProgress)} ${!isAdminView ? 'cursor-pointer hover:opacity-80' : ''} transition-opacity`}
+            className={`${getProgressColor(weeklyProgress)} ${!isAdminView ? 'cursor-pointer hover:opacity-80' : ''} smooth-transition`}
             onClick={() => !isAdminView && setProgressOpen(true)}
             data-testid="badge-weekly-progress"
           >
