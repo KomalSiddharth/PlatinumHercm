@@ -497,13 +497,17 @@ export default function Dashboard() {
       progressPercent: 0,
       category: 'default',
       lessons: [
+        { id: 'nlp-intro', title: 'Introduction To NLP', url: '', completed: false },
         { id: 'nlp-1', title: 'Lesson 1 - NLP Intro Results Sharing of Senior Members', url: '', completed: false },
         { id: 'nlp-2', title: 'Lesson 2 - Generalization Deletion and Distortion Filters', url: 'https://www.miteshkhatri.com/GDD', completed: false },
+        { id: 'nlp-2-results', title: 'Lesson 2 - Results of GDD', url: '', completed: false },
         { id: 'nlp-3', title: 'Lesson 3 - Primary and Sub-Modalities of VAK', url: 'https://www.miteshkhatri.com/VAK', completed: false },
         { id: 'nlp-4', title: 'Lesson 4 - Like to Dislike anything in just 5 Mins', url: 'https://www.miteshkhatri.com/LikeDislike', completed: false },
         { id: 'nlp-5', title: 'Lesson 5 - Dislike to Like anything in just 5 Mins', url: 'https://www.miteshkhatri.com/DislikeLike', completed: false },
+        { id: 'nlp-recap', title: 'Recap Result Sharing', url: '', completed: false },
         { id: 'nlp-6', title: 'Lesson 6 - Anchoring - Automatic Emotional Programmes', url: 'https://www.miteshkhatri.com/Anchoring', completed: false },
         { id: 'nlp-7', title: 'Lesson 7 - Swish Technique to Change Small Habits in 5 Mins', url: 'https://www.miteshkhatri.com/Swish', completed: false },
+        { id: 'nlp-10yr', title: 'How to Achieve 10yr Success in 1 yr', url: '', completed: false },
         { id: 'nlp-8', title: 'Lesson 8 - Stack Anchoring', url: 'https://www.miteshkhatri.com/StackingAnchors', completed: false },
         { id: 'nlp-9', title: 'Lesson 9 - Eye Accessing Cues', url: 'https://www.miteshkhatri.com/Eyes', completed: false },
         { id: 'nlp-10', title: 'Lesson 10 - Pre-Framing Re-Framing Post-Framing', url: 'https://www.miteshkhatri.com/Framing', completed: false },
@@ -515,6 +519,7 @@ export default function Dashboard() {
         { id: 'nlp-16', title: 'Lesson 16 - Transformational Vocabulary', url: 'https://www.miteshkhatri.com/Vocabulary', completed: false },
         { id: 'nlp-17', title: 'Lesson 17 - Conversational Hypnosis', url: 'https://www.miteshkhatri.com/ConversationalHypnosis', completed: false },
         { id: 'nlp-18', title: 'Lesson 18 - Timeline Therapy to Change Emotions Memories', url: 'https://www.miteshkhatri.com/Timeline', completed: false },
+        { id: 'nlp-integration', title: 'Integration Exercise for all NLP Techniques', url: '', completed: false },
       ]
     },
     {
