@@ -131,6 +131,9 @@ export interface IStorage {
     allWeeks: HercmWeek[];
     platinumProgress: PlatinumProgress | undefined;
     completedLessons: CourseVideoCompletion[];
+    rituals: Ritual[];
+    todayCompletions: RitualCompletion[];
+    platinumBadges: any[];
   }>;
   getUserAnalytics(userId: string, period: 'weekly' | 'monthly' | 'yearly'): Promise<{
     ratings: Array<{ date: string; health: number; relationship: number; career: number; money: number }>;
@@ -734,6 +737,20 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(courseVideoCompletions)
       .where(eq(courseVideoCompletions.userId, userId));
+    
+    // Get user's rituals
+    const userRituals = await this.getRitualsByUser(userId);
+    
+    // Get today's ritual completions
+    const today = new Date().toISOString().split('T')[0];
+    const todayCompletions = await this.getRitualCompletionsByDate(userId, today);
+    
+    // Get platinum badges
+    const platinumBadges = await db
+      .select()
+      .from(platinumBadges)
+      .where(eq(platinumBadges.userId, userId))
+      .orderBy(desc(platinumBadges.achievedAt));
 
     return {
       user,
@@ -741,6 +758,9 @@ export class DatabaseStorage implements IStorage {
       allWeeks,
       platinumProgress,
       completedLessons,
+      rituals: userRituals,
+      todayCompletions,
+      platinumBadges,
     };
   }
 
