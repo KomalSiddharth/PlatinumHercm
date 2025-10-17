@@ -1303,7 +1303,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 size="sm"
                 onClick={handleGenerateNextWeek}
                 disabled={generateNextWeekMutation.isPending}
-                className="bg-gradient-to-r from-pink-600 to-coral-600 hover:from-pink-700 hover:to-coral-700 text-white"
+                className="bg-gradient-to-r from-primary via-soft-lavender to-accent text-white coral-glow smooth-transition"
                 data-testid="button-generate-next-week"
               >
                 {generateNextWeekMutation.isPending ? (
@@ -1408,7 +1408,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               <TableHead className="min-w-[140px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Beliefs/Reasons</TableHead>
               <TableHead className="min-w-[140px] bg-rose-100 dark:bg-rose-900/40 font-semibold border-r">Actions</TableHead>
               
-              <TableHead className="min-w-[150px] bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900/40 dark:to-violet-900/40 font-semibold">Platinum Standards</TableHead>
+              <TableHead className="min-w-[150px] bg-gradient-to-r from-soft-lavender/40 to-soft-lavender/60 dark:from-soft-lavender/20 dark:to-soft-lavender/30 font-semibold lavender-glow">Platinum Standards</TableHead>
               <TableHead className="min-w-[70px] bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 font-semibold text-center">Progress</TableHead>
             </TableRow>
           </TableHeader>
@@ -1628,7 +1628,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </TableCell>
 
                 {/* Platinum Standards - Compact with Hover Popup */}
-                <TableCell className="p-2 bg-purple-50/30 dark:bg-purple-950/10 align-top">
+                <TableCell className="p-2 bg-soft-lavender/20 dark:bg-soft-lavender/10 align-top">
                   <HoverCard openDelay={200}>
                     <HoverCardTrigger asChild>
                       <div className="cursor-pointer">
@@ -1721,7 +1721,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   Assignment
                 </div>
               </TableHead>
-              <TableHead className="min-w-[150px] bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900/40 dark:to-violet-900/40 font-semibold">Platinum Standards</TableHead>
+              <TableHead className="min-w-[150px] bg-gradient-to-r from-soft-lavender/40 to-soft-lavender/60 dark:from-soft-lavender/20 dark:to-soft-lavender/30 font-semibold lavender-glow">Platinum Standards</TableHead>
               <TableHead className="min-w-[70px] bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 font-semibold text-center">Progress</TableHead>
             </TableRow>
           </TableHeader>
@@ -2013,7 +2013,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 )}
 
                 {/* Platinum Standards - Compact with Hover Popup */}
-                <TableCell className="p-2 bg-purple-50/30 dark:bg-purple-950/10 align-top">
+                <TableCell className="p-2 bg-soft-lavender/20 dark:bg-soft-lavender/10 align-top">
                   <HoverCard openDelay={200}>
                     <HoverCardTrigger asChild>
                       <div className="cursor-pointer">

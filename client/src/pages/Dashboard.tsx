@@ -1745,7 +1745,7 @@ export default function Dashboard() {
                               </Badge>
                             )}
                             
-                            <Badge className="gap-1 bg-gradient-to-r from-primary to-accent text-white border-0">
+                            <Badge className="gap-1 bg-gradient-to-r from-primary via-soft-lavender to-accent text-white border-0 golden-glow smooth-transition">
                               <Trophy className="w-3 h-3" />
                               {ritual.points}
                             </Badge>
@@ -1813,7 +1813,7 @@ export default function Dashboard() {
               </div>
               <div className="h-3 bg-muted rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-gradient-to-r from-teal-500 to-emerald-500 transition-all duration-300"
+                  className="h-full bg-gradient-to-r from-emerald-green to-golden-yellow smooth-transition emerald-glow"
                   style={{ 
                     width: `${(() => {
                       const totalLessons = courses.reduce((sum, c) => sum + c.lessons.length, 0);
@@ -1984,7 +1984,7 @@ export default function Dashboard() {
                                       </span>
                                     )}
                                     <Badge 
-                                      className="text-[10px] px-1.5 py-0 h-5 bg-gradient-to-r from-primary to-accent text-white border-0"
+                                      className="text-[10px] px-1.5 py-0 h-5 bg-gradient-to-r from-golden-yellow to-emerald-green text-white border-0 golden-glow smooth-transition"
                                       data-testid={`badge-points-${lesson.id}`}
                                     >
                                       +{lesson.points || 10} pts
