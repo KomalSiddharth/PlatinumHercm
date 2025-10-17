@@ -1113,6 +1113,26 @@ export default function Dashboard() {
         { id: 'hw-7', title: 'Day1 07 - Size and Slant', url: 'https://coaching.miteshkhatri.com/products/handwriting-frequency-course/categories/2155984531/posts/2180553163', completed: false },
         { id: 'hw-8', title: 'Day1 08 - Macro Analysis Explanation', url: 'https://coaching.miteshkhatri.com/products/handwriting-frequency-course/categories/2155984531/posts/2180553158', completed: false },
       ]
+    },
+    {
+      id: 'investing-saving',
+      title: 'Investing & Saving',
+      url: 'https://coaching.miteshkhatri.com/products/investing-saving',
+      tags: ['Finance', 'Investing'],
+      source: 'Modit Massey',
+      estimatedHours: 12,
+      status: 'not_started',
+      progressPercent: 0,
+      category: 'Money',
+      lessons: [
+        { id: 'is-1', title: 'Financial Freedom Session By Modit Massey', url: 'https://coaching.miteshkhatri.com/products/investing-saving/categories/2153151407/posts/2168779607', completed: false },
+        { id: 'is-2', title: '19th April - Financial Freedom Session By Modit Massey', url: 'https://coaching.miteshkhatri.com/products/investing-saving/categories/2153151407/posts/2177109154', completed: false },
+        { id: 'is-3', title: 'Basic Financial Planning by Modit Massey', url: 'https://coaching.miteshkhatri.com/products/investing-saving/categories/2153151407/posts/2179122949', completed: false },
+        { id: 'is-4', title: '26th July - Systematic Approach to Investing For Achieving Financial Goals By Modit Massey', url: 'https://coaching.miteshkhatri.com/products/investing-saving/categories/2153151407/posts/2179833131', completed: false },
+        { id: 'is-5', title: '26th Sep - Retirement Planning', url: 'https://coaching.miteshkhatri.com/products/investing-saving/categories/2153151407/posts/2181565148', completed: false },
+        { id: 'is-6', title: '15th Nov - Build Your Long-Term Equity Portfolio!', url: 'https://coaching.miteshkhatri.com/products/investing-saving/categories/2153151407/posts/2182831105', completed: false },
+        { id: 'is-7', title: '29th Nov - Make Investing Easy and Profitable Body', url: 'https://coaching.miteshkhatri.com/products/investing-saving/categories/2153151407/posts/2183181791', completed: false },
+      ]
     }
   ]);
 
