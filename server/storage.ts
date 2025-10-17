@@ -861,9 +861,8 @@ export class DatabaseStorage implements IStorage {
       }
     });
 
-    // Calculate active users (users with data in period)
-    const activeUserIds = new Set(filteredWeeks.map(w => w.userId));
-    const activeUsers = activeUserIds.size;
+    // Calculate active users (ALL approved users with active status, regardless of data)
+    const activeUsers = approvedUsers.length;  // All approved users are active
 
     // Calculate average ratings across all users
     const avgHealth = filteredWeeks.reduce((sum, w) => sum + (w.currentH || 0), 0) / (filteredWeeks.length || 1);
@@ -907,7 +906,7 @@ export class DatabaseStorage implements IStorage {
         averageRating: Math.round((data.total / data.count) * 10) / 10,
       }))
       .sort((a, b) => b.averageRating - a.averageRating)
-      .slice(0, 10);
+      .slice(0, 5);  // Top 5 performers only
 
     return {
       totalUsers,
