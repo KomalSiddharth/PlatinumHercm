@@ -316,6 +316,24 @@ export default function AdminPanel() {
     }
   });
 
+  const clearAllLogsMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest('DELETE', '/api/admin/access-logs');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/access-logs'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
+      toast({ title: "Logs Cleared", description: "All access logs have been deleted successfully" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Error", 
+        description: error.message || "Failed to clear access logs",
+        variant: "destructive" 
+      });
+    }
+  });
+
   // Show loading while checking authentication (after ALL hooks)
   if (userLoading) {
     return (
@@ -852,10 +870,26 @@ export default function AdminPanel() {
               </div>
 
               {/* Footer */}
-              <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   Showing last {accessLogs.length} login attempts
                 </p>
+                {accessLogs.length > 0 && (
+                  <Button 
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => {
+                      if (window.confirm('Are you sure you want to delete all access logs? This action cannot be undone.')) {
+                        clearAllLogsMutation.mutate();
+                      }
+                    }}
+                    disabled={clearAllLogsMutation.isPending}
+                    data-testid="button-clear-all-logs"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    {clearAllLogsMutation.isPending ? 'Clearing...' : 'Clear All'}
+                  </Button>
+                )}
               </div>
             </>
           )}
