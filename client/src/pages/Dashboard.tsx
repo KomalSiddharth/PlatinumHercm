@@ -1154,6 +1154,28 @@ export default function Dashboard() {
         { id: 'imk-7', title: 'Relationship Mastery Lesson 1 Free', url: 'https://coaching.miteshkhatri.com/products/imk-bonuses/categories/2155326213/posts/2177658711', completed: false },
         { id: 'imk-8', title: 'Practical Spirituality Lesson 1', url: 'https://coaching.miteshkhatri.com/products/imk-bonuses/categories/2155326213/posts/2177658709', completed: false },
       ]
+    },
+    {
+      id: 'platinum-membership-challenge',
+      title: 'Platinum Membership 5 Days Challenge',
+      url: 'https://www.miteshkhatri.com/5DC',
+      tags: ['Challenge', 'Membership'],
+      source: 'Mitesh Khatri',
+      estimatedHours: 10,
+      status: 'not_started',
+      progressPercent: 0,
+      category: 'default',
+      lessons: [
+        { id: 'pmc-1', title: "26th May'25 - Platinum Membership Challenge Day 1", url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2157735064/posts/2187995018', completed: false },
+        { id: 'pmc-2', title: "27th May'25 - Platinum Membership Challenge - Day 2", url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2157735064/posts/2188112579', completed: false },
+        { id: 'pmc-3', title: '28th May 25 - Platinum Membership Challenge - Day 3', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2157735064/posts/2188112677', completed: false },
+        { id: 'pmc-4', title: '29th May 25 - Platinum Membership Challenge - Day 4', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2157735064/posts/2188112679', completed: false },
+        { id: 'pmc-5', title: '30th May 25 - Platinum Membership Challenge - Day 5', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2157735064/posts/2188112678', completed: false },
+        { id: 'pmc-6', title: "23rd June'25 - Platinum Membership Challenge Day 1", url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2157735064/posts/2188743923', completed: false },
+        { id: 'pmc-7', title: "24th June'25 - Platinum Membership Challenge - Day 2", url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2157735064/posts/2188811431', completed: false },
+        { id: 'pmc-8', title: '25th June - Platinum Membership Challenge - Day 3', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2157735064/posts/2188811366', completed: false },
+        { id: 'pmc-9', title: '26th June - Platinum Membership Challenge - Day 4', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2157735064/posts/2188849619', completed: false },
+      ]
     }
   ]);
 
