@@ -89,6 +89,7 @@ export interface IStorage {
   // Access Logs operations
   getAllAccessLogs(): Promise<AccessLog[]>;
   createAccessLog(log: InsertAccessLog): Promise<AccessLog>;
+  deleteAllAccessLogs(): Promise<void>;
   
   // Rituals operations
   getRitualsByUser(userId: string): Promise<Ritual[]>;
@@ -444,6 +445,10 @@ export class DatabaseStorage implements IStorage {
       .values(logData as any)
       .returning();
     return log;
+  }
+
+  async deleteAllAccessLogs(): Promise<void> {
+    await db.delete(accessLogs);
   }
 
   // Rituals operations
