@@ -837,12 +837,15 @@ export class DatabaseStorage implements IStorage {
     const approvedUsers = allUsers.filter(u => approvedEmailSet.has(u.email));
     const totalUsers = approvedUsers.length;
     
-    // Get only the user IDs from approved users
+    // Get both user IDs and emails from approved users (some weeks use email as userId)
     const approvedUserIds = new Set(approvedUsers.map(u => u.id));
+    const approvedUserEmails = new Set(approvedUsers.map(u => u.email));
 
-    // Get all weeks for approved users only
+    // Get all weeks for approved users only (match by ID OR email)
     const allWeeksData = await db.select().from(hercmWeeks);
-    const approvedWeeksData = allWeeksData.filter(w => approvedUserIds.has(w.userId));
+    const approvedWeeksData = allWeeksData.filter(w => 
+      approvedUserIds.has(w.userId) || approvedUserEmails.has(w.userId)
+    );
 
     // Filter based on period
     const now = new Date();
