@@ -110,16 +110,16 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
           
           {isEligible && badgeData?.badge ? (
             <div 
-              className="p-4 bg-white/10 rounded-lg border-2 border-white/30"
+              className="p-4 bg-white rounded-lg border-2 border-white/30"
               data-testid="badge-platinum"
             >
               <div className="flex items-start gap-3">
                 <Award className="h-8 w-8 text-primary flex-shrink-0" />
                 <div className="flex-1">
-                  <h4 className="font-bold text-white">
+                  <h4 className="font-bold text-gray-800">
                     {badgeData.badge.name}
                   </h4>
-                  <p className="text-xs text-white/70 mt-1">
+                  <p className="text-xs text-gray-600 mt-1">
                     {badgeData.badge.description}
                   </p>
                   <Badge variant="secondary" className="mt-2 bg-gradient-to-r from-primary to-accent text-white border-0">
@@ -161,7 +161,7 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
             ) : leaderboardEntries.length === 1 && leaderboardEntries[0].isCurrentUser ? (
               <div className="space-y-3">
                 <div
-                  className="flex items-center gap-3 p-3 rounded-lg bg-white/10 border border-white/30"
+                  className="flex items-center gap-3 p-3 rounded-lg bg-white border border-white/30"
                   data-testid="leaderboard-entry-1"
                 >
                   <div className="w-8 text-center">
@@ -175,9 +175,9 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
                   </Avatar>
 
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-white truncate">
+                    <p className="font-medium text-gray-800 truncate">
                       {leaderboardEntries[0].name}
-                      <span className="ml-2 text-xs text-white/60 font-normal">(You)</span>
+                      <span className="ml-2 text-xs text-gray-600 font-normal">(You)</span>
                     </p>
                   </div>
 
@@ -217,14 +217,14 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
                     key={entry.userId}
                     className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
                       isCurrentUser 
-                        ? 'bg-white/10 border border-white/30' 
-                        : 'bg-white/5 border border-white/20'
+                        ? 'bg-white border border-blue-400' 
+                        : 'bg-white border border-gray-200'
                     }`}
                     data-testid={`leaderboard-entry-${entry.rank}`}
                   >
                     <div className="w-8 text-center">
                       {medalIcon || (
-                        <span className="text-sm font-semibold text-white/60">
+                        <span className="text-sm font-semibold text-gray-500">
                           {entry.rank}
                         </span>
                       )}
@@ -237,10 +237,10 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
                     </Avatar>
 
                     <div className="flex-1 min-w-0">
-                      <p className={`font-medium truncate ${isCurrentUser ? 'text-white' : 'text-white/80'}`}>
+                      <p className={`font-medium truncate ${isCurrentUser ? 'text-gray-900' : 'text-gray-800'}`}>
                         {entry.name || entry.email || 'Unknown User'}
                         {isCurrentUser && (
-                          <span className="ml-2 text-xs text-white/60 font-normal">(You)</span>
+                          <span className="ml-2 text-xs text-gray-600 font-normal">(You)</span>
                         )}
                       </p>
                     </div>
