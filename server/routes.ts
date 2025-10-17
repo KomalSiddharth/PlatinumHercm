@@ -2060,34 +2060,25 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         currentWeek = newWeek;
       }
 
-      // Get the appropriate Assignment field based on HRCM area
-      const assignmentField = recommendation.hrcmArea === 'health' ? 'healthAssignment' : 
-                              recommendation.hrcmArea === 'relationship' ? 'relationshipAssignment' :
-                              recommendation.hrcmArea === 'career' ? 'careerAssignment' : 'moneyAssignment';
-
-      // Get current Assignment data (courses and lessons arrays)
-      const currentAssignment = currentWeek[assignmentField] || { courses: [], lessons: [] };
+      // Get current unifiedAssignment array
+      const currentUnifiedAssignment = currentWeek.unifiedAssignment || [];
       
-      // Add the recommended course to the lessons array
-      const updatedLessons = [
-        ...currentAssignment.lessons,
-        {
-          id: recommendation.lessonId || recommendation.courseId,
-          courseId: recommendation.courseId,
-          courseName: recommendation.courseName,
-          lessonName: recommendation.lessonName || recommendation.courseName,
-          url: recommendation.lessonUrl || '',
-          completed: false,
-          reason: recommendation.reason || ''
-        }
-      ];
+      // Create new lesson item for unified assignment
+      const newLesson = {
+        id: recommendation.lessonId || recommendation.courseId,
+        courseId: recommendation.courseId,
+        courseName: recommendation.courseName,
+        lessonName: recommendation.lessonName || recommendation.courseName,
+        url: recommendation.lessonUrl || '',
+        completed: false
+      };
 
-      // Update the week with new assignment
+      // Add the recommended course to unified assignment array
+      const updatedUnifiedAssignment = [...currentUnifiedAssignment, newLesson];
+
+      // Update the week with new unified assignment
       await storage.updateHercmWeek(currentWeek.id, {
-        [assignmentField]: {
-          courses: currentAssignment.courses || [],
-          lessons: updatedLessons
-        }
+        unifiedAssignment: updatedUnifiedAssignment
       });
 
       res.json({ message: "Recommendation accepted and added to Assignment", recommendation });
