@@ -1190,6 +1190,38 @@ export default function Dashboard() {
       lessons: [
         { id: 'jc-1', title: '24th Mar - Jack Canfield Special Workshop', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2157325541/posts/2186230401', completed: false },
       ]
+    },
+    {
+      id: 'pineal-gland-meditations',
+      title: 'Pineal Gland Meditations',
+      url: 'https://www.miteshkhatri.com/5DC',
+      tags: ['Meditation', 'Healing'],
+      source: 'Mitesh Khatri',
+      estimatedHours: 20,
+      status: 'not_started',
+      progressPercent: 0,
+      category: 'Health',
+      lessons: [
+        { id: 'pgm-1', title: '23rd July - Coherence Breathing Meditation', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2155800332/posts/2179666241', completed: false },
+        { id: 'pgm-2', title: '24th July - Miracle Meditation', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2155800332/posts/2179699209', completed: false },
+        { id: 'pgm-3', title: '26th Aug - Day 1 of Pineal Gland Meditation', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2155800332/posts/2180640162', completed: false },
+        { id: 'pgm-4', title: '27th Aug - Pineal Gland Meditation Day 2', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2155800332/posts/2180677181', completed: false },
+        { id: 'pgm-5', title: '9th Sep - Miracle Meditation Preparation Part 1', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2155800332/posts/2181050377', completed: false },
+        { id: 'pgm-6', title: '9th Sep - Miracle Meditation on Unlimited Love Part 2 - Meditation', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2155800332/posts/2181049310', completed: false },
+        { id: 'pgm-7', title: '12th Sep - Miracle Healing Day 1', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2155800332/posts/2181156259', completed: false },
+        { id: 'pgm-8', title: '13th Sep - Manifestation & Kaleidoscope Meditation', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2155800332/posts/2181186679', completed: false },
+        { id: 'pgm-9', title: '20th Sep - Miracle Meditation & Healing Day 2', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2155800332/posts/2181381892', completed: false },
+        { id: 'pgm-10', title: '26th Sep - Penial Gland Meditation & Healing with Manifestation', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2155800332/posts/2181527915', completed: false },
+        { id: 'pgm-11', title: '3rd Oct - Part 1 Abundance Meditation Explained', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2155800332/posts/2181703495', completed: false },
+        { id: 'pgm-12', title: '3rd Oct - Part 2 Abundance Meditation Experience', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2155800332/posts/2181703505', completed: false },
+        { id: 'pgm-13', title: '4th Oct - Surrender Meditation while Lying Down', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2155800332/posts/2181728350', completed: false },
+        { id: 'pgm-14', title: '16th Nov - Pineal Gland Meditation', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2155800332/posts/2182831114', completed: false },
+        { id: 'pgm-15', title: '22nd Nov - The Sleeping Meditation', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2155800332/posts/2183020259', completed: false },
+        { id: 'pgm-16', title: '29th Nov - Pineal Gland Meditation - Part 1', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2155800332/posts/2183203920', completed: false },
+        { id: 'pgm-17', title: '29th Nov - Pineal Gland Meditation - Part 2', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2155800332/posts/2183203968', completed: false },
+        { id: 'pgm-18', title: '27th Dec - Penial Gland Meditation & Manifestation', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2155800332/posts/2183837562', completed: false },
+        { id: 'pgm-19', title: '17th Jan - Walking Meditation 1st Session', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2155800332/posts/2183837562', completed: false },
+      ]
     }
   ]);
 
