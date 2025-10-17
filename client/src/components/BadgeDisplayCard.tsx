@@ -86,11 +86,7 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
           </div>
           <div className="h-3 bg-white/20 rounded-full overflow-hidden border-2 border-white/30">
             <div 
-              className={`h-full transition-all duration-500 ${
-                progressPercentage >= 8 
-                  ? 'bg-gradient-to-r from-primary to-accent' 
-                  : 'bg-gradient-to-r from-gray-400 to-gray-500 dark:from-gray-500 dark:to-gray-600'
-              }`}
+              className="h-full transition-all duration-500 bg-white"
               style={{ width: `${Math.min((progressPercentage / 10) * 100, 100)}%` }}
             />
           </div>
