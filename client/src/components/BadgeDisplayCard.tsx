@@ -79,12 +79,12 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Current Progress - Consecutive Weeks */}
-        <div className="space-y-2 bg-white p-4 rounded-lg">
+        <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-800">Avg Rating (Last 4 Weeks)</span>
-            <span className="text-sm font-bold text-white bg-gradient-to-r from-primary to-accent px-3 py-1 rounded">{progressPercentage.toFixed(1)}/10</span>
+            <span className="text-sm font-medium text-white">Avg Rating (Last 4 Weeks)</span>
+            <span className="text-sm font-bold text-white">{progressPercentage.toFixed(1)}/10</span>
           </div>
-          <div className="h-3 bg-gray-200 rounded-full overflow-hidden border-2 border-gray-300">
+          <div className="h-3 bg-white/20 rounded-full overflow-hidden border-2 border-white/30">
             <div 
               className={`h-full transition-all duration-500 ${
                 progressPercentage >= 8 
@@ -94,7 +94,7 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
               style={{ width: `${Math.min((progressPercentage / 10) * 100, 100)}%` }}
             />
           </div>
-          <p className="text-xs text-gray-600">
+          <p className="text-xs text-white/70">
             {isEligible 
               ? '🎉 Eligible for Platinum Badge!' 
               : (badgeData as any)?.message || `Need 8+ rating for 4 consecutive weeks`}
