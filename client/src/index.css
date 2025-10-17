@@ -72,6 +72,7 @@
   --coral-red: 0 91% 71%;
   --emerald-green: 160 84% 39%;
   --golden-yellow: 45 93% 58%;
+  --soft-lavender: 250 75% 85%;
   --soft-gray-border: 220 13% 91%;
 
   --input: 30 15% 70%;
@@ -194,8 +195,9 @@
 
   /* Custom design colors (dark mode adjusted) */
   --coral-red: 0 91% 65%;
-  --emerald-green: 160 84% 45%;
+  --emerald-green: 160 84% 50%;
   --golden-yellow: 45 93% 62%;
+  --soft-lavender: 250 75% 75%;
   --soft-gray-border: 220 13% 25%;
 
   --input: 210 11% 40%;
@@ -344,5 +346,60 @@
   .border.active-elevate-2:not(.no-active-interaction-elevate)::after,
   .border.hover-elevate:not(.no-hover-interaction-elevate)::after {
     inset: -1px;
+  }
+
+  /* Colored Shadow Glow Effects */
+  .coral-glow {
+    transition: all 250ms ease-in-out;
+  }
+  
+  .coral-glow:hover {
+    box-shadow: 0 4px 20px rgba(248, 113, 113, 0.3);
+  }
+
+  .emerald-glow {
+    transition: all 250ms ease-in-out;
+  }
+  
+  .emerald-glow:hover {
+    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
+  }
+
+  .golden-glow {
+    transition: all 250ms ease-in-out;
+  }
+  
+  .golden-glow:hover {
+    box-shadow: 0 4px 20px rgba(251, 191, 36, 0.3);
+  }
+
+  .lavender-glow {
+    transition: all 250ms ease-in-out;
+  }
+  
+  .lavender-glow:hover {
+    box-shadow: 0 4px 20px rgba(196, 181, 253, 0.4);
+  }
+
+  /* Smooth Color Transitions */
+  .smooth-transition {
+    transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Golden Shimmer Animation */
+  @keyframes shimmer {
+    0% { background-position: -100% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  .golden-shimmer {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(251, 191, 36, 0.3) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
   }
 }

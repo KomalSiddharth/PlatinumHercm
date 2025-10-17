@@ -90,6 +90,7 @@ export default {
         "coral-red": "hsl(var(--coral-red) / <alpha-value>)",
         "emerald-green": "hsl(var(--emerald-green) / <alpha-value>)",
         "golden-yellow": "hsl(var(--golden-yellow) / <alpha-value>)",
+        "soft-lavender": "hsl(var(--soft-lavender) / <alpha-value>)",
         "soft-gray": "hsl(var(--soft-gray-border) / <alpha-value>)",
       },
       fontFamily: {
