@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { format } from 'date-fns';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface ChecklistItem {
   id: string;
@@ -130,6 +130,22 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
     ? snapshots.find(s => s.id === selectedSnapshotId)
     : null;
 
+  // Helper function to check if a week has actual filled data (not just default values)
+  const isWeekFilled = (snapshot: SnapshotData): boolean => {
+    // Check if any area has meaningful data
+    return snapshot.areas.some(area => {
+      const hasRating = area.currentRating && area.currentRating > 1; // More than default 1
+      const hasProblems = area.problems && area.problems.trim().length > 0;
+      const hasFeelings = area.currentFeelings && area.currentFeelings.trim().length > 0;
+      const hasBelief = area.currentBelief && area.currentBelief.trim().length > 0;
+      const hasActions = area.currentActions && area.currentActions.trim().length > 0;
+      const hasTarget = area.nextWeekTarget && area.nextWeekTarget.trim().length > 0;
+      const hasChecklist = area.checklist && area.checklist.length > 0;
+      
+      return hasRating || hasProblems || hasFeelings || hasBelief || hasActions || hasTarget || hasChecklist;
+    });
+  };
+
   // Group snapshots by week number and keep only the latest one per week
   const latestSnapshotsByWeek = snapshots.reduce((acc: SnapshotData[], snapshot) => {
     const existingIndex = acc.findIndex(s => s.weekNumber === snapshot.weekNumber);
@@ -144,8 +160,10 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
     return acc;
   }, []);
   
-  // Sort by week number (oldest to newest week)
-  const displaySnapshots = latestSnapshotsByWeek.sort((a, b) => a.weekNumber - b.weekNumber);
+  // Filter out unfilled weeks and sort by week number (oldest to newest)
+  const displaySnapshots = latestSnapshotsByWeek
+    .filter(isWeekFilled)
+    .sort((a, b) => a.weekNumber - b.weekNumber);
 
   return (
     <div className="bg-gradient-to-br from-blue-50/80 to-cyan-50/80 dark:from-blue-950/20 dark:to-cyan-950/20 p-6 rounded-lg border-2 border-blue-800 dark:border-blue-900 shadow-lg" data-testid="section-hercm-history">
@@ -205,7 +223,7 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
               <div className="p-4 rounded-lg border-2 shadow-lg bg-white dark:bg-gray-900" style={{ borderColor: '#00008c' }}>
                 <h3 className="text-lg font-bold mb-4" style={{ color: '#00008c' }}>Overall Weekly Progress</h3>
                 <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={displaySnapshots.map(s => ({
+                  <BarChart data={displaySnapshots.map(s => ({
                     week: `Week ${s.weekNumber}`,
                     progress: s.overallProgress
                   }))}>
@@ -214,8 +232,8 @@ export default function HRCMHistorySection({ currentWeek }: HRCMHistorySectionPr
                     <YAxis domain={[0, 100]} />
                     <Tooltip />
                     <Legend />
-                    <Line type="monotone" dataKey="progress" stroke="#00008c" strokeWidth={3} name="Overall Progress %" />
-                  </LineChart>
+                    <Bar dataKey="progress" fill="#00008c" name="Overall Progress %" />
+                  </BarChart>
                 </ResponsiveContainer>
               </div>
 
