@@ -1026,6 +1026,41 @@ export default function Dashboard() {
         { id: 'lb-7-4', title: '4. How to Create Hiring Systems Part 1', url: 'https://coaching.miteshkhatri.com/products/lead-business/categories/4479879/posts/15230088', completed: false },
         { id: 'lb-7-4b', title: '4. How to Create Hiring Systems Part 2', url: 'https://coaching.miteshkhatri.com/products/lead-business/categories/4479879/posts/15230092', completed: false },
       ]
+    },
+    {
+      id: 'lead-self',
+      title: 'Lead Self',
+      url: 'https://coaching.miteshkhatri.com/products/lead-self',
+      tags: ['Leadership', 'Self-Development'],
+      source: 'Mitesh Khatri',
+      estimatedHours: 20,
+      status: 'not_started',
+      progressPercent: 0,
+      category: 'Career',
+      lessons: [
+        { id: 'ls-1', title: '1. What is Leadership?', url: 'https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/10369559', completed: false },
+        { id: 'ls-2', title: '2. Managing Your Emotional Energy', url: 'https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/10512984', completed: false },
+        { id: 'ls-2-1', title: '2.1 Emotional Patterns Exercise', url: 'https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/10668058', completed: false },
+        { id: 'ls-2-2', title: '2.2 Control your Focus & Meanings', url: 'https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/10962361', completed: false },
+        { id: 'ls-2-3', title: '2.3 Conditioning Exercise P+F', url: 'https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/10963518', completed: false },
+        { id: 'ls-2-4', title: '2.4 Creating Emotions at Will - Anchoring Exercise', url: 'https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/11127413', completed: false },
+        { id: 'ls-3', title: '3. Creating Vision with Standards & Purpose', url: 'https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/11262538', completed: false },
+        { id: 'ls-4', title: '4. Clarity of Values - The Foundation of Unlimited Power', url: 'https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/11427352', completed: false },
+        { id: 'ls-5', title: '5. Creating Beliefs to Support Your Values', url: 'https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/11562234', completed: false },
+        { id: 'ls-6', title: '6. Recognising & Changing Beliefs', url: 'https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/11683127', completed: false },
+        { id: 'ls-7', title: '7. Understanding & Rewiring Your Needs', url: 'https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/11878114', completed: false },
+        { id: 'ls-8', title: '8. Integration of Complete Psychology', url: 'https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/12035103', completed: false },
+        { id: 'ls-9', title: '9. Managing Conflicts like a Leader', url: 'https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/12198556', completed: false },
+        { id: 'ls-10', title: '10 - Balancing your Yin-Yang Energy', url: 'https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/12367473', completed: false },
+        { id: 'ls-11', title: '11. Managing Time Like a Leader', url: 'https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/12544867', completed: false },
+        { id: 'ls-12', title: '12 - Recap of all Lead Self Modules', url: 'https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/12712244', completed: false },
+        { id: 'ls-fd-1', title: 'Live Full Day - 1. What is Leadership', url: 'https://coaching.miteshkhatri.com/products/lead-self/categories/3163917/posts/12881863', completed: false },
+        { id: 'ls-fd-2', title: 'Live Full Day - 2. Emotional Intelligence', url: 'https://coaching.miteshkhatri.com/products/lead-self/categories/3163917/posts/12881865', completed: false },
+        { id: 'ls-fd-3', title: 'Live Full Day - 3. Values', url: 'https://coaching.miteshkhatri.com/products/lead-self/categories/3163917/posts/12881859', completed: false },
+        { id: 'ls-fd-4', title: 'Live Full Day - 4. Standards', url: 'https://coaching.miteshkhatri.com/products/lead-self/categories/3163917/posts/12881861', completed: false },
+        { id: 'ls-fd-5', title: 'Live Full Day - 5. Beliefs', url: 'https://coaching.miteshkhatri.com/products/lead-self/categories/3163917/posts/12881862', completed: false },
+        { id: 'ls-fd-6', title: 'Live Full Day - 6. Needs', url: 'https://coaching.miteshkhatri.com/products/lead-self/categories/3163917/posts/12881864', completed: false },
+      ]
     }
   ]);
 
