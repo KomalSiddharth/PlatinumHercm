@@ -1061,6 +1061,37 @@ export default function Dashboard() {
         { id: 'ls-fd-5', title: 'Live Full Day - 5. Beliefs', url: 'https://coaching.miteshkhatri.com/products/lead-self/categories/3163917/posts/12881862', completed: false },
         { id: 'ls-fd-6', title: 'Live Full Day - 6. Needs', url: 'https://coaching.miteshkhatri.com/products/lead-self/categories/3163917/posts/12881864', completed: false },
       ]
+    },
+    {
+      id: 'lead-people',
+      title: 'Lead People - Relationship Mastery',
+      url: 'https://coaching.miteshkhatri.com/products/lead-people',
+      tags: ['Leadership', 'Relationship'],
+      source: 'Mitesh Khatri',
+      estimatedHours: 18,
+      status: 'not_started',
+      progressPercent: 0,
+      category: 'Relationship',
+      lessons: [
+        { id: 'lp-transition', title: '1. Leadership Transition', url: 'https://coaching.miteshkhatri.com/products/lead-people/categories/4175217/posts/14020165', completed: false },
+        { id: 'lp-1', title: '1. What is Leadership', url: 'https://coaching.miteshkhatri.com/products/lead-people/categories/4175217/posts/14020157', completed: false },
+        { id: 'lp-2', title: '2. Rapport Building', url: 'https://coaching.miteshkhatri.com/products/lead-people/categories/4175217/posts/14020166', completed: false },
+        { id: 'lp-2-qa', title: 'Q&A for Rapport Building', url: 'https://coaching.miteshkhatri.com/products/lead-people/categories/4175217/posts/14020167', completed: false },
+        { id: 'lp-3', title: '3. Perception Management', url: 'https://coaching.miteshkhatri.com/products/lead-people/categories/4175217/posts/14020168', completed: false },
+        { id: 'lp-3-qa', title: 'Q&A Perception Management', url: 'https://coaching.miteshkhatri.com/products/lead-people/categories/4175217/posts/14020169', completed: false },
+        { id: 'lp-4', title: '4. Firo-B', url: 'https://coaching.miteshkhatri.com/products/lead-people/categories/4175217/posts/14020170', completed: false },
+        { id: 'lp-4-qa', title: 'Q&A for FIRO-B', url: 'https://coaching.miteshkhatri.com/products/lead-people/categories/4175217/posts/14020171', completed: false },
+        { id: 'lp-5', title: '5. Building Trust Bank Account', url: 'https://coaching.miteshkhatri.com/products/lead-people/categories/4175217/posts/14020172', completed: false },
+        { id: 'lp-6', title: '6. Situational Leadership Styles', url: 'https://coaching.miteshkhatri.com/products/lead-people/categories/4175217/posts/14020173', completed: false },
+        { id: 'lp-7', title: '7. Balanced Perspective', url: 'https://coaching.miteshkhatri.com/products/lead-people/categories/4175217/posts/14020174', completed: false },
+        { id: 'lp-8', title: '8. How to Give Feedback Effectively', url: 'https://coaching.miteshkhatri.com/products/lead-people/categories/4175217/posts/14020175', completed: false },
+        { id: 'lp-9', title: '9. Category of Relationships', url: 'https://coaching.miteshkhatri.com/products/lead-people/categories/4175217/posts/14020176', completed: false },
+        { id: 'lp-9-qa', title: 'Q&A for Category of Relationships', url: 'https://coaching.miteshkhatri.com/products/lead-people/categories/4175217/posts/14020177', completed: false },
+        { id: 'lp-10', title: '10. Decision Making', url: 'https://coaching.miteshkhatri.com/products/lead-people/categories/4175217/posts/14020178', completed: false },
+        { id: 'lp-10-qa', title: 'Q&A Decision Making', url: 'https://coaching.miteshkhatri.com/products/lead-people/categories/4175217/posts/14020179', completed: false },
+        { id: 'lp-11', title: '11. Training, Coaching & Changing People', url: 'https://coaching.miteshkhatri.com/products/lead-people/categories/4175217/posts/14020180', completed: false },
+        { id: 'lp-12', title: '12. Appraisal Skills', url: 'https://coaching.miteshkhatri.com/products/lead-people/categories/4175217/posts/14020181', completed: false },
+      ]
     }
   ]);
 
