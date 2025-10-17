@@ -79,12 +79,12 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Current Progress - Consecutive Weeks */}
-        <div className="space-y-2">
+        <div className="space-y-2 bg-white p-4 rounded-lg">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-white">Avg Rating (Last 4 Weeks)</span>
-            <span className="text-sm font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">{progressPercentage.toFixed(1)}/10</span>
+            <span className="text-sm font-medium text-gray-800">Avg Rating (Last 4 Weeks)</span>
+            <span className="text-sm font-bold text-white bg-gradient-to-r from-primary to-accent px-3 py-1 rounded">{progressPercentage.toFixed(1)}/10</span>
           </div>
-          <div className="h-3 bg-white/20 rounded-full overflow-hidden border-2 border-white/30">
+          <div className="h-3 bg-gray-200 rounded-full overflow-hidden border-2 border-gray-300">
             <div 
               className={`h-full transition-all duration-500 ${
                 progressPercentage >= 8 
@@ -94,7 +94,7 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
               style={{ width: `${Math.min((progressPercentage / 10) * 100, 100)}%` }}
             />
           </div>
-          <p className="text-xs text-white/70">
+          <p className="text-xs text-gray-600">
             {isEligible 
               ? '🎉 Eligible for Platinum Badge!' 
               : (badgeData as any)?.message || `Need 8+ rating for 4 consecutive weeks`}
@@ -102,7 +102,7 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
         </div>
 
         {/* Badges Display */}
-        <div className="space-y-2">
+        <div className="space-y-2 bg-white p-4 rounded-lg">
           <h3 className="text-sm font-medium flex items-center gap-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             <Sparkles className="h-4 w-4 text-primary" />
             Earned Badges
@@ -110,7 +110,7 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
           
           {isEligible && badgeData?.badge ? (
             <div 
-              className="p-4 bg-white rounded-lg border-2 border-white/30"
+              className="p-4 bg-gray-50 rounded-lg border-2 border-gray-200"
               data-testid="badge-platinum"
             >
               <div className="flex items-start gap-3">
@@ -130,9 +130,9 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
               </div>
             </div>
           ) : (
-            <div className="text-center py-6 border-2 border-dashed border-white/30 rounded-lg bg-white/5">
-              <Trophy className="h-12 w-12 mx-auto text-white/60 mb-2" />
-              <p className="text-sm text-white/70">
+            <div className="text-center py-6 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+              <Trophy className="h-12 w-12 mx-auto text-gray-400 mb-2" />
+              <p className="text-sm text-gray-600">
                 Maintain 8+ rating for 4 consecutive weeks to earn Platinum Badge
               </p>
             </div>
@@ -142,8 +142,8 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
         {/* Leaderboard Section */}
         <div className="space-y-3 pt-4 border-t border-white/20">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium flex items-center gap-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              <Trophy className="h-4 w-4 text-primary" />
+            <h3 className="text-sm font-medium flex items-center gap-2 text-red-600">
+              <Trophy className="h-4 w-4 text-red-600" />
               Leaderboard
             </h3>
             <Badge variant="outline" className="capitalize text-xs bg-white/10 text-white border-white/30">
