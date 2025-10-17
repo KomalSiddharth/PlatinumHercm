@@ -61,6 +61,8 @@ interface AssignmentLesson {
   lessonName: string;
   url: string;
   completed: boolean;
+  source?: 'user' | 'admin';  // Track if user-selected or admin-recommended
+  recommendationId?: string;   // Original recommendation ID if admin-recommended
 }
 
 interface AssignmentCourse {
@@ -1893,36 +1895,77 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 {/* Unified Assignment Column - Show only for first row with rowspan */}
                 {belief.category === 'Health' && (
                   <TableCell rowSpan={4} className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10 align-top">
-                    {unifiedAssignment && unifiedAssignment.length > 0 ? (
-                      <div className="space-y-1">
-                        <div className="text-xs font-medium text-cyan-600 dark:text-cyan-400 mb-2">
-                          Course Lessons ({unifiedAssignment.length})
+                    {(() => {
+                      const userLessons = unifiedAssignment.filter(l => l.source === 'user' || !l.source);
+                      const adminLessons = unifiedAssignment.filter(l => l.source === 'admin');
+                      
+                      return (
+                        <div className="space-y-3">
+                          {/* Course Lessons (User Selected) */}
+                          {userLessons.length > 0 && (
+                            <div className="space-y-1">
+                              <div className="text-xs font-semibold text-cyan-600 dark:text-cyan-400 mb-2">
+                                Course Lessons ({userLessons.length})
+                              </div>
+                              {userLessons.map((lesson) => (
+                                <div key={lesson.id} className="flex items-center gap-2 py-0.5">
+                                  <Checkbox
+                                    checked={lesson.completed}
+                                    onCheckedChange={() => handleUnifiedAssignmentToggle(lesson.id)}
+                                    className="h-3 w-3"
+                                    data-testid={`checkbox-user-lesson-${lesson.id}`}
+                                  />
+                                  <a
+                                    href={lesson.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs hover:underline flex-1 text-cyan-700 dark:text-cyan-400"
+                                    data-testid={`link-user-lesson-${lesson.id}`}
+                                  >
+                                    {lesson.lessonName}
+                                  </a>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          
+                          {/* Recommended Lessons (Admin Recommended) */}
+                          {adminLessons.length > 0 && (
+                            <div className="space-y-1">
+                              <div className="text-xs font-semibold text-pink-600 dark:text-pink-400 mb-2">
+                                Recommended Lessons ({adminLessons.length})
+                              </div>
+                              {adminLessons.map((lesson) => (
+                                <div key={lesson.id} className="flex items-center gap-2 py-0.5">
+                                  <Checkbox
+                                    checked={lesson.completed}
+                                    onCheckedChange={() => handleUnifiedAssignmentToggle(lesson.id)}
+                                    className="h-3 w-3"
+                                    data-testid={`checkbox-admin-lesson-${lesson.id}`}
+                                  />
+                                  <a
+                                    href={lesson.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs hover:underline flex-1 text-pink-700 dark:text-pink-400"
+                                    data-testid={`link-admin-lesson-${lesson.id}`}
+                                  >
+                                    {lesson.lessonName}
+                                  </a>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          
+                          {/* Empty State */}
+                          {userLessons.length === 0 && adminLessons.length === 0 && (
+                            <div className="text-xs text-muted-foreground italic text-center py-4">
+                              No assignments yet. Check lessons in Course Tracker to add them here.
+                            </div>
+                          )}
                         </div>
-                        {unifiedAssignment.map((lesson) => (
-                          <div key={lesson.id} className="flex items-center gap-2 py-0.5">
-                            <Checkbox
-                              checked={lesson.completed}
-                              onCheckedChange={() => handleUnifiedAssignmentToggle(lesson.id)}
-                              className="h-3 w-3"
-                              data-testid={`checkbox-unified-assignment-${lesson.id}`}
-                            />
-                            <a
-                              href={lesson.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-xs hover:underline flex-1 text-cyan-700 dark:text-cyan-400"
-                              data-testid={`link-unified-assignment-${lesson.id}`}
-                            >
-                              {lesson.lessonName}
-                            </a>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-xs text-muted-foreground italic text-center py-4">
-                        No assignments yet. Check lessons in Course Tracker to add them here.
-                      </div>
-                    )}
+                      );
+                    })()}
                   </TableCell>
                 )}
 

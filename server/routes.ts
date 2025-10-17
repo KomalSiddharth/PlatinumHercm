@@ -2091,14 +2091,16 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       // Get current unifiedAssignment array
       const currentUnifiedAssignment = currentWeek.unifiedAssignment || [];
       
-      // Create new lesson item for unified assignment
+      // Create new lesson item for unified assignment with source='admin' for recommendations
       const newLesson = {
         id: recommendation.lessonId || recommendation.courseId,
         courseId: recommendation.courseId,
         courseName: recommendation.courseName,
         lessonName: recommendation.lessonName || recommendation.courseName,
         url: recommendation.lessonUrl || '',
-        completed: false
+        completed: false,
+        source: 'admin' as const,  // Mark as admin-recommended
+        recommendationId: recommendation.id  // Track original recommendation
       };
 
       // Add the recommended course to unified assignment array
@@ -3275,14 +3277,15 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
         return res.json({ success: true, assignment: currentAssignment, message: "Lesson already in assignment" });
       }
 
-      // Add lesson to unified assignment
+      // Add lesson to unified assignment with source='user' for user-selected lessons
       const updatedAssignment = [...currentAssignment, { 
         id: lesson.id,
         courseId: lesson.courseId,
         courseName: lesson.courseName,
         lessonName: lesson.lessonName,
         url: lesson.url || '',
-        completed: false
+        completed: false,
+        source: 'user' as const  // Mark as user-selected from Course Tracker
       }];
 
       // Update the week
