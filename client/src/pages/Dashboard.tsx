@@ -1558,9 +1558,10 @@ export default function Dashboard() {
   // Load lesson completions from database on mount
   useEffect(() => {
     const loadCompletions = async () => {
-      if (!currentUser) return;
+      if (!currentUser || courses.length === 0) return;
       
       try {
+        console.log('[Course Tracker] Loading completions for user:', currentUser.id);
         // Fetch completions for all courses
         const allCompletions: Record<string, string[]> = {};
         
@@ -1571,20 +1572,29 @@ export default function Dashboard() {
               const completions = await response.json();
               // Store video IDs that are completed
               allCompletions[course.id] = completions.map((c: any) => c.videoId);
+              console.log(`[Course Tracker] ${course.id}:`, allCompletions[course.id].length, 'completions loaded');
             }
           } catch (error) {
             console.error(`Failed to fetch completions for ${course.id}:`, error);
           }
         }
         
+        console.log('[Course Tracker] All completions loaded:', allCompletions);
+        
         // Update courses state with completion status
         setCourses(prevCourses => 
           prevCourses.map(course => ({
             ...course,
-            lessons: course.lessons.map(lesson => ({
-              ...lesson,
-              completed: allCompletions[course.id]?.includes(`${course.id}-${lesson.id}`) || false
-            }))
+            lessons: course.lessons.map(lesson => {
+              const isCompleted = allCompletions[course.id]?.includes(`${course.id}-${lesson.id}`) || false;
+              if (isCompleted) {
+                console.log(`[Course Tracker] Marking ${course.id}-${lesson.id} as completed`);
+              }
+              return {
+                ...lesson,
+                completed: isCompleted
+              };
+            })
           }))
         );
       } catch (error) {
@@ -1885,15 +1895,23 @@ export default function Dashboard() {
                                       ));
                                       
                                       try {
+                                        console.log(`[Lesson Toggle] Toggling ${course.id}-${lesson.id}, checked:`, checked);
+                                        
                                         // Toggle completion in database
                                         const toggleResponse = await apiRequest('POST', '/api/course-video-completions/toggle', {
                                           videoId: `${course.id}-${lesson.id}`,
                                           courseId: course.id
                                         });
                                         
+                                        const toggleData = await toggleResponse.json();
+                                        console.log('[Lesson Toggle] API Response:', toggleData);
+                                        
                                         if (!toggleResponse.ok) {
+                                          console.error('[Lesson Toggle] API failed:', toggleData);
                                           throw new Error('Failed to toggle lesson completion');
                                         }
+                                        
+                                        console.log('[Lesson Toggle] Successfully saved to database');
                                         
                                         // If checked, add to unified assignment
                                         if (checked) {
