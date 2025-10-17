@@ -1327,10 +1327,6 @@ export default function Dashboard() {
         { id: 'dmp-apr25-22', title: 'Apr 25 - Making Money is Very Easy', url: 'https://coaching.miteshkhatri.com/products/platinum-dmp/categories/2157386774/posts/2187164214', completed: false },
         { id: 'dmp-apr25-23', title: 'Apr 26 - My Emotions are My Habits', url: 'https://coaching.miteshkhatri.com/products/platinum-dmp/categories/2157386774/posts/2187228760', completed: false },
         { id: 'dmp-apr25-24', title: 'Apr 28 - I Have SO Much in Life', url: 'https://coaching.miteshkhatri.com/products/platinum-dmp/categories/2157386774/posts/2187228764', completed: false },
-        { id: 'dmp-apr25-25', title: 'Apr 29 - Ho\'Oponopono for Health', url: 'https://coaching.miteshkhatri.com/products/platinum-dmp/categories/2157386774/posts/2187328407', completed: false },
-        { id: 'dmp-apr25-26', title: 'Apr 30 - Ho\'Oponopono for Relationship', url: 'https://coaching.miteshkhatri.com/products/platinum-dmp/categories/2157386774/posts/2187328411', completed: false },
-      ]
-    }
   ]);
 
   // Load lesson completions from database on mount
