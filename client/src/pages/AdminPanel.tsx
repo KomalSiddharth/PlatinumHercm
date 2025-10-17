@@ -43,7 +43,7 @@ import AdminUserDashboardViewer from '@/components/AdminUserDashboardViewer';
 
 export default function AdminPanel() {
   const [, setLocation] = useLocation();
-  const [activeTab, setActiveTab] = useState<'approved' | 'team' | 'logs' | 'analytics' | 'dashboard-viewer' | 'team-analytics' | 'recommendations'>('approved');
+  const [activeTab, setActiveTab] = useState<'approved' | 'team' | 'logs' | 'analytics' | 'dashboard-viewer' | 'team-analytics' | 'recommendations' | 'platinum-standards'>('approved');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -71,6 +71,11 @@ export default function AdminPanel() {
   
   // Team analytics period state
   const [teamAnalyticsPeriod, setTeamAnalyticsPeriod] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
+  
+  // Platinum standards states
+  const [selectedPlatinumCategory, setSelectedPlatinumCategory] = useState<'health' | 'relationship' | 'career' | 'money'>('health');
+  const [newStandardText, setNewStandardText] = useState('');
+  const [editingStandard, setEditingStandard] = useState<any>(null);
   
   const { toast } = useToast();
 
@@ -319,6 +324,51 @@ export default function AdminPanel() {
         description: error.message || "Failed to delete recommendation",
         variant: "destructive" 
       });
+    }
+  });
+
+  // Platinum standards mutations
+  const addPlatinumStandardMutation = useMutation({
+    mutationFn: async (data: { category: string; standardText: string }) => {
+      return apiRequest('POST', '/api/admin/platinum-standards', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/platinum-standards'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/platinum-standards'] });
+      setNewStandardText('');
+      toast({ title: "Success", description: "Platinum standard added successfully" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message || "Failed to add platinum standard", variant: "destructive" });
+    }
+  });
+
+  const updatePlatinumStandardMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: { standardText?: string; isActive?: boolean; orderIndex?: number } }) => {
+      return apiRequest('PUT', `/api/admin/platinum-standards/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/platinum-standards'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/platinum-standards'] });
+      setEditingStandard(null);
+      toast({ title: "Success", description: "Platinum standard updated successfully" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message || "Failed to update platinum standard", variant: "destructive" });
+    }
+  });
+
+  const deletePlatinumStandardMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return apiRequest('DELETE', `/api/admin/platinum-standards/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/platinum-standards'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/platinum-standards'] });
+      toast({ title: "Success", description: "Platinum standard deleted successfully" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message || "Failed to delete platinum standard", variant: "destructive" });
     }
   });
 
@@ -1505,6 +1555,57 @@ export default function AdminPanel() {
                   </p>
                 </div>
 
+                {/* Add New Standard Form */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Add New Platinum Standard</CardTitle>
+                    <CardDescription>Standards will be visible to all users globally</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Category</label>
+                      <select
+                        value={selectedPlatinumCategory}
+                        onChange={(e) => setSelectedPlatinumCategory(e.target.value as any)}
+                        className="w-full px-3 py-2 border border-input bg-background rounded-md"
+                        data-testid="select-platinum-category"
+                      >
+                        <option value="health">Health</option>
+                        <option value="relationship">Relationship</option>
+                        <option value="career">Career</option>
+                        <option value="money">Money</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Standard Text</label>
+                      <Input
+                        placeholder="Enter platinum standard text..."
+                        value={newStandardText}
+                        onChange={(e) => setNewStandardText(e.target.value)}
+                        data-testid="input-new-standard"
+                      />
+                    </div>
+                    <Button
+                      onClick={() => {
+                        if (!newStandardText.trim()) {
+                          toast({ title: "Error", description: "Please enter standard text", variant: "destructive" });
+                          return;
+                        }
+                        addPlatinumStandardMutation.mutate({
+                          category: selectedPlatinumCategory,
+                          standardText: newStandardText.trim()
+                        });
+                      }}
+                      disabled={addPlatinumStandardMutation.isPending}
+                      className="w-full"
+                      data-testid="button-add-standard"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      {addPlatinumStandardMutation.isPending ? 'Adding...' : 'Add Standard'}
+                    </Button>
+                  </CardContent>
+                </Card>
+
                 {/* Standards by Category */}
                 <div className="grid gap-6">
                   {['health', 'relationship', 'career', 'money'].map((category) => {
@@ -1547,14 +1648,26 @@ export default function AdminPanel() {
                                   <Button
                                     variant="ghost"
                                     size="icon"
+                                    onClick={() => {
+                                      updatePlatinumStandardMutation.mutate({
+                                        id: standard.id,
+                                        data: { isActive: !standard.isActive }
+                                      });
+                                    }}
                                     className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                                    data-testid={`button-edit-standard-${standard.id}`}
+                                    data-testid={`button-toggle-standard-${standard.id}`}
                                   >
                                     <Pencil className="w-4 h-4" />
                                   </Button>
                                   <Button
                                     variant="ghost"
                                     size="icon"
+                                    onClick={() => {
+                                      if (window.confirm('Are you sure you want to delete this standard? This will affect all users.')) {
+                                        deletePlatinumStandardMutation.mutate(standard.id);
+                                      }
+                                    }}
+                                    disabled={deletePlatinumStandardMutation.isPending}
                                     className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
                                     data-testid={`button-delete-standard-${standard.id}`}
                                   >
@@ -1564,16 +1677,6 @@ export default function AdminPanel() {
                               </div>
                             ))
                           )}
-                          
-                          {/* Add New Standard Button */}
-                          <Button
-                            variant="outline"
-                            className="w-full mt-2"
-                            data-testid={`button-add-standard-${category}`}
-                          >
-                            <Plus className="w-4 h-4 mr-2" />
-                            Add {category} standard
-                          </Button>
                         </CardContent>
                       </Card>
                     );

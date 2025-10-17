@@ -472,7 +472,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       setBeliefs(getWeekBeliefs(weekNumber));
       setUnifiedAssignment([]);
     }
-  }, [weekNumber, weekData, ratingCaps]);
+  }, [weekNumber, weekData, ratingCaps, platinumStandardsData]);
 
   const weeklyProgress = beliefs.length > 0
     ? Math.round(beliefs.reduce((sum, b) => sum + calculateProgress(b.checklist), 0) / beliefs.length)
