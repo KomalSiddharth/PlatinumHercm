@@ -2003,7 +2003,7 @@ export default function Dashboard() {
         </section> */}
 
         {/* Achievements, Badges & Leaderboard Section */}
-        <section ref={achievementsRef} id="achievements" className="scroll-mt-20">
+        <section ref={achievementsRef} id="achievements" className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
           <BadgeDisplayCard 
             leaderboardEntries={leaderboardEntries} 
             currentUserId={currentUser?.id}
