@@ -2293,10 +2293,20 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         return res.status(401).json({ message: "User not authenticated" });
       }
       
+      // Get actual user to ensure we use correct user ID
+      let user = await storage.getUser(userId);
+      if (!user && typeof userId === 'string' && userId.includes('@')) {
+        user = await storage.getUserByEmail(userId);
+      }
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
       const { id } = req.params;
       
       // Check if ritual is a default ritual before attempting deletion
-      const rituals = await storage.getRitualsByUser(userId);
+      const rituals = await storage.getRitualsByUser(user.id);
       const ritual = rituals.find(r => r.id === id);
       
       if (!ritual) {
@@ -2307,7 +2317,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         return res.status(403).json({ message: "Default rituals cannot be deleted. You can pause them instead." });
       }
       
-      const deletedCount = await storage.deleteRitual(id, userId);
+      const deletedCount = await storage.deleteRitual(id, user.id);
       
       if (deletedCount === 0) {
         return res.status(404).json({ message: "Ritual not found or access denied" });
