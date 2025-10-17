@@ -2166,15 +2166,14 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         return res.status(401).json({ message: "User not authenticated" });
       }
       
-      // Ensure user exists in users table (create if doesn't exist)
-      const existingUser = await storage.getUser(userId);
-      if (!existingUser) {
-        // For admin users logging via email, use email as both id and email
-        const userEmail = typeof userId === 'string' && userId.includes('@') ? userId : req.session.userEmail;
-        await storage.upsertUser({
-          id: userId,
-          email: userEmail || userId,
-        });
+      // Get actual user to ensure we use correct user ID
+      let user = await storage.getUser(userId);
+      if (!user && typeof userId === 'string' && userId.includes('@')) {
+        user = await storage.getUserByEmail(userId);
+      }
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
       }
       
       // Define default rituals that should exist for all users
@@ -2214,7 +2213,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       ];
       
       // Get existing rituals
-      const existingRituals = await storage.getRitualsByUser(userId);
+      const existingRituals = await storage.getRitualsByUser(user.id);
       
       // Check which default rituals are missing
       const existingTitles = new Set(existingRituals.map(r => r.title));
@@ -2224,13 +2223,13 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       for (const defaultRitual of missingDefaults) {
         await storage.createRitual({
           ...defaultRitual,
-          userId,
+          userId: user.id,
         });
       }
       
       // Fetch all rituals again if we created any defaults
       const allRituals = missingDefaults.length > 0 
-        ? await storage.getRitualsByUser(userId)
+        ? await storage.getRitualsByUser(user.id)
         : existingRituals;
       
       res.json(allRituals);
@@ -2247,7 +2246,17 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         return res.status(401).json({ message: "User not authenticated" });
       }
       
-      const ritualData = { ...req.body, userId };
+      // Get actual user to ensure we use correct user ID
+      let user = await storage.getUser(userId);
+      if (!user && typeof userId === 'string' && userId.includes('@')) {
+        user = await storage.getUserByEmail(userId);
+      }
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      const ritualData = { ...req.body, userId: user.id };
       const ritual = await storage.createRitual(ritualData);
       res.json(ritual);
     } catch (error) {
