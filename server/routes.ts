@@ -1672,6 +1672,16 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
+  app.delete('/api/admin/access-logs', async (req, res) => {
+    try {
+      await storage.deleteAllAccessLogs();
+      res.json({ success: true, message: "All access logs deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting access logs:", error);
+      res.status(500).json({ message: "Failed to delete access logs" });
+    }
+  });
+
   // New Admin Analytics & Dashboard Routes
   
   // Get user's complete dashboard data (for admin to view any user's dashboard)
