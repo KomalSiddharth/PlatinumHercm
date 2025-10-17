@@ -198,9 +198,9 @@ const calculateProgress = (checklist: ChecklistItem[]): number => {
 };
 
 const getProgressColor = (progress: number) => {
-  if (progress >= 80) return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
-  if (progress >= 50) return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
-  return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
+  if (progress >= 80) return 'bg-emerald-green/20 text-emerald-green dark:bg-emerald-green/30 dark:text-emerald-green';
+  if (progress >= 50) return 'bg-golden-yellow/20 text-golden-yellow dark:bg-golden-yellow/30 dark:text-golden-yellow';
+  return 'bg-coral-red/20 text-coral-red dark:bg-coral-red/30 dark:text-coral-red';
 };
 
 // Health Standards - Predefined checklist for Health category  
@@ -1709,11 +1709,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           <TableHeader>
             <TableRow className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30">
               <TableHead className="font-bold border-r min-w-[100px]">HRCM Area</TableHead>
-              <TableHead className="min-w-[60px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Rating</TableHead>
-              <TableHead className="min-w-[140px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Results</TableHead>
-              <TableHead className="min-w-[140px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Feelings</TableHead>
-              <TableHead className="min-w-[140px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Beliefs/Reasons</TableHead>
-              <TableHead className="min-w-[140px] bg-blue-100 dark:bg-blue-900/40 font-semibold border-r">Actions</TableHead>
+              <TableHead className="min-w-[60px] bg-blue-100 dark:bg-blue-900/40 font-semibold border border-soft-gray dark:border-soft-gray/30">Rating</TableHead>
+              <TableHead className="min-w-[140px] bg-blue-100 dark:bg-blue-900/40 font-semibold border border-soft-gray dark:border-soft-gray/30">Results</TableHead>
+              <TableHead className="min-w-[140px] bg-blue-100 dark:bg-blue-900/40 font-semibold border border-soft-gray dark:border-soft-gray/30">Feelings</TableHead>
+              <TableHead className="min-w-[140px] bg-blue-100 dark:bg-blue-900/40 font-semibold border border-soft-gray dark:border-soft-gray/30">Beliefs/Reasons</TableHead>
+              <TableHead className="min-w-[140px] bg-blue-100 dark:bg-blue-900/40 font-semibold border-r border border-soft-gray dark:border-soft-gray/30">Actions</TableHead>
               
               <TableHead className="min-w-[130px] bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/40 dark:to-blue-900/40 font-semibold">
                 <div className="flex items-center gap-1">
