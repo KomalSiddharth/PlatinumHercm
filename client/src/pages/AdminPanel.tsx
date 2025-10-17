@@ -829,6 +829,32 @@ export default function AdminPanel() {
           {/* Access Logs Tab Content */}
           {activeTab === 'logs' && (
             <>
+              {/* Header with Clear All Button */}
+              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Access Logs</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    Showing last {accessLogs.length} login attempts
+                  </p>
+                </div>
+                {accessLogs.length > 0 && (
+                  <Button 
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => {
+                      if (window.confirm('Are you sure you want to delete all access logs? This action cannot be undone.')) {
+                        clearAllLogsMutation.mutate();
+                      }
+                    }}
+                    disabled={clearAllLogsMutation.isPending}
+                    data-testid="button-clear-all-logs"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    {clearAllLogsMutation.isPending ? 'Clearing...' : 'Clear All'}
+                  </Button>
+                )}
+              </div>
+
               {/* Access Logs Table */}
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -867,29 +893,6 @@ export default function AdminPanel() {
                     )}
                   </tbody>
                 </table>
-              </div>
-
-              {/* Footer */}
-              <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Showing last {accessLogs.length} login attempts
-                </p>
-                {accessLogs.length > 0 && (
-                  <Button 
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => {
-                      if (window.confirm('Are you sure you want to delete all access logs? This action cannot be undone.')) {
-                        clearAllLogsMutation.mutate();
-                      }
-                    }}
-                    disabled={clearAllLogsMutation.isPending}
-                    data-testid="button-clear-all-logs"
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    {clearAllLogsMutation.isPending ? 'Clearing...' : 'Clear All'}
-                  </Button>
-                )}
               </div>
             </>
           )}
