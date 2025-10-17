@@ -1303,7 +1303,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 size="sm"
                 onClick={handleGenerateNextWeek}
                 disabled={generateNextWeekMutation.isPending}
-                className="bg-gradient-to-r from-primary via-soft-lavender to-accent text-white coral-glow smooth-transition"
+                className="bg-gradient-to-r from-primary to-accent text-white smooth-transition"
                 data-testid="button-generate-next-week"
               >
                 {generateNextWeekMutation.isPending ? (

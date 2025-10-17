@@ -1745,7 +1745,7 @@ export default function Dashboard() {
                               </Badge>
                             )}
                             
-                            <Badge className="gap-1 bg-gradient-to-r from-primary via-soft-lavender to-accent text-white border-0 golden-glow smooth-transition">
+                            <Badge className="gap-1 bg-gradient-to-r from-primary to-accent text-white border-0 smooth-transition">
                               <Trophy className="w-3 h-3" />
                               {ritual.points}
                             </Badge>
