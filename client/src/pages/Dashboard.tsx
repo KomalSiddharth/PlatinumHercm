@@ -995,6 +995,37 @@ export default function Dashboard() {
         { id: 'dv-9-6', title: 'Lesson 7 Sharing', url: 'https://coaching.miteshkhatri.com/products/dr-john-demartini-s-values-by-mitesh-khatri/categories/2152810411/posts/2167430013', completed: false },
         { id: 'dv-9-7', title: 'Lesson 8 - How To Sell By Values', url: 'https://coaching.miteshkhatri.com/products/dr-john-demartini-s-values-by-mitesh-khatri/categories/2152810411/posts/2167430024', completed: false },
       ]
+    },
+    {
+      id: 'lead-business',
+      title: 'Lead Business',
+      url: 'https://coaching.miteshkhatri.com/products/lead-business',
+      tags: ['Business', 'Leadership'],
+      source: 'Mitesh Khatri',
+      estimatedHours: 25,
+      status: 'not_started',
+      progressPercent: 0,
+      category: 'Career',
+      lessons: [
+        { id: 'lb-1', title: '1. The Entrepreneur Identity', url: 'https://coaching.miteshkhatri.com/products/lead-business/categories/4241548/posts/14243457', completed: false },
+        { id: 'lb-2', title: '2. Creating a Big Goal with Blind Faith', url: 'https://coaching.miteshkhatri.com/products/lead-business/categories/4241548/posts/14243458', completed: false },
+        { id: 'lb-3', title: '3. Five Pillars of Business Mastery', url: 'https://coaching.miteshkhatri.com/products/lead-business/categories/4241548/posts/14507725', completed: false },
+        { id: 'lb-4', title: '4. Pillar 1 - Q&A Mission Examples', url: 'https://coaching.miteshkhatri.com/products/lead-business/categories/4241548/posts/14507724', completed: false },
+        { id: 'lb-sleep', title: 'Sleeping Technique', url: 'https://www.miteshkhatri.com/SleepingTechnique', completed: false },
+        { id: 'lb-5', title: '5. Pillar 3 - Recognising Business Limiting Beliefs', url: 'https://coaching.miteshkhatri.com/products/lead-business/categories/4241548/posts/14644127', completed: false },
+        { id: 'lb-5-1', title: '5.1 - Breaking Limiting Beliefs Process', url: 'https://coaching.miteshkhatri.com/products/lead-business/categories/4241548/posts/14644290', completed: false },
+        { id: 'lb-5-2', title: '5.2 - Creating New Beliefs Process', url: 'https://coaching.miteshkhatri.com/products/lead-business/categories/4241548/posts/14644321', completed: false },
+        { id: 'lb-5-3', title: '5.3 - New Beliefs Sharing + Q&A', url: 'https://coaching.miteshkhatri.com/products/lead-business/categories/4241548/posts/14644347', completed: false },
+        { id: 'lb-6', title: '6. Values - A Compass to Guide a Team for a Common Culture', url: 'https://coaching.miteshkhatri.com/products/lead-business/categories/4241548/posts/14838778', completed: false },
+        { id: 'lb-6-1', title: '6.1 - Values Examples + Q&A', url: 'https://coaching.miteshkhatri.com/products/lead-business/categories/4241548/posts/14838795', completed: false },
+        { id: 'lb-7', title: '7. Creating Business System for Growth & Profits', url: 'https://coaching.miteshkhatri.com/products/lead-business/categories/4479879', completed: false },
+        { id: 'lb-7-1', title: '1. Creating 4DX System for All Business Functions', url: 'https://coaching.miteshkhatri.com/products/lead-business/categories/4479879/posts/15034807', completed: false },
+        { id: 'lb-7-2', title: '2. Store 334 4DX Example', url: 'https://coaching.miteshkhatri.com/products/lead-business/categories/4479879/posts/15034804', completed: false },
+        { id: 'lb-7-2a', title: '2. 4DX Q A', url: 'https://coaching.miteshkhatri.com/products/lead-business/categories/4479879/posts/15034806', completed: false },
+        { id: 'lb-7-3', title: '3. 4DX Implementation Questions', url: 'https://coaching.miteshkhatri.com/products/lead-business/categories/4479879/posts/15034807', completed: false },
+        { id: 'lb-7-4', title: '4. How to Create Hiring Systems Part 1', url: 'https://coaching.miteshkhatri.com/products/lead-business/categories/4479879/posts/15230088', completed: false },
+        { id: 'lb-7-4b', title: '4. How to Create Hiring Systems Part 2', url: 'https://coaching.miteshkhatri.com/products/lead-business/categories/4479879/posts/15230092', completed: false },
+      ]
     }
   ]);
 
