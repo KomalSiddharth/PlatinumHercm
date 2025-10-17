@@ -13,6 +13,7 @@ import {
   courseVideos,
   courseVideoCompletions,
   adminCourseRecommendations,
+  platinumStandards,
   type User,
   type UpsertUser,
   type HercmWeek,
@@ -39,6 +40,8 @@ import {
   type InsertCourseVideoCompletion,
   type AdminCourseRecommendation,
   type InsertAdminCourseRecommendation,
+  type PlatinumStandard,
+  type InsertPlatinumStandard,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, count, sql, gte, lte } from "drizzle-orm";
@@ -156,6 +159,15 @@ export interface IStorage {
   getAllCourseRecommendations(): Promise<any[]>;
   updateRecommendationStatus(id: string, status: string): Promise<any>;
   deleteRecommendation(id: string): Promise<void>;
+  
+  // Platinum Standards operations
+  getAllPlatinumStandards(): Promise<PlatinumStandard[]>;
+  getActivePlatinumStandards(): Promise<PlatinumStandard[]>;
+  getPlatinumStandardsByCategory(category: string): Promise<PlatinumStandard[]>;
+  addPlatinumStandard(standard: InsertPlatinumStandard): Promise<PlatinumStandard>;
+  updatePlatinumStandard(id: string, standard: Partial<InsertPlatinumStandard>): Promise<PlatinumStandard>;
+  deletePlatinumStandard(id: string): Promise<void>;
+  reorderPlatinumStandards(updates: Array<{ id: string; orderIndex: number }>): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -991,6 +1003,75 @@ export class DatabaseStorage implements IStorage {
     await db
       .delete(adminCourseRecommendations)
       .where(eq(adminCourseRecommendations.id, id));
+  }
+
+  // Platinum Standards operations
+  async getAllPlatinumStandards(): Promise<PlatinumStandard[]> {
+    return await db
+      .select()
+      .from(platinumStandards)
+      .orderBy(platinumStandards.category, platinumStandards.orderIndex);
+  }
+
+  async getActivePlatinumStandards(): Promise<PlatinumStandard[]> {
+    return await db
+      .select()
+      .from(platinumStandards)
+      .where(eq(platinumStandards.isActive, true))
+      .orderBy(platinumStandards.category, platinumStandards.orderIndex);
+  }
+
+  async getPlatinumStandardsByCategory(category: string): Promise<PlatinumStandard[]> {
+    return await db
+      .select()
+      .from(platinumStandards)
+      .where(and(
+        eq(platinumStandards.category, category),
+        eq(platinumStandards.isActive, true)
+      ))
+      .orderBy(platinumStandards.orderIndex);
+  }
+
+  async addPlatinumStandard(standard: InsertPlatinumStandard): Promise<PlatinumStandard> {
+    const [newStandard] = await db
+      .insert(platinumStandards)
+      .values({
+        ...standard,
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newStandard;
+  }
+
+  async updatePlatinumStandard(id: string, standard: Partial<InsertPlatinumStandard>): Promise<PlatinumStandard> {
+    const [updated] = await db
+      .update(platinumStandards)
+      .set({
+        ...standard,
+        updatedAt: new Date(),
+      })
+      .where(eq(platinumStandards.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deletePlatinumStandard(id: string): Promise<void> {
+    await db
+      .delete(platinumStandards)
+      .where(eq(platinumStandards.id, id));
+  }
+
+  async reorderPlatinumStandards(updates: Array<{ id: string; orderIndex: number }>): Promise<void> {
+    // Update each standard's order index
+    for (const update of updates) {
+      await db
+        .update(platinumStandards)
+        .set({ 
+          orderIndex: update.orderIndex,
+          updatedAt: new Date(),
+        })
+        .where(eq(platinumStandards.id, update.id));
+    }
   }
 }
 
