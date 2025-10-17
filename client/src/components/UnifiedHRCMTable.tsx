@@ -1319,8 +1319,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       </div>
 
       {/* Current Week Table */}
-      <div className="border-2 border-red-800 dark:border-red-900 rounded-lg overflow-x-auto shadow-lg">
-        <div className="px-4 py-3 border-b-2 border-red-900 dark:border-red-950" style={{ backgroundColor: '#bc0000' }}>
+      <div className="border-2 border-coral-red/70 dark:border-coral-red/50 rounded-lg overflow-x-auto shadow-lg">
+        <div className="px-4 py-3 border-b-2 border-coral-red/80 dark:border-coral-red/60 bg-coral-red">
           <div className="flex items-center justify-between">
             {/* Left: Calendar Icon */}
             <Popover>
@@ -1423,7 +1423,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </TableCell>
 
                 {/* Current Week - Rating */}
-                <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10 align-top">
+                <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top">
                   <div className="flex flex-col gap-1">
                     <Input
                       type="number"
@@ -1463,7 +1463,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </TableCell>
 
                 {/* Current Week - Problems */}
-                <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10 align-top">
+                <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top">
                   {isEditing(belief.category, 'problems') ? (
                     <Textarea
                       value={editValue}
@@ -1505,7 +1505,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </TableCell>
 
                 {/* Current Week - Feelings */}
-                <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10 align-top">
+                <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top">
                   {isEditing(belief.category, 'currentFeelings') ? (
                     <Textarea
                       value={editValue}
@@ -1546,7 +1546,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </TableCell>
 
                 {/* Current Week - Beliefs */}
-                <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10 align-top">
+                <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top">
                   {isEditing(belief.category, 'currentBelief') ? (
                     <Textarea
                       value={editValue}
@@ -1587,7 +1587,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </TableCell>
 
                 {/* Current Week - Actions */}
-                <TableCell className="p-2 bg-red-50/30 dark:bg-red-950/10 border-r align-top">
+                <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 border-r align-top">
                   {isEditing(belief.category, 'currentActions') ? (
                     <Textarea
                       value={editValue}
@@ -1698,8 +1698,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       </div>
 
       {/* Next Week Table */}
-      <div className="border-2 border-green-600 dark:border-green-800 rounded-lg overflow-x-auto shadow-lg">
-        <div className="bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-700 dark:to-emerald-700 py-3 border-b-2 border-green-700 dark:border-green-900 flex items-center justify-center">
+      <div className="border-2 border-emerald-green/70 dark:border-emerald-green/50 rounded-lg overflow-x-auto shadow-lg">
+        <div className="bg-emerald-green dark:bg-emerald-green/90 py-3 border-b-2 border-emerald-green/80 dark:border-emerald-green/60 flex items-center justify-center">
           <h3 className="font-bold text-white text-xl drop-shadow-md flex items-center gap-2">
             <TrendingUp className="w-5 h-5" />
             Next Week Target
