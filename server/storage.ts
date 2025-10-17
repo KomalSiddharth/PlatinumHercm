@@ -890,15 +890,18 @@ export class DatabaseStorage implements IStorage {
     }).length;
 
     // Calculate top performers (only approved users)
-    const userAverages = new Map<string, { total: number; count: number; email: string }>();
+    const userAverages = new Map<string, { total: number; count: number; email: string; firstName: string; lastName: string }>();
     for (const week of filteredWeeks) {
       const avg = ((week.currentH || 0) + (week.currentE || 0) + (week.currentR || 0) + (week.currentC || 0)) / 4;
-      const existing = userAverages.get(week.userId) || { total: 0, count: 0, email: '' };
-      const user = approvedUsers.find(u => u.id === week.userId);
+      const existing = userAverages.get(week.userId) || { total: 0, count: 0, email: '', firstName: '', lastName: '' };
+      // Match by ID OR email (handles both userId formats)
+      const user = approvedUsers.find(u => u.id === week.userId || u.email === week.userId);
       userAverages.set(week.userId, {
         total: existing.total + avg,
         count: existing.count + 1,
-        email: user?.email || '',
+        email: user?.email || week.userId,
+        firstName: user?.firstName || '',
+        lastName: user?.lastName || '',
       });
     }
 
@@ -906,8 +909,11 @@ export class DatabaseStorage implements IStorage {
       .map(([userId, data]) => ({
         userId,
         email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
         averageRating: Math.round((data.total / data.count) * 10) / 10,
       }))
+      .filter(p => p.averageRating > 0)  // Only show users with actual ratings
       .sort((a, b) => b.averageRating - a.averageRating)
       .slice(0, 5);  // Top 5 performers only
 

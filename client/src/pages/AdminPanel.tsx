@@ -117,7 +117,7 @@ export default function AdminPanel() {
     activeUsers: number;
     averageRatings: { health: number; relationship: number; career: number; money: number };
     growthMetrics: { newUsers: number; percentChange: number };
-    topPerformers: Array<{ userId: string; email: string; averageRating: number }>;
+    topPerformers: Array<{ userId: string; email: string; firstName?: string; lastName?: string; averageRating: number }>;
     completionRates: { courses: number; rituals: number };
   }>({
     queryKey: [`/api/admin/team-analytics?period=${teamAnalyticsPeriod}`],
@@ -1315,8 +1315,14 @@ export default function AdminPanel() {
                                   }`}>
                                     #{index + 1}
                                   </div>
-                                  <div>
-                                    <div className="font-medium" data-testid={`performer-email-${index + 1}`}>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-medium truncate" data-testid={`performer-name-${index + 1}`}>
+                                      {user.firstName && user.lastName 
+                                        ? `${user.firstName} ${user.lastName}`
+                                        : user.firstName || user.email
+                                      }
+                                    </div>
+                                    <div className="text-xs text-muted-foreground truncate" data-testid={`performer-email-${index + 1}`}>
                                       {user.email}
                                     </div>
                                   </div>
