@@ -1176,6 +1176,20 @@ export default function Dashboard() {
         { id: 'pmc-8', title: '25th June - Platinum Membership Challenge - Day 3', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2157735064/posts/2188811366', completed: false },
         { id: 'pmc-9', title: '26th June - Platinum Membership Challenge - Day 4', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2157735064/posts/2188849619', completed: false },
       ]
+    },
+    {
+      id: 'jack-canfield-special',
+      title: 'Jack Canfield Special Sessions',
+      url: 'https://www.miteshkhatri.com/JackCanfield',
+      tags: ['Special', 'Workshop'],
+      source: 'Jack Canfield',
+      estimatedHours: 3,
+      status: 'not_started',
+      progressPercent: 0,
+      category: 'default',
+      lessons: [
+        { id: 'jc-1', title: '24th Mar - Jack Canfield Special Workshop', url: 'https://coaching.miteshkhatri.com/products/platinum-membership/categories/2157325541/posts/2186230401', completed: false },
+      ]
     }
   ]);
 
