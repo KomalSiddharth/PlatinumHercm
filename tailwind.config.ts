@@ -85,8 +85,12 @@ export default {
           health: "hsl(142 57% 37% / <alpha-value>)",
           relationship: "hsl(265 85% 58% / <alpha-value>)",
           career: "hsl(221 83% 53% / <alpha-value>)",
-          money: "hsl(45 93% 47% / <alpha-value>)",
+          money: "hsl(45 93% 58% / <alpha-value>)",
         },
+        "coral-red": "hsl(var(--coral-red) / <alpha-value>)",
+        "emerald-green": "hsl(var(--emerald-green) / <alpha-value>)",
+        "golden-yellow": "hsl(var(--golden-yellow) / <alpha-value>)",
+        "soft-gray": "hsl(var(--soft-gray-border) / <alpha-value>)",
       },
       fontFamily: {
         sans: ["var(--font-sans)"],

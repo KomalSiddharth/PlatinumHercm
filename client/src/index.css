@@ -64,9 +64,15 @@
 
   --accent-foreground: 0 0% 100%;
 
-  --destructive: 0 84% 60%;
+  --destructive: 0 91% 71%;
 
-  --destructive-foreground: 0 84% 98%;
+  --destructive-foreground: 0 0% 100%;
+
+  /* Custom design colors */
+  --coral-red: 0 91% 71%;
+  --emerald-green: 160 84% 39%;
+  --golden-yellow: 45 93% 58%;
+  --soft-gray-border: 220 13% 91%;
 
   --input: 30 15% 70%;
   --ring: 174 86% 24%;
@@ -182,9 +188,15 @@
 
   --accent-foreground: 0 0% 100%;
 
-  --destructive: 0 84% 50%;
+  --destructive: 0 91% 65%;
 
-  --destructive-foreground: 0 84% 98%;
+  --destructive-foreground: 0 0% 100%;
+
+  /* Custom design colors (dark mode adjusted) */
+  --coral-red: 0 91% 65%;
+  --emerald-green: 160 84% 45%;
+  --golden-yellow: 45 93% 62%;
+  --soft-gray-border: 220 13% 25%;
 
   --input: 210 11% 40%;
   --ring: 174 86% 35%;
