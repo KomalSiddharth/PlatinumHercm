@@ -1841,7 +1841,7 @@ export default function Dashboard() {
                             <div className="flex items-center gap-2">
                               <h3 className="font-semibold text-sm">{course.title}</h3>
                               {totalLessons > 0 && (
-                                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">
+                                <Badge className="text-[10px] px-1.5 py-0 h-4 bg-gradient-to-r from-primary to-accent text-white border-0">
                                   {completedLessons}/{totalLessons}
                                 </Badge>
                               )}
@@ -1984,7 +1984,7 @@ export default function Dashboard() {
                                       </span>
                                     )}
                                     <Badge 
-                                      className="text-[10px] px-1.5 py-0 h-5 bg-gradient-to-r from-golden-yellow to-emerald-green text-white border-0 golden-glow smooth-transition"
+                                      className="text-[10px] px-1.5 py-0 h-5 bg-gradient-to-r from-primary to-accent text-white border-0 golden-glow smooth-transition"
                                       data-testid={`badge-points-${lesson.id}`}
                                     >
                                       +{lesson.points || 10} pts

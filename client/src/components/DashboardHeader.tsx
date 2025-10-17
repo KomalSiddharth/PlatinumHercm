@@ -72,7 +72,6 @@ export default function DashboardHeader({
 
           <div className="flex items-center gap-3">
             <Badge 
-              variant="secondary" 
               className="gap-1 hidden sm:flex bg-gradient-to-r from-primary to-accent text-white border-0" 
               data-testid="badge-points"
             >
@@ -144,7 +143,7 @@ export default function DashboardHeader({
                 </Button>
               ))}
               <div className="pt-2 mt-2 border-t">
-                <Badge variant="secondary" className="w-full justify-center gap-2 py-2 bg-gradient-to-r from-primary to-accent text-white border-0">
+                <Badge className="w-full justify-center gap-2 py-2 bg-gradient-to-r from-primary to-accent text-white border-0">
                   <Trophy className="w-4 h-4" />
                   <span className="font-semibold">{userPoints} Points</span>
                 </Badge>

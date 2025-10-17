@@ -198,9 +198,9 @@ const calculateProgress = (checklist: ChecklistItem[]): number => {
 };
 
 const getProgressColor = (progress: number) => {
-  if (progress >= 80) return 'bg-gradient-to-r from-emerald-green/30 to-golden-yellow/30 text-emerald-green dark:from-emerald-green/40 dark:to-golden-yellow/40 dark:text-emerald-green emerald-glow smooth-transition';
-  if (progress >= 50) return 'bg-gradient-to-r from-golden-yellow/30 to-coral-red/20 text-golden-yellow dark:from-golden-yellow/40 dark:to-coral-red/30 dark:text-golden-yellow golden-glow smooth-transition';
-  return 'bg-gradient-to-r from-coral-red/30 to-coral-red/20 text-coral-red dark:from-coral-red/40 dark:to-coral-red/30 dark:text-coral-red coral-glow smooth-transition';
+  if (progress >= 80) return 'bg-gradient-to-r from-emerald-green to-golden-yellow text-white emerald-glow smooth-transition';
+  if (progress >= 50) return 'bg-gradient-to-r from-golden-yellow to-coral-red text-white golden-glow smooth-transition';
+  return 'bg-gradient-to-r from-coral-red to-coral-red/80 text-white coral-glow smooth-transition';
 };
 
 // Health Standards - Predefined checklist for Health category  
