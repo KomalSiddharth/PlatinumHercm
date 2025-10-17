@@ -30,18 +30,19 @@ export default function Login() {
     try {
       await apiRequest('POST', '/api/auth/login', { email });
       
-      // Invalidate user query to refetch auth state
+      // Ensure user data is fetched before redirecting
       await queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      
+      // Wait a moment for the query to refetch
+      await new Promise(resolve => setTimeout(resolve, 200));
       
       toast({
         title: "Login Successful",
         description: "Welcome to Platinum HRCM Dashboard"
       });
       
-      // Small delay to ensure auth state is updated
-      setTimeout(() => {
-        setLocation('/dashboard');
-      }, 100);
+      // Navigate to dashboard
+      setLocation('/dashboard');
     } catch (error: any) {
       toast({
         title: "Login Failed",

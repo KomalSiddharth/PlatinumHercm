@@ -1636,12 +1636,12 @@ export default function Dashboard() {
 
   const leaderboardEntries = leaderboardData;
 
-  // Redirect to login if not authenticated
+  // Redirect to login if not authenticated (but not while loading or if there's an error with retry disabled)
   useEffect(() => {
-    if (!userLoading && !currentUser) {
+    if (!userLoading && userError && !currentUser) {
       setLocation('/');
     }
-  }, [currentUser, userLoading, setLocation]);
+  }, [currentUser, userLoading, userError, setLocation]);
   
   // Update userName and userEmail when user data is fetched
   useEffect(() => {
