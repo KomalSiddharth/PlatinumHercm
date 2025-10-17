@@ -278,6 +278,11 @@ export default function AdminPanel() {
     enabled: activeTab === 'recommendations',
   });
 
+  const { data: platinumStandards = [], isLoading: isLoadingPlatinumStandards } = useQuery<any[]>({
+    queryKey: ['/api/admin/platinum-standards'],
+    enabled: activeTab === 'platinum-standards',
+  });
+
   const addRecommendationMutation = useMutation({
     mutationFn: async (data: { userEmail: string; hrcmArea: string; courseName: string; reason?: string }) => {
       return apiRequest('POST', '/api/admin/recommendations', data);
@@ -588,6 +593,17 @@ export default function AdminPanel() {
                 data-testid="tab-recommendations"
               >
                 Course Recommendations
+              </button>
+              <button 
+                onClick={() => setActiveTab('platinum-standards')}
+                className={`pb-3 border-b-2 transition-colors ${
+                  activeTab === 'platinum-standards' 
+                    ? 'border-blue-600 text-blue-600 font-medium' 
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                }`}
+                data-testid="tab-platinum-standards"
+              >
+                ⭐ Platinum Standards
               </button>
             </div>
           </div>
@@ -1471,6 +1487,104 @@ export default function AdminPanel() {
                     )}
                   </CardContent>
                 </Card>
+              </div>
+            </div>
+          )}
+
+          {/* Platinum Standards Management Tab */}
+          {activeTab === 'platinum-standards' && (
+            <div className="p-6">
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-2xl font-bold bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent">
+                    ⭐ Global Platinum Standards Management
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Manage platinum standards that appear globally for all users across all HRCM areas
+                  </p>
+                </div>
+
+                {/* Standards by Category */}
+                <div className="grid gap-6">
+                  {['health', 'relationship', 'career', 'money'].map((category) => {
+                    const categoryStandards = platinumStandards.filter((s: any) => s.category === category);
+                    const categoryColor = category === 'health' ? 'emerald' : category === 'relationship' ? 'rose' : category === 'career' ? 'blue' : 'amber';
+                    
+                    return (
+                      <Card key={category}>
+                        <CardHeader className="pb-3">
+                          <CardTitle className="flex items-center gap-2 capitalize">
+                            <div className={`w-3 h-3 rounded-full bg-${categoryColor}-500`}></div>
+                            {category} Standards
+                            <Badge variant="outline" className="ml-auto">{categoryStandards.length} standards</Badge>
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          {categoryStandards.length === 0 ? (
+                            <div className="text-center py-8 text-muted-foreground">
+                              No standards defined yet
+                            </div>
+                          ) : (
+                            categoryStandards.map((standard: any, index: number) => (
+                              <div
+                                key={standard.id}
+                                className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg group hover-elevate"
+                                data-testid={`standard-${category}-${index}`}
+                              >
+                                <div className="flex items-center gap-2 text-muted-foreground">
+                                  <span className="text-xs font-mono">{standard.orderIndex}</span>
+                                </div>
+                                <div className="flex-1">
+                                  <div className="font-medium" data-testid={`standard-text-${standard.id}`}>
+                                    {standard.standardText}
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Badge variant={standard.isActive ? "default" : "secondary"}>
+                                    {standard.isActive ? "Active" : "Inactive"}
+                                  </Badge>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    data-testid={`button-edit-standard-${standard.id}`}
+                                  >
+                                    <Pencil className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+                                    data-testid={`button-delete-standard-${standard.id}`}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                          
+                          {/* Add New Standard Button */}
+                          <Button
+                            variant="outline"
+                            className="w-full mt-2"
+                            data-testid={`button-add-standard-${category}`}
+                          >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add {category} standard
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+
+                {isLoadingPlatinumStandards && (
+                  <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                    <p className="text-sm text-muted-foreground mt-2">Loading platinum standards...</p>
+                  </div>
+                )}
               </div>
             </div>
           )}
