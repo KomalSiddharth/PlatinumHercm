@@ -451,3 +451,23 @@ export const insertAdminCourseRecommendationSchema = createInsertSchema(adminCou
 
 export type InsertAdminCourseRecommendation = z.infer<typeof insertAdminCourseRecommendationSchema>;
 export type AdminCourseRecommendation = typeof adminCourseRecommendations.$inferSelect;
+
+// Platinum Standards - Global standards manageable by admin
+export const platinumStandards = pgTable("platinum_standards", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  category: varchar("category").notNull(), // 'health', 'relationship', 'career', 'money'
+  standardText: varchar("standard_text", { length: 500 }).notNull(),
+  orderIndex: integer("order_index").notNull().default(0), // Display order
+  isActive: boolean("is_active").default(true).notNull(), // Enable/disable without deleting
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertPlatinumStandardSchema = createInsertSchema(platinumStandards).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertPlatinumStandard = z.infer<typeof insertPlatinumStandardSchema>;
+export type PlatinumStandard = typeof platinumStandards.$inferSelect;
