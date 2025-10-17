@@ -69,7 +69,7 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
   const isEligible = badgeData?.eligible || false;
 
   return (
-    <Card className="bg-gradient-to-br from-yellow-50 to-amber-100 dark:from-yellow-950/20 dark:to-amber-950/20 border-yellow-300 dark:border-yellow-700 border-2">
+    <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-950/20 border-blue-300 dark:border-blue-700 border-2">
       <CardHeader>
         <CardTitle className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent flex items-center gap-2">
           <Trophy className="h-5 w-5 text-primary" />
@@ -84,7 +84,7 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
             <span className="text-sm font-medium text-gray-800 dark:text-gray-300">Avg Rating (Last 4 Weeks)</span>
             <span className="text-sm font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">{progressPercentage.toFixed(1)}/10</span>
           </div>
-          <div className="h-3 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden border-2 border-yellow-400/50 dark:border-yellow-600/50">
+          <div className="h-3 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden border-2 border-blue-400/50 dark:border-blue-600/50">
             <div 
               className={`h-full transition-all duration-500 ${
                 progressPercentage >= 8 
@@ -110,7 +110,7 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
           
           {isEligible && badgeData?.badge ? (
             <div 
-              className="p-4 bg-yellow-100 dark:bg-yellow-950/30 rounded-lg border-2 border-yellow-400 dark:border-yellow-600"
+              className="p-4 bg-blue-100 dark:bg-blue-950/30 rounded-lg border-2 border-blue-400 dark:border-blue-600"
               data-testid="badge-platinum"
             >
               <div className="flex items-start gap-3">
@@ -130,8 +130,8 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
               </div>
             </div>
           ) : (
-            <div className="text-center py-6 border-2 border-dashed border-yellow-400/50 dark:border-yellow-600/50 rounded-lg bg-white/50 dark:bg-black/20">
-              <Trophy className="h-12 w-12 mx-auto text-yellow-500 dark:text-yellow-600 mb-2" />
+            <div className="text-center py-6 border-2 border-dashed border-blue-400/50 dark:border-blue-600/50 rounded-lg bg-white/50 dark:bg-black/20">
+              <Trophy className="h-12 w-12 mx-auto text-blue-500 dark:text-blue-600 mb-2" />
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Maintain 8+ rating for 4 consecutive weeks to earn Platinum Badge
               </p>
@@ -140,20 +140,20 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
         </div>
 
         {/* Leaderboard Section */}
-        <div className="space-y-3 pt-4 border-t border-yellow-400/30 dark:border-yellow-600/30">
+        <div className="space-y-3 pt-4 border-t border-blue-400/30 dark:border-blue-600/30">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-medium flex items-center gap-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               <Trophy className="h-4 w-4 text-primary" />
               Leaderboard
             </h3>
-            <Badge variant="outline" className="capitalize text-xs bg-yellow-200 dark:bg-yellow-950/50 text-gray-700 dark:text-gray-300 border-yellow-400 dark:border-yellow-600">
+            <Badge variant="outline" className="capitalize text-xs bg-blue-200 dark:bg-blue-950/50 text-gray-700 dark:text-gray-300 border-blue-400 dark:border-blue-600">
               This Week
             </Badge>
           </div>
           
           <div className="space-y-2">
             {leaderboardEntries.length === 0 ? (
-              <div className="text-center py-6 border-2 border-dashed border-yellow-400/50 dark:border-yellow-600/50 rounded-lg bg-white/50 dark:bg-black/20">
+              <div className="text-center py-6 border-2 border-dashed border-blue-400/50 dark:border-blue-600/50 rounded-lg bg-white/50 dark:bg-black/20">
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   No users yet. Be the first to earn points!
                 </p>
@@ -161,7 +161,7 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
             ) : leaderboardEntries.length === 1 && leaderboardEntries[0].isCurrentUser ? (
               <div className="space-y-3">
                 <div
-                  className="flex items-center gap-3 p-3 rounded-lg bg-yellow-100 dark:bg-yellow-950/30 border border-yellow-400 dark:border-yellow-600"
+                  className="flex items-center gap-3 p-3 rounded-lg bg-blue-100 dark:bg-blue-950/30 border border-blue-400 dark:border-blue-600"
                   data-testid="leaderboard-entry-1"
                 >
                   <div className="w-8 text-center">
@@ -186,7 +186,7 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
                     {leaderboardEntries[0].points.toLocaleString()}
                   </Badge>
                 </div>
-                <div className="text-center py-3 bg-white/50 dark:bg-black/20 rounded-lg border border-dashed border-yellow-400/30 dark:border-yellow-600/30">
+                <div className="text-center py-3 bg-white/50 dark:bg-black/20 rounded-lg border border-dashed border-blue-400/30 dark:border-blue-600/30">
                   <p className="text-xs text-gray-600 dark:text-gray-400">
                     You're currently in 1st place! 🎉
                   </p>
@@ -217,8 +217,8 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
                     key={entry.userId}
                     className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
                       isCurrentUser 
-                        ? 'bg-yellow-100 dark:bg-yellow-950/30 border border-yellow-400 dark:border-yellow-600' 
-                        : 'bg-white/50 dark:bg-black/20 border border-yellow-300/50 dark:border-yellow-700/50'
+                        ? 'bg-blue-100 dark:bg-blue-950/30 border border-blue-400 dark:border-blue-600' 
+                        : 'bg-white/50 dark:bg-black/20 border border-blue-300/50 dark:border-blue-700/50'
                     }`}
                     data-testid={`leaderboard-entry-${entry.rank}`}
                   >
