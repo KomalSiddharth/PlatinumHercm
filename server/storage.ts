@@ -745,12 +745,16 @@ export class DatabaseStorage implements IStorage {
     const today = new Date().toISOString().split('T')[0];
     const todayCompletions = await this.getRitualCompletionsByDate(userId, today);
     
-    // Get platinum badges
-    const platinumBadges = await db
-      .select()
-      .from(platinumBadges)
-      .where(eq(platinumBadges.userId, userId))
-      .orderBy(desc(platinumBadges.achievedAt));
+    // Platinum badges from platinum progress (if achieved)
+    const userPlatinumBadges: any[] = [];
+    if (platinumProgress?.achievedAt) {
+      userPlatinumBadges.push({
+        id: platinumProgress.id,
+        badgeName: 'Platinum Standards',
+        achievedAt: platinumProgress.achievedAt,
+        userId: platinumProgress.userId,
+      });
+    }
 
     return {
       user,
@@ -760,7 +764,7 @@ export class DatabaseStorage implements IStorage {
       completedLessons,
       rituals: userRituals,
       todayCompletions,
-      platinumBadges,
+      platinumBadges: userPlatinumBadges,
     };
   }
 
