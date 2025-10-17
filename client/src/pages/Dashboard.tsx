@@ -1092,6 +1092,27 @@ export default function Dashboard() {
         { id: 'lp-11', title: '11. Training, Coaching & Changing People', url: 'https://coaching.miteshkhatri.com/products/lead-people/categories/4175217/posts/14020180', completed: false },
         { id: 'lp-12', title: '12. Appraisal Skills', url: 'https://coaching.miteshkhatri.com/products/lead-people/categories/4175217/posts/14020181', completed: false },
       ]
+    },
+    {
+      id: 'handwriting-frequency',
+      title: 'Handwriting Frequency Course',
+      url: 'https://coaching.miteshkhatri.com/products/handwriting-frequency-course',
+      tags: ['Handwriting', 'Analysis'],
+      source: 'Mitesh Khatri',
+      estimatedHours: 8,
+      status: 'not_started',
+      progressPercent: 0,
+      category: 'default',
+      lessons: [
+        { id: 'hw-1', title: 'Day 1 01 - Welcome Coming From Future', url: 'https://coaching.miteshkhatri.com/products/handwriting-frequency-course/categories/2155984531/posts/2180553157', completed: false },
+        { id: 'hw-2', title: 'Day1 02 - Strokes Zones', url: 'https://coaching.miteshkhatri.com/products/handwriting-frequency-course/categories/2155984531/posts/2180553162', completed: false },
+        { id: 'hw-3', title: 'Day1 03 - Areas of Improvement 01', url: 'https://coaching.miteshkhatri.com/products/handwriting-frequency-course/categories/2155984531/posts/2180553164', completed: false },
+        { id: 'hw-4', title: 'Day1 04 - Areas', url: 'https://coaching.miteshkhatri.com/products/handwriting-frequency-course/categories/2155984531/posts/2180553161', completed: false },
+        { id: 'hw-5', title: 'Day1 05 - Online Access', url: 'https://coaching.miteshkhatri.com/products/handwriting-frequency-course/categories/2155984531/posts/2180553160', completed: false },
+        { id: 'hw-6', title: 'Day1 06 - Macro Analysis', url: 'https://coaching.miteshkhatri.com/products/handwriting-frequency-course/categories/2155984531/posts/2180553159', completed: false },
+        { id: 'hw-7', title: 'Day1 07 - Size and Slant', url: 'https://coaching.miteshkhatri.com/products/handwriting-frequency-course/categories/2155984531/posts/2180553163', completed: false },
+        { id: 'hw-8', title: 'Day1 08 - Macro Analysis Explanation', url: 'https://coaching.miteshkhatri.com/products/handwriting-frequency-course/categories/2155984531/posts/2180553158', completed: false },
+      ]
     }
   ]);
 
