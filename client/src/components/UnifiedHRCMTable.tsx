@@ -1483,19 +1483,19 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <button
-                          className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded min-h-[30px]"
+                          className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
                           onClick={(e) => !viewingHistory && !isAdminView && startEdit(belief.category, 'problems', belief.problems, e.currentTarget)}
                           disabled={viewingHistory || isAdminView}
                           type="button"
                           aria-label="Edit problems"
                           data-testid={`text-problems-${belief.category.toLowerCase()}`}
                         >
-                          <span className="break-words whitespace-pre-wrap">
+                          <span className="line-clamp-2 break-words">
                             {belief.problems || <span className="text-muted-foreground italic">Click to add...</span>}
                           </span>
                         </button>
                       </TooltipTrigger>
-                      {belief.problems && belief.problems.length > 50 && (
+                      {belief.problems && belief.problems.length > 30 && (
                         <TooltipContent side="top" align="start" className="max-w-md bg-popover border shadow-lg">
                           <p className="text-xs whitespace-pre-wrap break-words leading-relaxed">{belief.problems}</p>
                         </TooltipContent>
@@ -1524,19 +1524,19 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <button
-                          className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded min-h-[30px]"
+                          className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
                           onClick={(e) => !viewingHistory && !isAdminView && startEdit(belief.category, 'currentFeelings', belief.currentFeelings, e.currentTarget)}
                           disabled={viewingHistory || isAdminView}
                           type="button"
                           aria-label="Edit feelings"
                           data-testid={`text-feelings-${belief.category.toLowerCase()}`}
                         >
-                          <span className="break-words whitespace-pre-wrap">
+                          <span className="line-clamp-2 break-words">
                             {belief.currentFeelings || <span className="text-muted-foreground italic">Click to add...</span>}
                           </span>
                         </button>
                       </TooltipTrigger>
-                      {belief.currentFeelings && belief.currentFeelings.length > 50 && (
+                      {belief.currentFeelings && belief.currentFeelings.length > 30 && (
                         <TooltipContent side="top" align="start" className="max-w-md bg-popover border shadow-lg">
                           <p className="text-xs whitespace-pre-wrap break-words leading-relaxed">{belief.currentFeelings}</p>
                         </TooltipContent>
@@ -1565,19 +1565,19 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <button
-                          className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded min-h-[30px]"
+                          className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
                           onClick={(e) => !viewingHistory && !isAdminView && startEdit(belief.category, 'currentBelief', belief.currentBelief, e.currentTarget)}
                           disabled={viewingHistory || isAdminView}
                           type="button"
                           aria-label="Edit beliefs"
                           data-testid={`text-beliefs-${belief.category.toLowerCase()}`}
                         >
-                          <span className="break-words whitespace-pre-wrap">
+                          <span className="line-clamp-2 break-words">
                             {belief.currentBelief || <span className="text-muted-foreground italic">Click to add...</span>}
                           </span>
                         </button>
                       </TooltipTrigger>
-                      {belief.currentBelief && belief.currentBelief.length > 50 && (
+                      {belief.currentBelief && belief.currentBelief.length > 30 && (
                         <TooltipContent side="top" align="start" className="max-w-md bg-popover border shadow-lg">
                           <p className="text-xs whitespace-pre-wrap break-words leading-relaxed">{belief.currentBelief}</p>
                         </TooltipContent>
@@ -1606,19 +1606,19 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <button
-                          className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded min-h-[30px]"
+                          className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
                           onClick={(e) => !viewingHistory && !isAdminView && startEdit(belief.category, 'currentActions', belief.currentActions, e.currentTarget)}
                           disabled={viewingHistory || isAdminView}
                           type="button"
                           aria-label="Edit actions"
                           data-testid={`text-actions-${belief.category.toLowerCase()}`}
                         >
-                          <span className="break-words whitespace-pre-wrap">
+                          <span className="line-clamp-2 break-words">
                             {belief.currentActions || <span className="text-muted-foreground italic">Click to add...</span>}
                           </span>
                         </button>
                       </TooltipTrigger>
-                      {belief.currentActions && belief.currentActions.length > 50 && (
+                      {belief.currentActions && belief.currentActions.length > 30 && (
                         <TooltipContent side="top" align="start" className="max-w-md bg-popover border shadow-lg">
                           <p className="text-xs whitespace-pre-wrap break-words leading-relaxed">{belief.currentActions}</p>
                         </TooltipContent>
