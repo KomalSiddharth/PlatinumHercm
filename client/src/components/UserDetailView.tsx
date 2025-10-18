@@ -188,51 +188,28 @@ export default function UserDetailView({ userId }: UserDetailViewProps) {
         </CardContent>
       </Card>
 
-      {/* Emotion Trends Graph */}
+      {/* Emotion Trends Graph - Simplified */}
       {emotionTrends.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Emotion Trends (1-10 Scale)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={emotionTrends}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="weekNumber" label={{ value: 'Week Number', position: 'insideBottom', offset: -5 }} />
-                <YAxis domain={[0, 10]} label={{ value: 'Emotion Score', angle: -90, position: 'insideLeft' }} />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="healthEmotion" stroke="#10b981" name="Health" strokeWidth={2} />
-                <Line type="monotone" dataKey="relationshipEmotion" stroke="#f59e0b" name="Relationship" strokeWidth={2} />
-                <Line type="monotone" dataKey="careerEmotion" stroke="#3b82f6" name="Career" strokeWidth={2} />
-                <Line type="monotone" dataKey="moneyEmotion" stroke="#8b5cf6" name="Money" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* HRCM Rating Trends Graph - Enhanced */}
-      {hrcmTrends.length > 0 ? (
-        <Card className="border-2 border-blue-200 dark:border-blue-800">
-          <CardHeader className="bg-gradient-to-r from-pink-100 to-blue-100 dark:from-pink-950 dark:to-blue-950">
-            <CardTitle className="text-lg font-bold">📊 HRCM Rating & Progress Trends</CardTitle>
+        <Card className="border-2 border-purple-200 dark:border-purple-800">
+          <CardHeader className="bg-gradient-to-r from-pink-100 to-purple-100 dark:from-pink-950 dark:to-purple-950">
+            <CardTitle className="text-lg font-bold">😊 Emotional Well-being Trends</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Track ratings across Health, Relationship, Career, and Money (out of 10)
+              How you feel across Health, Relationship, Career, and Money (1-10 scale)
             </p>
           </CardHeader>
           <CardContent className="pt-6">
-            <ResponsiveContainer width="100%" height={350}>
-              <LineChart data={hrcmTrends}>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={emotionTrends}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis 
                   dataKey="weekNumber" 
-                  label={{ value: 'Week Number', position: 'insideBottom', offset: -5 }} 
+                  label={{ value: 'Week', position: 'insideBottom', offset: -5 }} 
                   stroke="#6b7280"
                 />
                 <YAxis 
-                  domain={[0, 10]} 
-                  label={{ value: 'Rating (out of 10)', angle: -90, position: 'insideLeft' }} 
+                  domain={[1, 10]} 
+                  ticks={[1, 3, 5, 7, 10]}
+                  label={{ value: 'Feeling (1=😞 ... 10=😄)', angle: -90, position: 'insideLeft' }} 
                   stroke="#6b7280"
                 />
                 <Tooltip 
@@ -242,46 +219,132 @@ export default function UserDetailView({ userId }: UserDetailViewProps) {
                     borderRadius: '8px',
                     padding: '12px'
                   }}
+                  formatter={(value: any) => [`${value}/10`, '']}
                 />
-                <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                <Legend wrapperStyle={{ paddingTop: '16px' }} />
+                <Line 
+                  type="monotone" 
+                  dataKey="healthEmotion" 
+                  stroke="#10b981" 
+                  name="💚 Health" 
+                  strokeWidth={2}
+                  dot={{ fill: '#10b981', r: 4 }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="relationshipEmotion" 
+                  stroke="#ec4899" 
+                  name="❤️ Relationship" 
+                  strokeWidth={2}
+                  dot={{ fill: '#ec4899', r: 4 }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="careerEmotion" 
+                  stroke="#3b82f6" 
+                  name="💼 Career" 
+                  strokeWidth={2}
+                  dot={{ fill: '#3b82f6', r: 4 }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="moneyEmotion" 
+                  stroke="#8b5cf6" 
+                  name="💰 Money" 
+                  strokeWidth={2}
+                  dot={{ fill: '#8b5cf6', r: 4 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+            <div className="mt-4 p-4 bg-muted rounded-lg text-sm">
+              <p className="font-semibold mb-2">📖 How to read this chart:</p>
+              <ul className="space-y-1 text-muted-foreground">
+                <li>• <strong>Higher = Better:</strong> Lines going up means you're feeling better in that area</li>
+                <li>• <strong>Track patterns:</strong> See which areas consistently feel good or need attention</li>
+                <li>• <strong>Goal:</strong> Aim for all lines to stay above 7 (feeling great!)</li>
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* HRCM Rating Trends Graph - Simplified */}
+      {hrcmTrends.length > 0 ? (
+        <Card className="border-2 border-blue-200 dark:border-blue-800">
+          <CardHeader className="bg-gradient-to-r from-pink-100 to-blue-100 dark:from-pink-950 dark:to-blue-950">
+            <CardTitle className="text-lg font-bold">📊 HRCM Progress Over Time</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Track your performance: Health, Relationship, Career, Money (0-10 scale)
+            </p>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={hrcmTrends}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis 
+                  dataKey="weekNumber" 
+                  label={{ value: 'Week', position: 'insideBottom', offset: -5 }} 
+                  stroke="#6b7280"
+                />
+                <YAxis 
+                  domain={[0, 10]} 
+                  ticks={[0, 2, 4, 6, 8, 10]}
+                  label={{ value: 'Rating (0-10)', angle: -90, position: 'insideLeft' }} 
+                  stroke="#6b7280"
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#fff', 
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '8px',
+                    padding: '12px'
+                  }}
+                  formatter={(value: any) => [`${value}/10`, '']}
+                />
+                <Legend wrapperStyle={{ paddingTop: '16px' }} />
                 <Line 
                   type="monotone" 
                   dataKey="health" 
                   stroke="#10b981" 
                   name="💚 Health" 
-                  strokeWidth={3}
-                  dot={{ fill: '#10b981', r: 5 }}
-                  activeDot={{ r: 7 }}
+                  strokeWidth={2}
+                  dot={{ fill: '#10b981', r: 4 }}
                 />
                 <Line 
                   type="monotone" 
                   dataKey="relationship" 
                   stroke="#ec4899" 
                   name="❤️ Relationship" 
-                  strokeWidth={3}
-                  dot={{ fill: '#ec4899', r: 5 }}
-                  activeDot={{ r: 7 }}
+                  strokeWidth={2}
+                  dot={{ fill: '#ec4899', r: 4 }}
                 />
                 <Line 
                   type="monotone" 
                   dataKey="career" 
                   stroke="#3b82f6" 
                   name="💼 Career" 
-                  strokeWidth={3}
-                  dot={{ fill: '#3b82f6', r: 5 }}
-                  activeDot={{ r: 7 }}
+                  strokeWidth={2}
+                  dot={{ fill: '#3b82f6', r: 4 }}
                 />
                 <Line 
                   type="monotone" 
                   dataKey="money" 
                   stroke="#8b5cf6" 
                   name="💰 Money" 
-                  strokeWidth={3}
-                  dot={{ fill: '#8b5cf6', r: 5 }}
-                  activeDot={{ r: 7 }}
+                  strokeWidth={2}
+                  dot={{ fill: '#8b5cf6', r: 4 }}
                 />
               </LineChart>
             </ResponsiveContainer>
+            <div className="mt-4 p-4 bg-muted rounded-lg text-sm">
+              <p className="font-semibold mb-2">📖 Understanding your ratings:</p>
+              <ul className="space-y-1 text-muted-foreground">
+                <li>• <strong>0-3:</strong> Need immediate attention</li>
+                <li>• <strong>4-6:</strong> Room for improvement</li>
+                <li>• <strong>7-8:</strong> Good progress! (Max achievable currently)</li>
+                <li>• <strong>Platinum Goal:</strong> Maintain 8+ across all 4 areas for 4 weeks</li>
+              </ul>
+            </div>
           </CardContent>
         </Card>
       ) : (
@@ -313,10 +376,11 @@ export default function UserDetailView({ userId }: UserDetailViewProps) {
         </Card>
       )}
 
-      {/* Compact Weekly Data */}
+      {/* Compact Weekly Data - Only Week 1 and Most Recent */}
       <Card>
         <CardHeader>
-          <CardTitle>All Weeks Data (Compact Format)</CardTitle>
+          <CardTitle>Key Weeks Summary</CardTitle>
+          <p className="text-sm text-muted-foreground">Comparing your first week with your most recent week</p>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -325,35 +389,79 @@ export default function UserDetailView({ userId }: UserDetailViewProps) {
                 <TableRow>
                   <TableHead>Week</TableHead>
                   <TableHead>Date</TableHead>
-                  <TableHead className="text-center">H</TableHead>
-                  <TableHead className="text-center">R</TableHead>
-                  <TableHead className="text-center">C</TableHead>
-                  <TableHead className="text-center">M</TableHead>
+                  <TableHead className="text-center">💚 H</TableHead>
+                  <TableHead className="text-center">❤️ R</TableHead>
+                  <TableHead className="text-center">💼 C</TableHead>
+                  <TableHead className="text-center">💰 M</TableHead>
                   <TableHead className="text-center">Score</TableHead>
                   <TableHead className="text-center">Achievement</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {compactWeeklyData.map((week: any) => (
-                  <TableRow key={week.week} data-testid={`compact-week-${week.week}`}>
-                    <TableCell className="font-medium">Week {week.week}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {new Date(week.date).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="text-center">{week.h}</TableCell>
-                    <TableCell className="text-center">{week.r}</TableCell>
-                    <TableCell className="text-center">{week.c}</TableCell>
-                    <TableCell className="text-center">{week.m}</TableCell>
-                    <TableCell className="text-center font-semibold">{week.score}</TableCell>
-                    <TableCell className="text-center">
-                      <Badge variant={week.achievement >= 70 ? 'default' : week.achievement >= 50 ? 'secondary' : 'destructive'}>
-                        {week.achievement}%
-                      </Badge>
+                {compactWeeklyData.length > 0 && (
+                  <>
+                    {/* First Week */}
+                    {(() => {
+                      const firstWeek = compactWeeklyData[0];
+                      return (
+                        <TableRow key={firstWeek.week} data-testid={`compact-week-${firstWeek.week}`} className="bg-blue-50 dark:bg-blue-950/20">
+                          <TableCell className="font-bold">Week {firstWeek.week}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {new Date(firstWeek.date).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell className="text-center font-medium">{firstWeek.h}</TableCell>
+                          <TableCell className="text-center font-medium">{firstWeek.r}</TableCell>
+                          <TableCell className="text-center font-medium">{firstWeek.c}</TableCell>
+                          <TableCell className="text-center font-medium">{firstWeek.m}</TableCell>
+                          <TableCell className="text-center font-bold">{firstWeek.score.toFixed(1)}</TableCell>
+                          <TableCell className="text-center">
+                            <Badge variant={firstWeek.achievement >= 70 ? 'default' : firstWeek.achievement >= 50 ? 'secondary' : 'destructive'}>
+                              {firstWeek.achievement}%
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })()}
+                    
+                    {/* Most Recent Week (if different from first) */}
+                    {compactWeeklyData.length > 1 && (() => {
+                      const lastWeek = compactWeeklyData[compactWeeklyData.length - 1];
+                      return (
+                        <TableRow key={lastWeek.week} data-testid={`compact-week-${lastWeek.week}`} className="bg-green-50 dark:bg-green-950/20">
+                          <TableCell className="font-bold">Week {lastWeek.week} (Latest)</TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {new Date(lastWeek.date).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell className="text-center font-medium">{lastWeek.h}</TableCell>
+                          <TableCell className="text-center font-medium">{lastWeek.r}</TableCell>
+                          <TableCell className="text-center font-medium">{lastWeek.c}</TableCell>
+                          <TableCell className="text-center font-medium">{lastWeek.m}</TableCell>
+                          <TableCell className="text-center font-bold">{lastWeek.score.toFixed(1)}</TableCell>
+                          <TableCell className="text-center">
+                            <Badge variant={lastWeek.achievement >= 70 ? 'default' : lastWeek.achievement >= 50 ? 'secondary' : 'destructive'}>
+                              {lastWeek.achievement}%
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })()}
+                  </>
+                )}
+                {compactWeeklyData.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                      No tracking data available yet
                     </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
+          </div>
+          <div className="mt-4 p-4 bg-muted rounded-lg text-sm">
+            <p className="text-muted-foreground">
+              <strong>Progress Snapshot:</strong> Compare where you started (blue) vs. where you are now (green). 
+              Watch your scores improve over time! 🚀
+            </p>
           </div>
         </CardContent>
       </Card>
