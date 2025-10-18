@@ -411,11 +411,17 @@ export class DatabaseStorage implements IStorage {
     
     const totalAccess = allEmails.reduce((sum, email) => sum + email.accessCount, 0);
 
+    // Count failed login attempts from access logs
+    const failedAttemptsResult = await db
+      .select({ count: count() })
+      .from(accessLogs)
+      .where(eq(accessLogs.status, 'failed'));
+
     return {
       totalUsers: totalUsersResult[0]?.count || 0,
       activeUsers: activeUsersResult[0]?.count || 0,
       totalAccess,
-      failedAttempts: 0,
+      failedAttempts: failedAttemptsResult[0]?.count || 0,
     };
   }
 

@@ -53,6 +53,7 @@ export default function AdminPanel() {
   const [bulkEmails, setBulkEmails] = useState('');
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [editingEmail, setEditingEmail] = useState<ApprovedEmail | null>(null);
+  const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0, isUploading: false });
   
   // Team Management states
   const [showAddAdminDialog, setShowAddAdminDialog] = useState(false);
@@ -498,7 +499,53 @@ export default function AdminPanel() {
       return;
     }
 
-    bulkUploadMutation.mutate(emails);
+    // Check 30k limit
+    if (emails.length > 30000) {
+      toast({ 
+        title: "Too Many Emails", 
+        description: `You can upload maximum 30,000 emails at once. You have ${emails.length.toLocaleString()} emails.`, 
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    // Batch processing for large uploads
+    setUploadProgress({ current: 0, total: emails.length, isUploading: true });
+    
+    const BATCH_SIZE = 500; // Process 500 emails at a time
+    const batches = [];
+    for (let i = 0; i < emails.length; i += BATCH_SIZE) {
+      batches.push(emails.slice(i, i + BATCH_SIZE));
+    }
+
+    try {
+      let uploadedCount = 0;
+      
+      for (const batch of batches) {
+        await apiRequest('POST', '/api/admin/bulk-upload', { emails: batch });
+        uploadedCount += batch.length;
+        setUploadProgress({ current: uploadedCount, total: emails.length, isUploading: true });
+      }
+
+      // Success
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/approved-emails'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
+      toast({ 
+        title: "Bulk Upload Complete", 
+        description: `Successfully uploaded ${emails.length.toLocaleString()} emails` 
+      });
+      setShowBulkDialog(false);
+      setBulkEmails('');
+      setCsvFile(null);
+      setUploadProgress({ current: 0, total: 0, isUploading: false });
+    } catch (error: any) {
+      toast({ 
+        title: "Upload Failed", 
+        description: error.message || "Failed to upload emails", 
+        variant: "destructive" 
+      });
+      setUploadProgress({ current: 0, total: 0, isUploading: false });
+    }
   };
 
   const handleCsvFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -2073,9 +2120,32 @@ export default function AdminPanel() {
                 data-testid="textarea-bulk-emails"
               />
               <p className="text-xs text-muted-foreground">
-                💡 Tip: You can use both CSV upload and manual entry together. Duplicates will be removed automatically.
+                💡 Tip: You can use both CSV upload and manual entry together. Duplicates will be removed automatically. Maximum 30,000 emails per upload.
               </p>
             </div>
+
+            {/* Upload Progress Bar */}
+            {uploadProgress.isUploading && (
+              <div className="space-y-3 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20 rounded-lg border-2 border-emerald-500/30">
+                <div className="flex items-center justify-between text-sm font-medium">
+                  <span className="text-emerald-700 dark:text-emerald-400">
+                    📤 Uploading emails...
+                  </span>
+                  <span className="text-emerald-600 dark:text-emerald-500">
+                    {uploadProgress.current.toLocaleString()} / {uploadProgress.total.toLocaleString()}
+                  </span>
+                </div>
+                <div className="w-full h-3 bg-emerald-200/50 dark:bg-emerald-900/50 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-300 rounded-full"
+                    style={{ width: `${(uploadProgress.current / uploadProgress.total * 100).toFixed(1)}%` }}
+                  ></div>
+                </div>
+                <p className="text-xs text-emerald-600 dark:text-emerald-500 text-center font-medium">
+                  {((uploadProgress.current / uploadProgress.total) * 100).toFixed(1)}% Complete
+                </p>
+              </div>
+            )}
           </div>
           <div className="flex justify-end gap-2">
             <Button 
@@ -2084,19 +2154,21 @@ export default function AdminPanel() {
                 setShowBulkDialog(false);
                 setCsvFile(null);
                 setBulkEmails('');
+                setUploadProgress({ current: 0, total: 0, isUploading: false });
               }} 
+              disabled={uploadProgress.isUploading}
               data-testid="button-cancel-bulk"
             >
               Cancel
             </Button>
             <Button 
               onClick={handleBulkUpload} 
-              disabled={bulkUploadMutation.isPending}
+              disabled={uploadProgress.isUploading}
               className="bg-gradient-to-r from-primary to-accent hover:opacity-90"
               data-testid="button-confirm-bulk"
             >
               <Upload className="w-4 h-4 mr-2" />
-              {bulkUploadMutation.isPending ? 'Uploading...' : 'Upload Emails'}
+              {uploadProgress.isUploading ? 'Uploading...' : 'Upload Emails'}
             </Button>
           </div>
         </DialogContent>
