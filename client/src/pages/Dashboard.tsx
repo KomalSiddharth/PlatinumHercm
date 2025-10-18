@@ -345,7 +345,46 @@ export default function Dashboard() {
   // Track completed modules for each course
   const [completedModules, setCompletedModules] = useState<Record<string, string[]>>({});
 
-  const handleModuleToggle = (courseId: string, moduleId: string, completed: boolean) => {
+  // Load completed videos from database on mount
+  useEffect(() => {
+    const loadCompletedVideos = async () => {
+      const allCompletions: Record<string, string[]> = {};
+      
+      for (const course of courses) {
+        try {
+          const response = await fetch(`/api/course-video-completions/${course.id}`);
+          if (response.ok) {
+            const completions = await response.json();
+            // Extract module IDs from videoId (format: courseId-moduleId)
+            const moduleIds = completions.map((c: any) => c.videoId.replace(`${course.id}-`, ''));
+            allCompletions[course.id] = moduleIds;
+          }
+        } catch (error) {
+          console.error(`Failed to load completions for ${course.id}:`, error);
+        }
+      }
+      
+      setCompletedModules(allCompletions);
+    };
+    
+    if (courses.length > 0) {
+      loadCompletedVideos();
+    }
+  }, [courses.length]); // Only run when courses are first loaded
+
+  // Mutation to persist course video completions to database
+  const toggleVideoCompletionMutation = useMutation({
+    mutationFn: async ({ videoId, courseId }: { videoId: string; courseId: string }) => {
+      return await apiRequest(`/api/course-video-completions/toggle`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ videoId, courseId }),
+      });
+    },
+  });
+
+  const handleModuleToggle = async (courseId: string, moduleId: string, completed: boolean) => {
+    // Update local state immediately for responsive UI
     setCompletedModules(prev => {
       const current = prev[courseId] || [];
       const updated = completed 
@@ -358,11 +397,37 @@ export default function Dashboard() {
       };
     });
 
-    // Auto-save toast
-    toast({
-      title: completed ? 'Module Completed!' : 'Module Unmarked',
-      description: completed ? 'Progress updated successfully' : 'Progress reverted',
-    });
+    // Persist to database
+    const videoId = `${courseId}-${moduleId}`;
+    try {
+      await toggleVideoCompletionMutation.mutateAsync({ videoId, courseId });
+      
+      // Auto-save toast
+      toast({
+        title: completed ? 'Module Completed!' : 'Module Unmarked',
+        description: completed ? 'Progress saved successfully' : 'Progress reverted',
+      });
+    } catch (error) {
+      console.error('Failed to save progress:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save progress. Please try again.',
+        variant: 'destructive',
+      });
+      
+      // Revert local state on error
+      setCompletedModules(prev => {
+        const current = prev[courseId] || [];
+        const reverted = !completed 
+          ? [...current, moduleId]
+          : current.filter(id => id !== moduleId);
+        
+        return {
+          ...prev,
+          [courseId]: reverted
+        };
+      });
+    }
   };
 
   interface CourseLesson {

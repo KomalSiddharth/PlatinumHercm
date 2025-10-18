@@ -2667,18 +2667,25 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
-  // Leaderboard endpoint - Multi-user ritual points
+  // Leaderboard endpoint - Multi-user ritual points (Approved users only)
   app.get('/api/leaderboard', isAuthenticated, async (req: any, res) => {
     try {
       const currentUserId = req.user?.claims?.sub || req.session.userEmail;
       const todayDate = new Date().toISOString().split('T')[0];
       
-      // Get all users
-      const allUsers = await storage.getAllUsers();
+      // Get approved emails and filter for active users only
+      const approvedEmailsList = await storage.getAllApprovedEmails();
+      const approvedEmailSet = new Set(approvedEmailsList.filter(ae => ae.status === 'active').map(ae => ae.email));
       
-      // Calculate points for each user
+      // Get all users and filter by approved emails
+      const allUsers = await storage.getAllUsers();
+      const approvedUsers = allUsers.filter(u => 
+        (u.email && approvedEmailSet.has(u.email)) || approvedEmailSet.has(u.id)
+      );
+      
+      // Calculate points for each approved user only
       const leaderboardData = await Promise.all(
-        allUsers.map(async (user) => {
+        approvedUsers.map(async (user) => {
           const userRituals = await storage.getRitualsByUser(user.id);
           const todayCompletions = await storage.getRitualCompletionsByDate(user.id, todayDate);
           
