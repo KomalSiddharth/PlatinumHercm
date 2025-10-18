@@ -404,7 +404,7 @@ export default function UserDetailView({ userId }: UserDetailViewProps) {
                     {(() => {
                       const firstWeek = compactWeeklyData[0];
                       return (
-                        <TableRow key={firstWeek.week} data-testid={`compact-week-${firstWeek.week}`} className="bg-blue-50 dark:bg-blue-950/20">
+                        <TableRow key={`first-${firstWeek.week}`} data-testid={`compact-week-${firstWeek.week}`} className="bg-blue-50 dark:bg-blue-950/20">
                           <TableCell className="font-bold">Week {firstWeek.week}</TableCell>
                           <TableCell className="text-sm text-muted-foreground">
                             {new Date(firstWeek.date).toLocaleDateString()}
@@ -427,7 +427,7 @@ export default function UserDetailView({ userId }: UserDetailViewProps) {
                     {compactWeeklyData.length > 1 && (() => {
                       const lastWeek = compactWeeklyData[compactWeeklyData.length - 1];
                       return (
-                        <TableRow key={lastWeek.week} data-testid={`compact-week-${lastWeek.week}`} className="bg-green-50 dark:bg-green-950/20">
+                        <TableRow key={`latest-${lastWeek.week}`} data-testid={`compact-week-latest-${lastWeek.week}`} className="bg-green-50 dark:bg-green-950/20">
                           <TableCell className="font-bold">Week {lastWeek.week} (Latest)</TableCell>
                           <TableCell className="text-sm text-muted-foreground">
                             {new Date(lastWeek.date).toLocaleDateString()}

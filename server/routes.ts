@@ -1107,6 +1107,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       for (const user of users) {
         const weeks = await storage.getHercmWeeksByUser(user.id);
         
+        // Count unique weeks (not duplicate entries)
+        const uniqueWeekNumbers = new Set(weeks.map(w => w.weekNumber));
+        const totalWeeks = uniqueWeekNumbers.size;
+        
         // Show all approved users, even if they haven't started tracking yet
         const latestWeek = weeks.length > 0 ? weeks[weeks.length - 1] : null;
         const overallScore = latestWeek?.overallScore || 0;
@@ -1128,7 +1132,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: displayEmail,
           firstName: user.firstName,
           lastName: user.lastName,
-          totalWeeks: weeks.length,
+          totalWeeks, // Now using unique week count, not total records
           latestWeekNumber: latestWeek?.weekNumber || 0,
           overallScore,
           achievementRate,
