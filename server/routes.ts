@@ -3196,7 +3196,14 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
       const uniqueWeeks = Array.from(weekMap.values()).sort((a, b) => a.weekNumber - b.weekNumber);
 
       if (uniqueWeeks.length < 4) {
-        return res.json({ eligible: false, progress: 0, message: "Need at least 4 weeks of data" });
+        return res.json({ 
+          eligible: false, 
+          progress: 0, 
+          weeksCount: uniqueWeeks.length,
+          message: uniqueWeeks.length === 0 
+            ? "Complete your first week to start tracking progress" 
+            : `${uniqueWeeks.length}/4 weeks completed. Keep going!`
+        });
       }
 
       // Calculate average rating for each unique week (Health, Relationship, Career, Money)

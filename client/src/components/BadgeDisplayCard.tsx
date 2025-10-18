@@ -67,6 +67,10 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
 
   const progressPercentage = badgeData?.progress || 0;
   const isEligible = badgeData?.eligible || false;
+  // A user is "new" only if they have 0 weeks of data
+  // Users with 1+ weeks should see progress, even if they haven't met the 4-week requirement
+  const weeksCount = (badgeData as any)?.weeksCount ?? -1; // -1 means API didn't return this field (old response)
+  const isNewUser = weeksCount === 0;
 
   return (
     <Card className="border-2" style={{ backgroundColor: '#00008c', borderColor: '#0000cc' }}>
@@ -78,24 +82,47 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
         <CardDescription className="text-white/80">Track your platinum progress and badges</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Current Progress - Consecutive Weeks */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-white">Avg Rating (Last 4 Weeks)</span>
-            <span className="text-sm font-bold text-white">{progressPercentage.toFixed(1)}/10</span>
+        {/* Show empty state for new users */}
+        {isNewUser ? (
+          <div className="text-center py-8 space-y-3">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/10 mb-2">
+              <Trophy className="h-8 w-8 text-white/60" />
+            </div>
+            <h3 className="text-lg font-semibold text-white">Start Your Journey!</h3>
+            <p className="text-sm text-white/70 max-w-md mx-auto">
+              Complete your weekly HRCM ratings and daily rituals to earn points and unlock achievements.
+            </p>
+            <div className="grid grid-cols-2 gap-3 mt-4 text-left max-w-md mx-auto">
+              <div className="bg-white/10 p-3 rounded-lg">
+                <p className="text-xs font-medium text-white mb-1">🎯 Goal</p>
+                <p className="text-xs text-white/70">Maintain 8+ rating for 4 weeks</p>
+              </div>
+              <div className="bg-white/10 p-3 rounded-lg">
+                <p className="text-xs font-medium text-white mb-1">🏆 Reward</p>
+                <p className="text-xs text-white/70">Earn Platinum Badge</p>
+              </div>
+            </div>
           </div>
-          <div className="h-3 bg-white/20 rounded-full overflow-hidden border-2 border-white/30">
-            <div 
-              className="h-full transition-all duration-500 bg-white"
-              style={{ width: `${Math.min((progressPercentage / 10) * 100, 100)}%` }}
-            />
+        ) : (
+          /* Current Progress - Consecutive Weeks */
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-white">Avg Rating (Last 4 Weeks)</span>
+              <span className="text-sm font-bold text-white">{progressPercentage.toFixed(1)}/10</span>
+            </div>
+            <div className="h-3 bg-white/20 rounded-full overflow-hidden border-2 border-white/30">
+              <div 
+                className="h-full transition-all duration-500 bg-white"
+                style={{ width: `${Math.min((progressPercentage / 10) * 100, 100)}%` }}
+              />
+            </div>
+            <p className="text-xs text-white/70">
+              {isEligible 
+                ? '🎉 Eligible for Platinum Badge!' 
+                : (badgeData as any)?.message || `Need 8+ rating for 4 consecutive weeks`}
+            </p>
           </div>
-          <p className="text-xs text-white/70">
-            {isEligible 
-              ? '🎉 Eligible for Platinum Badge!' 
-              : (badgeData as any)?.message || `Need 8+ rating for 4 consecutive weeks`}
-          </p>
-        </div>
+        )}
 
         {/* Badges Display */}
         <div className="space-y-2 bg-white p-4 rounded-lg">
