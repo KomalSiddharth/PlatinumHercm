@@ -249,6 +249,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   const [beliefs, setBeliefs] = useState<HRCMBelief[]>([]);
   const [editingField, setEditingField] = useState<{ category: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState('');
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editDialogData, setEditDialogData] = useState<{ category: string; field: string; value: string; label: string; color: string } | null>(null);
   const [loadingAssignments, setLoadingAssignments] = useState<Set<string>>(new Set());
   const [showStandardsDialog, setShowStandardsDialog] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -1351,6 +1353,32 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     setEditValue(currentValue);
   };
 
+  // Open edit dialog for Current Week fields
+  const openEditDialog = (category: string, field: string, currentValue: string, label: string, color: string) => {
+    setEditDialogData({ category, field, value: currentValue, label, color });
+    setShowEditDialog(true);
+  };
+
+  // Save edit from dialog
+  const saveEditDialog = async () => {
+    if (!editDialogData) return;
+    
+    const { category, field, value } = editDialogData;
+    
+    const updatedBeliefs = beliefs.map(belief => {
+      if (belief.category === category) {
+        return { ...belief, [field]: value };
+      }
+      return belief;
+    });
+    
+    setBeliefs(updatedBeliefs);
+    saveWeekMutation.mutate({ weekNumber, year: new Date().getFullYear(), beliefs: updatedBeliefs });
+    
+    setShowEditDialog(false);
+    setEditDialogData(null);
+  };
+
   const saveEdit = async () => {
     if (!editingField) return;
     
@@ -1670,183 +1698,118 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
                 {/* Current Week - Problems */}
                 <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top">
-                  {isEditing(belief.category, 'problems') ? (
-                    <Textarea
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      onBlur={saveEdit}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Escape') {
-                          cancelEdit();
-                        }
-                      }}
-                      className="min-h-[60px] text-xs border-0"
-                      placeholder="Enter your current problems..."
-                      autoFocus
-                      data-testid={`textarea-problems-${belief.category.toLowerCase()}`}
-                    />
-                  ) : (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
-                          onClick={(e) => !viewingHistory && !isAdminView && startEdit(belief.category, 'problems', belief.problems, e.currentTarget)}
-                          disabled={viewingHistory || isAdminView}
-                          type="button"
-                          aria-label="Edit problems"
-                          data-testid={`text-problems-${belief.category.toLowerCase()}`}
-                        >
-                          <span className="line-clamp-2 break-words">
-                            {belief.problems || <span className="text-muted-foreground italic">Click to add...</span>}
-                          </span>
-                        </button>
-                      </TooltipTrigger>
-                      {belief.problems && belief.problems.length > 30 && (
-                        <TooltipContent side="top" align="start" className="max-w-md bg-gradient-to-br from-coral-red/10 via-white to-coral-red/5 dark:from-coral-red/20 dark:via-gray-900 dark:to-coral-red/10 border-2 border-coral-red/30 shadow-xl p-4 coral-glow">
-                          <div className="flex items-start gap-2 mb-2">
-                            <div className="w-1 h-full bg-coral-red rounded-full"></div>
-                            <p className="text-xs font-semibold text-coral-red">Results</p>
-                          </div>
-                          <p className="text-xs whitespace-pre-wrap break-words leading-relaxed text-foreground">{belief.problems}</p>
-                        </TooltipContent>
-                      )}
-                    </Tooltip>
-                  )}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
+                        onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'problems', belief.problems || '', 'Results', 'coral-red')}
+                        disabled={viewingHistory || isAdminView}
+                        type="button"
+                        aria-label="Edit problems"
+                        data-testid={`text-problems-${belief.category.toLowerCase()}`}
+                      >
+                        <span className="line-clamp-2 break-words">
+                          {belief.problems || <span className="text-muted-foreground italic">Click to add...</span>}
+                        </span>
+                      </button>
+                    </TooltipTrigger>
+                    {belief.problems && belief.problems.length > 30 && (
+                      <TooltipContent side="top" align="start" className="max-w-md bg-gradient-to-br from-coral-red/10 via-white to-coral-red/5 dark:from-coral-red/20 dark:via-gray-900 dark:to-coral-red/10 border-2 border-coral-red/30 shadow-xl p-4 coral-glow">
+                        <div className="flex items-start gap-2 mb-2">
+                          <div className="w-1 h-full bg-coral-red rounded-full"></div>
+                          <p className="text-xs font-semibold text-coral-red">Results</p>
+                        </div>
+                        <p className="text-xs whitespace-pre-wrap break-words leading-relaxed text-foreground">{belief.problems}</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
                 </TableCell>
 
                 {/* Current Week - Feelings */}
                 <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top">
-                  {isEditing(belief.category, 'currentFeelings') ? (
-                    <Textarea
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      onBlur={saveEdit}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Escape') {
-                          cancelEdit();
-                        }
-                      }}
-                      className="min-h-[60px] text-xs border-0"
-                      autoFocus
-                      data-testid={`textarea-feelings-${belief.category.toLowerCase()}`}
-                    />
-                  ) : (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
-                          onClick={(e) => !viewingHistory && !isAdminView && startEdit(belief.category, 'currentFeelings', belief.currentFeelings, e.currentTarget)}
-                          disabled={viewingHistory || isAdminView}
-                          type="button"
-                          aria-label="Edit feelings"
-                          data-testid={`text-feelings-${belief.category.toLowerCase()}`}
-                        >
-                          <span className="line-clamp-2 break-words">
-                            {belief.currentFeelings || <span className="text-muted-foreground italic">Click to add...</span>}
-                          </span>
-                        </button>
-                      </TooltipTrigger>
-                      {belief.currentFeelings && belief.currentFeelings.length > 30 && (
-                        <TooltipContent side="top" align="start" className="max-w-md bg-gradient-to-br from-emerald-green/10 via-white to-emerald-green/5 dark:from-emerald-green/20 dark:via-gray-900 dark:to-emerald-green/10 border-2 border-emerald-green/30 shadow-xl p-4 emerald-glow">
-                          <div className="flex items-start gap-2 mb-2">
-                            <div className="w-1 h-full bg-emerald-green rounded-full"></div>
-                            <p className="text-xs font-semibold text-emerald-green">Feelings</p>
-                          </div>
-                          <p className="text-xs whitespace-pre-wrap break-words leading-relaxed text-foreground">{belief.currentFeelings}</p>
-                        </TooltipContent>
-                      )}
-                    </Tooltip>
-                  )}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
+                        onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'currentFeelings', belief.currentFeelings || '', 'Feelings', 'emerald-green')}
+                        disabled={viewingHistory || isAdminView}
+                        type="button"
+                        aria-label="Edit feelings"
+                        data-testid={`text-feelings-${belief.category.toLowerCase()}`}
+                      >
+                        <span className="line-clamp-2 break-words">
+                          {belief.currentFeelings || <span className="text-muted-foreground italic">Click to add...</span>}
+                        </span>
+                      </button>
+                    </TooltipTrigger>
+                    {belief.currentFeelings && belief.currentFeelings.length > 30 && (
+                      <TooltipContent side="top" align="start" className="max-w-md bg-gradient-to-br from-emerald-green/10 via-white to-emerald-green/5 dark:from-emerald-green/20 dark:via-gray-900 dark:to-emerald-green/10 border-2 border-emerald-green/30 shadow-xl p-4 emerald-glow">
+                        <div className="flex items-start gap-2 mb-2">
+                          <div className="w-1 h-full bg-emerald-green rounded-full"></div>
+                          <p className="text-xs font-semibold text-emerald-green">Feelings</p>
+                        </div>
+                        <p className="text-xs whitespace-pre-wrap break-words leading-relaxed text-foreground">{belief.currentFeelings}</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
                 </TableCell>
 
                 {/* Current Week - Beliefs */}
                 <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top">
-                  {isEditing(belief.category, 'currentBelief') ? (
-                    <Textarea
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      onBlur={saveEdit}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Escape') {
-                          cancelEdit();
-                        }
-                      }}
-                      className="min-h-[60px] text-xs border-0"
-                      autoFocus
-                      data-testid={`textarea-beliefs-${belief.category.toLowerCase()}`}
-                    />
-                  ) : (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
-                          onClick={(e) => !viewingHistory && !isAdminView && startEdit(belief.category, 'currentBelief', belief.currentBelief, e.currentTarget)}
-                          disabled={viewingHistory || isAdminView}
-                          type="button"
-                          aria-label="Edit beliefs"
-                          data-testid={`text-beliefs-${belief.category.toLowerCase()}`}
-                        >
-                          <span className="line-clamp-2 break-words">
-                            {belief.currentBelief || <span className="text-muted-foreground italic">Click to add...</span>}
-                          </span>
-                        </button>
-                      </TooltipTrigger>
-                      {belief.currentBelief && belief.currentBelief.length > 30 && (
-                        <TooltipContent side="top" align="start" className="max-w-md bg-gradient-to-br from-golden-yellow/10 via-white to-golden-yellow/5 dark:from-golden-yellow/20 dark:via-gray-900 dark:to-golden-yellow/10 border-2 border-golden-yellow/30 shadow-xl p-4 golden-glow">
-                          <div className="flex items-start gap-2 mb-2">
-                            <div className="w-1 h-full bg-golden-yellow rounded-full"></div>
-                            <p className="text-xs font-semibold text-golden-yellow">Beliefs/Reasons</p>
-                          </div>
-                          <p className="text-xs whitespace-pre-wrap break-words leading-relaxed text-foreground">{belief.currentBelief}</p>
-                        </TooltipContent>
-                      )}
-                    </Tooltip>
-                  )}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
+                        onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'currentBelief', belief.currentBelief || '', 'Beliefs/Reasons', 'golden-yellow')}
+                        disabled={viewingHistory || isAdminView}
+                        type="button"
+                        aria-label="Edit beliefs"
+                        data-testid={`text-beliefs-${belief.category.toLowerCase()}`}
+                      >
+                        <span className="line-clamp-2 break-words">
+                          {belief.currentBelief || <span className="text-muted-foreground italic">Click to add...</span>}
+                        </span>
+                      </button>
+                    </TooltipTrigger>
+                    {belief.currentBelief && belief.currentBelief.length > 30 && (
+                      <TooltipContent side="top" align="start" className="max-w-md bg-gradient-to-br from-golden-yellow/10 via-white to-golden-yellow/5 dark:from-golden-yellow/20 dark:via-gray-900 dark:to-golden-yellow/10 border-2 border-golden-yellow/30 shadow-xl p-4 golden-glow">
+                        <div className="flex items-start gap-2 mb-2">
+                          <div className="w-1 h-full bg-golden-yellow rounded-full"></div>
+                          <p className="text-xs font-semibold text-golden-yellow">Beliefs/Reasons</p>
+                        </div>
+                        <p className="text-xs whitespace-pre-wrap break-words leading-relaxed text-foreground">{belief.currentBelief}</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
                 </TableCell>
 
                 {/* Current Week - Actions */}
                 <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 border-r align-top">
-                  {isEditing(belief.category, 'currentActions') ? (
-                    <Textarea
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      onBlur={saveEdit}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Escape') {
-                          cancelEdit();
-                        }
-                      }}
-                      className="min-h-[60px] text-xs border-0"
-                      autoFocus
-                      data-testid={`textarea-actions-${belief.category.toLowerCase()}`}
-                    />
-                  ) : (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
-                          onClick={(e) => !viewingHistory && !isAdminView && startEdit(belief.category, 'currentActions', belief.currentActions, e.currentTarget)}
-                          disabled={viewingHistory || isAdminView}
-                          type="button"
-                          aria-label="Edit actions"
-                          data-testid={`text-actions-${belief.category.toLowerCase()}`}
-                        >
-                          <span className="line-clamp-2 break-words">
-                            {belief.currentActions || <span className="text-muted-foreground italic">Click to add...</span>}
-                          </span>
-                        </button>
-                      </TooltipTrigger>
-                      {belief.currentActions && belief.currentActions.length > 30 && (
-                        <TooltipContent side="top" align="start" className="max-w-md bg-gradient-to-br from-soft-lavender/20 via-white to-soft-lavender/10 dark:from-soft-lavender/30 dark:via-gray-900 dark:to-soft-lavender/15 border-2 border-soft-lavender/40 shadow-xl p-4 lavender-glow">
-                          <div className="flex items-start gap-2 mb-2">
-                            <div className="w-1 h-full bg-soft-lavender rounded-full"></div>
-                            <p className="text-xs font-semibold text-soft-lavender">Actions</p>
-                          </div>
-                          <p className="text-xs whitespace-pre-wrap break-words leading-relaxed text-foreground">{belief.currentActions}</p>
-                        </TooltipContent>
-                      )}
-                    </Tooltip>
-                  )}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
+                        onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'currentActions', belief.currentActions || '', 'Actions', 'soft-lavender')}
+                        disabled={viewingHistory || isAdminView}
+                        type="button"
+                        aria-label="Edit actions"
+                        data-testid={`text-actions-${belief.category.toLowerCase()}`}
+                      >
+                        <span className="line-clamp-2 break-words">
+                          {belief.currentActions || <span className="text-muted-foreground italic">Click to add...</span>}
+                        </span>
+                      </button>
+                    </TooltipTrigger>
+                    {belief.currentActions && belief.currentActions.length > 30 && (
+                      <TooltipContent side="top" align="start" className="max-w-md bg-gradient-to-br from-soft-lavender/20 via-white to-soft-lavender/10 dark:from-soft-lavender/30 dark:via-gray-900 dark:to-soft-lavender/15 border-2 border-soft-lavender/40 shadow-xl p-4 lavender-glow">
+                        <div className="flex items-start gap-2 mb-2">
+                          <div className="w-1 h-full bg-soft-lavender rounded-full"></div>
+                          <p className="text-xs font-semibold text-soft-lavender">Actions</p>
+                        </div>
+                        <p className="text-xs whitespace-pre-wrap break-words leading-relaxed text-foreground">{belief.currentActions}</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
                 </TableCell>
 
                 {/* Platinum Standards - Compact with Hover Popup */}
@@ -2451,6 +2414,54 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         onOpenChange={setHistoryOpen}
         currentWeek={weekNumber}
       />
+
+      {/* Edit Current Week Field Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <span className={`text-${editDialogData?.color || 'primary'}`}>
+                Edit {editDialogData?.label}
+              </span>
+              <Badge variant="outline" className="ml-auto">
+                {editDialogData?.category}
+              </Badge>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className={`p-4 rounded-lg bg-gradient-to-br from-${editDialogData?.color}/10 via-white to-${editDialogData?.color}/5 dark:from-${editDialogData?.color}/20 dark:via-gray-900 dark:to-${editDialogData?.color}/10 border-2 border-${editDialogData?.color}/30`}>
+              <Textarea
+                value={editDialogData?.value || ''}
+                onChange={(e) => setEditDialogData(prev => prev ? { ...prev, value: e.target.value } : null)}
+                className="min-h-[200px] text-sm resize-none border-0 bg-transparent focus-visible:ring-0"
+                placeholder={`Enter your ${editDialogData?.label.toLowerCase()}...`}
+                autoFocus
+                data-testid="textarea-edit-dialog"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowEditDialog(false);
+                setEditDialogData(null);
+              }}
+              data-testid="button-cancel-edit"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={saveEditDialog}
+              className="bg-gradient-to-r from-primary to-accent text-white"
+              data-testid="button-save-edit"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              Save
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
     </div>
   );
