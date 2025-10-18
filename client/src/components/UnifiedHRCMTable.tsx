@@ -1213,8 +1213,27 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         disabled={disabled}
                         className="h-3 w-3 mt-0.5 shrink-0" 
                       />
-                      <span className="break-words whitespace-pre-wrap leading-relaxed text-foreground flex-1">{item.text || '(empty)'}</span>
-                      {!disabled && (
+                      {editingId === item.id && !disabled ? (
+                        <Textarea
+                          value={item.text}
+                          onChange={(e) => onUpdateText(item.id, e.target.value)}
+                          onBlur={() => setEditingId(null)}
+                          placeholder="Type checkpoint..."
+                          className="min-h-[60px] text-xs flex-1 border bg-background/50 focus-visible:ring-1 p-2 resize-none"
+                          autoFocus
+                          data-testid={`textarea-tooltip-${checklistType}-${category.toLowerCase()}-${item.id}`}
+                        />
+                      ) : (
+                        <button
+                          onClick={() => !disabled && setEditingId(item.id)}
+                          disabled={disabled}
+                          className="flex-1 text-left break-words whitespace-pre-wrap leading-relaxed text-foreground hover:bg-muted/30 transition-colors px-1 py-0.5 rounded disabled:cursor-not-allowed"
+                          data-testid={`button-edit-tooltip-${checklistType}-${category.toLowerCase()}-${item.id}`}
+                        >
+                          {item.text || <span className="italic text-muted-foreground">(empty)</span>}
+                        </button>
+                      )}
+                      {!disabled && editingId !== item.id && (
                         <Button
                           size="sm"
                           variant="ghost"
