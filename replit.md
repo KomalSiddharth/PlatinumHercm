@@ -1,7 +1,7 @@
 # Platinum HRCM Dashboard
 
 ## Overview
-The Platinum HRCM Dashboard is a gamified web application designed to help users track and improve their Health, Relationship, Career, and Money (HRCM) life areas. It integrates goal tracking with personal growth principles, utilizing weekly HRCM scoring, daily ritual tracking, and course progress monitoring. The system aims to foster consistent engagement through a "Platinum Streak" for activity completion, real-time feedback, leaderboards, and a progression system. Key capabilities include AI-powered course recommendations based on Google Sheets data and automated suggestions for problems, feelings, and actions, with the business vision of empowering users with a structured and engaging approach to personal development.
+The Platinum HRCM Dashboard is a gamified web application for tracking and improving Health, Relationship, Career, and Money (HRCM) life areas. It combines goal tracking with personal growth, using weekly HRCM scoring, daily ritual tracking, and course progress monitoring. The system drives engagement through a "Platinum Streak" for consistent activity, real-time feedback, leaderboards, and a progression system. It features AI-powered course recommendations and automated suggestions for problems, feelings, and actions, aiming to provide a structured and engaging approach to personal development.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
@@ -9,58 +9,32 @@ Preferred communication style: Simple, everyday language.
 ## System Architecture
 
 ### UI/UX Decisions
-The dashboard employs a clean, responsive "New York" style design using shadcn/ui components and the Inter font, supporting both light and dark modes. The primary color is Teal, and the accent color is Coral. The design includes a reorganized dashboard, row-wise daily rituals, and an enhanced admin panel. The HRCM rating system is standards-based, scaled out of 10, calculated via predefined standards. Column widths are optimized to prevent horizontal scrolling. Achievements and Badges sections feature a bright, welcoming color palette with gradient text and optimized text colors for readability.
+The dashboard uses a clean, responsive "New York" style design with shadcn/ui components and the Inter font, supporting light/dark modes. The primary color is Teal, and the accent color is Coral. It features optimized column widths, reorganized dashboard elements, row-wise daily rituals, and an enhanced admin panel. The HRCM rating system is standards-based, scaled out of 10.
 
 ### Technical Implementations
-- **Frontend**: React with Vite, shadcn/ui (Radix UI primitives), Tailwind CSS, TanStack Query for state management, and Wouter for routing.
-- **Backend**: Express.js with TypeScript (ES Modules), PostgreSQL with Drizzle ORM (`@neondatabase/serverless`), and `connect-pg-simple` for session management. Authentication is session-based with `bcrypt` for password hashing and role-based access control.
-- **Data Storage**: Abstracted `IStorage` interface for Drizzle ORM, with Zod validation for `users` table schema. Drizzle Kit manages migrations.
+- **Frontend**: React with Vite, shadcn/ui, Tailwind CSS, TanStack Query, and Wouter for routing.
+- **Backend**: Express.js with TypeScript (ES Modules), PostgreSQL with Drizzle ORM (`@neondatabase/serverless`), and `connect-pg-simple` for session management. Authentication is session-based with `bcrypt` and role-based access control.
+- **Data Storage**: Drizzle ORM with an `IStorage` interface, Zod validation for schemas, and Drizzle Kit for migrations.
 
 ### Feature Specifications
-- **Auto-Save**: Changes automatically save on field blur.
-- **Automatic Week Progression**: The system automatically advances to the next week after 7 days, saving data and providing a new template, auto-prefilling with previous week's affirmations and checklist items.
-- **PDF Export**: Generates weekly and monthly HRCM reports.
-- **Email Notifications**: Optional weekly check-in reminders and Platinum badge notifications.
-- **Platinum Badge System**: Awards a "Platinum Standards" badge for maintaining an average rating of 8+ across all 4 HRCM categories for 4 consecutive weeks.
-- **Smart AI Insights**: ML-powered analysis of HRCM patterns, trends, predictions, and recommendations, including target suggestions.
-- **Strict Authentication**: Dashboard and Admin Panel are protected, requiring authentication with automatic redirects to the login page. Admin Panel is accessible only to admin users.
-- **Date-Based HRCM History**: Every HRCM table save creates a new timestamped snapshot, providing a complete edit history accessible via a calendar date picker in the History Modal.
-- **Rating Increment Constraint System**: Users start with a max rating of 7, progressing to 8 after maintaining 7 for 4 consecutive weeks, with a permanent hard cap at 8 per category. Current Week rating is user-editable with this logic enforced.
-- **Platinum Standards**: Each HRCM area has 4 predefined platinum standards (e.g., Health: Eat clean meals, Drink 8–10 glasses water, Move 30 mins daily, Sleep 7–8 hrs no late screens).
-- **Weekly Progress Analytics**: Redesigned analytics focus on weekly data across all weeks, including overall progress trends, HRCM area comparisons, and current week progress with graphical bars, accessible via a detailed dialog with multiple chart types.
-- **Team Activity Search**: A "Team Activity" tab allows users to search and view team members' HRCM progress.
-- **Simplified Daily Rituals**: Rituals are always active, cannot be edited, and automatically allocate 10 points.
-- **Course Tracker System**: Comprehensive course library with 19 courses, featuring collapsible module dropdowns with checkbox tracking, real-time progress bars, and color-coded categories. Modules display point values that contribute to the user's total score. Lesson completions are persisted to the database via `courseVideoCompletions` table and auto-loaded on page refresh. When lessons are checked, they are saved to both the completion tracking table and automatically added to the Assignment column. Overall course progress bar updates in real-time based on completed lessons across all courses.
-- **Assignment Column with AI & Course Tracker Integration**: Replaced text-based affirmations with a dynamic, unified Assignment column in the Next Week table. This column integrates AI-powered course recommendations (inverse rating logic) and allows direct import of lessons from the Course Tracker via checkboxes.
-- **Top 10 Leaderboard Display**: Displays the top 10 users based on daily ritual points; current user is shown at the end if outside the top 10.
-- **Next Week Target Checklist System**: Next Week Target columns (Results, Feelings, Beliefs/Reasons, Actions) automatically convert multi-line text entries to interactive, toggleable checkpoint items, stored as `jsonb` in the database.
-- **Restored HRCM Dashboard UI**: Includes header buttons for "Save Week" (now "History"), "AI Auto-Fill Next Week", and "Generate Next Week". The "AI Auto-Fill Next Week" button is relocated to the Next Week Target table heading for contextual placement.
-- **Auto-Checkpoint Conversion**: Next Week Target columns automatically convert multi-line text inputs to interactive checkpoints, splitting content by newlines and intelligently parsing large entries.
-- **AI-Powered Next Week Auto-Fill** (Oct 2025): AI Auto-Fill button analyzes Current Week data (Rating, Results, Feelings, Beliefs/Reasons, Actions) across all 4 HRCM areas and intelligently generates Next Week Target suggestions in checkbox format. Uses OpenAI GPT-5 to provide 2-4 specific, actionable items for each column based on current week performance. Suggestions automatically appear as interactive checkboxes in Results, Feelings, Beliefs, and Actions columns. Endpoint `/api/hercm/ai-autofill-next-week` processes all HRCM areas simultaneously and auto-saves generated checklists. AI analyzes current problems to suggest realistic improvements, transforms negative feelings into positive ones, converts limiting beliefs into empowering affirmations, and provides concrete action steps for the upcoming week.
-- **Compact View with Tooltips** (Oct 2025): Both Current Week and Next Week Target tables feature ultra-compact text display with intelligent tooltips. Text in Results, Feelings, Beliefs/Reasons, and Actions columns displays only 2 lines with proper word wrapping and ellipsis for overflow. Long text (50+ characters) automatically shows a professional tooltip on hover (positioned above, with shadow and border) displaying full content. This prevents table expansion and maintains clean design even with extensive text entries. Current Week columns use simple text with tooltip; Next Week columns use editable checkpoints with tooltip support for items longer than 50 characters.
-- **Manual Checkpoint Management** (Oct 2025): Next Week Target table includes "+ Add Checkpoint" buttons in Results, Feelings, Beliefs/Reasons, and Actions columns. Users can manually add checkpoints with inline editing, toggle completion status, and view compact lists showing first 2 items with "X more items..." tooltip for additional entries. All checkpoints are editable inline and auto-save on blur.
-- **Team Analytics with Period Filtering** (Oct 2025): Admin panel features comprehensive team analytics with period-based filtering (Weekly, Monthly, Yearly). Displays 4 HRCM average rating cards (Health, Relationship, Career, Money) with color-coded metrics, total users, active users in period, growth rate with trend indicators, and top 10 performers leaderboard with medal rankings. Period selector dynamically updates all metrics based on selected timeframe. Endpoint `/api/admin/team-analytics?period={weekly|monthly|yearly}` provides period-filtered analytics including team averages, growth metrics, and top performers sorted by average rating. Active users label updates contextually ("This week"/"This month"/"This year"). Visual enhancements include loading spinners, gradient medal badges for top 3 performers, and responsive grid layouts. **Data is filtered to only show approved users** (active status in approved_emails table).
-- **Admin Panel Enhancements** (Oct 16, 2025):
-  - **User Activity Tab Removed**: Streamlined admin panel by removing redundant User Activity tab per user request.
-  - **Approved Emails Data Filtering**: Both Team Analytics and User Analytics now exclusively display data from users with approved emails (status='active' in approved_emails table), ensuring accurate team metrics and analytics.
-  - **Course Recommendation Management**: Added delete functionality for course recommendations with trash icon button. Admin can now remove recommendations via DELETE endpoint `/api/admin/recommendations/:id`. The `deleteRecommendation` method added to storage interface.
-  - **Recommended Course Integration Fixed**: When admin recommends a course to a user, it appears in the user's Assignment column. Users can accept (adds to Assignment with course details and reason) or dismiss recommendations. Acceptance now works even for new users with no HRCM data by auto-creating first week. Accepted courses integrate seamlessly with the Next Week Target table's Assignment column using proper field names (healthAssignment, relationshipAssignment, careerAssignment, moneyAssignment).
-  - **User Analytics Full Functionality**: User Analytics tab now fully operational with email search, summary cards (Total Users, Avg Achievement, Top Performers, Need Support), and charts (Achievement Rate Comparison, Overall Score Distribution). Data filtered to approved users only.
-  - **Weeks Calculation Fixed**: Expected weeks now calculated based on actual time elapsed since first week instead of using week numbers, providing realistic regularity metrics.
-  - **All Weeks Data Optimization**: "All Weeks Data" table now shows only the last updated entry per date, grouped by date to prevent duplicate entries and show most recent data.
-  - **Score & Achievement Documentation**: Added clear documentation explaining calculations - Overall Score = average of (H+R+C+M)/4 ratings (out of 10), Achievement Rate = percentage of targets met for the week.
-- **Compact Platinum Standards with Hover Popup** (Oct 17, 2025): Platinum Standards column in both Current Week and Next Week tables now displays ultra-compact view showing only first 2 standards with "+ X more items..." overflow indicator. Full checklist appears in interactive hover popup (w-96, max-h-400px with scroll) on hover with 200ms delay. Popup shows complete list with category header, full-text standards, and functional checkboxes. Row heights significantly reduced while maintaining full functionality. Uses HoverCard component positioned left-aligned for optimal viewing.
-- **Team Analytics Leaderboard Enhancement** (Oct 17, 2025): Fixed critical user lookup bug where backend now matches users by BOTH user.id AND user.email to handle dual userId formats (some weeks stored with email as userId). Top Performers now displays firstName and lastName (if available) with email below, using truncate classes to prevent text cutoff. Response includes firstName, lastName fields. Filter applied to show only users with averageRating > 0. Supports real-time analytics for ALL approved users (scalable to 100+ users) with period-based filtering. Top 5 performers limit enforced on backend.
-- **Current Week Popup Dialog Editing** (Oct 18, 2025): Current Week table (Results, Feelings, Beliefs/Reasons, Actions columns) now uses popup dialog editing instead of inline textarea. Click any Current Week field to open a focused edit dialog with category-specific gradient background (coral-red, emerald-green, golden-yellow, soft-lavender), large 200px textarea for comfortable editing, and Save/Cancel buttons. Dialog auto-focuses on textarea, shows category badge in title, and eliminates need for scrolling. Changes save to database via existing `/api/hercm/save-with-comparison` endpoint. Provides consistent UX with Next Week's "Add Checkpoint" popup approach.
+- **Core Tracking**: Weekly HRCM scoring, daily ritual tracking, and comprehensive course progress monitoring.
+- **Goal Management**: "Platinum Streak" for consistent engagement, "Platinum Standards" badge for sustained high performance (8+ average across HRCM for 4 consecutive weeks), and a rating increment constraint system (max rating of 7, progressing to 8).
+- **Personalization & AI**: AI-powered course recommendations, AI-driven auto-fill for "Next Week Target" suggestions (problems, feelings, actions), and smart AI insights for HRCM patterns.
+- **Reporting & Analytics**: PDF export for weekly/monthly HRCM reports, detailed weekly progress analytics with graphical representations, and team analytics with period filtering and a top 10 leaderboard.
+- **Interactive Elements**: Auto-save on field blur, automatic week progression, "Next Week Target Checklist System" with auto-conversion of text to interactive checkpoints, and manual checkpoint management.
+- **User Interface**: Compact views with tooltips for efficient data display, and popup dialog editing for Current Week fields.
+- **Admin Functionality**: Enhanced admin panel with user analytics, course recommendation management (add/delete), and approved email filtering for all analytics.
+- **Notifications**: Optional email reminders and Platinum badge notifications.
+- **Authentication**: Strict authentication for dashboard and admin panel with role-based access.
 
 ## External Dependencies
 
 - **UI Component Libraries**: Radix UI, `cmdk`, `embla-carousel-react`, `class-variance-authority`, `clsx`, `lucide-react`, `recharts`.
-- **Date/Time Handling**: `date-fns` (default timezone: Asia/Kolkata).
+- **Date/Time Handling**: `date-fns`.
 - **Third-Party Services**:
-    - OpenAI (gpt-5 model) via Replit AI Integrations for course recommendations, auto-fill, smart insights, and ML-based target predictions.
+    - OpenAI (gpt-5 model) for AI-powered features.
     - Google Sheets for user-specific course data.
     - Email Service (Resend/SendGrid) for notifications.
 - **PDF Generation**: `pdfkit`.
-- **Scheduled Tasks**: `node-cron` for automated reminders and badge checks.
+- **Scheduled Tasks**: `node-cron`.
 - **Database Driver**: `@neondatabase/serverless` for PostgreSQL.

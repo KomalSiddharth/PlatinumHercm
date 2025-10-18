@@ -927,12 +927,27 @@ export class DatabaseStorage implements IStorage {
       const existing = userAverages.get(week.userId) || { total: 0, count: 0, email: '', firstName: '', lastName: '' };
       // Match by ID OR email (handles both userId formats)
       const user = approvedUsers.find(u => u.id === week.userId || u.email === week.userId);
+      
+      // Get firstName/lastName - fallback to approved_emails.name if user doesn't have them
+      let firstName = user?.firstName || '';
+      let lastName = user?.lastName || '';
+      
+      if (!firstName && !lastName && user) {
+        // Try to get name from approved_emails
+        const approvedEmail = approvedEmailsData.find(ae => ae.email === user.email || ae.email === user.id);
+        if (approvedEmail && approvedEmail.name) {
+          const nameParts = approvedEmail.name.trim().split(' ');
+          firstName = nameParts[0] || '';
+          lastName = nameParts.slice(1).join(' ') || '';
+        }
+      }
+      
       userAverages.set(week.userId, {
         total: existing.total + avg,
         count: existing.count + 1,
         email: user?.email || week.userId,
-        firstName: user?.firstName || '',
-        lastName: user?.lastName || '',
+        firstName,
+        lastName,
       });
     }
 

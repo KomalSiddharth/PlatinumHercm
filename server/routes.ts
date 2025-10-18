@@ -2705,10 +2705,27 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
             return sum + ritualPoints;
           }, 0);
           
+          // Get display name - prioritize firstName/lastName, then approved email name, then email
+          let displayName = '';
           const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+          
+          if (fullName) {
+            displayName = fullName;
+          } else {
+            // If no firstName/lastName, try to get name from approved_emails
+            const approvedEmail = approvedEmailsList.find(ae => 
+              ae.email === user.email || ae.email === user.id
+            );
+            if (approvedEmail && approvedEmail.name) {
+              displayName = approvedEmail.name;
+            } else {
+              displayName = user.email || 'Unknown User';
+            }
+          }
+          
           return {
             userId: user.id,
-            name: fullName || user.email || 'Unknown User',
+            name: displayName,
             email: user.email,
             points,
             isCurrentUser: user.id === currentUserId,

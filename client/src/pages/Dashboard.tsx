@@ -367,10 +367,9 @@ export default function Dashboard() {
       setCompletedModules(allCompletions);
     };
     
-    if (courses.length > 0) {
-      loadCompletedVideos();
-    }
-  }, [courses.length]); // Only run when courses are first loaded
+    loadCompletedVideos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run once on mount - courses array is static
 
   // Mutation to persist course video completions to database
   const toggleVideoCompletionMutation = useMutation({
