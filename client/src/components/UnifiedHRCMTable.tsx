@@ -842,6 +842,32 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     }
   };
 
+  // Remove lesson from unified assignment
+  const handleRemoveUnifiedAssignment = async (lessonId: string) => {
+    try {
+      const response = await apiRequest('POST', '/api/unified-assignment/remove-lesson', {
+        weekNumber,
+        lessonId
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setUnifiedAssignment(data.assignment || []);
+        toast({
+          title: 'Lesson Removed',
+          description: 'Lesson removed from Assignment column',
+        });
+      }
+    } catch (error) {
+      console.error('Error removing unified assignment lesson:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to remove lesson',
+        variant: 'destructive'
+      });
+    }
+  };
+
   // Toggle result checklist item
   const handleResultChecklistToggle = (category: string, itemId: string) => {
     setBeliefs(prev => {
@@ -2151,10 +2177,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                 Course Lessons ({userLessons.length})
                               </div>
                               {userLessons.map((lesson) => (
-                                <div key={lesson.id} className="flex items-center gap-2 py-0.5">
+                                <div key={lesson.id} className="flex items-center gap-2 py-0.5 group/assignment">
                                   <Checkbox
                                     checked={lesson.completed}
                                     onCheckedChange={() => handleUnifiedAssignmentToggle(lesson.id)}
+                                    disabled={viewingHistory || isAdminView}
                                     className="h-3 w-3"
                                     data-testid={`checkbox-user-lesson-${lesson.id}`}
                                   />
@@ -2167,6 +2194,17 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                   >
                                     {lesson.lessonName}
                                   </a>
+                                  {!viewingHistory && !isAdminView && (
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => handleRemoveUnifiedAssignment(lesson.id)}
+                                      className="h-4 w-4 p-0 opacity-0 group-hover/assignment:opacity-100 transition-opacity shrink-0"
+                                      data-testid={`button-delete-user-lesson-${lesson.id}`}
+                                    >
+                                      <Trash2 className="w-3 h-3 text-destructive" />
+                                    </Button>
+                                  )}
                                 </div>
                               ))}
                             </div>
@@ -2179,10 +2217,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                 Recommended Lessons ({adminLessons.length})
                               </div>
                               {adminLessons.map((lesson) => (
-                                <div key={lesson.id} className="flex items-center gap-2 py-0.5">
+                                <div key={lesson.id} className="flex items-center gap-2 py-0.5 group/assignment">
                                   <Checkbox
                                     checked={lesson.completed}
                                     onCheckedChange={() => handleUnifiedAssignmentToggle(lesson.id)}
+                                    disabled={viewingHistory || isAdminView}
                                     className="h-3 w-3"
                                     data-testid={`checkbox-admin-lesson-${lesson.id}`}
                                   />
@@ -2195,6 +2234,17 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                   >
                                     {lesson.lessonName}
                                   </a>
+                                  {!viewingHistory && !isAdminView && (
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => handleRemoveUnifiedAssignment(lesson.id)}
+                                      className="h-4 w-4 p-0 opacity-0 group-hover/assignment:opacity-100 transition-opacity shrink-0"
+                                      data-testid={`button-delete-admin-lesson-${lesson.id}`}
+                                    >
+                                      <Trash2 className="w-3 h-3 text-destructive" />
+                                    </Button>
+                                  )}
                                 </div>
                               ))}
                             </div>

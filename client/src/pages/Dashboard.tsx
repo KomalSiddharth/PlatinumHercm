@@ -1913,7 +1913,7 @@ export default function Dashboard() {
                                         
                                         console.log('[Lesson Toggle] Successfully saved to database');
                                         
-                                        // If checked, add to unified assignment
+                                        // If checked, add to unified assignment; if unchecked, remove from assignment
                                         if (checked) {
                                           const assignmentResponse = await apiRequest('POST', '/api/unified-assignment/add-lesson', {
                                             weekNumber: currentWeek,
@@ -1937,10 +1937,26 @@ export default function Dashboard() {
                                             });
                                           }
                                         } else {
-                                          toast({
-                                            title: 'Lesson Unchecked',
-                                            description: 'Marked as incomplete',
+                                          // Remove from assignment when unchecked
+                                          const removeResponse = await apiRequest('POST', '/api/unified-assignment/remove-lesson', {
+                                            weekNumber: currentWeek,
+                                            lessonId: `${course.id}-${lesson.id}`
                                           });
+                                          
+                                          if (removeResponse.ok) {
+                                            // Invalidate queries to refresh assignment data
+                                            queryClient.invalidateQueries({ queryKey: ['/api/hercm/week', currentWeek] });
+                                            
+                                            toast({
+                                              title: 'Lesson Unchecked',
+                                              description: `${lesson.title} removed from Assignment column`,
+                                            });
+                                          } else {
+                                            toast({
+                                              title: 'Lesson Unchecked',
+                                              description: 'Marked as incomplete',
+                                            });
+                                          }
                                         }
                                       } catch (error) {
                                         console.error('Error updating lesson:', error);
