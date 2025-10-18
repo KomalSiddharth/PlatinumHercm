@@ -1713,7 +1713,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         </span>
                       </button>
                     </TooltipTrigger>
-                    {belief.problems && belief.problems.length > 30 && (
+                    {belief.problems && belief.problems.length > 20 && (
                       <TooltipContent side="top" align="start" className="max-w-md bg-gradient-to-br from-coral-red/10 via-white to-coral-red/5 dark:from-coral-red/20 dark:via-gray-900 dark:to-coral-red/10 border-2 border-coral-red/30 shadow-xl p-4 coral-glow">
                         <div className="flex items-start gap-2 mb-2">
                           <div className="w-1 h-full bg-coral-red rounded-full"></div>
@@ -1742,7 +1742,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         </span>
                       </button>
                     </TooltipTrigger>
-                    {belief.currentFeelings && belief.currentFeelings.length > 30 && (
+                    {belief.currentFeelings && belief.currentFeelings.length > 20 && (
                       <TooltipContent side="top" align="start" className="max-w-md bg-gradient-to-br from-emerald-green/10 via-white to-emerald-green/5 dark:from-emerald-green/20 dark:via-gray-900 dark:to-emerald-green/10 border-2 border-emerald-green/30 shadow-xl p-4 emerald-glow">
                         <div className="flex items-start gap-2 mb-2">
                           <div className="w-1 h-full bg-emerald-green rounded-full"></div>
@@ -1771,7 +1771,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         </span>
                       </button>
                     </TooltipTrigger>
-                    {belief.currentBelief && belief.currentBelief.length > 30 && (
+                    {belief.currentBelief && belief.currentBelief.length > 20 && (
                       <TooltipContent side="top" align="start" className="max-w-md bg-gradient-to-br from-golden-yellow/10 via-white to-golden-yellow/5 dark:from-golden-yellow/20 dark:via-gray-900 dark:to-golden-yellow/10 border-2 border-golden-yellow/30 shadow-xl p-4 golden-glow">
                         <div className="flex items-start gap-2 mb-2">
                           <div className="w-1 h-full bg-golden-yellow rounded-full"></div>
@@ -1800,7 +1800,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         </span>
                       </button>
                     </TooltipTrigger>
-                    {belief.currentActions && belief.currentActions.length > 30 && (
+                    {belief.currentActions && belief.currentActions.length > 20 && (
                       <TooltipContent side="top" align="start" className="max-w-md bg-gradient-to-br from-soft-lavender/20 via-white to-soft-lavender/10 dark:from-soft-lavender/30 dark:via-gray-900 dark:to-soft-lavender/15 border-2 border-soft-lavender/40 shadow-xl p-4 lavender-glow">
                         <div className="flex items-start gap-2 mb-2">
                           <div className="w-1 h-full bg-soft-lavender rounded-full"></div>
