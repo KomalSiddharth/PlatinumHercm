@@ -915,13 +915,13 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   };
 
   // Add new checkpoint to a checklist
-  const handleAddCheckpoint = (category: string, checklistType: 'result' | 'feelings' | 'beliefs' | 'actions') => {
+  const handleAddCheckpoint = (category: string, checklistType: 'result' | 'feelings' | 'beliefs' | 'actions', text: string = '') => {
     setBeliefs(prev => {
       const updated = prev.map(belief => {
         if (belief.category === category) {
           const newItem: ChecklistItem = {
             id: `${category}-${checklistType}-${Date.now()}`,
-            text: '',
+            text: text,
             checked: false
           };
           
@@ -991,105 +991,219 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     items: ChecklistItem[]; 
     onToggle: (itemId: string) => void;
     onUpdateText: (itemId: string, text: string) => void;
-    onAddCheckpoint: () => void;
+    onAddCheckpoint: (text?: string) => void;
     category: string;
     checklistType: string;
     disabled?: boolean;
   }) => {
     const [editingId, setEditingId] = useState<string | null>(null);
+    const [showAddDialog, setShowAddDialog] = useState(false);
+    const [newCheckpointText, setNewCheckpointText] = useState('');
     const visibleItems = items.slice(0, 2);
     const hiddenCount = items.length - 2;
     
+    // Get color scheme based on checklistType
+    const getColorScheme = (type: string) => {
+      switch(type) {
+        case 'result':
+          return {
+            gradient: 'from-coral-red/10 via-white to-coral-red/5 dark:from-coral-red/20 dark:via-gray-900 dark:to-coral-red/10',
+            border: 'border-coral-red/30',
+            bar: 'bg-coral-red',
+            text: 'text-coral-red',
+            glow: 'coral-glow',
+            label: 'Results'
+          };
+        case 'feelings':
+          return {
+            gradient: 'from-emerald-green/10 via-white to-emerald-green/5 dark:from-emerald-green/20 dark:via-gray-900 dark:to-emerald-green/10',
+            border: 'border-emerald-green/30',
+            bar: 'bg-emerald-green',
+            text: 'text-emerald-green',
+            glow: 'emerald-glow',
+            label: 'Feelings'
+          };
+        case 'beliefs':
+          return {
+            gradient: 'from-golden-yellow/10 via-white to-golden-yellow/5 dark:from-golden-yellow/20 dark:via-gray-900 dark:to-golden-yellow/10',
+            border: 'border-golden-yellow/30',
+            bar: 'bg-golden-yellow',
+            text: 'text-golden-yellow',
+            glow: 'golden-glow',
+            label: 'Beliefs/Reasons'
+          };
+        case 'actions':
+          return {
+            gradient: 'from-soft-lavender/20 via-white to-soft-lavender/10 dark:from-soft-lavender/30 dark:via-gray-900 dark:to-soft-lavender/15',
+            border: 'border-soft-lavender/40',
+            bar: 'bg-soft-lavender',
+            text: 'text-soft-lavender',
+            glow: 'lavender-glow',
+            label: 'Actions'
+          };
+        default:
+          return {
+            gradient: 'from-primary/10 via-white to-accent/10 dark:from-primary/20 dark:via-gray-900 dark:to-accent/15',
+            border: 'border-primary/30',
+            bar: 'bg-gradient-to-b from-primary to-accent',
+            text: 'bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent',
+            glow: '',
+            label: 'Checkpoint'
+          };
+      }
+    };
+
+    const colorScheme = getColorScheme(checklistType);
+
+    const handleAddCheckpointClick = () => {
+      setNewCheckpointText('');
+      setShowAddDialog(true);
+    };
+
+    const handleSaveNewCheckpoint = () => {
+      if (newCheckpointText.trim()) {
+        onAddCheckpoint(newCheckpointText.trim());
+        setShowAddDialog(false);
+        setNewCheckpointText('');
+      }
+    };
+    
     return (
-      <div className="space-y-1.5">
-        {visibleItems.map((item) => (
-          <div key={item.id} className="flex items-start gap-2 group">
-            <Checkbox
-              checked={item.checked}
-              onCheckedChange={() => !disabled && onToggle(item.id)}
-              disabled={disabled}
-              className="h-3 w-3 mt-0.5 shrink-0"
-              data-testid={`checkbox-${checklistType}-${category.toLowerCase()}-${item.id}`}
-            />
-            {editingId === item.id && !disabled ? (
-              <Textarea
-                value={item.text}
-                onChange={(e) => onUpdateText(item.id, e.target.value)}
-                onBlur={() => setEditingId(null)}
-                placeholder="Type checkpoint..."
-                className="min-h-[60px] text-xs flex-1 border bg-background/50 focus-visible:ring-1 p-2 resize-none"
-                autoFocus
-                data-testid={`textarea-${checklistType}-${category.toLowerCase()}-${item.id}`}
+      <>
+        <div className="space-y-1.5">
+          {visibleItems.map((item) => (
+            <div key={item.id} className="flex items-start gap-2 group">
+              <Checkbox
+                checked={item.checked}
+                onCheckedChange={() => !disabled && onToggle(item.id)}
+                disabled={disabled}
+                className="h-3 w-3 mt-0.5 shrink-0"
+                data-testid={`checkbox-${checklistType}-${category.toLowerCase()}-${item.id}`}
               />
-            ) : (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={() => !disabled && setEditingId(item.id)}
-                    disabled={disabled}
-                    className="flex-1 text-left text-xs py-0.5 px-1 rounded hover:bg-muted/30 transition-colors min-h-[20px] break-words disabled:cursor-not-allowed"
-                    data-testid={`text-${checklistType}-${category.toLowerCase()}-${item.id}`}
-                  >
-                    <span className="line-clamp-2">
-                      {item.text || <span className="text-muted-foreground italic">Click to add text...</span>}
-                    </span>
-                  </button>
-                </TooltipTrigger>
-                {item.text && item.text.length > 50 && (
-                  <TooltipContent side="top" align="start" className="max-w-md bg-gradient-to-br from-primary/10 via-white to-accent/10 dark:from-primary/20 dark:via-gray-900 dark:to-accent/15 border-2 border-primary/30 shadow-xl p-4">
-                    <div className="flex items-start gap-2 mb-2">
-                      <div className="w-1 h-full bg-gradient-to-b from-primary to-accent rounded-full"></div>
-                      <p className="text-xs font-semibold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Checkpoint</p>
+              {editingId === item.id && !disabled ? (
+                <Textarea
+                  value={item.text}
+                  onChange={(e) => onUpdateText(item.id, e.target.value)}
+                  onBlur={() => setEditingId(null)}
+                  placeholder="Type checkpoint..."
+                  className="min-h-[60px] text-xs flex-1 border bg-background/50 focus-visible:ring-1 p-2 resize-none"
+                  autoFocus
+                  data-testid={`textarea-${checklistType}-${category.toLowerCase()}-${item.id}`}
+                />
+              ) : (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => !disabled && setEditingId(item.id)}
+                      disabled={disabled}
+                      className="flex-1 text-left text-xs py-0.5 px-1 rounded hover:bg-muted/30 transition-colors min-h-[20px] break-words disabled:cursor-not-allowed"
+                      data-testid={`text-${checklistType}-${category.toLowerCase()}-${item.id}`}
+                    >
+                      <span className="line-clamp-2">
+                        {item.text || <span className="text-muted-foreground italic">Click to add text...</span>}
+                      </span>
+                    </button>
+                  </TooltipTrigger>
+                  {item.text && item.text.length > 50 && (
+                    <TooltipContent side="top" align="start" className={`max-w-md bg-gradient-to-br ${colorScheme.gradient} border-2 ${colorScheme.border} shadow-xl p-4 ${colorScheme.glow}`}>
+                      <div className="flex items-start gap-2 mb-2">
+                        <div className={`w-1 h-full ${colorScheme.bar} rounded-full`}></div>
+                        <p className={`text-xs font-semibold ${colorScheme.text}`}>{colorScheme.label}</p>
+                      </div>
+                      <p className="text-xs whitespace-pre-wrap break-words leading-relaxed text-foreground">{item.text}</p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              )}
+            </div>
+          ))}
+          
+          {hiddenCount > 0 && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button 
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors w-full py-1 px-1"
+                  data-testid={`button-show-more-${checklistType}-${category.toLowerCase()}`}
+                >
+                  <MoreHorizontal className="w-3 h-3" />
+                  <span>{hiddenCount} more item{hiddenCount > 1 ? 's' : ''}...</span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top" align="start" className={`max-w-md bg-gradient-to-br ${colorScheme.gradient} border-2 ${colorScheme.border} shadow-xl p-4 ${colorScheme.glow}`}>
+                <div className="flex items-start gap-2 mb-3">
+                  <div className={`w-1 h-full ${colorScheme.bar} rounded-full`}></div>
+                  <p className={`text-xs font-semibold ${colorScheme.text}`}>All {colorScheme.label}</p>
+                </div>
+                <div className="space-y-2">
+                  {items.map((item) => (
+                    <div key={item.id} className="flex items-start gap-2 text-xs">
+                      <Checkbox checked={item.checked} disabled className="h-3 w-3 mt-0.5 shrink-0" />
+                      <span className="break-words whitespace-pre-wrap leading-relaxed text-foreground">{item.text || '(empty)'}</span>
                     </div>
-                    <p className="text-xs whitespace-pre-wrap break-words leading-relaxed text-foreground">{item.text}</p>
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            )}
-          </div>
-        ))}
-        
-        {hiddenCount > 0 && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button 
-                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors w-full py-1 px-1"
-                data-testid={`button-show-more-${checklistType}-${category.toLowerCase()}`}
-              >
-                <MoreHorizontal className="w-3 h-3" />
-                <span>{hiddenCount} more item{hiddenCount > 1 ? 's' : ''}...</span>
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="top" align="start" className="max-w-md bg-gradient-to-br from-primary/10 via-white to-accent/10 dark:from-primary/20 dark:via-gray-900 dark:to-accent/15 border-2 border-primary/30 shadow-xl p-4">
-              <div className="flex items-start gap-2 mb-3">
-                <div className="w-1 h-full bg-gradient-to-b from-primary to-accent rounded-full"></div>
-                <p className="text-xs font-semibold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">All Checkpoints</p>
+                  ))}
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          )}
+          
+          {!disabled && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={handleAddCheckpointClick}
+              className="h-7 w-full text-xs text-muted-foreground hover:text-foreground gap-1 mt-1"
+              data-testid={`button-add-checkpoint-${checklistType}-${category.toLowerCase()}`}
+            >
+              <Plus className="w-3 h-3" />
+              Add Checkpoint
+            </Button>
+          )}
+        </div>
+
+        {/* Add Checkpoint Dialog */}
+        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className={`text-base font-semibold ${colorScheme.text}`}>
+                Add New {colorScheme.label} Checkpoint
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className={`p-4 rounded-lg border-2 ${colorScheme.border} bg-gradient-to-br ${colorScheme.gradient} ${colorScheme.glow}`}>
+                <div className="flex items-start gap-2 mb-3">
+                  <div className={`w-1 h-full ${colorScheme.bar} rounded-full`}></div>
+                  <p className={`text-sm font-medium ${colorScheme.text}`}>{category} - {colorScheme.label}</p>
+                </div>
+                <Textarea
+                  value={newCheckpointText}
+                  onChange={(e) => setNewCheckpointText(e.target.value)}
+                  placeholder={`Enter your ${colorScheme.label.toLowerCase()} checkpoint...`}
+                  className="min-h-[100px] text-sm bg-white dark:bg-gray-950 border-muted"
+                  autoFocus
+                  data-testid={`textarea-new-checkpoint-${checklistType}-${category.toLowerCase()}`}
+                />
               </div>
-              <div className="space-y-2">
-                {items.map((item) => (
-                  <div key={item.id} className="flex items-start gap-2 text-xs">
-                    <Checkbox checked={item.checked} disabled className="h-3 w-3 mt-0.5 shrink-0" />
-                    <span className="break-words whitespace-pre-wrap leading-relaxed text-foreground">{item.text || '(empty)'}</span>
-                  </div>
-                ))}
+              <div className="flex gap-2 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowAddDialog(false)}
+                  data-testid={`button-cancel-checkpoint-${checklistType}-${category.toLowerCase()}`}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSaveNewCheckpoint}
+                  disabled={!newCheckpointText.trim()}
+                  className="bg-gradient-to-r from-primary to-accent text-white hover:opacity-90"
+                  data-testid={`button-save-checkpoint-${checklistType}-${category.toLowerCase()}`}
+                >
+                  Add Checkpoint
+                </Button>
               </div>
-            </TooltipContent>
-          </Tooltip>
-        )}
-        
-        {!disabled && (
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={onAddCheckpoint}
-            className="h-7 w-full text-xs text-muted-foreground hover:text-foreground gap-1 mt-1"
-            data-testid={`button-add-checkpoint-${checklistType}-${category.toLowerCase()}`}
-          >
-            <Plus className="w-3 h-3" />
-            Add Checkpoint
-          </Button>
-        )}
-      </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </>
     );
   };
 
@@ -1809,7 +1923,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       items={belief.resultChecklist}
                       onToggle={(itemId) => handleResultChecklistToggle(belief.category, itemId)}
                       onUpdateText={(itemId, text) => handleUpdateCheckpointText(belief.category, itemId, text, 'result')}
-                      onAddCheckpoint={() => handleAddCheckpoint(belief.category, 'result')}
+                      onAddCheckpoint={(text) => handleAddCheckpoint(belief.category, 'result', text)}
                       category={belief.category}
                       checklistType="result"
                       disabled={viewingHistory || isAdminView}
@@ -1852,7 +1966,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       items={belief.feelingsChecklist}
                       onToggle={(itemId) => handleFeelingsChecklistToggle(belief.category, itemId)}
                       onUpdateText={(itemId, text) => handleUpdateCheckpointText(belief.category, itemId, text, 'feelings')}
-                      onAddCheckpoint={() => handleAddCheckpoint(belief.category, 'feelings')}
+                      onAddCheckpoint={(text) => handleAddCheckpoint(belief.category, 'feelings', text)}
                       category={belief.category}
                       checklistType="feelings"
                       disabled={viewingHistory || isAdminView}
@@ -1895,7 +2009,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       items={belief.beliefsChecklist}
                       onToggle={(itemId) => handleBeliefsChecklistToggle(belief.category, itemId)}
                       onUpdateText={(itemId, text) => handleUpdateCheckpointText(belief.category, itemId, text, 'beliefs')}
-                      onAddCheckpoint={() => handleAddCheckpoint(belief.category, 'beliefs')}
+                      onAddCheckpoint={(text) => handleAddCheckpoint(belief.category, 'beliefs', text)}
                       category={belief.category}
                       checklistType="beliefs"
                       disabled={viewingHistory || isAdminView}
@@ -1938,7 +2052,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       items={belief.actionsChecklist}
                       onToggle={(itemId) => handleActionsChecklistToggle(belief.category, itemId)}
                       onUpdateText={(itemId, text) => handleUpdateCheckpointText(belief.category, itemId, text, 'actions')}
-                      onAddCheckpoint={() => handleAddCheckpoint(belief.category, 'actions')}
+                      onAddCheckpoint={(text) => handleAddCheckpoint(belief.category, 'actions', text)}
                       category={belief.category}
                       checklistType="actions"
                       disabled={viewingHistory || isAdminView}
