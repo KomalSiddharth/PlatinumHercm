@@ -1948,30 +1948,63 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         return res.status(400).json({ message: "Missing required fields: userEmail, hrcmArea, courseName" });
       }
 
-      // Get target user ID from email
+      // Check if email is approved first (more flexible - works for any approved user)
+      const approvedEmail = await storage.getApprovedEmail(userEmail);
+      console.log('[DEBUG] POST /api/admin/recommendations - approved email check:', approvedEmail);
+      
+      if (!approvedEmail || approvedEmail.status !== 'active') {
+        return res.status(400).json({ 
+          message: "User email not found in approved list. Please add the email to Approved Emails first." 
+        });
+      }
+
+      // Try to get existing user, or create a placeholder user for approved emails
       let user = await storage.getUserByEmail(userEmail);
       console.log('[DEBUG] POST /api/admin/recommendations - target user from email:', user);
       
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      // If the user found is an admin, check if there's a non-admin dashboard user with id=email
-      // This handles the case where someone has both an admin account and a regular dashboard account
-      if (user.isAdmin) {
-        const dashboardUser = await storage.getUser(userEmail);
-        console.log('[DEBUG] POST /api/admin/recommendations - checking for dashboard user:', dashboardUser);
-        
-        if (dashboardUser && !dashboardUser.isAdmin) {
-          console.log('[DEBUG] POST /api/admin/recommendations - using non-admin dashboard user instead');
-          user = dashboardUser;
+      let userId = userEmail;
+      
+      if (user) {
+        // If the user found is an admin, check if there's a non-admin dashboard user with id=email
+        if (user.isAdmin) {
+          const dashboardUser = await storage.getUser(userEmail);
+          console.log('[DEBUG] POST /api/admin/recommendations - checking for dashboard user:', dashboardUser);
+          
+          if (dashboardUser && !dashboardUser.isAdmin) {
+            console.log('[DEBUG] POST /api/admin/recommendations - using non-admin dashboard user');
+            userId = dashboardUser.id;
+          } else {
+            userId = userEmail;
+          }
+        } else {
+          userId = user.id;
+        }
+      } else {
+        // Auto-create a placeholder user for this approved email
+        // This allows recommendations to work even if the user hasn't logged in yet
+        console.log('[DEBUG] POST /api/admin/recommendations - Creating placeholder user for:', userEmail);
+        try {
+          const placeholderUser = await storage.upsertUser({
+            id: userEmail,
+            email: userEmail,
+            firstName: '',
+            lastName: '',
+            password: '', // No password - they'll use OIDC login
+            isAdmin: false,
+          });
+          userId = placeholderUser.id;
+          console.log('[DEBUG] POST /api/admin/recommendations - Placeholder user created successfully with ID:', userId);
+        } catch (error) {
+          console.error('[DEBUG] POST /api/admin/recommendations - Error creating placeholder user:', error);
+          // If creation fails, this is a critical error
+          return res.status(500).json({ message: "Failed to create user account for recommendation" });
         }
       }
 
-      console.log('[DEBUG] POST /api/admin/recommendations - Creating recommendation with userId:', user.id);
+      console.log('[DEBUG] POST /api/admin/recommendations - Creating recommendation with userId:', userId);
       
       const recommendation = await storage.addCourseRecommendation({
-        userId: user.id,
+        userId: userId,
         adminId: admin.id,
         hrcmArea,
         courseId: courseName.toLowerCase().replace(/\s+/g, '-'),
