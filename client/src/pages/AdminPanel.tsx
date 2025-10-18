@@ -984,218 +984,269 @@ export default function AdminPanel() {
             </>
           )}
 
-          {/* User Analytics Tab Content - Enhanced with Charts */}
+          {/* User Analytics Tab Content - Redesigned for Clarity */}
           {activeTab === 'analytics' && (
             <div className="p-6 space-y-6">
-              {/* Email Search */}
-              <Card>
+              {/* Info Banner */}
+              <div className="bg-gradient-to-r from-pink-500 to-blue-500 text-white p-6 rounded-lg">
+                <h2 className="text-2xl font-bold mb-2">📊 User Analytics Overview</h2>
+                <p className="text-sm opacity-90">
+                  Track individual user progress across all HRCM areas. Search for specific users or browse the complete list below.
+                </p>
+              </div>
+
+              {/* Search User Section */}
+              <Card className="border-2 border-blue-200 dark:border-blue-800">
                 <CardHeader>
-                  <CardTitle className="text-base">Search User by Email</CardTitle>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Search className="w-5 h-5" />
+                    Quick User Lookup
+                  </CardTitle>
+                  <CardDescription>
+                    Enter a user's email address to view their detailed analytics and progress report
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="flex gap-2">
                     <Input
                       type="email"
-                      placeholder="Enter user email to search..."
+                      placeholder="example@email.com"
                       value={emailSearchQuery}
                       onChange={(e) => setEmailSearchQuery(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleEmailSearch()}
                       data-testid="input-email-search"
-                      className="flex-1"
+                      className="flex-1 text-base"
                     />
                     <Button 
                       onClick={handleEmailSearch}
                       disabled={searchUserMutation.isPending}
                       data-testid="button-search-user"
+                      className="bg-gradient-to-r from-pink-500 to-blue-500 text-white"
                     >
                       <Search className="w-4 h-4 mr-2" />
-                      {searchUserMutation.isPending ? 'Searching...' : 'Search'}
+                      {searchUserMutation.isPending ? 'Searching...' : 'Search User'}
                     </Button>
                   </div>
                 </CardContent>
               </Card>
 
+              {/* Understanding Metrics Card */}
+              <Card className="bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <HelpCircle className="w-5 h-5 text-blue-600" />
+                    Understanding the Metrics
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                    <div className="space-y-1">
+                      <div className="font-semibold text-blue-700 dark:text-blue-300">📈 Overall Score</div>
+                      <div className="text-gray-700 dark:text-gray-300">
+                        Average rating (out of 10) across Health, Relationship, Career, and Money areas
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="font-semibold text-blue-700 dark:text-blue-300">🎯 Achievement Rate</div>
+                      <div className="text-gray-700 dark:text-gray-300">
+                        Percentage of targets completed for the week (70%+ = Excellent, 50-69% = Good, below 50% = Needs Support)
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="font-semibold text-blue-700 dark:text-blue-300">📊 Trend</div>
+                      <div className="text-gray-700 dark:text-gray-300">
+                        Change in score compared to previous week (↑ Improving, ↓ Declining, — Stable)
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="font-semibold text-blue-700 dark:text-blue-300">🗓️ Total Weeks</div>
+                      <div className="text-gray-700 dark:text-gray-300">
+                        Number of weeks the user has been actively tracking their HRCM progress
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="font-semibold text-blue-700 dark:text-blue-300">✅ Status</div>
+                      <div className="text-gray-700 dark:text-gray-300">
+                        <span className="text-green-600 font-medium">Excellent</span> (70%+) | 
+                        <span className="text-blue-600 font-medium"> Good</span> (50-69%) | 
+                        <span className="text-orange-600 font-medium"> Needs Support</span> (below 50%)
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="font-semibold text-blue-700 dark:text-blue-300">👁️ View Details</div>
+                      <div className="text-gray-700 dark:text-gray-300">
+                        Opens complete progress report with weekly data, HRCM breakdown, and course completions
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               {isLoadingAnalytics ? (
-                <div className="text-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                  <p className="mt-4 text-gray-500">Loading analytics...</p>
+                <div className="text-center py-16">
+                  <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto"></div>
+                  <p className="mt-4 text-gray-500 font-medium">Loading user analytics...</p>
                 </div>
               ) : userAnalytics.length === 0 ? (
-                <div className="text-center py-12">
-                  <BarChart3 className="w-16 h-16 mx-auto text-gray-400" />
-                  <p className="mt-4 text-gray-500">No user data available</p>
-                </div>
+                <Card className="text-center py-16">
+                  <BarChart3 className="w-20 h-20 mx-auto text-gray-400" />
+                  <h3 className="mt-4 text-xl font-semibold text-gray-600 dark:text-gray-400">No User Data Available</h3>
+                  <p className="mt-2 text-gray-500">Users will appear here once they start tracking their HRCM progress.</p>
+                </Card>
               ) : (
                 <>
-                  {/* Summary Cards */}
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <Card>
+                  {/* Quick Stats Summary */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <Card className="border-l-4 border-l-blue-500">
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Users</CardTitle>
+                        <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Users Tracking</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="text-3xl font-bold">{userAnalytics.length}</div>
+                        <div className="text-4xl font-bold text-blue-600">{userAnalytics.length}</div>
                         <p className="text-xs text-gray-500 mt-1">Active participants</p>
                       </CardContent>
                     </Card>
                     
-                    <Card>
+                    <Card className="border-l-4 border-l-purple-500">
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Avg Achievement</CardTitle>
+                        <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Average Achievement</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="text-3xl font-bold">
-                          {Math.round(userAnalytics.reduce((sum: number, u: any) => sum + u.achievementRate, 0) / userAnalytics.length)}%
+                        <div className="text-4xl font-bold text-purple-600">
+                          {userAnalytics.length > 0 
+                            ? Math.round(userAnalytics.reduce((sum: number, u: any) => sum + (u.achievementRate || 0), 0) / userAnalytics.length)
+                            : 0}%
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">Across all users</p>
+                        <p className="text-xs text-gray-500 mt-1">Team performance</p>
                       </CardContent>
                     </Card>
                     
-                    <Card>
+                    <Card className="border-l-4 border-l-green-500">
                       <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Top Performers</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="text-3xl font-bold text-green-600">
+                        <div className="text-4xl font-bold text-green-600">
                           {userAnalytics.filter((u: any) => u.status === 'excellent').length}
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">Excellent status</p>
+                        <p className="text-xs text-gray-500 mt-1">Excellent status (≥70%)</p>
                       </CardContent>
                     </Card>
                     
-                    <Card>
+                    <Card className="border-l-4 border-l-orange-500">
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Need Support</CardTitle>
+                        <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Need Attention</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="text-3xl font-bold text-orange-600">
+                        <div className="text-4xl font-bold text-orange-600">
                           {userAnalytics.filter((u: any) => u.status === 'needs_support').length}
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">Require attention</p>
+                        <p className="text-xs text-gray-500 mt-1">Below 50% achievement</p>
                       </CardContent>
                     </Card>
                   </div>
 
-                  {/* Charts */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Achievement Rate Comparison */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-base">Achievement Rate Comparison</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <ResponsiveContainer width="100%" height={300}>
-                          <BarChart data={userAnalytics.map((u: any) => ({
-                            name: u.firstName || u.email.split('@')[0],
-                            achievement: u.achievementRate
-                          }))}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
-                            <YAxis domain={[0, 100]} />
-                            <Tooltip />
-                            <Bar dataKey="achievement" fill="#3b82f6" />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </CardContent>
-                    </Card>
-
-                    {/* Overall Score Trend */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-base">Overall Score Distribution</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <ResponsiveContainer width="100%" height={300}>
-                          <BarChart data={userAnalytics.map((u: any) => ({
-                            name: u.firstName || u.email.split('@')[0],
-                            score: u.overallScore
-                          }))}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
-                            <YAxis domain={[0, 5]} />
-                            <Tooltip />
-                            <Bar dataKey="score" fill="#10b981" />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </CardContent>
-                    </Card>
-                  </div>
-
-                  {/* User Details Table with Actions */}
+                  {/* All Users Table */}
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-base">User Details & Actions</CardTitle>
+                      <CardTitle className="text-lg">All Users Performance Summary</CardTitle>
+                      <CardDescription>
+                        Complete list of all users with their current progress and status
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="overflow-x-auto">
                         <table className="w-full">
-                          <thead className="bg-gray-50 dark:bg-gray-900/50">
+                          <thead className="bg-gray-100 dark:bg-gray-800">
                             <tr>
-                              <th className="px-4 py-3 text-left text-sm font-semibold">USER</th>
-                              <th className="px-4 py-3 text-left text-sm font-semibold">WEEKS</th>
-                              <th className="px-4 py-3 text-left text-sm font-semibold">SCORE</th>
-                              <th className="px-4 py-3 text-left text-sm font-semibold">ACHIEVEMENT</th>
-                              <th className="px-4 py-3 text-left text-sm font-semibold">TREND</th>
-                              <th className="px-4 py-3 text-left text-sm font-semibold">STATUS</th>
-                              <th className="px-4 py-3 text-left text-sm font-semibold">ACTIONS</th>
+                              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-200">User</th>
+                              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-200">Weeks Tracked</th>
+                              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-200">Overall Score</th>
+                              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-200">Achievement</th>
+                              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-200">Weekly Trend</th>
+                              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-200">Status</th>
+                              <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 dark:text-gray-200">Actions</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                            {userAnalytics.map((user: any) => (
-                              <tr key={user.userId} className="hover:bg-gray-50 dark:hover:bg-gray-900/30">
-                                <td className="px-4 py-3">
-                                  <div>
-                                    <div className="text-sm font-medium">{user.firstName} {user.lastName}</div>
-                                    <div className="text-xs text-gray-500">{user.email}</div>
-                                  </div>
-                                </td>
-                                <td className="px-4 py-3 text-sm">{user.totalWeeks}</td>
-                                <td className="px-4 py-3">
-                                  <Badge variant="outline" className="font-bold">{user.overallScore}/5</Badge>
-                                </td>
-                                <td className="px-4 py-3">
-                                  <Badge variant={user.achievementRate >= 70 ? 'default' : user.achievementRate >= 50 ? 'secondary' : 'destructive'}>
-                                    {user.achievementRate}%
-                                  </Badge>
-                                </td>
-                                <td className="px-4 py-3">
-                                  {user.trend > 0 ? (
-                                    <div className="flex items-center gap-1 text-green-600">
-                                      <TrendingUp className="w-4 h-4" />
-                                      <span className="text-sm font-medium">+{user.trend}</span>
-                                    </div>
-                                  ) : user.trend < 0 ? (
-                                    <div className="flex items-center gap-1 text-red-600">
-                                      <TrendingDown className="w-4 h-4" />
-                                      <span className="text-sm font-medium">{user.trend}</span>
-                                    </div>
-                                  ) : (
-                                    <span className="text-gray-400">—</span>
-                                  )}
-                                </td>
-                                <td className="px-4 py-3">
-                                  <Badge className={
-                                    user.status === 'excellent' ? 'bg-green-600' :
-                                    user.status === 'good' ? 'bg-blue-600' :
-                                    'bg-orange-600'
-                                  }>
-                                    {user.status === 'excellent' ? 'Excellent' : 
-                                     user.status === 'good' ? 'Good' : 'Needs Support'}
-                                  </Badge>
-                                </td>
-                                <td className="px-4 py-3">
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm"
-                                    onClick={() => setSelectedUserForDetail(user.userId)}
-                                    data-testid={`button-view-user-${user.userId}`}
-                                  >
-                                    <Eye className="w-4 h-4 mr-1" />
-                                    View Details
-                                  </Button>
+                            {userAnalytics.length === 0 ? (
+                              <tr>
+                                <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                                  No users have started tracking yet
                                 </td>
                               </tr>
-                            ))}
+                            ) : (
+                              userAnalytics.map((user: any) => (
+                                <tr key={user.userId} className="hover:bg-gray-50 dark:hover:bg-gray-900/30 transition-colors">
+                                  <td className="px-4 py-4">
+                                    <div>
+                                      <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                                        {user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : 'Unknown User'}
+                                      </div>
+                                      <div className="text-xs text-gray-500 dark:text-gray-400">{user.email}</div>
+                                    </div>
+                                  </td>
+                                  <td className="px-4 py-4">
+                                    <div className="text-sm font-medium">{user.totalWeeks || 0} weeks</div>
+                                  </td>
+                                  <td className="px-4 py-4">
+                                    <Badge variant="outline" className="font-bold text-base">
+                                      {(user.overallScore || 0).toFixed(1)}/10
+                                    </Badge>
+                                  </td>
+                                  <td className="px-4 py-4">
+                                    <Badge 
+                                      variant={(user.achievementRate || 0) >= 70 ? 'default' : (user.achievementRate || 0) >= 50 ? 'secondary' : 'destructive'}
+                                      className="font-semibold"
+                                    >
+                                      {user.achievementRate || 0}%
+                                    </Badge>
+                                  </td>
+                                  <td className="px-4 py-4">
+                                    {(user.trend || 0) > 0 ? (
+                                      <div className="flex items-center gap-1 text-green-600 font-medium">
+                                        <TrendingUp className="w-4 h-4" />
+                                        <span>+{(user.trend || 0).toFixed(1)}</span>
+                                      </div>
+                                    ) : (user.trend || 0) < 0 ? (
+                                      <div className="flex items-center gap-1 text-red-600 font-medium">
+                                        <TrendingDown className="w-4 h-4" />
+                                        <span>{(user.trend || 0).toFixed(1)}</span>
+                                      </div>
+                                    ) : (
+                                      <span className="text-gray-400 font-medium">—</span>
+                                    )}
+                                  </td>
+                                  <td className="px-4 py-4">
+                                    <Badge 
+                                      className={
+                                        user.status === 'excellent' 
+                                          ? 'bg-green-600 hover:bg-green-700' 
+                                          : user.status === 'good' 
+                                          ? 'bg-blue-600 hover:bg-blue-700' 
+                                          : 'bg-orange-600 hover:bg-orange-700'
+                                      }
+                                    >
+                                      {user.status === 'excellent' ? '🌟 Excellent' : 
+                                       user.status === 'good' ? '✓ Good' : 
+                                       '⚠ Needs Support'}
+                                    </Badge>
+                                  </td>
+                                  <td className="px-4 py-4 text-center">
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm"
+                                      onClick={() => setSelectedUserForDetail(user.userId)}
+                                      data-testid={`button-view-user-${user.userId}`}
+                                      className="hover-elevate"
+                                    >
+                                      <Eye className="w-4 h-4 mr-1" />
+                                      View Full Report
+                                    </Button>
+                                  </td>
+                                </tr>
+                              ))
+                            )}
                           </tbody>
                         </table>
                       </div>

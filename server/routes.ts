@@ -964,8 +964,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Calculate expected weeks based on actual time since first week
       let expectedWeeks = 0;
       if (sortedWeeks.length > 0 && sortedWeeks[0].createdAt && sortedWeeks[sortedWeeks.length - 1].createdAt) {
-        const firstWeekDate = new Date(sortedWeeks[0].createdAt);
-        const lastWeekDate = new Date(sortedWeeks[sortedWeeks.length - 1].createdAt);
+        const firstWeekDate = new Date(sortedWeeks[0].createdAt as Date);
+        const lastWeekDate = new Date(sortedWeeks[sortedWeeks.length - 1].createdAt as Date);
         const daysDiff = Math.floor((lastWeekDate.getTime() - firstWeekDate.getTime()) / (1000 * 60 * 60 * 24));
         expectedWeeks = Math.floor(daysDiff / 7) + 1; // +1 to include the first week
       }
@@ -1069,7 +1069,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get all users and filter by approved emails
       const allUsers = await storage.getAllUsers();
-      const users = allUsers.filter(u => approvedEmailSet.has(u.email));
+      const users = allUsers.filter(u => u.email && approvedEmailSet.has(u.email));
       
       const analytics = [];
       
