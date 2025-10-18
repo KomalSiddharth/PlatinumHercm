@@ -958,8 +958,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         money: week.currentC || 0,
       }));
       
-      // Calculate regularity/irregularity
-      const totalWeeks = sortedWeeks.length;
+      // Calculate regularity/irregularity - count unique weeks only (not duplicate entries)
+      const uniqueWeekNumbers = new Set(sortedWeeks.map(w => w.weekNumber));
+      const totalWeeks = uniqueWeekNumbers.size;
       
       // Calculate expected weeks based on actual time since first week
       let expectedWeeks = 0;
@@ -990,12 +991,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Score Calculation: overallScore = average of (currentH + currentE + currentR + currentC) / 4
       // Achievement Rate: achievementRate = percentage of targets met for the week
       const latestWeek = sortedWeeks[sortedWeeks.length - 1] || null;
+      
+      // Count only earned badges (badges with earnedAt date)
+      const earnedBadges = platinumProgress?.badges?.filter((b: any) => b.earnedAt) || [];
+      
       const progressSummary = latestWeek ? {
         currentWeek: latestWeek.weekNumber,
         overallScore: latestWeek.overallScore || 0, // Average HRCM rating (out of 10)
         achievementRate: latestWeek.achievementRate || 0, // % of targets achieved
         currentStreak: platinumProgress?.currentStreak || 0,
-        totalBadges: platinumProgress?.badges?.length || 0,
+        totalBadges: earnedBadges.length, // Only count earned badges
       } : null;
       
       // Compact weekly data - group by date and show only last updated per date
@@ -1046,7 +1051,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           status: regularity >= 80 ? 'regular' : regularity >= 50 ? 'semi-regular' : 'irregular',
         },
         compactWeeklyData,
-        badges: platinumProgress?.badges || [],
+        badges: earnedBadges, // Only return earned badges (not Platinum Standards if not earned)
         rituals: rituals.map(r => ({
           id: r.id,
           title: r.title,
