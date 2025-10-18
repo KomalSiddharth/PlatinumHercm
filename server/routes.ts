@@ -1647,6 +1647,23 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
+  app.put('/api/admin/approved-emails/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { email, status } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+
+      await storage.updateApprovedEmail(id, { email, status });
+      res.json({ success: true, message: "Email updated successfully" });
+    } catch (error) {
+      console.error("Error updating approved email:", error);
+      res.status(500).json({ message: "Failed to update email" });
+    }
+  });
+
   app.delete('/api/admin/approved-emails/all', async (req, res) => {
     try {
       await storage.deleteAllApprovedEmails();

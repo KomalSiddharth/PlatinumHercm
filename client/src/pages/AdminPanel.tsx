@@ -51,6 +51,7 @@ export default function AdminPanel() {
   const [newEmail, setNewEmail] = useState('');
   const [newName, setNewName] = useState('');
   const [bulkEmails, setBulkEmails] = useState('');
+  const [editingEmail, setEditingEmail] = useState<ApprovedEmail | null>(null);
   
   // Team Management states
   const [showAddAdminDialog, setShowAddAdminDialog] = useState(false);
@@ -214,6 +215,25 @@ export default function AdminPanel() {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/approved-emails'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
       toast({ title: "Email Deleted", description: "Email has been removed" });
+    }
+  });
+
+  const updateEmailMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: { email: string; status: string } }) => {
+      return apiRequest('PUT', `/api/admin/approved-emails/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/approved-emails'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
+      setEditingEmail(null);
+      toast({ title: "Email Updated", description: "Email has been updated successfully" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Update Failed", 
+        description: error.message || "Failed to update email",
+        variant: "destructive" 
+      });
     }
   });
 
@@ -793,6 +813,7 @@ export default function AdminPanel() {
                           <Button 
                             variant="ghost" 
                             size="icon"
+                            onClick={() => setEditingEmail(email)}
                             data-testid={`button-edit-${email.id}`}
                           >
                             <Edit className="w-4 h-4 text-blue-600" />
@@ -1181,7 +1202,9 @@ export default function AdminPanel() {
                                   <td className="px-4 py-4">
                                     <div>
                                       <div className="text-sm font-semibold text-gray-900 dark:text-white">
-                                        {user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : 'Unknown User'}
+                                        {user.firstName || user.lastName 
+                                          ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
+                                          : user.email}
                                       </div>
                                       <div className="text-xs text-gray-500 dark:text-gray-400">{user.email}</div>
                                     </div>
@@ -1949,6 +1972,59 @@ export default function AdminPanel() {
               data-testid="button-confirm-edit-admin"
             >
               {updateAdminMutation.isPending ? 'Updating...' : 'Update Admin'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Email Dialog */}
+      <Dialog open={!!editingEmail} onOpenChange={() => setEditingEmail(null)}>
+        <DialogContent data-testid="dialog-edit-email">
+          <DialogHeader>
+            <DialogTitle>Edit Approved Email</DialogTitle>
+            <DialogDescription>Update email address and status</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Email Address</label>
+              <Input
+                type="email"
+                placeholder="user@example.com"
+                value={editingEmail?.email || ''}
+                onChange={(e) => setEditingEmail(editingEmail ? { ...editingEmail, email: e.target.value } : null)}
+                data-testid="input-edit-email-address"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Status</label>
+              <select
+                value={editingEmail?.status || 'active'}
+                onChange={(e) => setEditingEmail(editingEmail ? { ...editingEmail, status: e.target.value } : null)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                data-testid="select-edit-email-status"
+              >
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setEditingEmail(null)} data-testid="button-cancel-edit-email">
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                if (editingEmail) {
+                  updateEmailMutation.mutate({
+                    id: editingEmail.id,
+                    data: { email: editingEmail.email, status: editingEmail.status }
+                  });
+                }
+              }}
+              disabled={updateEmailMutation.isPending}
+              data-testid="button-confirm-edit-email"
+            >
+              {updateEmailMutation.isPending ? 'Updating...' : 'Update Email'}
             </Button>
           </div>
         </DialogContent>

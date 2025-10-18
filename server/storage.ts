@@ -73,6 +73,7 @@ export interface IStorage {
   addApprovedEmail(email: InsertApprovedEmail): Promise<ApprovedEmail>;
   bulkAddApprovedEmails(emails: string[]): Promise<ApprovedEmail[]>;
   deleteApprovedEmail(id: string): Promise<void>;
+  updateApprovedEmail(id: string, data: { email: string; status: string }): Promise<void>;
   deleteAllApprovedEmails(): Promise<void>;
   incrementAccessCount(email: string): Promise<void>;
   getAdminStats(): Promise<{
@@ -360,6 +361,17 @@ export class DatabaseStorage implements IStorage {
   async deleteApprovedEmail(id: string): Promise<void> {
     await db
       .delete(approvedEmails)
+      .where(eq(approvedEmails.id, id));
+  }
+
+  async updateApprovedEmail(id: string, data: { email: string; status: string }): Promise<void> {
+    await db
+      .update(approvedEmails)
+      .set({ 
+        email: data.email, 
+        status: data.status,
+        updatedAt: new Date()
+      })
       .where(eq(approvedEmails.id, id));
   }
 
