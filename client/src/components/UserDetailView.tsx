@@ -190,57 +190,57 @@ export default function UserDetailView({ userId }: UserDetailViewProps) {
 
       {/* Emotion Trends Graph - Stock Market Style */}
       {emotionTrends.length > 0 && (
-        <Card className="border-2 border-purple-200 dark:border-purple-800">
+        <Card className="border-2 border-purple-200 dark:border-purple-800 overflow-hidden">
           <CardHeader className="bg-gradient-to-r from-pink-100 to-purple-100 dark:from-pink-950 dark:to-purple-950">
             <CardTitle className="text-lg font-bold">💝 Emotional Market Tracker</CardTitle>
             <p className="text-sm text-muted-foreground">
               Track how you feel across all 4 life areas - Stock market style
             </p>
           </CardHeader>
-          <CardContent className="pt-6 bg-gradient-to-b from-purple-50 to-white dark:from-purple-950 dark:to-slate-950">
-            <ResponsiveContainer width="100%" height={400}>
-              <LineChart data={emotionTrends} margin={{ top: 10, right: 30, left: 10, bottom: 20 }}>
+          <CardContent className="pt-6 bg-black dark:bg-black">
+            <ResponsiveContainer width="100%" height={450}>
+              <LineChart data={emotionTrends} margin={{ top: 20, right: 40, left: 0, bottom: 20 }}>
                 <defs>
                   <linearGradient id="healthEmotionGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
                     <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                   </linearGradient>
                   <linearGradient id="relationshipEmotionGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#ec4899" stopOpacity={0.4}/>
+                    <stop offset="5%" stopColor="#ec4899" stopOpacity={0.3}/>
                     <stop offset="95%" stopColor="#ec4899" stopOpacity={0}/>
                   </linearGradient>
                   <linearGradient id="careerEmotionGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#fbbf24" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#fbbf24" stopOpacity={0}/>
                   </linearGradient>
                   <linearGradient id="moneyEmotionGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#a78bfa" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#a78bfa" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#d1d5db" opacity={0.5} />
+                <CartesianGrid strokeDasharray="1 1" stroke="#1f2937" opacity={0.3} vertical={false} />
                 <XAxis 
                   dataKey="weekNumber" 
-                  label={{ value: 'Week Number', position: 'insideBottom', offset: -10, style: { fontWeight: 'bold' } }} 
-                  stroke="#374151"
-                  tick={{ fill: '#6b7280' }}
+                  stroke="#4b5563"
+                  tick={{ fill: '#9ca3af', fontSize: 12 }}
+                  axisLine={{ stroke: '#374151' }}
                 />
                 <YAxis 
                   domain={[1, 10]} 
                   ticks={[1, 3, 5, 7, 10]}
-                  label={{ value: 'Emotional State', angle: -90, position: 'insideLeft', style: { fontWeight: 'bold' } }} 
-                  stroke="#374151"
-                  tick={{ fill: '#6b7280' }}
+                  stroke="#4b5563"
+                  tick={{ fill: '#9ca3af', fontSize: 12 }}
+                  axisLine={{ stroke: '#374151' }}
                 />
                 <Tooltip 
                   contentStyle={{ 
-                    backgroundColor: 'rgba(0, 0, 0, 0.9)', 
-                    border: 'none',
-                    borderRadius: '8px',
-                    padding: '16px',
+                    backgroundColor: '#18181b', 
+                    border: '1px solid #3f3f46',
+                    borderRadius: '6px',
+                    padding: '12px',
                     color: '#fff'
                   }}
-                  labelStyle={{ color: '#fff', fontWeight: 'bold', marginBottom: '8px' }}
+                  labelStyle={{ color: '#a1a1aa', fontSize: '12px', marginBottom: '6px' }}
                   formatter={(value: any, name: string) => {
                     const emotions = ['😞', '😐', '🙂', '😊', '😄'];
                     const emojiIndex = Math.min(Math.floor((value - 1) / 2.5), 4);
@@ -248,18 +248,18 @@ export default function UserDetailView({ userId }: UserDetailViewProps) {
                   }}
                 />
                 <Legend 
-                  wrapperStyle={{ paddingTop: '20px' }} 
+                  wrapperStyle={{ paddingTop: '16px' }} 
                   iconType="line"
-                  iconSize={20}
+                  iconSize={18}
                 />
                 <Line 
                   type="monotone" 
                   dataKey="healthEmotion" 
                   stroke="#10b981" 
                   name="💚 Health" 
-                  strokeWidth={3}
-                  dot={{ fill: '#10b981', r: 5, strokeWidth: 2, stroke: '#fff' }}
-                  activeDot={{ r: 7, strokeWidth: 3 }}
+                  strokeWidth={2.5}
+                  dot={false}
+                  activeDot={{ r: 6, fill: '#10b981', stroke: '#000', strokeWidth: 2 }}
                   fill="url(#healthEmotionGradient)"
                 />
                 <Line 
@@ -267,77 +267,55 @@ export default function UserDetailView({ userId }: UserDetailViewProps) {
                   dataKey="relationshipEmotion" 
                   stroke="#ec4899" 
                   name="❤️ Relationship" 
-                  strokeWidth={3}
-                  dot={{ fill: '#ec4899', r: 5, strokeWidth: 2, stroke: '#fff' }}
-                  activeDot={{ r: 7, strokeWidth: 3 }}
+                  strokeWidth={2.5}
+                  dot={false}
+                  activeDot={{ r: 6, fill: '#ec4899', stroke: '#000', strokeWidth: 2 }}
                   fill="url(#relationshipEmotionGradient)"
                 />
                 <Line 
                   type="monotone" 
                   dataKey="careerEmotion" 
-                  stroke="#f59e0b" 
+                  stroke="#fbbf24" 
                   name="🌟 Career" 
-                  strokeWidth={3}
-                  dot={{ fill: '#f59e0b', r: 5, strokeWidth: 2, stroke: '#fff' }}
-                  activeDot={{ r: 7, strokeWidth: 3 }}
+                  strokeWidth={2.5}
+                  dot={false}
+                  activeDot={{ r: 6, fill: '#fbbf24', stroke: '#000', strokeWidth: 2 }}
                   fill="url(#careerEmotionGradient)"
                 />
                 <Line 
                   type="monotone" 
                   dataKey="moneyEmotion" 
-                  stroke="#8b5cf6" 
+                  stroke="#a78bfa" 
                   name="💰 Money" 
-                  strokeWidth={3}
-                  dot={{ fill: '#8b5cf6', r: 5, strokeWidth: 2, stroke: '#fff' }}
-                  activeDot={{ r: 7, strokeWidth: 3 }}
+                  strokeWidth={2.5}
+                  dot={false}
+                  activeDot={{ r: 6, fill: '#a78bfa', stroke: '#000', strokeWidth: 2 }}
                   fill="url(#moneyEmotionGradient)"
                 />
               </LineChart>
             </ResponsiveContainer>
-            <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950 dark:to-pink-950 rounded-lg border-2 border-purple-200 dark:border-purple-800">
-              <p className="font-bold mb-3 text-base flex items-center gap-2">
-                <span>💝</span> How to Read Your Emotional Market
-              </p>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="flex items-start gap-2">
-                  <div className="w-4 h-4 rounded-full bg-green-500 mt-0.5"></div>
-                  <div>
-                    <p className="font-semibold text-green-700 dark:text-green-400">Health Feelings</p>
-                    <p className="text-xs text-muted-foreground">Body & mind emotions</p>
-                  </div>
+            <div className="mt-4 p-4 bg-zinc-900 rounded-lg border border-zinc-700">
+              <div className="grid grid-cols-4 gap-4 text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                  <span className="text-gray-300 font-medium">💚 Health</span>
                 </div>
-                <div className="flex items-start gap-2">
-                  <div className="w-4 h-4 rounded-full bg-pink-500 mt-0.5"></div>
-                  <div>
-                    <p className="font-semibold text-pink-700 dark:text-pink-400">Love Feelings</p>
-                    <p className="text-xs text-muted-foreground">Relationship emotions</p>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-pink-500"></div>
+                  <span className="text-gray-300 font-medium">❤️ Relationship</span>
                 </div>
-                <div className="flex items-start gap-2">
-                  <div className="w-4 h-4 rounded-full bg-amber-500 mt-0.5"></div>
-                  <div>
-                    <p className="font-semibold text-amber-700 dark:text-amber-400">Work Feelings</p>
-                    <p className="text-xs text-muted-foreground">Career satisfaction</p>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                  <span className="text-gray-300 font-medium">🌟 Career</span>
                 </div>
-                <div className="flex items-start gap-2">
-                  <div className="w-4 h-4 rounded-full bg-purple-500 mt-0.5"></div>
-                  <div>
-                    <p className="font-semibold text-purple-700 dark:text-purple-400">Money Feelings</p>
-                    <p className="text-xs text-muted-foreground">Financial emotions</p>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-purple-400"></div>
+                  <span className="text-gray-300 font-medium">💰 Money</span>
                 </div>
               </div>
-              <div className="mt-4 pt-4 border-t border-purple-300 dark:border-purple-700 space-y-2">
-                <p className="text-xs text-muted-foreground">
-                  <strong>📈 Rising Lines =</strong> Feeling better, more positive emotions
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  <strong>📉 Falling Lines =</strong> Feeling worse, need attention
-                </p>
-                <p className="text-xs text-muted-foreground font-semibold text-purple-700 dark:text-purple-400">
-                  Target: Keep all lines above 7 for consistent happiness! 😊
-                </p>
+              <div className="mt-3 pt-3 border-t border-zinc-700 flex items-center justify-between text-xs">
+                <span className="text-green-400">📈 Rising = Better feelings</span>
+                <span className="text-red-400">📉 Falling = Need attention</span>
               </div>
             </div>
           </CardContent>
@@ -346,57 +324,57 @@ export default function UserDetailView({ userId }: UserDetailViewProps) {
 
       {/* HRCM Rating Trends Graph - Stock Market Style */}
       {hrcmTrends.length > 0 ? (
-        <Card className="border-2 border-blue-200 dark:border-blue-800">
+        <Card className="border-2 border-blue-200 dark:border-blue-800 overflow-hidden">
           <CardHeader className="bg-gradient-to-r from-pink-100 to-blue-100 dark:from-pink-950 dark:to-blue-950">
             <CardTitle className="text-lg font-bold">📈 HRCM Growth & Loss Tracker</CardTitle>
             <p className="text-sm text-muted-foreground">
               Stock market style view: All 4 life areas tracked week by week
             </p>
           </CardHeader>
-          <CardContent className="pt-6 bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-950">
-            <ResponsiveContainer width="100%" height={400}>
-              <LineChart data={hrcmTrends} margin={{ top: 10, right: 30, left: 10, bottom: 20 }}>
+          <CardContent className="pt-6 bg-black dark:bg-black">
+            <ResponsiveContainer width="100%" height={450}>
+              <LineChart data={hrcmTrends} margin={{ top: 20, right: 40, left: 0, bottom: 20 }}>
                 <defs>
                   <linearGradient id="healthGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#22d3ee" stopOpacity={0}/>
                   </linearGradient>
                   <linearGradient id="relationshipGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#ec4899" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#ec4899" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#f472b6" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#f472b6" stopOpacity={0}/>
                   </linearGradient>
                   <linearGradient id="careerGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#fb923c" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#fb923c" stopOpacity={0}/>
                   </linearGradient>
                   <linearGradient id="moneyGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#a3e635" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#a3e635" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#d1d5db" opacity={0.5} />
+                <CartesianGrid strokeDasharray="1 1" stroke="#1f2937" opacity={0.3} vertical={false} />
                 <XAxis 
                   dataKey="weekNumber" 
-                  label={{ value: 'Week Number', position: 'insideBottom', offset: -10, style: { fontWeight: 'bold' } }} 
-                  stroke="#374151"
-                  tick={{ fill: '#6b7280' }}
+                  stroke="#4b5563"
+                  tick={{ fill: '#9ca3af', fontSize: 12 }}
+                  axisLine={{ stroke: '#374151' }}
                 />
                 <YAxis 
                   domain={[0, 10]} 
                   ticks={[0, 2, 4, 6, 8, 10]}
-                  label={{ value: 'Performance Rating', angle: -90, position: 'insideLeft', style: { fontWeight: 'bold' } }} 
-                  stroke="#374151"
-                  tick={{ fill: '#6b7280' }}
+                  stroke="#4b5563"
+                  tick={{ fill: '#9ca3af', fontSize: 12 }}
+                  axisLine={{ stroke: '#374151' }}
                 />
                 <Tooltip 
                   contentStyle={{ 
-                    backgroundColor: 'rgba(0, 0, 0, 0.9)', 
-                    border: 'none',
-                    borderRadius: '8px',
-                    padding: '16px',
+                    backgroundColor: '#18181b', 
+                    border: '1px solid #3f3f46',
+                    borderRadius: '6px',
+                    padding: '12px',
                     color: '#fff'
                   }}
-                  labelStyle={{ color: '#fff', fontWeight: 'bold', marginBottom: '8px' }}
+                  labelStyle={{ color: '#a1a1aa', fontSize: '12px', marginBottom: '6px' }}
                   formatter={(value: any, name: string) => {
                     const nameMap: any = {
                       '💚 Health': `${value}/10`,
@@ -408,91 +386,74 @@ export default function UserDetailView({ userId }: UserDetailViewProps) {
                   }}
                 />
                 <Legend 
-                  wrapperStyle={{ paddingTop: '20px' }} 
+                  wrapperStyle={{ paddingTop: '16px' }} 
                   iconType="line"
-                  iconSize={20}
+                  iconSize={18}
                 />
                 <Line 
                   type="monotone" 
                   dataKey="health" 
-                  stroke="#10b981" 
+                  stroke="#22d3ee" 
                   name="💚 Health" 
-                  strokeWidth={3}
-                  dot={{ fill: '#10b981', r: 5, strokeWidth: 2, stroke: '#fff' }}
-                  activeDot={{ r: 7, strokeWidth: 3 }}
+                  strokeWidth={2.5}
+                  dot={false}
+                  activeDot={{ r: 6, fill: '#22d3ee', stroke: '#000', strokeWidth: 2 }}
                   fill="url(#healthGradient)"
                 />
                 <Line 
                   type="monotone" 
                   dataKey="relationship" 
-                  stroke="#ec4899" 
+                  stroke="#f472b6" 
                   name="❤️ Relationship" 
-                  strokeWidth={3}
-                  dot={{ fill: '#ec4899', r: 5, strokeWidth: 2, stroke: '#fff' }}
-                  activeDot={{ r: 7, strokeWidth: 3 }}
+                  strokeWidth={2.5}
+                  dot={false}
+                  activeDot={{ r: 6, fill: '#f472b6', stroke: '#000', strokeWidth: 2 }}
                   fill="url(#relationshipGradient)"
                 />
                 <Line 
                   type="monotone" 
                   dataKey="career" 
-                  stroke="#f59e0b" 
+                  stroke="#fb923c" 
                   name="🌟 Career" 
-                  strokeWidth={3}
-                  dot={{ fill: '#f59e0b', r: 5, strokeWidth: 2, stroke: '#fff' }}
-                  activeDot={{ r: 7, strokeWidth: 3 }}
+                  strokeWidth={2.5}
+                  dot={false}
+                  activeDot={{ r: 6, fill: '#fb923c', stroke: '#000', strokeWidth: 2 }}
                   fill="url(#careerGradient)"
                 />
                 <Line 
                   type="monotone" 
                   dataKey="money" 
-                  stroke="#8b5cf6" 
+                  stroke="#a3e635" 
                   name="💰 Money" 
-                  strokeWidth={3}
-                  dot={{ fill: '#8b5cf6', r: 5, strokeWidth: 2, stroke: '#fff' }}
-                  activeDot={{ r: 7, strokeWidth: 3 }}
+                  strokeWidth={2.5}
+                  dot={false}
+                  activeDot={{ r: 6, fill: '#a3e635', stroke: '#000', strokeWidth: 2 }}
                   fill="url(#moneyGradient)"
                 />
               </LineChart>
             </ResponsiveContainer>
-            <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 rounded-lg border-2 border-blue-200 dark:border-blue-800">
-              <p className="font-bold mb-3 text-base flex items-center gap-2">
-                <span>📊</span> Reading Your Growth & Loss Chart
-              </p>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="flex items-start gap-2">
-                  <div className="w-4 h-4 rounded-full bg-green-500 mt-0.5"></div>
-                  <div>
-                    <p className="font-semibold text-green-700 dark:text-green-400">Health</p>
-                    <p className="text-xs text-muted-foreground">Physical & mental wellness</p>
-                  </div>
+            <div className="mt-4 p-4 bg-zinc-900 rounded-lg border border-zinc-700">
+              <div className="grid grid-cols-4 gap-4 text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-cyan-400"></div>
+                  <span className="text-gray-300 font-medium">💚 Health</span>
                 </div>
-                <div className="flex items-start gap-2">
-                  <div className="w-4 h-4 rounded-full bg-pink-500 mt-0.5"></div>
-                  <div>
-                    <p className="font-semibold text-pink-700 dark:text-pink-400">Relationship</p>
-                    <p className="text-xs text-muted-foreground">Connections & love</p>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-pink-400"></div>
+                  <span className="text-gray-300 font-medium">❤️ Relationship</span>
                 </div>
-                <div className="flex items-start gap-2">
-                  <div className="w-4 h-4 rounded-full bg-amber-500 mt-0.5"></div>
-                  <div>
-                    <p className="font-semibold text-amber-700 dark:text-amber-400">Career</p>
-                    <p className="text-xs text-muted-foreground">Professional growth</p>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-orange-400"></div>
+                  <span className="text-gray-300 font-medium">🌟 Career</span>
                 </div>
-                <div className="flex items-start gap-2">
-                  <div className="w-4 h-4 rounded-full bg-purple-500 mt-0.5"></div>
-                  <div>
-                    <p className="font-semibold text-purple-700 dark:text-purple-400">Money</p>
-                    <p className="text-xs text-muted-foreground">Financial stability</p>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-lime-400"></div>
+                  <span className="text-gray-300 font-medium">💰 Money</span>
                 </div>
               </div>
-              <div className="mt-4 pt-4 border-t border-blue-300 dark:border-blue-700">
-                <p className="text-xs text-muted-foreground">
-                  <strong>Like Stock Trading:</strong> Lines going up 📈 = Growth. Lines going down 📉 = Loss. 
-                  Track which areas are trending up or down to focus your efforts!
-                </p>
+              <div className="mt-3 pt-3 border-t border-zinc-700 flex items-center justify-between text-xs">
+                <span className="text-green-400">📈 Growth = Lines going up</span>
+                <span className="text-red-400">📉 Loss = Lines going down</span>
               </div>
             </div>
           </CardContent>
