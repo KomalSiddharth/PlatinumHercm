@@ -31,20 +31,23 @@ export default function UserDetailView({ userId }: UserDetailViewProps) {
     );
   }
 
-  const { user, progressSummary, emotionTrends, hrcmTrends, regularity, compactWeeklyData, badges, rituals } = analytics;
+  const { user, progressSummary, emotionTrends, hrcmTrends, regularity, compactWeeklyData, badges, rituals } = analytics as any;
 
   return (
     <div className="space-y-6" data-testid="user-detail-view">
-      {/* User Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold" data-testid="user-detail-name">
-            {user.firstName || user.lastName 
-              ? `${user.firstName || ''} ${user.lastName || ''}`.trim() 
-              : user.email}
-          </h2>
-          <p className="text-sm text-muted-foreground" data-testid="user-detail-email">{user.email}</p>
-        </div>
+      {/* User Header with Gradient */}
+      <div className="bg-gradient-to-r from-pink-500 to-blue-500 text-white p-6 rounded-lg">
+        <h2 className="text-3xl font-bold mb-2" data-testid="user-detail-name">
+          {user.firstName && user.lastName 
+            ? `${user.firstName} ${user.lastName}` 
+            : user.firstName || user.lastName || 'User Profile'}
+        </h2>
+        <p className="text-sm opacity-90" data-testid="user-detail-email">
+          📧 {user.email || user.id}
+        </p>
+        <p className="text-xs opacity-75 mt-1">
+          Complete progress report with HRCM analytics, trends, and achievements
+        </p>
       </div>
 
       {/* Progress Report Summary */}
@@ -209,26 +212,82 @@ export default function UserDetailView({ userId }: UserDetailViewProps) {
         </Card>
       )}
 
-      {/* HRCM Rating Trends Graph */}
-      {hrcmTrends.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>HRCM Rating & Progress</CardTitle>
+      {/* HRCM Rating Trends Graph - Enhanced */}
+      {hrcmTrends.length > 0 ? (
+        <Card className="border-2 border-blue-200 dark:border-blue-800">
+          <CardHeader className="bg-gradient-to-r from-pink-100 to-blue-100 dark:from-pink-950 dark:to-blue-950">
+            <CardTitle className="text-lg font-bold">📊 HRCM Rating & Progress Trends</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Track ratings across Health, Relationship, Career, and Money (out of 10)
+            </p>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+          <CardContent className="pt-6">
+            <ResponsiveContainer width="100%" height={350}>
               <LineChart data={hrcmTrends}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="weekNumber" label={{ value: 'Week Number', position: 'insideBottom', offset: -5 }} />
-                <YAxis domain={[0, 10]} label={{ value: 'Rating', angle: -90, position: 'insideLeft' }} />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="health" stroke="#10b981" name="Health" strokeWidth={2} />
-                <Line type="monotone" dataKey="relationship" stroke="#f59e0b" name="Relationship" strokeWidth={2} />
-                <Line type="monotone" dataKey="career" stroke="#3b82f6" name="Career" strokeWidth={2} />
-                <Line type="monotone" dataKey="money" stroke="#8b5cf6" name="Money" strokeWidth={2} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis 
+                  dataKey="weekNumber" 
+                  label={{ value: 'Week Number', position: 'insideBottom', offset: -5 }} 
+                  stroke="#6b7280"
+                />
+                <YAxis 
+                  domain={[0, 10]} 
+                  label={{ value: 'Rating (out of 10)', angle: -90, position: 'insideLeft' }} 
+                  stroke="#6b7280"
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#fff', 
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '8px',
+                    padding: '12px'
+                  }}
+                />
+                <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                <Line 
+                  type="monotone" 
+                  dataKey="health" 
+                  stroke="#10b981" 
+                  name="💚 Health" 
+                  strokeWidth={3}
+                  dot={{ fill: '#10b981', r: 5 }}
+                  activeDot={{ r: 7 }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="relationship" 
+                  stroke="#ec4899" 
+                  name="❤️ Relationship" 
+                  strokeWidth={3}
+                  dot={{ fill: '#ec4899', r: 5 }}
+                  activeDot={{ r: 7 }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="career" 
+                  stroke="#3b82f6" 
+                  name="💼 Career" 
+                  strokeWidth={3}
+                  dot={{ fill: '#3b82f6', r: 5 }}
+                  activeDot={{ r: 7 }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="money" 
+                  stroke="#8b5cf6" 
+                  name="💰 Money" 
+                  strokeWidth={3}
+                  dot={{ fill: '#8b5cf6', r: 5 }}
+                  activeDot={{ r: 7 }}
+                />
               </LineChart>
             </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardContent className="text-center py-12">
+            <p className="text-muted-foreground">No HRCM data available yet. Start tracking to see progress!</p>
           </CardContent>
         </Card>
       )}

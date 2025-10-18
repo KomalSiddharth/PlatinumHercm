@@ -1068,40 +1068,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const approvedEmailSet = new Set(approvedEmailsList.filter(ae => ae.status === 'active').map(ae => ae.email));
       
       // Get all users and filter by approved emails
+      // Match by either user.email OR user.id (since some users have userId = email but email field is null)
       const allUsers = await storage.getAllUsers();
-      const users = allUsers.filter(u => u.email && approvedEmailSet.has(u.email));
+      const matchedUsers = allUsers.filter(u => 
+        (u.email && approvedEmailSet.has(u.email)) || approvedEmailSet.has(u.id)
+      );
       
+      // Deduplicate users by email (prefer user with HRCM data, then non-admin dashboard user)
+      const usersByEmail = new Map<string, any>();
+      
+      for (const user of matchedUsers) {
+        const emailKey = user.email || user.id;
+        
+        if (!usersByEmail.has(emailKey)) {
+          usersByEmail.set(emailKey, user);
+        } else {
+          // If duplicate, prefer the user with more HRCM weeks
+          const existingUser = usersByEmail.get(emailKey);
+          const existingWeeks = await storage.getHercmWeeksByUser(existingUser.id);
+          const currentWeeks = await storage.getHercmWeeksByUser(user.id);
+          
+          // Prefer user with HRCM data, or if both have data, prefer the dashboard user (email field is null)
+          if (currentWeeks.length > existingWeeks.length || 
+              (currentWeeks.length === existingWeeks.length && !user.email && existingUser.email)) {
+            usersByEmail.set(emailKey, user);
+          }
+        }
+      }
+      
+      const users = Array.from(usersByEmail.values());
       const analytics = [];
       
       for (const user of users) {
         const weeks = await storage.getHercmWeeksByUser(user.id);
         
-        if (weeks.length > 0) {
-          const latestWeek = weeks[weeks.length - 1];
-          const overallScore = latestWeek.overallScore || 0;
-          const achievementRate = latestWeek.achievementRate || 0;
-          
-          // Calculate trend (compare last 2 weeks)
-          let trend = 0;
-          if (weeks.length >= 2) {
-            const prevWeek = weeks[weeks.length - 2];
-            const prevScore = prevWeek.overallScore || 0;
-            trend = overallScore - prevScore;
-          }
-          
-          analytics.push({
-            userId: user.id,
-            email: user.email,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            totalWeeks: weeks.length,
-            latestWeekNumber: latestWeek.weekNumber,
-            overallScore,
-            achievementRate,
-            trend, // positive = improving, negative = declining
-            status: achievementRate >= 70 ? 'excellent' : achievementRate >= 50 ? 'good' : 'needs_support',
-          });
+        // Show all approved users, even if they haven't started tracking yet
+        const latestWeek = weeks.length > 0 ? weeks[weeks.length - 1] : null;
+        const overallScore = latestWeek?.overallScore || 0;
+        const achievementRate = latestWeek?.achievementRate || 0;
+        
+        // Calculate trend (compare last 2 weeks)
+        let trend = 0;
+        if (weeks.length >= 2) {
+          const prevWeek = weeks[weeks.length - 2];
+          const prevScore = prevWeek.overallScore || 0;
+          trend = overallScore - prevScore;
         }
+        
+        // Use email if available, otherwise use userId (which is often the email)
+        const displayEmail = user.email || user.id;
+        
+        analytics.push({
+          userId: user.id,
+          email: displayEmail,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          totalWeeks: weeks.length,
+          latestWeekNumber: latestWeek?.weekNumber || 0,
+          overallScore,
+          achievementRate,
+          trend, // positive = improving, negative = declining
+          status: achievementRate >= 70 ? 'excellent' : achievementRate >= 50 ? 'good' : 'needs_support',
+        });
       }
       
       res.json(analytics);
