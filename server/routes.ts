@@ -3375,7 +3375,7 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
 
   // Unified Assignment Endpoints (single column for all HRCM areas)
   
-  // Add lesson to unified assignment (auto-add when checked in Course Tracker)
+  // Add lesson to category assignment (auto-add when checked in Course Tracker)
   app.post('/api/unified-assignment/add-lesson', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.session.userEmail;
@@ -3383,7 +3383,7 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
         return res.status(401).json({ message: "User not authenticated" });
       }
 
-      const { weekNumber, lesson } = req.body;
+      const { weekNumber, lesson, category } = req.body;
 
       if (!weekNumber || !lesson) {
         return res.status(400).json({ message: "Missing required fields" });
@@ -3397,33 +3397,71 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
         return res.status(404).json({ message: "Week not found" });
       }
 
-      // Get current unified assignment
-      const currentAssignment = (week.unifiedAssignment as any) || [];
+      // Map category to assignment field name
+      const categoryMap: Record<string, string> = {
+        'Health': 'healthAssignment',
+        'Relationship': 'relationshipAssignment',
+        'Career': 'careerAssignment',
+        'Money': 'moneyAssignment'
+      };
+
+      const assignmentField = category ? categoryMap[category] : null;
+      
+      if (!assignmentField) {
+        // If no category, fall back to unified assignment
+        const currentAssignment = (week.unifiedAssignment as any) || [];
+        const lessonExists = currentAssignment.some((l: any) => l.id === lesson.id);
+        
+        if (lessonExists) {
+          return res.json({ success: true, assignment: currentAssignment, message: "Lesson already in assignment" });
+        }
+
+        const updatedAssignment = [...currentAssignment, { 
+          id: lesson.id,
+          courseId: lesson.courseId,
+          courseName: lesson.courseName,
+          lessonName: lesson.lessonName,
+          url: lesson.url || '',
+          completed: false,
+          source: 'user' as const
+        }];
+
+        await storage.updateHercmWeek(week.id, { unifiedAssignment: updatedAssignment });
+        return res.json({ success: true, assignment: updatedAssignment });
+      }
+
+      // Get current category assignment
+      const currentAssignment = (week[assignmentField as keyof typeof week] as any) || { courses: [], lessons: [] };
+      const currentLessons = currentAssignment.lessons || [];
 
       // Check if lesson already exists
-      const lessonExists = currentAssignment.some((l: any) => l.id === lesson.id);
+      const lessonExists = currentLessons.some((l: any) => l.id === lesson.id);
       
       if (lessonExists) {
         return res.json({ success: true, assignment: currentAssignment, message: "Lesson already in assignment" });
       }
 
-      // Add lesson to unified assignment with source='user' for user-selected lessons
-      const updatedAssignment = [...currentAssignment, { 
-        id: lesson.id,
-        courseId: lesson.courseId,
-        courseName: lesson.courseName,
-        lessonName: lesson.lessonName,
-        url: lesson.url || '',
-        completed: false,
-        source: 'user' as const  // Mark as user-selected from Course Tracker
-      }];
+      // Add lesson to category assignment
+      const updatedAssignment = {
+        courses: currentAssignment.courses || [],
+        lessons: [...currentLessons, { 
+          id: lesson.id,
+          courseId: lesson.courseId,
+          courseName: lesson.courseName,
+          lessonName: lesson.lessonName,
+          url: lesson.url || '',
+          completed: false
+        }]
+      };
 
-      // Update the week
-      await storage.updateHercmWeek(week.id, { unifiedAssignment: updatedAssignment });
+      // Update the week with category-specific assignment
+      const updateData: any = {};
+      updateData[assignmentField] = updatedAssignment;
+      await storage.updateHercmWeek(week.id, updateData);
 
       res.json({ success: true, assignment: updatedAssignment });
     } catch (error) {
-      console.error("Error adding lesson to unified assignment:", error);
+      console.error("Error adding lesson to assignment:", error);
       res.status(500).json({ message: "Failed to add lesson" });
     }
   });
@@ -3468,7 +3506,7 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
     }
   });
 
-  // Remove lesson from unified assignment
+  // Remove lesson from category assignment
   app.post('/api/unified-assignment/remove-lesson', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.session.userEmail;
@@ -3476,7 +3514,7 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
         return res.status(401).json({ message: "User not authenticated" });
       }
 
-      const { weekNumber, lessonId } = req.body;
+      const { weekNumber, lessonId, category } = req.body;
 
       if (!weekNumber || !lessonId) {
         return res.status(400).json({ message: "Missing required fields" });
@@ -3490,18 +3528,42 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
         return res.status(404).json({ message: "Week not found" });
       }
 
-      // Get current unified assignment
-      const currentAssignment = (week.unifiedAssignment as any) || [];
+      // Map category to assignment field name
+      const categoryMap: Record<string, string> = {
+        'Health': 'healthAssignment',
+        'Relationship': 'relationshipAssignment',
+        'Career': 'careerAssignment',
+        'Money': 'moneyAssignment'
+      };
+
+      const assignmentField = category ? categoryMap[category] : null;
+      
+      if (!assignmentField) {
+        // If no category, fall back to unified assignment
+        const currentAssignment = (week.unifiedAssignment as any) || [];
+        const updatedAssignment = currentAssignment.filter((lesson: any) => lesson.id !== lessonId);
+        await storage.updateHercmWeek(week.id, { unifiedAssignment: updatedAssignment });
+        return res.json({ success: true, assignment: updatedAssignment });
+      }
+
+      // Get current category assignment
+      const currentAssignment = (week[assignmentField as keyof typeof week] as any) || { courses: [], lessons: [] };
+      const currentLessons = currentAssignment.lessons || [];
 
       // Remove the lesson
-      const updatedAssignment = currentAssignment.filter((lesson: any) => lesson.id !== lessonId);
+      const updatedAssignment = {
+        courses: currentAssignment.courses || [],
+        lessons: currentLessons.filter((lesson: any) => lesson.id !== lessonId)
+      };
 
-      // Update the week
-      await storage.updateHercmWeek(week.id, { unifiedAssignment: updatedAssignment });
+      // Update the week with category-specific assignment
+      const updateData: any = {};
+      updateData[assignmentField] = updatedAssignment;
+      await storage.updateHercmWeek(week.id, updateData);
 
       res.json({ success: true, assignment: updatedAssignment });
     } catch (error) {
-      console.error("Error removing lesson from unified assignment:", error);
+      console.error("Error removing lesson from assignment:", error);
       res.status(500).json({ message: "Failed to remove lesson" });
     }
   });

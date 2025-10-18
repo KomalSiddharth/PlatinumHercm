@@ -1913,10 +1913,11 @@ export default function Dashboard() {
                                         
                                         console.log('[Lesson Toggle] Successfully saved to database');
                                         
-                                        // If checked, add to unified assignment; if unchecked, remove from assignment
+                                        // If checked, add to category assignment; if unchecked, remove from assignment
                                         if (checked) {
                                           const assignmentResponse = await apiRequest('POST', '/api/unified-assignment/add-lesson', {
                                             weekNumber: currentWeek,
+                                            category: course.category, // Pass course category (Health, Money, etc.)
                                             lesson: {
                                               id: `${course.id}-${lesson.id}`,
                                               courseId: course.id,
@@ -1933,13 +1934,14 @@ export default function Dashboard() {
                                             
                                             toast({
                                               title: 'Lesson Completed!',
-                                              description: `${lesson.title} added to Assignment column`,
+                                              description: `${lesson.title} added to ${course.category} Assignment`,
                                             });
                                           }
                                         } else {
                                           // Remove from assignment when unchecked
                                           const removeResponse = await apiRequest('POST', '/api/unified-assignment/remove-lesson', {
                                             weekNumber: currentWeek,
+                                            category: course.category, // Pass course category
                                             lessonId: `${course.id}-${lesson.id}`
                                           });
                                           
