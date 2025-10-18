@@ -1895,11 +1895,23 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       }
 
       // Get target user ID from email
-      const user = await storage.getUserByEmail(userEmail);
-      console.log('[DEBUG] POST /api/admin/recommendations - target user:', user);
+      let user = await storage.getUserByEmail(userEmail);
+      console.log('[DEBUG] POST /api/admin/recommendations - target user from email:', user);
       
       if (!user) {
         return res.status(404).json({ message: "User not found" });
+      }
+
+      // If the user found is an admin, check if there's a non-admin dashboard user with id=email
+      // This handles the case where someone has both an admin account and a regular dashboard account
+      if (user.isAdmin) {
+        const dashboardUser = await storage.getUser(userEmail);
+        console.log('[DEBUG] POST /api/admin/recommendations - checking for dashboard user:', dashboardUser);
+        
+        if (dashboardUser && !dashboardUser.isAdmin) {
+          console.log('[DEBUG] POST /api/admin/recommendations - using non-admin dashboard user instead');
+          user = dashboardUser;
+        }
       }
 
       console.log('[DEBUG] POST /api/admin/recommendations - Creating recommendation with userId:', user.id);
@@ -2218,10 +2230,25 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         currentWeek = newWeek;
       }
 
-      // Get current unifiedAssignment array
-      const currentUnifiedAssignment = currentWeek.unifiedAssignment || [];
+      // Map HRCM area to assignment field
+      const categoryFieldMap: Record<string, string> = {
+        'health': 'healthAssignment',
+        'relationship': 'relationshipAssignment',
+        'career': 'careerAssignment',
+        'money': 'moneyAssignment'
+      };
       
-      // Create new lesson item for unified assignment with source='admin' for recommendations
+      const assignmentField = categoryFieldMap[recommendation.hrcmArea.toLowerCase()];
+      
+      if (!assignmentField) {
+        return res.status(400).json({ message: "Invalid HRCM area in recommendation" });
+      }
+      
+      // Get current assignment array for this category
+      const currentAssignment = (currentWeek as any)[assignmentField] || { courses: [], lessons: [] };
+      const currentLessons = currentAssignment.lessons || [];
+      
+      // Create new lesson item for category assignment with source='admin' for recommendations
       const newLesson = {
         id: recommendation.lessonId || recommendation.courseId,
         courseId: recommendation.courseId,
@@ -2233,12 +2260,15 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         recommendationId: recommendation.id  // Track original recommendation
       };
 
-      // Add the recommended course to unified assignment array
-      const updatedUnifiedAssignment = [...currentUnifiedAssignment, newLesson];
+      // Add the recommended course to category assignment lessons array
+      const updatedLessons = [...currentLessons, newLesson];
 
-      // Update the week with new unified assignment
+      // Update the week with new category assignment
       await storage.updateHercmWeek(currentWeek.id, {
-        unifiedAssignment: updatedUnifiedAssignment
+        [assignmentField]: {
+          ...currentAssignment,
+          lessons: updatedLessons
+        }
       });
 
       res.json({ message: "Recommendation accepted and added to Assignment", recommendation });
