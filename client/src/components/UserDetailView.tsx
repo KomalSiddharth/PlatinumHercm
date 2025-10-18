@@ -257,40 +257,40 @@ export default function UserDetailView({ userId }: UserDetailViewProps) {
                   dataKey="healthEmotion" 
                   stroke="#10b981" 
                   name="💚 Health" 
-                  strokeWidth={2.5}
-                  dot={false}
-                  activeDot={{ r: 6, fill: '#10b981', stroke: '#000', strokeWidth: 2 }}
-                  fill="url(#healthEmotionGradient)"
+                  strokeWidth={3}
+                  dot={{ fill: '#10b981', r: 4 }}
+                  activeDot={{ r: 7, fill: '#10b981', stroke: '#000', strokeWidth: 2 }}
+                  strokeOpacity={1}
                 />
                 <Line 
                   type="monotone" 
                   dataKey="relationshipEmotion" 
                   stroke="#ec4899" 
                   name="❤️ Relationship" 
-                  strokeWidth={2.5}
-                  dot={false}
-                  activeDot={{ r: 6, fill: '#ec4899', stroke: '#000', strokeWidth: 2 }}
-                  fill="url(#relationshipEmotionGradient)"
+                  strokeWidth={3}
+                  dot={{ fill: '#ec4899', r: 4 }}
+                  activeDot={{ r: 7, fill: '#ec4899', stroke: '#000', strokeWidth: 2 }}
+                  strokeOpacity={1}
                 />
                 <Line 
                   type="monotone" 
                   dataKey="careerEmotion" 
                   stroke="#fbbf24" 
                   name="🌟 Career" 
-                  strokeWidth={2.5}
-                  dot={false}
-                  activeDot={{ r: 6, fill: '#fbbf24', stroke: '#000', strokeWidth: 2 }}
-                  fill="url(#careerEmotionGradient)"
+                  strokeWidth={3}
+                  dot={{ fill: '#fbbf24', r: 4 }}
+                  activeDot={{ r: 7, fill: '#fbbf24', stroke: '#000', strokeWidth: 2 }}
+                  strokeOpacity={1}
                 />
                 <Line 
                   type="monotone" 
                   dataKey="moneyEmotion" 
                   stroke="#a78bfa" 
                   name="💰 Money" 
-                  strokeWidth={2.5}
-                  dot={false}
-                  activeDot={{ r: 6, fill: '#a78bfa', stroke: '#000', strokeWidth: 2 }}
-                  fill="url(#moneyEmotionGradient)"
+                  strokeWidth={3}
+                  dot={{ fill: '#a78bfa', r: 4 }}
+                  activeDot={{ r: 7, fill: '#a78bfa', stroke: '#000', strokeWidth: 2 }}
+                  strokeOpacity={1}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -395,40 +395,40 @@ export default function UserDetailView({ userId }: UserDetailViewProps) {
                   dataKey="health" 
                   stroke="#22d3ee" 
                   name="💚 Health" 
-                  strokeWidth={2.5}
-                  dot={false}
-                  activeDot={{ r: 6, fill: '#22d3ee', stroke: '#000', strokeWidth: 2 }}
-                  fill="url(#healthGradient)"
+                  strokeWidth={3}
+                  dot={{ fill: '#22d3ee', r: 4 }}
+                  activeDot={{ r: 7, fill: '#22d3ee', stroke: '#000', strokeWidth: 2 }}
+                  strokeOpacity={1}
                 />
                 <Line 
                   type="monotone" 
                   dataKey="relationship" 
                   stroke="#f472b6" 
                   name="❤️ Relationship" 
-                  strokeWidth={2.5}
-                  dot={false}
-                  activeDot={{ r: 6, fill: '#f472b6', stroke: '#000', strokeWidth: 2 }}
-                  fill="url(#relationshipGradient)"
+                  strokeWidth={3}
+                  dot={{ fill: '#f472b6', r: 4 }}
+                  activeDot={{ r: 7, fill: '#f472b6', stroke: '#000', strokeWidth: 2 }}
+                  strokeOpacity={1}
                 />
                 <Line 
                   type="monotone" 
                   dataKey="career" 
                   stroke="#fb923c" 
                   name="🌟 Career" 
-                  strokeWidth={2.5}
-                  dot={false}
-                  activeDot={{ r: 6, fill: '#fb923c', stroke: '#000', strokeWidth: 2 }}
-                  fill="url(#careerGradient)"
+                  strokeWidth={3}
+                  dot={{ fill: '#fb923c', r: 4 }}
+                  activeDot={{ r: 7, fill: '#fb923c', stroke: '#000', strokeWidth: 2 }}
+                  strokeOpacity={1}
                 />
                 <Line 
                   type="monotone" 
                   dataKey="money" 
                   stroke="#a3e635" 
                   name="💰 Money" 
-                  strokeWidth={2.5}
-                  dot={false}
-                  activeDot={{ r: 6, fill: '#a3e635', stroke: '#000', strokeWidth: 2 }}
-                  fill="url(#moneyGradient)"
+                  strokeWidth={3}
+                  dot={{ fill: '#a3e635', r: 4 }}
+                  activeDot={{ r: 7, fill: '#a3e635', stroke: '#000', strokeWidth: 2 }}
+                  strokeOpacity={1}
                 />
               </LineChart>
             </ResponsiveContainer>
