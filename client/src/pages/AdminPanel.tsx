@@ -1668,9 +1668,12 @@ export default function AdminPanel() {
                 </div>
 
                 {/* Add New Standard Form */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Add New Platinum Standard</CardTitle>
+                <Card className="border-2 border-primary/20 shadow-lg">
+                  <CardHeader className="bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5">
+                    <CardTitle className="flex items-center gap-2">
+                      <Plus className="w-5 h-5 text-primary" />
+                      Add New Platinum Standard
+                    </CardTitle>
                     <CardDescription>Standards will be visible to all users globally</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -1679,13 +1682,13 @@ export default function AdminPanel() {
                       <select
                         value={selectedPlatinumCategory}
                         onChange={(e) => setSelectedPlatinumCategory(e.target.value as any)}
-                        className="w-full px-3 py-2 border border-input bg-background rounded-md"
+                        className="w-full px-3 py-2 border-2 border-input bg-background rounded-md focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                         data-testid="select-platinum-category"
                       >
-                        <option value="health">Health</option>
-                        <option value="relationship">Relationship</option>
-                        <option value="career">Career</option>
-                        <option value="money">Money</option>
+                        <option value="health">🟢 Health</option>
+                        <option value="relationship">💗 Relationship</option>
+                        <option value="career">🟡 Career</option>
+                        <option value="money">🟣 Money</option>
                       </select>
                     </div>
                     <div>
@@ -1694,6 +1697,7 @@ export default function AdminPanel() {
                         placeholder="Enter platinum standard text..."
                         value={newStandardText}
                         onChange={(e) => setNewStandardText(e.target.value)}
+                        className="border-2 focus:ring-2 focus:ring-primary"
                         data-testid="input-new-standard"
                       />
                     </div>
@@ -1709,7 +1713,7 @@ export default function AdminPanel() {
                         });
                       }}
                       disabled={addPlatinumStandardMutation.isPending}
-                      className="w-full"
+                      className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity"
                       data-testid="button-add-standard"
                     >
                       <Plus className="w-4 h-4 mr-2" />
@@ -1722,40 +1726,103 @@ export default function AdminPanel() {
                 <div className="grid gap-6">
                   {['health', 'relationship', 'career', 'money'].map((category) => {
                     const categoryStandards = platinumStandards.filter((s: any) => s.category === category);
-                    const categoryColor = category === 'health' ? 'emerald' : category === 'relationship' ? 'rose' : category === 'career' ? 'blue' : 'amber';
+                    
+                    // Define category-specific styling
+                    const categoryConfig = {
+                      health: { 
+                        dot: 'bg-emerald-500', 
+                        border: 'border-emerald-500/30',
+                        gradient: 'from-emerald-500/10 via-emerald-500/5 to-transparent',
+                        text: 'text-emerald-700 dark:text-emerald-400',
+                        badge: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200',
+                        icon: '🟢'
+                      },
+                      relationship: { 
+                        dot: 'bg-pink-500', 
+                        border: 'border-pink-500/30',
+                        gradient: 'from-pink-500/10 via-pink-500/5 to-transparent',
+                        text: 'text-pink-700 dark:text-pink-400',
+                        badge: 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200',
+                        icon: '💗'
+                      },
+                      career: { 
+                        dot: 'bg-amber-500', 
+                        border: 'border-amber-500/30',
+                        gradient: 'from-amber-500/10 via-amber-500/5 to-transparent',
+                        text: 'text-amber-700 dark:text-amber-400',
+                        badge: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
+                        icon: '🟡'
+                      },
+                      money: { 
+                        dot: 'bg-purple-500', 
+                        border: 'border-purple-500/30',
+                        gradient: 'from-purple-500/10 via-purple-500/5 to-transparent',
+                        text: 'text-purple-700 dark:text-purple-400',
+                        badge: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+                        icon: '🟣'
+                      }
+                    }[category as 'health' | 'relationship' | 'career' | 'money'];
                     
                     return (
-                      <Card key={category}>
-                        <CardHeader className="pb-3">
+                      <Card key={category} className={`border-2 ${categoryConfig.border} shadow-md`}>
+                        <CardHeader className={`pb-3 bg-gradient-to-r ${categoryConfig.gradient}`}>
                           <CardTitle className="flex items-center gap-2 capitalize">
-                            <div className={`w-3 h-3 rounded-full bg-${categoryColor}-500`}></div>
-                            {category} Standards
-                            <Badge variant="outline" className="ml-auto">{categoryStandards.length} standards</Badge>
+                            <div className={`w-4 h-4 rounded-full ${categoryConfig.dot} shadow-md`}></div>
+                            <span className={categoryConfig.text}>
+                              {categoryConfig.icon} {category} Standards
+                            </span>
+                            <Badge className={`ml-auto ${categoryConfig.badge} border-0`}>
+                              {categoryStandards.length} standards
+                            </Badge>
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
                           {categoryStandards.length === 0 ? (
-                            <div className="text-center py-8 text-muted-foreground">
-                              No standards defined yet
+                            <div className={`text-center py-12 rounded-lg border-2 border-dashed ${
+                              category === 'health' ? 'border-emerald-300 bg-emerald-50/30 dark:border-emerald-700 dark:bg-emerald-950/20' :
+                              category === 'relationship' ? 'border-pink-300 bg-pink-50/30 dark:border-pink-700 dark:bg-pink-950/20' :
+                              category === 'career' ? 'border-amber-300 bg-amber-50/30 dark:border-amber-700 dark:bg-amber-950/20' :
+                              'border-purple-300 bg-purple-50/30 dark:border-purple-700 dark:bg-purple-950/20'
+                            }`}>
+                              <div className="text-5xl mb-2">{categoryConfig.icon}</div>
+                              <p className="text-sm font-medium text-muted-foreground">No standards defined yet</p>
+                              <p className="text-xs text-muted-foreground mt-1">Add your first platinum standard above</p>
                             </div>
                           ) : (
                             categoryStandards.map((standard: any, index: number) => (
                               <div
                                 key={standard.id}
-                                className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg group hover-elevate"
+                                className={`flex items-center gap-3 p-4 rounded-lg group hover-elevate border-l-4 ${
+                                  category === 'health' ? 'border-l-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20' :
+                                  category === 'relationship' ? 'border-l-pink-500 bg-pink-50/50 dark:bg-pink-950/20' :
+                                  category === 'career' ? 'border-l-amber-500 bg-amber-50/50 dark:bg-amber-950/20' :
+                                  'border-l-purple-500 bg-purple-50/50 dark:bg-purple-950/20'
+                                } shadow-sm`}
                                 data-testid={`standard-${category}-${index}`}
                               >
-                                <div className="flex items-center gap-2 text-muted-foreground">
-                                  <span className="text-xs font-mono">{standard.orderIndex}</span>
+                                <div className="flex items-center gap-2">
+                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                                    category === 'health' ? 'bg-emerald-200 text-emerald-800 dark:bg-emerald-800 dark:text-emerald-200' :
+                                    category === 'relationship' ? 'bg-pink-200 text-pink-800 dark:bg-pink-800 dark:text-pink-200' :
+                                    category === 'career' ? 'bg-amber-200 text-amber-800 dark:bg-amber-800 dark:text-amber-200' :
+                                    'bg-purple-200 text-purple-800 dark:bg-purple-800 dark:text-purple-200'
+                                  }`}>
+                                    {standard.orderIndex}
+                                  </div>
                                 </div>
                                 <div className="flex-1">
-                                  <div className="font-medium" data-testid={`standard-text-${standard.id}`}>
+                                  <div className="font-medium text-foreground" data-testid={`standard-text-${standard.id}`}>
                                     {standard.standardText}
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <Badge variant={standard.isActive ? "default" : "secondary"}>
-                                    {standard.isActive ? "Active" : "Inactive"}
+                                  <Badge 
+                                    className={standard.isActive 
+                                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200 border-emerald-300 dark:border-emerald-700' 
+                                      : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600'
+                                    }
+                                  >
+                                    {standard.isActive ? "✓ Active" : "○ Inactive"}
                                   </Badge>
                                   <Button
                                     variant="ghost"
@@ -1766,7 +1833,7 @@ export default function AdminPanel() {
                                         data: { isActive: !standard.isActive }
                                       });
                                     }}
-                                    className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950"
                                     data-testid={`button-toggle-standard-${standard.id}`}
                                   >
                                     <Pencil className="w-4 h-4" />
@@ -1796,9 +1863,11 @@ export default function AdminPanel() {
                 </div>
 
                 {isLoadingPlatinumStandards && (
-                  <div className="text-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                    <p className="text-sm text-muted-foreground mt-2">Loading platinum standards...</p>
+                  <div className="text-center py-12 bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5 rounded-lg border-2 border-primary/20">
+                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary/20 border-t-primary mx-auto"></div>
+                    <p className="text-sm font-medium bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mt-4">
+                      ⭐ Loading platinum standards...
+                    </p>
                   </div>
                 )}
               </div>
