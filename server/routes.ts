@@ -1985,16 +1985,22 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         // This allows recommendations to work even if the user hasn't logged in yet
         console.log('[DEBUG] POST /api/admin/recommendations - Creating placeholder user for:', userEmail);
         try {
+          // Split name from approved email into firstName and lastName
+          const fullName = approvedEmail.name || '';
+          const nameParts = fullName.trim().split(' ');
+          const firstName = nameParts[0] || '';
+          const lastName = nameParts.slice(1).join(' ') || '';
+          
           const placeholderUser = await storage.upsertUser({
             id: userEmail,
             email: userEmail,
-            firstName: '',
-            lastName: '',
+            firstName,
+            lastName,
             password: '', // No password - they'll use OIDC login
             isAdmin: false,
           });
           userId = placeholderUser.id;
-          console.log('[DEBUG] POST /api/admin/recommendations - Placeholder user created successfully with ID:', userId);
+          console.log('[DEBUG] POST /api/admin/recommendations - Placeholder user created successfully with ID:', userId, 'Name:', firstName, lastName);
         } catch (error) {
           console.error('[DEBUG] POST /api/admin/recommendations - Error creating placeholder user:', error);
           // If creation fails, this is a critical error

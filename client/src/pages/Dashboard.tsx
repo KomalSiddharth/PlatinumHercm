@@ -375,11 +375,7 @@ export default function Dashboard() {
   // Mutation to persist course video completions to database
   const toggleVideoCompletionMutation = useMutation({
     mutationFn: async ({ videoId, courseId }: { videoId: string; courseId: string }) => {
-      return await apiRequest(`/api/course-video-completions/toggle`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ videoId, courseId }),
-      });
+      return await apiRequest('POST', '/api/course-video-completions/toggle', { videoId, courseId });
     },
   });
 
