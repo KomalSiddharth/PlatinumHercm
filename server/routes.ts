@@ -1636,6 +1636,17 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
+  // Delete all emails - MUST come before /:id route
+  app.delete('/api/admin/approved-emails/all', async (req, res) => {
+    try {
+      await storage.deleteAllApprovedEmails();
+      res.json({ success: true, message: "All emails deleted" });
+    } catch (error) {
+      console.error("Error deleting all emails:", error);
+      res.status(500).json({ message: "Failed to delete all emails" });
+    }
+  });
+
   app.delete('/api/admin/approved-emails/:id', async (req, res) => {
     try {
       const { id } = req.params;
@@ -1661,16 +1672,6 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     } catch (error) {
       console.error("Error updating approved email:", error);
       res.status(500).json({ message: "Failed to update email" });
-    }
-  });
-
-  app.delete('/api/admin/approved-emails/all', async (req, res) => {
-    try {
-      await storage.deleteAllApprovedEmails();
-      res.json({ success: true, message: "All emails deleted" });
-    } catch (error) {
-      console.error("Error deleting all emails:", error);
-      res.status(500).json({ message: "Failed to delete all emails" });
     }
   });
 
