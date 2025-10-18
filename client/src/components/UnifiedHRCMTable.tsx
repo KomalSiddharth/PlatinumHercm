@@ -1036,8 +1036,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   </button>
                 </TooltipTrigger>
                 {item.text && item.text.length > 50 && (
-                  <TooltipContent side="top" align="start" className="max-w-md bg-popover border shadow-lg">
-                    <p className="text-xs whitespace-pre-wrap break-words leading-relaxed">{item.text}</p>
+                  <TooltipContent side="top" align="start" className="max-w-md bg-gradient-to-br from-primary/10 via-white to-accent/10 dark:from-primary/20 dark:via-gray-900 dark:to-accent/15 border-2 border-primary/30 shadow-xl p-4">
+                    <div className="flex items-start gap-2 mb-2">
+                      <div className="w-1 h-full bg-gradient-to-b from-primary to-accent rounded-full"></div>
+                      <p className="text-xs font-semibold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Checkpoint</p>
+                    </div>
+                    <p className="text-xs whitespace-pre-wrap break-words leading-relaxed text-foreground">{item.text}</p>
                   </TooltipContent>
                 )}
               </Tooltip>
@@ -1056,12 +1060,16 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 <span>{hiddenCount} more item{hiddenCount > 1 ? 's' : ''}...</span>
               </button>
             </TooltipTrigger>
-            <TooltipContent side="top" align="start" className="max-w-md bg-popover border shadow-lg">
+            <TooltipContent side="top" align="start" className="max-w-md bg-gradient-to-br from-primary/10 via-white to-accent/10 dark:from-primary/20 dark:via-gray-900 dark:to-accent/15 border-2 border-primary/30 shadow-xl p-4">
+              <div className="flex items-start gap-2 mb-3">
+                <div className="w-1 h-full bg-gradient-to-b from-primary to-accent rounded-full"></div>
+                <p className="text-xs font-semibold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">All Checkpoints</p>
+              </div>
               <div className="space-y-2">
                 {items.map((item) => (
                   <div key={item.id} className="flex items-start gap-2 text-xs">
                     <Checkbox checked={item.checked} disabled className="h-3 w-3 mt-0.5 shrink-0" />
-                    <span className="break-words whitespace-pre-wrap leading-relaxed">{item.text || '(empty)'}</span>
+                    <span className="break-words whitespace-pre-wrap leading-relaxed text-foreground">{item.text || '(empty)'}</span>
                   </div>
                 ))}
               </div>
@@ -1496,8 +1504,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         </button>
                       </TooltipTrigger>
                       {belief.problems && belief.problems.length > 30 && (
-                        <TooltipContent side="top" align="start" className="max-w-md bg-popover border shadow-lg">
-                          <p className="text-xs whitespace-pre-wrap break-words leading-relaxed">{belief.problems}</p>
+                        <TooltipContent side="top" align="start" className="max-w-md bg-gradient-to-br from-coral-red/10 via-white to-coral-red/5 dark:from-coral-red/20 dark:via-gray-900 dark:to-coral-red/10 border-2 border-coral-red/30 shadow-xl p-4 coral-glow">
+                          <div className="flex items-start gap-2 mb-2">
+                            <div className="w-1 h-full bg-coral-red rounded-full"></div>
+                            <p className="text-xs font-semibold text-coral-red">Results</p>
+                          </div>
+                          <p className="text-xs whitespace-pre-wrap break-words leading-relaxed text-foreground">{belief.problems}</p>
                         </TooltipContent>
                       )}
                     </Tooltip>
@@ -1537,8 +1549,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         </button>
                       </TooltipTrigger>
                       {belief.currentFeelings && belief.currentFeelings.length > 30 && (
-                        <TooltipContent side="top" align="start" className="max-w-md bg-popover border shadow-lg">
-                          <p className="text-xs whitespace-pre-wrap break-words leading-relaxed">{belief.currentFeelings}</p>
+                        <TooltipContent side="top" align="start" className="max-w-md bg-gradient-to-br from-emerald-green/10 via-white to-emerald-green/5 dark:from-emerald-green/20 dark:via-gray-900 dark:to-emerald-green/10 border-2 border-emerald-green/30 shadow-xl p-4 emerald-glow">
+                          <div className="flex items-start gap-2 mb-2">
+                            <div className="w-1 h-full bg-emerald-green rounded-full"></div>
+                            <p className="text-xs font-semibold text-emerald-green">Feelings</p>
+                          </div>
+                          <p className="text-xs whitespace-pre-wrap break-words leading-relaxed text-foreground">{belief.currentFeelings}</p>
                         </TooltipContent>
                       )}
                     </Tooltip>
@@ -1578,8 +1594,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         </button>
                       </TooltipTrigger>
                       {belief.currentBelief && belief.currentBelief.length > 30 && (
-                        <TooltipContent side="top" align="start" className="max-w-md bg-popover border shadow-lg">
-                          <p className="text-xs whitespace-pre-wrap break-words leading-relaxed">{belief.currentBelief}</p>
+                        <TooltipContent side="top" align="start" className="max-w-md bg-gradient-to-br from-golden-yellow/10 via-white to-golden-yellow/5 dark:from-golden-yellow/20 dark:via-gray-900 dark:to-golden-yellow/10 border-2 border-golden-yellow/30 shadow-xl p-4 golden-glow">
+                          <div className="flex items-start gap-2 mb-2">
+                            <div className="w-1 h-full bg-golden-yellow rounded-full"></div>
+                            <p className="text-xs font-semibold text-golden-yellow">Beliefs/Reasons</p>
+                          </div>
+                          <p className="text-xs whitespace-pre-wrap break-words leading-relaxed text-foreground">{belief.currentBelief}</p>
                         </TooltipContent>
                       )}
                     </Tooltip>
@@ -1619,8 +1639,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         </button>
                       </TooltipTrigger>
                       {belief.currentActions && belief.currentActions.length > 30 && (
-                        <TooltipContent side="top" align="start" className="max-w-md bg-popover border shadow-lg">
-                          <p className="text-xs whitespace-pre-wrap break-words leading-relaxed">{belief.currentActions}</p>
+                        <TooltipContent side="top" align="start" className="max-w-md bg-gradient-to-br from-soft-lavender/20 via-white to-soft-lavender/10 dark:from-soft-lavender/30 dark:via-gray-900 dark:to-soft-lavender/15 border-2 border-soft-lavender/40 shadow-xl p-4 lavender-glow">
+                          <div className="flex items-start gap-2 mb-2">
+                            <div className="w-1 h-full bg-soft-lavender rounded-full"></div>
+                            <p className="text-xs font-semibold text-soft-lavender">Actions</p>
+                          </div>
+                          <p className="text-xs whitespace-pre-wrap break-words leading-relaxed text-foreground">{belief.currentActions}</p>
                         </TooltipContent>
                       )}
                     </Tooltip>
