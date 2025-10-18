@@ -1178,9 +1178,25 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </div>
                 <div className="space-y-2">
                   {items.map((item) => (
-                    <div key={item.id} className="flex items-start gap-2 text-xs">
-                      <Checkbox checked={item.checked} disabled className="h-3 w-3 mt-0.5 shrink-0" />
-                      <span className="break-words whitespace-pre-wrap leading-relaxed text-foreground">{item.text || '(empty)'}</span>
+                    <div key={item.id} className="flex items-start gap-2 text-xs group/tooltip-item">
+                      <Checkbox 
+                        checked={item.checked} 
+                        onCheckedChange={() => !disabled && onToggle(item.id)}
+                        disabled={disabled}
+                        className="h-3 w-3 mt-0.5 shrink-0" 
+                      />
+                      <span className="break-words whitespace-pre-wrap leading-relaxed text-foreground flex-1">{item.text || '(empty)'}</span>
+                      {!disabled && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => onDeleteCheckpoint(item.id)}
+                          className="h-4 w-4 p-0 opacity-0 group-hover/tooltip-item:opacity-100 transition-opacity shrink-0"
+                          data-testid={`button-delete-tooltip-${checklistType}-${category.toLowerCase()}-${item.id}`}
+                        >
+                          <Trash2 className="w-3 h-3 text-destructive" />
+                        </Button>
+                      )}
                     </div>
                   ))}
                 </div>
