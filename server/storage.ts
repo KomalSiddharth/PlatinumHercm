@@ -159,6 +159,7 @@ export interface IStorage {
   getAllCourseRecommendations(): Promise<any[]>;
   updateRecommendationStatus(id: string, status: string): Promise<any>;
   deleteRecommendation(id: string): Promise<void>;
+  deleteAllRecommendations(): Promise<void>;
   
   // Platinum Standards operations
   getAllPlatinumStandards(): Promise<PlatinumStandard[]>;
@@ -1003,6 +1004,10 @@ export class DatabaseStorage implements IStorage {
     await db
       .delete(adminCourseRecommendations)
       .where(eq(adminCourseRecommendations.id, id));
+  }
+
+  async deleteAllRecommendations(): Promise<void> {
+    await db.delete(adminCourseRecommendations);
   }
 
   // Platinum Standards operations

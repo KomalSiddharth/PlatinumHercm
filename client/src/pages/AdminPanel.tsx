@@ -327,6 +327,26 @@ export default function AdminPanel() {
     }
   });
 
+  const clearAllRecommendationsMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest('DELETE', '/api/admin/recommendations/all');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/recommendations'] });
+      toast({ 
+        title: "All Recommendations Cleared", 
+        description: "All course recommendations have been deleted successfully" 
+      });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Error", 
+        description: error.message || "Failed to clear recommendations",
+        variant: "destructive" 
+      });
+    }
+  });
+
   // Platinum standards mutations
   const addPlatinumStandardMutation = useMutation({
     mutationFn: async (data: { category: string; standardText: string }) => {
@@ -1497,7 +1517,25 @@ export default function AdminPanel() {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Recent Recommendations</CardTitle>
+                    <div className="flex items-center justify-between">
+                      <CardTitle>Recent Recommendations</CardTitle>
+                      {recommendations.length > 0 && (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => {
+                            if (window.confirm(`Are you sure you want to delete all ${recommendations.length} recommendations? This action cannot be undone.`)) {
+                              clearAllRecommendationsMutation.mutate();
+                            }
+                          }}
+                          disabled={clearAllRecommendationsMutation.isPending}
+                          data-testid="button-clear-all-recommendations"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          {clearAllRecommendationsMutation.isPending ? 'Clearing...' : 'Clear All'}
+                        </Button>
+                      )}
+                    </div>
                   </CardHeader>
                   <CardContent>
                     {recommendations.length === 0 ? (

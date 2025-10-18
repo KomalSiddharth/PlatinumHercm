@@ -1934,6 +1934,17 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
+  // Admin delete ALL course recommendations
+  app.delete('/api/admin/recommendations/all', isAuthenticated, async (req: any, res) => {
+    try {
+      await storage.deleteAllRecommendations();
+      res.json({ message: "All recommendations deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting all recommendations:", error);
+      res.status(500).json({ message: "Failed to delete all recommendations" });
+    }
+  });
+
   // Admin delete course recommendation
   app.delete('/api/admin/recommendations/:id', isAuthenticated, async (req: any, res) => {
     try {
