@@ -51,6 +51,7 @@ export default function AdminPanel() {
   const [newEmail, setNewEmail] = useState('');
   const [newName, setNewName] = useState('');
   const [bulkEmails, setBulkEmails] = useState('');
+  const [csvFile, setCsvFile] = useState<File | null>(null);
   const [editingEmail, setEditingEmail] = useState<ApprovedEmail | null>(null);
   
   // Team Management states
@@ -197,6 +198,7 @@ export default function AdminPanel() {
       toast({ title: "Bulk Upload Complete", description: "Emails have been added successfully" });
       setShowBulkDialog(false);
       setBulkEmails('');
+      setCsvFile(null);
     },
     onError: (error: any) => {
       toast({ 
@@ -450,13 +452,69 @@ export default function AdminPanel() {
     });
   };
 
-  const handleBulkUpload = () => {
-    const emails = bulkEmails.split('\n').map(e => e.trim()).filter(e => e);
+  const handleBulkUpload = async () => {
+    let emails: string[] = [];
+
+    // Parse CSV file if uploaded
+    if (csvFile) {
+      try {
+        const text = await csvFile.text();
+        // Parse CSV - handle both comma-separated and newline-separated
+        const lines = text.split('\n').map(line => line.trim()).filter(line => line);
+        
+        for (const line of lines) {
+          // If line contains commas, split by comma
+          if (line.includes(',')) {
+            const parts = line.split(',').map(p => p.trim()).filter(p => p);
+            emails.push(...parts);
+          } else {
+            // Otherwise, treat entire line as one email
+            emails.push(line);
+          }
+        }
+      } catch (error) {
+        toast({ 
+          title: "Error", 
+          description: "Failed to read CSV file", 
+          variant: "destructive" 
+        });
+        return;
+      }
+    }
+
+    // Add manual textarea emails
+    const manualEmails = bulkEmails.split('\n').map(e => e.trim()).filter(e => e);
+    emails.push(...manualEmails);
+
+    // Remove duplicates
+    emails = Array.from(new Set(emails));
+
     if (emails.length === 0) {
-      toast({ title: "Error", description: "Please enter at least one email", variant: "destructive" });
+      toast({ 
+        title: "Error", 
+        description: "Please enter emails manually or upload a CSV file", 
+        variant: "destructive" 
+      });
       return;
     }
+
     bulkUploadMutation.mutate(emails);
+  };
+
+  const handleCsvFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.name.endsWith('.csv') && !file.type.includes('csv') && !file.type.includes('text')) {
+        toast({ 
+          title: "Invalid File", 
+          description: "Please upload a CSV file", 
+          variant: "destructive" 
+        });
+        return;
+      }
+      setCsvFile(file);
+    }
   };
 
   const handleLogout = () => {
@@ -1921,30 +1979,123 @@ export default function AdminPanel() {
       </Dialog>
 
       {/* Bulk Upload Dialog */}
-      <Dialog open={showBulkDialog} onOpenChange={setShowBulkDialog}>
-        <DialogContent data-testid="dialog-bulk-upload">
+      <Dialog open={showBulkDialog} onOpenChange={() => {
+        setShowBulkDialog(false);
+        setCsvFile(null);
+        setBulkEmails('');
+      }}>
+        <DialogContent className="max-w-2xl" data-testid="dialog-bulk-upload">
           <DialogHeader>
-            <DialogTitle>Bulk Upload Emails</DialogTitle>
-            <DialogDescription>Add multiple emails (one per line)</DialogDescription>
+            <DialogTitle className="flex items-center gap-2">
+              <Upload className="w-5 h-5 text-primary" />
+              Bulk Upload Emails
+            </DialogTitle>
+            <DialogDescription>Upload a CSV file or paste emails manually (one per line)</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <Textarea
-              placeholder="user1@example.com&#10;user2@example.com&#10;user3@example.com"
-              value={bulkEmails}
-              onChange={(e) => setBulkEmails(e.target.value)}
-              rows={10}
-              data-testid="textarea-bulk-emails"
-            />
+          <div className="space-y-6 py-4">
+            {/* CSV File Upload Section */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-semibold">📁 Upload CSV File</label>
+                {csvFile && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setCsvFile(null)}
+                    className="text-red-600 hover:text-red-700 h-7"
+                    data-testid="button-clear-csv"
+                  >
+                    <Trash2 className="w-3 h-3 mr-1" />
+                    Clear
+                  </Button>
+                )}
+              </div>
+              <div className="border-2 border-dashed border-primary/30 rounded-lg p-6 bg-gradient-to-r from-primary/5 to-accent/5 hover:border-primary/50 transition-colors">
+                <input
+                  type="file"
+                  accept=".csv,text/csv,text/plain"
+                  onChange={handleCsvFileChange}
+                  className="hidden"
+                  id="csv-upload"
+                  data-testid="input-csv-file"
+                />
+                <label 
+                  htmlFor="csv-upload" 
+                  className="cursor-pointer flex flex-col items-center gap-2"
+                >
+                  {csvFile ? (
+                    <>
+                      <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center">
+                        <Upload className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                      </div>
+                      <div className="text-center">
+                        <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                          ✓ {csvFile.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {(csvFile.size / 1024).toFixed(2)} KB • Click to change file
+                        </p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Upload className="w-6 h-6 text-primary" />
+                      </div>
+                      <div className="text-center">
+                        <p className="text-sm font-medium">Click to upload CSV file</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Supports comma-separated or one email per line
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </label>
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-px bg-border"></div>
+              <span className="text-xs font-medium text-muted-foreground uppercase">or</span>
+              <div className="flex-1 h-px bg-border"></div>
+            </div>
+
+            {/* Manual Entry Section */}
+            <div className="space-y-3">
+              <label className="text-sm font-semibold">✍️ Paste Emails Manually</label>
+              <Textarea
+                placeholder="user1@example.com&#10;user2@example.com&#10;user3@example.com&#10;&#10;Or comma-separated: user1@example.com, user2@example.com"
+                value={bulkEmails}
+                onChange={(e) => setBulkEmails(e.target.value)}
+                rows={8}
+                className="font-mono text-sm"
+                data-testid="textarea-bulk-emails"
+              />
+              <p className="text-xs text-muted-foreground">
+                💡 Tip: You can use both CSV upload and manual entry together. Duplicates will be removed automatically.
+              </p>
+            </div>
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setShowBulkDialog(false)} data-testid="button-cancel-bulk">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowBulkDialog(false);
+                setCsvFile(null);
+                setBulkEmails('');
+              }} 
+              data-testid="button-cancel-bulk"
+            >
               Cancel
             </Button>
             <Button 
               onClick={handleBulkUpload} 
               disabled={bulkUploadMutation.isPending}
+              className="bg-gradient-to-r from-primary to-accent hover:opacity-90"
               data-testid="button-confirm-bulk"
             >
+              <Upload className="w-4 h-4 mr-2" />
               {bulkUploadMutation.isPending ? 'Uploading...' : 'Upload Emails'}
             </Button>
           </div>
