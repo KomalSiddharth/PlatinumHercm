@@ -2264,12 +2264,17 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       // Add the recommended course to category assignment lessons array
       const updatedLessons = [...currentLessons, newLesson];
 
-      // Update the week with new category assignment
+      // ALSO add to unifiedAssignment so it shows in the UI
+      const currentUnifiedAssignment = (currentWeek as any).unifiedAssignment || [];
+      const updatedUnifiedAssignment = [...currentUnifiedAssignment, newLesson];
+
+      // Update the week with BOTH category assignment AND unified assignment
       await storage.updateHercmWeek(currentWeek.id, {
         [assignmentField]: {
           ...currentAssignment,
           lessons: updatedLessons
-        }
+        },
+        unifiedAssignment: updatedUnifiedAssignment
       });
 
       res.json({ message: "Recommendation accepted and added to Assignment", recommendation });
