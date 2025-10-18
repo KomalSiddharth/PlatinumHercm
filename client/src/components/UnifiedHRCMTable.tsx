@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Sparkles, Check, X, TrendingUp, Save, Loader2, ArrowUp, ArrowDown, Plus, MoreHorizontal, Calendar as CalendarIcon } from 'lucide-react';
+import { Sparkles, Check, X, TrendingUp, Save, Loader2, ArrowUp, ArrowDown, Plus, MoreHorizontal, Calendar as CalendarIcon, Trash2 } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -978,12 +978,40 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     });
   };
 
+  // Delete checkpoint
+  const handleDeleteCheckpoint = (category: string, itemId: string, checklistType: 'result' | 'feelings' | 'beliefs' | 'actions') => {
+    setBeliefs(prev => {
+      const updated = prev.map(belief => {
+        if (belief.category === category) {
+          if (checklistType === 'result' && belief.resultChecklist) {
+            const updatedChecklist = belief.resultChecklist.filter(item => item.id !== itemId);
+            return { ...belief, resultChecklist: updatedChecklist };
+          } else if (checklistType === 'feelings' && belief.feelingsChecklist) {
+            const updatedChecklist = belief.feelingsChecklist.filter(item => item.id !== itemId);
+            return { ...belief, feelingsChecklist: updatedChecklist };
+          } else if (checklistType === 'beliefs' && belief.beliefsChecklist) {
+            const updatedChecklist = belief.beliefsChecklist.filter(item => item.id !== itemId);
+            return { ...belief, beliefsChecklist: updatedChecklist };
+          } else if (checklistType === 'actions' && belief.actionsChecklist) {
+            const updatedChecklist = belief.actionsChecklist.filter(item => item.id !== itemId);
+            return { ...belief, actionsChecklist: updatedChecklist };
+          }
+        }
+        return belief;
+      });
+      
+      saveWeekMutation.mutate({ weekNumber, year: new Date().getFullYear(), beliefs: updated });
+      return updated;
+    });
+  };
+
   // Compact Checklist View Component
   const CompactChecklistView = ({ 
     items, 
     onToggle, 
     onUpdateText,
     onAddCheckpoint,
+    onDeleteCheckpoint,
     category,
     checklistType,
     disabled = false
@@ -992,6 +1020,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     onToggle: (itemId: string) => void;
     onUpdateText: (itemId: string, text: string) => void;
     onAddCheckpoint: (text?: string) => void;
+    onDeleteCheckpoint: (itemId: string) => void;
     category: string;
     checklistType: string;
     disabled?: boolean;
@@ -1091,29 +1120,42 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   data-testid={`textarea-${checklistType}-${category.toLowerCase()}-${item.id}`}
                 />
               ) : (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={() => !disabled && setEditingId(item.id)}
-                      disabled={disabled}
-                      className="flex-1 text-left text-xs py-0.5 px-1 rounded hover:bg-muted/30 transition-colors min-h-[20px] break-words disabled:cursor-not-allowed"
-                      data-testid={`text-${checklistType}-${category.toLowerCase()}-${item.id}`}
+                <>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => !disabled && setEditingId(item.id)}
+                        disabled={disabled}
+                        className="flex-1 text-left text-xs py-0.5 px-1 rounded hover:bg-muted/30 transition-colors min-h-[20px] break-words disabled:cursor-not-allowed"
+                        data-testid={`text-${checklistType}-${category.toLowerCase()}-${item.id}`}
+                      >
+                        <span className="line-clamp-2">
+                          {item.text || <span className="text-muted-foreground italic">Click to add text...</span>}
+                        </span>
+                      </button>
+                    </TooltipTrigger>
+                    {item.text && item.text.length > 50 && (
+                      <TooltipContent side="top" align="start" className={`max-w-md bg-gradient-to-br ${colorScheme.gradient} border-2 ${colorScheme.border} shadow-xl p-4 ${colorScheme.glow}`}>
+                        <div className="flex items-start gap-2 mb-2">
+                          <div className={`w-1 h-full ${colorScheme.bar} rounded-full`}></div>
+                          <p className={`text-xs font-semibold ${colorScheme.text}`}>{colorScheme.label}</p>
+                        </div>
+                        <p className="text-xs whitespace-pre-wrap break-words leading-relaxed text-foreground">{item.text}</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                  {!disabled && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => onDeleteCheckpoint(item.id)}
+                      className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                      data-testid={`button-delete-checkpoint-${checklistType}-${category.toLowerCase()}-${item.id}`}
                     >
-                      <span className="line-clamp-2">
-                        {item.text || <span className="text-muted-foreground italic">Click to add text...</span>}
-                      </span>
-                    </button>
-                  </TooltipTrigger>
-                  {item.text && item.text.length > 50 && (
-                    <TooltipContent side="top" align="start" className={`max-w-md bg-gradient-to-br ${colorScheme.gradient} border-2 ${colorScheme.border} shadow-xl p-4 ${colorScheme.glow}`}>
-                      <div className="flex items-start gap-2 mb-2">
-                        <div className={`w-1 h-full ${colorScheme.bar} rounded-full`}></div>
-                        <p className={`text-xs font-semibold ${colorScheme.text}`}>{colorScheme.label}</p>
-                      </div>
-                      <p className="text-xs whitespace-pre-wrap break-words leading-relaxed text-foreground">{item.text}</p>
-                    </TooltipContent>
+                      <Trash2 className="w-3 h-3 text-destructive" />
+                    </Button>
                   )}
-                </Tooltip>
+                </>
               )}
             </div>
           ))}
@@ -1924,6 +1966,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       onToggle={(itemId) => handleResultChecklistToggle(belief.category, itemId)}
                       onUpdateText={(itemId, text) => handleUpdateCheckpointText(belief.category, itemId, text, 'result')}
                       onAddCheckpoint={(text) => handleAddCheckpoint(belief.category, 'result', text)}
+                      onDeleteCheckpoint={(itemId) => handleDeleteCheckpoint(belief.category, itemId, 'result')}
                       category={belief.category}
                       checklistType="result"
                       disabled={viewingHistory || isAdminView}
@@ -1967,6 +2010,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       onToggle={(itemId) => handleFeelingsChecklistToggle(belief.category, itemId)}
                       onUpdateText={(itemId, text) => handleUpdateCheckpointText(belief.category, itemId, text, 'feelings')}
                       onAddCheckpoint={(text) => handleAddCheckpoint(belief.category, 'feelings', text)}
+                      onDeleteCheckpoint={(itemId) => handleDeleteCheckpoint(belief.category, itemId, 'feelings')}
                       category={belief.category}
                       checklistType="feelings"
                       disabled={viewingHistory || isAdminView}
@@ -2010,6 +2054,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       onToggle={(itemId) => handleBeliefsChecklistToggle(belief.category, itemId)}
                       onUpdateText={(itemId, text) => handleUpdateCheckpointText(belief.category, itemId, text, 'beliefs')}
                       onAddCheckpoint={(text) => handleAddCheckpoint(belief.category, 'beliefs', text)}
+                      onDeleteCheckpoint={(itemId) => handleDeleteCheckpoint(belief.category, itemId, 'beliefs')}
                       category={belief.category}
                       checklistType="beliefs"
                       disabled={viewingHistory || isAdminView}
@@ -2053,6 +2098,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       onToggle={(itemId) => handleActionsChecklistToggle(belief.category, itemId)}
                       onUpdateText={(itemId, text) => handleUpdateCheckpointText(belief.category, itemId, text, 'actions')}
                       onAddCheckpoint={(text) => handleAddCheckpoint(belief.category, 'actions', text)}
+                      onDeleteCheckpoint={(itemId) => handleDeleteCheckpoint(belief.category, itemId, 'actions')}
                       category={belief.category}
                       checklistType="actions"
                       disabled={viewingHistory || isAdminView}
