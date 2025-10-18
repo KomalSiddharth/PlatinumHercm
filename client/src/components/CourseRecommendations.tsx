@@ -22,7 +22,11 @@ interface Recommendation {
   userEmail?: string;
 }
 
-export function CourseRecommendations() {
+interface CourseRecommendationsProps {
+  currentWeek?: number;
+}
+
+export function CourseRecommendations({ currentWeek = 1 }: CourseRecommendationsProps) {
   const { toast } = useToast();
 
   const { data: recommendations = [], isLoading } = useQuery<Recommendation[]>({
@@ -31,12 +35,12 @@ export function CourseRecommendations() {
 
   const acceptMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest('POST', `/api/user/recommendations/${id}/accept`, {});
+      return apiRequest('POST', `/api/user/recommendations/${id}/accept`, { weekNumber: currentWeek });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user/recommendations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/hercm/weeks'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/hercm/week/1'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/hercm/week', currentWeek] });
       toast({ 
         title: "Recommendation Accepted", 
         description: "The course has been added to your Assignment section" 

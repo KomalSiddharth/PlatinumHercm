@@ -2189,6 +2189,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       }
 
       const { id } = req.params;
+      const { weekNumber = 1 } = req.body; // Get week number from request body
       
       // Try to get user by ID first, then by email if ID doesn't work
       let user = await storage.getUser(userId);
@@ -2215,15 +2216,15 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       // Update status to accepted
       await storage.updateRecommendationStatus(id, 'accepted');
 
-      // Get user's current week or create one if it doesn't exist
+      // Get user's week by week number
       let weeks = await storage.getHercmWeeksByUser(user.id);
-      let currentWeek = weeks.length > 0 ? weeks[weeks.length - 1] : null;
+      let currentWeek = weeks.find((w: any) => w.weekNumber === weekNumber);
 
-      // If user has no HRCM weeks, create the first week
+      // If the week doesn't exist, create it
       if (!currentWeek) {
         const newWeek = await storage.createHercmWeek({
           userId: user.id,
-          weekNumber: 1,
+          weekNumber: weekNumber,
           year: new Date().getFullYear(),
           weekStatus: 'active',
         });
