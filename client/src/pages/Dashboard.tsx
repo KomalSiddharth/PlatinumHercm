@@ -128,14 +128,6 @@ export default function Dashboard() {
     enabled: !!currentUser,
   });
   
-  // Auto-set current week from database on load
-  useEffect(() => {
-    if (userWeeks && userWeeks.length > 0) {
-      const latestWeek = Math.max(...userWeeks.map((w: any) => w.weekNumber || 1));
-      setCurrentWeek(latestWeek);
-    }
-  }, [userWeeks]);
-  
   // Map database rituals to Dashboard Ritual interface
   const rituals: Ritual[] = useMemo(() => {
     return dbRituals.map(dbRitual => {
