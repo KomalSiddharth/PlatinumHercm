@@ -251,7 +251,8 @@ export class DatabaseStorage implements IStorage {
       if (week.careerChecklist && Array.isArray(week.careerChecklist) && week.careerChecklist.length > 0) score += 10;
       if (week.moneyChecklist && Array.isArray(week.moneyChecklist) && week.moneyChecklist.length > 0) score += 10;
       // Award points for being recent (newer is slightly better if completeness is equal)
-      score += week.createdAt ? new Date(week.createdAt).getTime() / 1000000000 : 0;
+      // Divide by very large number so timestamp is tie-breaker only (max ~0.17 vs max 140 from data)
+      score += week.createdAt ? new Date(week.createdAt).getTime() / 10000000000000 : 0;
       return score;
     };
     
@@ -306,7 +307,8 @@ export class DatabaseStorage implements IStorage {
       if (hasCareerChecklist) score += 10;
       if (hasMoneyChecklist) score += 10;
       // Award points for being recent (newer is slightly better if completeness is equal)
-      score += week.createdAt ? new Date(week.createdAt).getTime() / 1000000000 : 0;
+      // Divide by very large number so timestamp is tie-breaker only (max ~0.17 vs max 140 from data)
+      score += week.createdAt ? new Date(week.createdAt).getTime() / 10000000000000 : 0;
       
       console.log(`[DEDUP] Week ${week.weekNumber} (${week.createdAt}): assignment=${hasAssignment}, checklists=${hasHealthChecklist}/${hasRelationshipChecklist}/${hasCareerChecklist}/${hasMoneyChecklist}, score=${score}`);
       return score;
