@@ -104,6 +104,7 @@ export interface IStorage {
   
   // Ritual Completions operations
   getRitualCompletionsByDate(userId: string, date: string): Promise<RitualCompletion[]>;
+  getRitualCompletionsByDateRange(userId: string, startDate: string, endDate: string): Promise<RitualCompletion[]>;
   getRitualCompletionsByMonth(userId: string, year: number, month: number): Promise<RitualCompletion[]>;
   createRitualCompletion(completion: InsertRitualCompletion): Promise<RitualCompletion>;
   deleteRitualCompletion(ritualId: string, userId: string, date: string): Promise<number>;
@@ -571,6 +572,17 @@ export class DatabaseStorage implements IStorage {
       .where(and(
         eq(ritualCompletions.userId, userId),
         eq(ritualCompletions.date, date)
+      ));
+  }
+
+  async getRitualCompletionsByDateRange(userId: string, startDate: string, endDate: string): Promise<RitualCompletion[]> {
+    return await db
+      .select()
+      .from(ritualCompletions)
+      .where(and(
+        eq(ritualCompletions.userId, userId),
+        sql`${ritualCompletions.date} >= ${startDate}`,
+        sql`${ritualCompletions.date} <= ${endDate}`
       ));
   }
 

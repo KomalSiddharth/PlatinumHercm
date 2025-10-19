@@ -2636,6 +2636,23 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
+  // Get ritual completions for a date range (used for weekly cumulative points)
+  app.get('/api/ritual-completions/week/:startDate/:endDate', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const { startDate, endDate } = req.params;
+      const completions = await storage.getRitualCompletionsByDateRange(userId, startDate, endDate);
+      res.json(completions);
+    } catch (error) {
+      console.error("Error fetching weekly ritual completions:", error);
+      res.status(500).json({ message: "Failed to fetch weekly ritual completions" });
+    }
+  });
+
   app.post('/api/ritual-completions', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.session.userEmail;
