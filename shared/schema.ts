@@ -170,8 +170,8 @@ export const hercmWeeks = pgTable("hercm_weeks", {
   moneyBeliefsChecklist: jsonb("money_beliefs_checklist").$type<{ id: string; text: string; checked: boolean }[]>(),
   moneyActionsChecklist: jsonb("money_actions_checklist").$type<{ id: string; text: string; checked: boolean }[]>(),
   
-  // Unified Assignment (for all areas)
-  unifiedAssignment: jsonb("unified_assignment").$type<{ id: string; courseId: string; courseName: string; lessonName: string; url: string; completed: boolean }[]>(),
+  // Unified Assignment (for all areas) - includes both user-selected and admin-recommended courses
+  unifiedAssignment: jsonb("unified_assignment").$type<{ id: string; courseId: string; courseName: string; lessonName: string; url: string; completed: boolean; source?: 'user' | 'admin'; recommendationId?: string }[]>(),
   
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

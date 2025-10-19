@@ -2124,102 +2124,180 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   )}
                 </TableCell>
 
-                {/* Unified Assignment Column - Show only for first row with rowspan */}
+                {/* Unified Assignment Column - Compact with Hover Popup (Show only for first row with rowspan) */}
                 {belief.category === 'Health' && (
                   <TableCell rowSpan={4} className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10 align-top">
                     {(() => {
                       const userLessons = unifiedAssignment.filter(l => l.source === 'user' || !l.source);
                       const adminLessons = unifiedAssignment.filter(l => l.source === 'admin');
+                      const allLessons = [...userLessons, ...adminLessons];
+                      const totalCount = allLessons.length;
                       
+                      // Empty state
+                      if (totalCount === 0) {
+                        return (
+                          <div className="text-xs text-muted-foreground italic text-center py-4">
+                            No assignments yet. Check lessons in Course Tracker to add them here.
+                          </div>
+                        );
+                      }
+                      
+                      // Compact view with hover popup (similar to Platinum Standards)
                       return (
-                        <div className="space-y-3">
-                          {/* Course Lessons (User Selected) */}
-                          {userLessons.length > 0 && (
-                            <div className="space-y-1">
-                              <div className="text-xs font-semibold text-cyan-600 dark:text-cyan-400 mb-2">
-                                Course Lessons ({userLessons.length})
+                        <HoverCard openDelay={200}>
+                          <HoverCardTrigger asChild>
+                            <div className="cursor-pointer">
+                              <div className="space-y-2">
+                                {/* User Lessons - Show first 2 */}
+                                {userLessons.length > 0 && (
+                                  <div className="space-y-1">
+                                    <div className="text-xs font-semibold text-cyan-600 dark:text-cyan-400 mb-1">
+                                      Course Lessons ({userLessons.length})
+                                    </div>
+                                    {userLessons.slice(0, 2).map((lesson) => (
+                                      <div key={lesson.id} className="flex items-center gap-2 py-0.5">
+                                        <Checkbox
+                                          checked={lesson.completed}
+                                          onCheckedChange={() => handleUnifiedAssignmentToggle(lesson.id)}
+                                          disabled={viewingHistory || isAdminView}
+                                          className="h-3 w-3"
+                                          data-testid={`checkbox-user-lesson-${lesson.id}`}
+                                        />
+                                        <span className="text-xs line-clamp-1 text-cyan-700 dark:text-cyan-400">
+                                          {lesson.lessonName}
+                                        </span>
+                                      </div>
+                                    ))}
+                                    {userLessons.length > 2 && (
+                                      <div className="text-xs text-muted-foreground italic pl-5">
+                                        + {userLessons.length - 2} more items...
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                                
+                                {/* Admin Lessons - Show first 2 */}
+                                {adminLessons.length > 0 && (
+                                  <div className="space-y-1">
+                                    <div className="text-xs font-semibold text-pink-600 dark:text-pink-400 mb-1">
+                                      Recommended ({adminLessons.length})
+                                    </div>
+                                    {adminLessons.slice(0, 2).map((lesson) => (
+                                      <div key={lesson.id} className="flex items-center gap-2 py-0.5">
+                                        <Checkbox
+                                          checked={lesson.completed}
+                                          onCheckedChange={() => handleUnifiedAssignmentToggle(lesson.id)}
+                                          disabled={viewingHistory || isAdminView}
+                                          className="h-3 w-3"
+                                          data-testid={`checkbox-admin-lesson-${lesson.id}`}
+                                        />
+                                        <span className="text-xs line-clamp-1 text-pink-700 dark:text-pink-400">
+                                          {lesson.lessonName}
+                                        </span>
+                                      </div>
+                                    ))}
+                                    {adminLessons.length > 2 && (
+                                      <div className="text-xs text-muted-foreground italic pl-5">
+                                        + {adminLessons.length - 2} more items...
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
                               </div>
-                              {userLessons.map((lesson) => (
-                                <div key={lesson.id} className="flex items-center gap-2 py-0.5 group/assignment">
-                                  <Checkbox
-                                    checked={lesson.completed}
-                                    onCheckedChange={() => handleUnifiedAssignmentToggle(lesson.id)}
-                                    disabled={viewingHistory || isAdminView}
-                                    className="h-3 w-3"
-                                    data-testid={`checkbox-user-lesson-${lesson.id}`}
-                                  />
-                                  <a
-                                    href={lesson.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-xs hover:underline flex-1 text-cyan-700 dark:text-cyan-400"
-                                    data-testid={`link-user-lesson-${lesson.id}`}
-                                  >
-                                    {lesson.lessonName}
-                                  </a>
-                                  {!viewingHistory && !isAdminView && (
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => handleRemoveUnifiedAssignment(lesson.id)}
-                                      className="h-4 w-4 p-0 opacity-0 group-hover/assignment:opacity-100 transition-opacity shrink-0"
-                                      data-testid={`button-delete-user-lesson-${lesson.id}`}
-                                    >
-                                      <Trash2 className="w-3 h-3 text-destructive" />
-                                    </Button>
-                                  )}
+                            </div>
+                          </HoverCardTrigger>
+                          <HoverCardContent 
+                            side="left" 
+                            align="start" 
+                            className="w-96 max-h-[400px] overflow-y-auto"
+                          >
+                            <div className="space-y-3">
+                              <h4 className="font-semibold text-sm mb-3">
+                                Assignment - All Items ({totalCount})
+                              </h4>
+                              
+                              {/* User Lessons - Full List in Popup */}
+                              {userLessons.length > 0 && (
+                                <div className="space-y-2">
+                                  <div className="text-xs font-semibold text-cyan-600 dark:text-cyan-400 mb-2">
+                                    Course Lessons ({userLessons.length})
+                                  </div>
+                                  {userLessons.map((lesson) => (
+                                    <div key={lesson.id} className="flex items-center gap-2 py-1 group/assignment">
+                                      <Checkbox
+                                        checked={lesson.completed}
+                                        onCheckedChange={() => handleUnifiedAssignmentToggle(lesson.id)}
+                                        disabled={viewingHistory || isAdminView}
+                                        className="h-4 w-4 mt-0.5"
+                                        data-testid={`checkbox-popup-user-lesson-${lesson.id}`}
+                                      />
+                                      <a
+                                        href={lesson.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-xs hover:underline flex-1 text-cyan-700 dark:text-cyan-400 leading-relaxed"
+                                        data-testid={`link-popup-user-lesson-${lesson.id}`}
+                                      >
+                                        {lesson.lessonName}
+                                      </a>
+                                      {!viewingHistory && !isAdminView && (
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          onClick={() => handleRemoveUnifiedAssignment(lesson.id)}
+                                          className="h-4 w-4 p-0 opacity-0 group-hover/assignment:opacity-100 transition-opacity shrink-0"
+                                          data-testid={`button-popup-delete-user-lesson-${lesson.id}`}
+                                        >
+                                          <Trash2 className="w-3 h-3 text-destructive" />
+                                        </Button>
+                                      )}
+                                    </div>
+                                  ))}
                                 </div>
-                              ))}
-                            </div>
-                          )}
-                          
-                          {/* Recommended Lessons (Admin Recommended) */}
-                          {adminLessons.length > 0 && (
-                            <div className="space-y-1">
-                              <div className="text-xs font-semibold text-pink-600 dark:text-pink-400 mb-2">
-                                Recommended Lessons ({adminLessons.length})
-                              </div>
-                              {adminLessons.map((lesson) => (
-                                <div key={lesson.id} className="flex items-center gap-2 py-0.5 group/assignment">
-                                  <Checkbox
-                                    checked={lesson.completed}
-                                    onCheckedChange={() => handleUnifiedAssignmentToggle(lesson.id)}
-                                    disabled={viewingHistory || isAdminView}
-                                    className="h-3 w-3"
-                                    data-testid={`checkbox-admin-lesson-${lesson.id}`}
-                                  />
-                                  <a
-                                    href={lesson.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-xs hover:underline flex-1 text-pink-700 dark:text-pink-400"
-                                    data-testid={`link-admin-lesson-${lesson.id}`}
-                                  >
-                                    {lesson.lessonName}
-                                  </a>
-                                  {!viewingHistory && !isAdminView && (
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => handleRemoveUnifiedAssignment(lesson.id)}
-                                      className="h-4 w-4 p-0 opacity-0 group-hover/assignment:opacity-100 transition-opacity shrink-0"
-                                      data-testid={`button-delete-admin-lesson-${lesson.id}`}
-                                    >
-                                      <Trash2 className="w-3 h-3 text-destructive" />
-                                    </Button>
-                                  )}
+                              )}
+                              
+                              {/* Admin Lessons - Full List in Popup */}
+                              {adminLessons.length > 0 && (
+                                <div className="space-y-2">
+                                  <div className="text-xs font-semibold text-pink-600 dark:text-pink-400 mb-2">
+                                    Recommended Lessons ({adminLessons.length})
+                                  </div>
+                                  {adminLessons.map((lesson) => (
+                                    <div key={lesson.id} className="flex items-center gap-2 py-1 group/assignment">
+                                      <Checkbox
+                                        checked={lesson.completed}
+                                        onCheckedChange={() => handleUnifiedAssignmentToggle(lesson.id)}
+                                        disabled={viewingHistory || isAdminView}
+                                        className="h-4 w-4 mt-0.5"
+                                        data-testid={`checkbox-popup-admin-lesson-${lesson.id}`}
+                                      />
+                                      <a
+                                        href={lesson.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-xs hover:underline flex-1 text-pink-700 dark:text-pink-400 leading-relaxed"
+                                        data-testid={`link-popup-admin-lesson-${lesson.id}`}
+                                      >
+                                        {lesson.lessonName}
+                                      </a>
+                                      {!viewingHistory && !isAdminView && (
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          onClick={() => handleRemoveUnifiedAssignment(lesson.id)}
+                                          className="h-4 w-4 p-0 opacity-0 group-hover/assignment:opacity-100 transition-opacity shrink-0"
+                                          data-testid={`button-popup-delete-admin-lesson-${lesson.id}`}
+                                        >
+                                          <Trash2 className="w-3 h-3 text-destructive" />
+                                        </Button>
+                                      )}
+                                    </div>
+                                  ))}
                                 </div>
-                              ))}
+                              )}
                             </div>
-                          )}
-                          
-                          {/* Empty State */}
-                          {userLessons.length === 0 && adminLessons.length === 0 && (
-                            <div className="text-xs text-muted-foreground italic text-center py-4">
-                              No assignments yet. Check lessons in Course Tracker to add them here.
-                            </div>
-                          )}
-                        </div>
+                          </HoverCardContent>
+                        </HoverCard>
                       );
                     })()}
                   </TableCell>
