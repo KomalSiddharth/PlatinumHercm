@@ -242,16 +242,16 @@ export class DatabaseStorage implements IStorage {
     // Calculate completeness score for each entry
     const calculateCompleteness = (week: HercmWeek): number => {
       let score = 0;
-      // DON'T score assignment - it's handled separately via unifiedAssignment field
-      // Only score based on checklist data presence
+      // Score based on checklist data presence AND unifiedAssignment
       if (week.healthChecklist && Array.isArray(week.healthChecklist) && week.healthChecklist.length > 0) score += 10;
       if (week.relationshipChecklist && Array.isArray(week.relationshipChecklist) && week.relationshipChecklist.length > 0) score += 10;
       if (week.careerChecklist && Array.isArray(week.careerChecklist) && week.careerChecklist.length > 0) score += 10;
       if (week.moneyChecklist && Array.isArray(week.moneyChecklist) && week.moneyChecklist.length > 0) score += 10;
+      if (week.unifiedAssignment && Array.isArray(week.unifiedAssignment) && week.unifiedAssignment.length > 0) score += 10;
       
       // Prefer NEWER data - timestamp is now primary tiebreaker
-      // Divide by smaller number so timestamp weighs more (max ~1.7 vs max 40 from checklists)
-      score += week.createdAt ? new Date(week.createdAt).getTime() / 1000000000000 : 0;
+      // Divide by smaller number so timestamp weighs more (max ~1.7 vs max 50 from checklists+assignment)
+      score += week.createdAt ? new Date(week.createdAt).getTime() / 10000000000000 : 0;
       return score;
     };
     
@@ -296,17 +296,18 @@ export class DatabaseStorage implements IStorage {
       const hasRelationshipChecklist = week.relationshipChecklist && Array.isArray(week.relationshipChecklist) && week.relationshipChecklist.length > 0;
       const hasCareerChecklist = week.careerChecklist && Array.isArray(week.careerChecklist) && week.careerChecklist.length > 0;
       const hasMoneyChecklist = week.moneyChecklist && Array.isArray(week.moneyChecklist) && week.moneyChecklist.length > 0;
+      const hasUnifiedAssignment = week.unifiedAssignment && Array.isArray(week.unifiedAssignment) && week.unifiedAssignment.length > 0;
       
-      // DON'T score assignment - it's handled separately via unifiedAssignment field
-      // Only score based on checklist data presence
+      // Score based on checklist data presence AND unifiedAssignment
       if (hasHealthChecklist) score += 10;
       if (hasRelationshipChecklist) score += 10;
       if (hasCareerChecklist) score += 10;
       if (hasMoneyChecklist) score += 10;
+      if (hasUnifiedAssignment) score += 10;  // Add 10 points for having assignment data
       
       // Prefer NEWER data - timestamp is now primary tiebreaker
-      // Divide by smaller number so timestamp weighs more (max ~1.7 vs max 40 from checklists)
-      score += week.createdAt ? new Date(week.createdAt).getTime() / 1000000000000 : 0;
+      // Divide by smaller number so timestamp weighs more (max ~1.7 vs max 50 from checklists+assignment)
+      score += week.createdAt ? new Date(week.createdAt).getTime() / 10000000000000 : 0;
       
       return score;
     };
