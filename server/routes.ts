@@ -2752,15 +2752,22 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
           const userRituals = await storage.getRitualsByUser(user.id);
           const weeklyCompletions = await storage.getRitualCompletionsByDateRange(user.id, weekStartDate, weekEndDate);
           
-          // Calculate cumulative points from all weekly completions
-          const points = weeklyCompletions.reduce((sum, completion) => {
+          // Calculate cumulative points from all weekly ritual completions
+          const ritualPoints = weeklyCompletions.reduce((sum, completion) => {
             const ritual = userRituals.find(r => r.id === completion.ritualId);
             if (!ritual || !ritual.isActive) return sum;
             
             // Use custom points from database, fallback to 50 if not set
-            const ritualPoints = ritual.points || 50;
-            return sum + ritualPoints;
+            const points = ritual.points || 50;
+            return sum + points;
           }, 0);
+          
+          // Get all course lesson completions for this user (each lesson = 10 points)
+          const lessonCompletions = await storage.getAllCourseVideoCompletions(user.id);
+          const lessonPoints = lessonCompletions.length * 10;
+          
+          // Total points = ritual points + lesson points
+          const points = ritualPoints + lessonPoints;
           
           // Get display name - prioritize firstName/lastName, then approved email name, then email
           let displayName = '';

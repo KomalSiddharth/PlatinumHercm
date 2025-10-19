@@ -122,6 +122,7 @@ export interface IStorage {
   
   // Course Video Completions operations
   getCourseVideoCompletions(userId: string, courseId: string): Promise<CourseVideoCompletion[]>;
+  getAllCourseVideoCompletions(userId: string): Promise<CourseVideoCompletion[]>;
   toggleVideoCompletion(userId: string, videoId: string): Promise<{ completed: boolean }>;
   
   // Rating Progression operations
@@ -781,6 +782,14 @@ export class DatabaseStorage implements IStorage {
         eq(courseVideoCompletions.userId, userId),
         sql`${courseVideoCompletions.videoId} LIKE ${courseId + '-%'}`
       ));
+  }
+
+  async getAllCourseVideoCompletions(userId: string): Promise<CourseVideoCompletion[]> {
+    // Get all video completions for this user across all courses
+    return await db
+      .select()
+      .from(courseVideoCompletions)
+      .where(eq(courseVideoCompletions.userId, userId));
   }
 
   async toggleVideoCompletion(userId: string, videoId: string): Promise<{ completed: boolean }> {
