@@ -17,15 +17,17 @@ The dashboard uses a clean, responsive "New York" style design with shadcn/ui co
 - **Data Storage**: Drizzle ORM with an `IStorage` interface, Zod validation for schemas, and Drizzle Kit for migrations.
 
 ### Feature Specifications
-- **Core Tracking**: Weekly HRCM scoring, daily ritual tracking, and comprehensive course progress monitoring.
+- **Core Tracking**: Weekly HRCM scoring, daily ritual tracking, and comprehensive course progress monitoring with persistent course lesson checkboxes (saved to `course_video_completions` table, auto-loaded on mount).
 - **Goal Management**: "Platinum Streak" for consistent engagement, "Platinum Standards" badge for sustained high performance (8+ average across HRCM for 4 consecutive weeks), and a rating increment constraint system (max rating of 7, progressing to 8).
 - **Personalization & AI**: AI-powered course recommendations, AI-driven auto-fill for "Next Week Target" suggestions (problems, feelings, actions), and smart AI insights for HRCM patterns.
-- **Reporting & Analytics**: PDF export for weekly/monthly HRCM reports, detailed weekly progress analytics with graphical representations, and team analytics with period filtering and a top 10 leaderboard.
+- **Reporting & Analytics**: PDF export for weekly/monthly HRCM reports, detailed weekly progress analytics with graphical representations, and team analytics with period filtering and top 10 leaderboard (shows only approved users with proper names, no emails).
 - **Interactive Elements**: Auto-save on field blur, automatic week progression, "Next Week Target Checklist System" with auto-conversion of text to interactive checkpoints, and manual checkpoint management.
-- **User Interface**: Compact views with tooltips for efficient data display, and popup dialog editing for Current Week fields.
-- **Admin Functionality**: Enhanced admin panel with user analytics, course recommendation management (add/delete), and approved email filtering for all analytics.
+- **User Interface**: Compact views with tooltips for efficient data display, popup dialog editing for Current Week fields, and hover popup cards for long lists (Platinum Standards, Assignment column).
+- **Admin Functionality**: Enhanced admin panel with user analytics, course recommendation management (add/delete), approved email filtering for all analytics, and ability to recommend courses that persist in users' Assignment column across sessions.
+- **Assignment Column**: Unified Assignment column with dual-source display (user-selected Course Lessons in cyan + admin-recommended in pink). Compact view shows first 2 items per category with "+ X more items..." indicator. Hover triggers popup card (w-96, max-h-400px) showing complete list with checkboxes, clickable links, and delete buttons. All assignments persist across refresh/login via `unifiedAssignment` JSONB field with `source` and `recommendationId` tracking.
 - **Notifications**: Optional email reminders and Platinum badge notifications.
 - **Authentication**: Strict authentication for dashboard and admin panel with role-based access.
+- **Ready for Live Publication**: All features tested with real approved users, proper name display throughout (leaderboard, analytics), and reliable data persistence (Oct 19, 2025).
 
 ## External Dependencies
 
