@@ -558,37 +558,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (viewType === 'weekly') {
         // Group by week and calculate averages
         const weeklyData: Array<{ week: string; Health: number; Relationship: number; Career: number; Money: number }> = [];
-        const weekMap = new Map();
-
-        weeks.forEach((w: any) => {
-          if (!weekMap.has(w.weekNumber)) {
-            weekMap.set(w.weekNumber, []);
+        
+        // Calculate progress based on ACTUAL checklist length, not hardcoded 4
+        const calculateProgress = (checklistData: any) => {
+          if (!checklistData) {
+            console.log('[ANALYTICS] Checklist data is null/undefined');
+            return 0;
           }
-          weekMap.get(w.weekNumber).push(w);
-        });
-
-        Array.from(weekMap.entries()).forEach(([weekNum, weekData]) => {
-          const latest = weekData[weekData.length - 1]; // Get latest snapshot
+          // Handle both JSON string and already-parsed array
+          const checklist = typeof checklistData === 'string' 
+            ? JSON.parse(checklistData) 
+            : checklistData;
+          if (!Array.isArray(checklist) || checklist.length === 0) {
+            console.log('[ANALYTICS] Checklist is not array or empty:', checklist);
+            return 0;
+          }
+          const checked = checklist.filter((c: any) => c.checked).length;
+          const progress = (checked / checklist.length) * 100;
+          console.log('[ANALYTICS] Checklist progress:', { checked, total: checklist.length, progress });
+          return progress;
+        };
+        
+        // For each unique week number, calculate progress
+        weeks.forEach((week: any) => {
+          // Skip if we already processed this week
+          if (weeklyData.some(w => w.week === `W${week.weekNumber}`)) {
+            return;
+          }
           
-          // Calculate progress based on ACTUAL checklist length, not hardcoded 4
-          const calculateProgress = (checklistData: any) => {
-            if (!checklistData) return 0;
-            // Handle both JSON string and already-parsed array
-            const checklist = typeof checklistData === 'string' 
-              ? JSON.parse(checklistData) 
-              : checklistData;
-            if (!Array.isArray(checklist) || checklist.length === 0) return 0;
-            const checked = checklist.filter((c: any) => c.checked).length;
-            return (checked / checklist.length) * 100;
-          };
-          
-          const healthProgress = calculateProgress(latest.healthChecklist);
-          const relationshipProgress = calculateProgress(latest.relationshipChecklist);
-          const careerProgress = calculateProgress(latest.careerChecklist);
-          const moneyProgress = calculateProgress(latest.moneyChecklist);
+          console.log(`[ANALYTICS] Processing Week ${week.weekNumber}`);
+          const healthProgress = calculateProgress(week.healthChecklist);
+          const relationshipProgress = calculateProgress(week.relationshipChecklist);
+          const careerProgress = calculateProgress(week.careerChecklist);
+          const moneyProgress = calculateProgress(week.moneyChecklist);
 
           weeklyData.push({
-            week: `W${weekNum}`,
+            week: `W${week.weekNumber}`,
             Health: Math.round(healthProgress),
             Relationship: Math.round(relationshipProgress),
             Career: Math.round(careerProgress),
@@ -596,6 +601,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         });
 
+        console.log('[ANALYTICS] Final weeklyData:', weeklyData);
         res.json({ weeklyData: weeklyData.slice(-5) }); // Last 5 weeks
       } else if (viewType === 'monthly') {
         // Group by month and calculate averages

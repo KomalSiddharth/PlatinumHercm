@@ -238,14 +238,36 @@ export class DatabaseStorage implements IStorage {
     
     if (allWeeks.length === 0) return undefined;
     
-    // Prefer entry with unifiedAssignment data, otherwise take latest
-    const weekWithAssignment = allWeeks.find(w => 
-      w.unifiedAssignment && 
-      Array.isArray(w.unifiedAssignment) && 
-      w.unifiedAssignment.length > 0
-    );
+    // Calculate completeness score for each entry
+    const calculateCompleteness = (week: HercmWeek): number => {
+      let score = 0;
+      // Award points for having assignment data
+      if (week.unifiedAssignment && Array.isArray(week.unifiedAssignment) && week.unifiedAssignment.length > 0) {
+        score += 100;
+      }
+      // Award points for having checklist data
+      if (week.healthChecklist && Array.isArray(week.healthChecklist) && week.healthChecklist.length > 0) score += 10;
+      if (week.relationshipChecklist && Array.isArray(week.relationshipChecklist) && week.relationshipChecklist.length > 0) score += 10;
+      if (week.careerChecklist && Array.isArray(week.careerChecklist) && week.careerChecklist.length > 0) score += 10;
+      if (week.moneyChecklist && Array.isArray(week.moneyChecklist) && week.moneyChecklist.length > 0) score += 10;
+      // Award points for being recent (newer is slightly better if completeness is equal)
+      score += week.createdAt ? new Date(week.createdAt).getTime() / 1000000000 : 0;
+      return score;
+    };
     
-    return weekWithAssignment || allWeeks[0];
+    // Find the entry with the highest completeness score
+    let bestWeek = allWeeks[0];
+    let bestScore = calculateCompleteness(bestWeek);
+    
+    for (const week of allWeeks) {
+      const score = calculateCompleteness(week);
+      if (score > bestScore) {
+        bestWeek = week;
+        bestScore = score;
+      }
+    }
+    
+    return bestWeek;
   }
 
   async getHercmWeekById(id: string): Promise<HercmWeek | undefined> {
@@ -265,25 +287,46 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(hercmWeeks.createdAt));
     
     // Keep only the BEST entry for each week number
-    // Prefer entries with unifiedAssignment data, otherwise take latest
+    // Score each entry based on completeness (prefer more complete data)
     const weekMap = new Map<number, HercmWeek>();
+    
+    const calculateCompleteness = (week: HercmWeek): number => {
+      let score = 0;
+      const hasAssignment = week.unifiedAssignment && Array.isArray(week.unifiedAssignment) && week.unifiedAssignment.length > 0;
+      const hasHealthChecklist = week.healthChecklist && Array.isArray(week.healthChecklist) && week.healthChecklist.length > 0;
+      const hasRelationshipChecklist = week.relationshipChecklist && Array.isArray(week.relationshipChecklist) && week.relationshipChecklist.length > 0;
+      const hasCareerChecklist = week.careerChecklist && Array.isArray(week.careerChecklist) && week.careerChecklist.length > 0;
+      const hasMoneyChecklist = week.moneyChecklist && Array.isArray(week.moneyChecklist) && week.moneyChecklist.length > 0;
+      
+      // Award points for having assignment data
+      if (hasAssignment) score += 100;
+      // Award points for having checklist data
+      if (hasHealthChecklist) score += 10;
+      if (hasRelationshipChecklist) score += 10;
+      if (hasCareerChecklist) score += 10;
+      if (hasMoneyChecklist) score += 10;
+      // Award points for being recent (newer is slightly better if completeness is equal)
+      score += week.createdAt ? new Date(week.createdAt).getTime() / 1000000000 : 0;
+      
+      console.log(`[DEDUP] Week ${week.weekNumber} (${week.createdAt}): assignment=${hasAssignment}, checklists=${hasHealthChecklist}/${hasRelationshipChecklist}/${hasCareerChecklist}/${hasMoneyChecklist}, score=${score}`);
+      return score;
+    };
+    
     for (const week of allWeeks) {
       if (!weekMap.has(week.weekNumber)) {
-        // No entry yet, add this one
+        console.log(`[DEDUP] Week ${week.weekNumber}: First entry, adding`);
         weekMap.set(week.weekNumber, week);
       } else {
-        // Entry exists, replace if this one has more complete data
         const existing = weekMap.get(week.weekNumber)!;
-        const existingHasAssignment = existing.unifiedAssignment && 
-          Array.isArray(existing.unifiedAssignment) && 
-          existing.unifiedAssignment.length > 0;
-        const newHasAssignment = week.unifiedAssignment && 
-          Array.isArray(week.unifiedAssignment) && 
-          week.unifiedAssignment.length > 0;
+        const existingScore = calculateCompleteness(existing);
+        const newScore = calculateCompleteness(week);
         
-        // Replace if new entry has assignment data but existing doesn't
-        if (newHasAssignment && !existingHasAssignment) {
+        // Replace if new entry has higher completeness score
+        if (newScore > existingScore) {
+          console.log(`[DEDUP] Week ${week.weekNumber}: Replacing (new score ${newScore} > existing ${existingScore})`);
           weekMap.set(week.weekNumber, week);
+        } else {
+          console.log(`[DEDUP] Week ${week.weekNumber}: Keeping existing (new score ${newScore} <= existing ${existingScore})`);
         }
       }
     }
