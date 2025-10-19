@@ -248,12 +248,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getHercmWeeksByUser(userId: string): Promise<HercmWeek[]> {
-    // Get ALL snapshots sorted by date (newest first) for history display
-    return await db
+    // Get ALL weeks and then filter to latest per week number
+    const allWeeks = await db
       .select()
       .from(hercmWeeks)
       .where(eq(hercmWeeks.userId, userId))
       .orderBy(desc(hercmWeeks.createdAt));
+    
+    // Keep only the latest entry for each week number
+    const weekMap = new Map<number, HercmWeek>();
+    for (const week of allWeeks) {
+      if (!weekMap.has(week.weekNumber)) {
+        weekMap.set(week.weekNumber, week);
+      }
+    }
+    
+    // Convert back to array, sorted by week number descending
+    return Array.from(weekMap.values()).sort((a, b) => b.weekNumber - a.weekNumber);
   }
 
   async createHercmWeek(weekData: InsertHercmWeek): Promise<HercmWeek> {
