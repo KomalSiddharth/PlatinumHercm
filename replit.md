@@ -14,7 +14,7 @@ The dashboard uses a clean, responsive "New York" style design with shadcn/ui co
 ### Technical Implementations
 - **Frontend**: React with Vite, shadcn/ui, Tailwind CSS, TanStack Query, and Wouter for routing.
 - **Backend**: Express.js with TypeScript (ES Modules), PostgreSQL with Drizzle ORM (`@neondatabase/serverless`), and `connect-pg-simple` for session management. Authentication is session-based with `bcrypt` and role-based access control.
-- **Data Storage**: Drizzle ORM with an `IStorage` interface, Zod validation for schemas, and Drizzle Kit for migrations.
+- **Data Storage**: Drizzle ORM with an `IStorage` interface, Zod validation for schemas, and Drizzle Kit for migrations. **Deduplication Scoring**: When multiple database rows exist for the same week, the system selects the most complete row using a scoring formula: `healthChecklist (10 pts) + relationshipChecklist (10 pts) + careerChecklist (10 pts) + moneyChecklist (10 pts) + unifiedAssignment (10 pts) + timestamp/10000000000000 (~0.17 tiebreaker)`. This ensures admin recommendations in `unifiedAssignment` are preserved during row selection.
 
 ### Feature Specifications
 - **Core Tracking**: Weekly HRCM scoring, daily ritual tracking, and comprehensive course progress monitoring with persistent course lesson checkboxes (saved to `course_video_completions` table, auto-loaded on mount).
