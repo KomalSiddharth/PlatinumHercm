@@ -41,6 +41,26 @@ const getTodayDate = () => {
   return today.toISOString().split('T')[0];
 };
 
+// Helper function to get current week's start date (Monday) in YYYY-MM-DD format
+const getWeekStartDate = () => {
+  const today = new Date();
+  const day = today.getDay();
+  const diff = day === 0 ? -6 : 1 - day; // If Sunday (0), go back 6 days, else go to Monday
+  const monday = new Date(today);
+  monday.setDate(today.getDate() + diff);
+  return monday.toISOString().split('T')[0];
+};
+
+// Helper function to get current week's end date (Sunday) in YYYY-MM-DD format
+const getWeekEndDate = () => {
+  const today = new Date();
+  const day = today.getDay();
+  const diff = day === 0 ? 0 : 7 - day; // If Sunday, stay same, else go to next Sunday
+  const sunday = new Date(today);
+  sunday.setDate(today.getDate() + diff);
+  return sunday.toISOString().split('T')[0];
+};
+
 // Helper function to generate current month history
 const generateCurrentMonthHistory = (completions: RitualCompletion[] = []) => {
   const now = new Date();
@@ -95,6 +115,8 @@ export default function Dashboard() {
   const [totalPoints, setTotalPoints] = useState(0);
   
   const todayDate = useMemo(() => getTodayDate(), []);
+  const weekStartDate = useMemo(() => getWeekStartDate(), []);
+  const weekEndDate = useMemo(() => getWeekEndDate(), []);
   const currentMonth = useMemo(() => new Date().getMonth(), []);
   const currentYear = useMemo(() => new Date().getFullYear(), []);
   
@@ -110,9 +132,19 @@ export default function Dashboard() {
     enabled: !!currentUser, // Only fetch when user is authenticated
   });
   
-  // Fetch today's ritual completions (for today's status)
+  // Fetch today's ritual completions (for today's checkbox status)
   const { data: todayCompletions = [] } = useQuery<RitualCompletion[]>({
     queryKey: ['/api/ritual-completions', todayDate],
+    enabled: !!currentUser,
+  });
+
+  // Fetch current week's ritual completions (for cumulative weekly points)
+  const { data: weeklyCompletions = [] } = useQuery<RitualCompletion[]>({
+    queryKey: ['/api/ritual-completions/week', weekStartDate, weekEndDate],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/ritual-completions/week/${weekStartDate}/${weekEndDate}`);
+      return response.json();
+    },
     enabled: !!currentUser,
   });
 
@@ -1665,11 +1697,16 @@ export default function Dashboard() {
     loadCompletions();
   }, [currentUser]); // Only run when user is loaded
 
-  // Calculate total points from completed rituals and lessons
+  // Calculate total points from WEEKLY completed rituals and lessons (CUMULATIVE)
   useEffect(() => {
-    const ritualPoints = rituals
-      .filter(r => r.completed)
-      .reduce((sum, r) => sum + r.points, 0);
+    // Calculate cumulative ritual points from all completions this week
+    const ritualPoints = weeklyCompletions.reduce((sum, completion) => {
+      const ritual = dbRituals.find(r => r.id === completion.ritualId);
+      if (ritual && ritual.isActive) {
+        return sum + (ritual.points || 50);
+      }
+      return sum;
+    }, 0);
     
     const lessonPoints = courses
       .reduce((sum, course) => {
@@ -1680,7 +1717,7 @@ export default function Dashboard() {
       }, 0);
     
     setTotalPoints(ritualPoints + lessonPoints);
-  }, [rituals, courses]);
+  }, [weeklyCompletions, dbRituals, courses]);
 
   // Fetch live leaderboard data
   const { data: leaderboardData = [] } = useQuery<Array<{
