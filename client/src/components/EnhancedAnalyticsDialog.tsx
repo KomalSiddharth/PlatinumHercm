@@ -26,27 +26,15 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
     weeklyData?: Array<{ week: string; Health: number; Relationship: number; Career: number; Money: number }>;
     monthlyData?: Array<{ month: string; Health: number; Relationship: number; Career: number; Money: number }>;
   }>({
-    queryKey: ['/api/analytics/progress', viewType, selectedDate.getFullYear(), selectedDate.getMonth() + 1, selectedWeek],
+    queryKey: [`/api/analytics/progress?viewType=${viewType}&year=${selectedDate.getFullYear()}&month=${selectedDate.getMonth() + 1}&week=${selectedWeek}`],
     enabled: open,
   });
 
   const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-  // Generate weekly data for bar/line charts
-  const weeklyData = analyticsData?.weeklyData || [
-    { week: 'W1', Health: 65, Relationship: 70, Career: 75, Money: 60 },
-    { week: 'W2', Health: 70, Relationship: 75, Career: 80, Money: 65 },
-    { week: 'W3', Health: 75, Relationship: 80, Career: 85, Money: 70 },
-    { week: 'W4', Health: 80, Relationship: 85, Career: 90, Money: 75 },
-  ];
-
-  // Generate monthly data
-  const monthlyData = analyticsData?.monthlyData || [
-    { month: 'Jan', Health: 70, Relationship: 75, Career: 80, Money: 65 },
-    { month: 'Feb', Health: 72, Relationship: 77, Career: 82, Money: 68 },
-    { month: 'Mar', Health: 75, Relationship: 80, Career: 85, Money: 72 },
-    { month: 'Apr', Health: 78, Relationship: 83, Career: 88, Money: 75 },
-  ];
+  // Use REAL data from API - no fake fallback data
+  const weeklyData = analyticsData?.weeklyData || [];
+  const monthlyData = analyticsData?.monthlyData || [];
 
   const currentData = viewType === 'weekly' ? weeklyData : monthlyData;
 

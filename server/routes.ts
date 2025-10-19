@@ -571,10 +571,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const latest = weekData[weekData.length - 1]; // Get latest snapshot
           
           // Calculate progress based on ACTUAL checklist length, not hardcoded 4
-          const calculateProgress = (checklistJson: string) => {
-            if (!checklistJson) return 0;
-            const checklist = JSON.parse(checklistJson);
-            if (checklist.length === 0) return 0;
+          const calculateProgress = (checklistData: any) => {
+            if (!checklistData) return 0;
+            // Handle both JSON string and already-parsed array
+            const checklist = typeof checklistData === 'string' 
+              ? JSON.parse(checklistData) 
+              : checklistData;
+            if (!Array.isArray(checklist) || checklist.length === 0) return 0;
             const checked = checklist.filter((c: any) => c.checked).length;
             return (checked / checklist.length) * 100;
           };
@@ -611,10 +614,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         
         // Helper to calculate progress based on ACTUAL checklist length
-        const calculateProgress = (checklistJson: string) => {
-          if (!checklistJson) return 0;
-          const checklist = JSON.parse(checklistJson);
-          if (checklist.length === 0) return 0;
+        const calculateProgress = (checklistData: any) => {
+          if (!checklistData) return 0;
+          // Handle both JSON string and already-parsed array
+          const checklist = typeof checklistData === 'string' 
+            ? JSON.parse(checklistData) 
+            : checklistData;
+          if (!Array.isArray(checklist) || checklist.length === 0) return 0;
           const checked = checklist.filter((c: any) => c.checked).length;
           return (checked / checklist.length) * 100;
         };
