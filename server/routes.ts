@@ -2690,11 +2690,24 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
-  // Leaderboard endpoint - Multi-user ritual points (Approved users only)
+  // Leaderboard endpoint - Multi-user ritual points (Approved users only) - WEEKLY CUMULATIVE
   app.get('/api/leaderboard', isAuthenticated, async (req: any, res) => {
     try {
       const currentUserId = req.user?.claims?.sub || req.session.userEmail;
-      const todayDate = new Date().toISOString().split('T')[0];
+      
+      // Calculate current week's start and end dates (Monday to Sunday)
+      const today = new Date();
+      const day = today.getDay();
+      const diffToMonday = day === 0 ? -6 : 1 - day;
+      const diffToSunday = day === 0 ? 0 : 7 - day;
+      
+      const weekStart = new Date(today);
+      weekStart.setDate(today.getDate() + diffToMonday);
+      const weekStartDate = weekStart.toISOString().split('T')[0];
+      
+      const weekEnd = new Date(today);
+      weekEnd.setDate(today.getDate() + diffToSunday);
+      const weekEndDate = weekEnd.toISOString().split('T')[0];
       
       // Get approved emails and filter for active users only
       const approvedEmailsList = await storage.getAllApprovedEmails();
@@ -2706,16 +2719,16 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         (u.email && approvedEmailSet.has(u.email)) || approvedEmailSet.has(u.id)
       );
       
-      // Calculate points for each approved user only
+      // Calculate WEEKLY CUMULATIVE points for each approved user
       const leaderboardData = await Promise.all(
         approvedUsers.map(async (user) => {
           const userRituals = await storage.getRitualsByUser(user.id);
-          const todayCompletions = await storage.getRitualCompletionsByDate(user.id, todayDate);
+          const weeklyCompletions = await storage.getRitualCompletionsByDateRange(user.id, weekStartDate, weekEndDate);
           
-          // Calculate points using actual ritual.points from database
-          const points = userRituals.reduce((sum, ritual) => {
-            const isCompleted = todayCompletions.some(c => c.ritualId === ritual.id);
-            if (!isCompleted || !ritual.isActive) return sum;
+          // Calculate cumulative points from all weekly completions
+          const points = weeklyCompletions.reduce((sum, completion) => {
+            const ritual = userRituals.find(r => r.id === completion.ritualId);
+            if (!ritual || !ritual.isActive) return sum;
             
             // Use custom points from database, fallback to 50 if not set
             const ritualPoints = ritual.points || 50;
