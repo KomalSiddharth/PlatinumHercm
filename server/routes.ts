@@ -569,10 +569,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         Array.from(weekMap.entries()).forEach(([weekNum, weekData]) => {
           const latest = weekData[weekData.length - 1]; // Get latest snapshot
-          const healthProgress = latest.healthChecklist ? JSON.parse(latest.healthChecklist).filter((c: any) => c.checked).length / 4 * 100 : 0;
-          const relationshipProgress = latest.relationshipChecklist ? JSON.parse(latest.relationshipChecklist).filter((c: any) => c.checked).length / 4 * 100 : 0;
-          const careerProgress = latest.careerChecklist ? JSON.parse(latest.careerChecklist).filter((c: any) => c.checked).length / 4 * 100 : 0;
-          const moneyProgress = latest.moneyChecklist ? JSON.parse(latest.moneyChecklist).filter((c: any) => c.checked).length / 4 * 100 : 0;
+          
+          // Calculate progress based on ACTUAL checklist length, not hardcoded 4
+          const calculateProgress = (checklistJson: string) => {
+            if (!checklistJson) return 0;
+            const checklist = JSON.parse(checklistJson);
+            if (checklist.length === 0) return 0;
+            const checked = checklist.filter((c: any) => c.checked).length;
+            return (checked / checklist.length) * 100;
+          };
+          
+          const healthProgress = calculateProgress(latest.healthChecklist);
+          const relationshipProgress = calculateProgress(latest.relationshipChecklist);
+          const careerProgress = calculateProgress(latest.careerChecklist);
+          const moneyProgress = calculateProgress(latest.moneyChecklist);
 
           weeklyData.push({
             week: `W${weekNum}`,
@@ -600,26 +610,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         
+        // Helper to calculate progress based on ACTUAL checklist length
+        const calculateProgress = (checklistJson: string) => {
+          if (!checklistJson) return 0;
+          const checklist = JSON.parse(checklistJson);
+          if (checklist.length === 0) return 0;
+          const checked = checklist.filter((c: any) => c.checked).length;
+          return (checked / checklist.length) * 100;
+        };
+        
         Array.from(monthMap.entries()).forEach(([monthKey, monthWeeks]) => {
           const [year, month] = monthKey.split('-');
           const avgHealth = Math.round(monthWeeks.reduce((sum: number, w: any) => {
-            const progress = w.healthChecklist ? JSON.parse(w.healthChecklist).filter((c: any) => c.checked).length / 4 * 100 : 0;
-            return sum + progress;
+            return sum + calculateProgress(w.healthChecklist);
           }, 0) / monthWeeks.length);
 
           const avgRelationship = Math.round(monthWeeks.reduce((sum: number, w: any) => {
-            const progress = w.relationshipChecklist ? JSON.parse(w.relationshipChecklist).filter((c: any) => c.checked).length / 4 * 100 : 0;
-            return sum + progress;
+            return sum + calculateProgress(w.relationshipChecklist);
           }, 0) / monthWeeks.length);
 
           const avgCareer = Math.round(monthWeeks.reduce((sum: number, w: any) => {
-            const progress = w.careerChecklist ? JSON.parse(w.careerChecklist).filter((c: any) => c.checked).length / 4 * 100 : 0;
-            return sum + progress;
+            return sum + calculateProgress(w.careerChecklist);
           }, 0) / monthWeeks.length);
 
           const avgMoney = Math.round(monthWeeks.reduce((sum: number, w: any) => {
-            const progress = w.moneyChecklist ? JSON.parse(w.moneyChecklist).filter((c: any) => c.checked).length / 4 * 100 : 0;
-            return sum + progress;
+            return sum + calculateProgress(w.moneyChecklist);
           }, 0) / monthWeeks.length);
 
           monthlyData.push({
