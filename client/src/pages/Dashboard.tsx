@@ -13,6 +13,7 @@ import UpdateProgressModal from '@/components/UpdateProgressModal';
 import BadgeDisplayCard from '@/components/BadgeDisplayCard';
 import UserActivitySearch from '@/components/UserActivitySearch';
 import { CourseRecommendations } from '@/components/CourseRecommendations';
+import HRCMHistorySection from '@/components/HRCMHistorySection';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
@@ -2141,6 +2142,11 @@ export default function Dashboard() {
             leaderboardEntries={leaderboardEntries} 
             currentUserId={currentUser?.id}
           />
+          
+          {/* Weekly Progress Graphs */}
+          <div className="mt-8" data-testid="section-weekly-progress">
+            <HRCMHistorySection currentWeek={currentWeek} />
+          </div>
         </section>
       </main>
 
