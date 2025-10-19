@@ -226,17 +226,26 @@ export class DatabaseStorage implements IStorage {
 
   // HERCM Week operations
   async getHercmWeek(userId: string, weekNumber: number): Promise<HercmWeek | undefined> {
-    // Get the LATEST snapshot for this week number (for displaying current week)
-    const [week] = await db
+    // Get ALL snapshots for this week number and pick the BEST one
+    const allWeeks = await db
       .select()
       .from(hercmWeeks)
       .where(and(
         eq(hercmWeeks.userId, userId),
         eq(hercmWeeks.weekNumber, weekNumber)
       ))
-      .orderBy(desc(hercmWeeks.createdAt))
-      .limit(1);
-    return week;
+      .orderBy(desc(hercmWeeks.createdAt));
+    
+    if (allWeeks.length === 0) return undefined;
+    
+    // Prefer entry with unifiedAssignment data, otherwise take latest
+    const weekWithAssignment = allWeeks.find(w => 
+      w.unifiedAssignment && 
+      Array.isArray(w.unifiedAssignment) && 
+      w.unifiedAssignment.length > 0
+    );
+    
+    return weekWithAssignment || allWeeks[0];
   }
 
   async getHercmWeekById(id: string): Promise<HercmWeek | undefined> {
@@ -255,11 +264,27 @@ export class DatabaseStorage implements IStorage {
       .where(eq(hercmWeeks.userId, userId))
       .orderBy(desc(hercmWeeks.createdAt));
     
-    // Keep only the latest entry for each week number
+    // Keep only the BEST entry for each week number
+    // Prefer entries with unifiedAssignment data, otherwise take latest
     const weekMap = new Map<number, HercmWeek>();
     for (const week of allWeeks) {
       if (!weekMap.has(week.weekNumber)) {
+        // No entry yet, add this one
         weekMap.set(week.weekNumber, week);
+      } else {
+        // Entry exists, replace if this one has more complete data
+        const existing = weekMap.get(week.weekNumber)!;
+        const existingHasAssignment = existing.unifiedAssignment && 
+          Array.isArray(existing.unifiedAssignment) && 
+          existing.unifiedAssignment.length > 0;
+        const newHasAssignment = week.unifiedAssignment && 
+          Array.isArray(week.unifiedAssignment) && 
+          week.unifiedAssignment.length > 0;
+        
+        // Replace if new entry has assignment data but existing doesn't
+        if (newHasAssignment && !existingHasAssignment) {
+          weekMap.set(week.weekNumber, week);
+        }
       }
     }
     
