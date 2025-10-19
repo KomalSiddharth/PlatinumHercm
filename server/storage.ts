@@ -241,18 +241,16 @@ export class DatabaseStorage implements IStorage {
     // Calculate completeness score for each entry
     const calculateCompleteness = (week: HercmWeek): number => {
       let score = 0;
-      // Award points for having assignment data
-      if (week.unifiedAssignment && Array.isArray(week.unifiedAssignment) && week.unifiedAssignment.length > 0) {
-        score += 100;
-      }
-      // Award points for having checklist data
+      // DON'T score assignment - it's handled separately via unifiedAssignment field
+      // Only score based on checklist data presence
       if (week.healthChecklist && Array.isArray(week.healthChecklist) && week.healthChecklist.length > 0) score += 10;
       if (week.relationshipChecklist && Array.isArray(week.relationshipChecklist) && week.relationshipChecklist.length > 0) score += 10;
       if (week.careerChecklist && Array.isArray(week.careerChecklist) && week.careerChecklist.length > 0) score += 10;
       if (week.moneyChecklist && Array.isArray(week.moneyChecklist) && week.moneyChecklist.length > 0) score += 10;
-      // Award points for being recent (newer is slightly better if completeness is equal)
-      // Divide by very large number so timestamp is tie-breaker only (max ~0.17 vs max 140 from data)
-      score += week.createdAt ? new Date(week.createdAt).getTime() / 10000000000000 : 0;
+      
+      // Prefer NEWER data - timestamp is now primary tiebreaker
+      // Divide by smaller number so timestamp weighs more (max ~1.7 vs max 40 from checklists)
+      score += week.createdAt ? new Date(week.createdAt).getTime() / 1000000000000 : 0;
       return score;
     };
     
@@ -293,30 +291,27 @@ export class DatabaseStorage implements IStorage {
     
     const calculateCompleteness = (week: HercmWeek): number => {
       let score = 0;
-      const hasAssignment = week.unifiedAssignment && Array.isArray(week.unifiedAssignment) && week.unifiedAssignment.length > 0;
       const hasHealthChecklist = week.healthChecklist && Array.isArray(week.healthChecklist) && week.healthChecklist.length > 0;
       const hasRelationshipChecklist = week.relationshipChecklist && Array.isArray(week.relationshipChecklist) && week.relationshipChecklist.length > 0;
       const hasCareerChecklist = week.careerChecklist && Array.isArray(week.careerChecklist) && week.careerChecklist.length > 0;
       const hasMoneyChecklist = week.moneyChecklist && Array.isArray(week.moneyChecklist) && week.moneyChecklist.length > 0;
       
-      // Award points for having assignment data
-      if (hasAssignment) score += 100;
-      // Award points for having checklist data
+      // DON'T score assignment - it's handled separately via unifiedAssignment field
+      // Only score based on checklist data presence
       if (hasHealthChecklist) score += 10;
       if (hasRelationshipChecklist) score += 10;
       if (hasCareerChecklist) score += 10;
       if (hasMoneyChecklist) score += 10;
-      // Award points for being recent (newer is slightly better if completeness is equal)
-      // Divide by very large number so timestamp is tie-breaker only (max ~0.17 vs max 140 from data)
-      score += week.createdAt ? new Date(week.createdAt).getTime() / 10000000000000 : 0;
       
-      console.log(`[DEDUP] Week ${week.weekNumber} (${week.createdAt}): assignment=${hasAssignment}, checklists=${hasHealthChecklist}/${hasRelationshipChecklist}/${hasCareerChecklist}/${hasMoneyChecklist}, score=${score}`);
+      // Prefer NEWER data - timestamp is now primary tiebreaker
+      // Divide by smaller number so timestamp weighs more (max ~1.7 vs max 40 from checklists)
+      score += week.createdAt ? new Date(week.createdAt).getTime() / 1000000000000 : 0;
+      
       return score;
     };
     
     for (const week of allWeeks) {
       if (!weekMap.has(week.weekNumber)) {
-        console.log(`[DEDUP] Week ${week.weekNumber}: First entry, adding`);
         weekMap.set(week.weekNumber, week);
       } else {
         const existing = weekMap.get(week.weekNumber)!;
@@ -325,10 +320,7 @@ export class DatabaseStorage implements IStorage {
         
         // Replace if new entry has higher completeness score
         if (newScore > existingScore) {
-          console.log(`[DEDUP] Week ${week.weekNumber}: Replacing (new score ${newScore} > existing ${existingScore})`);
           weekMap.set(week.weekNumber, week);
-        } else {
-          console.log(`[DEDUP] Week ${week.weekNumber}: Keeping existing (new score ${newScore} <= existing ${existingScore})`);
         }
       }
     }
