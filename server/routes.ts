@@ -2458,6 +2458,86 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
+  // Admin: Sync accepted recommendations to unifiedAssignment (one-time migration)
+  app.post('/api/admin/sync-recommendations', isAuthenticated, async (req: any, res) => {
+    try {
+      const adminEmail = req.user?.claims?.sub || req.session.userEmail;
+      const admin = await storage.getUserByEmail(adminEmail);
+      
+      if (!admin?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const allUsers = await storage.getAllUsers();
+      let syncedCount = 0;
+      const results: any[] = [];
+
+      for (const user of allUsers) {
+        // Get all accepted recommendations for this user
+        const recommendations = await storage.getUserRecommendations(user.id);
+        const acceptedRecs = recommendations.filter((r: any) => r.status === 'accepted');
+
+        if (acceptedRecs.length === 0) continue;
+
+        // Get current week (week 1) for this user
+        let weeks = await storage.getHercmWeeksByUser(user.id);
+        let currentWeek = weeks.find((w: any) => w.weekNumber === 1);
+
+        // If week doesn't exist, create it
+        if (!currentWeek) {
+          currentWeek = await storage.createHercmWeek({
+            userId: user.id,
+            weekNumber: 1,
+            year: new Date().getFullYear(),
+            weekStatus: 'active',
+          });
+        }
+
+        // Build unified assignment from accepted recommendations
+        const currentUnifiedAssignment = (currentWeek as any).unifiedAssignment || [];
+        const existingIds = new Set(currentUnifiedAssignment.map((item: any) => item.id));
+        
+        const newItems = acceptedRecs
+          .filter((rec: any) => !existingIds.has(rec.lessonId || rec.courseId))
+          .map((rec: any) => ({
+            id: rec.lessonId || rec.courseId,
+            courseId: rec.courseId,
+            courseName: rec.courseName,
+            lessonName: rec.lessonName || rec.courseName,
+            url: rec.lessonUrl || '',
+            completed: false,
+            source: 'admin' as const,
+            recommendationId: rec.id,
+          }));
+
+        if (newItems.length > 0) {
+          const updatedUnifiedAssignment = [...currentUnifiedAssignment, ...newItems];
+          await storage.updateHercmWeek(currentWeek.id, {
+            unifiedAssignment: updatedUnifiedAssignment
+          });
+          
+          syncedCount += newItems.length;
+          results.push({
+            userId: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            syncedItems: newItems.length
+          });
+        }
+      }
+
+      res.json({ 
+        message: `Successfully synced ${syncedCount} accepted recommendations to unifiedAssignment`,
+        totalUsers: results.length,
+        results
+      });
+    } catch (error) {
+      console.error("Error syncing recommendations:", error);
+      res.status(500).json({ message: "Failed to sync recommendations" });
+    }
+  });
+
   // Rituals endpoints
   app.get('/api/rituals', isAuthenticated, async (req: any, res) => {
     try {
