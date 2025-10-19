@@ -456,10 +456,20 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     if (viewingHistory) return;
     // Priority: Use actual database data if available, otherwise use demo/blank template
     if (weekData?.beliefs) {
-      // FORCE UPDATE: Replace old checklists with dynamic platinum standards from database
+      // Use saved checklist data directly - don't overwrite with fresh standards
+      // If checklist exists in saved data, preserve it with checked states
       const updatedBeliefs = weekData.beliefs.map(belief => {
-        const newChecklist = getPlatinumStandardsForCategory(belief.category);
+        // If saved checklist exists and has data, use it directly (preserves checked state)
+        if (belief.checklist && Array.isArray(belief.checklist) && belief.checklist.length > 0) {
+          return {
+            ...belief,
+            // Keep saved checklist with checked states intact
+            checklist: belief.checklist
+          };
+        }
         
+        // Otherwise, use fresh platinum standards from database
+        const newChecklist = getPlatinumStandardsForCategory(belief.category);
         return {
           ...belief,
           checklist: newChecklist
