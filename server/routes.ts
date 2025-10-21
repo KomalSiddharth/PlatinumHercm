@@ -2023,7 +2023,6 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
             email: userEmail,
             firstName,
             lastName,
-            password: '', // No password - they'll use OIDC login
             isAdmin: false,
           });
           userId = placeholderUser.id;
@@ -2915,7 +2914,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       const allRitualCompletions = await storage.getAllRitualCompletions(userId);
       
       // Calculate total ritual points from ALL completions
-      const ritualPoints = allRitualCompletions.reduce((sum: number, completion: RitualCompletion) => {
+      const ritualPoints = allRitualCompletions.reduce((sum: number, completion: any) => {
         const ritual = userRituals.find(r => r.id === completion.ritualId);
         if (!ritual || !ritual.isActive) return sum;
         const points = ritual.points || 50;
