@@ -38,6 +38,7 @@ export default function EmotionalTracker() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [currentDateStr, setCurrentDateStr] = useState<string>(today);
   const [trackerData, setTrackerData] = useState<Record<string, EmotionalTrackerData>>({});
+  const [focusedInput, setFocusedInput] = useState<string | null>(null);
 
   // Update currentDateStr when selectedDate changes
   useEffect(() => {
@@ -91,7 +92,12 @@ export default function EmotionalTracker() {
     }));
   };
 
+  const handleFieldFocus = (timeSlot: string, field: string) => {
+    setFocusedInput(`${timeSlot}-${field}`);
+  };
+
   const handleFieldBlur = (timeSlot: string, field: keyof EmotionalTrackerData) => {
+    setFocusedInput(null);
     const data = trackerData[timeSlot];
     if (data) {
       // Auto-save on blur
@@ -253,7 +259,7 @@ export default function EmotionalTracker() {
                     
                     {/* Positive Emotions */}
                     <td className="p-2">
-                      {data.positiveEmotions ? (
+                      {data.positiveEmotions && focusedInput !== `${timeSlot}-positiveEmotions` ? (
                         <HoverCard openDelay={200}>
                           <HoverCardTrigger asChild>
                             <div className="cursor-pointer">
@@ -261,6 +267,7 @@ export default function EmotionalTracker() {
                                 type="text"
                                 value={data.positiveEmotions}
                                 onChange={(e) => handleFieldChange(timeSlot, 'positiveEmotions', e.target.value)}
+                                onFocus={() => handleFieldFocus(timeSlot, 'positiveEmotions')}
                                 onBlur={() => handleFieldBlur(timeSlot, 'positiveEmotions')}
                                 className="border-green-200 focus:border-green-400 dark:border-green-800 dark:focus:border-green-600"
                                 data-testid={`input-positive-${index}`}
@@ -283,6 +290,7 @@ export default function EmotionalTracker() {
                           type="text"
                           value={data.positiveEmotions}
                           onChange={(e) => handleFieldChange(timeSlot, 'positiveEmotions', e.target.value)}
+                          onFocus={() => handleFieldFocus(timeSlot, 'positiveEmotions')}
                           onBlur={() => handleFieldBlur(timeSlot, 'positiveEmotions')}
                           className="border-green-200 focus:border-green-400 dark:border-green-800 dark:focus:border-green-600"
                           data-testid={`input-positive-${index}`}
@@ -292,7 +300,7 @@ export default function EmotionalTracker() {
 
                     {/* Negative Emotions */}
                     <td className="p-2">
-                      {data.negativeEmotions ? (
+                      {data.negativeEmotions && focusedInput !== `${timeSlot}-negativeEmotions` ? (
                         <HoverCard openDelay={200}>
                           <HoverCardTrigger asChild>
                             <div className="cursor-pointer">
@@ -300,6 +308,7 @@ export default function EmotionalTracker() {
                                 type="text"
                                 value={data.negativeEmotions}
                                 onChange={(e) => handleFieldChange(timeSlot, 'negativeEmotions', e.target.value)}
+                                onFocus={() => handleFieldFocus(timeSlot, 'negativeEmotions')}
                                 onBlur={() => handleFieldBlur(timeSlot, 'negativeEmotions')}
                                 className="border-red-200 focus:border-red-400 dark:border-red-800 dark:focus:border-red-600"
                                 data-testid={`input-negative-${index}`}
@@ -322,6 +331,7 @@ export default function EmotionalTracker() {
                           type="text"
                           value={data.negativeEmotions}
                           onChange={(e) => handleFieldChange(timeSlot, 'negativeEmotions', e.target.value)}
+                          onFocus={() => handleFieldFocus(timeSlot, 'negativeEmotions')}
                           onBlur={() => handleFieldBlur(timeSlot, 'negativeEmotions')}
                           className="border-red-200 focus:border-red-400 dark:border-red-800 dark:focus:border-red-600"
                           data-testid={`input-negative-${index}`}
@@ -331,7 +341,7 @@ export default function EmotionalTracker() {
 
                     {/* Repeating Emotions */}
                     <td className="p-2">
-                      {data.repeatingEmotions ? (
+                      {data.repeatingEmotions && focusedInput !== `${timeSlot}-repeatingEmotions` ? (
                         <HoverCard openDelay={200}>
                           <HoverCardTrigger asChild>
                             <div className="cursor-pointer">
@@ -339,6 +349,7 @@ export default function EmotionalTracker() {
                                 type="text"
                                 value={data.repeatingEmotions}
                                 onChange={(e) => handleFieldChange(timeSlot, 'repeatingEmotions', e.target.value)}
+                                onFocus={() => handleFieldFocus(timeSlot, 'repeatingEmotions')}
                                 onBlur={() => handleFieldBlur(timeSlot, 'repeatingEmotions')}
                                 className="border-blue-200 focus:border-blue-400 dark:border-blue-800 dark:focus:border-blue-600"
                                 data-testid={`input-repeating-${index}`}
@@ -361,6 +372,7 @@ export default function EmotionalTracker() {
                           type="text"
                           value={data.repeatingEmotions}
                           onChange={(e) => handleFieldChange(timeSlot, 'repeatingEmotions', e.target.value)}
+                          onFocus={() => handleFieldFocus(timeSlot, 'repeatingEmotions')}
                           onBlur={() => handleFieldBlur(timeSlot, 'repeatingEmotions')}
                           className="border-blue-200 focus:border-blue-400 dark:border-blue-800 dark:focus:border-blue-600"
                           data-testid={`input-repeating-${index}`}
@@ -370,7 +382,7 @@ export default function EmotionalTracker() {
 
                     {/* Missing Emotions */}
                     <td className="p-2">
-                      {data.missingEmotions ? (
+                      {data.missingEmotions && focusedInput !== `${timeSlot}-missingEmotions` ? (
                         <HoverCard openDelay={200}>
                           <HoverCardTrigger asChild>
                             <div className="cursor-pointer">
@@ -378,6 +390,7 @@ export default function EmotionalTracker() {
                                 type="text"
                                 value={data.missingEmotions}
                                 onChange={(e) => handleFieldChange(timeSlot, 'missingEmotions', e.target.value)}
+                                onFocus={() => handleFieldFocus(timeSlot, 'missingEmotions')}
                                 onBlur={() => handleFieldBlur(timeSlot, 'missingEmotions')}
                                 className="border-orange-200 focus:border-orange-400 dark:border-orange-800 dark:focus:border-orange-600"
                                 data-testid={`input-missing-${index}`}
@@ -400,6 +413,7 @@ export default function EmotionalTracker() {
                           type="text"
                           value={data.missingEmotions}
                           onChange={(e) => handleFieldChange(timeSlot, 'missingEmotions', e.target.value)}
+                          onFocus={() => handleFieldFocus(timeSlot, 'missingEmotions')}
                           onBlur={() => handleFieldBlur(timeSlot, 'missingEmotions')}
                           className="border-orange-200 focus:border-orange-400 dark:border-orange-800 dark:focus:border-orange-600"
                           data-testid={`input-missing-${index}`}
