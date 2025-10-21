@@ -3924,6 +3924,61 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
     }
   });
 
+  // Emotional Tracker endpoints
+  app.get('/api/emotional-trackers/:date', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      const { date } = req.params;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const trackers = await storage.getEmotionalTrackersByDate(userId, date);
+      res.json(trackers);
+    } catch (error) {
+      console.error("Error fetching emotional trackers:", error);
+      res.status(500).json({ message: "Failed to fetch emotional trackers" });
+    }
+  });
+
+  app.post('/api/emotional-trackers', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const tracker = await storage.upsertEmotionalTracker({
+        ...req.body,
+        userId,
+      });
+      
+      res.json(tracker);
+    } catch (error) {
+      console.error("Error upserting emotional tracker:", error);
+      res.status(500).json({ message: "Failed to save emotional tracker" });
+    }
+  });
+
+  app.delete('/api/emotional-trackers/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      const { id } = req.params;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      await storage.deleteEmotionalTracker(id, userId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting emotional tracker:", error);
+      res.status(500).json({ message: "Failed to delete emotional tracker" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
