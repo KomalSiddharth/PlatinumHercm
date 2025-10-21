@@ -8,6 +8,7 @@ import { Search, User, ArrowLeft, TrendingUp, AlertCircle, Loader2 } from 'lucid
 import { useToast } from '@/hooks/use-toast';
 import UnifiedHRCMTable from './UnifiedHRCMTable';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import AdminEmotionalTrackerView from './AdminEmotionalTrackerView';
 
 interface UserSearchResult {
   id: string;
@@ -240,6 +241,9 @@ export default function AdminUserDashboardViewer() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Daily Emotional Tracker (Admin View) */}
+            <AdminEmotionalTrackerView userId={selectedUserId} />
           </>
         )}
       </div>
