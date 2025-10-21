@@ -2902,6 +2902,46 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
+  // Get user's all-time cumulative points (all ritual completions + all course lessons)
+  app.get('/api/user/total-points', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      // Get ALL ritual completions (not just current week)
+      const userRituals = await storage.getRitualsByUser(userId);
+      const allRitualCompletions = await storage.getAllRitualCompletions(userId);
+      
+      // Calculate total ritual points from ALL completions
+      const ritualPoints = allRitualCompletions.reduce((sum: number, completion: RitualCompletion) => {
+        const ritual = userRituals.find(r => r.id === completion.ritualId);
+        if (!ritual || !ritual.isActive) return sum;
+        const points = ritual.points || 50;
+        return sum + points;
+      }, 0);
+      
+      // Get all course lesson completions (each lesson = 10 points)
+      const lessonCompletions = await storage.getAllCourseVideoCompletions(userId);
+      const lessonPoints = lessonCompletions.length * 10;
+      
+      // Total all-time points
+      const totalPoints = ritualPoints + lessonPoints;
+      
+      res.json({ 
+        totalPoints,
+        ritualPoints,
+        lessonPoints,
+        ritualCount: allRitualCompletions.length,
+        lessonCount: lessonCompletions.length
+      });
+    } catch (error) {
+      console.error("Error fetching total points:", error);
+      res.status(500).json({ message: "Failed to fetch total points" });
+    }
+  });
+
   // Get Health Mastery course modules from CSV (MUST be before /:weekNumber route!)
   app.get('/api/courses/health-mastery-modules', isAuthenticated, async (req: any, res) => {
     try {

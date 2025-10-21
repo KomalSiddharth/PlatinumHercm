@@ -1697,27 +1697,24 @@ export default function Dashboard() {
     loadCompletions();
   }, [currentUser]); // Only run when user is loaded
 
-  // Calculate total points from WEEKLY completed rituals and lessons (CUMULATIVE)
+  // Fetch ALL-TIME cumulative points (all ritual completions + all course lessons)
+  const { data: totalPointsData } = useQuery<{
+    totalPoints: number;
+    ritualPoints: number;
+    lessonPoints: number;
+    ritualCount: number;
+    lessonCount: number;
+  }>({
+    queryKey: ['/api/user/total-points'],
+    enabled: !!currentUser,
+  });
+
+  // Update totalPoints when data is fetched
   useEffect(() => {
-    // Calculate cumulative ritual points from all completions this week
-    const ritualPoints = weeklyCompletions.reduce((sum, completion) => {
-      const ritual = dbRituals.find(r => r.id === completion.ritualId);
-      if (ritual && ritual.isActive) {
-        return sum + (ritual.points || 50);
-      }
-      return sum;
-    }, 0);
-    
-    const lessonPoints = courses
-      .reduce((sum, course) => {
-        const completedLessonPoints = course.lessons
-          .filter(l => l.completed)
-          .reduce((lessonSum, lesson) => lessonSum + (lesson.points || 10), 0);
-        return sum + completedLessonPoints;
-      }, 0);
-    
-    setTotalPoints(ritualPoints + lessonPoints);
-  }, [weeklyCompletions, dbRituals, courses]);
+    if (totalPointsData) {
+      setTotalPoints(totalPointsData.totalPoints);
+    }
+  }, [totalPointsData]);
 
   // Fetch live leaderboard data
   const { data: leaderboardData = [] } = useQuery<Array<{
