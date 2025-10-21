@@ -2826,14 +2826,14 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         (u.email && approvedEmailSet.has(u.email)) || approvedEmailSet.has(u.id)
       );
       
-      // Calculate WEEKLY CUMULATIVE points for each approved user
+      // Calculate ALL-TIME TOTAL points for each approved user (same as header)
       const leaderboardData = await Promise.all(
         approvedUsers.map(async (user) => {
           const userRituals = await storage.getRitualsByUser(user.id);
-          const weeklyCompletions = await storage.getRitualCompletionsByDateRange(user.id, weekStartDate, weekEndDate);
+          const allRitualCompletions = await storage.getAllRitualCompletions(user.id);
           
-          // Calculate cumulative points from all weekly ritual completions
-          const ritualPoints = weeklyCompletions.reduce((sum, completion) => {
+          // Calculate total ritual points from ALL completions (not just weekly)
+          const ritualPoints = allRitualCompletions.reduce((sum, completion) => {
             const ritual = userRituals.find(r => r.id === completion.ritualId);
             if (!ritual || !ritual.isActive) return sum;
             
@@ -2846,7 +2846,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
           const lessonCompletions = await storage.getAllCourseVideoCompletions(user.id);
           const lessonPoints = lessonCompletions.length * 10;
           
-          // Total points = ritual points + lesson points
+          // Total all-time points = ritual points + lesson points (same as header)
           const points = ritualPoints + lessonPoints;
           
           // Get display name - prioritize firstName/lastName, then approved email name, then email
