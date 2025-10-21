@@ -2563,7 +2563,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
           description: "Daily morning practice",
           category: "Health",
           frequency: "daily",
-          points: 50,
+          points: 10,
           isDefault: true,
         },
         {
@@ -2571,7 +2571,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
           description: "Morning fitness routine",
           category: "Health",
           frequency: "daily",
-          points: 50,
+          points: 10,
           isDefault: true,
         },
         {
@@ -2579,7 +2579,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
           description: "Join support sessions",
           category: "Career",
           frequency: "daily",
-          points: 50,
+          points: 10,
           isDefault: true,
         },
         {
@@ -2587,7 +2587,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
           description: "Magic of 6 practice",
           category: "Career",
           frequency: "daily",
-          points: 50,
+          points: 10,
           isDefault: true,
         },
       ];
