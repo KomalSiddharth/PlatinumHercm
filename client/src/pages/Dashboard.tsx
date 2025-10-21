@@ -12,6 +12,7 @@ import RitualHistoryModal from '@/components/RitualHistoryModal';
 import UpdateProgressModal from '@/components/UpdateProgressModal';
 import BadgeDisplayCard from '@/components/BadgeDisplayCard';
 import UserActivitySearch from '@/components/UserActivitySearch';
+import EmotionalTracker from '@/components/EmotionalTracker';
 import { CourseRecommendations } from '@/components/CourseRecommendations';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -2131,6 +2132,11 @@ export default function Dashboard() {
             <UserActivitySearch />
           </div>
         </section> */}
+
+        {/* Emotional Tracker Section */}
+        <section className="scroll-mt-20">
+          <EmotionalTracker />
+        </section>
 
         {/* Achievements, Badges & Leaderboard Section */}
         <section ref={achievementsRef} id="achievements" className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
