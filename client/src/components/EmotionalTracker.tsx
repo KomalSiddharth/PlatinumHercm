@@ -267,7 +267,11 @@ export default function EmotionalTracker() {
                               />
                             </div>
                           </HoverCardTrigger>
-                          <HoverCardContent className="w-96 bg-green-50 dark:bg-green-900/30 border-green-300 dark:border-green-700 z-50">
+                          <HoverCardContent 
+                            side="top" 
+                            align="center" 
+                            className="w-96 bg-green-50 dark:bg-green-900/30 border-green-300 dark:border-green-700 z-[100]"
+                          >
                             <div className="space-y-2">
                               <h4 className="text-sm font-semibold text-green-700 dark:text-green-300">Positive Emotions</h4>
                               <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{data.positiveEmotions}</p>
@@ -302,7 +306,11 @@ export default function EmotionalTracker() {
                               />
                             </div>
                           </HoverCardTrigger>
-                          <HoverCardContent className="w-96 bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-700 z-50">
+                          <HoverCardContent 
+                            side="top" 
+                            align="center" 
+                            className="w-96 bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-700 z-[100]"
+                          >
                             <div className="space-y-2">
                               <h4 className="text-sm font-semibold text-red-700 dark:text-red-300">Negative Emotions</h4>
                               <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{data.negativeEmotions}</p>
@@ -337,7 +345,11 @@ export default function EmotionalTracker() {
                               />
                             </div>
                           </HoverCardTrigger>
-                          <HoverCardContent className="w-96 bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700 z-50">
+                          <HoverCardContent 
+                            side="top" 
+                            align="center" 
+                            className="w-96 bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700 z-[100]"
+                          >
                             <div className="space-y-2">
                               <h4 className="text-sm font-semibold text-blue-700 dark:text-blue-300">Repeating Emotions</h4>
                               <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{data.repeatingEmotions}</p>
@@ -372,7 +384,11 @@ export default function EmotionalTracker() {
                               />
                             </div>
                           </HoverCardTrigger>
-                          <HoverCardContent className="w-96 bg-orange-50 dark:bg-orange-900/30 border-orange-300 dark:border-orange-700 z-50">
+                          <HoverCardContent 
+                            side="top" 
+                            align="center" 
+                            className="w-96 bg-orange-50 dark:bg-orange-900/30 border-orange-300 dark:border-orange-700 z-[100]"
+                          >
                             <div className="space-y-2">
                               <h4 className="text-sm font-semibold text-orange-700 dark:text-orange-300">Missing Emotions</h4>
                               <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{data.missingEmotions}</p>
