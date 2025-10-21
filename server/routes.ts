@@ -3982,6 +3982,11 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
   // Admin: Get emotional trackers for any user
   app.get('/api/admin/emotional-trackers/:userId/:date', isAuthenticated, async (req: any, res) => {
     try {
+      // Check if user is admin
+      if (!req.session.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
       const { userId, date } = req.params;
       
       const trackers = await storage.getEmotionalTrackersByDate(userId, date);

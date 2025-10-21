@@ -44,7 +44,9 @@ export default function AdminEmotionalTrackerView({ userId }: AdminEmotionalTrac
   const { data: existingTrackers, isLoading } = useQuery<EmotionalTrackerData[]>({
     queryKey: [`/api/admin/emotional-trackers/${userId}`, currentDateStr],
     queryFn: async () => {
-      const response = await fetch(`/api/admin/emotional-trackers/${userId}/${currentDateStr}`);
+      const response = await fetch(`/api/admin/emotional-trackers/${userId}/${currentDateStr}`, {
+        credentials: 'include',
+      });
       if (!response.ok) throw new Error('Failed to fetch emotional trackers');
       return response.json();
     },
