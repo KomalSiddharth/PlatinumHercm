@@ -253,98 +253,142 @@ export default function EmotionalTracker() {
                     
                     {/* Positive Emotions */}
                     <td className="p-2">
-                      <HoverCard openDelay={200}>
-                        <HoverCardTrigger asChild>
-                          <Input
-                            type="text"
-                            value={data.positiveEmotions}
-                            onChange={(e) => handleFieldChange(timeSlot, 'positiveEmotions', e.target.value)}
-                            onBlur={() => handleFieldBlur(timeSlot, 'positiveEmotions')}
-                            className="border-green-200 focus:border-green-400 dark:border-green-800 dark:focus:border-green-600"
-                            data-testid={`input-positive-${index}`}
-                          />
-                        </HoverCardTrigger>
-                        {data.positiveEmotions && (
-                          <HoverCardContent className="w-96 bg-green-50 dark:bg-green-900/30 border-green-300 dark:border-green-700">
+                      {data.positiveEmotions ? (
+                        <HoverCard openDelay={200}>
+                          <HoverCardTrigger asChild>
+                            <div className="cursor-pointer">
+                              <Input
+                                type="text"
+                                value={data.positiveEmotions}
+                                onChange={(e) => handleFieldChange(timeSlot, 'positiveEmotions', e.target.value)}
+                                onBlur={() => handleFieldBlur(timeSlot, 'positiveEmotions')}
+                                className="border-green-200 focus:border-green-400 dark:border-green-800 dark:focus:border-green-600"
+                                data-testid={`input-positive-${index}`}
+                              />
+                            </div>
+                          </HoverCardTrigger>
+                          <HoverCardContent className="w-96 bg-green-50 dark:bg-green-900/30 border-green-300 dark:border-green-700 z-50">
                             <div className="space-y-2">
                               <h4 className="text-sm font-semibold text-green-700 dark:text-green-300">Positive Emotions</h4>
-                              <p className="text-sm text-gray-700 dark:text-gray-300">{data.positiveEmotions}</p>
+                              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{data.positiveEmotions}</p>
                             </div>
                           </HoverCardContent>
-                        )}
-                      </HoverCard>
+                        </HoverCard>
+                      ) : (
+                        <Input
+                          type="text"
+                          value={data.positiveEmotions}
+                          onChange={(e) => handleFieldChange(timeSlot, 'positiveEmotions', e.target.value)}
+                          onBlur={() => handleFieldBlur(timeSlot, 'positiveEmotions')}
+                          className="border-green-200 focus:border-green-400 dark:border-green-800 dark:focus:border-green-600"
+                          data-testid={`input-positive-${index}`}
+                        />
+                      )}
                     </td>
 
                     {/* Negative Emotions */}
                     <td className="p-2">
-                      <HoverCard openDelay={200}>
-                        <HoverCardTrigger asChild>
-                          <Input
-                            type="text"
-                            value={data.negativeEmotions}
-                            onChange={(e) => handleFieldChange(timeSlot, 'negativeEmotions', e.target.value)}
-                            onBlur={() => handleFieldBlur(timeSlot, 'negativeEmotions')}
-                            className="border-red-200 focus:border-red-400 dark:border-red-800 dark:focus:border-red-600"
-                            data-testid={`input-negative-${index}`}
-                          />
-                        </HoverCardTrigger>
-                        {data.negativeEmotions && (
-                          <HoverCardContent className="w-96 bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-700">
+                      {data.negativeEmotions ? (
+                        <HoverCard openDelay={200}>
+                          <HoverCardTrigger asChild>
+                            <div className="cursor-pointer">
+                              <Input
+                                type="text"
+                                value={data.negativeEmotions}
+                                onChange={(e) => handleFieldChange(timeSlot, 'negativeEmotions', e.target.value)}
+                                onBlur={() => handleFieldBlur(timeSlot, 'negativeEmotions')}
+                                className="border-red-200 focus:border-red-400 dark:border-red-800 dark:focus:border-red-600"
+                                data-testid={`input-negative-${index}`}
+                              />
+                            </div>
+                          </HoverCardTrigger>
+                          <HoverCardContent className="w-96 bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-700 z-50">
                             <div className="space-y-2">
                               <h4 className="text-sm font-semibold text-red-700 dark:text-red-300">Negative Emotions</h4>
-                              <p className="text-sm text-gray-700 dark:text-gray-300">{data.negativeEmotions}</p>
+                              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{data.negativeEmotions}</p>
                             </div>
                           </HoverCardContent>
-                        )}
-                      </HoverCard>
+                        </HoverCard>
+                      ) : (
+                        <Input
+                          type="text"
+                          value={data.negativeEmotions}
+                          onChange={(e) => handleFieldChange(timeSlot, 'negativeEmotions', e.target.value)}
+                          onBlur={() => handleFieldBlur(timeSlot, 'negativeEmotions')}
+                          className="border-red-200 focus:border-red-400 dark:border-red-800 dark:focus:border-red-600"
+                          data-testid={`input-negative-${index}`}
+                        />
+                      )}
                     </td>
 
                     {/* Repeating Emotions */}
                     <td className="p-2">
-                      <HoverCard openDelay={200}>
-                        <HoverCardTrigger asChild>
-                          <Input
-                            type="text"
-                            value={data.repeatingEmotions}
-                            onChange={(e) => handleFieldChange(timeSlot, 'repeatingEmotions', e.target.value)}
-                            onBlur={() => handleFieldBlur(timeSlot, 'repeatingEmotions')}
-                            className="border-blue-200 focus:border-blue-400 dark:border-blue-800 dark:focus:border-blue-600"
-                            data-testid={`input-repeating-${index}`}
-                          />
-                        </HoverCardTrigger>
-                        {data.repeatingEmotions && (
-                          <HoverCardContent className="w-96 bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700">
+                      {data.repeatingEmotions ? (
+                        <HoverCard openDelay={200}>
+                          <HoverCardTrigger asChild>
+                            <div className="cursor-pointer">
+                              <Input
+                                type="text"
+                                value={data.repeatingEmotions}
+                                onChange={(e) => handleFieldChange(timeSlot, 'repeatingEmotions', e.target.value)}
+                                onBlur={() => handleFieldBlur(timeSlot, 'repeatingEmotions')}
+                                className="border-blue-200 focus:border-blue-400 dark:border-blue-800 dark:focus:border-blue-600"
+                                data-testid={`input-repeating-${index}`}
+                              />
+                            </div>
+                          </HoverCardTrigger>
+                          <HoverCardContent className="w-96 bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700 z-50">
                             <div className="space-y-2">
                               <h4 className="text-sm font-semibold text-blue-700 dark:text-blue-300">Repeating Emotions</h4>
-                              <p className="text-sm text-gray-700 dark:text-gray-300">{data.repeatingEmotions}</p>
+                              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{data.repeatingEmotions}</p>
                             </div>
                           </HoverCardContent>
-                        )}
-                      </HoverCard>
+                        </HoverCard>
+                      ) : (
+                        <Input
+                          type="text"
+                          value={data.repeatingEmotions}
+                          onChange={(e) => handleFieldChange(timeSlot, 'repeatingEmotions', e.target.value)}
+                          onBlur={() => handleFieldBlur(timeSlot, 'repeatingEmotions')}
+                          className="border-blue-200 focus:border-blue-400 dark:border-blue-800 dark:focus:border-blue-600"
+                          data-testid={`input-repeating-${index}`}
+                        />
+                      )}
                     </td>
 
                     {/* Missing Emotions */}
                     <td className="p-2">
-                      <HoverCard openDelay={200}>
-                        <HoverCardTrigger asChild>
-                          <Input
-                            type="text"
-                            value={data.missingEmotions}
-                            onChange={(e) => handleFieldChange(timeSlot, 'missingEmotions', e.target.value)}
-                            onBlur={() => handleFieldBlur(timeSlot, 'missingEmotions')}
-                            className="border-orange-200 focus:border-orange-400 dark:border-orange-800 dark:focus:border-orange-600"
-                            data-testid={`input-missing-${index}`}
-                          />
-                        </HoverCardTrigger>
-                        {data.missingEmotions && (
-                          <HoverCardContent className="w-96 bg-orange-50 dark:bg-orange-900/30 border-orange-300 dark:border-orange-700">
+                      {data.missingEmotions ? (
+                        <HoverCard openDelay={200}>
+                          <HoverCardTrigger asChild>
+                            <div className="cursor-pointer">
+                              <Input
+                                type="text"
+                                value={data.missingEmotions}
+                                onChange={(e) => handleFieldChange(timeSlot, 'missingEmotions', e.target.value)}
+                                onBlur={() => handleFieldBlur(timeSlot, 'missingEmotions')}
+                                className="border-orange-200 focus:border-orange-400 dark:border-orange-800 dark:focus:border-orange-600"
+                                data-testid={`input-missing-${index}`}
+                              />
+                            </div>
+                          </HoverCardTrigger>
+                          <HoverCardContent className="w-96 bg-orange-50 dark:bg-orange-900/30 border-orange-300 dark:border-orange-700 z-50">
                             <div className="space-y-2">
                               <h4 className="text-sm font-semibold text-orange-700 dark:text-orange-300">Missing Emotions</h4>
-                              <p className="text-sm text-gray-700 dark:text-gray-300">{data.missingEmotions}</p>
+                              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{data.missingEmotions}</p>
                             </div>
                           </HoverCardContent>
-                        )}
-                      </HoverCard>
+                        </HoverCard>
+                      ) : (
+                        <Input
+                          type="text"
+                          value={data.missingEmotions}
+                          onChange={(e) => handleFieldChange(timeSlot, 'missingEmotions', e.target.value)}
+                          onBlur={() => handleFieldBlur(timeSlot, 'missingEmotions')}
+                          className="border-orange-200 focus:border-orange-400 dark:border-orange-800 dark:focus:border-orange-600"
+                          data-testid={`input-missing-${index}`}
+                        />
+                      )}
                     </td>
                   </tr>
                 );
