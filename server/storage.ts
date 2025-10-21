@@ -14,6 +14,7 @@ import {
   courseVideoCompletions,
   adminCourseRecommendations,
   platinumStandards,
+  emotionalTrackers,
   type User,
   type UpsertUser,
   type HercmWeek,
@@ -42,6 +43,8 @@ import {
   type InsertAdminCourseRecommendation,
   type PlatinumStandard,
   type InsertPlatinumStandard,
+  type EmotionalTracker,
+  type InsertEmotionalTracker,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, count, sql, gte, lte } from "drizzle-orm";
@@ -173,6 +176,11 @@ export interface IStorage {
   updatePlatinumStandard(id: string, standard: Partial<InsertPlatinumStandard>): Promise<PlatinumStandard>;
   deletePlatinumStandard(id: string): Promise<void>;
   reorderPlatinumStandards(updates: Array<{ id: string; orderIndex: number }>): Promise<void>;
+  
+  // Emotional Tracker operations
+  getEmotionalTrackersByDate(userId: string, date: string): Promise<EmotionalTracker[]>;
+  upsertEmotionalTracker(tracker: InsertEmotionalTracker): Promise<EmotionalTracker>;
+  deleteEmotionalTracker(id: string, userId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1213,6 +1221,59 @@ export class DatabaseStorage implements IStorage {
         })
         .where(eq(platinumStandards.id, update.id));
     }
+  }
+
+  // Emotional Tracker operations
+  async getEmotionalTrackersByDate(userId: string, date: string): Promise<EmotionalTracker[]> {
+    return await db
+      .select()
+      .from(emotionalTrackers)
+      .where(and(
+        eq(emotionalTrackers.userId, userId),
+        eq(emotionalTrackers.date, date)
+      ))
+      .orderBy(emotionalTrackers.timeSlot);
+  }
+
+  async upsertEmotionalTracker(tracker: InsertEmotionalTracker): Promise<EmotionalTracker> {
+    // Check if entry exists for this user, date, and timeSlot
+    const [existing] = await db
+      .select()
+      .from(emotionalTrackers)
+      .where(and(
+        eq(emotionalTrackers.userId, tracker.userId),
+        eq(emotionalTrackers.date, tracker.date),
+        eq(emotionalTrackers.timeSlot, tracker.timeSlot)
+      ));
+
+    if (existing) {
+      // Update existing entry
+      const [updated] = await db
+        .update(emotionalTrackers)
+        .set({
+          ...tracker,
+          updatedAt: new Date(),
+        })
+        .where(eq(emotionalTrackers.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      // Create new entry
+      const [newTracker] = await db
+        .insert(emotionalTrackers)
+        .values(tracker)
+        .returning();
+      return newTracker;
+    }
+  }
+
+  async deleteEmotionalTracker(id: string, userId: string): Promise<void> {
+    await db
+      .delete(emotionalTrackers)
+      .where(and(
+        eq(emotionalTrackers.id, id),
+        eq(emotionalTrackers.userId, userId)
+      ));
   }
 }
 
