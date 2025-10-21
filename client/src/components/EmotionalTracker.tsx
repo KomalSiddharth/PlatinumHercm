@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { Heart, Brain, RefreshCcw, Sparkles } from 'lucide-react';
@@ -176,48 +177,92 @@ export default function EmotionalTracker() {
                       {timeSlot}
                     </td>
                     <td className="p-2">
-                      <Input
-                        type="text"
-                        placeholder="e.g., Joy, Gratitude..."
-                        value={data.positiveEmotions}
-                        onChange={(e) => handleFieldChange(timeSlot, 'positiveEmotions', e.target.value)}
-                        onBlur={() => handleFieldBlur(timeSlot, 'positiveEmotions')}
-                        className="border-green-200 focus:border-green-400 dark:border-green-800 dark:focus:border-green-600"
-                        data-testid={`input-positive-${index}`}
-                      />
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Input
+                              type="text"
+                              placeholder="e.g., Joy, Gratitude..."
+                              value={data.positiveEmotions}
+                              onChange={(e) => handleFieldChange(timeSlot, 'positiveEmotions', e.target.value)}
+                              onBlur={() => handleFieldBlur(timeSlot, 'positiveEmotions')}
+                              className="border-green-200 focus:border-green-400 dark:border-green-800 dark:focus:border-green-600"
+                              data-testid={`input-positive-${index}`}
+                            />
+                          </TooltipTrigger>
+                          {data.positiveEmotions && data.positiveEmotions.length > 20 && (
+                            <TooltipContent side="top" className="max-w-xs bg-green-100 dark:bg-green-900 border-green-300 dark:border-green-700">
+                              <p className="text-sm">{data.positiveEmotions}</p>
+                            </TooltipContent>
+                          )}
+                        </Tooltip>
+                      </TooltipProvider>
                     </td>
                     <td className="p-2">
-                      <Input
-                        type="text"
-                        placeholder="e.g., Anxiety, Anger..."
-                        value={data.negativeEmotions}
-                        onChange={(e) => handleFieldChange(timeSlot, 'negativeEmotions', e.target.value)}
-                        onBlur={() => handleFieldBlur(timeSlot, 'negativeEmotions')}
-                        className="border-red-200 focus:border-red-400 dark:border-red-800 dark:focus:border-red-600"
-                        data-testid={`input-negative-${index}`}
-                      />
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Input
+                              type="text"
+                              placeholder="e.g., Anxiety, Anger..."
+                              value={data.negativeEmotions}
+                              onChange={(e) => handleFieldChange(timeSlot, 'negativeEmotions', e.target.value)}
+                              onBlur={() => handleFieldBlur(timeSlot, 'negativeEmotions')}
+                              className="border-red-200 focus:border-red-400 dark:border-red-800 dark:focus:border-red-600"
+                              data-testid={`input-negative-${index}`}
+                            />
+                          </TooltipTrigger>
+                          {data.negativeEmotions && data.negativeEmotions.length > 20 && (
+                            <TooltipContent side="top" className="max-w-xs bg-red-100 dark:bg-red-900 border-red-300 dark:border-red-700">
+                              <p className="text-sm">{data.negativeEmotions}</p>
+                            </TooltipContent>
+                          )}
+                        </Tooltip>
+                      </TooltipProvider>
                     </td>
                     <td className="p-2">
-                      <Input
-                        type="text"
-                        placeholder="e.g., Worry, Doubt..."
-                        value={data.repeatingEmotions}
-                        onChange={(e) => handleFieldChange(timeSlot, 'repeatingEmotions', e.target.value)}
-                        onBlur={() => handleFieldBlur(timeSlot, 'repeatingEmotions')}
-                        className="border-blue-200 focus:border-blue-400 dark:border-blue-800 dark:focus:border-blue-600"
-                        data-testid={`input-repeating-${index}`}
-                      />
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Input
+                              type="text"
+                              placeholder="e.g., Worry, Doubt..."
+                              value={data.repeatingEmotions}
+                              onChange={(e) => handleFieldChange(timeSlot, 'repeatingEmotions', e.target.value)}
+                              onBlur={() => handleFieldBlur(timeSlot, 'repeatingEmotions')}
+                              className="border-blue-200 focus:border-blue-400 dark:border-blue-800 dark:focus:border-blue-600"
+                              data-testid={`input-repeating-${index}`}
+                            />
+                          </TooltipTrigger>
+                          {data.repeatingEmotions && data.repeatingEmotions.length > 20 && (
+                            <TooltipContent side="top" className="max-w-xs bg-blue-100 dark:bg-blue-900 border-blue-300 dark:border-blue-700">
+                              <p className="text-sm">{data.repeatingEmotions}</p>
+                            </TooltipContent>
+                          )}
+                        </Tooltip>
+                      </TooltipProvider>
                     </td>
                     <td className="p-2">
-                      <Input
-                        type="text"
-                        placeholder="e.g., Peace, Love..."
-                        value={data.missingEmotions}
-                        onChange={(e) => handleFieldChange(timeSlot, 'missingEmotions', e.target.value)}
-                        onBlur={() => handleFieldBlur(timeSlot, 'missingEmotions')}
-                        className="border-orange-200 focus:border-orange-400 dark:border-orange-800 dark:focus:border-orange-600"
-                        data-testid={`input-missing-${index}`}
-                      />
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Input
+                              type="text"
+                              placeholder="e.g., Peace, Love..."
+                              value={data.missingEmotions}
+                              onChange={(e) => handleFieldChange(timeSlot, 'missingEmotions', e.target.value)}
+                              onBlur={() => handleFieldBlur(timeSlot, 'missingEmotions')}
+                              className="border-orange-200 focus:border-orange-400 dark:border-orange-800 dark:focus:border-orange-600"
+                              data-testid={`input-missing-${index}`}
+                            />
+                          </TooltipTrigger>
+                          {data.missingEmotions && data.missingEmotions.length > 20 && (
+                            <TooltipContent side="top" className="max-w-xs bg-orange-100 dark:bg-orange-900 border-orange-300 dark:border-orange-700">
+                              <p className="text-sm">{data.missingEmotions}</p>
+                            </TooltipContent>
+                          )}
+                        </Tooltip>
+                      </TooltipProvider>
                     </td>
                   </tr>
                 );

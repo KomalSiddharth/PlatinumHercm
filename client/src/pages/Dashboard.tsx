@@ -184,6 +184,7 @@ export default function Dashboard() {
 
   const hrcmRef = useRef<HTMLDivElement>(null);
   const ritualsRef = useRef<HTMLDivElement>(null);
+  const emotionalRef = useRef<HTMLDivElement>(null);
   const coursesRef = useRef<HTMLDivElement>(null);
   const achievementsRef = useRef<HTMLDivElement>(null);
   const teamRef = useRef<HTMLDivElement>(null);
@@ -194,6 +195,7 @@ export default function Dashboard() {
     const refs = {
       hrcm: hrcmRef,
       rituals: ritualsRef,
+      emotional: emotionalRef,
       courses: coursesRef,
       achievements: achievementsRef,
       team: teamRef
@@ -1887,6 +1889,11 @@ export default function Dashboard() {
           </div>
         </section>
 
+        {/* Emotional Tracker Section */}
+        <section ref={emotionalRef} id="emotional" className="scroll-mt-20">
+          <EmotionalTracker />
+        </section>
+
         <section ref={coursesRef} id="courses" className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
           <div className="space-y-6">
             <div>
@@ -2132,11 +2139,6 @@ export default function Dashboard() {
             <UserActivitySearch />
           </div>
         </section> */}
-
-        {/* Emotional Tracker Section */}
-        <section className="scroll-mt-20">
-          <EmotionalTracker />
-        </section>
 
         {/* Achievements, Badges & Leaderboard Section */}
         <section ref={achievementsRef} id="achievements" className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">

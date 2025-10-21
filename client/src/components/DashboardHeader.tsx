@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Menu, X, Trophy, Moon, Sun, User as UserIcon } from 'lucide-react';
+import { Menu, X, Trophy, Moon, Sun, User as UserIcon, Heart } from 'lucide-react';
 import Logo from './Logo';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -37,6 +37,7 @@ export default function DashboardHeader({
   const navItems = [
     { id: 'hrcm', label: 'HRCM' },
     { id: 'rituals', label: 'Daily Rituals' },
+    { id: 'emotional', label: 'Emotional Tracker', icon: Heart },
     { id: 'courses', label: 'Courses' },
     { id: 'achievements', label: 'Achievements' }
   ];
@@ -63,8 +64,9 @@ export default function DashboardHeader({
                   activeSection === item.id 
                     ? 'bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90' 
                     : ''
-                }`}
+                } ${item.id === 'emotional' ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700' : ''}`}
               >
+                {item.icon && <item.icon className="w-4 h-4 mr-1" />}
                 {item.label}
               </Button>
             ))}
@@ -136,9 +138,10 @@ export default function DashboardHeader({
                     activeSection === item.id 
                       ? 'bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90' 
                       : ''
-                  }`}
+                  } ${item.id === 'emotional' ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700' : ''}`}
                   data-testid={`nav-mobile-${item.id}`}
                 >
+                  {item.icon && <item.icon className="w-4 h-4 mr-2" />}
                   {item.label}
                 </Button>
               ))}
