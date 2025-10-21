@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
-import { Heart, Brain, RefreshCcw, Sparkles } from 'lucide-react';
+import { Heart, Brain, RefreshCcw, Sparkles, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { format } from 'date-fns';
 
 interface EmotionalTrackerData {
   id?: string;
@@ -32,13 +35,23 @@ const TIME_SLOTS = [
 
 export default function EmotionalTracker() {
   const today = new Date().toISOString().split('T')[0];
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [currentDateStr, setCurrentDateStr] = useState<string>(today);
   const [trackerData, setTrackerData] = useState<Record<string, EmotionalTrackerData>>({});
 
-  // Fetch today's emotional tracker data
+  // Update currentDateStr when selectedDate changes
+  useEffect(() => {
+    if (selectedDate) {
+      const dateStr = selectedDate.toISOString().split('T')[0];
+      setCurrentDateStr(dateStr);
+    }
+  }, [selectedDate]);
+
+  // Fetch emotional tracker data for the selected date
   const { data: existingTrackers, isLoading } = useQuery<EmotionalTrackerData[]>({
-    queryKey: ['/api/emotional-trackers', today],
+    queryKey: ['/api/emotional-trackers', currentDateStr],
     queryFn: async () => {
-      const response = await fetch(`/api/emotional-trackers/${today}`);
+      const response = await fetch(`/api/emotional-trackers/${currentDateStr}`);
       if (!response.ok) throw new Error('Failed to fetch emotional trackers');
       return response.json();
     },
@@ -52,6 +65,8 @@ export default function EmotionalTracker() {
         dataMap[tracker.timeSlot] = tracker;
       });
       setTrackerData(dataMap);
+    } else {
+      setTrackerData({});
     }
   }, [existingTrackers]);
 
@@ -62,7 +77,7 @@ export default function EmotionalTracker() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/emotional-trackers', today] });
+      queryClient.invalidateQueries({ queryKey: ['/api/emotional-trackers', currentDateStr] });
     },
   });
 
@@ -70,7 +85,7 @@ export default function EmotionalTracker() {
     setTrackerData((prev) => ({
       ...prev,
       [timeSlot]: {
-        ...(prev[timeSlot] || { timeSlot, date: today, userId: '', positiveEmotions: '', negativeEmotions: '', repeatingEmotions: '', missingEmotions: '' }),
+        ...(prev[timeSlot] || { timeSlot, date: currentDateStr, userId: '', positiveEmotions: '', negativeEmotions: '', repeatingEmotions: '', missingEmotions: '' }),
         [field]: value,
       },
     }));
@@ -81,7 +96,7 @@ export default function EmotionalTracker() {
     if (data) {
       // Auto-save on blur
       saveMutation.mutate({
-        date: today,
+        date: currentDateStr,
         timeSlot,
         positiveEmotions: data.positiveEmotions || '',
         negativeEmotions: data.negativeEmotions || '',
@@ -89,6 +104,16 @@ export default function EmotionalTracker() {
         missingEmotions: data.missingEmotions || '',
       });
     }
+  };
+
+  const navigateDate = (direction: 'prev' | 'next') => {
+    const newDate = new Date(selectedDate);
+    if (direction === 'prev') {
+      newDate.setDate(newDate.getDate() - 1);
+    } else {
+      newDate.setDate(newDate.getDate() + 1);
+    }
+    setSelectedDate(newDate);
   };
 
   if (isLoading) {
@@ -112,13 +137,62 @@ export default function EmotionalTracker() {
   return (
     <Card className="border-2 border-purple-200 dark:border-purple-800 bg-gradient-to-br from-purple-50/50 to-pink-50/50 dark:from-purple-950/20 dark:to-pink-950/20">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-          <Heart className="h-5 w-5 text-purple-600" />
-          Daily Emotional Tracker
-        </CardTitle>
-        <CardDescription>
-          Track your emotions throughout the day in 2-hour time slots
-        </CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <Heart className="h-5 w-5 text-purple-600" />
+              Daily Emotional Tracker
+            </CardTitle>
+            <CardDescription>
+              Track your emotions throughout the day in 2-hour time slots
+            </CardDescription>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigateDate('prev')}
+              data-testid="button-prev-day"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="min-w-[200px] justify-start text-left font-normal"
+                  data-testid="button-date-picker"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {selectedDate ? format(selectedDate, 'PPP') : 'Pick a date'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => {
+                    if (date) {
+                      setSelectedDate(date);
+                    }
+                  }}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+            
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigateDate('next')}
+              data-testid="button-next-day"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
@@ -158,7 +232,7 @@ export default function EmotionalTracker() {
               {TIME_SLOTS.map((timeSlot, index) => {
                 const data = trackerData[timeSlot] || {
                   timeSlot,
-                  date: today,
+                  date: currentDateStr,
                   userId: '',
                   positiveEmotions: '',
                   negativeEmotions: '',
@@ -176,93 +250,101 @@ export default function EmotionalTracker() {
                     <td className="p-3 font-medium text-gray-700 dark:text-gray-300" data-testid={`time-slot-${index}`}>
                       {timeSlot}
                     </td>
+                    
+                    {/* Positive Emotions */}
                     <td className="p-2">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Input
-                              type="text"
-                              placeholder="e.g., Joy, Gratitude..."
-                              value={data.positiveEmotions}
-                              onChange={(e) => handleFieldChange(timeSlot, 'positiveEmotions', e.target.value)}
-                              onBlur={() => handleFieldBlur(timeSlot, 'positiveEmotions')}
-                              className="border-green-200 focus:border-green-400 dark:border-green-800 dark:focus:border-green-600"
-                              data-testid={`input-positive-${index}`}
-                            />
-                          </TooltipTrigger>
-                          {data.positiveEmotions && data.positiveEmotions.length > 20 && (
-                            <TooltipContent side="top" className="max-w-xs bg-green-100 dark:bg-green-900 border-green-300 dark:border-green-700">
-                              <p className="text-sm">{data.positiveEmotions}</p>
-                            </TooltipContent>
-                          )}
-                        </Tooltip>
-                      </TooltipProvider>
+                      <HoverCard openDelay={200}>
+                        <HoverCardTrigger asChild>
+                          <Input
+                            type="text"
+                            value={data.positiveEmotions}
+                            onChange={(e) => handleFieldChange(timeSlot, 'positiveEmotions', e.target.value)}
+                            onBlur={() => handleFieldBlur(timeSlot, 'positiveEmotions')}
+                            className="border-green-200 focus:border-green-400 dark:border-green-800 dark:focus:border-green-600"
+                            data-testid={`input-positive-${index}`}
+                          />
+                        </HoverCardTrigger>
+                        {data.positiveEmotions && (
+                          <HoverCardContent className="w-96 bg-green-50 dark:bg-green-900/30 border-green-300 dark:border-green-700">
+                            <div className="space-y-2">
+                              <h4 className="text-sm font-semibold text-green-700 dark:text-green-300">Positive Emotions</h4>
+                              <p className="text-sm text-gray-700 dark:text-gray-300">{data.positiveEmotions}</p>
+                            </div>
+                          </HoverCardContent>
+                        )}
+                      </HoverCard>
                     </td>
+
+                    {/* Negative Emotions */}
                     <td className="p-2">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Input
-                              type="text"
-                              placeholder="e.g., Anxiety, Anger..."
-                              value={data.negativeEmotions}
-                              onChange={(e) => handleFieldChange(timeSlot, 'negativeEmotions', e.target.value)}
-                              onBlur={() => handleFieldBlur(timeSlot, 'negativeEmotions')}
-                              className="border-red-200 focus:border-red-400 dark:border-red-800 dark:focus:border-red-600"
-                              data-testid={`input-negative-${index}`}
-                            />
-                          </TooltipTrigger>
-                          {data.negativeEmotions && data.negativeEmotions.length > 20 && (
-                            <TooltipContent side="top" className="max-w-xs bg-red-100 dark:bg-red-900 border-red-300 dark:border-red-700">
-                              <p className="text-sm">{data.negativeEmotions}</p>
-                            </TooltipContent>
-                          )}
-                        </Tooltip>
-                      </TooltipProvider>
+                      <HoverCard openDelay={200}>
+                        <HoverCardTrigger asChild>
+                          <Input
+                            type="text"
+                            value={data.negativeEmotions}
+                            onChange={(e) => handleFieldChange(timeSlot, 'negativeEmotions', e.target.value)}
+                            onBlur={() => handleFieldBlur(timeSlot, 'negativeEmotions')}
+                            className="border-red-200 focus:border-red-400 dark:border-red-800 dark:focus:border-red-600"
+                            data-testid={`input-negative-${index}`}
+                          />
+                        </HoverCardTrigger>
+                        {data.negativeEmotions && (
+                          <HoverCardContent className="w-96 bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-700">
+                            <div className="space-y-2">
+                              <h4 className="text-sm font-semibold text-red-700 dark:text-red-300">Negative Emotions</h4>
+                              <p className="text-sm text-gray-700 dark:text-gray-300">{data.negativeEmotions}</p>
+                            </div>
+                          </HoverCardContent>
+                        )}
+                      </HoverCard>
                     </td>
+
+                    {/* Repeating Emotions */}
                     <td className="p-2">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Input
-                              type="text"
-                              placeholder="e.g., Worry, Doubt..."
-                              value={data.repeatingEmotions}
-                              onChange={(e) => handleFieldChange(timeSlot, 'repeatingEmotions', e.target.value)}
-                              onBlur={() => handleFieldBlur(timeSlot, 'repeatingEmotions')}
-                              className="border-blue-200 focus:border-blue-400 dark:border-blue-800 dark:focus:border-blue-600"
-                              data-testid={`input-repeating-${index}`}
-                            />
-                          </TooltipTrigger>
-                          {data.repeatingEmotions && data.repeatingEmotions.length > 20 && (
-                            <TooltipContent side="top" className="max-w-xs bg-blue-100 dark:bg-blue-900 border-blue-300 dark:border-blue-700">
-                              <p className="text-sm">{data.repeatingEmotions}</p>
-                            </TooltipContent>
-                          )}
-                        </Tooltip>
-                      </TooltipProvider>
+                      <HoverCard openDelay={200}>
+                        <HoverCardTrigger asChild>
+                          <Input
+                            type="text"
+                            value={data.repeatingEmotions}
+                            onChange={(e) => handleFieldChange(timeSlot, 'repeatingEmotions', e.target.value)}
+                            onBlur={() => handleFieldBlur(timeSlot, 'repeatingEmotions')}
+                            className="border-blue-200 focus:border-blue-400 dark:border-blue-800 dark:focus:border-blue-600"
+                            data-testid={`input-repeating-${index}`}
+                          />
+                        </HoverCardTrigger>
+                        {data.repeatingEmotions && (
+                          <HoverCardContent className="w-96 bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700">
+                            <div className="space-y-2">
+                              <h4 className="text-sm font-semibold text-blue-700 dark:text-blue-300">Repeating Emotions</h4>
+                              <p className="text-sm text-gray-700 dark:text-gray-300">{data.repeatingEmotions}</p>
+                            </div>
+                          </HoverCardContent>
+                        )}
+                      </HoverCard>
                     </td>
+
+                    {/* Missing Emotions */}
                     <td className="p-2">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Input
-                              type="text"
-                              placeholder="e.g., Peace, Love..."
-                              value={data.missingEmotions}
-                              onChange={(e) => handleFieldChange(timeSlot, 'missingEmotions', e.target.value)}
-                              onBlur={() => handleFieldBlur(timeSlot, 'missingEmotions')}
-                              className="border-orange-200 focus:border-orange-400 dark:border-orange-800 dark:focus:border-orange-600"
-                              data-testid={`input-missing-${index}`}
-                            />
-                          </TooltipTrigger>
-                          {data.missingEmotions && data.missingEmotions.length > 20 && (
-                            <TooltipContent side="top" className="max-w-xs bg-orange-100 dark:bg-orange-900 border-orange-300 dark:border-orange-700">
-                              <p className="text-sm">{data.missingEmotions}</p>
-                            </TooltipContent>
-                          )}
-                        </Tooltip>
-                      </TooltipProvider>
+                      <HoverCard openDelay={200}>
+                        <HoverCardTrigger asChild>
+                          <Input
+                            type="text"
+                            value={data.missingEmotions}
+                            onChange={(e) => handleFieldChange(timeSlot, 'missingEmotions', e.target.value)}
+                            onBlur={() => handleFieldBlur(timeSlot, 'missingEmotions')}
+                            className="border-orange-200 focus:border-orange-400 dark:border-orange-800 dark:focus:border-orange-600"
+                            data-testid={`input-missing-${index}`}
+                          />
+                        </HoverCardTrigger>
+                        {data.missingEmotions && (
+                          <HoverCardContent className="w-96 bg-orange-50 dark:bg-orange-900/30 border-orange-300 dark:border-orange-700">
+                            <div className="space-y-2">
+                              <h4 className="text-sm font-semibold text-orange-700 dark:text-orange-300">Missing Emotions</h4>
+                              <p className="text-sm text-gray-700 dark:text-gray-300">{data.missingEmotions}</p>
+                            </div>
+                          </HoverCardContent>
+                        )}
+                      </HoverCard>
                     </td>
                   </tr>
                 );
