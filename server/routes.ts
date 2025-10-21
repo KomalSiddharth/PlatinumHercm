@@ -3979,6 +3979,19 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
     }
   });
 
+  // Admin: Get emotional trackers for any user
+  app.get('/api/admin/emotional-trackers/:userId/:date', isAuthenticated, async (req: any, res) => {
+    try {
+      const { userId, date } = req.params;
+      
+      const trackers = await storage.getEmotionalTrackersByDate(userId, date);
+      res.json(trackers);
+    } catch (error) {
+      console.error("Error fetching emotional trackers for admin:", error);
+      res.status(500).json({ message: "Failed to fetch emotional trackers" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

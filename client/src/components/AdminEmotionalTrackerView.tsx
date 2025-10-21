@@ -1,0 +1,329 @@
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+import { useQuery } from '@tanstack/react-query';
+import { Heart, Brain, RefreshCcw, Sparkles, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { format } from 'date-fns';
+
+interface EmotionalTrackerData {
+  id?: string;
+  userId: string;
+  date: string;
+  timeSlot: string;
+  positiveEmotions: string;
+  negativeEmotions: string;
+  repeatingEmotions: string;
+  missingEmotions: string;
+}
+
+interface AdminEmotionalTrackerViewProps {
+  userId: string;
+}
+
+const TIME_SLOTS = [
+  '7am - 9am',
+  '9am - 11am',
+  '11am to 1pm',
+  '1pm to 3pm',
+  '3pm to 5pm',
+  '5pm to 7pm',
+  '7pm to 9pm',
+  '9pm to 11pm',
+  '11pm to 01am',
+];
+
+export default function AdminEmotionalTrackerView({ userId }: AdminEmotionalTrackerViewProps) {
+  const today = new Date().toISOString().split('T')[0];
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const currentDateStr = selectedDate.toISOString().split('T')[0];
+
+  // Fetch emotional tracker data for the selected user and date
+  const { data: existingTrackers, isLoading } = useQuery<EmotionalTrackerData[]>({
+    queryKey: [`/api/admin/emotional-trackers/${userId}`, currentDateStr],
+    queryFn: async () => {
+      const response = await fetch(`/api/admin/emotional-trackers/${userId}/${currentDateStr}`);
+      if (!response.ok) throw new Error('Failed to fetch emotional trackers');
+      return response.json();
+    },
+    enabled: !!userId,
+  });
+
+  const trackerData: Record<string, EmotionalTrackerData> = {};
+  if (existingTrackers) {
+    existingTrackers.forEach((tracker) => {
+      trackerData[tracker.timeSlot] = tracker;
+    });
+  }
+
+  const navigateDate = (direction: 'prev' | 'next') => {
+    const newDate = new Date(selectedDate);
+    if (direction === 'prev') {
+      newDate.setDate(newDate.getDate() - 1);
+    } else {
+      newDate.setDate(newDate.getDate() + 1);
+    }
+    setSelectedDate(newDate);
+  };
+
+  if (isLoading) {
+    return (
+      <Card className="border-2 border-primary/30 dark:border-primary/50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            <Heart className="h-5 w-5 text-primary" />
+            Daily Emotional Tracker (Admin View)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center py-8">
+            <RefreshCcw className="h-6 w-6 animate-spin text-primary" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="border-2 border-primary/30 dark:border-primary/50 bg-gradient-to-br from-primary/5 to-accent/5 dark:from-primary/10 dark:to-accent/10">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              <Heart className="h-5 w-5 text-primary" />
+              Daily Emotional Tracker (Admin View - Read Only)
+            </CardTitle>
+            <CardDescription>
+              View user's emotional tracking data across 2-hour time slots
+            </CardDescription>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigateDate('prev')}
+              data-testid="button-prev-day"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  data-testid="button-date-picker"
+                >
+                  <CalendarIcon className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => {
+                    if (date) {
+                      setSelectedDate(date);
+                    }
+                  }}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+            
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigateDate('next')}
+              data-testid="button-next-day"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="border-b-2 border-primary/30 dark:border-primary/50">
+                <th className="p-3 text-left font-semibold text-primary dark:text-primary bg-primary/10 dark:bg-primary/20 min-w-[120px]">
+                  Time Slot
+                </th>
+                <th className="p-3 text-left font-semibold text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/20 min-w-[200px]">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4" />
+                    Positive Emotions
+                  </div>
+                </th>
+                <th className="p-3 text-left font-semibold text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20 min-w-[200px]">
+                  <div className="flex items-center gap-2">
+                    <Brain className="h-4 w-4" />
+                    Negative Emotions
+                  </div>
+                </th>
+                <th className="p-3 text-left font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 min-w-[200px]">
+                  <div className="flex items-center gap-2">
+                    <RefreshCcw className="h-4 w-4" />
+                    Repeating Emotions
+                  </div>
+                </th>
+                <th className="p-3 text-left font-semibold text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-900/20 min-w-[200px]">
+                  <div className="flex items-center gap-2">
+                    <Heart className="h-4 w-4" />
+                    Missing Emotions
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {TIME_SLOTS.map((timeSlot, index) => {
+                const data = trackerData[timeSlot] || {
+                  timeSlot,
+                  date: currentDateStr,
+                  userId: '',
+                  positiveEmotions: '',
+                  negativeEmotions: '',
+                  repeatingEmotions: '',
+                  missingEmotions: '',
+                };
+
+                return (
+                  <tr
+                    key={timeSlot}
+                    className={`border-b border-primary/20 dark:border-primary/30 ${
+                      index % 2 === 0 ? 'bg-white/50 dark:bg-gray-900/20' : 'bg-primary/5 dark:bg-primary/10'
+                    }`}
+                  >
+                    <td className="p-3 font-medium text-gray-700 dark:text-gray-300" data-testid={`time-slot-${index}`}>
+                      {timeSlot}
+                    </td>
+                    
+                    {/* Positive Emotions */}
+                    <td className="p-2">
+                      {data.positiveEmotions ? (
+                        <HoverCard openDelay={200}>
+                          <HoverCardTrigger asChild>
+                            <div className="p-2 rounded border border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-900/20 min-h-[40px] cursor-pointer">
+                              <p className="text-sm text-gray-700 dark:text-gray-300 truncate">
+                                {data.positiveEmotions}
+                              </p>
+                            </div>
+                          </HoverCardTrigger>
+                          <HoverCardContent 
+                            side="top" 
+                            align="center" 
+                            className="w-96 bg-green-50 dark:bg-green-900/30 border-green-300 dark:border-green-700 z-[100]"
+                          >
+                            <div className="space-y-2">
+                              <h4 className="text-sm font-semibold text-green-700 dark:text-green-300">Positive Emotions</h4>
+                              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{data.positiveEmotions}</p>
+                            </div>
+                          </HoverCardContent>
+                        </HoverCard>
+                      ) : (
+                        <div className="p-2 rounded border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20 min-h-[40px]">
+                          <p className="text-sm text-gray-400 dark:text-gray-600 italic">No data</p>
+                        </div>
+                      )}
+                    </td>
+
+                    {/* Negative Emotions */}
+                    <td className="p-2">
+                      {data.negativeEmotions ? (
+                        <HoverCard openDelay={200}>
+                          <HoverCardTrigger asChild>
+                            <div className="p-2 rounded border border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-900/20 min-h-[40px] cursor-pointer">
+                              <p className="text-sm text-gray-700 dark:text-gray-300 truncate">
+                                {data.negativeEmotions}
+                              </p>
+                            </div>
+                          </HoverCardTrigger>
+                          <HoverCardContent 
+                            side="top" 
+                            align="center" 
+                            className="w-96 bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-700 z-[100]"
+                          >
+                            <div className="space-y-2">
+                              <h4 className="text-sm font-semibold text-red-700 dark:text-red-300">Negative Emotions</h4>
+                              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{data.negativeEmotions}</p>
+                            </div>
+                          </HoverCardContent>
+                        </HoverCard>
+                      ) : (
+                        <div className="p-2 rounded border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20 min-h-[40px]">
+                          <p className="text-sm text-gray-400 dark:text-gray-600 italic">No data</p>
+                        </div>
+                      )}
+                    </td>
+
+                    {/* Repeating Emotions */}
+                    <td className="p-2">
+                      {data.repeatingEmotions ? (
+                        <HoverCard openDelay={200}>
+                          <HoverCardTrigger asChild>
+                            <div className="p-2 rounded border border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/20 min-h-[40px] cursor-pointer">
+                              <p className="text-sm text-gray-700 dark:text-gray-300 truncate">
+                                {data.repeatingEmotions}
+                              </p>
+                            </div>
+                          </HoverCardTrigger>
+                          <HoverCardContent 
+                            side="top" 
+                            align="center" 
+                            className="w-96 bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700 z-[100]"
+                          >
+                            <div className="space-y-2">
+                              <h4 className="text-sm font-semibold text-blue-700 dark:text-blue-300">Repeating Emotions</h4>
+                              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{data.repeatingEmotions}</p>
+                            </div>
+                          </HoverCardContent>
+                        </HoverCard>
+                      ) : (
+                        <div className="p-2 rounded border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20 min-h-[40px]">
+                          <p className="text-sm text-gray-400 dark:text-gray-600 italic">No data</p>
+                        </div>
+                      )}
+                    </td>
+
+                    {/* Missing Emotions */}
+                    <td className="p-2">
+                      {data.missingEmotions ? (
+                        <HoverCard openDelay={200}>
+                          <HoverCardTrigger asChild>
+                            <div className="p-2 rounded border border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-900/20 min-h-[40px] cursor-pointer">
+                              <p className="text-sm text-gray-700 dark:text-gray-300 truncate">
+                                {data.missingEmotions}
+                              </p>
+                            </div>
+                          </HoverCardTrigger>
+                          <HoverCardContent 
+                            side="top" 
+                            align="center" 
+                            className="w-96 bg-orange-50 dark:bg-orange-900/30 border-orange-300 dark:border-orange-700 z-[100]"
+                          >
+                            <div className="space-y-2">
+                              <h4 className="text-sm font-semibold text-orange-700 dark:text-orange-300">Missing Emotions</h4>
+                              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{data.missingEmotions}</p>
+                            </div>
+                          </HoverCardContent>
+                        </HoverCard>
+                      ) : (
+                        <div className="p-2 rounded border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20 min-h-[40px]">
+                          <p className="text-sm text-gray-400 dark:text-gray-600 italic">No data</p>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
