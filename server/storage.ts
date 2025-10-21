@@ -881,11 +881,11 @@ export class DatabaseStorage implements IStorage {
     
     // Platinum badges from platinum progress (if achieved)
     const userPlatinumBadges: any[] = [];
-    if (platinumProgress?.platinumAchievedAt) {
+    if (platinumProgress?.achievedAt) {
       userPlatinumBadges.push({
         id: platinumProgress.id,
         badgeName: 'Platinum Standards',
-        achievedAt: platinumProgress.platinumAchievedAt,
+        achievedAt: platinumProgress.achievedAt,
         userId: platinumProgress.userId,
       });
     }
@@ -968,7 +968,7 @@ export class DatabaseStorage implements IStorage {
     
     // Get all users and filter by approved emails
     const allUsers = await this.getAllUsers();
-    const approvedUsers = allUsers.filter(u => u.email && approvedEmailSet.has(u.email));
+    const approvedUsers = allUsers.filter(u => approvedEmailSet.has(u.email));
     const totalUsers = approvedUsers.length;
     
     // Get both user IDs and emails from approved users (some weeks use email as userId)
@@ -1037,7 +1037,7 @@ export class DatabaseStorage implements IStorage {
       
       if (!firstName && !lastName && user) {
         // Try to get name from approved_emails
-        const approvedEmail = approvedEmailsList.find(ae => ae.email === user.email || ae.email === user.id);
+        const approvedEmail = approvedEmailsData.find(ae => ae.email === user.email || ae.email === user.id);
         if (approvedEmail && approvedEmail.name) {
           const nameParts = approvedEmail.name.trim().split(' ');
           firstName = nameParts[0] || '';
