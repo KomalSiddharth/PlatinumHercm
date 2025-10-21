@@ -157,7 +157,7 @@ export default function AdminUserDashboardViewer() {
         ) : (
           <>
             <UnifiedHRCMTable 
-              weekNumber={dashboardData.currentWeek?.weekNumber || 1}
+              weekNumber={1}
               viewAsUserId={selectedUserId} 
               isAdminView={true}
             />
@@ -205,6 +205,9 @@ export default function AdminUserDashboardViewer() {
               </CardContent>
             </Card>
 
+            {/* Daily Emotional Tracker (Admin View) - Placed right after Daily Rituals */}
+            <AdminEmotionalTrackerView userId={selectedUserId} />
+
             {/* Badges Section */}
             <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20 border-yellow-200 dark:border-yellow-800">
               <CardHeader>
@@ -241,9 +244,6 @@ export default function AdminUserDashboardViewer() {
                 )}
               </CardContent>
             </Card>
-
-            {/* Daily Emotional Tracker (Admin View) */}
-            <AdminEmotionalTrackerView userId={selectedUserId} />
           </>
         )}
       </div>
