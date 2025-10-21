@@ -216,11 +216,11 @@ export default function AdminEmotionalTrackerView({ userId }: AdminEmotionalTrac
                           <HoverCardContent 
                             side="top" 
                             align="center" 
-                            className="w-96 bg-green-50 dark:bg-green-900/30 border-green-300 dark:border-green-700 z-[100]"
+                            className="w-96 bg-green-50 dark:bg-green-900/90 border-green-300 dark:border-green-500 z-[100]"
                           >
                             <div className="space-y-2">
-                              <h4 className="text-sm font-semibold text-green-700 dark:text-green-300">Positive Emotions</h4>
-                              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{data.positiveEmotions}</p>
+                              <h4 className="text-sm font-semibold text-green-700 dark:text-green-200">Positive Emotions</h4>
+                              <p className="text-sm text-gray-700 dark:text-gray-100 whitespace-pre-wrap">{data.positiveEmotions}</p>
                             </div>
                           </HoverCardContent>
                         </HoverCard>
@@ -245,11 +245,11 @@ export default function AdminEmotionalTrackerView({ userId }: AdminEmotionalTrac
                           <HoverCardContent 
                             side="top" 
                             align="center" 
-                            className="w-96 bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-700 z-[100]"
+                            className="w-96 bg-red-50 dark:bg-red-900/90 border-red-300 dark:border-red-500 z-[100]"
                           >
                             <div className="space-y-2">
-                              <h4 className="text-sm font-semibold text-red-700 dark:text-red-300">Negative Emotions</h4>
-                              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{data.negativeEmotions}</p>
+                              <h4 className="text-sm font-semibold text-red-700 dark:text-red-200">Negative Emotions</h4>
+                              <p className="text-sm text-gray-700 dark:text-gray-100 whitespace-pre-wrap">{data.negativeEmotions}</p>
                             </div>
                           </HoverCardContent>
                         </HoverCard>
@@ -274,11 +274,11 @@ export default function AdminEmotionalTrackerView({ userId }: AdminEmotionalTrac
                           <HoverCardContent 
                             side="top" 
                             align="center" 
-                            className="w-96 bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700 z-[100]"
+                            className="w-96 bg-blue-50 dark:bg-blue-900/90 border-blue-300 dark:border-blue-500 z-[100]"
                           >
                             <div className="space-y-2">
-                              <h4 className="text-sm font-semibold text-blue-700 dark:text-blue-300">Repeating Emotions</h4>
-                              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{data.repeatingEmotions}</p>
+                              <h4 className="text-sm font-semibold text-blue-700 dark:text-blue-200">Repeating Emotions</h4>
+                              <p className="text-sm text-gray-700 dark:text-gray-100 whitespace-pre-wrap">{data.repeatingEmotions}</p>
                             </div>
                           </HoverCardContent>
                         </HoverCard>
@@ -303,11 +303,11 @@ export default function AdminEmotionalTrackerView({ userId }: AdminEmotionalTrac
                           <HoverCardContent 
                             side="top" 
                             align="center" 
-                            className="w-96 bg-orange-50 dark:bg-orange-900/30 border-orange-300 dark:border-orange-700 z-[100]"
+                            className="w-96 bg-orange-50 dark:bg-orange-900/90 border-orange-300 dark:border-orange-500 z-[100]"
                           >
                             <div className="space-y-2">
-                              <h4 className="text-sm font-semibold text-orange-700 dark:text-orange-300">Missing Emotions</h4>
-                              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{data.missingEmotions}</p>
+                              <h4 className="text-sm font-semibold text-orange-700 dark:text-orange-200">Missing Emotions</h4>
+                              <p className="text-sm text-gray-700 dark:text-gray-100 whitespace-pre-wrap">{data.missingEmotions}</p>
                             </div>
                           </HoverCardContent>
                         </HoverCard>
