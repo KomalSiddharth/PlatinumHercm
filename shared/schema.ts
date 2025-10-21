@@ -471,3 +471,26 @@ export const insertPlatinumStandardSchema = createInsertSchema(platinumStandards
 
 export type InsertPlatinumStandard = z.infer<typeof insertPlatinumStandardSchema>;
 export type PlatinumStandard = typeof platinumStandards.$inferSelect;
+
+// Emotional Habit Tracker - Track emotions throughout the day in 2-hour time slots
+export const emotionalTrackers = pgTable("emotional_trackers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  date: varchar("date").notNull(), // Format: YYYY-MM-DD
+  timeSlot: varchar("time_slot").notNull(), // e.g., "7am - 9am", "9am - 11am", etc.
+  positiveEmotions: varchar("positive_emotions", { length: 500 }),
+  negativeEmotions: varchar("negative_emotions", { length: 500 }),
+  repeatingEmotions: varchar("repeating_emotions", { length: 500 }),
+  missingEmotions: varchar("missing_emotions", { length: 500 }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertEmotionalTrackerSchema = createInsertSchema(emotionalTrackers).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertEmotionalTracker = z.infer<typeof insertEmotionalTrackerSchema>;
+export type EmotionalTracker = typeof emotionalTrackers.$inferSelect;
