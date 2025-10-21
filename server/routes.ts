@@ -905,7 +905,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const ritualPoints = rituals.reduce((sum, ritual) => {
         const isCompleted = todayCompletions.some(c => c.ritualId === ritual.id);
         if (!isCompleted || !ritual.isActive) return sum;
-        const points = ritual.frequency === 'daily' ? 50 : 75;
+        const points = ritual.points || 10;
         return sum + points;
       }, 0);
       
@@ -2837,8 +2837,8 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
             const ritual = userRituals.find(r => r.id === completion.ritualId);
             if (!ritual || !ritual.isActive) return sum;
             
-            // Use custom points from database, fallback to 50 if not set
-            const points = ritual.points || 50;
+            // Use custom points from database, fallback to 10 if not set
+            const points = ritual.points || 10;
             return sum + points;
           }, 0);
           
@@ -2918,7 +2918,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       const ritualPoints = allRitualCompletions.reduce((sum: number, completion: RitualCompletion) => {
         const ritual = userRituals.find(r => r.id === completion.ritualId);
         if (!ritual || !ritual.isActive) return sum;
-        const points = ritual.points || 50;
+        const points = ritual.points || 10;
         return sum + points;
       }, 0);
       
