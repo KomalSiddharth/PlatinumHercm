@@ -38,6 +38,7 @@ interface UserDashboardData {
   completedLessons: any[];
   rituals: any[];
   todayCompletions: any[];
+  allRitualCompletions: any[];
   platinumBadges: any[];
 }
 
@@ -93,10 +94,12 @@ export default function AdminUserDashboardViewer() {
       ? `${user.firstName} ${user.lastName}` 
       : user?.email || 'User';
 
-    // Calculate total points from rituals and lessons
-    const ritualPoints = (dashboardData.rituals || [])
-      .filter((r: any) => dashboardData.todayCompletions?.some((c: any) => c.ritualId === r.id))
-      .reduce((sum: number, r: any) => sum + (r.points || 0), 0);
+    // Calculate ALL-TIME total points (same as leaderboard)
+    const ritualPoints = (dashboardData.allRitualCompletions || []).reduce((sum: number, completion: any) => {
+      const ritual = dashboardData.rituals?.find((r: any) => r.id === completion.ritualId);
+      if (!ritual || !ritual.isActive) return sum;
+      return sum + (ritual.points || 10); // Use ritual points or default to 10
+    }, 0);
     
     const lessonPoints = (dashboardData.completedLessons || []).length * 10; // 10 points per lesson
     const totalPoints = ritualPoints + lessonPoints;

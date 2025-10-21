@@ -143,6 +143,7 @@ export interface IStorage {
     completedLessons: CourseVideoCompletion[];
     rituals: Ritual[];
     todayCompletions: RitualCompletion[];
+    allRitualCompletions: RitualCompletion[];
     platinumBadges: any[];
   }>;
   getUserAnalytics(userId: string, period: 'weekly' | 'monthly' | 'yearly'): Promise<{
@@ -887,6 +888,9 @@ export class DatabaseStorage implements IStorage {
     const today = new Date().toISOString().split('T')[0];
     const todayCompletions = await this.getRitualCompletionsByDate(userId, today);
     
+    // Get ALL ritual completions for points calculation
+    const allRitualCompletions = await this.getAllRitualCompletions(userId);
+    
     // Platinum badges from platinum progress (if achieved)
     const userPlatinumBadges: any[] = [];
     if (platinumProgress?.achievedAt) {
@@ -906,6 +910,7 @@ export class DatabaseStorage implements IStorage {
       completedLessons,
       rituals: userRituals,
       todayCompletions,
+      allRitualCompletions,
       platinumBadges: userPlatinumBadges,
     };
   }
