@@ -124,16 +124,16 @@ export default function EmotionalTracker() {
 
   if (isLoading) {
     return (
-      <Card className="border-2 border-purple-200 dark:border-purple-800">
+      <Card className="border-2 border-primary/30 dark:border-primary/50">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-            <Heart className="h-5 w-5 text-purple-600" />
+          <CardTitle className="flex items-center gap-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            <Heart className="h-5 w-5 text-primary" />
             Daily Emotional Tracker
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8">
-            <RefreshCcw className="h-6 w-6 animate-spin text-purple-600" />
+            <RefreshCcw className="h-6 w-6 animate-spin text-primary" />
           </div>
         </CardContent>
       </Card>
@@ -141,12 +141,12 @@ export default function EmotionalTracker() {
   }
 
   return (
-    <Card className="border-2 border-purple-200 dark:border-purple-800 bg-gradient-to-br from-purple-50/50 to-pink-50/50 dark:from-purple-950/20 dark:to-pink-950/20">
+    <Card className="border-2 border-primary/30 dark:border-primary/50 bg-gradient-to-br from-primary/5 to-accent/5 dark:from-primary/10 dark:to-accent/10">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              <Heart className="h-5 w-5 text-purple-600" />
+            <CardTitle className="flex items-center gap-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              <Heart className="h-5 w-5 text-primary" />
               Daily Emotional Tracker
             </CardTitle>
             <CardDescription>
@@ -168,11 +168,10 @@ export default function EmotionalTracker() {
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className="min-w-[200px] justify-start text-left font-normal"
+                  size="icon"
                   data-testid="button-date-picker"
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {selectedDate ? format(selectedDate, 'PPP') : 'Pick a date'}
+                  <CalendarIcon className="h-4 w-4" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="end">
@@ -204,8 +203,8 @@ export default function EmotionalTracker() {
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
-              <tr className="border-b-2 border-purple-200 dark:border-purple-800">
-                <th className="p-3 text-left font-semibold text-purple-900 dark:text-purple-100 bg-purple-100 dark:bg-purple-900/30 min-w-[120px]">
+              <tr className="border-b-2 border-primary/30 dark:border-primary/50">
+                <th className="p-3 text-left font-semibold text-primary dark:text-primary bg-primary/10 dark:bg-primary/20 min-w-[120px]">
                   Time Slot
                 </th>
                 <th className="p-3 text-left font-semibold text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/20 min-w-[200px]">
@@ -249,8 +248,8 @@ export default function EmotionalTracker() {
                 return (
                   <tr
                     key={timeSlot}
-                    className={`border-b border-purple-100 dark:border-purple-900/50 hover-elevate ${
-                      index % 2 === 0 ? 'bg-white/50 dark:bg-gray-900/20' : 'bg-purple-50/30 dark:bg-purple-950/10'
+                    className={`border-b border-primary/20 dark:border-primary/30 hover-elevate ${
+                      index % 2 === 0 ? 'bg-white/50 dark:bg-gray-900/20' : 'bg-primary/5 dark:bg-primary/10'
                     }`}
                   >
                     <td className="p-3 font-medium text-gray-700 dark:text-gray-300" data-testid={`time-slot-${index}`}>
