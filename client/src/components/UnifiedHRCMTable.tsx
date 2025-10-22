@@ -333,9 +333,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       }));
   };
 
-  // Get the most recent snapshot for the selected date
+  // Get the most recent snapshot for the selected date (finds week containing this date)
   const getSnapshotForDate = () => {
-    if (!allWeeksData || !selectedHistoryDate) return null;
+    if (!allWeeksData || !selectedHistoryDate) {
+      return null;
+    }
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -343,20 +345,32 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     selected.setHours(0, 0, 0, 0);
 
     // If selected date is in the future, return null (no data for future)
-    if (selected > today) return null;
+    if (selected > today) {
+      return null;
+    }
 
-    // Filter snapshots for the selected date
-    const snapshotsForDate = (allWeeksData as any[]).filter(snapshot => {
-      const snapshotDate = new Date(snapshot.createdAt);
-      return isSameDay(snapshotDate, selectedHistoryDate);
-    });
+    // Find ALL snapshots created on or before the selected date
+    const eligibleSnapshots = (allWeeksData as any[])
+      .filter(snapshot => {
+        if (!snapshot.createdAt) return false;
+        const snapshotDate = new Date(snapshot.createdAt);
+        snapshotDate.setHours(0, 0, 0, 0);
+        // Include snapshots created on or before selected date
+        return snapshotDate <= selected;
+      })
+      .sort((a, b) => {
+        // Sort by createdAt descending (most recent first)
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        return dateB - dateA;
+      });
 
-    // Return the most recent snapshot for that date
-    if (snapshotsForDate.length === 0) return null;
-    
-    return [...snapshotsForDate].sort((a, b) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    )[0];
+    if (eligibleSnapshots.length === 0) {
+      return null;
+    }
+
+    // Return the most recent snapshot (first in sorted array)
+    return eligibleSnapshots[0];
   };
 
   const historicalSnapshot = getSnapshotForDate();
