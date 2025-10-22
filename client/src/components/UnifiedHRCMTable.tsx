@@ -1623,9 +1623,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       variant="outline"
                       size="sm"
                       className="w-full"
-                      onClick={() => {
+                      onClick={async () => {
                         setSelectedHistoryDate(undefined);
                         setViewingHistory(false);
+                        // Invalidate and refetch queries to get latest current week data
+                        await queryClient.invalidateQueries({ queryKey: weekQueryKey });
+                        await queryClient.invalidateQueries({ queryKey: allWeeksQueryKey });
+                        await queryClient.refetchQueries({ queryKey: weekQueryKey });
+                        await queryClient.refetchQueries({ queryKey: allWeeksQueryKey });
                       }}
                       data-testid="button-clear-date"
                     >
