@@ -1583,7 +1583,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
       {/* Current Week Table */}
       <div className="border-2 border-coral-red/70 dark:border-coral-red/50 rounded-lg overflow-x-auto shadow-lg">
-        <div className="px-4 py-3 border-b-2 border-coral-red/80 dark:border-coral-red/60 bg-coral-red">
+        <div className="px-2 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-b-2 border-coral-red/80 dark:border-coral-red/60 bg-coral-red">
           <div className="flex items-center justify-between">
             {/* Left: Calendar Icon */}
             <Popover>
@@ -1591,10 +1591,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-white hover:bg-white/20"
+                  className="text-white hover:bg-white/20 h-7 w-7 sm:h-8 sm:w-8 p-0"
                   data-testid="button-calendar-picker"
                 >
-                  <CalendarIcon className="w-5 h-5" />
+                  <CalendarIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -1642,8 +1642,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             </Popover>
 
             {/* Center: Heading */}
-            <h3 className="font-bold text-white text-xl drop-shadow-md flex items-center gap-2">
-              <Sparkles className="w-5 h-5" />
+            <h3 className="font-bold text-white text-sm sm:text-base md:text-lg lg:text-xl drop-shadow-md flex items-center gap-1 sm:gap-2">
+              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
               {(() => {
                 if (!viewingHistory || !selectedHistoryDate) return 'Current Week';
                 
@@ -1663,35 +1663,35 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             </h3>
 
             {/* Right: Spacer for balance */}
-            <div className="w-10"></div>
+            <div className="w-7 sm:w-8 md:w-10"></div>
           </div>
         </div>
         <Table>
           <TableHeader>
             <TableRow className="bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-950/30 dark:to-pink-950/30">
-              <TableHead className="font-bold border-r min-w-[100px]">HRCM Area</TableHead>
-              <TableHead className="min-w-[60px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Rating</TableHead>
-              <TableHead className="min-w-[140px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Results</TableHead>
-              <TableHead className="min-w-[140px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Feelings</TableHead>
-              <TableHead className="min-w-[140px] bg-rose-100 dark:bg-rose-900/40 font-semibold">Beliefs/Reasons</TableHead>
-              <TableHead className="min-w-[140px] bg-rose-100 dark:bg-rose-900/40 font-semibold border-r">Actions</TableHead>
+              <TableHead className="text-xs sm:text-sm font-bold border-r min-w-[80px] sm:min-w-[100px] px-1.5 sm:px-2 py-1.5 sm:py-2">HRCM Area</TableHead>
+              <TableHead className="text-xs sm:text-sm min-w-[50px] sm:min-w-[60px] bg-rose-100 dark:bg-rose-900/40 font-semibold px-1.5 sm:px-2 py-1.5 sm:py-2">Rating</TableHead>
+              <TableHead className="text-xs sm:text-sm min-w-[120px] sm:min-w-[140px] bg-rose-100 dark:bg-rose-900/40 font-semibold px-1.5 sm:px-2 py-1.5 sm:py-2">Results</TableHead>
+              <TableHead className="text-xs sm:text-sm min-w-[120px] sm:min-w-[140px] bg-rose-100 dark:bg-rose-900/40 font-semibold px-1.5 sm:px-2 py-1.5 sm:py-2">Feelings</TableHead>
+              <TableHead className="text-xs sm:text-sm min-w-[120px] sm:min-w-[140px] bg-rose-100 dark:bg-rose-900/40 font-semibold px-1.5 sm:px-2 py-1.5 sm:py-2">Beliefs/Reasons</TableHead>
+              <TableHead className="text-xs sm:text-sm min-w-[120px] sm:min-w-[140px] bg-rose-100 dark:bg-rose-900/40 font-semibold border-r px-1.5 sm:px-2 py-1.5 sm:py-2">Actions</TableHead>
               
-              <TableHead className="min-w-[150px] bg-gradient-to-r from-soft-lavender/40 to-soft-lavender/60 dark:from-soft-lavender/20 dark:to-soft-lavender/30 font-semibold lavender-glow">Platinum Standards</TableHead>
-              <TableHead className="min-w-[70px] bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 font-semibold text-center">Progress</TableHead>
+              <TableHead className="text-xs sm:text-sm min-w-[130px] sm:min-w-[150px] bg-gradient-to-r from-soft-lavender/40 to-soft-lavender/60 dark:from-soft-lavender/20 dark:to-soft-lavender/30 font-semibold lavender-glow px-1.5 sm:px-2 py-1.5 sm:py-2">Platinum Standards</TableHead>
+              <TableHead className="text-xs sm:text-sm min-w-[60px] sm:min-w-[70px] bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 font-semibold text-center px-1.5 sm:px-2 py-1.5 sm:py-2">Progress</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {beliefs.map((belief) => (
               <TableRow key={belief.category} className="border-b" data-testid={`row-${belief.category.toLowerCase()}`}>
                 {/* Category Column */}
-                <TableCell className="font-semibold border-r bg-muted/20 align-top" data-testid={`cell-category-${belief.category.toLowerCase()}`}>
-                  <Badge variant="outline" className="font-semibold">
+                <TableCell className="text-xs sm:text-sm font-semibold border-r bg-muted/20 align-top px-1.5 sm:px-2 py-1.5 sm:py-2" data-testid={`cell-category-${belief.category.toLowerCase()}`}>
+                  <Badge variant="outline" className="font-semibold text-[10px] sm:text-xs px-1 sm:px-2">
                     {belief.category}
                   </Badge>
                 </TableCell>
 
                 {/* Current Week - Rating */}
-                <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top">
+                <TableCell className="p-1 sm:p-1.5 md:p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top">
                   <div className="flex flex-col gap-1">
                     <Input
                       type="number"
