@@ -1776,24 +1776,24 @@ export default function Dashboard() {
         onProfileClick={() => setProfileOpen(true)}
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 space-y-6 sm:space-y-8 md:space-y-12">
         {/* Course Recommendations */}
         <CourseRecommendations currentWeek={currentWeek} />
         
-        <section ref={hrcmRef} id="hrcm" className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
+        <section ref={hrcmRef} id="hrcm" className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-3 sm:p-4 md:p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
           <UnifiedHRCMTable 
             weekNumber={currentWeek}
             onWeekChange={handleWeekChange}
           />
         </section>
 
-        <section ref={ritualsRef} id="rituals" className="scroll-mt-20 p-6 rounded-lg border-2" style={{ backgroundColor: '#00008c', borderColor: '#0000cc' }}>
-          <div className="space-y-6">
+        <section ref={ritualsRef} id="rituals" className="scroll-mt-20 p-3 sm:p-4 md:p-6 rounded-lg border-2" style={{ backgroundColor: '#00008c', borderColor: '#0000cc' }}>
+          <div className="space-y-4 sm:space-y-6">
             <div>
-              <h2 className="text-3xl font-bold text-white">
+              <h2 className="text-2xl sm:text-2xl md:text-3xl font-bold text-white">
                 Daily Rituals
               </h2>
-              <p className="text-white/80 mt-1">Build consistent habits and earn points</p>
+              <p className="text-sm sm:text-base text-white/80 mt-1">Build consistent habits and earn points</p>
             </div>
 
             <AddRitualForm onAdd={handleAddRitual} />
@@ -1817,34 +1817,34 @@ export default function Dashboard() {
                       {rituals.map((ritual) => (
                         <div 
                           key={ritual.id} 
-                          className={`flex items-center gap-4 p-4 hover:bg-muted/30 transition-colors ${!ritual.active ? 'opacity-40' : ''}`}
+                          className={`flex items-center gap-2 sm:gap-3 md:gap-4 p-2 sm:p-3 md:p-4 hover:bg-muted/30 transition-colors ${!ritual.active ? 'opacity-40' : ''}`}
                           data-testid={`ritual-row-${ritual.id}`}
                         >
                           <Checkbox
                             checked={ritual.completed}
                             onCheckedChange={() => handleToggleComplete(ritual.id)}
                             disabled={!ritual.active}
-                            className="w-5 h-5"
+                            className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0"
                             data-testid={`checkbox-ritual-${ritual.id}`}
                           />
                           
                           <div className="flex-1 min-w-0">
-                            <h3 className={`font-medium ${ritual.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                            <h3 className={`text-sm sm:text-base font-medium ${ritual.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                               {ritual.title}
                             </h3>
                           </div>
                           
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                             {!ritual.active && (
-                              <Badge variant="secondary" className="text-xs gap-1">
-                                <Pause className="w-3 h-3" />
-                                Paused
+                              <Badge variant="secondary" className="text-[10px] sm:text-xs gap-0.5 sm:gap-1 px-1 sm:px-2">
+                                <Pause className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                                <span className="hidden sm:inline">Paused</span>
                               </Badge>
                             )}
                             
-                            <Badge className="gap-1 bg-gradient-to-r from-primary to-accent text-white border-0 smooth-transition">
-                              <Trophy className="w-3 h-3" />
-                              {ritual.points}
+                            <Badge className="gap-0.5 sm:gap-1 bg-gradient-to-r from-primary to-accent text-white border-0 smooth-transition text-xs px-1.5 sm:px-2">
+                              <Trophy className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                              <span className="text-[10px] sm:text-xs">{ritual.points}</span>
                             </Badge>
                             
                             <TooltipProvider>
@@ -1855,9 +1855,9 @@ export default function Dashboard() {
                                     size="icon"
                                     onClick={() => handleViewHistory(ritual.id)}
                                     data-testid={`button-history-${ritual.id}`}
-                                    className="w-8 h-8"
+                                    className="w-7 h-7 sm:w-8 sm:h-8"
                                   >
-                                    <HistoryIcon className="w-4 h-4" />
+                                    <HistoryIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                   </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>View history</TooltipContent>
@@ -1870,9 +1870,9 @@ export default function Dashboard() {
                                     size="icon"
                                     onClick={() => handleDeleteRitual(ritual.id)}
                                     data-testid={`button-delete-${ritual.id}`}
-                                    className="w-8 h-8"
+                                    className="w-7 h-7 sm:w-8 sm:h-8"
                                   >
-                                    <Trash2 className="w-4 h-4" />
+                                    <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                   </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>Delete</TooltipContent>
@@ -1894,11 +1894,11 @@ export default function Dashboard() {
           <EmotionalTracker />
         </section>
 
-        <section ref={coursesRef} id="courses" className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
-          <div className="space-y-6">
+        <section ref={coursesRef} id="courses" className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-3 sm:p-4 md:p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
+          <div className="space-y-4 sm:space-y-6">
             <div>
-              <h2 className="text-3xl font-bold">Course Tracker</h2>
-              <p className="text-muted-foreground mt-1">Manage your learning journey and skill development</p>
+              <h2 className="text-2xl sm:text-2xl md:text-3xl font-bold">Course Tracker</h2>
+              <p className="text-sm sm:text-base text-muted-foreground mt-1">Manage your learning journey and skill development</p>
             </div>
 
             {/* Overall Progress Bar */}
