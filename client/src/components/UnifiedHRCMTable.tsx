@@ -283,8 +283,13 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   });
 
   // Fetch all weeks data (needed for auto-progression and comparison)
+  // In admin view, fetch all weeks for the specific user being viewed
+  const allWeeksQueryKey = isAdminView && viewAsUserId
+    ? [`/api/admin/user/${viewAsUserId}/hercm/weeks`]
+    : ['/api/hercm/weeks'];
+  
   const { data: allWeeksData } = useQuery({
-    queryKey: ['/api/hercm/weeks'],
+    queryKey: allWeeksQueryKey,
   });
 
   // Fetch rating caps and progression status

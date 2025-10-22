@@ -1905,6 +1905,18 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
+  // Admin: Get all weeks for a specific user (for calendar history)
+  app.get('/api/admin/user/:userId/hercm/weeks', isAuthenticated, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const weeks = await storage.getHercmWeeksByUser(userId);
+      res.json(weeks);
+    } catch (error) {
+      console.error("Error fetching admin user all HRCM weeks:", error);
+      res.status(500).json({ message: "Failed to fetch weeks data" });
+    }
+  });
+
   // Get user analytics with period filter (weekly/monthly/yearly)
   app.get('/api/admin/user/:userId/analytics-period', isAuthenticated, async (req, res) => {
     try {
