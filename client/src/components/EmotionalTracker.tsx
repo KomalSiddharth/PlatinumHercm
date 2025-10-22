@@ -142,26 +142,27 @@ export default function EmotionalTracker() {
 
   return (
     <Card className="border-2 border-primary/30 dark:border-primary/50 bg-gradient-to-br from-primary/5 to-accent/5 dark:from-primary/10 dark:to-accent/10">
-      <CardHeader>
-        <div className="flex items-center justify-between">
+      <CardHeader className="p-3 sm:p-4 md:p-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
           <div>
-            <CardTitle className="flex items-center gap-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              <Heart className="h-5 w-5 text-primary" />
+            <CardTitle className="flex items-center gap-1.5 sm:gap-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent text-lg sm:text-xl md:text-2xl">
+              <Heart className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               Daily Emotional Tracker
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs sm:text-sm mt-1">
               Track your emotions throughout the day in 2-hour time slots
             </CardDescription>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <Button
               variant="outline"
               size="icon"
               onClick={() => navigateDate('prev')}
               data-testid="button-prev-day"
+              className="h-8 w-8 sm:h-9 sm:w-9"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </Button>
             
             <Popover>
@@ -170,8 +171,9 @@ export default function EmotionalTracker() {
                   variant="outline"
                   size="icon"
                   data-testid="button-date-picker"
+                  className="h-8 w-8 sm:h-9 sm:w-9"
                 >
-                  <CalendarIcon className="h-4 w-4" />
+                  <CalendarIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="end">
@@ -193,42 +195,47 @@ export default function EmotionalTracker() {
               size="icon"
               onClick={() => navigateDate('next')}
               data-testid="button-next-day"
+              className="h-8 w-8 sm:h-9 sm:w-9"
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </Button>
           </div>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-3 sm:p-4 md:p-6">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
               <tr className="border-b-2 border-primary/30 dark:border-primary/50">
-                <th className="p-3 text-left font-semibold text-primary dark:text-primary bg-primary/10 dark:bg-primary/20 min-w-[120px]">
+                <th className="p-1.5 sm:p-2 md:p-3 text-left text-xs sm:text-sm font-semibold text-primary dark:text-primary bg-primary/10 dark:bg-primary/20 min-w-[100px] sm:min-w-[120px]">
                   Time Slot
                 </th>
-                <th className="p-3 text-left font-semibold text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/20 min-w-[200px]">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4" />
-                    Positive Emotions
+                <th className="p-1.5 sm:p-2 md:p-3 text-left text-xs sm:text-sm font-semibold text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/20 min-w-[160px] sm:min-w-[200px]">
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                    <span className="hidden sm:inline">Positive Emotions</span>
+                    <span className="sm:hidden">Positive</span>
                   </div>
                 </th>
-                <th className="p-3 text-left font-semibold text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20 min-w-[200px]">
-                  <div className="flex items-center gap-2">
-                    <Brain className="h-4 w-4" />
-                    Negative Emotions
+                <th className="p-1.5 sm:p-2 md:p-3 text-left text-xs sm:text-sm font-semibold text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20 min-w-[160px] sm:min-w-[200px]">
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <Brain className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                    <span className="hidden sm:inline">Negative Emotions</span>
+                    <span className="sm:hidden">Negative</span>
                   </div>
                 </th>
-                <th className="p-3 text-left font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 min-w-[200px]">
-                  <div className="flex items-center gap-2">
-                    <RefreshCcw className="h-4 w-4" />
-                    Repeating Emotions
+                <th className="p-1.5 sm:p-2 md:p-3 text-left text-xs sm:text-sm font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 min-w-[160px] sm:min-w-[200px]">
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <RefreshCcw className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                    <span className="hidden sm:inline">Repeating Emotions</span>
+                    <span className="sm:hidden">Repeating</span>
                   </div>
                 </th>
-                <th className="p-3 text-left font-semibold text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-900/20 min-w-[200px]">
-                  <div className="flex items-center gap-2">
-                    <Heart className="h-4 w-4" />
-                    Missing Emotions
+                <th className="p-1.5 sm:p-2 md:p-3 text-left text-xs sm:text-sm font-semibold text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-900/20 min-w-[160px] sm:min-w-[200px]">
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <Heart className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                    <span className="hidden sm:inline">Missing Emotions</span>
+                    <span className="sm:hidden">Missing</span>
                   </div>
                 </th>
               </tr>
@@ -252,12 +259,12 @@ export default function EmotionalTracker() {
                       index % 2 === 0 ? 'bg-white/50 dark:bg-gray-900/20' : 'bg-primary/5 dark:bg-primary/10'
                     }`}
                   >
-                    <td className="p-3 font-medium text-gray-700 dark:text-gray-300" data-testid={`time-slot-${index}`}>
+                    <td className="p-1.5 sm:p-2 md:p-3 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300" data-testid={`time-slot-${index}`}>
                       {timeSlot}
                     </td>
                     
                     {/* Positive Emotions */}
-                    <td className="p-2">
+                    <td className="p-1 sm:p-1.5 md:p-2">
                       {data.positiveEmotions && focusedInput !== `${timeSlot}-positiveEmotions` ? (
                         <HoverCard openDelay={200}>
                           <HoverCardTrigger asChild>
@@ -298,7 +305,7 @@ export default function EmotionalTracker() {
                     </td>
 
                     {/* Negative Emotions */}
-                    <td className="p-2">
+                    <td className="p-1 sm:p-1.5 md:p-2">
                       {data.negativeEmotions && focusedInput !== `${timeSlot}-negativeEmotions` ? (
                         <HoverCard openDelay={200}>
                           <HoverCardTrigger asChild>
@@ -339,7 +346,7 @@ export default function EmotionalTracker() {
                     </td>
 
                     {/* Repeating Emotions */}
-                    <td className="p-2">
+                    <td className="p-1 sm:p-1.5 md:p-2">
                       {data.repeatingEmotions && focusedInput !== `${timeSlot}-repeatingEmotions` ? (
                         <HoverCard openDelay={200}>
                           <HoverCardTrigger asChild>
@@ -380,7 +387,7 @@ export default function EmotionalTracker() {
                     </td>
 
                     {/* Missing Emotions */}
-                    <td className="p-2">
+                    <td className="p-1 sm:p-1.5 md:p-2">
                       {data.missingEmotions && focusedInput !== `${timeSlot}-missingEmotions` ? (
                         <HoverCard openDelay={200}>
                           <HoverCardTrigger asChild>
