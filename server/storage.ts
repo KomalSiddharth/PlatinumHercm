@@ -1050,7 +1050,7 @@ export class DatabaseStorage implements IStorage {
       
       if (!firstName && !lastName && user) {
         // Try to get name from approved_emails
-        const approvedEmail = approvedEmailsData.find(ae => ae.email === user.email || ae.email === user.id);
+        const approvedEmail = approvedEmailsList.find(ae => ae.email === user.email || ae.email === user.id);
         if (approvedEmail && approvedEmail.name) {
           const nameParts = approvedEmail.name.trim().split(' ');
           firstName = nameParts[0] || '';

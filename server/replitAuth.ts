@@ -176,12 +176,15 @@ export const isAdmin: RequestHandler = async (req, res, next) => {
     if (regularUser?.isAdmin) {
       return next();
     }
+    
+    // Session claims to be admin but neither check passed - deny access
+    return res.status(403).json({ message: "Forbidden - Admin access required" });
   }
 
   // Fall back to OIDC-based admin authentication
   const user = req.user as any;
   
-  if (!req.isAuthenticated() || !user.claims?.sub) {
+  if (!req.isAuthenticated() || !user?.claims?.sub) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
