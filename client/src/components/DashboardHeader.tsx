@@ -44,11 +44,11 @@ export default function DashboardHeader({
 
   return (
     <header className="sticky top-0 z-50 bg-card border-b shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex items-center gap-3">
-            <Logo className="w-10 h-10" />
-            <span className="hidden sm:block text-xl font-semibold text-foreground">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-14 sm:h-16">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Logo className="w-8 h-8 sm:w-10 sm:h-10" />
+            <span className="hidden sm:block text-lg sm:text-xl font-semibold text-foreground">
               Platinum HRCM
             </span>
           </div>
@@ -71,13 +71,13 @@ export default function DashboardHeader({
             ))}
           </nav>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
             <Badge 
-              className="gap-1 hidden sm:flex bg-gradient-to-r from-primary to-accent text-white border-0" 
+              className="gap-0.5 sm:gap-1 hidden sm:flex bg-gradient-to-r from-primary to-accent text-white border-0 text-xs px-1.5 sm:px-2" 
               data-testid="badge-points"
             >
-              <Trophy className="w-4 h-4" />
-              <span className="font-semibold">{userPoints}</span>
+              <Trophy className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="font-semibold text-[10px] sm:text-xs">{userPoints}</span>
             </Badge>
 
             <Button
@@ -85,8 +85,9 @@ export default function DashboardHeader({
               size="icon"
               onClick={toggleDarkMode}
               data-testid="button-theme-toggle"
+              className="h-8 w-8 sm:h-9 sm:w-9"
             >
-              {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              {darkMode ? <Sun className="w-4 h-4 sm:w-5 sm:h-5" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5" />}
             </Button>
 
             <Button
@@ -94,18 +95,18 @@ export default function DashboardHeader({
               size="icon"
               onClick={onProfileClick}
               data-testid="button-profile"
-              className="relative"
+              className="relative h-8 w-8 sm:h-9 sm:w-9"
             >
-              <Avatar className="w-8 h-8">
+              <Avatar className="w-7 h-7 sm:w-8 sm:h-8">
                 <AvatarImage src="" />
-                <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-white text-sm font-medium">
+                <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-white text-xs sm:text-sm font-medium">
                   {displayName.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
             </Button>
 
             {isAdmin && (
-              <Button variant="outline" size="sm" data-testid="button-admin">
+              <Button variant="outline" size="sm" data-testid="button-admin" className="hidden sm:inline-flex text-xs px-2 sm:px-3">
                 Admin
               </Button>
             )}
@@ -113,18 +114,18 @@ export default function DashboardHeader({
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden"
+              className="md:hidden h-8 w-8"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               data-testid="button-mobile-menu"
             >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {mobileMenuOpen ? <X className="w-4 h-4 sm:w-5 sm:h-5" /> : <Menu className="w-4 h-4 sm:w-5 sm:h-5" />}
             </Button>
           </div>
         </div>
 
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t">
-            <nav className="flex flex-col gap-2">
+          <div className="md:hidden py-3 sm:py-4 border-t">
+            <nav className="flex flex-col gap-1.5 sm:gap-2">
               {navItems.map((item) => (
                 <Button
                   key={item.id}
@@ -133,7 +134,7 @@ export default function DashboardHeader({
                     onNavigate(item.id);
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full justify-start ${
+                  className={`w-full justify-start text-sm ${
                     activeSection === item.id 
                       ? 'bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90' 
                       : ''
@@ -144,8 +145,8 @@ export default function DashboardHeader({
                 </Button>
               ))}
               <div className="pt-2 mt-2 border-t">
-                <Badge className="w-full justify-center gap-2 py-2 bg-gradient-to-r from-primary to-accent text-white border-0">
-                  <Trophy className="w-4 h-4" />
+                <Badge className="w-full justify-center gap-1.5 sm:gap-2 py-1.5 sm:py-2 bg-gradient-to-r from-primary to-accent text-white border-0 text-xs sm:text-sm">
+                  <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   <span className="font-semibold">{userPoints} Points</span>
                 </Badge>
               </div>
