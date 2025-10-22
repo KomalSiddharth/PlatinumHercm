@@ -2,7 +2,7 @@
 import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated, isAdmin } from "./replitAuth";
 import { fetchCourseData, findMatchingCourse, recommendCourses, fetchEnhancedCourseData } from "./googleSheets";
 import { parseCourseCSV } from "./csvCourseParser";
 import { recommendCoursesRequestSchema, insertCourseVideoSchema } from "@shared/schema";
@@ -725,7 +725,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin routes (protected)
-  app.get('/api/admin/users', isAuthenticated, async (req, res) => {
+  app.get('/api/admin/users', isAdmin, async (req, res) => {
     try {
       const users = await storage.getAllUsers();
       res.json(users);
@@ -736,7 +736,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin: Search user by email
-  app.get('/api/admin/search-user', isAuthenticated, async (req, res) => {
+  app.get('/api/admin/search-user', isAdmin, async (req, res) => {
     try {
       const { email } = req.query;
       if (!email || typeof email !== 'string') {
@@ -760,7 +760,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin: Search user by name with compact activity
-  app.get('/api/admin/search-user-by-name', isAuthenticated, async (req, res) => {
+  app.get('/api/admin/search-user-by-name', isAdmin, async (req, res) => {
     try {
       const { name } = req.query;
       if (!name || typeof name !== 'string') {
@@ -869,7 +869,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/admin/user/:userId/weeks', isAuthenticated, async (req, res) => {
+  app.get('/api/admin/user/:userId/weeks', isAdmin, async (req, res) => {
     try {
       const { userId } = req.params;
       const weeks = await storage.getHercmWeeksByUser(userId);
@@ -881,7 +881,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin: Get specific user's detailed analytics (rituals, badges, progress)
-  app.get('/api/admin/user/:userId/analytics', isAuthenticated, async (req, res) => {
+  app.get('/api/admin/user/:userId/analytics', isAdmin, async (req, res) => {
     try {
       const { userId } = req.params;
       
@@ -949,7 +949,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin: Get enhanced user detailed analytics with emotion trends and regularity
-  app.get('/api/admin/user/:userId/detailed-analytics', isAuthenticated, async (req, res) => {
+  app.get('/api/admin/user/:userId/detailed-analytics', isAdmin, async (req, res) => {
     try {
       const { userId } = req.params;
       
@@ -1093,7 +1093,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin analytics - Get all users progress summary (approved users only)
-  app.get('/api/admin/users-analytics', isAuthenticated, async (req, res) => {
+  app.get('/api/admin/users-analytics', isAdmin, async (req, res) => {
     try {
       // Get approved emails
       const approvedEmailsList = await storage.getAllApprovedEmails();
@@ -1618,7 +1618,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Admin email management routes
-  app.get('/api/admin/approved-emails', async (req, res) => {
+  app.get('/api/admin/approved-emails', isAdmin, async (req, res) => {
     try {
       const emails = await storage.getAllApprovedEmails();
       res.json(emails);
@@ -1628,7 +1628,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
-  app.post('/api/admin/approved-emails', async (req, res) => {
+  app.post('/api/admin/approved-emails', isAdmin, async (req, res) => {
     try {
       const { email, name, zoomLink } = req.body;
       
@@ -1647,7 +1647,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
-  app.post('/api/admin/bulk-upload', async (req, res) => {
+  app.post('/api/admin/bulk-upload', isAdmin, async (req, res) => {
     try {
       const { emails } = req.body;
       
@@ -1664,7 +1664,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Delete all emails - MUST come before /:id route
-  app.delete('/api/admin/approved-emails/all', async (req, res) => {
+  app.delete('/api/admin/approved-emails/all', isAdmin, async (req, res) => {
     try {
       await storage.deleteAllApprovedEmails();
       res.json({ success: true, message: "All emails deleted" });
@@ -1674,7 +1674,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
-  app.delete('/api/admin/approved-emails/:id', async (req, res) => {
+  app.delete('/api/admin/approved-emails/:id', isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       await storage.deleteApprovedEmail(id);
@@ -1685,7 +1685,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
-  app.put('/api/admin/approved-emails/:id', async (req, res) => {
+  app.put('/api/admin/approved-emails/:id', isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       const { email, status } = req.body;
@@ -1702,7 +1702,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
-  app.get('/api/admin/stats', async (req, res) => {
+  app.get('/api/admin/stats', isAdmin, async (req, res) => {
     try {
       const stats = await storage.getAdminStats();
       res.json(stats);
@@ -1713,7 +1713,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Admin Users (Team Management) endpoints
-  app.get('/api/admin/team', async (req, res) => {
+  app.get('/api/admin/team', isAdmin, async (req, res) => {
     try {
       const admins = await storage.getAllAdminUsers();
       res.json(admins);
@@ -1723,7 +1723,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
-  app.post('/api/admin/team', async (req, res) => {
+  app.post('/api/admin/team', isAdmin, async (req, res) => {
     try {
       const { name, email, role, status } = req.body;
       
@@ -1747,7 +1747,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
-  app.put('/api/admin/team/:id', async (req, res) => {
+  app.put('/api/admin/team/:id', isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       const { name, email, role, status } = req.body;
@@ -1760,7 +1760,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
-  app.delete('/api/admin/team/:id', async (req, res) => {
+  app.delete('/api/admin/team/:id', isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       await storage.deleteAdminUser(id);
@@ -1772,7 +1772,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Access Logs endpoints
-  app.get('/api/admin/access-logs', async (req, res) => {
+  app.get('/api/admin/access-logs', isAdmin, async (req, res) => {
     try {
       const logs = await storage.getAllAccessLogs();
       res.json(logs);
@@ -1782,7 +1782,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
-  app.delete('/api/admin/access-logs', async (req, res) => {
+  app.delete('/api/admin/access-logs', isAdmin, async (req, res) => {
     try {
       await storage.deleteAllAccessLogs();
       res.json({ success: true, message: "All access logs deleted successfully" });
@@ -1795,7 +1795,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   // New Admin Analytics & Dashboard Routes
   
   // Get user's complete dashboard data (for admin to view any user's dashboard)
-  app.get('/api/admin/user/:userId/dashboard', isAuthenticated, async (req, res) => {
+  app.get('/api/admin/user/:userId/dashboard', isAdmin, async (req, res) => {
     try {
       const { userId } = req.params;
       const dashboardData = await storage.getUserDashboardData(userId);
@@ -1807,7 +1807,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Admin: Get specific user's HRCM week data
-  app.get('/api/admin/user/:userId/hercm/week/:weekNumber', isAuthenticated, async (req, res) => {
+  app.get('/api/admin/user/:userId/hercm/week/:weekNumber', isAdmin, async (req, res) => {
     try {
       const { userId, weekNumber: weekNumStr } = req.params;
       const weekNumber = parseInt(weekNumStr);
@@ -1906,7 +1906,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Admin: Get all weeks for a specific user (for calendar history)
-  app.get('/api/admin/user/:userId/hercm/weeks', isAuthenticated, async (req, res) => {
+  app.get('/api/admin/user/:userId/hercm/weeks', isAdmin, async (req, res) => {
     try {
       const { userId } = req.params;
       const weeks = await storage.getHercmWeeksByUser(userId);
@@ -1918,7 +1918,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Get user analytics with period filter (weekly/monthly/yearly)
-  app.get('/api/admin/user/:userId/analytics-period', isAuthenticated, async (req, res) => {
+  app.get('/api/admin/user/:userId/analytics-period', isAdmin, async (req, res) => {
     try {
       const { userId } = req.params;
       const { period = 'monthly' } = req.query;
@@ -1936,7 +1936,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Get team analytics with period filter (weekly/monthly/yearly)
-  app.get('/api/admin/team-analytics', isAuthenticated, async (req, res) => {
+  app.get('/api/admin/team-analytics', isAdmin, async (req, res) => {
     try {
       const { period = 'monthly' } = req.query;
       
@@ -1953,7 +1953,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Admin course recommendations - Get all recommendations
-  app.get('/api/admin/recommendations', isAuthenticated, async (req, res) => {
+  app.get('/api/admin/recommendations', isAdmin, async (req, res) => {
     try {
       const recommendations = await storage.getAllCourseRecommendations();
       res.json(recommendations);
@@ -1964,7 +1964,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Admin course recommendations - Create recommendation
-  app.post('/api/admin/recommendations', isAuthenticated, async (req: any, res) => {
+  app.post('/api/admin/recommendations', isAdmin, async (req: any, res) => {
     try {
       const adminEmail = req.user?.claims?.sub || req.session.userEmail;
       console.log('[DEBUG] POST /api/admin/recommendations - adminEmail:', adminEmail);
@@ -2068,7 +2068,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Admin delete ALL course recommendations
-  app.delete('/api/admin/recommendations/all', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/admin/recommendations/all', isAdmin, async (req: any, res) => {
     try {
       await storage.deleteAllRecommendations();
       res.json({ message: "All recommendations deleted successfully" });
@@ -2079,7 +2079,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Admin delete course recommendation
-  app.delete('/api/admin/recommendations/:id', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/admin/recommendations/:id', isAdmin, async (req: any, res) => {
     try {
       const { id } = req.params;
       await storage.deleteRecommendation(id);
@@ -2091,7 +2091,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Admin add course recommendation to user
-  app.post('/api/admin/recommend-course', isAuthenticated, async (req: any, res) => {
+  app.post('/api/admin/recommend-course', isAdmin, async (req: any, res) => {
     try {
       const adminId = req.user?.claims?.sub || req.session.userEmail;
       if (!adminId) {
@@ -2125,7 +2125,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Get user's recommendations
-  app.get('/api/admin/user/:userId/recommendations', isAuthenticated, async (req, res) => {
+  app.get('/api/admin/user/:userId/recommendations', isAdmin, async (req, res) => {
     try {
       const { userId } = req.params;
       const recommendations = await storage.getUserRecommendations(userId);
@@ -2137,7 +2137,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Update recommendation status
-  app.put('/api/admin/recommendation/:id/status', isAuthenticated, async (req, res) => {
+  app.put('/api/admin/recommendation/:id/status', isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       const { status } = req.body;
@@ -2157,7 +2157,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   // ===== PLATINUM STANDARDS ROUTES (Admin) =====
   
   // Get all platinum standards (admin view)
-  app.get('/api/admin/platinum-standards', isAuthenticated, async (req, res) => {
+  app.get('/api/admin/platinum-standards', isAdmin, async (req, res) => {
     try {
       const standards = await storage.getAllPlatinumStandards();
       res.json(standards);
@@ -2191,14 +2191,8 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Add new platinum standard (admin only)
-  app.post('/api/admin/platinum-standards', isAuthenticated, async (req: any, res) => {
+  app.post('/api/admin/platinum-standards', isAdmin, async (req: any, res) => {
     try {
-      const adminEmail = req.user?.claims?.sub || req.session.userEmail;
-      const admin = await storage.getUserByEmail(adminEmail);
-      
-      if (!admin?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
 
       const { category, standardText, orderIndex, isActive } = req.body;
       
@@ -2221,14 +2215,8 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Update platinum standard (admin only)
-  app.put('/api/admin/platinum-standards/:id', isAuthenticated, async (req: any, res) => {
+  app.put('/api/admin/platinum-standards/:id', isAdmin, async (req: any, res) => {
     try {
-      const adminEmail = req.user?.claims?.sub || req.session.userEmail;
-      const admin = await storage.getUserByEmail(adminEmail);
-      
-      if (!admin?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
 
       const { id } = req.params;
       const updates = req.body;
@@ -2242,14 +2230,8 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Delete platinum standard (admin only)
-  app.delete('/api/admin/platinum-standards/:id', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/admin/platinum-standards/:id', isAdmin, async (req: any, res) => {
     try {
-      const adminEmail = req.user?.claims?.sub || req.session.userEmail;
-      const admin = await storage.getUserByEmail(adminEmail);
-      
-      if (!admin?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
 
       const { id } = req.params;
       await storage.deletePlatinumStandard(id);
@@ -2261,14 +2243,8 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Reorder platinum standards (admin only)
-  app.put('/api/admin/platinum-standards/reorder', isAuthenticated, async (req: any, res) => {
+  app.put('/api/admin/platinum-standards/reorder', isAdmin, async (req: any, res) => {
     try {
-      const adminEmail = req.user?.claims?.sub || req.session.userEmail;
-      const admin = await storage.getUserByEmail(adminEmail);
-      
-      if (!admin?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
 
       const { updates } = req.body; // Array of { id, orderIndex }
       
@@ -2471,7 +2447,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Admin: Sync accepted recommendations to unifiedAssignment (one-time migration)
-  app.post('/api/admin/sync-recommendations', isAuthenticated, async (req: any, res) => {
+  app.post('/api/admin/sync-recommendations', isAdmin, async (req: any, res) => {
     try {
       const adminEmail = req.user?.claims?.sub || req.session.userEmail;
       const admin = await storage.getUserByEmail(adminEmail);
@@ -3992,12 +3968,8 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
   });
 
   // Admin: Get emotional trackers for any user
-  app.get('/api/admin/emotional-trackers/:userId/:date', isAuthenticated, async (req: any, res) => {
+  app.get('/api/admin/emotional-trackers/:userId/:date', isAdmin, async (req: any, res) => {
     try {
-      // Check if user is admin
-      if (!req.session.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
 
       const { userId, date } = req.params;
       
