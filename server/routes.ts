@@ -282,6 +282,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { weekNumber, beliefs } = req.body;
       const nextWeekNumber = weekNumber + 1;
       
+      // Get current week to preserve unifiedAssignment
+      const currentWeek = await storage.getHercmWeek(userId, weekNumber);
+      
       // Get unchecked lessons from current week's assignments
       const uncheckedAssignments: any = {
         health: { courses: [], lessons: [] },
@@ -304,6 +307,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // Preserve unifiedAssignment from current week (filter out completed items)
+      let unifiedAssignment: any[] = [];
+      if (currentWeek && currentWeek.unifiedAssignment && Array.isArray(currentWeek.unifiedAssignment)) {
+        // Carry forward only uncompleted items
+        unifiedAssignment = currentWeek.unifiedAssignment.filter((item: any) => !item.completed);
+      }
+      
       // Create new week with carried-forward assignments
       const newWeekData = {
         userId,
@@ -317,7 +327,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         healthAssignment: uncheckedAssignments.health,
         relationshipAssignment: uncheckedAssignments.relationship,
         careerAssignment: uncheckedAssignments.career,
-        moneyAssignment: uncheckedAssignments.money
+        moneyAssignment: uncheckedAssignments.money,
+        unifiedAssignment: unifiedAssignment
       };
       
       await storage.createHercmWeek(newWeekData as any);
