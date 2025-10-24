@@ -477,19 +477,28 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     if (viewingHistory) return;
     // Priority: Use actual database data if available, otherwise use demo/blank template
     if (weekData?.beliefs) {
+      console.log('[CHECKLIST DEBUG] Week data received:', weekData);
       // Use saved checklist data directly - don't overwrite with fresh standards
       // If checklist exists in saved data, preserve it with checked states
       const updatedBeliefs = weekData.beliefs.map(belief => {
-        // If saved checklist exists and has data, use it directly (preserves checked state)
-        if (belief.checklist && Array.isArray(belief.checklist) && belief.checklist.length > 0) {
+        console.log(`[CHECKLIST DEBUG] ${belief.category} checklist:`, belief.checklist);
+        console.log(`[CHECKLIST DEBUG] ${belief.category} checklist length:`, belief.checklist?.length);
+        console.log(`[CHECKLIST DEBUG] ${belief.category} checklist is array:`, Array.isArray(belief.checklist));
+        
+        // CRITICAL FIX: Check if checklist exists (even if empty array)
+        // Empty array means standards were loaded but none checked yet
+        // Only load fresh standards if checklist is null/undefined
+        if (belief.checklist !== null && belief.checklist !== undefined && Array.isArray(belief.checklist)) {
+          console.log(`[CHECKLIST DEBUG] ${belief.category} - Using SAVED checklist`);
           return {
             ...belief,
-            // Keep saved checklist with checked states intact
-            checklist: belief.checklist
+            // Keep saved checklist with checked states intact (even if empty)
+            checklist: belief.checklist.length > 0 ? belief.checklist : getPlatinumStandardsForCategory(belief.category)
           };
         }
         
-        // Otherwise, use fresh platinum standards from database
+        // Only use fresh platinum standards if checklist is completely missing
+        console.log(`[CHECKLIST DEBUG] ${belief.category} - Using FRESH standards`);
         const newChecklist = getPlatinumStandardsForCategory(belief.category);
         return {
           ...belief,
