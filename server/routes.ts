@@ -1295,6 +1295,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const prevWeek = weeks[weeks.length - 2];
           const prevScore = prevWeek.overallScore || 0;
           trend = overallScore - prevScore;
+        } else if (weeks.length === 1) {
+          // For first week, use achievement rate as baseline trend
+          // High achievement (>70%) = positive trend, Low (<50%) = negative trend
+          if (achievementRate >= 70) {
+            trend = 2; // Strong positive
+          } else if (achievementRate >= 50) {
+            trend = 1; // Moderate positive
+          } else if (achievementRate >= 30) {
+            trend = -1; // Moderate negative
+          } else {
+            trend = -2; // Strong negative
+          }
         }
         
         // Use email if available, otherwise use userId (which is often the email)
