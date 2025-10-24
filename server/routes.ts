@@ -1098,6 +1098,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Achievement Rate: achievementRate = percentage of checklist completion (matches dashboard)
       const latestWeek = sortedWeeks[sortedWeeks.length - 1] || null;
       
+      console.log(`[DETAILED ANALYTICS DEBUG] userId: ${userId}, sortedWeeks.length: ${sortedWeeks.length}`);
+      if (latestWeek) {
+        console.log(`[DETAILED ANALYTICS DEBUG] latestWeek:`, {
+          weekNumber: latestWeek.weekNumber,
+          overallScore: latestWeek.overallScore,
+          healthChecklist: latestWeek.healthChecklist?.length,
+          relationshipChecklist: latestWeek.relationshipChecklist?.length,
+          careerChecklist: latestWeek.careerChecklist?.length,
+          moneyChecklist: latestWeek.moneyChecklist?.length,
+        });
+      }
+      
       // Count only earned badges (badges with earnedAt date)
       const earnedBadges = platinumProgress?.badges?.filter((b: any) => b.earnedAt) || [];
       
@@ -1109,6 +1121,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const careerProgress = calculateChecklistProgress(latestWeek.careerChecklist || []);
         const moneyProgress = calculateChecklistProgress(latestWeek.moneyChecklist || []);
         achievementRate = Math.round((healthProgress + relationshipProgress + careerProgress + moneyProgress) / 4);
+        
+        console.log(`[DETAILED ANALYTICS DEBUG] Progress calculation:`, {
+          healthProgress,
+          relationshipProgress,
+          careerProgress,
+          moneyProgress,
+          achievementRate
+        });
       }
       
       const progressSummary = latestWeek ? {
@@ -1118,6 +1138,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         currentStreak: platinumProgress?.currentStreak || 0,
         totalBadges: earnedBadges.length, // Only count earned badges
       } : null;
+      
+      console.log(`[DETAILED ANALYTICS DEBUG] progressSummary:`, progressSummary);
       
       // Compact weekly data - group by date and show only last updated per date
       const weeksByDate = new Map<string, typeof sortedWeeks[0]>();
