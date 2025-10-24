@@ -126,7 +126,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                   <BarChart data={currentData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey={viewType === 'weekly' ? 'week' : 'month'} />
-                    <YAxis />
+                    <YAxis domain={[0, 100]} />
                     <Tooltip />
                     <Legend />
                     <Bar dataKey="Health" fill="#ef4444" />
