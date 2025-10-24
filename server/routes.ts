@@ -1113,6 +1113,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      // Helper to calculate checklist completion percentage
+      const calculateChecklistProgress = (checklist: any[]): number => {
+        if (!checklist || checklist.length === 0) return 0;
+        const completed = checklist.filter((item: any) => item.checked).length;
+        return Math.round((completed / checklist.length) * 100);
+      };
+      
       const compactWeeklyData = Array.from(weeksByDate.values())
         .filter(week => week.createdAt !== null)
         .sort((a, b) => {
@@ -1120,16 +1127,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const bDate = b.createdAt ? new Date(b.createdAt).getTime() : 0;
           return aDate - bDate;
         })
-        .map(week => ({
-          week: week.weekNumber,
-          date: week.createdAt,
-          h: week.currentH || 0,
-          r: week.currentE || 0,
-          c: week.currentR || 0,
-          m: week.currentC || 0,
-          score: week.overallScore || 0,
-          achievement: week.achievementRate || 0,
-        }));
+        .map(week => {
+          // RECALCULATE achievement from checklist completion (match dashboard Weekly Progress)
+          const healthProgress = calculateChecklistProgress(week.healthChecklist || []);
+          const relationshipProgress = calculateChecklistProgress(week.relationshipChecklist || []);
+          const careerProgress = calculateChecklistProgress(week.careerChecklist || []);
+          const moneyProgress = calculateChecklistProgress(week.moneyChecklist || []);
+          const achievement = Math.round((healthProgress + relationshipProgress + careerProgress + moneyProgress) / 4);
+          
+          return {
+            week: week.weekNumber,
+            date: week.createdAt,
+            h: week.currentH || 0,
+            r: week.currentE || 0,
+            c: week.currentR || 0,
+            m: week.currentC || 0,
+            score: week.overallScore || 0,
+            achievement, // NOW: Fresh calculated from checklists (matches dashboard)
+          };
+        });
       
       res.json({
         user: {
