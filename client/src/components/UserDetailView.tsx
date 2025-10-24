@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { TrendingUp, TrendingDown, Calendar, Award, Activity, AlertCircle } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import AdminEmotionalTrackerView from "./AdminEmotionalTrackerView";
 
 interface UserDetailViewProps {
   userId: string;
@@ -577,9 +576,6 @@ export default function UserDetailView({ userId }: UserDetailViewProps) {
           </div>
         </CardContent>
       </Card>
-
-      {/* Daily Emotional Tracker Section */}
-      <AdminEmotionalTrackerView userId={userId} />
     </div>
   );
 }

@@ -486,19 +486,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         weekData.improvementC = weekData.currentC - (weekData.targetC || 0);
         weekData.improvementM = weekData.currentM - (weekData.targetM || 0);
         
-        // Calculate overall score and achievement rate (H, R, C, M = 4 areas, NOT 5)
+        // Calculate overall score (H, E, R, C = 4 areas, NOT 5)
         // currentM is legacy/unused - only use H, E(Relationship), R(Career), C(Money)
         const current = [weekData.currentH, weekData.currentE, weekData.currentR, weekData.currentC];
         weekData.overallScore = Math.round(current.reduce((a, b) => a + (b || 0), 0) / 4);
         
-        // Achievement rate: percentage of goals achieved or exceeded (4 areas)
-        const achievements = [
-          weekData.improvementH >= 0 ? 1 : 0,
-          weekData.improvementE >= 0 ? 1 : 0,
-          weekData.improvementR >= 0 ? 1 : 0,
-          weekData.improvementC >= 0 ? 1 : 0,
-        ];
-        weekData.achievementRate = Math.round((achievements.reduce((a, b) => a + b, 0) / 4) * 100);
+        // Achievement rate: WEEKLY PROGRESS percentage (checklist completion across all 4 HRCM areas)
+        // This matches the "Progress" column shown in dashboard
+        const calculateChecklistProgress = (checklist: any[]): number => {
+          if (!checklist || checklist.length === 0) return 0;
+          const completed = checklist.filter((item: any) => item.checked).length;
+          return (completed / checklist.length) * 100;
+        };
+        
+        const healthProgress = calculateChecklistProgress(weekData.healthChecklist || []);
+        const relationshipProgress = calculateChecklistProgress(weekData.relationshipChecklist || []);
+        const careerProgress = calculateChecklistProgress(weekData.careerChecklist || []);
+        const moneyProgress = calculateChecklistProgress(weekData.moneyChecklist || []);
+        
+        // Average progress across all 4 areas
+        weekData.achievementRate = Math.round((healthProgress + relationshipProgress + careerProgress + moneyProgress) / 4);
       }
       
       // UPSERT logic: Check if week already exists for this user+weekNumber
@@ -1226,11 +1233,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           totalWeeks, // Now using unique week count, not total records
           latestWeekNumber: latestWeek?.weekNumber || 0,
           overallScore,
-          achievementRate,
+          achievementRate, // Now shows Weekly Progress percentage (checklist completion)
           trend, // positive = improving, negative = declining
-          // Status based on Overall Score (out of 10), not Achievement Rate
-          // 7+ = excellent, 5-6.9 = good, <5 = needs support
-          status: overallScore >= 7 ? 'excellent' : overallScore >= 5 ? 'good' : 'needs_support',
+          // Status based on Achievement Rate (Weekly Progress percentage)
+          // 70%+ = excellent, 50-69% = good, <50% = needs support
+          status: achievementRate >= 70 ? 'excellent' : achievementRate >= 50 ? 'good' : 'needs_support',
         });
       }
       
