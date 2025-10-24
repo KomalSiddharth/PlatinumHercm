@@ -152,32 +152,36 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                       type="monotone" 
                       dataKey="Health" 
                       stroke="#ef4444" 
-                      strokeWidth={3}
+                      strokeWidth={2}
                       dot={false}
+                      activeDot={false}
                       name="Health"
                     />
                     <Line 
                       type="monotone" 
                       dataKey="Relationship" 
                       stroke="#3b82f6" 
-                      strokeWidth={3}
+                      strokeWidth={2}
                       dot={false}
+                      activeDot={false}
                       name="Relationship"
                     />
                     <Line 
                       type="monotone" 
                       dataKey="Career" 
                       stroke="#a855f7" 
-                      strokeWidth={3}
+                      strokeWidth={2}
                       dot={false}
+                      activeDot={false}
                       name="Career"
                     />
                     <Line 
                       type="monotone" 
                       dataKey="Money" 
                       stroke="#10b981" 
-                      strokeWidth={3}
+                      strokeWidth={2}
                       dot={false}
+                      activeDot={false}
                       name="Money"
                     />
                   </LineChart>

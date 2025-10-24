@@ -676,6 +676,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       await queryClient.refetchQueries({ queryKey: ['/api/hercm/weeks'] });
       await queryClient.invalidateQueries({ queryKey: ['/api/rating-progression/caps'] });
       await queryClient.invalidateQueries({ queryKey: ['/api/rating-progression/status'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/analytics/progress'] });
       toast({
         title: 'Saved!',
         description: 'Your changes have been saved successfully.',
