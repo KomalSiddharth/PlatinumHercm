@@ -486,19 +486,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         weekData.improvementC = weekData.currentC - (weekData.targetC || 0);
         weekData.improvementM = weekData.currentM - (weekData.targetM || 0);
         
-        // Calculate overall score and achievement rate
-        const current = [weekData.currentH, weekData.currentE, weekData.currentR, weekData.currentC, weekData.currentM];
-        weekData.overallScore = Math.round(current.reduce((a, b) => a + (b || 0), 0) / 5);
+        // Calculate overall score and achievement rate (H, R, C, M = 4 areas, NOT 5)
+        // currentM is legacy/unused - only use H, E(Relationship), R(Career), C(Money)
+        const current = [weekData.currentH, weekData.currentE, weekData.currentR, weekData.currentC];
+        weekData.overallScore = Math.round(current.reduce((a, b) => a + (b || 0), 0) / 4);
         
-        // Achievement rate: percentage of goals achieved or exceeded
+        // Achievement rate: percentage of goals achieved or exceeded (4 areas)
         const achievements = [
           weekData.improvementH >= 0 ? 1 : 0,
           weekData.improvementE >= 0 ? 1 : 0,
           weekData.improvementR >= 0 ? 1 : 0,
           weekData.improvementC >= 0 ? 1 : 0,
-          weekData.improvementM >= 0 ? 1 : 0,
         ];
-        weekData.achievementRate = Math.round((achievements.reduce((a, b) => a + b, 0) / 5) * 100);
+        weekData.achievementRate = Math.round((achievements.reduce((a, b) => a + b, 0) / 4) * 100);
       }
       
       // UPSERT logic: Check if week already exists for this user+weekNumber
