@@ -567,37 +567,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const weeks = await storage.getHercmWeeksByUser(userId);
 
       if (viewType === 'weekly') {
-        // Group by week and use ACTUAL HRCM rating values (not checklist completion)
+        // Use Progress column values (checklist completion %) - same as shown in Current Week table
         const weeklyData: Array<{ week: string; Health: number; Relationship: number; Career: number; Money: number }> = [];
         
-        // For each unique week number, use actual ratings
+        // Calculate progress from checklist completion (matches Progress column)
+        const calculateProgress = (checklistData: any) => {
+          if (!checklistData) return 0;
+          const checklist = typeof checklistData === 'string' ? JSON.parse(checklistData) : checklistData;
+          if (!Array.isArray(checklist) || checklist.length === 0) return 0;
+          const checked = checklist.filter((c: any) => c.checked).length;
+          return Math.round((checked / checklist.length) * 100);
+        };
+        
         weeks.forEach((week: any) => {
           // Skip if we already processed this week
           if (weeklyData.some(w => w.week === `W${week.weekNumber}`)) {
             return;
           }
           
-          console.log(`[ANALYTICS] Processing Week ${week.weekNumber} - Ratings: H:${week.currentH}, R:${week.currentE}, C:${week.currentR}, M:${week.currentC}`);
+          // Calculate progress for each area (same as Progress column)
+          const healthProgress = calculateProgress(week.healthChecklist);
+          const relationshipProgress = calculateProgress(week.relationshipChecklist);
+          const careerProgress = calculateProgress(week.careerChecklist);
+          const moneyProgress = calculateProgress(week.moneyChecklist);
           
-          // Convert ratings from 0-10 scale to 0-100 scale for graph
-          const healthValue = (week.currentH || 0) * 10;
-          const relationshipValue = (week.currentE || 0) * 10;
-          const careerValue = (week.currentR || 0) * 10;
-          const moneyValue = (week.currentC || 0) * 10;
-
-          weeklyData.push({
-            week: `W${week.weekNumber}`,
-            Health: Math.round(healthValue),
-            Relationship: Math.round(relationshipValue),
-            Career: Math.round(careerValue),
-            Money: Math.round(moneyValue),
-          });
+          // Only add week if it has ANY checklist data (skip empty weeks like Week 2)
+          if (week.healthChecklist || week.relationshipChecklist || week.careerChecklist || week.moneyChecklist) {
+            console.log(`[ANALYTICS] Week ${week.weekNumber} Progress - H:${healthProgress}%, R:${relationshipProgress}%, C:${careerProgress}%, M:${moneyProgress}%`);
+            weeklyData.push({
+              week: `W${week.weekNumber}`,
+              Health: healthProgress,
+              Relationship: relationshipProgress,
+              Career: careerProgress,
+              Money: moneyProgress,
+            });
+          } else {
+            console.log(`[ANALYTICS] Week ${week.weekNumber} - Skipping (no data)`);
+          }
         });
 
         console.log('[ANALYTICS] Final weeklyData:', weeklyData);
         res.json({ weeklyData: weeklyData.slice(-5) }); // Last 5 weeks
       } else if (viewType === 'monthly') {
-        // Group by month and use ACTUAL HRCM rating values (not checklist completion)
+        // Use Progress column values (checklist completion %) for monthly view too
         const monthlyData: Array<{ month: string; Health: number; Relationship: number; Career: number; Money: number }> = [];
         const monthMap = new Map();
 
@@ -612,25 +624,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         
+        // Calculate progress from checklist completion
+        const calculateProgress = (checklistData: any) => {
+          if (!checklistData) return 0;
+          const checklist = typeof checklistData === 'string' ? JSON.parse(checklistData) : checklistData;
+          if (!Array.isArray(checklist) || checklist.length === 0) return 0;
+          const checked = checklist.filter((c: any) => c.checked).length;
+          return (checked / checklist.length) * 100;
+        };
+        
         Array.from(monthMap.entries()).forEach(([monthKey, monthWeeks]) => {
           const [year, month] = monthKey.split('-');
           
-          // Calculate average of actual ratings (0-10 scale) and convert to 0-100 for graph
-          const avgHealth = Math.round((monthWeeks.reduce((sum: number, w: any) => {
-            return sum + (w.currentH || 0);
-          }, 0) / monthWeeks.length) * 10);
+          // Calculate average progress for each area
+          const avgHealth = Math.round(monthWeeks.reduce((sum: number, w: any) => {
+            return sum + calculateProgress(w.healthChecklist);
+          }, 0) / monthWeeks.length);
 
-          const avgRelationship = Math.round((monthWeeks.reduce((sum: number, w: any) => {
-            return sum + (w.currentE || 0);
-          }, 0) / monthWeeks.length) * 10);
+          const avgRelationship = Math.round(monthWeeks.reduce((sum: number, w: any) => {
+            return sum + calculateProgress(w.relationshipChecklist);
+          }, 0) / monthWeeks.length);
 
-          const avgCareer = Math.round((monthWeeks.reduce((sum: number, w: any) => {
-            return sum + (w.currentR || 0);
-          }, 0) / monthWeeks.length) * 10);
+          const avgCareer = Math.round(monthWeeks.reduce((sum: number, w: any) => {
+            return sum + calculateProgress(w.careerChecklist);
+          }, 0) / monthWeeks.length);
 
-          const avgMoney = Math.round((monthWeeks.reduce((sum: number, w: any) => {
-            return sum + (w.currentC || 0);
-          }, 0) / monthWeeks.length) * 10);
+          const avgMoney = Math.round(monthWeeks.reduce((sum: number, w: any) => {
+            return sum + calculateProgress(w.moneyChecklist);
+          }, 0) / monthWeeks.length);
 
           monthlyData.push({
             month: monthNames[parseInt(month)],
