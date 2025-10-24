@@ -582,12 +582,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Deduplication: Use scoring system to pick most complete row when duplicates exist
         const scoreWeek = (week: any) => {
           let score = 0;
-          if (week.healthChecklist && Array.isArray(JSON.parse(typeof week.healthChecklist === 'string' ? week.healthChecklist : JSON.stringify(week.healthChecklist)))) score += 10;
-          if (week.relationshipChecklist && Array.isArray(JSON.parse(typeof week.relationshipChecklist === 'string' ? week.relationshipChecklist : JSON.stringify(week.relationshipChecklist)))) score += 10;
-          if (week.careerChecklist && Array.isArray(JSON.parse(typeof week.careerChecklist === 'string' ? week.careerChecklist : JSON.stringify(week.careerChecklist)))) score += 10;
-          if (week.moneyChecklist && Array.isArray(JSON.parse(typeof week.moneyChecklist === 'string' ? week.moneyChecklist : JSON.stringify(week.moneyChecklist)))) score += 10;
-          if (week.unifiedAssignment) score += 10;
-          // Timestamp tiebreaker
+          // Count non-empty checklists (each worth 10 points)
+          try {
+            if (week.healthChecklist) {
+              const parsed = typeof week.healthChecklist === 'string' ? JSON.parse(week.healthChecklist) : week.healthChecklist;
+              if (Array.isArray(parsed) && parsed.length > 0) score += 10;
+            }
+            if (week.relationshipChecklist) {
+              const parsed = typeof week.relationshipChecklist === 'string' ? JSON.parse(week.relationshipChecklist) : week.relationshipChecklist;
+              if (Array.isArray(parsed) && parsed.length > 0) score += 10;
+            }
+            if (week.careerChecklist) {
+              const parsed = typeof week.careerChecklist === 'string' ? JSON.parse(week.careerChecklist) : week.careerChecklist;
+              if (Array.isArray(parsed) && parsed.length > 0) score += 10;
+            }
+            if (week.moneyChecklist) {
+              const parsed = typeof week.moneyChecklist === 'string' ? JSON.parse(week.moneyChecklist) : week.moneyChecklist;
+              if (Array.isArray(parsed) && parsed.length > 0) score += 10;
+            }
+            if (week.unifiedAssignment) score += 10;
+          } catch (e) {
+            // If parsing fails, just use timestamp
+            console.error('[ANALYTICS] Error scoring week:', e);
+          }
+          // Timestamp tiebreaker (most recent wins in case of tie)
           score += new Date(week.createdAt).getTime() / 10000000000000;
           return score;
         };
