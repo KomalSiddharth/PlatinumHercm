@@ -10,29 +10,6 @@ import { CalendarIcon, BarChart3, TrendingUp } from 'lucide-react';
 import { format } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
 
-// Custom dot shapes for better visibility when lines overlap
-const CircleDot = (props: any) => {
-  const { cx, cy, fill } = props;
-  return <circle cx={cx} cy={cy} r={7} fill={fill} stroke="#fff" strokeWidth={2.5} />;
-};
-
-const SquareDot = (props: any) => {
-  const { cx, cy, fill } = props;
-  return <rect x={cx - 7} y={cy - 7} width={14} height={14} fill={fill} stroke="#fff" strokeWidth={2.5} />;
-};
-
-const TriangleDot = (props: any) => {
-  const { cx, cy, fill } = props;
-  const path = `M ${cx},${cy - 8} L ${cx + 7},${cy + 7} L ${cx - 7},${cy + 7} Z`;
-  return <path d={path} fill={fill} stroke="#fff" strokeWidth={2.5} />;
-};
-
-const DiamondDot = (props: any) => {
-  const { cx, cy, fill } = props;
-  const path = `M ${cx},${cy - 8} L ${cx + 7},${cy} L ${cx},${cy + 8} L ${cx - 7},${cy} Z`;
-  return <path d={path} fill={fill} stroke="#fff" strokeWidth={2.5} />;
-};
-
 interface EnhancedAnalyticsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -161,7 +138,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
               </div>
             </TabsContent>
 
-            {/* Line Chart with Unique Shapes */}
+            {/* Line Chart - Different line styles to distinguish overlapping values */}
             <TabsContent value="line" className="space-y-4">
               <div className="h-96">
                 <ResponsiveContainer width="100%" height="100%">
@@ -175,37 +152,41 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                       type="monotone" 
                       dataKey="Health" 
                       stroke="#ef4444" 
-                      strokeWidth={3}
-                      dot={<CircleDot fill="#ef4444" />}
-                      activeDot={<CircleDot fill="#ef4444" />}
-                      name="Health (●)"
+                      strokeWidth={4}
+                      strokeDasharray="0"
+                      dot={{ fill: '#ef4444', stroke: '#fff', strokeWidth: 2, r: 5 }}
+                      activeDot={{ r: 7 }}
+                      name="Health"
                     />
                     <Line 
                       type="monotone" 
                       dataKey="Relationship" 
                       stroke="#3b82f6" 
-                      strokeWidth={3}
-                      dot={<SquareDot fill="#3b82f6" />}
-                      activeDot={<SquareDot fill="#3b82f6" />}
-                      name="Relationship (■)"
+                      strokeWidth={4}
+                      strokeDasharray="0"
+                      dot={{ fill: '#3b82f6', stroke: '#fff', strokeWidth: 2, r: 5 }}
+                      activeDot={{ r: 7 }}
+                      name="Relationship"
                     />
                     <Line 
                       type="monotone" 
                       dataKey="Career" 
                       stroke="#a855f7" 
-                      strokeWidth={3}
-                      dot={<TriangleDot fill="#a855f7" />}
-                      activeDot={<TriangleDot fill="#a855f7" />}
-                      name="Career (▲)"
+                      strokeWidth={4}
+                      strokeDasharray="8 4"
+                      dot={{ fill: '#a855f7', stroke: '#fff', strokeWidth: 2, r: 5 }}
+                      activeDot={{ r: 7 }}
+                      name="Career"
                     />
                     <Line 
                       type="monotone" 
                       dataKey="Money" 
                       stroke="#10b981" 
-                      strokeWidth={3}
-                      dot={<DiamondDot fill="#10b981" />}
-                      activeDot={<DiamondDot fill="#10b981" />}
-                      name="Money (◆)"
+                      strokeWidth={4}
+                      strokeDasharray="2 3"
+                      dot={{ fill: '#10b981', stroke: '#fff', strokeWidth: 2, r: 5 }}
+                      activeDot={{ r: 7 }}
+                      name="Money"
                     />
                   </LineChart>
                 </ResponsiveContainer>
