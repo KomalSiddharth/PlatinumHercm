@@ -125,69 +125,6 @@ export default function UserDetailView({ userId }: UserDetailViewProps) {
         </div>
       )}
 
-      {/* Regularity/Irregularity Tracking */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="w-5 h-5" />
-            Activity Regularity
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Completion Rate</p>
-                <p className="text-2xl font-bold" data-testid="regularity-percentage">
-                  {regularity.percentage}%
-                </p>
-              </div>
-              <Badge 
-                variant={regularity.status === 'regular' ? 'default' : regularity.status === 'semi-regular' ? 'secondary' : 'destructive'}
-                data-testid="regularity-status"
-              >
-                {regularity.status === 'regular' ? 'Regular' : regularity.status === 'semi-regular' ? 'Semi-Regular' : 'Irregular'}
-              </Badge>
-            </div>
-
-            <div className="grid grid-cols-3 gap-4 text-sm">
-              <div>
-                <p className="text-muted-foreground">Total Weeks</p>
-                <p className="font-semibold" data-testid="regularity-total-weeks">{regularity.totalWeeks}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Expected Weeks</p>
-                <p className="font-semibold" data-testid="regularity-expected-weeks">{regularity.expectedWeeks}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Missed Weeks</p>
-                <p className="font-semibold text-destructive" data-testid="regularity-missed-weeks">
-                  {regularity.missedWeeks}
-                </p>
-              </div>
-            </div>
-
-            {regularity.gaps.length > 0 && (
-              <div className="mt-4">
-                <p className="text-sm font-medium mb-2 flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-amber-600" />
-                  Activity Gaps
-                </p>
-                <div className="space-y-2">
-                  {regularity.gaps.map((gap: any, idx: number) => (
-                    <div key={idx} className="text-sm p-2 bg-muted rounded-lg">
-                      <span className="text-muted-foreground">
-                        {gap.gapSize} week{gap.gapSize > 1 ? 's' : ''} gap between Week {gap.afterWeek} and Week {gap.beforeWeek}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Emotion Trends Graph - Stock Market Style */}
       {emotionTrends.length > 0 && (
         <Card className="border-2 border-purple-200 dark:border-purple-800 overflow-hidden">
