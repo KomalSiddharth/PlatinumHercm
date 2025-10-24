@@ -1228,7 +1228,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           overallScore,
           achievementRate,
           trend, // positive = improving, negative = declining
-          status: achievementRate >= 70 ? 'excellent' : achievementRate >= 50 ? 'good' : 'needs_support',
+          // Status based on Overall Score (out of 10), not Achievement Rate
+          // 7+ = excellent, 5-6.9 = good, <5 = needs support
+          status: overallScore >= 7 ? 'excellent' : overallScore >= 5 ? 'good' : 'needs_support',
         });
       }
       
