@@ -1,0 +1,154 @@
+Dashboard.tsx:1670 [Course Tracker] basic-loa: 1 completions loaded
+3chunk-RPCDYKBN.js?v=ce530613:521 Warning: Encountered two children with the same key, `nlp-nlp-intro`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-EVLBUYTV.js?v=ce530613:79:13
+    at https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-EVLBUYTV.js?v=ce530613:56:13
+    at https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-KYDO7B72.js?v=ce530613:42:13
+    at https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-EVLBUYTV.js?v=ce530613:79:13
+    at https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-EVLBUYTV.js?v=ce530613:56:13
+    at https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-KYDO7B72.js?v=ce530613:42:13
+    at https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-6XT6VRFM.js?v=ce530613:1929:13
+    at https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-hover-card.js?v=ce530613:108:13
+    at Provider (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=ce530613:38:15)
+    at Popper (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-6XT6VRFM.js?v=ce530613:1921:11)
+    at Provider (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=ce530613:38:15)
+    at HoverCard (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-hover-card.js?v=ce530613:54:5)
+    at td
+    at _c11 (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/src/components/ui/table.tsx:152:13)
+    at tr
+    at _c9 (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/src/components/ui/table.tsx:102:12)
+    at tbody
+    at _c5 (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/src/components/ui/table.tsx:55:12)
+    at table
+    at div
+    at _c (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/src/components/ui/table.tsx:20:11)
+    at div
+    at div
+    at UnifiedHRCMTable (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/src/components/UnifiedHRCMTable.tsx:167:44)
+    at section
+    at main
+    at div
+    at Dashboard (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/src/pages/Dashboard.tsx:88:21)
+    at Route (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=ce530613:265:16)
+    at Switch (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=ce530613:321:17)
+    at Router
+    at Provider (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=ce530613:38:15)
+    at TooltipProvider (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=ce530613:62:5)
+    at QueryClientProvider (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=ce530613:2805:3)
+    at App
+printWarning @ chunk-RPCDYKBN.js?v=ce530613:521Understand this error
+Dashboard.tsx:1670 [Course Tracker] advance-loa: 0 completions loaded
+Dashboard.tsx:1670 [Course Tracker] wealth-mastery: 1 completions loaded
+Dashboard.tsx:1670 [Course Tracker] nlp: 1 completions loaded
+Dashboard.tsx:1670 [Course Tracker] hooponopono-eft: 1 completions loaded
+Dashboard.tsx:1670 [Course Tracker] relationship-mastery: 2 completions loaded
+Dashboard.tsx:1670 [Course Tracker] practical-spirituality: 0 completions loaded
+Dashboard.tsx:1670 [Course Tracker] life-coaching: 0 completions loaded
+Dashboard.tsx:1670 [Course Tracker] corporate-trainer: 0 completions loaded
+Dashboard.tsx:1670 [Course Tracker] loa-dmp-certification: 0 completions loaded
+Dashboard.tsx:1670 [Course Tracker] loa-vastu: 0 completions loaded
+Dashboard.tsx:1670 [Course Tracker] health-mastery: 0 completions loaded
+Dashboard.tsx:1670 [Course Tracker] depression-celebration: 0 completions loaded
+DashboardHeader.tsx:34 Dark mode toggled: true
+Dashboard.tsx:1670 [Course Tracker] demartini-breakthrough: 0 completions loaded
+Dashboard.tsx:1670 [Course Tracker] demartini-values: 0 completions loaded
+Dashboard.tsx:1670 [Course Tracker] lead-business: 0 completions loaded
+Dashboard.tsx:1670 [Course Tracker] lead-self: 0 completions loaded
+Dashboard.tsx:1670 [Course Tracker] lead-people: 0 completions loaded
+Dashboard.tsx:1670 [Course Tracker] handwriting-frequency: 0 completions loaded
+Dashboard.tsx:1670 [Course Tracker] investing-saving: 0 completions loaded
+Dashboard.tsx:1670 [Course Tracker] imk-bonuses: 0 completions loaded
+Dashboard.tsx:1670 [Course Tracker] platinum-membership-challenge: 0 completions loaded
+Dashboard.tsx:1670 [Course Tracker] jack-canfield-special: 0 completions loaded
+Dashboard.tsx:1670 [Course Tracker] pineal-gland-meditations: 0 completions loaded
+chunk-RPCDYKBN.js?v=ce530613:521 Warning: Encountered two children with the same key, `nlp-nlp-intro`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-EVLBUYTV.js?v=ce530613:79:13
+    at https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-EVLBUYTV.js?v=ce530613:56:13
+    at https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-KYDO7B72.js?v=ce530613:42:13
+    at https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-EVLBUYTV.js?v=ce530613:79:13
+    at https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-EVLBUYTV.js?v=ce530613:56:13
+    at https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-KYDO7B72.js?v=ce530613:42:13
+    at https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-6XT6VRFM.js?v=ce530613:1929:13
+    at https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-hover-card.js?v=ce530613:108:13
+    at Provider (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=ce530613:38:15)
+    at Popper (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-6XT6VRFM.js?v=ce530613:1921:11)
+    at Provider (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=ce530613:38:15)
+    at HoverCard (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-hover-card.js?v=ce530613:54:5)
+    at td
+    at _c11 (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/src/components/ui/table.tsx:152:13)
+    at tr
+    at _c9 (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/src/components/ui/table.tsx:102:12)
+    at tbody
+    at _c5 (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/src/components/ui/table.tsx:55:12)
+    at table
+    at div
+    at _c (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/src/components/ui/table.tsx:20:11)
+    at div
+    at div
+    at UnifiedHRCMTable (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/src/components/UnifiedHRCMTable.tsx:167:44)
+    at section
+    at main
+    at div
+    at Dashboard (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/src/pages/Dashboard.tsx:88:21)
+    at Route (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=ce530613:265:16)
+    at Switch (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=ce530613:321:17)
+    at Router
+    at Provider (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=ce530613:38:15)
+    at TooltipProvider (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=ce530613:62:5)
+    at QueryClientProvider (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=ce530613:2805:3)
+    at App
+printWarning @ chunk-RPCDYKBN.js?v=ce530613:521Understand this error
+Dashboard.tsx:1670 [Course Tracker] platinum-healing-sessions: 0 completions loaded
+Dashboard.tsx:1670 [Course Tracker] dmp-recording: 0 completions loaded
+Dashboard.tsx:1677 [Course Tracker] All completions loaded: Object
+Dashboard.tsx:1686 [Course Tracker] Marking basic-loa-bloa-1-2 as completed
+Dashboard.tsx:1686 [Course Tracker] Marking wealth-mastery-wm-1 as completed
+Dashboard.tsx:1686 [Course Tracker] Marking nlp-nlp-intro as completed
+Dashboard.tsx:1686 [Course Tracker] Marking hooponopono-eft-ho-1 as completed
+Dashboard.tsx:1686 [Course Tracker] Marking relationship-mastery-rm-2 as completed
+Dashboard.tsx:1686 [Course Tracker] Marking relationship-mastery-rm-4 as completed
+chunk-RPCDYKBN.js?v=ce530613:521 Warning: Encountered two children with the same key, `nlp-nlp-intro`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-EVLBUYTV.js?v=ce530613:79:13
+    at https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-EVLBUYTV.js?v=ce530613:56:13
+    at https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-KYDO7B72.js?v=ce530613:42:13
+    at https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-EVLBUYTV.js?v=ce530613:79:13
+    at https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-EVLBUYTV.js?v=ce530613:56:13
+    at https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-KYDO7B72.js?v=ce530613:42:13
+    at https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-6XT6VRFM.js?v=ce530613:1929:13
+    at https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-hover-card.js?v=ce530613:108:13
+    at Provider (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=ce530613:38:15)
+    at Popper (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-6XT6VRFM.js?v=ce530613:1921:11)
+    at Provider (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=ce530613:38:15)
+    at HoverCard (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-hover-card.js?v=ce530613:54:5)
+    at td
+    at _c11 (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/src/components/ui/table.tsx:152:13)
+    at tr
+    at _c9 (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/src/components/ui/table.tsx:102:12)
+    at tbody
+    at _c5 (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/src/components/ui/table.tsx:55:12)
+    at table
+    at div
+    at _c (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/src/components/ui/table.tsx:20:11)
+    at div
+    at div
+    at UnifiedHRCMTable (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/src/components/UnifiedHRCMTable.tsx:167:44)
+    at section
+    at main
+    at div
+    at Dashboard (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/src/pages/Dashboard.tsx:88:21)
+    at Route (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=ce530613:265:16)
+    at Switch (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=ce530613:321:17)
+    at Router
+    at Provider (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=ce530613:38:15)
+    at TooltipProvider (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=ce530613:62:5)
+    at QueryClientProvider (https://27172bde-efd9-451d-a9c8-811241655275-00-34ldw6mac8ark.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=ce530613:2805:3)
+    at App
+printWarning @ chunk-RPCDYKBN.js?v=ce530613:521Understand this error
