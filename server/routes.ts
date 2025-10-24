@@ -1216,6 +1216,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      // Helper to calculate checklist completion percentage
+      const calculateChecklistProgress = (checklist: any[]): number => {
+        if (!checklist || checklist.length === 0) return 0;
+        const completed = checklist.filter((item: any) => item.checked).length;
+        return Math.round((completed / checklist.length) * 100);
+      };
+      
       const users = Array.from(usersByEmail.values());
       const analytics = [];
       
@@ -1229,7 +1236,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Show all approved users, even if they haven't started tracking yet
         const latestWeek = weeks.length > 0 ? weeks[weeks.length - 1] : null;
         const overallScore = latestWeek?.overallScore || 0;
-        const achievementRate = latestWeek?.achievementRate || 0;
+        
+        // RECALCULATE achievement from checklist completion (match dashboard Weekly Progress)
+        let achievementRate = 0;
+        if (latestWeek) {
+          const healthProgress = calculateChecklistProgress(latestWeek.healthChecklist || []);
+          const relationshipProgress = calculateChecklistProgress(latestWeek.relationshipChecklist || []);
+          const careerProgress = calculateChecklistProgress(latestWeek.careerChecklist || []);
+          const moneyProgress = calculateChecklistProgress(latestWeek.moneyChecklist || []);
+          achievementRate = Math.round((healthProgress + relationshipProgress + careerProgress + moneyProgress) / 4);
+        }
         
         // Calculate trend (compare last 2 weeks)
         let trend = 0;
@@ -1250,7 +1266,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           totalWeeks, // Now using unique week count, not total records
           latestWeekNumber: latestWeek?.weekNumber || 0,
           overallScore,
-          achievementRate, // Now shows Weekly Progress percentage (checklist completion)
+          achievementRate, // NOW: Fresh calculated from checklists (matches dashboard 36%)
           trend, // positive = improving, negative = declining
           // Status based on Achievement Rate (Weekly Progress percentage)
           // 70%+ = excellent, 50-69% = good, <50% = needs support
