@@ -138,7 +138,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
               </div>
             </TabsContent>
 
-            {/* Line Chart - Different line styles to distinguish overlapping values */}
+            {/* Line Chart - Continuous lines without dots */}
             <TabsContent value="line" className="space-y-4">
               <div className="h-96">
                 <ResponsiveContainer width="100%" height="100%">
@@ -153,8 +153,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                       dataKey="Health" 
                       stroke="#ef4444" 
                       strokeWidth={3}
-                      dot={{ fill: '#ef4444', stroke: '#fff', strokeWidth: 2, r: 6 }}
-                      activeDot={{ r: 8 }}
+                      dot={false}
                       name="Health"
                     />
                     <Line 
@@ -162,8 +161,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                       dataKey="Relationship" 
                       stroke="#3b82f6" 
                       strokeWidth={3}
-                      dot={{ fill: '#3b82f6', stroke: '#fff', strokeWidth: 2, r: 6 }}
-                      activeDot={{ r: 8 }}
+                      dot={false}
                       name="Relationship"
                     />
                     <Line 
@@ -171,8 +169,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                       dataKey="Career" 
                       stroke="#a855f7" 
                       strokeWidth={3}
-                      dot={{ fill: '#a855f7', stroke: '#fff', strokeWidth: 2, r: 6 }}
-                      activeDot={{ r: 8 }}
+                      dot={false}
                       name="Career"
                     />
                     <Line 
@@ -180,8 +177,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                       dataKey="Money" 
                       stroke="#10b981" 
                       strokeWidth={3}
-                      dot={{ fill: '#10b981', stroke: '#fff', strokeWidth: 2, r: 6 }}
-                      activeDot={{ r: 8 }}
+                      dot={false}
                       name="Money"
                     />
                   </LineChart>
