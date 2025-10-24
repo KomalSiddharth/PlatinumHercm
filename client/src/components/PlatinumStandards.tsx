@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
@@ -6,6 +6,7 @@ import { TrendingUp, Target } from 'lucide-react';
 
 interface PlatinumStandardsProps {
   onRatingsChange?: (ratings: StandardRatings) => void;
+  initialRatings?: StandardRatings;
 }
 
 export interface StandardRatings {
@@ -21,19 +22,28 @@ export interface StandardRatings {
   };
 }
 
-export default function PlatinumStandards({ onRatingsChange }: PlatinumStandardsProps) {
-  const [ratings, setRatings] = useState<StandardRatings>({
-    feelingsEmotional: 5,
-    beliefsPattern: 5,
-    humanNeeds: {
-      contribution: 5,
-      loveConnection: 5,
-      growth: 5,
-      significance: 5,
-      change: 5,
-      comfort: 5
+const DEFAULT_RATINGS: StandardRatings = {
+  feelingsEmotional: 5,
+  beliefsPattern: 5,
+  humanNeeds: {
+    contribution: 5,
+    loveConnection: 5,
+    growth: 5,
+    significance: 5,
+    change: 5,
+    comfort: 5
+  }
+};
+
+export default function PlatinumStandards({ onRatingsChange, initialRatings }: PlatinumStandardsProps) {
+  const [ratings, setRatings] = useState<StandardRatings>(initialRatings || DEFAULT_RATINGS);
+
+  // Load initial ratings from prop when they become available
+  useEffect(() => {
+    if (initialRatings) {
+      setRatings(initialRatings);
     }
-  });
+  }, [initialRatings]);
 
   const updateRating = (key: keyof StandardRatings | string, value: number) => {
     const newRatings = { ...ratings };

@@ -188,13 +188,13 @@ const getWeekBeliefs = (week: number): HRCMBelief[] => {
 };
 
 const calculateProgress = (checklist: ChecklistItem[]): number => {
-  // Calculate checklist progress only
+  // Calculate checklist progress - NO CAP, show real completion percentage
   const checklistProgress = checklist.length > 0 
     ? (checklist.filter(item => item.checked).length / checklist.length) * 100
     : 0;
   
-  // Cap progress at 70% maximum
-  return Math.min(Math.round(checklistProgress), 70);
+  // Return actual progress without any artificial cap
+  return Math.round(checklistProgress);
 };
 
 const getProgressColor = (progress: number) => {
