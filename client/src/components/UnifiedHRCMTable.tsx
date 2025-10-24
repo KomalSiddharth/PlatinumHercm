@@ -503,7 +503,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       setBeliefs(getWeekBeliefs(weekNumber));
       setUnifiedAssignment([]);
     }
-  }, [weekNumber, weekData, ratingCaps, platinumStandardsData]);
+  }, [weekNumber, weekData, ratingCaps]);
+  // Note: platinumStandardsData removed from deps to prevent resetting checked states on refresh
 
   const weeklyProgress = beliefs.length > 0
     ? Math.round(beliefs.reduce((sum, b) => sum + calculateProgress(b.checklist), 0) / beliefs.length)
