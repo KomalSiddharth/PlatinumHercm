@@ -168,6 +168,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Transform database format back to beliefs array for frontend
+      console.log('[API DEBUG] healthChecklist from DB:', week.healthChecklist);
+      console.log('[API DEBUG] healthChecklist type:', typeof week.healthChecklist);
+      console.log('[API DEBUG] healthChecklist is array:', Array.isArray(week.healthChecklist));
+      console.log('[API DEBUG] healthChecklist length:', week.healthChecklist?.length);
+      
       const beliefs = [
         {
           category: 'Health',
