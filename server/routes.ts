@@ -3174,7 +3174,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         return res.status(401).json({ message: "User not authenticated" });
       }
       
-      const { videoId, courseId } = req.body;
+      const { videoId, courseId, courseName, lessonName, lessonUrl, completed, weekNumber } = req.body;
       if (!videoId || !courseId) {
         return res.status(400).json({ message: "videoId and courseId are required" });
       }
@@ -3185,6 +3185,41 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       // Get completed count for this course
       const completedVideos = await storage.getCourseVideoCompletions(userId, courseId);
       
+      // ALSO update unifiedAssignment if lesson details provided
+      if (weekNumber && courseName && lessonName) {
+        const weeks = await storage.getHercmWeeksByUser(userId);
+        const week = weeks.find((w: any) => w.weekNumber === weekNumber);
+        
+        if (week) {
+          const currentAssignment = (week.unifiedAssignment as any) || [];
+          const lessonId = videoId; // Use videoId as unique lesson ID
+          
+          if (completed) {
+            // ADD lesson to unifiedAssignment (if not already present)
+            const lessonExists = currentAssignment.some((item: any) => item.id === lessonId);
+            if (!lessonExists) {
+              const newLesson = {
+                id: lessonId,
+                courseId,
+                courseName,
+                lessonName,
+                url: lessonUrl || '',
+                completed: false, // Start as unchecked in Assignment column
+                source: 'user', // User-selected lesson (cyan color)
+              };
+              const updatedAssignment = [...currentAssignment, newLesson];
+              await storage.updateHercmWeek(week.id, { unifiedAssignment: updatedAssignment });
+              console.log(`[COURSE] Added "${lessonName}" to Assignment column for Week ${weekNumber}`);
+            }
+          } else {
+            // REMOVE lesson from unifiedAssignment
+            const updatedAssignment = currentAssignment.filter((item: any) => item.id !== lessonId);
+            await storage.updateHercmWeek(week.id, { unifiedAssignment: updatedAssignment });
+            console.log(`[COURSE] Removed "${lessonName}" from Assignment column for Week ${weekNumber}`);
+          }
+        }
+      }
+      
       res.json({ 
         ...result, 
         completedCount: completedVideos.length
@@ -3193,6 +3228,80 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       console.error("Error toggling video completion:", error);
       const errorMessage = error instanceof Error ? error.message : "Failed to toggle video completion";
       res.status(500).json({ message: errorMessage });
+    }
+  });
+
+  // Sync existing checked lessons to Assignment column (one-time migration)
+  app.post('/api/course-video-completions/sync-to-assignment', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const { coursesData, weekNumber } = req.body;
+      if (!coursesData || !weekNumber) {
+        return res.status(400).json({ message: "coursesData and weekNumber required" });
+      }
+      
+      // Get current week
+      const weeks = await storage.getHercmWeeksByUser(userId);
+      const week = weeks.find((w: any) => w.weekNumber === weekNumber);
+      
+      if (!week) {
+        return res.status(404).json({ message: "Week not found" });
+      }
+      
+      // Get all video completions for this user
+      const allCompletions: Record<string, any[]> = {};
+      for (const course of coursesData) {
+        const completions = await storage.getCourseVideoCompletions(userId, course.id);
+        allCompletions[course.id] = completions;
+      }
+      
+      // Build lessons to add to unifiedAssignment
+      const lessonsToAdd: any[] = [];
+      for (const course of coursesData) {
+        const courseCompletions = allCompletions[course.id] || [];
+        
+        for (const completion of courseCompletions) {
+          const videoId = completion.videoId;
+          const moduleId = videoId.replace(`${course.id}-`, '');
+          const lesson = course.lessons?.find((l: any) => l.id === moduleId);
+          
+          if (lesson) {
+            lessonsToAdd.push({
+              id: videoId,
+              courseId: course.id,
+              courseName: course.title,
+              lessonName: lesson.title,
+              url: lesson.url || '',
+              completed: false, // Start as unchecked in Assignment column
+              source: 'user', // User-selected lesson
+            });
+          }
+        }
+      }
+      
+      // Add to unifiedAssignment (avoid duplicates)
+      const currentAssignment = (week.unifiedAssignment as any) || [];
+      const existingIds = new Set(currentAssignment.map((item: any) => item.id));
+      const newLessons = lessonsToAdd.filter(lesson => !existingIds.has(lesson.id));
+      
+      if (newLessons.length > 0) {
+        const updatedAssignment = [...currentAssignment, ...newLessons];
+        await storage.updateHercmWeek(week.id, { unifiedAssignment: updatedAssignment });
+        console.log(`[SYNC] Added ${newLessons.length} lessons to Assignment column for Week ${weekNumber}`);
+      }
+      
+      res.json({ 
+        success: true, 
+        addedCount: newLessons.length,
+        totalLessons: lessonsToAdd.length
+      });
+    } catch (error) {
+      console.error("Error syncing lessons to assignment:", error);
+      res.status(500).json({ message: "Failed to sync lessons" });
     }
   });
 

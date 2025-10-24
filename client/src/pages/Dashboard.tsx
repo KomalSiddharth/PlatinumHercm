@@ -400,6 +400,19 @@ export default function Dashboard() {
       }
       
       setCompletedModules(allCompletions);
+      
+      // SYNC existing checked lessons to Assignment column (one-time on page load)
+      try {
+        await apiRequest('POST', '/api/course-video-completions/sync-to-assignment', {
+          coursesData: courses,
+          weekNumber: currentWeek
+        });
+        console.log('[SYNC] Successfully synced checked lessons to Assignment column');
+        // Refresh HRCM data to show updated Assignment column
+        queryClient.invalidateQueries({ queryKey: ['/api/hercm'] });
+      } catch (error) {
+        console.error('[SYNC] Failed to sync lessons:', error);
+      }
     };
     
     loadCompletedVideos();
@@ -408,12 +421,37 @@ export default function Dashboard() {
 
   // Mutation to persist course video completions to database
   const toggleVideoCompletionMutation = useMutation({
-    mutationFn: async ({ videoId, courseId }: { videoId: string; courseId: string }) => {
-      return await apiRequest('POST', '/api/course-video-completions/toggle', { videoId, courseId });
+    mutationFn: async ({ videoId, courseId, courseName, lessonName, lessonUrl, completed, currentWeekNumber }: { 
+      videoId: string; 
+      courseId: string;
+      courseName: string;
+      lessonName: string;
+      lessonUrl?: string;
+      completed: boolean;
+      currentWeekNumber: number;
+    }) => {
+      return await apiRequest('POST', '/api/course-video-completions/toggle', { 
+        videoId, 
+        courseId,
+        courseName,
+        lessonName,
+        lessonUrl,
+        completed,
+        weekNumber: currentWeekNumber
+      });
     },
   });
 
   const handleModuleToggle = async (courseId: string, moduleId: string, completed: boolean) => {
+    // Get course and lesson details
+    const course = courses.find(c => c.id === courseId);
+    const lesson = course?.lessons.find(l => l.id === moduleId);
+    
+    if (!course || !lesson) {
+      console.error('Course or lesson not found');
+      return;
+    }
+    
     // Update local state immediately for responsive UI
     setCompletedModules(prev => {
       const current = prev[courseId] || [];
@@ -427,15 +465,26 @@ export default function Dashboard() {
       };
     });
 
-    // Persist to database
+    // Persist to database AND add to Assignment column
     const videoId = `${courseId}-${moduleId}`;
     try {
-      await toggleVideoCompletionMutation.mutateAsync({ videoId, courseId });
+      await toggleVideoCompletionMutation.mutateAsync({ 
+        videoId, 
+        courseId,
+        courseName: course.title,
+        lessonName: lesson.title,
+        lessonUrl: lesson.url,
+        completed,
+        currentWeekNumber: currentWeek
+      });
+      
+      // Invalidate HRCM data to refresh Assignment column
+      queryClient.invalidateQueries({ queryKey: ['/api/hercm'] });
       
       // Auto-save toast
       toast({
         title: completed ? 'Module Completed!' : 'Module Unmarked',
-        description: completed ? 'Progress saved successfully' : 'Progress reverted',
+        description: completed ? 'Added to Assignment column' : 'Removed from Assignment column',
       });
     } catch (error) {
       console.error('Failed to save progress:', error);
