@@ -577,13 +577,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return;
           }
           
-          console.log(`[ANALYTICS] Processing Week ${week.weekNumber} - Ratings: H:${week.healthRating}, R:${week.relationshipRating}, C:${week.careerRating}, M:${week.moneyRating}`);
+          console.log(`[ANALYTICS] Processing Week ${week.weekNumber} - Ratings: H:${week.currentH}, R:${week.currentE}, C:${week.currentR}, M:${week.currentC}`);
           
           // Convert ratings from 0-10 scale to 0-100 scale for graph
-          const healthValue = (week.healthRating || 0) * 10;
-          const relationshipValue = (week.relationshipRating || 0) * 10;
-          const careerValue = (week.careerRating || 0) * 10;
-          const moneyValue = (week.moneyRating || 0) * 10;
+          const healthValue = (week.currentH || 0) * 10;
+          const relationshipValue = (week.currentE || 0) * 10;
+          const careerValue = (week.currentR || 0) * 10;
+          const moneyValue = (week.currentC || 0) * 10;
 
           weeklyData.push({
             week: `W${week.weekNumber}`,
@@ -617,19 +617,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Calculate average of actual ratings (0-10 scale) and convert to 0-100 for graph
           const avgHealth = Math.round((monthWeeks.reduce((sum: number, w: any) => {
-            return sum + (w.healthRating || 0);
+            return sum + (w.currentH || 0);
           }, 0) / monthWeeks.length) * 10);
 
           const avgRelationship = Math.round((monthWeeks.reduce((sum: number, w: any) => {
-            return sum + (w.relationshipRating || 0);
+            return sum + (w.currentE || 0);
           }, 0) / monthWeeks.length) * 10);
 
           const avgCareer = Math.round((monthWeeks.reduce((sum: number, w: any) => {
-            return sum + (w.careerRating || 0);
+            return sum + (w.currentR || 0);
           }, 0) / monthWeeks.length) * 10);
 
           const avgMoney = Math.round((monthWeeks.reduce((sum: number, w: any) => {
-            return sum + (w.moneyRating || 0);
+            return sum + (w.currentC || 0);
           }, 0) / monthWeeks.length) * 10);
 
           monthlyData.push({
