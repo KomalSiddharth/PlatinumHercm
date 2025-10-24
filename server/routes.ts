@@ -1096,7 +1096,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Progress summary
       // Score Calculation: overallScore = average of (currentH + currentE + currentR + currentC) / 4
       // Achievement Rate: achievementRate = percentage of checklist completion (matches dashboard)
-      const latestWeek = sortedWeeks[sortedWeeks.length - 1] || null;
+      
+      // Find most recent week WITH checklist data (not just latest week number)
+      let latestWeek = null;
+      for (let i = sortedWeeks.length - 1; i >= 0; i--) {
+        const week = sortedWeeks[i];
+        // Check if week has checklist data
+        if (week.healthChecklist || week.relationshipChecklist || week.careerChecklist || week.moneyChecklist) {
+          latestWeek = week;
+          break;
+        }
+      }
       
       console.log(`[DETAILED ANALYTICS DEBUG] userId: ${userId}, sortedWeeks.length: ${sortedWeeks.length}`);
       if (latestWeek) {
