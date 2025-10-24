@@ -501,9 +501,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         weekData.achievementRate = Math.round((achievements.reduce((a, b) => a + b, 0) / 5) * 100);
       }
       
-      // SNAPSHOT logic: Always create a new record with timestamp for date-wise history
-      // This allows users to see all edits/saves in the history section
-      const week = await storage.createHercmWeek(weekData);
+      // UPSERT logic: Check if week already exists for this user+weekNumber
+      // If exists, UPDATE it (preserves checked states across refresh)
+      // If not exists, CREATE new week
+      const existingWeek = await storage.getHercmWeek(userId, weekData.weekNumber);
+      
+      let week;
+      if (existingWeek) {
+        // Week exists - UPDATE it to preserve data and avoid duplicate rows
+        console.log(`[SAVE DEBUG] Week ${weekData.weekNumber} exists (id: ${existingWeek.id}) - updating`);
+        week = await storage.updateHercmWeek(existingWeek.id, weekData);
+      } else {
+        // Week doesn't exist - CREATE new
+        console.log(`[SAVE DEBUG] Week ${weekData.weekNumber} does not exist - creating new`);
+        week = await storage.createHercmWeek(weekData);
+      }
       
       // Update rating progression after saving (pass weekNumber to prevent replay attacks)
       if (weekData.currentH !== null) {
