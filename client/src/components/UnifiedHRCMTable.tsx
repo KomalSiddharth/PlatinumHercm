@@ -475,15 +475,26 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   useEffect(() => {
     // Skip if viewing history
     if (viewingHistory) return;
+    
+    console.log('[FRONTEND DEBUG] useEffect triggered - weekData:', weekData);
+    console.log('[FRONTEND DEBUG] weekData?.beliefs:', weekData?.beliefs);
+    
     // Priority: Use actual database data if available, otherwise use demo/blank template
     if (weekData?.beliefs) {
+      console.log('[FRONTEND DEBUG] Processing beliefs from weekData');
+      
       // Use saved checklist data directly - don't overwrite with fresh standards
       // If checklist exists in saved data, preserve it with checked states
       const updatedBeliefs = weekData.beliefs.map(belief => {
+        console.log(`[FRONTEND DEBUG] ${belief.category} - checklist:`, belief.checklist);
+        console.log(`[FRONTEND DEBUG] ${belief.category} - checklist length:`, belief.checklist?.length);
+        console.log(`[FRONTEND DEBUG] ${belief.category} - is array:`, Array.isArray(belief.checklist));
+        
         // CRITICAL FIX: Always use saved checklist if it exists (array with length > 0)
         // Only use fresh platinum standards if checklist is null/undefined/empty
         if (belief.checklist && Array.isArray(belief.checklist) && belief.checklist.length > 0) {
           // Saved checklist with data exists - use it to preserve checked states
+          console.log(`[FRONTEND DEBUG] ${belief.category} - USING SAVED CHECKLIST`);
           return {
             ...belief,
             checklist: belief.checklist
@@ -491,6 +502,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         }
         
         // No saved checklist or empty - load fresh platinum standards from database
+        console.log(`[FRONTEND DEBUG] ${belief.category} - LOADING FRESH STANDARDS`);
         const newChecklist = getPlatinumStandardsForCategory(belief.category);
         return {
           ...belief,
@@ -498,10 +510,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         };
       });
       
+      console.log('[FRONTEND DEBUG] Final updatedBeliefs:', updatedBeliefs);
       setBeliefs(updatedBeliefs);
       // Load unified assignment from week data
       setUnifiedAssignment((weekData as any).unifiedAssignment || []);
     } else {
+      console.log('[FRONTEND DEBUG] No weekData - using template');
       // No database data - use demo/blank template immediately (don't wait for loading)
       setBeliefs(getWeekBeliefs(weekNumber));
       setUnifiedAssignment([]);
