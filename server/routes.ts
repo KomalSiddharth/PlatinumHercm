@@ -1038,13 +1038,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const rituals = await storage.getRitualsByUser(userId);
       const platinumProgress = await storage.getPlatinumProgress(userId);
       
-      // Calculate emotion trends
+      // Calculate emotion trends - USE CURRENT WEEK RATINGS (not emotionScore fields)
+      // This matches what users see in their Current Week HRCM table
       const emotionTrends = sortedWeeks.map(week => ({
         weekNumber: week.weekNumber,
-        healthEmotion: week.healthEmotionScore || 5,
-        relationshipEmotion: week.relationshipEmotionScore || 5,
-        careerEmotion: week.careerEmotionScore || 5,
-        moneyEmotion: week.moneyEmotionScore || 5,
+        healthEmotion: week.currentH || 5,
+        relationshipEmotion: week.currentE || 5,
+        careerEmotion: week.currentR || 5,
+        moneyEmotion: week.currentC || 5,
       }));
       
       // Calculate HRCM rating trends
