@@ -138,7 +138,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
               </div>
             </TabsContent>
 
-            {/* Line Chart - Continuous lines without dots */}
+            {/* Line Chart - Continuous lines only */}
             <TabsContent value="line" className="space-y-4">
               <div className="h-96">
                 <ResponsiveContainer width="100%" height="100%">
@@ -153,8 +153,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                       dataKey="Health" 
                       stroke="#ef4444" 
                       strokeWidth={2}
-                      dot={false}
-                      activeDot={false}
+                      dot={{ r: 0 }}
                       name="Health"
                     />
                     <Line 
@@ -162,8 +161,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                       dataKey="Relationship" 
                       stroke="#3b82f6" 
                       strokeWidth={2}
-                      dot={false}
-                      activeDot={false}
+                      dot={{ r: 0 }}
                       name="Relationship"
                     />
                     <Line 
@@ -171,8 +169,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                       dataKey="Career" 
                       stroke="#a855f7" 
                       strokeWidth={2}
-                      dot={false}
-                      activeDot={false}
+                      dot={{ r: 0 }}
                       name="Career"
                     />
                     <Line 
@@ -180,8 +177,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                       dataKey="Money" 
                       stroke="#10b981" 
                       strokeWidth={2}
-                      dot={false}
-                      activeDot={false}
+                      dot={{ r: 0 }}
                       name="Money"
                     />
                   </LineChart>
