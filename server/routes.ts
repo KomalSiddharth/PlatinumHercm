@@ -636,14 +636,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         
         // Process deduplicated weeks
+        const selectedWeekNumber = week ? parseInt(week as string) : null;
+        
         Array.from(weekMap.values()).forEach((week: any) => {
+          // If specific week requested, only process that week
+          if (selectedWeekNumber && week.weekNumber !== selectedWeekNumber) {
+            return; // Skip weeks that don't match selection
+          }
+          
           // Calculate progress for each area (same as Progress column)
           const healthProgress = calculateProgress(week.healthChecklist);
           const relationshipProgress = calculateProgress(week.relationshipChecklist);
           const careerProgress = calculateProgress(week.careerChecklist);
           const moneyProgress = calculateProgress(week.moneyChecklist);
           
-          // Only add week if it has ANY checklist data (skip empty weeks like Week 2)
+          // Only add week if it has ANY checklist data (skip empty weeks)
           if (week.healthChecklist || week.relationshipChecklist || week.careerChecklist || week.moneyChecklist) {
             console.log(`[ANALYTICS] Week ${week.weekNumber} Progress - H:${healthProgress}%, R:${relationshipProgress}%, C:${careerProgress}%, M:${moneyProgress}%`);
             weeklyData.push({
@@ -659,7 +666,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
 
         console.log('[ANALYTICS] Final weeklyData:', weeklyData);
-        res.json({ weeklyData: weeklyData.slice(-5) }); // Last 5 weeks
+        // If specific week requested, return that week only. Otherwise return last 5 weeks
+        res.json({ weeklyData: selectedWeekNumber ? weeklyData : weeklyData.slice(-5) });
       } else if (viewType === 'monthly') {
         // Use Progress column values (checklist completion %) for monthly view too
         const monthlyData: Array<{ month: string; Health: number; Relationship: number; Career: number; Money: number }> = [];

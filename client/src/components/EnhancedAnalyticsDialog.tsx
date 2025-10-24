@@ -16,12 +16,29 @@ interface EnhancedAnalyticsDialogProps {
   currentWeek: number;
 }
 
+interface HercmWeek {
+  id: string;
+  weekNumber: number;
+  year: number;
+}
+
 export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: EnhancedAnalyticsDialogProps) {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [viewType, setViewType] = useState<'weekly' | 'monthly'>('weekly');
   const [selectedWeek, setSelectedWeek] = useState<number>(currentWeek);
 
-  // Fetch analytics data
+  // Fetch available weeks from database
+  const { data: availableWeeks } = useQuery<HercmWeek[]>({
+    queryKey: ['/api/hercm/weeks'],
+    enabled: open,
+  });
+
+  // Get unique week numbers from available weeks
+  const weekNumbers = availableWeeks 
+    ? Array.from(new Set(availableWeeks.map(w => w.weekNumber))).sort((a, b) => a - b)
+    : [];
+
+  // Fetch analytics data for selected week only
   const { data: analyticsData, isLoading } = useQuery<{
     weeklyData?: Array<{ week: string; Health: number; Relationship: number; Career: number; Money: number }>;
     monthlyData?: Array<{ month: string; Health: number; Relationship: number; Career: number; Money: number }>;
@@ -91,7 +108,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
               </div>
             )}
 
-            {/* Week Selector (for weekly view) */}
+            {/* Week Selector (for weekly view) - DYNAMIC based on user's filled weeks */}
             {viewType === 'weekly' && (
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium">Week:</span>
@@ -100,11 +117,15 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {[1, 2, 3, 4, 5].map((w) => (
-                      <SelectItem key={w} value={w.toString()}>
-                        Week {w}
-                      </SelectItem>
-                    ))}
+                    {weekNumbers.length > 0 ? (
+                      weekNumbers.map((w) => (
+                        <SelectItem key={w} value={w.toString()}>
+                          Week {w}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="1" disabled>No weeks available</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
