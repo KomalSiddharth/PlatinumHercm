@@ -321,6 +321,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   });
 
   // Transform platinum standards into ChecklistItem format
+  // NOTE: This should ONLY be used for NEW weeks with no saved data
+  // For existing weeks, ALWAYS use saved checklist data from database
   const getPlatinumStandardsForCategory = (category: string): ChecklistItem[] => {
     const categoryLower = category.toLowerCase();
     const standards = platinumStandardsData.filter((s: any) => s.category === categoryLower && s.isActive);
@@ -329,7 +331,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       .map((s: any, index: number) => ({
         id: `${categoryLower}-std-${index + 1}`,
         text: s.standardText,
-        checked: false
+        checked: false // Default for NEW weeks only
       }));
   };
 

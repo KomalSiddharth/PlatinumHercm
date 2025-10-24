@@ -579,12 +579,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return Math.round((checked / checklist.length) * 100);
         };
         
+        // Deduplication: Use scoring system to pick most complete row when duplicates exist
+        const scoreWeek = (week: any) => {
+          let score = 0;
+          if (week.healthChecklist && Array.isArray(JSON.parse(typeof week.healthChecklist === 'string' ? week.healthChecklist : JSON.stringify(week.healthChecklist)))) score += 10;
+          if (week.relationshipChecklist && Array.isArray(JSON.parse(typeof week.relationshipChecklist === 'string' ? week.relationshipChecklist : JSON.stringify(week.relationshipChecklist)))) score += 10;
+          if (week.careerChecklist && Array.isArray(JSON.parse(typeof week.careerChecklist === 'string' ? week.careerChecklist : JSON.stringify(week.careerChecklist)))) score += 10;
+          if (week.moneyChecklist && Array.isArray(JSON.parse(typeof week.moneyChecklist === 'string' ? week.moneyChecklist : JSON.stringify(week.moneyChecklist)))) score += 10;
+          if (week.unifiedAssignment) score += 10;
+          // Timestamp tiebreaker
+          score += new Date(week.createdAt).getTime() / 10000000000000;
+          return score;
+        };
+        
+        // Group by week number and pick best row
+        const weekMap = new Map();
         weeks.forEach((week: any) => {
-          // Skip if we already processed this week
-          if (weeklyData.some(w => w.week === `W${week.weekNumber}`)) {
-            return;
+          if (!weekMap.has(week.weekNumber) || scoreWeek(week) > scoreWeek(weekMap.get(week.weekNumber))) {
+            weekMap.set(week.weekNumber, week);
           }
-          
+        });
+        
+        // Process deduplicated weeks
+        Array.from(weekMap.values()).forEach((week: any) => {
           // Calculate progress for each area (same as Progress column)
           const healthProgress = calculateProgress(week.healthChecklist);
           const relationshipProgress = calculateProgress(week.relationshipChecklist);
