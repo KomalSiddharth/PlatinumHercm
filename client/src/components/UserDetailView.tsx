@@ -52,7 +52,7 @@ export default function UserDetailView({ userId }: UserDetailViewProps) {
 
       {/* Progress Report Summary */}
       {progressSummary && (
-        <div className="grid md:grid-cols-5 gap-4">
+        <div className="grid md:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -91,20 +91,6 @@ export default function UserDetailView({ userId }: UserDetailViewProps) {
             <CardContent>
               <p className="text-2xl font-bold" data-testid="progress-achievement-rate">
                 {progressSummary.achievementRate}%
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Activity className="w-4 h-4 text-orange-600" />
-                Current Streak
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold" data-testid="progress-current-streak">
-                {progressSummary.currentStreak} weeks
               </p>
             </CardContent>
           </Card>

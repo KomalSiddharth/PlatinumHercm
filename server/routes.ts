@@ -1086,18 +1086,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      // Helper to calculate checklist completion percentage
+      const calculateChecklistProgress = (checklist: any[]): number => {
+        if (!checklist || checklist.length === 0) return 0;
+        const completed = checklist.filter((item: any) => item.checked).length;
+        return Math.round((completed / checklist.length) * 100);
+      };
+      
       // Progress summary
       // Score Calculation: overallScore = average of (currentH + currentE + currentR + currentC) / 4
-      // Achievement Rate: achievementRate = percentage of targets met for the week
+      // Achievement Rate: achievementRate = percentage of checklist completion (matches dashboard)
       const latestWeek = sortedWeeks[sortedWeeks.length - 1] || null;
       
       // Count only earned badges (badges with earnedAt date)
       const earnedBadges = platinumProgress?.badges?.filter((b: any) => b.earnedAt) || [];
       
+      // RECALCULATE achievement from checklist completion (match User Analytics table)
+      let achievementRate = 0;
+      if (latestWeek) {
+        const healthProgress = calculateChecklistProgress(latestWeek.healthChecklist || []);
+        const relationshipProgress = calculateChecklistProgress(latestWeek.relationshipChecklist || []);
+        const careerProgress = calculateChecklistProgress(latestWeek.careerChecklist || []);
+        const moneyProgress = calculateChecklistProgress(latestWeek.moneyChecklist || []);
+        achievementRate = Math.round((healthProgress + relationshipProgress + careerProgress + moneyProgress) / 4);
+      }
+      
       const progressSummary = latestWeek ? {
         currentWeek: latestWeek.weekNumber,
         overallScore: latestWeek.overallScore || 0, // Average HRCM rating (out of 10)
-        achievementRate: latestWeek.achievementRate || 0, // % of targets achieved
+        achievementRate, // NOW: Fresh calculated from checklists (matches table)
         currentStreak: platinumProgress?.currentStreak || 0,
         totalBadges: earnedBadges.length, // Only count earned badges
       } : null;
@@ -1112,13 +1129,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           weeksByDate.set(dateKey, week);
         }
       }
-      
-      // Helper to calculate checklist completion percentage
-      const calculateChecklistProgress = (checklist: any[]): number => {
-        if (!checklist || checklist.length === 0) return 0;
-        const completed = checklist.filter((item: any) => item.checked).length;
-        return Math.round((completed / checklist.length) * 100);
-      };
       
       const compactWeeklyData = Array.from(weeksByDate.values())
         .filter(week => week.createdAt !== null)
