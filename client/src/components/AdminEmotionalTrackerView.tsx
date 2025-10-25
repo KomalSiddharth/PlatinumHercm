@@ -24,6 +24,7 @@ interface AdminEmotionalTrackerViewProps {
 }
 
 const TIME_SLOTS = [
+  '5am - 7am',
   '7am - 9am',
   '9am - 11am',
   '11am to 1pm',
@@ -98,7 +99,7 @@ export default function AdminEmotionalTrackerView({ userId }: AdminEmotionalTrac
               Daily Emotional Tracker (Admin View - Read Only)
             </CardTitle>
             <CardDescription>
-              View user's emotional tracking data across 2-hour time slots
+              View user's emotional tracking data across 2-hour time slots (5am - 1am)
             </CardDescription>
           </div>
           

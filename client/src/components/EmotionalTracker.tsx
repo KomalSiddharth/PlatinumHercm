@@ -22,6 +22,7 @@ interface EmotionalTrackerData {
 }
 
 const TIME_SLOTS = [
+  '5am - 7am',
   '7am - 9am',
   '9am - 11am',
   '11am to 1pm',
@@ -150,7 +151,7 @@ export default function EmotionalTracker() {
               Daily Emotional Tracker
             </CardTitle>
             <CardDescription className="text-xs sm:text-sm mt-1">
-              Track your emotions throughout the day in 2-hour time slots
+              Track your emotions throughout the day in 2-hour time slots (5am - 1am)
             </CardDescription>
           </div>
           
