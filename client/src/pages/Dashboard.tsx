@@ -14,6 +14,7 @@ import BadgeDisplayCard from '@/components/BadgeDisplayCard';
 import UserActivitySearch from '@/components/UserActivitySearch';
 import EmotionalTracker from '@/components/EmotionalTracker';
 import { CourseRecommendations } from '@/components/CourseRecommendations';
+import SkillBuilder from '@/components/SkillBuilder';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
@@ -1933,6 +1934,11 @@ export default function Dashboard() {
             weekNumber={currentWeek}
             onWeekChange={handleWeekChange}
           />
+        </section>
+
+        {/* Skill Builder Section - Duolingo-style Learning */}
+        <section className="scroll-mt-20">
+          <SkillBuilder />
         </section>
 
         <section ref={ritualsRef} id="rituals" className="scroll-mt-20 p-3 sm:p-4 md:p-6 rounded-lg border-2" style={{ backgroundColor: '#00008c', borderColor: '#0000cc' }}>
