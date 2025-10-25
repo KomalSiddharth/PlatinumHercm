@@ -1,348 +1,362 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Flame, Star, Target, Lock, Play, Trophy, Award } from 'lucide-react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Flame, Star, Trophy, Zap, Heart, Gift, Crown, Sparkles, Target, TrendingUp, Lock, Check } from 'lucide-react';
 import SkillTree from './SkillTree';
 import LessonPlayer from './LessonPlayer';
 
-interface SkillArea {
+interface SkillNode {
   id: string;
   name: string;
-  icon: string;
+  emoji: string;
   currentRating: number;
   targetRating: number;
-  level: number;
-  progress: number;
-  locked: boolean;
-  skillsNeeded: number;
+  status: 'locked' | 'available' | 'current' | 'completed';
+  color: string;
+  position: number;
 }
 
 export default function SkillBuilder() {
-  const [selectedArea, setSelectedArea] = useState<SkillArea | null>(null);
+  const [selectedNode, setSelectedNode] = useState<SkillNode | null>(null);
   const [treeOpen, setTreeOpen] = useState(false);
   const [lessonOpen, setLessonOpen] = useState(false);
 
-  // Static dummy data for UI design
+  // Static dummy data
   const streak = 7;
-  const currentLevel = 5;
-  const dailyGoal = 10; // minutes
-  const dailyProgress = 8; // minutes completed
-  const xpToNextLevel = 150;
-  const currentXP = 650;
+  const dailyXP = 80;
+  const dailyGoal = 100;
+  const level = 5;
 
-  const skillAreas: SkillArea[] = [
-    {
-      id: 'health',
-      name: 'Health',
-      icon: '🏥',
-      currentRating: 3,
-      targetRating: 7,
-      level: 3,
-      progress: 30,
-      locked: false,
-      skillsNeeded: 3
-    },
-    {
-      id: 'relationship',
-      name: 'Relationship',
-      icon: '💑',
-      currentRating: 6,
-      targetRating: 8,
-      level: 2,
-      progress: 40,
-      locked: false,
-      skillsNeeded: 2
-    },
-    {
-      id: 'career',
-      name: 'Career',
-      icon: '💼',
-      currentRating: 4,
-      targetRating: 5,
-      level: 1,
-      progress: 20,
-      locked: false,
-      skillsNeeded: 1
-    },
-    {
-      id: 'money',
-      name: 'Money',
-      icon: '💰',
-      currentRating: 1,
-      targetRating: 1,
-      level: 0,
-      progress: 0,
-      locked: true,
-      skillsNeeded: 0
-    }
+  const nodes: SkillNode[] = [
+    { id: 'health', name: 'Health', emoji: '🏥', currentRating: 3, targetRating: 7, status: 'available', color: 'from-red-400 to-pink-500', position: 1 },
+    { id: 'relationship', name: 'Relationships', emoji: '💑', currentRating: 6, targetRating: 8, status: 'available', color: 'from-pink-400 to-purple-500', position: 2 },
+    { id: 'career', name: 'Career', emoji: '💼', currentRating: 4, targetRating: 5, status: 'current', color: 'from-blue-400 to-cyan-500', position: 3 },
+    { id: 'money', name: 'Money', emoji: '💰', currentRating: 1, targetRating: 1, status: 'locked', color: 'from-yellow-400 to-orange-500', position: 4 }
   ];
 
-  const handleAreaClick = (area: SkillArea) => {
-    if (!area.locked) {
-      setSelectedArea(area);
+  const handleNodeClick = (node: SkillNode) => {
+    if (node.status !== 'locked') {
+      setSelectedNode(node);
       setTreeOpen(true);
     }
   };
 
-  const handleStartLesson = () => {
-    setTreeOpen(false);
-    setLessonOpen(true);
-  };
-
-  const getGapColor = (gap: number) => {
-    if (gap >= 4) return 'text-red-500';
-    if (gap >= 2) return 'text-yellow-500';
-    if (gap === 1) return 'text-green-500';
-    return 'text-emerald-500';
-  };
-
-  const getGapBadgeVariant = (gap: number): "default" | "secondary" | "destructive" | "outline" => {
-    if (gap >= 4) return 'destructive';
-    if (gap >= 2) return 'secondary';
-    return 'default';
-  };
-
   return (
     <>
-      <Card className="overflow-hidden" data-testid="card-skill-builder">
-        <CardHeader className="bg-gradient-to-r from-primary/10 to-accent/10 border-b">
-          <CardTitle className="text-xl md:text-2xl font-bold text-center flex items-center justify-center gap-2">
-            <Trophy className="w-5 h-5 md:w-6 md:h-6 text-primary" />
-            Your Learning Path
-          </CardTitle>
-        </CardHeader>
-        
-        <CardContent className="p-4 md:p-6 space-y-6">
-          {/* Streak & Progress Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
-            {/* Streak */}
-            <div className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 p-3 md:p-4 rounded-lg border border-orange-200 dark:border-orange-800">
+      <div className="relative">
+        {/* Top Stats Bar - Playful & Colorful */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          {/* Streak */}
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-400 via-red-400 to-pink-500 p-4 text-white shadow-lg hover-elevate cursor-pointer">
+            <div className="relative z-10">
               <div className="flex items-center gap-2 mb-1">
-                <Flame className="w-5 h-5 text-orange-500" />
-                <span className="text-sm font-medium text-muted-foreground">Streak</span>
+                <Flame className="w-5 h-5 animate-pulse" />
+                <span className="text-xs font-bold uppercase tracking-wide">Streak</span>
               </div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-2xl md:text-3xl font-bold text-orange-600 dark:text-orange-400">{streak}</span>
-                <span className="text-sm text-muted-foreground">days</span>
-              </div>
+              <div className="text-3xl font-black">{streak}</div>
+              <div className="text-xs opacity-90">days 🔥</div>
             </div>
-
-            {/* Level */}
-            <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 p-3 md:p-4 rounded-lg border border-purple-200 dark:border-purple-800">
-              <div className="flex items-center gap-2 mb-1">
-                <Award className="w-5 h-5 text-purple-500" />
-                <span className="text-sm font-medium text-muted-foreground">Level</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="flex">
-                  {Array.from({ length: currentLevel }).map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-purple-500 text-purple-500" />
-                  ))}
-                </div>
-                <span className="text-xl md:text-2xl font-bold text-purple-600 dark:text-purple-400">{currentLevel}</span>
-              </div>
-              <div className="mt-2">
-                <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                  <span>XP: {currentXP}</span>
-                  <span>{xpToNextLevel} to Level {currentLevel + 1}</span>
-                </div>
-                <Progress value={(currentXP % 1000) / 10} className="h-1.5" />
-              </div>
-            </div>
-
-            {/* Daily Goal */}
-            <div className="bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-teal-950/20 dark:to-cyan-950/20 p-3 md:p-4 rounded-lg border border-teal-200 dark:border-teal-800">
-              <div className="flex items-center gap-2 mb-1">
-                <Target className="w-5 h-5 text-teal-500" />
-                <span className="text-sm font-medium text-muted-foreground">Today's Goal</span>
-              </div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-2xl md:text-3xl font-bold text-teal-600 dark:text-teal-400">{dailyProgress}</span>
-                <span className="text-sm text-muted-foreground">/ {dailyGoal} min</span>
-              </div>
-              <Progress value={(dailyProgress / dailyGoal) * 100} className="h-2 mt-2" />
-            </div>
+            <div className="absolute -right-4 -bottom-4 text-6xl opacity-20">🔥</div>
           </div>
 
-          {/* Skill Areas Grid */}
-          <div>
-            <h3 className="text-base md:text-lg font-semibold mb-3 md:mb-4">Choose Your Path:</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-              {skillAreas.map((area) => {
-                const gap = area.targetRating - area.currentRating;
-                
-                return (
-                  <Card
-                    key={area.id}
-                    className={`relative overflow-hidden transition-all ${
-                      area.locked
-                        ? 'opacity-60 cursor-not-allowed'
-                        : 'cursor-pointer hover-elevate active-elevate-2'
-                    }`}
-                    onClick={() => handleAreaClick(area)}
-                    data-testid={`card-skill-${area.id}`}
+          {/* Level */}
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-400 via-indigo-400 to-blue-500 p-4 text-white shadow-lg hover-elevate cursor-pointer">
+            <div className="relative z-10">
+              <div className="flex items-center gap-2 mb-1">
+                <Crown className="w-5 h-5" />
+                <span className="text-xs font-bold uppercase tracking-wide">Level</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="text-3xl font-black">{level}</div>
+                <div className="flex">
+                  {Array.from({ length: Math.min(5, level) }).map((_, i) => (
+                    <Star key={i} className="w-4 h-4 fill-yellow-300 text-yellow-300" />
+                  ))}
+                </div>
+              </div>
+              <div className="text-xs opacity-90">Champion</div>
+            </div>
+            <div className="absolute -right-4 -bottom-4 text-6xl opacity-20">👑</div>
+          </div>
+
+          {/* Daily XP */}
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-teal-400 via-emerald-400 to-green-500 p-4 text-white shadow-lg hover-elevate cursor-pointer">
+            <div className="relative z-10">
+              <div className="flex items-center gap-2 mb-1">
+                <Zap className="w-5 h-5" />
+                <span className="text-xs font-bold uppercase tracking-wide">Today</span>
+              </div>
+              <div className="text-3xl font-black">{dailyXP}</div>
+              <div className="text-xs opacity-90">/ {dailyGoal} XP</div>
+              <div className="mt-1 h-1.5 bg-white/30 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-white rounded-full transition-all"
+                  style={{ width: `${(dailyXP / dailyGoal) * 100}%` }}
+                />
+              </div>
+            </div>
+            <div className="absolute -right-4 -bottom-4 text-6xl opacity-20">⚡</div>
+          </div>
+
+          {/* Hearts */}
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-rose-400 via-pink-400 to-fuchsia-500 p-4 text-white shadow-lg hover-elevate cursor-pointer">
+            <div className="relative z-10">
+              <div className="flex items-center gap-2 mb-1">
+                <Heart className="w-5 h-5 fill-white" />
+                <span className="text-xs font-bold uppercase tracking-wide">Hearts</span>
+              </div>
+              <div className="flex items-center gap-1 mt-1">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Heart key={i} className="w-6 h-6 fill-white text-white" />
+                ))}
+              </div>
+              <div className="text-xs opacity-90 mt-1">Full health</div>
+            </div>
+            <div className="absolute -right-4 -bottom-4 text-6xl opacity-20">💖</div>
+          </div>
+        </div>
+
+        {/* Main Title */}
+        <div className="text-center mb-8">
+          <h2 className="text-3xl md:text-4xl font-black bg-gradient-to-r from-primary via-purple-600 to-accent bg-clip-text text-transparent mb-2">
+            Your Learning Path
+          </h2>
+          <p className="text-muted-foreground">Level up your life skills! 🚀</p>
+        </div>
+
+        {/* Vertical Learning Path - Duolingo Style */}
+        <div className="relative max-w-2xl mx-auto">
+          {/* Background decorative path line */}
+          <div className="absolute left-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-primary/20 via-purple-300/20 to-accent/20 -translate-x-1/2 rounded-full" />
+          
+          <div className="relative space-y-8 py-4">
+            {nodes.map((node, index) => {
+              const gap = node.targetRating - node.currentRating;
+              const progress = node.targetRating > 0 ? Math.round((node.currentRating / node.targetRating) * 100) : 0;
+              
+              return (
+                <div key={node.id} className="relative">
+                  {/* Connecting line to next node */}
+                  {index < nodes.length - 1 && (
+                    <div className="absolute left-1/2 top-full w-1 h-8 bg-gradient-to-b from-primary/30 to-transparent -translate-x-1/2" />
+                  )}
+
+                  {/* Node Card */}
+                  <div 
+                    className={`relative ${
+                      index % 2 === 0 ? 'ml-0 mr-auto' : 'ml-auto mr-0'
+                    } w-full md:w-4/5`}
                   >
-                    <CardContent className="p-4 md:p-5 space-y-3">
-                      {/* Icon & Name */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="text-2xl md:text-3xl">{area.icon}</span>
-                          <div>
-                            <h4 className="font-semibold text-sm md:text-base">{area.name}</h4>
-                            {area.level > 0 && (
-                              <div className="flex items-center gap-1 mt-0.5">
-                                <span className="text-xs text-muted-foreground">Level {area.level}</span>
-                                <div className="flex">
-                                  {Array.from({ length: area.level }).map((_, i) => (
-                                    <Star key={i} className="w-3 h-3 fill-yellow-500 text-yellow-500" />
-                                  ))}
+                    <Card
+                      className={`relative overflow-hidden border-4 transition-all cursor-pointer ${
+                        node.status === 'locked' 
+                          ? 'opacity-50 cursor-not-allowed border-gray-300' 
+                          : node.status === 'current'
+                          ? 'border-yellow-400 shadow-2xl shadow-yellow-400/50 scale-105'
+                          : node.status === 'completed'
+                          ? 'border-green-400 shadow-xl shadow-green-400/30'
+                          : 'border-primary/30 hover-elevate active-elevate-2 shadow-xl'
+                      }`}
+                      onClick={() => handleNodeClick(node)}
+                      data-testid={`skill-node-${node.id}`}
+                    >
+                      <CardContent className="p-0">
+                        <div className={`bg-gradient-to-r ${node.color} p-6 relative`}>
+                          {/* Background emoji */}
+                          <div className="absolute -right-6 -top-6 text-8xl opacity-20 select-none">
+                            {node.emoji}
+                          </div>
+                          
+                          <div className="relative z-10">
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex items-center gap-3">
+                                <div className="text-5xl">{node.emoji}</div>
+                                <div className="text-white">
+                                  <h3 className="text-2xl font-black tracking-tight">{node.name}</h3>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    {node.status === 'locked' && (
+                                      <Badge className="bg-white/20 text-white border-0 text-xs">
+                                        <Lock className="w-3 h-3 mr-1" />
+                                        Locked
+                                      </Badge>
+                                    )}
+                                    {node.status === 'current' && (
+                                      <Badge className="bg-yellow-400 text-yellow-900 border-0 text-xs animate-pulse">
+                                        <Target className="w-3 h-3 mr-1" />
+                                        Focus Here!
+                                      </Badge>
+                                    )}
+                                    {node.status === 'completed' && (
+                                      <Badge className="bg-green-400 text-green-900 border-0 text-xs">
+                                        <Check className="w-3 h-3 mr-1" />
+                                        Complete
+                                      </Badge>
+                                    )}
+                                  </div>
                                 </div>
+                              </div>
+                            </div>
+
+                            {node.status !== 'locked' && gap > 0 && (
+                              <div className="bg-white/90 backdrop-blur rounded-xl p-4 space-y-3">
+                                {/* Rating Display */}
+                                <div className="flex items-center justify-between">
+                                  <div className="text-center">
+                                    <div className="text-xs text-gray-600 font-medium mb-1">Current</div>
+                                    <div className="text-3xl font-black text-gray-900">{node.currentRating}</div>
+                                  </div>
+                                  
+                                  <div className="flex-1 mx-4">
+                                    <TrendingUp className="w-6 h-6 text-gray-400 mx-auto" />
+                                  </div>
+                                  
+                                  <div className="text-center">
+                                    <div className="text-xs text-gray-600 font-medium mb-1">Target</div>
+                                    <div className="text-3xl font-black bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                                      {node.targetRating}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Progress Bar */}
+                                <div className="space-y-1">
+                                  <div className="flex items-center justify-between text-xs text-gray-600">
+                                    <span className="font-medium">Progress</span>
+                                    <span className="font-bold">{progress}%</span>
+                                  </div>
+                                  <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+                                    <div 
+                                      className={`h-full bg-gradient-to-r ${node.color} transition-all duration-500`}
+                                      style={{ width: `${progress}%` }}
+                                    />
+                                  </div>
+                                </div>
+
+                                {/* Gap Badge */}
+                                <div className="flex items-center justify-between">
+                                  <div className="text-xs text-gray-600 font-medium">Gap to close:</div>
+                                  <Badge 
+                                    variant={gap >= 4 ? 'destructive' : gap >= 2 ? 'secondary' : 'default'}
+                                    className="font-bold text-sm"
+                                  >
+                                    {gap} point{gap !== 1 ? 's' : ''}
+                                  </Badge>
+                                </div>
+                              </div>
+                            )}
+
+                            {node.status === 'locked' && (
+                              <div className="bg-white/20 backdrop-blur rounded-xl p-4 text-center">
+                                <Lock className="w-8 h-8 text-white/80 mx-auto mb-2" />
+                                <p className="text-white/90 text-sm font-medium">
+                                  Complete Career first! 🚀
+                                </p>
+                              </div>
+                            )}
+
+                            {node.status !== 'locked' && gap === 0 && (
+                              <div className="bg-white/90 backdrop-blur rounded-xl p-4 text-center">
+                                <Trophy className="w-10 h-10 text-yellow-500 mx-auto mb-2" />
+                                <p className="text-gray-900 font-bold">On Track! 🎯</p>
                               </div>
                             )}
                           </div>
                         </div>
-                        {area.locked && <Lock className="w-5 h-5 text-muted-foreground" />}
-                      </div>
 
-                      {/* Rating Progress */}
-                      {!area.locked && gap > 0 && (
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between text-xs md:text-sm">
-                            <span className="text-muted-foreground">Current</span>
-                            <span className="font-semibold">{area.currentRating}</span>
+                        {/* Action Button */}
+                        {node.status !== 'locked' && gap > 0 && (
+                          <div className="p-4 bg-white">
+                            <Button 
+                              className="w-full h-12 text-lg font-bold shadow-lg"
+                              size="lg"
+                              data-testid={`button-start-${node.id}`}
+                            >
+                              <Sparkles className="w-5 h-5 mr-2" />
+                              Start Learning
+                            </Button>
                           </div>
-                          <div className="relative">
-                            <Progress value={(area.currentRating / 10) * 100} className="h-2" />
-                            <div 
-                              className="absolute top-0 h-2 rounded-full bg-accent/30"
-                              style={{ left: `${(area.currentRating / 10) * 100}%`, width: `${(gap / 10) * 100}%` }}
-                            />
-                          </div>
-                          <div className="flex items-center justify-between text-xs md:text-sm">
-                            <span className="text-muted-foreground">Target</span>
-                            <span className="font-semibold">{area.targetRating}</span>
-                          </div>
-                        </div>
-                      )}
+                        )}
 
-                      {/* Gap & Skills Info */}
-                      {!area.locked && gap > 0 && (
-                        <div className="pt-2 border-t space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-muted-foreground">Gap to close:</span>
-                            <Badge variant={getGapBadgeVariant(gap)} className="text-xs">
-                              {gap} point{gap !== 1 ? 's' : ''}
-                            </Badge>
+                        {node.status !== 'locked' && gap === 0 && (
+                          <div className="p-4 bg-white">
+                            <Button 
+                              className="w-full h-12 text-lg font-bold"
+                              variant="outline"
+                              size="lg"
+                            >
+                              <Gift className="w-5 h-5 mr-2" />
+                              Practice More
+                            </Button>
                           </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-muted-foreground">Skills needed:</span>
-                            <span className="text-xs font-semibold">{area.skillsNeeded}</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-muted-foreground">Progress:</span>
-                            <span className="text-xs font-semibold">{area.progress}%</span>
-                          </div>
-                        </div>
-                      )}
+                        )}
+                      </CardContent>
+                    </Card>
 
-                      {area.locked && (
-                        <div className="text-center py-2">
-                          <p className="text-xs text-muted-foreground">Complete Health first!</p>
-                        </div>
-                      )}
-
-                      {!area.locked && gap === 0 && (
-                        <div className="flex items-center justify-center gap-2 py-2 text-emerald-600 dark:text-emerald-400">
-                          <Trophy className="w-5 h-5" />
-                          <span className="text-sm font-semibold">On Track!</span>
-                        </div>
-                      )}
-
-                      {/* Action Button */}
-                      {!area.locked && gap > 0 && (
-                        <Button 
-                          className="w-full" 
-                          size="sm"
-                          data-testid={`button-practice-${area.id}`}
-                        >
-                          <Play className="w-4 h-4 mr-1" />
-                          Practice
-                        </Button>
-                      )}
-
-                      {!area.locked && gap === 0 && (
-                        <Button 
-                          className="w-full" 
-                          size="sm"
-                          variant="outline"
-                          data-testid={`button-maintain-${area.id}`}
-                        >
-                          Maintain
-                        </Button>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
+                    {/* Position indicator dot */}
+                    <div 
+                      className={`absolute ${
+                        index % 2 === 0 ? '-right-3' : '-left-3'
+                      } top-1/2 -translate-y-1/2 w-6 h-6 rounded-full border-4 border-white shadow-lg ${
+                        node.status === 'completed' 
+                          ? 'bg-green-500' 
+                          : node.status === 'current'
+                          ? 'bg-yellow-500 animate-pulse'
+                          : node.status === 'locked'
+                          ? 'bg-gray-400'
+                          : 'bg-primary'
+                      }`}
+                    />
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
-          {/* AI Tip */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-            <div className="flex items-start gap-3">
-              <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-full">
-                <span className="text-xl">🤖</span>
-              </div>
-              <div className="flex-1">
-                <h4 className="font-semibold text-sm md:text-base text-blue-900 dark:text-blue-100 mb-1">
-                  AI Suggestion
-                </h4>
-                <p className="text-xs md:text-sm text-blue-800 dark:text-blue-200">
-                  Focus on <strong>Health</strong> first! You have the biggest gap (4 points). 
-                  Most users achieve their health goals in 4-6 weeks with consistent practice.
-                </p>
-              </div>
+          {/* Mascot at bottom */}
+          <div className="text-center mt-12 mb-6">
+            <div className="inline-block relative">
+              <div className="text-8xl animate-bounce">🎯</div>
+              <div className="absolute -top-2 -right-2 text-3xl animate-spin-slow">✨</div>
             </div>
+            <p className="mt-4 text-lg font-bold text-muted-foreground">
+              Keep going! You're doing great! 🚀
+            </p>
           </div>
+        </div>
 
-          {/* Weekly Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2 border-t">
-            <div className="text-center">
-              <div className="text-xl md:text-2xl font-bold text-primary">+250</div>
-              <div className="text-xs text-muted-foreground">XP This Week</div>
-            </div>
-            <div className="text-center">
-              <div className="text-xl md:text-2xl font-bold text-accent">2</div>
-              <div className="text-xs text-muted-foreground">Badges Unlocked</div>
-            </div>
-            <div className="text-center">
-              <div className="text-xl md:text-2xl font-bold text-purple-600">12</div>
-              <div className="text-xs text-muted-foreground">Lessons Done</div>
-            </div>
-            <div className="text-center">
-              <div className="text-xl md:text-2xl font-bold text-teal-600">#3</div>
-              <div className="text-xs text-muted-foreground">Your Rank</div>
-            </div>
+        {/* Bottom Achievement Summary */}
+        <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
+          <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 rounded-xl">
+            <div className="text-3xl font-black text-purple-600">+250</div>
+            <div className="text-xs text-muted-foreground mt-1">XP This Week</div>
           </div>
-        </CardContent>
-      </Card>
+          <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 rounded-xl">
+            <div className="text-3xl font-black text-orange-600">2</div>
+            <div className="text-xs text-muted-foreground mt-1">New Badges</div>
+          </div>
+          <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 rounded-xl">
+            <div className="text-3xl font-black text-blue-600">12</div>
+            <div className="text-xs text-muted-foreground mt-1">Lessons Done</div>
+          </div>
+          <div className="text-center p-4 bg-gradient-to-br from-teal-50 to-green-50 dark:from-teal-950/20 dark:to-green-950/20 rounded-xl">
+            <div className="text-3xl font-black text-teal-600">#3</div>
+            <div className="text-xs text-muted-foreground mt-1">Your Rank</div>
+          </div>
+        </div>
+      </div>
 
       {/* Skill Tree Dialog */}
       <Dialog open={treeOpen} onOpenChange={setTreeOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-xl">
-              <span className="text-2xl">{selectedArea?.icon}</span>
-              {selectedArea?.name} Skill Path
-            </DialogTitle>
-          </DialogHeader>
-          {selectedArea && (
+          {selectedNode && (
             <SkillTree 
-              area={selectedArea} 
-              onStartLesson={handleStartLesson}
+              area={selectedNode} 
+              onStartLesson={() => {
+                setTreeOpen(false);
+                setLessonOpen(true);
+              }}
             />
           )}
         </DialogContent>
@@ -354,7 +368,6 @@ export default function SkillBuilder() {
           <LessonPlayer 
             onComplete={() => {
               setLessonOpen(false);
-              // Show completion toast/animation
             }}
           />
         </DialogContent>

@@ -2,17 +2,16 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card } from '@/components/ui/card';
-import { CheckCircle2, Circle, Lock, Play, Trophy, Star } from 'lucide-react';
+import { CheckCircle2, Circle, Lock, Play, Trophy, Star, Sparkles, Zap } from 'lucide-react';
 
 interface SkillTreeProps {
   area: {
     id: string;
     name: string;
-    icon: string;
+    emoji: string;
     currentRating: number;
     targetRating: number;
-    level: number;
-    progress: number;
+    color: string;
   };
   onStartLesson: () => void;
 }
@@ -24,235 +23,227 @@ interface LevelNode {
   completed: number;
   status: 'locked' | 'current' | 'completed';
   xp: number;
+  emoji: string;
 }
 
 export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
-  // Static dummy data for UI design
   const levels: LevelNode[] = [
-    {
-      id: 1,
-      name: 'Health Basics',
-      lessons: 5,
-      completed: 5,
-      status: 'completed',
-      xp: 250
-    },
-    {
-      id: 2,
-      name: 'Nutrition Fundamentals',
-      lessons: 8,
-      completed: 8,
-      status: 'completed',
-      xp: 400
-    },
-    {
-      id: 3,
-      name: 'Meal Planning',
-      lessons: 10,
-      completed: 3,
-      status: 'current',
-      xp: 150
-    },
-    {
-      id: 4,
-      name: 'Exercise & Movement',
-      lessons: 7,
-      completed: 0,
-      status: 'locked',
-      xp: 0
-    },
-    {
-      id: 5,
-      name: 'Habit Building',
-      lessons: 5,
-      completed: 0,
-      status: 'locked',
-      xp: 0
-    }
+    { id: 1, name: 'Health Basics', lessons: 5, completed: 5, status: 'completed', xp: 250, emoji: '🌱' },
+    { id: 2, name: 'Nutrition Fundamentals', lessons: 8, completed: 8, status: 'completed', xp: 400, emoji: '🥗' },
+    { id: 3, name: 'Meal Planning', lessons: 10, completed: 3, status: 'current', xp: 150, emoji: '📋' },
+    { id: 4, name: 'Exercise & Movement', lessons: 7, completed: 0, status: 'locked', xp: 0, emoji: '💪' },
+    { id: 5, name: 'Habit Building', lessons: 5, completed: 0, status: 'locked', xp: 0, emoji: '⭐' }
   ];
 
   const totalLessons = levels.reduce((sum, level) => sum + level.lessons, 0);
   const completedLessons = levels.reduce((sum, level) => sum + level.completed, 0);
   const overallProgress = Math.round((completedLessons / totalLessons) * 100);
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <CheckCircle2 className="w-6 h-6 md:w-8 md:h-8 text-green-500" />;
-      case 'current':
-        return <Circle className="w-6 h-6 md:w-8 md:h-8 text-yellow-500 fill-yellow-500" />;
-      case 'locked':
-        return <Lock className="w-6 h-6 md:w-8 md:h-8 text-gray-400" />;
-      default:
-        return <Circle className="w-6 h-6 md:w-8 md:h-8" />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'border-green-500 bg-green-50 dark:bg-green-950/20';
-      case 'current':
-        return 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20';
-      case 'locked':
-        return 'border-gray-300 bg-gray-50 dark:bg-gray-950/20 opacity-60';
-      default:
-        return '';
-    }
-  };
+  const totalXP = levels.reduce((sum, level) => sum + level.xp, 0);
 
   return (
-    <div className="space-y-6">
-      {/* Overall Progress */}
-      <div className="bg-gradient-to-r from-primary/10 to-accent/10 p-4 md:p-6 rounded-lg border">
-        <div className="flex items-center justify-between mb-3">
+    <div className="space-y-6 p-4">
+      {/* Header */}
+      <div className="text-center">
+        <div className="text-6xl mb-3">{area.emoji}</div>
+        <h2 className={`text-3xl font-black bg-gradient-to-r ${area.color} bg-clip-text text-transparent mb-2`}>
+          {area.name}
+        </h2>
+        <p className="text-muted-foreground">Your personalized learning journey</p>
+      </div>
+
+      {/* Progress Summary */}
+      <div className={`bg-gradient-to-r ${area.color} p-6 rounded-2xl text-white shadow-xl`}>
+        <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-lg md:text-xl font-bold">Your Goal</h3>
-            <p className="text-sm text-muted-foreground">
+            <div className="text-sm opacity-90 mb-1">Your Goal</div>
+            <div className="text-2xl font-black">
               Rating {area.currentRating} → {area.targetRating}
-            </p>
+            </div>
           </div>
           <div className="text-right">
-            <div className="text-2xl md:text-3xl font-bold text-primary">{overallProgress}%</div>
-            <div className="text-xs text-muted-foreground">Complete</div>
+            <div className="text-4xl font-black">{overallProgress}%</div>
+            <div className="text-sm opacity-90">Complete</div>
           </div>
         </div>
-        <Progress value={overallProgress} className="h-3" />
-        <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-          <span>{completedLessons} / {totalLessons} lessons completed</span>
-          <span>Level {area.level}</span>
+        <div className="h-4 bg-white/30 rounded-full overflow-hidden">
+          <div 
+            className="h-full bg-white rounded-full transition-all duration-500"
+            style={{ width: `${overallProgress}%` }}
+          />
+        </div>
+        <div className="flex items-center justify-between mt-3 text-sm">
+          <span className="opacity-90">{completedLessons} / {totalLessons} lessons</span>
+          <span className="opacity-90 flex items-center gap-1">
+            <Zap className="w-4 h-4" />
+            {totalXP} XP earned
+          </span>
         </div>
       </div>
 
-      {/* Skill Tree Visualization */}
-      <div className="space-y-4">
-        <h3 className="text-base md:text-lg font-semibold flex items-center gap-2">
-          <Trophy className="w-5 h-5 text-primary" />
-          Learning Path
-        </h3>
+      {/* Level Path */}
+      <div className="space-y-6">
+        {levels.map((level, index) => (
+          <Card
+            key={level.id}
+            className={`relative overflow-hidden border-3 transition-all ${
+              level.status === 'current'
+                ? 'border-yellow-400 shadow-2xl shadow-yellow-400/30 scale-105'
+                : level.status === 'completed'
+                ? 'border-green-400 shadow-lg'
+                : level.status === 'locked'
+                ? 'border-gray-300 opacity-60'
+                : 'border-primary/30 shadow-md hover-elevate'
+            }`}
+            data-testid={`level-${level.id}`}
+          >
+            {/* Level Number Badge */}
+            <div className={`absolute -left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full flex items-center justify-center font-black text-lg shadow-lg z-10 ${
+              level.status === 'completed'
+                ? 'bg-green-500 text-white'
+                : level.status === 'current'
+                ? 'bg-yellow-400 text-yellow-900'
+                : level.status === 'locked'
+                ? 'bg-gray-400 text-white'
+                : 'bg-primary text-white'
+            }`}>
+              {level.status === 'completed' ? '✓' : level.id}
+            </div>
 
-        <div className="relative space-y-4 md:space-y-6">
-          {/* Connecting Line (vertical) */}
-          <div className="absolute left-6 md:left-8 top-12 bottom-12 w-0.5 bg-gradient-to-b from-primary/30 to-accent/30" />
+            <div className="p-6 pl-10">
+              <div className="flex items-start gap-4">
+                {/* Emoji */}
+                <div className="text-5xl">{level.emoji}</div>
 
-          {levels.map((level, index) => (
-            <Card
-              key={level.id}
-              className={`relative border-2 transition-all ${getStatusColor(level.status)} ${
-                level.status !== 'locked' ? 'hover-elevate' : ''
-              }`}
-              data-testid={`level-${level.id}`}
-            >
-              <div className="p-4 md:p-5">
-                <div className="flex items-start gap-4">
-                  {/* Status Icon */}
-                  <div className="relative z-10 flex-shrink-0">
-                    {getStatusIcon(level.status)}
-                  </div>
-
-                  {/* Level Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-sm md:text-base flex items-center gap-2">
-                          Level {level.id}: {level.name}
-                          {level.status === 'current' && (
-                            <Badge variant="default" className="text-xs">Current</Badge>
-                          )}
-                          {level.status === 'completed' && (
-                            <Badge variant="outline" className="text-xs text-green-600 border-green-600">
-                              ✓ Complete
-                            </Badge>
-                          )}
-                        </h4>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {level.lessons} lessons • {level.xp} XP earned
-                        </p>
+                {/* Content */}
+                <div className="flex-1">
+                  <div className="flex items-start justify-between gap-4 mb-3">
+                    <div>
+                      <h3 className="text-xl font-bold flex items-center gap-2">
+                        Level {level.id}: {level.name}
+                      </h3>
+                      <div className="flex items-center gap-2 mt-1">
+                        {level.status === 'current' && (
+                          <Badge className="bg-yellow-400 text-yellow-900 border-0 animate-pulse">
+                            <Sparkles className="w-3 h-3 mr-1" />
+                            Active
+                          </Badge>
+                        )}
+                        {level.status === 'completed' && (
+                          <Badge className="bg-green-500 text-white border-0">
+                            <Trophy className="w-3 h-3 mr-1" />
+                            Mastered
+                          </Badge>
+                        )}
+                        {level.status === 'locked' && (
+                          <Badge variant="secondary">
+                            <Lock className="w-3 h-3 mr-1" />
+                            Locked
+                          </Badge>
+                        )}
+                        <span className="text-sm text-muted-foreground">
+                          {level.lessons} lessons • {level.xp > 0 ? `${level.xp} XP` : '350 XP available'}
+                        </span>
                       </div>
-
-                      {/* Action Button */}
-                      {level.status === 'current' && (
-                        <Button 
-                          size="sm" 
-                          onClick={onStartLesson}
-                          data-testid={`button-continue-level-${level.id}`}
-                        >
-                          <Play className="w-4 h-4 mr-1" />
-                          Continue
-                        </Button>
-                      )}
-                      {level.status === 'completed' && (
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={onStartLesson}
-                          data-testid={`button-review-level-${level.id}`}
-                        >
-                          Review
-                        </Button>
-                      )}
                     </div>
 
-                    {/* Progress Bar for Current Level */}
+                    {/* Action Button */}
                     {level.status === 'current' && (
-                      <div className="mt-3 space-y-1">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">Progress</span>
-                          <span className="font-medium">
-                            {level.completed}/{level.lessons} lessons
-                          </span>
-                        </div>
-                        <Progress 
-                          value={(level.completed / level.lessons) * 100} 
-                          className="h-2"
-                        />
-                      </div>
+                      <Button 
+                        onClick={onStartLesson}
+                        className="gap-2 font-bold shadow-lg"
+                        data-testid={`button-continue-level-${level.id}`}
+                      >
+                        <Play className="w-4 h-4" />
+                        Continue
+                      </Button>
                     )}
-
-                    {/* Lessons Grid for Current/Completed */}
-                    {level.status !== 'locked' && (
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {Array.from({ length: level.lessons }).map((_, i) => (
-                          <div
-                            key={i}
-                            className={`w-8 h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center text-xs font-semibold border-2 ${
-                              i < level.completed
-                                ? 'bg-green-100 dark:bg-green-900/30 border-green-500 text-green-700 dark:text-green-300'
-                                : 'bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-500'
-                            }`}
-                            data-testid={`lesson-indicator-${level.id}-${i + 1}`}
-                          >
-                            {i < level.completed ? '✓' : i + 1}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Lock Message */}
-                    {level.status === 'locked' && (
-                      <p className="text-xs text-muted-foreground mt-2">
-                        🔒 Complete Level {level.id - 1} to unlock
-                      </p>
+                    {level.status === 'completed' && (
+                      <Button 
+                        onClick={onStartLesson}
+                        variant="outline"
+                        className="gap-2"
+                        data-testid={`button-review-level-${level.id}`}
+                      >
+                        Practice
+                      </Button>
                     )}
                   </div>
+
+                  {/* Progress for current level */}
+                  {level.status === 'current' && (
+                    <div className="mb-4 space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Progress</span>
+                        <span className="font-bold">
+                          {level.completed}/{level.lessons} lessons
+                        </span>
+                      </div>
+                      <div className="h-3 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full bg-gradient-to-r ${area.color} transition-all duration-500`}
+                          style={{ width: `${(level.completed / level.lessons) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Lesson Dots */}
+                  {level.status !== 'locked' && (
+                    <div className="flex flex-wrap gap-2">
+                      {Array.from({ length: level.lessons }).map((_, i) => (
+                        <div
+                          key={i}
+                          className={`relative w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold border-2 transition-all ${
+                            i < level.completed
+                              ? 'bg-green-100 dark:bg-green-900/30 border-green-500 text-green-700 dark:text-green-300'
+                              : 'bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-500 hover:scale-110'
+                          }`}
+                          data-testid={`lesson-indicator-${level.id}-${i + 1}`}
+                        >
+                          {i < level.completed ? (
+                            <CheckCircle2 className="w-5 h-5" />
+                          ) : (
+                            <Circle className="w-5 h-5" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Lock message */}
+                  {level.status === 'locked' && (
+                    <div className="bg-gray-100 dark:bg-gray-800 rounded-xl p-4 text-center">
+                      <Lock className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">
+                        Complete Level {level.id - 1} to unlock
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
-            </Card>
-          ))}
-        </div>
+            </div>
+
+            {/* Completion celebration overlay */}
+            {level.status === 'completed' && (
+              <div className="absolute top-2 right-2">
+                <div className="text-3xl animate-bounce">🎉</div>
+              </div>
+            )}
+          </Card>
+        ))}
       </div>
 
-      {/* Tips */}
-      <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-        <div className="flex items-start gap-2">
-          <span className="text-lg">💡</span>
+      {/* Encouragement */}
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 p-6 rounded-2xl border-2 border-blue-200 dark:border-blue-800">
+        <div className="flex items-start gap-4">
+          <div className="text-4xl">💡</div>
           <div>
-            <h4 className="font-semibold text-sm text-blue-900 dark:text-blue-100 mb-1">
-              Pro Tip
+            <h4 className="font-bold text-lg text-blue-900 dark:text-blue-100 mb-2">
+              Pro Tip!
             </h4>
-            <p className="text-xs text-blue-800 dark:text-blue-200">
+            <p className="text-blue-800 dark:text-blue-200 text-sm">
               Complete at least 1 lesson per day to maintain your streak! 
-              Most successful users spend 10-15 minutes daily.
+              Most successful learners spend 10-15 minutes daily. You got this! 🚀
             </p>
           </div>
         </div>
