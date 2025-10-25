@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Flame, Star, Trophy, Zap, Heart, Crown, Sparkles, TrendingUp, Lock, ArrowRight, Lightbulb, Target } from 'lucide-react';
+import { Trophy, Sparkles, TrendingUp, Lock, ArrowRight, Lightbulb, Target } from 'lucide-react';
 import SkillTree from './SkillTree';
 import LessonPlayer from './LessonPlayer';
 
@@ -25,10 +25,6 @@ export default function SkillBuilder() {
   const [lessonOpen, setLessonOpen] = useState(false);
 
   // Static dummy data
-  const streak = 7;
-  const dailyXP = 80;
-  const dailyGoal = 100;
-  const level = 5;
 
   const nodes: SkillNode[] = [
     { 
@@ -87,79 +83,6 @@ export default function SkillBuilder() {
   return (
     <>
       <div className="relative">
-        {/* Top Stats Bar - Compact Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          {/* Streak */}
-          <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-orange-400 to-red-500 p-3 text-white shadow-lg hover-elevate cursor-pointer">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="flex items-center gap-1 mb-0.5">
-                  <Flame className="w-4 h-4" />
-                  <span className="text-[10px] font-bold uppercase">Streak</span>
-                </div>
-                <div className="text-2xl font-black">{streak}</div>
-                <div className="text-[10px] opacity-90">days</div>
-              </div>
-              <div className="text-3xl opacity-20">🔥</div>
-            </div>
-          </div>
-
-          {/* Level */}
-          <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-purple-400 to-indigo-500 p-3 text-white shadow-lg hover-elevate cursor-pointer">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="flex items-center gap-1 mb-0.5">
-                  <Crown className="w-4 h-4" />
-                  <span className="text-[10px] font-bold uppercase">Level</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="text-2xl font-black">{level}</div>
-                  <Star className="w-4 h-4 fill-yellow-300 text-yellow-300" />
-                </div>
-              </div>
-              <div className="text-3xl opacity-20">👑</div>
-            </div>
-          </div>
-
-          {/* Daily XP */}
-          <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-teal-400 to-emerald-500 p-3 text-white shadow-lg hover-elevate cursor-pointer">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-1 mb-0.5">
-                  <Zap className="w-4 h-4" />
-                  <span className="text-[10px] font-bold uppercase">Today</span>
-                </div>
-                <div className="text-2xl font-black">{dailyXP}</div>
-                <div className="h-1 bg-white/30 rounded-full overflow-hidden mt-1">
-                  <div 
-                    className="h-full bg-white rounded-full"
-                    style={{ width: `${(dailyXP / dailyGoal) * 100}%` }}
-                  />
-                </div>
-              </div>
-              <div className="text-3xl opacity-20">⚡</div>
-            </div>
-          </div>
-
-          {/* Hearts */}
-          <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-rose-400 to-pink-500 p-3 text-white shadow-lg hover-elevate cursor-pointer">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="flex items-center gap-1 mb-0.5">
-                  <Heart className="w-4 h-4 fill-white" />
-                  <span className="text-[10px] font-bold uppercase">Hearts</span>
-                </div>
-                <div className="flex gap-0.5 mt-1">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Heart key={i} className="w-3 h-3 fill-white text-white" />
-                  ))}
-                </div>
-              </div>
-              <div className="text-3xl opacity-20">💖</div>
-            </div>
-          </div>
-        </div>
-
         {/* Main Title */}
         <div className="text-center mb-6">
           <h2 className="text-2xl md:text-3xl font-black bg-gradient-to-r from-primary via-purple-600 to-accent bg-clip-text text-transparent mb-1">
