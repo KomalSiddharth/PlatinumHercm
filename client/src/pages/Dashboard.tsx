@@ -1767,6 +1767,20 @@ export default function Dashboard() {
         { id: 'odm-may22-5', title: '28th May 2022 - Platinum Party Glass Walk', url: 'https://coaching.miteshkhatri.com/products/one-day-miracle/categories/2151879952/posts/2163798978', completed: false },
         { id: 'odm-may22-6', title: '28th May 2022 - 1 Day Miracle DMP', url: 'https://coaching.miteshkhatri.com/products/one-day-miracle/categories/2151879952/posts/2163798977', completed: false },
       ]
+    },
+    {
+      id: 'digital-coaching-system',
+      title: 'Digital Coaching System',
+      url: 'https://coaching.miteshkhatri.com/products/digital-coaching-system',
+      tags: ['Coaching', 'Digital', 'Live Sessions'],
+      source: 'Mitesh Khatri',
+      estimatedHours: 2,
+      status: 'not_started',
+      progressPercent: 0,
+      category: 'default',
+      lessons: [
+        { id: 'dcs-restart-live', title: 'Restarting Digital Coaching LIVE Sessions', url: 'https://coaching.miteshkhatri.com/products/digital-coaching-system/categories/3494130', completed: false },
+      ]
     }
   ]);
 
