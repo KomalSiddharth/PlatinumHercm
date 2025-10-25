@@ -1937,7 +1937,7 @@ export default function Dashboard() {
         </section>
 
         {/* Skill Builder Section - Duolingo-style Learning */}
-        <section className="scroll-mt-20">
+        <section className="scroll-mt-20 bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 dark:from-purple-950/30 dark:via-pink-950/30 dark:to-orange-950/30 p-3 sm:p-4 md:p-6 rounded-lg border-2 border-purple-200 dark:border-purple-800">
           <SkillBuilder />
         </section>
 
