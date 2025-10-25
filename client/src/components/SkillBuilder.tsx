@@ -68,12 +68,12 @@ export default function SkillBuilder() {
       id: 'money', 
       name: 'Money', 
       emoji: '💰', 
-      currentRating: 1, 
-      targetRating: 1, 
-      status: 'locked', 
+      currentRating: 2, 
+      targetRating: 6, 
+      status: 'available', 
       color: 'from-yellow-400 to-orange-500',
-      currentProblem: 'Complete Health first!',
-      skillsNeeded: []
+      currentProblem: 'Poor money management and saving habits',
+      skillsNeeded: ['Financial Planning', 'Investment Basics', 'Money Mindset']
     }
   ];
 
@@ -322,25 +322,6 @@ export default function SkillBuilder() {
           })}
         </div>
 
-        {/* Bottom Stats - Compact */}
-        <div className="grid grid-cols-4 gap-3 max-w-2xl mx-auto">
-          <div className="text-center p-3 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 rounded-lg">
-            <div className="text-2xl font-black text-purple-600">+250</div>
-            <div className="text-[10px] text-muted-foreground">XP Week</div>
-          </div>
-          <div className="text-center p-3 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 rounded-lg">
-            <div className="text-2xl font-black text-orange-600">2</div>
-            <div className="text-[10px] text-muted-foreground">Badges</div>
-          </div>
-          <div className="text-center p-3 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 rounded-lg">
-            <div className="text-2xl font-black text-blue-600">12</div>
-            <div className="text-[10px] text-muted-foreground">Lessons</div>
-          </div>
-          <div className="text-center p-3 bg-gradient-to-br from-teal-50 to-green-50 dark:from-teal-950/20 dark:to-green-950/20 rounded-lg">
-            <div className="text-2xl font-black text-teal-600">#3</div>
-            <div className="text-[10px] text-muted-foreground">Rank</div>
-          </div>
-        </div>
       </div>
 
       {/* Skill Tree Dialog */}
