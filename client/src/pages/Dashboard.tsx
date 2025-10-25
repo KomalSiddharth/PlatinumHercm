@@ -1206,7 +1206,7 @@ export default function Dashboard() {
     },
     {
       id: 'lead-people',
-      title: 'Lead People - Relationship Mastery',
+      title: 'Lead People',
       url: 'https://coaching.miteshkhatri.com/products/lead-people',
       tags: ['Leadership', 'Relationship'],
       source: 'Mitesh Khatri',
@@ -1215,6 +1215,7 @@ export default function Dashboard() {
       progressPercent: 0,
       category: 'Relationship',
       lessons: [
+        { id: 'lp-rm', title: 'Relationship Mastery - Lead People Successfully', url: 'https://coaching.miteshkhatri.com/products/lead-people', completed: false },
         { id: 'lp-transition', title: '1. Leadership Transition', url: 'https://coaching.miteshkhatri.com/products/lead-people/categories/4175217/posts/14020165', completed: false },
         { id: 'lp-1', title: '1. What is Leadership', url: 'https://coaching.miteshkhatri.com/products/lead-people/categories/4175217/posts/14020157', completed: false },
         { id: 'lp-2', title: '2. Rapport Building', url: 'https://coaching.miteshkhatri.com/products/lead-people/categories/4175217/posts/14020166', completed: false },
