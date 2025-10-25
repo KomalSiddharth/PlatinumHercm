@@ -1781,6 +1781,20 @@ export default function Dashboard() {
       lessons: [
         { id: 'dcs-restart-live', title: 'Restarting Digital Coaching LIVE Sessions', url: 'https://coaching.miteshkhatri.com/products/digital-coaching-system/categories/3494130', completed: false },
       ]
+    },
+    {
+      id: 'canva-graphic-design-mastery',
+      title: 'Canva Graphic Design Mastery',
+      url: 'https://coaching.miteshkhatri.com/products/canva-graphic-design-mastery',
+      tags: ['Design', 'Graphics', 'Canva'],
+      source: 'Mitesh Khatri',
+      estimatedHours: 3,
+      status: 'not_started',
+      progressPercent: 0,
+      category: 'default',
+      lessons: [
+        { id: 'cgdm-main', title: 'Canva Graphic Design Mastery', url: 'https://coaching.miteshkhatri.com/products/canva-graphic-design-mastery', completed: false },
+      ]
     }
   ]);
 
