@@ -6,7 +6,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Check, Lock, Play, Crown, Sparkles, TrendingUp, Coins, DollarSign, Zap, Trophy, Heart, Users, Briefcase, Target, Star, ChevronLeft, ChevronRight, Upload } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Check, Lock, Play, Crown, Sparkles, TrendingUp, Coins, DollarSign, Zap, Trophy, Heart, Users, Briefcase, Target, Star, ChevronLeft, ChevronRight, Upload, CheckCircle2, Circle } from 'lucide-react';
 import { useState } from 'react';
 
 interface SkillTreeProps {
@@ -895,14 +896,101 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
                     >
                       {/* Level node */}
                       <div className="relative flex justify-center z-10">
-                        <button
-                          onClick={() => handleLevelClick(level)}
-                          disabled={level.status === 'locked'}
-                          className={`group relative transition-all duration-300 ${
-                            level.status === 'locked' ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-110'
-                          }`}
-                          data-testid={`level-${level.id}`}
-                        >
+                        {level.exerciseDetails?.tasks && level.exerciseDetails.tasks.length > 0 ? (
+                          // Multi-task exercise with hover tooltip
+                          <TooltipProvider delayDuration={300}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  onClick={() => handleLevelClick(level)}
+                                  disabled={level.status === 'locked'}
+                                  className={`group relative transition-all duration-300 ${
+                                    level.status === 'locked' ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-110'
+                                  }`}
+                                  data-testid={`level-${level.id}`}
+                                >
+                                  {/* Glow effect for current level */}
+                                  {level.status === 'current' && (
+                                    <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-500 opacity-60 blur-lg rounded-full animate-pulse" />
+                                  )}
+                                  
+                                  {/* Main node */}
+                                  <div className={`relative w-16 h-16 rounded-full flex items-center justify-center transform transition-all duration-300 ${
+                                    level.status === 'current'
+                                      ? 'bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-600 shadow-xl scale-110 animate-pulse'
+                                      : level.status === 'completed'
+                                      ? 'bg-gradient-to-br from-pink-500 via-purple-600 to-indigo-700 shadow-lg'
+                                      : 'bg-gradient-to-br from-gray-300 via-gray-400 to-gray-500 opacity-40'
+                                  }`}>
+                                    {/* Icon */}
+                                    {level.status === 'completed' ? (
+                                      <Check className="w-10 h-10 text-white drop-shadow-lg" strokeWidth={4} />
+                                    ) : level.status === 'locked' ? (
+                                      <Lock className="w-6 h-6 text-white/70" />
+                                    ) : (
+                                      <CurrentIcon className="w-8 h-8 text-white animate-pulse drop-shadow-lg" strokeWidth={2.5} />
+                                    )}
+                                    
+                                    {/* Level badge */}
+                                    <div className={`absolute -bottom-1.5 px-2 py-0.5 rounded-full shadow text-[10px] font-black border ${
+                                      level.status === 'current' ? 'bg-white border-yellow-400 text-yellow-600' : 'bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-700'
+                                    }`}>
+                                      {level.id}
+                                    </div>
+                                    
+                                    {/* XP badge */}
+                                    {level.status === 'completed' && (
+                                      <div className="absolute -top-1 -right-1 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full px-1.5 py-0.5 shadow border border-white">
+                                        <span className="text-[10px] font-bold text-white">+5</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent side="right" className="max-w-xs bg-white dark:bg-gray-800 p-3 shadow-lg border border-gray-200 dark:border-gray-700">
+                                <div className="space-y-2">
+                                  <p className="font-semibold text-sm text-gray-800 dark:text-gray-200">
+                                    {level.exerciseDetails.task}
+                                  </p>
+                                  <div className="space-y-1">
+                                    {level.exerciseDetails.tasks.map((task, idx) => {
+                                      const levelKey = `level-${level.id}`;
+                                      const taskKey = `task-${idx}`;
+                                      const isCompleted = taskCompletionData[levelKey]?.[taskKey] === true;
+                                      
+                                      return (
+                                        <div key={idx} className="flex items-start gap-2 text-xs">
+                                          {isCompleted ? (
+                                            <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
+                                          ) : (
+                                            <Circle className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                                          )}
+                                          <span className={isCompleted ? 'text-gray-600 dark:text-gray-400 line-through' : 'text-gray-700 dark:text-gray-300'}>
+                                            {task}
+                                          </span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                  {level.status === 'current' && (
+                                    <p className="text-[10px] text-teal-600 dark:text-teal-400 font-medium mt-2 italic">
+                                      Click to complete all tasks
+                                    </p>
+                                  )}
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        ) : (
+                          // Regular exercise or video level (no tooltip)
+                          <button
+                            onClick={() => handleLevelClick(level)}
+                            disabled={level.status === 'locked'}
+                            className={`group relative transition-all duration-300 ${
+                              level.status === 'locked' ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-110'
+                            }`}
+                            data-testid={`level-${level.id}`}
+                          >
                           {/* Glow effect for current level */}
                           {level.status === 'current' && (
                             <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-500 opacity-60 blur-lg rounded-full animate-pulse" />
@@ -939,7 +1027,8 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
                               </div>
                             )}
                           </div>
-                        </button>
+                          </button>
+                        )}
                       </div>
 
                       {/* Level info */}
@@ -986,54 +1075,27 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
                           </div>
                         )}
                         
-                        {/* Exercise details */}
-                        {level.exerciseDetails && level.status !== 'locked' && (
+                        {/* Exercise details - only for simple exercises */}
+                        {level.exerciseDetails && level.status !== 'locked' && !level.exerciseDetails.tasks && (
                           <div className="mt-1.5">
-                            {/* Multi-task exercise with detailed tasks */}
-                            {level.exerciseDetails.tasks && level.exerciseDetails.tasks.length > 0 ? (
-                              <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-2 text-left">
-                                <p className="text-[10px] font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                                  {level.exerciseDetails.task}:
-                                </p>
-                                <div className="space-y-1">
-                                  {level.exerciseDetails.tasks.map((task, idx) => (
-                                    <div key={idx} className="flex items-start gap-1.5">
-                                      <div className="w-3 h-3 rounded border border-gray-400 dark:border-gray-500 bg-white dark:bg-gray-700 mt-0.5 flex-shrink-0" />
-                                      <p className="text-[9px] text-gray-600 dark:text-gray-400 leading-tight">
-                                        {task}
-                                      </p>
-                                    </div>
-                                  ))}
-                                </div>
-                                {level.status === 'current' && (
-                                  <p className="text-[9px] text-teal-600 dark:text-teal-400 mt-2 font-medium">
-                                    Click to complete tasks →
-                                  </p>
-                                )}
-                              </div>
-                            ) : (
-                              /* Simple single-task exercise */
-                              <>
-                                <p className="text-[10px] text-gray-500 dark:text-gray-400">
-                                  {level.exerciseDetails.task}
-                                  {level.exerciseDetails.count && ` (${level.exerciseDetails.count} ${level.exerciseDetails.unit})`}
-                                </p>
-                                {level.status === 'current' && level.type === 'exercise' && (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="h-6 text-[10px] px-2 mt-1 border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-950"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleMarkComplete(level);
-                                    }}
-                                    data-testid={`mark-complete-${level.id}`}
-                                  >
-                                    <Check className="w-2.5 h-2.5 mr-0.5" />
-                                    Mark Complete
-                                  </Button>
-                                )}
-                              </>
+                            <p className="text-[10px] text-gray-500 dark:text-gray-400">
+                              {level.exerciseDetails.task}
+                              {level.exerciseDetails.count && ` (${level.exerciseDetails.count} ${level.exerciseDetails.unit})`}
+                            </p>
+                            {level.status === 'current' && level.type === 'exercise' && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-6 text-[10px] px-2 mt-1 border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-950"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleMarkComplete(level);
+                                }}
+                                data-testid={`mark-complete-${level.id}`}
+                              >
+                                <Check className="w-2.5 h-2.5 mr-0.5" />
+                                Mark Complete
+                              </Button>
                             )}
                           </div>
                         )}
