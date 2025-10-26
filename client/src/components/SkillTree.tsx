@@ -1,7 +1,12 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Check, Lock, Play, Crown, Sparkles, TrendingUp, Coins, DollarSign, Zap, Trophy, Heart, Users, Briefcase, Target, Star } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Check, Lock, Play, Crown, Sparkles, TrendingUp, Coins, DollarSign, Zap, Trophy, Heart, Users, Briefcase, Target, Star, ChevronLeft, ChevronRight, Upload } from 'lucide-react';
 import { useState } from 'react';
 
 interface SkillTreeProps {
@@ -35,6 +40,26 @@ interface LevelNode {
 export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
   // State to manage level statuses dynamically
   const [levelStatuses, setLevelStatuses] = useState<Record<number, 'locked' | 'current' | 'completed'>>({});
+  
+  // State for multi-task popup dialog
+  const [taskDialogOpen, setTaskDialogOpen] = useState(false);
+  const [currentTaskLevel, setCurrentTaskLevel] = useState<LevelNode | null>(null);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  
+  // State for tracking task completion within popup
+  const [taskCompletionData, setTaskCompletionData] = useState<Record<string, any>>({});
+  
+  // Helper to check if all tasks in current level are completed
+  const areAllTasksCompleted = () => {
+    if (!currentTaskLevel?.exerciseDetails?.tasks) return false;
+    
+    const levelKey = `level-${currentTaskLevel.id}`;
+    const levelData = taskCompletionData[levelKey] || {};
+    
+    return currentTaskLevel.exerciseDetails.tasks.every((_, idx) => {
+      return levelData[`task-${idx}`] === true || levelData[`task-${idx}-data`];
+    });
+  };
 
   // 216 Health Mastery Levels (36 video lessons + 180 exercise challenges)
   // Pattern: 1 video lesson → 5 exercise challenges (repeat)
@@ -525,7 +550,14 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
         onStartLesson();
       }
     } else {
-      console.log('Opening exercise challenge:', level);
+      // For multi-task exercises, open the interactive popup
+      if (level.exerciseDetails?.tasks && level.exerciseDetails.tasks.length > 0) {
+        setCurrentTaskLevel(level);
+        setCurrentSlide(0);
+        setTaskDialogOpen(true);
+      } else {
+        console.log('Opening simple exercise challenge:', level);
+      }
     }
   };
 
@@ -974,19 +1006,9 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
                                   ))}
                                 </div>
                                 {level.status === 'current' && (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="h-6 text-[10px] px-2 mt-2 w-full border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-950"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleMarkComplete(level);
-                                    }}
-                                    data-testid={`mark-complete-${level.id}`}
-                                  >
-                                    <Check className="w-2.5 h-2.5 mr-0.5" />
-                                    Mark Complete
-                                  </Button>
+                                  <p className="text-[9px] text-teal-600 dark:text-teal-400 mt-2 font-medium">
+                                    Click to complete tasks →
+                                  </p>
                                 )}
                               </div>
                             ) : (
@@ -1025,6 +1047,357 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
           </div>
         </div>
       </div>
+
+      {/* Interactive Task Completion Dialog */}
+      <Dialog open={taskDialogOpen} onOpenChange={setTaskDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" data-testid="task-dialog">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-teal-600 dark:text-teal-400">
+              {currentTaskLevel?.name}
+            </DialogTitle>
+            <DialogDescription className="text-sm text-gray-600 dark:text-gray-400">
+              Complete all tasks to unlock the next level
+            </DialogDescription>
+          </DialogHeader>
+
+          {currentTaskLevel?.exerciseDetails?.tasks && (
+            <div className="space-y-6 mt-4">
+              {/* Progress indicator */}
+              <div className="flex items-center justify-between">
+                <div className="flex gap-2">
+                  {currentTaskLevel.exerciseDetails.tasks.map((_, idx) => (
+                    <div
+                      key={idx}
+                      className={`h-2 rounded-full transition-all ${
+                        idx === currentSlide
+                          ? 'w-8 bg-teal-600'
+                          : idx < currentSlide
+                          ? 'w-6 bg-teal-400'
+                          : 'w-6 bg-gray-300'
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  Task {currentSlide + 1} of {currentTaskLevel.exerciseDetails.tasks.length}
+                </span>
+              </div>
+
+              {/* Current task slide */}
+              <div className="min-h-[300px] bg-gradient-to-br from-teal-50 to-blue-50 dark:from-gray-800 dark:to-gray-700 rounded-lg p-6">
+                <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">
+                  {currentTaskLevel.exerciseDetails.tasks[currentSlide]}
+                </h3>
+
+                {/* Task-specific input based on task content */}
+                {renderTaskInput(currentTaskLevel.id, currentSlide, currentTaskLevel.exerciseDetails.tasks[currentSlide])}
+              </div>
+
+              {/* Navigation buttons */}
+              <div className="flex items-center justify-between">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))}
+                  disabled={currentSlide === 0}
+                  data-testid="button-prev-task"
+                >
+                  <ChevronLeft className="w-4 h-4 mr-1" />
+                  Previous
+                </Button>
+
+                {currentSlide < currentTaskLevel.exerciseDetails.tasks.length - 1 ? (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() => setCurrentSlide(currentSlide + 1)}
+                    data-testid="button-next-task"
+                  >
+                    Next
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                ) : (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() => {
+                      if (areAllTasksCompleted()) {
+                        handleMarkComplete(currentTaskLevel);
+                        setTaskDialogOpen(false);
+                        setCurrentSlide(0);
+                      }
+                    }}
+                    disabled={!areAllTasksCompleted()}
+                    className={!areAllTasksCompleted() ? 'opacity-50 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}
+                    data-testid="button-complete-level"
+                  >
+                    <Check className="w-4 h-4 mr-1" />
+                    Mark Complete
+                  </Button>
+                )}
+              </div>
+
+              {!areAllTasksCompleted() && currentSlide === currentTaskLevel.exerciseDetails.tasks.length - 1 && (
+                <p className="text-xs text-red-500 text-center">
+                  Please complete all tasks to unlock the "Mark Complete" button
+                </p>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
+
+  // Helper function to render appropriate input for each task
+  function renderTaskInput(levelId: number, taskIdx: number, taskText: string) {
+    const levelKey = `level-${levelId}`;
+    const taskKey = `task-${taskIdx}`;
+    const currentValue = taskCompletionData[levelKey]?.[taskKey];
+    const dataKey = `${taskKey}-data`;
+    const currentData = taskCompletionData[levelKey]?.[dataKey];
+
+    const updateTaskData = (value: any, isCompleted: boolean = true) => {
+      setTaskCompletionData(prev => ({
+        ...prev,
+        [levelKey]: {
+          ...prev[levelKey],
+          [taskKey]: isCompleted,
+          [dataKey]: value
+        }
+      }));
+    };
+
+    // Photo upload task
+    if (taskText.toLowerCase().includes('photo') || taskText.toLowerCase().includes('baseline photos')) {
+      return (
+        <div className="space-y-4">
+          <Label className="text-sm font-medium">Upload photos (front, side, back views)</Label>
+          <div className="grid grid-cols-3 gap-4">
+            {['Front', 'Side', 'Back'].map((view) => (
+              <div key={view} className="space-y-2">
+                <Label className="text-xs text-gray-600">{view} View</Label>
+                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:border-teal-500 transition-colors">
+                  <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    id={`photo-${view}-${levelId}`}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        updateTaskData({ ...currentData, [view.toLowerCase()]: file.name });
+                      }
+                    }}
+                  />
+                  <label htmlFor={`photo-${view}-${levelId}`} className="cursor-pointer text-xs text-teal-600 hover:text-teal-700">
+                    {currentData?.[view.toLowerCase()] || 'Click to upload'}
+                  </label>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center gap-2 mt-4">
+            <Checkbox
+              checked={currentValue === true}
+              onCheckedChange={(checked) => updateTaskData(currentData || {}, checked as boolean)}
+              id={`checkbox-${levelKey}-${taskKey}`}
+              data-testid={`checkbox-${levelId}-${taskIdx}`}
+            />
+            <Label htmlFor={`checkbox-${levelKey}-${taskKey}`} className="text-sm">
+              I have taken all required photos
+            </Label>
+          </div>
+        </div>
+      );
+    }
+
+    // Weight/measurements task
+    if (taskText.toLowerCase().includes('weigh') || taskText.toLowerCase().includes('measurement')) {
+      return (
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm">Weight (kg)</Label>
+              <Input
+                type="number"
+                placeholder="Enter weight"
+                value={currentData?.weight || ''}
+                onChange={(e) => updateTaskData({ ...currentData, weight: e.target.value }, !!e.target.value)}
+                data-testid={`input-weight-${levelId}-${taskIdx}`}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm">Waist (cm)</Label>
+              <Input
+                type="number"
+                placeholder="Enter waist"
+                value={currentData?.waist || ''}
+                onChange={(e) => updateTaskData({ ...currentData, waist: e.target.value }, !!(currentData?.weight && e.target.value))}
+                data-testid={`input-waist-${levelId}-${taskIdx}`}
+              />
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              checked={currentValue === true}
+              onCheckedChange={(checked) => updateTaskData(currentData || {}, checked as boolean)}
+              id={`checkbox-${levelKey}-${taskKey}`}
+            />
+            <Label htmlFor={`checkbox-${levelKey}-${taskKey}`} className="text-sm">
+              Measurements recorded
+            </Label>
+          </div>
+        </div>
+      );
+    }
+
+    // "Why" or writing task
+    if (taskText.toLowerCase().includes('why') || taskText.toLowerCase().includes('write') || taskText.toLowerCase().includes('reasons')) {
+      return (
+        <div className="space-y-4">
+          <Label className="text-sm font-medium">Write your reasons (minimum 3 sentences)</Label>
+          <Textarea
+            placeholder="Why are you starting this health journey? What drives you?"
+            rows={6}
+            value={currentData || ''}
+            onChange={(e) => {
+              const value = e.target.value;
+              const wordCount = value.trim().split(/\s+/).filter(w => w.length > 0).length;
+              updateTaskData(value, wordCount >= 15);
+            }}
+            className="resize-none"
+            data-testid={`textarea-why-${levelId}-${taskIdx}`}
+          />
+          <p className="text-xs text-gray-500">
+            {currentData ? `${currentData.trim().split(/\s+/).filter((w: string) => w.length > 0).length} words` : '0 words'} (minimum 15 words required)
+          </p>
+        </div>
+      );
+    }
+
+    // Health rating task
+    if (taskText.toLowerCase().includes('rate') && taskText.toLowerCase().includes('health')) {
+      return (
+        <div className="space-y-4">
+          {['Physical Health', 'Mental Health', 'Energy Level', 'Sleep Quality'].map((category) => (
+            <div key={category} className="space-y-2">
+              <Label className="text-sm">{category} (1-10)</Label>
+              <Input
+                type="number"
+                min="1"
+                max="10"
+                placeholder="Rate 1-10"
+                value={currentData?.[category] || ''}
+                onChange={(e) => {
+                  const newData = { ...currentData, [category]: e.target.value };
+                  const allFilled = Object.keys(newData).length >= 4;
+                  updateTaskData(newData, allFilled);
+                }}
+                data-testid={`input-rating-${category}-${levelId}-${taskIdx}`}
+              />
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    // Push-up test
+    if (taskText.toLowerCase().includes('push-up') || taskText.toLowerCase().includes('pushup')) {
+      return (
+        <div className="space-y-4">
+          <Label className="text-sm font-medium">How many push-ups did you complete?</Label>
+          <Input
+            type="number"
+            min="0"
+            placeholder="Enter number of push-ups"
+            value={currentData || ''}
+            onChange={(e) => updateTaskData(e.target.value, !!e.target.value)}
+            data-testid={`input-pushups-${levelId}-${taskIdx}`}
+          />
+          <div className="flex items-center gap-2">
+            <Checkbox
+              checked={currentValue === true}
+              onCheckedChange={(checked) => updateTaskData(currentData || '0', checked as boolean)}
+              id={`checkbox-${levelKey}-${taskKey}`}
+            />
+            <Label htmlFor={`checkbox-${levelKey}-${taskKey}`} className="text-sm">
+              Test completed
+            </Label>
+          </div>
+        </div>
+      );
+    }
+
+    // Plank test
+    if (taskText.toLowerCase().includes('plank')) {
+      return (
+        <div className="space-y-4">
+          <Label className="text-sm font-medium">How long did you hold the plank? (seconds)</Label>
+          <Input
+            type="number"
+            min="0"
+            placeholder="Enter duration in seconds"
+            value={currentData || ''}
+            onChange={(e) => updateTaskData(e.target.value, !!e.target.value)}
+            data-testid={`input-plank-${levelId}-${taskIdx}`}
+          />
+          <div className="flex items-center gap-2">
+            <Checkbox
+              checked={currentValue === true}
+              onCheckedChange={(checked) => updateTaskData(currentData || '0', checked as boolean)}
+              id={`checkbox-${levelKey}-${taskKey}`}
+            />
+            <Label htmlFor={`checkbox-${levelKey}-${taskKey}`} className="text-sm">
+              Test completed
+            </Label>
+          </div>
+        </div>
+      );
+    }
+
+    // Walk/jog or steps task
+    if (taskText.toLowerCase().includes('walk') || taskText.toLowerCase().includes('jog') || taskText.toLowerCase().includes('steps')) {
+      return (
+        <div className="space-y-4">
+          <Label className="text-sm font-medium">How did you feel? Note your observations</Label>
+          <Textarea
+            placeholder="How did the walk/jog feel? Any observations about your energy, breathing, or mood?"
+            rows={4}
+            value={currentData?.notes || ''}
+            onChange={(e) => updateTaskData({ ...currentData, notes: e.target.value }, !!e.target.value)}
+            className="resize-none"
+            data-testid={`textarea-walk-${levelId}-${taskIdx}`}
+          />
+          <div className="flex items-center gap-2">
+            <Checkbox
+              checked={currentValue === true}
+              onCheckedChange={(checked) => updateTaskData(currentData || { notes: '' }, checked as boolean)}
+              id={`checkbox-${levelKey}-${taskKey}`}
+            />
+            <Label htmlFor={`checkbox-${levelKey}-${taskKey}`} className="text-sm">
+              Activity completed
+            </Label>
+          </div>
+        </div>
+      );
+    }
+
+    // Default: Simple checkbox for action items (like "drink water")
+    return (
+      <div className="flex items-center gap-3 p-4 bg-white dark:bg-gray-800 rounded-lg">
+        <Checkbox
+          checked={currentValue === true}
+          onCheckedChange={(checked) => updateTaskData(true, checked as boolean)}
+          id={`checkbox-${levelKey}-${taskKey}`}
+          className="h-6 w-6"
+          data-testid={`checkbox-${levelId}-${taskIdx}`}
+        />
+        <Label htmlFor={`checkbox-${levelKey}-${taskKey}`} className="text-base font-medium cursor-pointer">
+          {taskText}
+        </Label>
+      </div>
+    );
+  }
 }
