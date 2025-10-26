@@ -35,32 +35,70 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
   // State to manage level statuses dynamically
   const [levelStatuses, setLevelStatuses] = useState<Record<number, 'locked' | 'current' | 'completed'>>({});
 
-  // 24 Health Transformation Levels
+  // 36 Health Mastery Levels (9 core video lessons + 27 exercise challenges)
   const healthLevels: LevelNode[] = [
-    { id: 1, name: 'Welcome to Health Mastery', type: 'video', status: 'completed', xp: 5, affirmation: 'I am ready to transform my health!' },
-    { id: 2, name: 'Understanding Your Body', type: 'video', status: 'completed', xp: 5, affirmation: 'My body is a temple of wellness' },
-    { id: 3, name: 'Drink 8 Glasses of Water', type: 'exercise', status: 'current', xp: 0, affirmation: 'Water is my source of vitality!', exerciseDetails: { task: 'Drink water', count: 8, unit: 'glasses' } },
-    { id: 4, name: 'Morning Squats Challenge', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Movement is my medicine!', exerciseDetails: { task: 'Do squats', count: 10, unit: 'reps' } },
-    { id: 5, name: 'Healthy Breakfast', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I nourish my body with love', exerciseDetails: { task: 'Eat healthy breakfast', count: 1, unit: 'meal' } },
-    { id: 6, name: 'Check Emotional Frequency', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I control my emotional state', exerciseDetails: { task: 'Check energy levels every 2 hours' } },
-    { id: 7, name: '100 Pushups Quest', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am getting stronger every day!', exerciseDetails: { task: 'Do pushups', count: 100, unit: 'reps' } },
-    { id: 8, name: 'Sleep 8 Hours', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Sleep restores my superpowers', exerciseDetails: { task: 'Sleep', count: 8, unit: 'hours' } },
-    { id: 9, name: 'Walking Affirmations', type: 'exercise', status: 'locked', xp: 0, affirmation: 'My words shape my reality!', exerciseDetails: { task: 'Practice walking-talking affirmations' } },
-    { id: 10, name: 'Walk 3 Kilometers', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Every step brings me closer to health', exerciseDetails: { task: 'Walk', count: 3, unit: 'km' } },
-    { id: 11, name: 'Cancel-Cancel Technique', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I reject negative thoughts instantly', exerciseDetails: { task: 'Practice cancel-cancel for negativity' } },
-    { id: 12, name: 'Ho\'oponopono Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I release and heal', exerciseDetails: { task: 'Do ho\'oponopono meditation', count: 10, unit: 'minutes' } },
-    { id: 13, name: 'Gratitude Journal', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Gratitude fills my heart', exerciseDetails: { task: 'Write gratitude list', count: 5, unit: 'items' } },
-    { id: 14, name: 'Belief System Reset', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I believe in myself completely!', exerciseDetails: { task: 'Reprogram limiting beliefs' } },
-    { id: 15, name: 'Deep Breathing Exercise', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I breathe in peace, exhale stress', exerciseDetails: { task: 'Deep breathing', count: 10, unit: 'minutes' } },
-    { id: 16, name: 'Yoga Sun Salutations', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I flow with energy', exerciseDetails: { task: 'Do sun salutations', count: 5, unit: 'rounds' } },
-    { id: 17, name: 'Positive Affirmations', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am responsible for my feelings', exerciseDetails: { task: 'Repeat affirmations', count: 10, unit: 'times' } },
-    { id: 18, name: 'Mindful Eating Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I eat with awareness and joy', exerciseDetails: { task: 'Practice mindful eating', count: 1, unit: 'meal' } },
-    { id: 19, name: 'Energy Boosting Workout', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Energy flows through me', exerciseDetails: { task: 'Musical workout', count: 10, unit: 'minutes' } },
-    { id: 20, name: 'Evening Meditation', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I release the day peacefully', exerciseDetails: { task: 'Evening meditation', count: 15, unit: 'minutes' } },
-    { id: 21, name: 'Body Scan Awareness', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I listen to my body', exerciseDetails: { task: 'Body scan practice', count: 10, unit: 'minutes' } },
-    { id: 22, name: 'Laughter Therapy', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Joy is my natural state', exerciseDetails: { task: 'Laugh intentionally', count: 5, unit: 'minutes' } },
-    { id: 23, name: 'Cold Shower Challenge', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I embrace discomfort for growth', exerciseDetails: { task: 'Take cold shower', count: 2, unit: 'minutes' } },
-    { id: 24, name: 'Health Champion Mastery', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am a health champion!', exerciseDetails: { task: 'Complete all daily health practices' } }
+    // Level 1: Lesson 1
+    { id: 1, name: 'Lesson 1: What is Health', type: 'video', status: 'current', xp: 0, affirmation: 'Health is my natural state!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/11723270' },
+    // Levels 2-4: Exercises
+    { id: 2, name: 'Drink 8 Glasses of Water', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Water is my source of vitality', exerciseDetails: { task: 'Drink water daily', count: 8, unit: 'glasses' } },
+    { id: 3, name: 'Morning Gratitude Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Gratitude heals me', exerciseDetails: { task: 'Write health gratitude', count: 5, unit: 'items' } },
+    { id: 4, name: 'Body Appreciation', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I love my body', exerciseDetails: { task: 'Appreciate your body in mirror' } },
+    
+    // Level 5: Lesson 2
+    { id: 5, name: 'Lesson 2: Breaking Limiting Beliefs', type: 'video', status: 'locked', xp: 0, affirmation: 'I release health blocks!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/11880530' },
+    // Levels 6-8: Exercises
+    { id: 6, name: 'Identify Limiting Beliefs', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I recognize my blocks', exerciseDetails: { task: 'List health limiting beliefs', count: 10, unit: 'beliefs' } },
+    { id: 7, name: 'Reframe with Affirmations', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I transform beliefs', exerciseDetails: { task: 'Create positive affirmations', count: 10, unit: 'affirmations' } },
+    { id: 8, name: 'Walking-Talking Affirmations', type: 'exercise', status: 'locked', xp: 0, affirmation: 'My words shape reality', exerciseDetails: { task: 'Practice walking affirmations', count: 10, unit: 'minutes' } },
+    
+    // Level 9: Lesson 3
+    { id: 9, name: 'Lesson 3: Lifestyle Diet Plan', type: 'video', status: 'locked', xp: 0, affirmation: 'I create my perfect diet!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/12035104' },
+    // Levels 10-12: Exercises
+    { id: 10, name: 'Design Your Diet', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I eat for energy', exerciseDetails: { task: 'Create personalized meal plan' } },
+    { id: 11, name: 'Healthy Breakfast Challenge', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I nourish my body', exerciseDetails: { task: 'Eat healthy breakfast', count: 7, unit: 'days' } },
+    { id: 12, name: 'Mindful Eating Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I eat with awareness', exerciseDetails: { task: 'Practice mindful eating', count: 1, unit: 'meal' } },
+    
+    // Level 13: Lesson 4
+    { id: 13, name: 'Lesson 4: Transform Habits Part 1', type: 'video', status: 'locked', xp: 0, affirmation: 'I build powerful habits!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/12198567' },
+    // Levels 14-16: Exercises
+    { id: 14, name: 'Track Daily Habits', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am consistent', exerciseDetails: { task: 'Track 3 health habits', count: 7, unit: 'days' } },
+    { id: 15, name: 'Morning Routine', type: 'exercise', status: 'locked', xp: 0, affirmation: 'My morning sets the tone', exerciseDetails: { task: 'Create energizing morning routine' } },
+    { id: 16, name: 'Sleep 8 Hours', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Sleep restores me', exerciseDetails: { task: 'Get quality sleep', count: 8, unit: 'hours' } },
+    
+    // Level 17: Lesson 5
+    { id: 17, name: 'Lesson 5: Transform Habits Part 2', type: 'video', status: 'locked', xp: 0, affirmation: 'I master habit transformation!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/12367867' },
+    // Levels 18-20: Exercises
+    { id: 18, name: 'Cancel-Cancel Technique', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I reject negativity', exerciseDetails: { task: 'Practice cancel-cancel all day' } },
+    { id: 19, name: 'Emotional Frequency Check', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I control my state', exerciseDetails: { task: 'Check emotions every 2 hours' } },
+    { id: 20, name: 'Ho\'oponopono Healing', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I heal myself', exerciseDetails: { task: 'Practice ho\'oponopono', count: 15, unit: 'minutes' } },
+    
+    // Level 21: Lesson 6
+    { id: 21, name: 'Lesson 6: 7 Master Steps', type: 'video', status: 'locked', xp: 0, affirmation: 'I integrate the master steps!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/12544878' },
+    // Levels 22-24: Exercises
+    { id: 22, name: 'Walk 3 Kilometers', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Every step heals me', exerciseDetails: { task: 'Walk daily', count: 3, unit: 'km' } },
+    { id: 23, name: 'Deep Breathing Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Breath is life', exerciseDetails: { task: 'Practice deep breathing', count: 10, unit: 'minutes' } },
+    { id: 24, name: 'Body Scan Meditation', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I listen to my body', exerciseDetails: { task: 'Body scan awareness', count: 15, unit: 'minutes' } },
+    
+    // Level 25: Lesson 7
+    { id: 25, name: 'Lesson 7: Raise Health Standards', type: 'video', status: 'locked', xp: 0, affirmation: 'I set platinum standards!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/12713231' },
+    // Levels 26-28: Exercises
+    { id: 26, name: 'Define Your Standards', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I demand excellence', exerciseDetails: { task: 'Write 10 health standards' } },
+    { id: 27, name: 'Morning Magic Water', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Magic water energizes me', exerciseDetails: { task: 'Drink magic water', count: 7, unit: 'days' } },
+    { id: 28, name: 'Evening Reflection', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I review my progress', exerciseDetails: { task: 'Evening health reflection', count: 10, unit: 'minutes' } },
+    
+    // Level 29: Lesson 8
+    { id: 29, name: 'Lesson 8: Recap Master Steps', type: 'video', status: 'locked', xp: 0, affirmation: 'I solidify my foundation!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/13221408' },
+    // Levels 30-32: Exercises
+    { id: 30, name: 'Happy Gym Workout', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Movement is medicine', exerciseDetails: { task: 'Musical workout', count: 10, unit: 'minutes' } },
+    { id: 31, name: '100 Pushups Challenge', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am getting stronger', exerciseDetails: { task: 'Build up to 100 pushups' } },
+    { id: 32, name: '100 Squats Challenge', type: 'exercise', status: 'locked', xp: 0, affirmation: 'My legs are powerful', exerciseDetails: { task: 'Build up to 100 squats' } },
+    
+    // Level 33: Lesson 9
+    { id: 33, name: 'Lesson 9: Design Your Workout', type: 'video', status: 'locked', xp: 0, affirmation: 'I create my perfect workout!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/13221310' },
+    // Levels 34-36: Final Challenges
+    { id: 34, name: 'Yoga Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I flow with energy', exerciseDetails: { task: 'Practice yoga', count: 30, unit: 'minutes' } },
+    { id: 35, name: 'Cold Shower Challenge', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I embrace discomfort', exerciseDetails: { task: 'Cold shower daily', count: 2, unit: 'minutes' } },
+    { id: 36, name: 'Health Champion Mastery', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am a health champion!', exerciseDetails: { task: 'Complete all health mastery practices' } }
   ];
 
   // 52 Relationship Mastery Levels (13 video lessons + 39 exercise challenges)
@@ -465,8 +503,8 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
     if (level.status === 'locked') return;
     
     if (level.type === 'video') {
-      // For Money area with videoUrl, open the video link
-      if (area.name === 'Money' && level.videoUrl) {
+      // For areas with videoUrl, open the video link
+      if (level.videoUrl && (area.name === 'Health' || area.name === 'Relationships' || area.name === 'Money')) {
         window.open(level.videoUrl, '_blank');
       } else {
         onStartLesson();
@@ -868,7 +906,7 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
                         </p>
                         
                         {/* Video lesson details */}
-                        {level.type === 'video' && level.videoUrl && level.status !== 'locked' && area.name === 'Money' && (
+                        {level.type === 'video' && level.videoUrl && level.status !== 'locked' && (area.name === 'Health' || area.name === 'Relationships' || area.name === 'Money') && (
                           <div className="flex flex-col gap-0.5 mt-1.5">
                             <Button
                               size="sm"
