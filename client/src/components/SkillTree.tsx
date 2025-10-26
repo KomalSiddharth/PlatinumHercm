@@ -174,11 +174,11 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
     }
   };
 
-  // Smooth curvy path positioning
+  // Smooth curvy path positioning using sine wave
   const getCurvyPosition = (index: number) => {
-    const baseY = index * 120;
-    const amplitude = 100; // How far left/right the curve goes
-    const frequency = 0.5; // How many curves
+    const baseY = index * 100;
+    const amplitude = 120; // How far left/right the curve goes
+    const frequency = 0.4; // How many curves
     
     // Sine wave for smooth curvy path
     const x = Math.sin(index * frequency) * amplitude;
@@ -186,199 +186,209 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
     return { x, y: baseY };
   };
 
-  // Money section - Premium Design
+  // Money section - Premium Design with Consistent Background
   if (isMoney) {
     return (
-      <div className="min-h-screen">
-        {/* Premium Header */}
-        <div className="relative overflow-hidden">
-          {/* Animated gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 dark:from-gray-900 dark:via-purple-950/20 dark:to-pink-950/20" />
-          
-          {/* Decorative elements */}
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-pink-200/30 dark:bg-pink-500/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-200/30 dark:bg-purple-500/10 rounded-full blur-3xl" />
-          
-          <div className="relative z-10 text-center py-12 px-4">
-            {/* Avatar with animated glow */}
-            <div className="relative inline-block mb-6">
-              <div className={`absolute inset-0 bg-gradient-to-r ${avatar.bg} opacity-20 blur-2xl rounded-full animate-pulse`} />
-              <div className={`relative w-40 h-40 mx-auto rounded-full bg-gradient-to-br ${avatar.bg} flex items-center justify-center shadow-2xl border-4 border-white dark:border-gray-800 transform transition-all duration-1000 hover:scale-105`}>
-                <div className="text-8xl">{avatar.icon}</div>
+      <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-100 to-indigo-100 dark:from-gray-900 dark:via-purple-950 dark:to-pink-950">
+        {/* Compact Header */}
+        <div className="relative overflow-hidden border-b border-pink-200 dark:border-pink-800/30">
+          <div className="relative z-10 text-center py-6 px-4">
+            {/* Compact Avatar */}
+            <div className="relative inline-block mb-3">
+              <div className={`absolute inset-0 bg-gradient-to-r ${avatar.bg} opacity-20 blur-xl rounded-full animate-pulse`} />
+              <div className={`relative w-20 h-20 mx-auto rounded-full bg-gradient-to-br ${avatar.bg} flex items-center justify-center shadow-lg border-2 border-white dark:border-gray-800`}>
+                <div className="text-5xl">{avatar.icon}</div>
               </div>
             </div>
             
-            <h1 className="text-5xl font-black bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-3">
-              Money Mastery Journey
+            <h1 className="text-3xl font-black bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-2">
+              Money Mastery
             </h1>
             
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <Badge className={`bg-gradient-to-r ${avatar.bg} text-white border-0 px-4 py-2 text-base shadow-lg`}>
-                <Crown className="w-5 h-5 mr-2" />
-                {avatar.title}
-              </Badge>
-            </div>
-            
-            <p className="text-lg text-muted-foreground max-w-md mx-auto">
-              {avatar.description}
-            </p>
+            <Badge className={`bg-gradient-to-r ${avatar.bg} text-white border-0 px-3 py-1 text-sm shadow-lg`}>
+              <Crown className="w-4 h-4 mr-1" />
+              {avatar.title}
+            </Badge>
           </div>
         </div>
 
-        {/* Progress Card */}
-        <div className="px-4 pb-8">
-          <Card className="max-w-2xl mx-auto shadow-xl border-2 border-pink-100 dark:border-pink-900/30">
-            <div className="p-6">
-              <div className="grid grid-cols-3 gap-6 mb-6">
+        {/* Compact Progress Card */}
+        <div className="px-4 py-4">
+          <Card className="max-w-xl mx-auto shadow-lg bg-white/90 dark:bg-gray-800/90 backdrop-blur border border-pink-200 dark:border-pink-800/30">
+            <div className="p-4">
+              <div className="grid grid-cols-3 gap-4 mb-3">
                 <div className="text-center">
-                  <div className="text-4xl font-black bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-1">
+                  <div className="text-2xl font-black bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
                     {overallProgress}%
                   </div>
-                  <p className="text-sm text-muted-foreground font-medium">Progress</p>
+                  <p className="text-xs text-muted-foreground">Progress</p>
                 </div>
                 <div className="text-center">
-                  <div className="text-4xl font-black bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent mb-1">
+                  <div className="text-2xl font-black bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
                     {totalXP}
                   </div>
-                  <p className="text-sm text-muted-foreground font-medium">XP Earned</p>
+                  <p className="text-xs text-muted-foreground">XP Earned</p>
                 </div>
                 <div className="text-center">
-                  <div className="text-4xl font-black bg-gradient-to-r from-indigo-600 to-pink-600 bg-clip-text text-transparent mb-1">
+                  <div className="text-2xl font-black bg-gradient-to-r from-indigo-600 to-pink-600 bg-clip-text text-transparent">
                     {completedLevels}
                   </div>
-                  <p className="text-sm text-muted-foreground font-medium">Completed</p>
+                  <p className="text-xs text-muted-foreground">Completed</p>
                 </div>
               </div>
               
-              <div className="relative h-4 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 rounded-full overflow-hidden shadow-inner">
+              <div className="relative h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                 <div 
-                  className="absolute top-0 left-0 h-full bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-600 transition-all duration-1000 ease-out shadow-lg"
+                  className="absolute top-0 left-0 h-full bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-600 transition-all duration-1000 ease-out"
                   style={{ width: `${overallProgress}%` }}
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-white/30 to-transparent animate-pulse" />
                 </div>
               </div>
-              
-              <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
-                <span className="font-medium">0 XP</span>
-                <span className="font-semibold">{totalXP} / {maxXP} XP</span>
-                <span className="font-medium">{maxXP} XP</span>
-              </div>
             </div>
           </Card>
         </div>
 
-        {/* Skills Path */}
+        {/* Skills Path with Animated Money Background */}
         <div className="px-4 pb-12">
           <div 
-            className="relative rounded-3xl shadow-2xl overflow-hidden"
+            className="relative rounded-3xl shadow-2xl overflow-hidden bg-gradient-to-br from-pink-100 via-purple-100 to-indigo-100 dark:from-gray-900 dark:via-purple-950 dark:to-pink-950"
             style={{
-              minHeight: `${levels.length * 120 + 200}px`,
-              background: 'linear-gradient(180deg, #f9fafb 0%, #f3f4f6 5%, #fdf2f8 10%, #fce7f3 15%, #fbcfe8 25%, #f9a8d4 35%, #f472b6 45%, #ec4899 50%, #db2777 55%, #be185d 60%, #9333ea 65%, #7e22ce 70%, #6b21a8 75%, #fbbf24 80%, #f59e0b 85%, #fb923c 90%, #f97316 95%, #ea580c 100%)'
+              minHeight: `${levels.length * 100 + 150}px`,
             }}
           >
-            {/* Wealth symbols overlay */}
-            <div className="absolute inset-0 opacity-10 pointer-events-none">
-              <div className="absolute top-8 left-8 text-6xl">💸</div>
-              <div className="absolute top-24 right-12 text-5xl">📊</div>
-              <div className="absolute text-7xl" style={{top: '30%', left: '10%'}}>💰</div>
-              <div className="absolute text-6xl" style={{top: '40%', right: '8%'}}>📈</div>
-              <div className="absolute text-8xl" style={{top: '55%', left: '12%'}}>💼</div>
-              <div className="absolute text-9xl" style={{top: '70%', right: '10%'}}>💎</div>
-              <div className="absolute text-9xl" style={{top: '82%', left: '8%'}}>👑</div>
-              <div className="absolute text-10xl" style={{top: '92%', right: '12%'}}>🏆</div>
+            {/* Animated Floating Money Symbols */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              {/* Dollar signs floating */}
+              <div className="absolute text-4xl opacity-20 animate-float" style={{ top: '5%', left: '10%', animationDelay: '0s', animationDuration: '8s' }}>💵</div>
+              <div className="absolute text-5xl opacity-15 animate-float" style={{ top: '15%', right: '8%', animationDelay: '2s', animationDuration: '10s' }}>💰</div>
+              <div className="absolute text-3xl opacity-25 animate-float" style={{ top: '25%', left: '5%', animationDelay: '1s', animationDuration: '9s' }}>💸</div>
+              <div className="absolute text-6xl opacity-10 animate-float" style={{ top: '35%', right: '12%', animationDelay: '3s', animationDuration: '11s' }}>💎</div>
+              <div className="absolute text-5xl opacity-20 animate-float" style={{ top: '45%', left: '8%', animationDelay: '1.5s', animationDuration: '10s' }}>📈</div>
+              <div className="absolute text-4xl opacity-15 animate-float" style={{ top: '55%', right: '10%', animationDelay: '2.5s', animationDuration: '9s' }}>💼</div>
+              <div className="absolute text-7xl opacity-10 animate-float" style={{ top: '65%', left: '12%', animationDelay: '0.5s', animationDuration: '12s' }}>🏆</div>
+              <div className="absolute text-6xl opacity-15 animate-float" style={{ top: '75%', right: '7%', animationDelay: '3.5s', animationDuration: '11s' }}>👑</div>
+              <div className="absolute text-5xl opacity-20 animate-float" style={{ top: '85%', left: '15%', animationDelay: '1s', animationDuration: '10s' }}>✨</div>
+              <div className="absolute text-4xl opacity-25 animate-float" style={{ top: '10%', left: '85%', animationDelay: '2s', animationDuration: '9s' }}>💵</div>
+              <div className="absolute text-3xl opacity-20 animate-float" style={{ top: '40%', left: '90%', animationDelay: '0s', animationDuration: '8s' }}>📊</div>
+              <div className="absolute text-5xl opacity-15 animate-float" style={{ top: '70%', right: '85%', animationDelay: '3s', animationDuration: '11s' }}>💰</div>
             </div>
 
             {/* Curvy path container */}
-            <div className="relative py-20 px-8">
+            <div className="relative py-16 px-8">
               <div className="relative max-w-2xl mx-auto">
+                <svg className="absolute inset-0 w-full h-full" style={{ zIndex: 0 }}>
+                  <defs>
+                    {levels.map((level, index) => {
+                      if (index === levels.length - 1) return null;
+                      
+                      const currentPos = getCurvyPosition(index);
+                      const nextPos = getCurvyPosition(index + 1);
+                      
+                      const startX = currentPos.x + 400;
+                      const startY = currentPos.y + 40;
+                      const endX = nextPos.x + 400;
+                      const endY = nextPos.y + 40;
+                      
+                      const controlX1 = startX + (endX - startX) * 0.3;
+                      const controlY1 = startY + (endY - startY) * 0.7;
+                      const controlX2 = startX + (endX - startX) * 0.7;
+                      const controlY2 = startY + (endY - startY) * 0.3;
+                      
+                      return (
+                        <linearGradient key={`grad-${level.id}`} id={`gradient-${level.id}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                          <stop offset="0%" stopColor={level.status === 'completed' ? '#ec4899' : level.status === 'current' ? '#fbbf24' : '#d1d5db'} stopOpacity="0.6" />
+                          <stop offset="100%" stopColor={level.status === 'completed' ? '#a855f7' : level.status === 'current' ? '#f59e0b' : '#9ca3af'} stopOpacity="0.6" />
+                        </linearGradient>
+                      );
+                    })}
+                  </defs>
+                  
+                  {levels.map((level, index) => {
+                    if (index === levels.length - 1) return null;
+                    
+                    const currentPos = getCurvyPosition(index);
+                    const nextPos = getCurvyPosition(index + 1);
+                    
+                    const startX = currentPos.x + 400;
+                    const startY = currentPos.y + 40;
+                    const endX = nextPos.x + 400;
+                    const endY = nextPos.y + 40;
+                    
+                    const controlX1 = startX + (endX - startX) * 0.3;
+                    const controlY1 = startY + (endY - startY) * 0.7;
+                    const controlX2 = startX + (endX - startX) * 0.7;
+                    const controlY2 = startY + (endY - startY) * 0.3;
+                    
+                    return (
+                      <path
+                        key={`path-${level.id}`}
+                        d={`M ${startX} ${startY} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${endX} ${endY}`}
+                        stroke={`url(#gradient-${level.id})`}
+                        strokeWidth="4"
+                        fill="none"
+                        strokeLinecap="round"
+                        opacity="0.7"
+                      />
+                    );
+                  })}
+                </svg>
+
                 {levels.map((level, index) => {
                   const position = getCurvyPosition(index);
-                  const isLast = index === levels.length - 1;
                   
                   return (
                     <div 
                       key={level.id}
-                      className="relative mb-16 transition-all duration-300"
+                      className="relative mb-8 transition-all duration-300"
                       style={{
                         transform: `translateX(${position.x}px)`,
+                        marginTop: index === 0 ? '0px' : '0px',
                       }}
                     >
-                      {/* Connection curve to next level */}
-                      {!isLast && (() => {
-                        const nextPosition = getCurvyPosition(index + 1);
-                        const dx = nextPosition.x - position.x;
-                        const dy = 120;
-                        
-                        return (
-                          <svg
-                            className="absolute left-1/2 top-full z-0"
-                            style={{
-                              width: Math.abs(dx) + 50,
-                              height: dy + 20,
-                              transform: `translateX(-50%)`,
-                            }}
-                          >
-                            <defs>
-                              <linearGradient id={`gradient-${level.id}`} x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" stopColor={level.status === 'completed' ? '#ec4899' : level.status === 'current' ? '#fbbf24' : '#d1d5db'} />
-                                <stop offset="100%" stopColor={level.status === 'completed' ? '#a855f7' : level.status === 'current' ? '#f59e0b' : '#9ca3af'} />
-                              </linearGradient>
-                            </defs>
-                            <path
-                              d={`M ${Math.abs(dx)/2 + 25} 0 Q ${Math.abs(dx)/2 + 25 + dx/2} ${dy/2}, ${Math.abs(dx)/2 + 25 + dx} ${dy}`}
-                              stroke={`url(#gradient-${level.id})`}
-                              strokeWidth="6"
-                              fill="none"
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                        );
-                      })()}
-
                       {/* Level node */}
                       <div className="relative flex justify-center z-10">
                         <button
                           onClick={() => handleLevelClick(level)}
                           disabled={level.status === 'locked'}
                           className={`group relative transition-all duration-300 ${
-                            level.status === 'locked' ? 'cursor-not-allowed' : 'cursor-pointer'
+                            level.status === 'locked' ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-110'
                           }`}
                           data-testid={`level-${level.id}`}
                         >
-                          {/* Glow effect */}
+                          {/* Glow effect for current level */}
                           {level.status === 'current' && (
-                            <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-500 opacity-50 blur-xl rounded-full animate-pulse" />
+                            <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-500 opacity-60 blur-lg rounded-full animate-pulse" />
                           )}
                           
                           {/* Main node */}
-                          <div className={`relative w-20 h-20 rounded-full flex items-center justify-center transform transition-all duration-300 ${
+                          <div className={`relative w-16 h-16 rounded-full flex items-center justify-center transform transition-all duration-300 ${
                             level.status === 'current'
-                              ? 'bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-600 shadow-2xl scale-110 animate-pulse'
+                              ? 'bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-600 shadow-xl scale-110 animate-pulse'
                               : level.status === 'completed'
-                              ? 'bg-gradient-to-br from-pink-500 via-purple-600 to-indigo-700 shadow-xl hover:scale-105'
-                              : 'bg-gradient-to-br from-gray-300 via-gray-400 to-gray-500 opacity-50'
+                              ? 'bg-gradient-to-br from-pink-500 via-purple-600 to-indigo-700 shadow-lg'
+                              : 'bg-gradient-to-br from-gray-300 via-gray-400 to-gray-500 opacity-40'
                           }`}>
                             {/* Icon */}
                             {level.status === 'completed' ? (
-                              <CheckCircle2 className="w-10 h-10 text-white drop-shadow-lg" strokeWidth={3} />
+                              <CheckCircle2 className="w-8 h-8 text-white drop-shadow" strokeWidth={2.5} />
                             ) : level.status === 'locked' ? (
-                              <Lock className="w-8 h-8 text-white/70" />
+                              <Lock className="w-6 h-6 text-white/70" />
                             ) : (
-                              <Star className="w-10 h-10 text-white animate-pulse drop-shadow-lg" />
+                              <Star className="w-8 h-8 text-white animate-pulse drop-shadow" />
                             )}
                             
                             {/* Level badge */}
-                            <div className={`absolute -bottom-2 px-3 py-1 rounded-full shadow-lg border-2 ${
-                              level.status === 'current' ? 'bg-white border-yellow-400' : 'bg-white dark:bg-gray-900 border-current'
+                            <div className={`absolute -bottom-1.5 px-2 py-0.5 rounded-full shadow text-[10px] font-black border ${
+                              level.status === 'current' ? 'bg-white border-yellow-400 text-yellow-600' : 'bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-700'
                             }`}>
-                              <span className="text-xs font-black">{level.id}</span>
+                              {level.id}
                             </div>
                             
                             {/* XP badge */}
                             {level.status === 'completed' && (
-                              <div className="absolute -top-2 -right-2 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full px-2 py-1 shadow-lg border-2 border-white">
-                                <span className="text-xs font-bold text-white">+5</span>
+                              <div className="absolute -top-1 -right-1 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full px-1.5 py-0.5 shadow border border-white">
+                                <span className="text-[10px] font-bold text-white">+5</span>
                               </div>
                             )}
                           </div>
@@ -386,16 +396,16 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
                       </div>
 
                       {/* Level info */}
-                      <div className="text-center mt-4 px-4">
-                        <p className={`text-sm font-bold mb-1 ${
+                      <div className="text-center mt-2 px-2">
+                        <p className={`text-xs font-bold ${
                           level.status === 'locked' 
-                            ? 'text-white/60 dark:text-gray-400' 
-                            : 'text-white dark:text-gray-100'
+                            ? 'text-gray-400 dark:text-gray-600' 
+                            : 'text-gray-700 dark:text-gray-200'
                         }`}>
                           {level.name}
                         </p>
                         {level.exerciseDetails && level.status !== 'locked' && (
-                          <p className="text-xs text-white/80 dark:text-gray-300">
+                          <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
                             {level.exerciseDetails.task}
                             {level.exerciseDetails.count && ` (${level.exerciseDetails.count} ${level.exerciseDetails.unit})`}
                           </p>
@@ -407,37 +417,6 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Info Card */}
-        <div className="px-4 pb-12">
-          <Card className="max-w-2xl mx-auto bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-950/20 dark:to-purple-950/20 border-2 border-pink-200 dark:border-pink-800 shadow-xl">
-            <div className="p-6 flex items-start gap-4">
-              <div className="text-6xl">{avatar.icon}</div>
-              <div className="flex-1">
-                <h3 className="text-xl font-bold mb-2 bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-                  Financial Avatar Evolution
-                </h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Complete quests to transform: 😔 Struggling → 💸 Learning → 💰 Growing → 💼 Prosperous → 👑 Wealth Master!
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="secondary" className="shadow">
-                    <Zap className="w-3 h-3 mr-1" />
-                    5 XP per quest
-                  </Badge>
-                  <Badge variant="secondary" className="shadow">
-                    <TrendingUp className="w-3 h-3 mr-1" />
-                    {levels.length} total quests
-                  </Badge>
-                  <Badge variant="secondary" className="shadow">
-                    <Coins className="w-3 h-3 mr-1" />
-                    {maxXP} max XP
-                  </Badge>
-                </div>
-              </div>
-            </div>
-          </Card>
         </div>
       </div>
     );
