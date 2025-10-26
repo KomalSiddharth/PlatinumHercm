@@ -257,21 +257,56 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
               minHeight: `${levels.length * 120 + 200}px`,
             }}
           >
-            {/* Animated Floating Money Symbols - HIGHER OPACITY */}
+            {/* ABUNDANT TREASURE BACKGROUND - Jewels, Gold, Money */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              {/* Dollar signs floating - Much more visible */}
-              <div className="absolute text-4xl animate-float" style={{ top: '5%', left: '10%', animationDelay: '0s', animationDuration: '8s', opacity: 0.5 }}>💵</div>
-              <div className="absolute text-5xl animate-float" style={{ top: '15%', right: '8%', animationDelay: '2s', animationDuration: '10s', opacity: 0.45 }}>💰</div>
-              <div className="absolute text-3xl animate-float" style={{ top: '25%', left: '5%', animationDelay: '1s', animationDuration: '9s', opacity: 0.55 }}>💸</div>
-              <div className="absolute text-6xl animate-float" style={{ top: '35%', right: '12%', animationDelay: '3s', animationDuration: '11s', opacity: 0.4 }}>💎</div>
-              <div className="absolute text-5xl animate-float" style={{ top: '45%', left: '8%', animationDelay: '1.5s', animationDuration: '10s', opacity: 0.5 }}>📈</div>
-              <div className="absolute text-4xl animate-float" style={{ top: '55%', right: '10%', animationDelay: '2.5s', animationDuration: '9s', opacity: 0.45 }}>💼</div>
-              <div className="absolute text-7xl animate-float" style={{ top: '65%', left: '12%', animationDelay: '0.5s', animationDuration: '12s', opacity: 0.4 }}>🏆</div>
-              <div className="absolute text-6xl animate-float" style={{ top: '75%', right: '7%', animationDelay: '3.5s', animationDuration: '11s', opacity: 0.45 }}>👑</div>
-              <div className="absolute text-5xl animate-float" style={{ top: '85%', left: '15%', animationDelay: '1s', animationDuration: '10s', opacity: 0.5 }}>✨</div>
-              <div className="absolute text-4xl animate-float" style={{ top: '10%', left: '85%', animationDelay: '2s', animationDuration: '9s', opacity: 0.55 }}>💵</div>
-              <div className="absolute text-3xl animate-float" style={{ top: '40%', left: '90%', animationDelay: '0s', animationDuration: '8s', opacity: 0.5 }}>📊</div>
-              <div className="absolute text-5xl animate-float" style={{ top: '70%', right: '85%', animationDelay: '3s', animationDuration: '11s', opacity: 0.45 }}>💰</div>
+              {/* TREASURE LAYER 1 - Money & Gold */}
+              <div className="absolute text-4xl animate-float" style={{ top: '3%', left: '8%', animationDelay: '0s', animationDuration: '9s', opacity: 0.6 }}>💵</div>
+              <div className="absolute text-5xl animate-float" style={{ top: '8%', right: '5%', animationDelay: '2s', animationDuration: '11s', opacity: 0.55 }}>💰</div>
+              <div className="absolute text-6xl animate-float" style={{ top: '12%', left: '15%', animationDelay: '1s', animationDuration: '10s', opacity: 0.5 }}>🪙</div>
+              
+              {/* TREASURE LAYER 2 - Precious Gems & Jewels */}
+              <div className="absolute text-6xl animate-float" style={{ top: '18%', right: '10%', animationDelay: '3s', animationDuration: '12s', opacity: 0.6 }}>💎</div>
+              <div className="absolute text-5xl animate-float" style={{ top: '22%', left: '3%', animationDelay: '1.5s', animationDuration: '10s', opacity: 0.55 }}>💠</div>
+              <div className="absolute text-4xl animate-float" style={{ top: '28%', right: '18%', animationDelay: '2.5s', animationDuration: '11s', opacity: 0.5 }}>🔷</div>
+              <div className="absolute text-5xl animate-float" style={{ top: '32%', left: '12%', animationDelay: '0.5s', animationDuration: '9s', opacity: 0.6 }}>💎</div>
+              
+              {/* TREASURE LAYER 3 - Gold Bars & Coins */}
+              <div className="absolute text-6xl animate-float" style={{ top: '38%', right: '8%', animationDelay: '1s', animationDuration: '10s', opacity: 0.55 }}>🪙</div>
+              <div className="absolute text-5xl animate-float" style={{ top: '42%', left: '6%', animationDelay: '3s', animationDuration: '12s', opacity: 0.5 }}>💰</div>
+              <div className="absolute text-4xl animate-float" style={{ top: '48%', right: '15%', animationDelay: '0s', animationDuration: '9s', opacity: 0.6 }}>💵</div>
+              
+              {/* TREASURE LAYER 4 - Crown, Trophy, Success */}
+              <div className="absolute text-7xl animate-float" style={{ top: '52%', left: '10%', animationDelay: '2s', animationDuration: '11s', opacity: 0.5 }}>👑</div>
+              <div className="absolute text-6xl animate-float" style={{ top: '58%', right: '12%', animationDelay: '1.5s', animationDuration: '10s', opacity: 0.55 }}>🏆</div>
+              <div className="absolute text-5xl animate-float" style={{ top: '62%', left: '18%', animationDelay: '3.5s', animationDuration: '12s', opacity: 0.6 }}>💎</div>
+              
+              {/* TREASURE LAYER 5 - More Jewels & Sparkles */}
+              <div className="absolute text-4xl animate-float" style={{ top: '68%', right: '6%', animationDelay: '0.5s', animationDuration: '9s', opacity: 0.55 }}>✨</div>
+              <div className="absolute text-6xl animate-float" style={{ top: '72%', left: '8%', animationDelay: '2.5s', animationDuration: '11s', opacity: 0.6 }}>💠</div>
+              <div className="absolute text-5xl animate-float" style={{ top: '78%', right: '14%', animationDelay: '1s', animationDuration: '10s', opacity: 0.5 }}>🪙</div>
+              <div className="absolute text-7xl animate-float" style={{ top: '82%', left: '12%', animationDelay: '3s', animationDuration: '12s', opacity: 0.55 }}>💎</div>
+              
+              {/* TREASURE LAYER 6 - Bottom Abundance */}
+              <div className="absolute text-5xl animate-float" style={{ top: '88%', right: '10%', animationDelay: '1.5s', animationDuration: '10s', opacity: 0.6 }}>💰</div>
+              <div className="absolute text-6xl animate-float" style={{ top: '92%', left: '15%', animationDelay: '0s', animationDuration: '9s', opacity: 0.55 }}>🪙</div>
+              
+              {/* RIGHT SIDE - Additional Treasure Elements */}
+              <div className="absolute text-4xl animate-float" style={{ top: '5%', left: '85%', animationDelay: '2s', animationDuration: '10s', opacity: 0.6 }}>💵</div>
+              <div className="absolute text-5xl animate-float" style={{ top: '15%', left: '88%', animationDelay: '0.5s', animationDuration: '11s', opacity: 0.55 }}>💎</div>
+              <div className="absolute text-3xl animate-float" style={{ top: '25%', left: '92%', animationDelay: '3s', animationDuration: '9s', opacity: 0.5 }}>✨</div>
+              <div className="absolute text-6xl animate-float" style={{ top: '35%', left: '86%', animationDelay: '1s', animationDuration: '12s', opacity: 0.6 }}>🪙</div>
+              <div className="absolute text-4xl animate-float" style={{ top: '45%', left: '90%', animationDelay: '2.5s', animationDuration: '10s', opacity: 0.55 }}>💠</div>
+              <div className="absolute text-5xl animate-float" style={{ top: '55%', left: '88%', animationDelay: '0s', animationDuration: '11s', opacity: 0.6 }}>💰</div>
+              <div className="absolute text-7xl animate-float" style={{ top: '65%', left: '84%', animationDelay: '3.5s', animationDuration: '12s', opacity: 0.5 }}>👑</div>
+              <div className="absolute text-6xl animate-float" style={{ top: '75%', left: '90%', animationDelay: '1.5s', animationDuration: '10s', opacity: 0.55 }}>💎</div>
+              <div className="absolute text-4xl animate-float" style={{ top: '85%', left: '87%', animationDelay: '2s', animationDuration: '9s', opacity: 0.6 }}>🪙</div>
+              
+              {/* SPARKLE LAYER - Magical Shimmer Effect */}
+              <div className="absolute text-3xl animate-float" style={{ top: '10%', left: '50%', animationDelay: '1s', animationDuration: '8s', opacity: 0.7 }}>✨</div>
+              <div className="absolute text-4xl animate-float" style={{ top: '30%', left: '45%', animationDelay: '2.5s', animationDuration: '9s', opacity: 0.65 }}>✨</div>
+              <div className="absolute text-3xl animate-float" style={{ top: '50%', left: '55%', animationDelay: '0.5s', animationDuration: '10s', opacity: 0.7 }}>✨</div>
+              <div className="absolute text-4xl animate-float" style={{ top: '70%', left: '48%', animationDelay: '3s', animationDuration: '8s', opacity: 0.65 }}>✨</div>
+              <div className="absolute text-3xl animate-float" style={{ top: '90%', left: '52%', animationDelay: '1.5s', animationDuration: '9s', opacity: 0.7 }}>✨</div>
             </div>
 
             {/* Curvy path container */}

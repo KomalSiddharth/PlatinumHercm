@@ -421,5 +421,20 @@
 
   .animate-float {
     animation: float 10s ease-in-out infinite;
+    filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.3));
+  }
+
+  /* Treasure Glow Effect - Golden Shimmer */
+  @keyframes treasureGlow {
+    0%, 100% {
+      filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.4)) brightness(1);
+    }
+    50% {
+      filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.6)) brightness(1.2);
+    }
+  }
+
+  .treasure-shimmer {
+    animation: treasureGlow 3s ease-in-out infinite;
   }
 }
