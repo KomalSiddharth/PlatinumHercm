@@ -11,6 +11,12 @@ Preferred communication style: Simple, everyday language.
 ### UI/UX Decisions
 The dashboard uses a clean, responsive "New York" style design with shadcn/ui components and the Inter font, supporting light/dark modes. The primary color is Teal, and the accent color is Coral. It features optimized column widths, reorganized dashboard elements, row-wise daily rituals, and an enhanced admin panel. The HRCM rating system is standards-based, scaled out of 10.
 
+**HRCM Card Color Scheme (Oct 26, 2025)**: Consistent color palette across all HRCM area cards:
+- **Health**: Green (`hsl(142 57% 37%)`) with green gradient background
+- **Relationship**: Purple (`hsl(265 85% 58%)`) with purple gradient background
+- **Career**: Blue (`hsl(221 83% 53%)`) with blue gradient background
+- **Money**: Purple (`hsl(265 85% 58%)`) with purple gradient background - matching Relationship color for visual consistency
+
 **Mobile Responsive Design (Oct 22, 2025)**: Comprehensive mobile-first responsive implementation across entire application:
 - **Dashboard Layout**: Responsive padding `p-3 sm:p-4 md:p-6`, spacing `space-y-6 sm:space-y-8 md:space-y-12`, text sizes `text-2xl md:text-3xl`, and grid layouts `grid-cols-1 md:grid-cols-2` for adaptive content flow.
 - **DashboardHeader**: Compact mobile header with `h-14 sm:h-16` height, responsive logo sizing `w-8 h-8 sm:w-10 sm:h-10`, optimized gaps `gap-2 sm:gap-3`, touch-friendly icon buttons `h-8 w-8 sm:h-9 sm:w-9`, hamburger menu for mobile navigation, and hidden admin button on small screens.
