@@ -39,8 +39,8 @@ const categoryConfig = {
   },
   money: {
     label: 'Money',
-    color: 'hsl(45 93% 47%)',
-    bgGradient: 'from-white to-yellow-50 dark:from-card dark:to-yellow-950/20'
+    color: 'hsl(265 85% 58%)',
+    bgGradient: 'from-white to-purple-50 dark:from-card dark:to-purple-950/20'
   }
 };
 
