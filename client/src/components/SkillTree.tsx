@@ -1,7 +1,8 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { CheckCircle2, Lock, Play, Star, Zap, Crown, Heart, Flame, Droplets, Battery } from 'lucide-react';
+import { CheckCircle2, Lock, Play, Star, Crown, Sparkles } from 'lucide-react';
+import { useState } from 'react';
 
 interface SkillTreeProps {
   area: {
@@ -18,277 +19,250 @@ interface SkillTreeProps {
 interface LevelNode {
   id: number;
   name: string;
-  lessons: number;
-  completed: number;
+  type: 'video' | 'exercise';
   status: 'locked' | 'current' | 'completed';
   xp: number;
-  emoji: string;
-  quest: string;
   affirmation: string;
+  exerciseDetails?: {
+    task: string;
+    count?: number;
+    unit?: string;
+  };
 }
 
 export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
-  // Actual Health Mastery Course Lessons - Single Continuous Track
+  // 24 Health Transformation Levels
   const levels: LevelNode[] = [
-    { id: 1, name: 'Welcome to Health Mastery', lessons: 1, completed: 1, status: 'completed', xp: 5, emoji: '🌱', quest: '🔓 Unlock Your Health Journey', affirmation: 'I am ready to transform my health!' },
-    { id: 2, name: 'Understanding Your Body', lessons: 1, completed: 1, status: 'completed', xp: 5, emoji: '🧬', quest: '🧭 Discover Your Body Map', affirmation: 'My body is a temple of wellness' },
-    { id: 3, name: 'Magic Water Morning Ritual', lessons: 1, completed: 0, status: 'current', xp: 0, emoji: '💧', quest: '💦 Collect Energy Potion (8 Glasses)', affirmation: 'Water is my source of vitality!' },
-    { id: 4, name: 'Healthy Breakfast Power', lessons: 1, completed: 0, status: 'locked', xp: 0, emoji: '🍳', quest: '🍽️ Fuel the Morning Engine', affirmation: 'I nourish my body with love' },
-    { id: 5, name: 'Musical Workout Challenge', lessons: 1, completed: 0, status: 'locked', xp: 0, emoji: '🎵', quest: '🐉 Defeat the Lazy Dragon (10 Squats)', affirmation: 'Movement is my medicine!' },
-    { id: 6, name: 'Emotional Frequency Mastery', lessons: 1, completed: 0, status: 'locked', xp: 0, emoji: '😊', quest: '📊 Check Energy Levels Every 2 Hours', affirmation: 'I control my emotional state' },
-    { id: 7, name: '100 Pushups Challenge', lessons: 1, completed: 0, status: 'locked', xp: 0, emoji: '💪', quest: '⚡ Power-Up Quest (100 Reps)', affirmation: 'I am getting stronger every day!' },
-    { id: 8, name: 'Sleep Scroll Unlock', lessons: 1, completed: 0, status: 'locked', xp: 0, emoji: '😴', quest: '🌙 Unlock 8-Hour Sleep Treasure', affirmation: 'Sleep restores my superpowers' },
-    { id: 9, name: 'Walking-Talking Affirmations', lessons: 1, completed: 0, status: 'locked', xp: 0, emoji: '🚶', quest: '🗣️ Speak Your Power into Existence', affirmation: 'My words shape my reality!' },
-    { id: 10, name: 'Cancel-Cancel Technique', lessons: 1, completed: 0, status: 'locked', xp: 0, emoji: '🚫', quest: '🛡️ Block Negativity Shield', affirmation: 'I reject negative thoughts instantly' },
-    { id: 11, name: 'Belief System Reset', lessons: 1, completed: 0, status: 'locked', xp: 0, emoji: '🧠', quest: '🔄 Reprogram Your Mind Matrix', affirmation: 'I believe in myself completely!' },
-    { id: 12, name: 'Health Champion Mastery', lessons: 1, completed: 0, status: 'locked', xp: 0, emoji: '👑', quest: '🏆 Claim Your Health Crown', affirmation: 'I am a health champion!' }
+    { id: 1, name: 'Welcome to Health Mastery', type: 'video', status: 'completed', xp: 5, affirmation: 'I am ready to transform my health!' },
+    { id: 2, name: 'Understanding Your Body', type: 'video', status: 'completed', xp: 5, affirmation: 'My body is a temple of wellness' },
+    { id: 3, name: 'Drink 8 Glasses of Water', type: 'exercise', status: 'current', xp: 0, affirmation: 'Water is my source of vitality!', exerciseDetails: { task: 'Drink water', count: 8, unit: 'glasses' } },
+    { id: 4, name: 'Morning Squats Challenge', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Movement is my medicine!', exerciseDetails: { task: 'Do squats', count: 10, unit: 'reps' } },
+    { id: 5, name: 'Healthy Breakfast', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I nourish my body with love', exerciseDetails: { task: 'Eat healthy breakfast', count: 1, unit: 'meal' } },
+    { id: 6, name: 'Check Emotional Frequency', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I control my emotional state', exerciseDetails: { task: 'Check energy levels every 2 hours' } },
+    { id: 7, name: '100 Pushups Quest', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am getting stronger every day!', exerciseDetails: { task: 'Do pushups', count: 100, unit: 'reps' } },
+    { id: 8, name: 'Sleep 8 Hours', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Sleep restores my superpowers', exerciseDetails: { task: 'Sleep', count: 8, unit: 'hours' } },
+    { id: 9, name: 'Walking Affirmations', type: 'exercise', status: 'locked', xp: 0, affirmation: 'My words shape my reality!', exerciseDetails: { task: 'Practice walking-talking affirmations' } },
+    { id: 10, name: 'Walk 3 Kilometers', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Every step brings me closer to health', exerciseDetails: { task: 'Walk', count: 3, unit: 'km' } },
+    { id: 11, name: 'Cancel-Cancel Technique', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I reject negative thoughts instantly', exerciseDetails: { task: 'Practice cancel-cancel for negativity' } },
+    { id: 12, name: 'Ho\'oponopono Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I release and heal', exerciseDetails: { task: 'Do ho\'oponopono meditation', count: 10, unit: 'minutes' } },
+    { id: 13, name: 'Gratitude Journal', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Gratitude fills my heart', exerciseDetails: { task: 'Write gratitude list', count: 5, unit: 'items' } },
+    { id: 14, name: 'Belief System Reset', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I believe in myself completely!', exerciseDetails: { task: 'Reprogram limiting beliefs' } },
+    { id: 15, name: 'Deep Breathing Exercise', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I breathe in peace, exhale stress', exerciseDetails: { task: 'Deep breathing', count: 10, unit: 'minutes' } },
+    { id: 16, name: 'Yoga Sun Salutations', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I flow with energy', exerciseDetails: { task: 'Do sun salutations', count: 5, unit: 'rounds' } },
+    { id: 17, name: 'Positive Affirmations', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am responsible for my feelings', exerciseDetails: { task: 'Repeat affirmations', count: 10, unit: 'times' } },
+    { id: 18, name: 'Mindful Eating Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I eat with awareness and joy', exerciseDetails: { task: 'Practice mindful eating', count: 1, unit: 'meal' } },
+    { id: 19, name: 'Energy Boosting Workout', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Energy flows through me', exerciseDetails: { task: 'Musical workout', count: 10, unit: 'minutes' } },
+    { id: 20, name: 'Evening Meditation', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I release the day peacefully', exerciseDetails: { task: 'Evening meditation', count: 15, unit: 'minutes' } },
+    { id: 21, name: 'Body Scan Awareness', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I listen to my body', exerciseDetails: { task: 'Body scan practice', count: 10, unit: 'minutes' } },
+    { id: 22, name: 'Laughter Therapy', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Joy is my natural state', exerciseDetails: { task: 'Laugh intentionally', count: 5, unit: 'minutes' } },
+    { id: 23, name: 'Cold Shower Challenge', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I embrace discomfort for growth', exerciseDetails: { task: 'Take cold shower', count: 2, unit: 'minutes' } },
+    { id: 24, name: 'Health Champion Mastery', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am a health champion!', exerciseDetails: { task: 'Complete all daily health practices' } }
   ];
 
-  const totalLessons = levels.reduce((sum, level) => sum + level.lessons, 0);
-  const completedLessons = levels.reduce((sum, level) => sum + level.completed, 0);
-  const overallProgress = Math.round((completedLessons / totalLessons) * 100);
   const totalXP = levels.reduce((sum, level) => sum + level.xp, 0);
+  const maxXP = levels.length * 5;
+  const overallProgress = Math.round((totalXP / maxXP) * 100);
+  const completedLevels = levels.filter(l => l.status === 'completed').length;
 
-  // Animated Human Avatar Evolution based on progress
+  // Animated Avatar Evolution based on progress
   const getHealthAvatar = (progress: number) => {
     if (progress >= 90) return { 
-      emoji: '🦸', 
+      icon: '🦸', 
       title: 'Health Champion', 
       bg: 'from-yellow-400 via-amber-400 to-orange-500',
-      description: 'Heroic aura, peak vitality! 🌟',
-      body: 'Glowing with superhuman energy!'
+      description: 'Heroic aura, peak vitality!'
     };
     if (progress >= 60) return { 
-      emoji: '💪', 
+      icon: '💪', 
       title: 'Fit Warrior', 
       bg: 'from-purple-400 via-pink-400 to-rose-400',
-      description: 'Fit posture, showing biceps! 💪',
-      body: 'Strong, confident, energetic!'
+      description: 'Fit posture, showing biceps!'
     };
     if (progress >= 30) return { 
-      emoji: '😊', 
+      icon: '😊', 
       title: 'Energetic Being', 
       bg: 'from-blue-400 via-cyan-400 to-teal-400',
-      description: 'Smiling, more colorful! 😊',
-      body: 'Feeling lighter and happier'
+      description: 'Smiling, more colorful!'
     };
     if (progress >= 10) return { 
-      emoji: '🙂', 
+      icon: '🙂', 
       title: 'Awakening', 
       bg: 'from-green-400 via-emerald-400 to-teal-400',
-      description: 'Starting to feel better...',
-      body: 'Small positive changes happening'
+      description: 'Starting to feel better...'
     };
     return { 
-      emoji: '😓', 
+      icon: '😓', 
       title: 'Starting Journey', 
       bg: 'from-gray-400 via-gray-500 to-gray-600',
-      description: 'Tired & slouched 😓',
-      body: 'Feeling weak, need energy...'
+      description: 'Tired & slouched'
     };
   };
 
   const avatar = getHealthAvatar(overallProgress);
 
+  const handleLevelClick = (level: LevelNode) => {
+    if (level.status === 'locked') return;
+    
+    // Level 1 & 2 (videos) - open course lesson player
+    if (level.type === 'video') {
+      onStartLesson();
+    } else {
+      // Exercise levels - show exercise dialog
+      // TODO: Implement exercise challenge dialog
+      console.log('Opening exercise challenge:', level);
+    }
+  };
+
   return (
     <div className="space-y-6 p-4 sm:p-6">
-      {/* Animated Avatar Header */}
-      <div className="text-center relative">
-        <div className={`w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br ${avatar.bg} flex items-center justify-center shadow-2xl border-4 border-white dark:border-gray-800 transform transition-all duration-1000 hover:scale-110`}
-          style={{
-            animation: overallProgress >= 25 ? 'pulse 2s ease-in-out infinite' : 'none'
-          }}
-        >
-          <div className="text-7xl">{avatar.emoji}</div>
+      {/* Avatar Header */}
+      <div className="text-center">
+        <div className={`w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br ${avatar.bg} flex items-center justify-center shadow-2xl border-4 border-white dark:border-gray-800 transform transition-all duration-1000`}>
+          <div className="text-7xl">{avatar.icon}</div>
         </div>
         <h2 className={`text-3xl font-black bg-gradient-to-r ${area.color} bg-clip-text text-transparent mb-2`}>
-          {area.name} Transformation Journey
+          Health Transformation
         </h2>
-        <Badge className={`bg-gradient-to-r ${avatar.bg} text-white border-0 mb-2 text-sm px-4 py-1`}>
+        <Badge className={`bg-gradient-to-r ${avatar.bg} text-white border-0 mb-2`}>
           <Crown className="w-4 h-4 mr-1" />
           {avatar.title}
         </Badge>
-        <p className="text-sm text-muted-foreground mb-1">{avatar.description}</p>
-        <p className="text-xs text-muted-foreground italic">{avatar.body}</p>
+        <p className="text-sm text-muted-foreground">{avatar.description}</p>
       </div>
 
-      {/* XP Progress Bar */}
-      <div className={`bg-gradient-to-r ${area.color} p-5 rounded-2xl text-white shadow-xl`}>
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm opacity-90 font-bold">Health Transformation Progress</span>
-          <span className="font-black flex items-center gap-1 text-lg">
-            <Zap className="w-5 h-5" />
-            {totalXP} / {totalLessons * 5} XP
-          </span>
+      {/* Progress Stats */}
+      <Card className="p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <p className="text-sm text-muted-foreground">Progress</p>
+            <p className="text-2xl font-black">{overallProgress}%</p>
+          </div>
+          <div className="text-right">
+            <p className="text-sm text-muted-foreground">XP Earned</p>
+            <p className="text-2xl font-black text-primary">{totalXP} / {maxXP}</p>
+          </div>
         </div>
-        <div className="h-4 bg-white/30 rounded-full overflow-hidden shadow-inner">
+        <div className="h-3 bg-muted rounded-full overflow-hidden">
           <div 
-            className="h-full bg-gradient-to-r from-white to-yellow-200 rounded-full transition-all duration-500 shadow-lg"
+            className={`h-full bg-gradient-to-r ${avatar.bg} transition-all duration-500`}
             style={{ width: `${overallProgress}%` }}
           />
         </div>
-        <div className="flex items-center justify-between mt-2 text-sm">
-          <span>{completedLessons}/{totalLessons} quests completed</span>
-          <span className="text-2xl font-black">{overallProgress}%</span>
-        </div>
-      </div>
+        <p className="text-xs text-muted-foreground text-center mt-2">
+          {completedLevels} / {levels.length} levels completed
+        </p>
+      </Card>
 
-      {/* Single Continuous Vertical Track */}
+      {/* Duolingo-Style Vertical Path */}
       <div 
-        className="relative rounded-3xl p-6 sm:p-10 overflow-hidden min-h-[3200px]"
+        className="relative rounded-3xl p-8 overflow-hidden"
         style={{
-          background: 'linear-gradient(180deg, #dbeafe 0%, #bfdbfe 8%, #93c5fd 16%, #60a5fa 24%, #3b82f6 32%, #2563eb 40%, #1d4ed8 48%, #1e40af 56%, #1e3a8a 64%, #312e81 72%, #4c1d95 80%, #6b21a8 88%, #7e22ce 96%, #9333ea 100%)'
+          minHeight: `${levels.length * 180}px`,
+          background: 'linear-gradient(180deg, #dbeafe 0%, #bfdbfe 10%, #93c5fd 20%, #60a5fa 30%, #3b82f6 40%, #2563eb 50%, #1d4ed8 60%, #1e40af 70%, #1e3a8a 80%, #312e81 85%, #4c1d95 90%, #7e22ce 95%, #9333ea 100%)'
         }}
       >
-        {/* Health-Themed Decorative Elements */}
-        <div className="absolute top-10 left-10 text-6xl opacity-20">💪</div>
-        <div className="absolute top-32 right-16 text-5xl opacity-20">🏃</div>
-        <div className="absolute top-64 left-8 text-6xl opacity-20">🧘</div>
-        <div className="absolute top-96 right-12 text-5xl opacity-20">🍎</div>
-        <div className="absolute top-[600px] left-16 text-6xl opacity-20">💧</div>
-        <div className="absolute top-[800px] right-10 text-5xl opacity-20">😴</div>
-        <div className="absolute top-[1000px] left-12 text-6xl opacity-20">❤️</div>
-        <div className="absolute top-[1200px] right-16 text-5xl opacity-20">🌟</div>
-        <div className="absolute top-[1400px] left-10 text-6xl opacity-20">⚡</div>
-        <div className="absolute top-[1600px] right-12 text-5xl opacity-20">🔥</div>
-        <div className="absolute top-[1800px] left-14 text-6xl opacity-20">🎯</div>
-        <div className="absolute top-[2000px] right-8 text-5xl opacity-20">🏆</div>
-        <div className="absolute top-[2200px] left-10 text-6xl opacity-20">👑</div>
-        <div className="absolute top-[2400px] right-14 text-5xl opacity-20">🎉</div>
-        <div className="absolute top-[2600px] left-12 text-6xl opacity-20">✨</div>
-        <div className="absolute top-[2800px] right-10 text-5xl opacity-20">🌈</div>
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 opacity-10">
+          {[...Array(12)].map((_, i) => (
+            <div 
+              key={i}
+              className="absolute text-6xl"
+              style={{
+                top: `${i * 200 + 50}px`,
+                left: i % 2 === 0 ? '20px' : 'auto',
+                right: i % 2 === 1 ? '20px' : 'auto'
+              }}
+            >
+              {['💪', '🏃', '🧘', '🍎', '💧', '😴', '❤️', '⚡', '🔥', '🎯', '🏆', '✨'][i % 12]}
+            </div>
+          ))}
+        </div>
 
-        {/* Single Continuous Vertical Path */}
-        <div className="relative max-w-2xl mx-auto">
+        {/* Vertical Path */}
+        <div className="relative max-w-md mx-auto">
           {levels.map((level, index) => {
             const isLast = index === levels.length - 1;
+            const isLeftAffirmation = index % 2 === 0;
             
             return (
-              <div
-                key={level.id}
-                className="relative mb-8"
-              >
+              <div key={level.id} className="relative mb-12">
                 {/* Connection Line */}
                 {!isLast && (
-                  <div 
-                    className="absolute left-1/2 top-full w-1 h-8 -translate-x-1/2 z-0"
+                  <div className="absolute left-1/2 top-full w-1 h-12 -translate-x-1/2 z-0"
                     style={{
                       background: level.status === 'completed' 
                         ? 'linear-gradient(to bottom, #10b981, #059669)' 
                         : level.status === 'current'
                         ? 'linear-gradient(to bottom, #fbbf24, #f59e0b)'
-                        : 'linear-gradient(to bottom, #9ca3af, #6b7280)'
+                        : 'linear-gradient(to bottom, #d1d5db, #9ca3af)'
                     }}
                   />
                 )}
 
-                {/* Level Node Container */}
-                <div className="relative flex flex-col items-center">
-                  {/* Level Circle Node */}
+                {/* Affirmation on Connection Line - Alternating Sides */}
+                {!isLast && (
                   <div 
-                    className={`relative w-36 h-36 rounded-full flex flex-col items-center justify-center cursor-pointer transition-all transform hover:scale-110 z-10 ${
+                    className={`absolute top-full mt-3 ${isLeftAffirmation ? 'right-full mr-6' : 'left-full ml-6'} w-48 z-20`}
+                  >
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-3 shadow-lg border-2 border-purple-200 dark:border-purple-700">
+                      <div className="flex items-start gap-2">
+                        <Sparkles className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
+                        <p className="text-xs font-semibold italic text-purple-700 dark:text-purple-300">
+                          "{level.affirmation}"
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Level Node */}
+                <div className="relative flex justify-center">
+                  <button
+                    onClick={() => handleLevelClick(level)}
+                    disabled={level.status === 'locked'}
+                    className={`relative w-24 h-24 rounded-full flex items-center justify-center transition-all transform hover:scale-110 z-10 ${
                       level.status === 'current'
-                        ? 'bg-gradient-to-br from-yellow-300 via-amber-400 to-orange-500 shadow-2xl shadow-yellow-400/60 scale-110 animate-pulse'
+                        ? 'bg-gradient-to-br from-yellow-300 via-amber-400 to-orange-500 shadow-2xl shadow-yellow-400/60 scale-110 animate-pulse cursor-pointer'
                         : level.status === 'completed'
-                        ? 'bg-gradient-to-br from-green-400 via-emerald-500 to-teal-600 shadow-xl shadow-green-400/40'
-                        : 'bg-gradient-to-br from-gray-300 via-gray-400 to-gray-500 opacity-50 shadow-md'
+                        ? 'bg-gradient-to-br from-green-400 via-emerald-500 to-teal-600 shadow-xl cursor-pointer'
+                        : 'bg-gradient-to-br from-gray-300 via-gray-400 to-gray-500 opacity-40 cursor-not-allowed'
                     }`}
                     data-testid={`level-${level.id}`}
-                    onClick={level.status === 'current' || level.status === 'completed' ? onStartLesson : undefined}
                   >
-                    {/* Status Badge */}
-                    <div className={`absolute -top-2 -right-2 w-11 h-11 rounded-full flex items-center justify-center shadow-lg ${
-                      level.status === 'completed' ? 'bg-green-600' : level.status === 'current' ? 'bg-yellow-500 animate-bounce' : 'bg-gray-500'
-                    }`}>
-                      {level.status === 'completed' ? (
-                        <CheckCircle2 className="w-6 h-6 text-white" />
-                      ) : level.status === 'locked' ? (
-                        <Lock className="w-5 h-5 text-white" />
-                      ) : (
-                        <Star className="w-6 h-6 text-white animate-spin" style={{ animationDuration: '3s' }} />
-                      )}
-                    </div>
+                    {/* Status Icon */}
+                    {level.status === 'completed' ? (
+                      <CheckCircle2 className="w-12 h-12 text-white" strokeWidth={3} />
+                    ) : level.status === 'locked' ? (
+                      <Lock className="w-10 h-10 text-white opacity-70" />
+                    ) : (
+                      <Star className="w-12 h-12 text-white animate-pulse" />
+                    )}
 
                     {/* Level Number Badge */}
-                    <div className="absolute -top-3 -left-3 w-10 h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center font-black text-lg shadow-lg border-2 border-current">
-                      {level.id}
+                    <div className="absolute -bottom-2 bg-white dark:bg-gray-900 rounded-full px-3 py-1 shadow-lg border-2 border-current">
+                      <span className="text-xs font-black">{level.id}</span>
                     </div>
 
-                    {/* Level Emoji */}
-                    <div className="text-6xl mb-1">{level.emoji}</div>
-                    
                     {/* XP Badge */}
-                    {level.status !== 'locked' && (
-                      <Badge variant={level.status === 'completed' ? 'default' : 'secondary'} className="text-xs font-bold">
-                        +5 XP
-                      </Badge>
+                    {level.status === 'completed' && (
+                      <div className="absolute -top-2 -right-2 bg-primary rounded-full px-2 py-1 shadow-lg">
+                        <span className="text-xs font-bold text-white">+5</span>
+                      </div>
                     )}
-                  </div>
+                  </button>
+                </div>
 
-                  {/* Quest Name & Affirmation Card */}
-                  <Card className="mt-4 p-4 max-w-md w-full shadow-xl border-2 border-primary/20 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm">
-                    <div className="space-y-2">
-                      {/* Quest */}
-                      <div className="flex items-start gap-2">
-                        <Flame className="w-5 h-5 text-orange-500 mt-0.5 flex-shrink-0" />
-                        <div>
-                          <p className="text-xs font-bold text-orange-600 dark:text-orange-400 mb-1">DAILY QUEST</p>
-                          <p className="text-sm font-bold">{level.quest}</p>
-                        </div>
-                      </div>
-
-                      {/* Lesson Name */}
-                      <div className="flex items-start gap-2">
-                        <Battery className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                        <div>
-                          <p className="text-xs font-bold text-blue-600 dark:text-blue-400 mb-1">LESSON</p>
-                          <p className="text-sm font-semibold">{level.name}</p>
-                        </div>
-                      </div>
-
-                      {/* Affirmation */}
-                      <div className="flex items-start gap-2 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-3 rounded-lg border border-purple-200 dark:border-purple-700">
-                        <Droplets className="w-5 h-5 text-purple-500 mt-0.5 flex-shrink-0" />
-                        <div>
-                          <p className="text-xs font-bold text-purple-600 dark:text-purple-400 mb-1">AFFIRMATION</p>
-                          <p className="text-sm font-semibold italic text-purple-700 dark:text-purple-300">"{level.affirmation}"</p>
-                        </div>
-                      </div>
-
-                      {/* Action Buttons */}
-                      <div className="pt-2">
-                        {level.status === 'current' && (
-                          <Button 
-                            onClick={onStartLesson}
-                            className="w-full gap-2 font-bold shadow-lg"
-                            data-testid={`button-continue-level-${level.id}`}
-                          >
-                            <Play className="w-4 h-4" />
-                            Start Quest
-                          </Button>
-                        )}
-                        {level.status === 'completed' && (
-                          <Button 
-                            onClick={onStartLesson}
-                            variant="outline"
-                            className="w-full gap-2 border-2"
-                            data-testid={`button-review-level-${level.id}`}
-                          >
-                            <CheckCircle2 className="w-4 h-4 text-green-600" />
-                            Quest Complete! Practice Again
-                          </Button>
-                        )}
-                        {level.status === 'locked' && (
-                          <div className="bg-gray-100 dark:bg-gray-800 rounded-xl p-3 text-center">
-                            <Lock className="w-6 h-6 text-gray-400 mx-auto mb-1" />
-                            <p className="text-xs text-muted-foreground">
-                              Complete previous quest to unlock
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </Card>
+                {/* Level Name (below node) */}
+                <div className="text-center mt-3">
+                  <p className="text-sm font-bold text-white dark:text-gray-100">
+                    {level.name}
+                  </p>
+                  {level.exerciseDetails && level.status !== 'locked' && (
+                    <p className="text-xs text-white/80 dark:text-gray-300 mt-1">
+                      {level.exerciseDetails.task}
+                      {level.exerciseDetails.count && ` (${level.exerciseDetails.count} ${level.exerciseDetails.unit})`}
+                    </p>
+                  )}
                 </div>
               </div>
             );
@@ -296,24 +270,22 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
         </div>
       </div>
 
-      {/* Avatar Evolution Message */}
-      <div className="bg-gradient-to-r from-purple-50 via-pink-50 to-orange-50 dark:from-purple-950/20 dark:via-pink-950/20 dark:to-orange-950/20 p-6 rounded-2xl border-2 border-purple-200 dark:border-purple-800">
-        <div className="flex items-start gap-4">
-          <div className="text-6xl">{avatar.emoji}</div>
-          <div className="flex-1">
-            <h4 className="font-bold text-xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
-              Your Avatar Evolves Every 3 Days! 🌟
-            </h4>
-            <p className="text-sm text-muted-foreground mb-3">
-              Complete quests daily to see your avatar transform: 😓 Tired & Slouched → 🙂 Awakening → 😊 Smiling & Colorful → 💪 Fit with Biceps → 🦸 Heroic Aura!
+      {/* Evolution Message */}
+      <Card className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 border-2 border-purple-200 dark:border-purple-800">
+        <div className="flex items-start gap-3">
+          <div className="text-5xl">{avatar.icon}</div>
+          <div>
+            <h4 className="font-bold text-lg mb-1">Avatar Evolution System</h4>
+            <p className="text-sm text-muted-foreground">
+              Complete quests to evolve: 😓 Tired → 🙂 Awakening → 😊 Energetic → 💪 Fit Warrior → 🦸 Health Champion!
             </p>
-            <div className="flex flex-wrap items-center gap-2 text-xs">
-              <Heart className="w-4 h-4 text-pink-500" />
-              <span className="text-muted-foreground">{totalLessons} health quests • 5 XP each • Total {totalLessons * 5} XP available</span>
+            <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+              <Badge variant="secondary" className="text-xs">5 XP per quest</Badge>
+              <Badge variant="secondary" className="text-xs">{levels.length} total quests</Badge>
             </div>
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }
