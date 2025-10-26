@@ -2,6 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Check, Lock, Play, Crown, Sparkles, TrendingUp, Coins, DollarSign, Zap, Trophy, Heart, Users, Briefcase, Target, Star } from 'lucide-react';
+import { useState } from 'react';
 
 interface SkillTreeProps {
   area: {
@@ -31,6 +32,9 @@ interface LevelNode {
 }
 
 export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
+  // State to manage level statuses dynamically
+  const [levelStatuses, setLevelStatuses] = useState<Record<number, 'locked' | 'current' | 'completed'>>({});
+
   // 24 Health Transformation Levels
   const healthLevels: LevelNode[] = [
     { id: 1, name: 'Welcome to Health Mastery', type: 'video', status: 'completed', xp: 5, affirmation: 'I am ready to transform my health!' },
@@ -253,7 +257,13 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
     }
   };
 
-  const levels = getLevels();
+  const baseLevels = getLevels();
+  
+  // Apply dynamic statuses from state, merging with base levels
+  const levels = baseLevels.map(level => ({
+    ...level,
+    status: levelStatuses[level.id] || level.status
+  }));
 
   const totalXP = levels.reduce((sum, level) => sum + level.xp, 0);
   const maxXP = levels.length * 5;
@@ -401,9 +411,31 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
   };
 
   const handleMarkComplete = (level: LevelNode) => {
-    // TODO: Implement mark as complete functionality
     console.log('Marking level as complete:', level);
-    // This will integrate with the backend to save completion status
+    
+    // Update level statuses and XP
+    setLevelStatuses(prev => {
+      const newStatuses = { ...prev };
+      
+      // Mark current level as completed
+      newStatuses[level.id] = 'completed';
+      
+      // Update the level's XP (add 5 points for video lessons)
+      const currentIndex = baseLevels.findIndex(l => l.id === level.id);
+      if (currentIndex !== -1) {
+        baseLevels[currentIndex].xp = 5;
+      }
+      
+      // Find and unlock the next level
+      if (currentIndex !== -1 && currentIndex < baseLevels.length - 1) {
+        const nextLevel = baseLevels[currentIndex + 1];
+        newStatuses[nextLevel.id] = 'current';
+      }
+      
+      return newStatuses;
+    });
+    
+    // TODO: Save completion to backend
   };
 
   // Smooth curvy path positioning using sine wave
@@ -771,33 +803,33 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
                         
                         {/* Video lesson details */}
                         {level.type === 'video' && level.videoUrl && level.status !== 'locked' && area.name === 'Money' && (
-                          <div className="flex flex-col gap-1 mt-2">
+                          <div className="flex flex-col gap-0.5 mt-1.5">
                             <Button
                               size="sm"
                               variant="default"
-                              className="h-7 text-xs bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
+                              className="h-6 text-[10px] px-2 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 window.open(level.videoUrl, '_blank');
                               }}
                               data-testid={`watch-video-${level.id}`}
                             >
-                              <Play className="w-3 h-3 mr-1" />
-                              Watch Video
+                              <Play className="w-2.5 h-2.5 mr-0.5" />
+                              Watch
                             </Button>
                             {level.status === 'current' && (
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="h-7 text-xs border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-950"
+                                className="h-6 text-[10px] px-2 border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-950"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleMarkComplete(level);
                                 }}
                                 data-testid={`mark-complete-${level.id}`}
                               >
-                                <Check className="w-3 h-3 mr-1" />
-                                Mark as Complete
+                                <Check className="w-2.5 h-2.5 mr-0.5" />
+                                Complete
                               </Button>
                             )}
                           </div>
