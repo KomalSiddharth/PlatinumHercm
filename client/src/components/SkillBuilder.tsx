@@ -20,53 +20,81 @@ interface SkillNode {
   skillsNeeded: string[]; // What skills will solve it?
 }
 
+interface BeliefData {
+  category: string;
+  currentRating: number;
+  targetRating: number;
+  currentBelief: string;
+  problems: string;
+}
+
 interface HRCMWeekData {
   currentH: number;
   currentR: number;
   currentC: number;
   currentM: number;
-  targetH: number;
-  targetR: number;
-  targetC: number;
-  targetM: number;
-  healthBelief: string | null;
-  relationshipBelief: string | null;
-  careerBelief: string | null;
-  moneyBelief: string | null;
+  beliefs?: BeliefData[];
 }
 
-// Helper function to parse problems into bullet points
-function parseProblems(problemText: string | null): string[] {
-  if (!problemText) return ['Working on improvements'];
-  
-  // The belief field contains the actual problem statement
-  // Just return it as a single item since it's already concise
-  const trimmed = problemText.trim();
-  
-  if (trimmed.length === 0) return ['Working on improvements'];
-  
-  // If it's too long (>100 chars), take first sentence
-  if (trimmed.length > 100) {
-    const firstSentence = trimmed.split(/[.!?]/)[0].trim();
-    return firstSentence.length > 10 ? [firstSentence] : [trimmed.slice(0, 100) + '...'];
+// Helper function to parse problems into bullet points from currentBelief field
+function parseProblems(beliefText: string | null): string[] {
+  if (!beliefText || beliefText.trim().length === 0) {
+    return ['Working on improvements'];
   }
   
-  return [trimmed];
+  const trimmed = beliefText.trim();
+  
+  // Split by common delimiters (., |, newlines, semicolons)
+  const problems = trimmed
+    .split(/[.\n|;]/)
+    .map(p => p.trim())
+    .filter(p => p.length > 5) // Filter very short fragments
+    .slice(0, 4); // Max 4 problems
+  
+  return problems.length > 0 ? problems : [trimmed];
 }
 
 // Helper function to generate skills based on problems
 function generateSkills(problems: string[]): string[] {
   const skillMap: { [key: string]: string[] } = {
+    // Health-related
     'diet': ['Meal Planning', 'Nutrition Basics'],
+    'food': ['Healthy Eating', 'Portion Control'],
+    'eating': ['Meal Planning', 'Nutrition Awareness'],
     'exercise': ['Workout Routine', 'Fitness Habits'],
+    'workout': ['Exercise Planning', 'Physical Activity'],
     'sleep': ['Sleep Hygiene', 'Rest Optimization'],
-    'communication': ['Active Listening', 'Empathy'],
+    'energy': ['Energy Management', 'Vitality Practices'],
+    'health': ['Wellness Planning', 'Self-Care'],
+    'water': ['Hydration Habits', 'Health Awareness'],
+    'stress': ['Stress Management', 'Relaxation Techniques'],
+    
+    // Relationship-related
+    'communication': ['Active Listening', 'Clear Expression'],
     'conflict': ['Conflict Resolution', 'Emotional Intelligence'],
+    'relationship': ['Relationship Building', 'Connection Skills'],
+    'family': ['Family Bonding', 'Quality Time'],
+    'friends': ['Friendship Skills', 'Social Connection'],
+    'trust': ['Trust Building', 'Vulnerability'],
+    'empathy': ['Empathetic Communication', 'Understanding'],
+    
+    // Career-related
+    'career': ['Career Planning', 'Professional Growth'],
+    'work': ['Work-Life Balance', 'Productivity'],
+    'job': ['Job Skills', 'Performance'],
     'time': ['Time Management', 'Prioritization'],
-    'focus': ['Concentration Techniques', 'Productivity'],
-    'money': ['Financial Planning', 'Budgeting'],
+    'focus': ['Concentration', 'Deep Work'],
+    'skill': ['Skill Development', 'Learning'],
+    'project': ['Project Management', 'Organization'],
+    
+    // Money-related
+    'money': ['Financial Planning', 'Money Mindset'],
     'saving': ['Saving Habits', 'Investment Basics'],
-    'spending': ['Expense Tracking', 'Money Mindset']
+    'spending': ['Expense Tracking', 'Budget Management'],
+    'budget': ['Budgeting Skills', 'Financial Control'],
+    'income': ['Income Generation', 'Earning Strategies'],
+    'debt': ['Debt Management', 'Financial Freedom'],
+    'invest': ['Investment Knowledge', 'Wealth Building']
   };
 
   const skills = new Set<string>();
@@ -97,53 +125,24 @@ export default function SkillBuilder() {
     queryKey: ['/api/hercm/week/1']
   });
 
-  // Build nodes from current week data
-  const nodes: SkillNode[] = weekData ? [
-    { 
-      id: 'health', 
-      name: 'Health', 
-      emoji: '🏥', 
-      currentRating: weekData.currentH || 0,
-      targetRating: 7, // Fixed target
-      status: 'available', 
-      color: 'from-pink-400 to-purple-500',
-      currentProblems: parseProblems(weekData.healthBelief),
-      skillsNeeded: generateSkills(parseProblems(weekData.healthBelief))
-    },
-    { 
-      id: 'relationship', 
-      name: 'Relationships', 
-      emoji: '💑', 
-      currentRating: weekData.currentR || 0,
-      targetRating: 7, // Fixed target
-      status: 'available', 
-      color: 'from-pink-400 to-purple-500',
-      currentProblems: parseProblems(weekData.relationshipBelief),
-      skillsNeeded: generateSkills(parseProblems(weekData.relationshipBelief))
-    },
-    { 
-      id: 'career', 
-      name: 'Career', 
-      emoji: '💼', 
-      currentRating: weekData.currentC || 0,
-      targetRating: 7, // Fixed target
-      status: 'available', 
-      color: 'from-pink-400 to-purple-500',
-      currentProblems: parseProblems(weekData.careerBelief),
-      skillsNeeded: generateSkills(parseProblems(weekData.careerBelief))
-    },
-    { 
-      id: 'money', 
-      name: 'Money', 
-      emoji: '💰', 
-      currentRating: weekData.currentM || 0,
-      targetRating: 7, // Fixed target
-      status: 'available', 
-      color: 'from-pink-400 to-purple-500',
-      currentProblems: parseProblems(weekData.moneyBelief),
-      skillsNeeded: generateSkills(parseProblems(weekData.moneyBelief))
-    }
-  ] : [];
+  // Build nodes from current week data using beliefs array
+  const nodes: SkillNode[] = weekData?.beliefs ? 
+    weekData.beliefs.map((belief) => {
+      const problems = parseProblems(belief.currentBelief);
+      return {
+        id: belief.category.toLowerCase(),
+        name: belief.category === 'Relationship' ? 'Relationships' : belief.category,
+        emoji: belief.category === 'Health' ? '🏥' : 
+               belief.category === 'Relationship' ? '💑' : 
+               belief.category === 'Career' ? '💼' : '💰',
+        currentRating: belief.currentRating || 0,
+        targetRating: 7, // Fixed target
+        status: 'available' as const,
+        color: 'from-pink-400 to-purple-500',
+        currentProblems: problems,
+        skillsNeeded: generateSkills(problems)
+      };
+    }) : [];
 
   const handleNodeClick = (node: SkillNode) => {
     if (node.status !== 'locked') {
