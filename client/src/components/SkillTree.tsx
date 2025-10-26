@@ -22,6 +22,7 @@ interface LevelNode {
   status: 'locked' | 'current' | 'completed';
   xp: number;
   affirmation: string;
+  videoUrl?: string;
   exerciseDetails?: {
     task: string;
     count?: number;
@@ -114,32 +115,131 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
     { id: 24, name: 'Career Champion', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am a career master!', exerciseDetails: { task: 'Complete all career practices' } }
   ];
 
-  // 24 Money Mastery Levels
+  // 70 Money Mastery Levels - Integrating all 18 Wealth Mastery Lessons
   const moneyLevels: LevelNode[] = [
-    { id: 1, name: 'Money Mindset Foundation', type: 'video', status: 'completed', xp: 5, affirmation: 'I am a money magnet!' },
-    { id: 2, name: 'Abundance Consciousness', type: 'video', status: 'completed', xp: 5, affirmation: 'Money flows to me easily' },
-    { id: 3, name: 'Track Daily Expenses', type: 'exercise', status: 'current', xp: 0, affirmation: 'I manage money wisely', exerciseDetails: { task: 'Track all expenses for the day' } },
-    { id: 4, name: 'Save 10% of Income', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I pay myself first', exerciseDetails: { task: 'Save money', count: 10, unit: '% of income' } },
-    { id: 5, name: 'Gratitude for Money', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I appreciate all money', exerciseDetails: { task: 'Write money gratitude list', count: 5, unit: 'items' } },
-    { id: 6, name: 'EFT for Money Blocks', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I release money blocks', exerciseDetails: { task: 'Do EFT tapping', count: 10, unit: 'minutes' } },
-    { id: 7, name: 'Learn New Money Skill', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I invest in myself', exerciseDetails: { task: 'Study money skill', count: 15, unit: 'minutes' } },
-    { id: 8, name: 'Create Income Stream Idea', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Opportunities are everywhere', exerciseDetails: { task: 'Brainstorm income ideas', count: 3, unit: 'ideas' } },
-    { id: 9, name: 'Money Affirmations', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am worthy of wealth', exerciseDetails: { task: 'Repeat money affirmations', count: 10, unit: 'times' } },
-    { id: 10, name: 'Review Financial Goals', type: 'exercise', status: 'locked', xp: 0, affirmation: 'My goals are clear', exerciseDetails: { task: 'Review money goals' } },
-    { id: 11, name: 'Negotiate Better Deal', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I ask for what I deserve', exerciseDetails: { task: 'Practice negotiation', count: 1, unit: 'deal' } },
-    { id: 12, name: 'Invest Small Amount', type: 'exercise', status: 'locked', xp: 0, affirmation: 'My money grows', exerciseDetails: { task: 'Make an investment' } },
-    { id: 13, name: 'Cancel Limiting Beliefs', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I deserve abundance', exerciseDetails: { task: 'Practice cancel-cancel on money fears' } },
-    { id: 14, name: 'Money Visualization', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I see my wealthy future', exerciseDetails: { task: 'Visualize wealth', count: 10, unit: 'minutes' } },
-    { id: 15, name: 'Create Value Today', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I add value everywhere', exerciseDetails: { task: 'Deliver exceptional value' } },
-    { id: 16, name: 'Network with Successful', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I attract wealthy connections', exerciseDetails: { task: 'Connect with successful person', count: 1, unit: 'person' } },
-    { id: 17, name: 'Read Wealth Book', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Knowledge creates wealth', exerciseDetails: { task: 'Read wealth book', count: 20, unit: 'pages' } },
-    { id: 18, name: 'Celebrate Money Wins', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Every win matters', exerciseDetails: { task: 'Acknowledge money victories' } },
-    { id: 19, name: 'Give Generously', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Giving multiplies wealth', exerciseDetails: { task: 'Give money/value to someone' } },
-    { id: 20, name: 'Money Blueprint Reset', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I choose my money story', exerciseDetails: { task: 'Rewrite money beliefs' } },
-    { id: 21, name: 'Calculate Net Worth', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I track my growth', exerciseDetails: { task: 'Calculate total net worth' } },
-    { id: 22, name: 'Automate Savings', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Systems create wealth', exerciseDetails: { task: 'Set up automatic transfer' } },
-    { id: 23, name: 'Multiple Income Streams', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Money flows from many sources', exerciseDetails: { task: 'Start second income stream' } },
-    { id: 24, name: 'Millionaire Mastery', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am a wealth creator!', exerciseDetails: { task: 'Complete all money practices' } }
+    // Level 1: Lesson 1
+    { id: 1, name: 'Lesson 1: Money Blocks', type: 'video', status: 'current', xp: 0, affirmation: 'I recognize and release money blocks!', videoUrl: 'https://www.miteshkhatri.com/MoneyAssessment' },
+    // Levels 2-4: Exercises
+    { id: 2, name: 'Track Daily Expenses', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I manage money wisely', exerciseDetails: { task: 'Track all expenses today' } },
+    { id: 3, name: 'Money Gratitude List', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I appreciate all money', exerciseDetails: { task: 'Write gratitude for money', count: 5, unit: 'items' } },
+    { id: 4, name: 'Save 10% Challenge', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I pay myself first', exerciseDetails: { task: 'Save', count: 10, unit: '% of income' } },
+    
+    // Level 5: Lesson 2
+    { id: 5, name: 'Lesson 2: Money EFT', type: 'video', status: 'locked', xp: 0, affirmation: 'I release negative money frequency!', videoUrl: 'https://www.miteshkhatri.com/MoneyEFT' },
+    // Levels 6-8: Exercises
+    { id: 6, name: 'Practice EFT Tapping', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I tap into abundance', exerciseDetails: { task: 'EFT tapping session', count: 10, unit: 'minutes' } },
+    { id: 7, name: 'Identify Money Fears', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I acknowledge my fears', exerciseDetails: { task: 'List money fears', count: 3, unit: 'fears' } },
+    { id: 8, name: 'Cancel Limiting Beliefs', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Cancel-cancel works!', exerciseDetails: { task: 'Practice cancel-cancel on money beliefs' } },
+    
+    // Level 9: Lesson 3
+    { id: 9, name: 'Lesson 3: Millionaire Emotions', type: 'video', status: 'locked', xp: 0, affirmation: 'I feel like a happy millionaire!', videoUrl: 'https://www.miteshkhatri.com/MoneyEmotions' },
+    // Levels 10-12: Exercises
+    { id: 10, name: 'Embody Wealthy Emotions', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I feel abundant now', exerciseDetails: { task: 'Practice wealthy feelings', count: 10, unit: 'minutes' } },
+    { id: 11, name: 'Millionaire Visualization', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I see my wealthy future', exerciseDetails: { task: 'Visualize wealth', count: 15, unit: 'minutes' } },
+    { id: 12, name: 'Celebrate Money Wins', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Every win matters', exerciseDetails: { task: 'Acknowledge financial victories' } },
+    
+    // Level 13: Lesson 4
+    { id: 13, name: 'Lesson 4: Millionaire Beliefs', type: 'video', status: 'locked', xp: 0, affirmation: 'I think like a millionaire!', videoUrl: 'https://www.miteshkhatri.com/MoneyBeliefs' },
+    // Levels 14-16: Exercises
+    { id: 14, name: 'Install New Beliefs', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Beliefs create reality', exerciseDetails: { task: 'Write new money beliefs', count: 5, unit: 'beliefs' } },
+    { id: 15, name: 'Money Affirmations', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am worthy of wealth', exerciseDetails: { task: 'Repeat affirmations', count: 21, unit: 'times' } },
+    { id: 16, name: 'Belief Journaling', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I write my new story', exerciseDetails: { task: 'Journal about wealth beliefs' } },
+    
+    // Level 17: Lesson 5
+    { id: 17, name: 'Lesson 5: Millionaire Actions', type: 'video', status: 'locked', xp: 0, affirmation: 'I take millionaire actions!', videoUrl: 'https://www.miteshkhatri.com/MoneyActions' },
+    // Levels 18-20: Exercises
+    { id: 18, name: 'Create Value Today', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I add massive value', exerciseDetails: { task: 'Deliver 10x value' } },
+    { id: 19, name: 'Income Stream Idea', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Opportunities are everywhere', exerciseDetails: { task: 'Brainstorm income ideas', count: 3, unit: 'ideas' } },
+    { id: 20, name: 'Skill Learning', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I invest in myself', exerciseDetails: { task: 'Learn money skill', count: 30, unit: 'minutes' } },
+    
+    // Level 21: Lesson 6
+    { id: 21, name: 'Lesson 6: Financial Freedom', type: 'video', status: 'locked', xp: 0, affirmation: 'I attract financial freedom!', videoUrl: 'https://www.miteshkhatri.com/FinancialFreedom' },
+    // Levels 22-24: Exercises
+    { id: 22, name: 'Freedom Visualization', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am financially free', exerciseDetails: { task: 'Visualize freedom', count: 15, unit: 'minutes' } },
+    { id: 23, name: 'SDE Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I manifest with SDE', exerciseDetails: { task: 'SDE technique', count: 10, unit: 'minutes' } },
+    { id: 24, name: 'Freedom Goals', type: 'exercise', status: 'locked', xp: 0, affirmation: 'My goals are clear', exerciseDetails: { task: 'Define financial freedom number' } },
+    
+    // Level 25: Lesson 7
+    { id: 25, name: 'Lesson 7: Multiple Income', type: 'video', status: 'locked', xp: 0, affirmation: 'Money flows from many sources!', videoUrl: 'https://www.miteshkhatri.com/MSI' },
+    // Levels 26-28: Exercises
+    { id: 26, name: 'Identify Money Skills', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I have valuable skills', exerciseDetails: { task: 'List money skills', count: 5, unit: 'skills' } },
+    { id: 27, name: 'Start Second Stream', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I create multiple streams', exerciseDetails: { task: 'Begin new income source' } },
+    { id: 28, name: 'Skill Monetization', type: 'exercise', status: 'locked', xp: 0, affirmation: 'My skills create wealth', exerciseDetails: { task: 'Plan to monetize a skill' } },
+    
+    // Level 29: Lesson 8
+    { id: 29, name: 'Lesson 8: Needs & Goals', type: 'video', status: 'locked', xp: 0, affirmation: 'I align needs with goals!', videoUrl: 'https://www.miteshkhatri.com/MoneyNeeds' },
+    // Levels 30-32: Exercises
+    { id: 30, name: 'Calculate Monthly Needs', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I know my numbers', exerciseDetails: { task: 'Calculate monthly needs' } },
+    { id: 31, name: 'Set Financial Goals', type: 'exercise', status: 'locked', xp: 0, affirmation: 'My goals guide me', exerciseDetails: { task: 'Set money goals', count: 3, unit: 'goals' } },
+    { id: 32, name: 'Action Plan Creation', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I plan for success', exerciseDetails: { task: 'Create 90-day money plan' } },
+    
+    // Level 33: Lesson 9
+    { id: 33, name: 'Lesson 9: Book Writing', type: 'video', status: 'locked', xp: 0, affirmation: 'I write my first book!', videoUrl: 'https://www.miteshkhatri.com/BookWriting' },
+    // Levels 34-36: Exercises
+    { id: 34, name: 'Book Idea Brainstorm', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Ideas flow to me', exerciseDetails: { task: 'List book ideas', count: 3, unit: 'ideas' } },
+    { id: 35, name: 'Outline Creation', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I structure my knowledge', exerciseDetails: { task: 'Create book outline' } },
+    { id: 36, name: 'Write First Chapter', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am an author', exerciseDetails: { task: 'Write', count: 500, unit: 'words' } },
+    
+    // Level 37: Lesson 10
+    { id: 37, name: 'Lesson 10: Money Frequency', type: 'video', status: 'locked', xp: 0, affirmation: 'I vibrate at wealth frequency!', videoUrl: 'https://www.miteshkhatri.com/WML10' },
+    // Levels 38-40: Exercises
+    { id: 38, name: 'Frequency Check-In', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I monitor my vibration', exerciseDetails: { task: 'Check emotional frequency', count: 3, unit: 'times daily' } },
+    { id: 39, name: 'Raise Frequency Ritual', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I elevate my energy', exerciseDetails: { task: 'Practice frequency raising', count: 15, unit: 'minutes' } },
+    { id: 40, name: 'High Vibe Activities', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Joy attracts wealth', exerciseDetails: { task: 'Do high-vibe activity' } },
+    
+    // Level 41: Lesson 11
+    { id: 41, name: 'Lesson 11: PMDSPM System', type: 'video', status: 'locked', xp: 0, affirmation: 'I manage money like a pro!', videoUrl: 'https://www.miteshkhatri.com/PMDSPM' },
+    // Levels 42-44: Exercises
+    { id: 42, name: 'Set Up Money Jars', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Systems create wealth', exerciseDetails: { task: 'Create PMDSPM system' } },
+    { id: 43, name: 'Allocate Income', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I allocate wisely', exerciseDetails: { task: 'Distribute income by percentages' } },
+    { id: 44, name: 'Track Allocations', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I monitor my system', exerciseDetails: { task: 'Track weekly allocations' } },
+    
+    // Level 45: Lesson 12
+    { id: 45, name: 'Lesson 12: Coherence Breathing', type: 'video', status: 'locked', xp: 0, affirmation: 'I breathe in abundance!', videoUrl: 'https://www.miteshkhatri.com/CoherenceBreathing' },
+    // Levels 46-48: Exercises
+    { id: 46, name: 'Morning Coherence', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I start aligned', exerciseDetails: { task: 'Coherence breathing', count: 5, unit: 'minutes' } },
+    { id: 47, name: 'Money Meditation', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I meditate on wealth', exerciseDetails: { task: 'Money abundance meditation', count: 10, unit: 'minutes' } },
+    { id: 48, name: 'Evening Gratitude', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Gratitude multiplies', exerciseDetails: { task: 'Evening gratitude practice' } },
+    
+    // Level 49: Lesson 13
+    { id: 49, name: 'Lesson 13: Decision Making', type: 'video', status: 'locked', xp: 0, affirmation: 'I make powerful decisions!', videoUrl: 'https://www.miteshkhatri.com/DecisionMaking' },
+    // Levels 50-52: Exercises
+    { id: 50, name: 'Practice Quick Decisions', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I decide with clarity', exerciseDetails: { task: 'Make decisions quickly', count: 5, unit: 'decisions' } },
+    { id: 51, name: 'Trust Your Gut', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I trust my intuition', exerciseDetails: { task: 'Follow intuition on decision' } },
+    { id: 52, name: 'Review Past Decisions', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I learn from experience', exerciseDetails: { task: 'Analyze past money decisions' } },
+    
+    // Level 53: Lesson 14
+    { id: 53, name: 'Lesson 14: Sell First Strategy', type: 'video', status: 'locked', xp: 0, affirmation: 'I validate before creating!', videoUrl: 'https://www.miteshkhatri.com/WML14' },
+    // Levels 54-56: Exercises
+    { id: 54, name: 'Test Product Idea', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I validate fast', exerciseDetails: { task: 'Get pre-orders', count: 1, unit: 'product' } },
+    { id: 55, name: 'Fail Fast Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I learn quickly', exerciseDetails: { task: 'Test and pivot idea' } },
+    { id: 56, name: 'Create MVP', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I start small', exerciseDetails: { task: 'Launch minimum viable product' } },
+    
+    // Level 57: Lesson 15
+    { id: 57, name: 'Lesson 15: Investment Mastery', type: 'video', status: 'locked', xp: 0, affirmation: 'I invest like a millionaire!', videoUrl: 'https://www.miteshkhatri.com/WML15' },
+    // Levels 58-60: Exercises
+    { id: 58, name: 'Research Investments', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Knowledge creates wealth', exerciseDetails: { task: 'Study investment options', count: 30, unit: 'minutes' } },
+    { id: 59, name: 'Start Small Investment', type: 'exercise', status: 'locked', xp: 0, affirmation: 'My money grows', exerciseDetails: { task: 'Make first investment' } },
+    { id: 60, name: 'Automate Investing', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Systems build wealth', exerciseDetails: { task: 'Set up auto-invest' } },
+    
+    // Level 61: Lesson 16
+    { id: 61, name: 'Lesson 16: 5 Millionaire Beliefs', type: 'video', status: 'locked', xp: 0, affirmation: 'I maintain millionaire frequency!', videoUrl: 'https://www.miteshkhatri.com/WML16' },
+    // Levels 62-64: Exercises
+    { id: 62, name: 'Daily Belief Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Beliefs become reality', exerciseDetails: { task: 'Affirm 5 beliefs', count: 21, unit: 'times' } },
+    { id: 63, name: 'Belief Visualization', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I embody wealth', exerciseDetails: { task: 'Visualize as millionaire', count: 10, unit: 'minutes' } },
+    { id: 64, name: 'Act As If', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I already am wealthy', exerciseDetails: { task: 'Behave like millionaire today' } },
+    
+    // Level 65: Lesson 17
+    { id: 65, name: 'Lesson 17: Investment Guide', type: 'video', status: 'locked', xp: 0, affirmation: 'I learn from experts!', videoUrl: 'https://www.miteshkhatri.com/MoneyIndu' },
+    // Levels 66-68: Exercises
+    { id: 66, name: 'Create Investment Plan', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I plan strategically', exerciseDetails: { task: 'Design investment strategy' } },
+    { id: 67, name: 'Diversify Portfolio', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I spread risk wisely', exerciseDetails: { task: 'Allocate across assets' } },
+    { id: 68, name: 'Calculate Net Worth', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I track my growth', exerciseDetails: { task: 'Calculate total net worth' } },
+    
+    // Level 69: Lesson 18
+    { id: 69, name: 'Lesson 18: Vastu Science', type: 'video', status: 'locked', xp: 0, affirmation: 'I optimize my space for wealth!', videoUrl: 'https://www.miteshkhatri.com/MoneyVastu' },
+    // Level 70: Final Challenge
+    { id: 70, name: 'Wealth Master Champion', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am a wealth creator!', exerciseDetails: { task: 'Complete all money mastery practices' } }
   ];
 
   // Select levels based on area
@@ -289,10 +389,21 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
     if (level.status === 'locked') return;
     
     if (level.type === 'video') {
-      onStartLesson();
+      // For Money area with videoUrl, open the video link
+      if (area.name === 'Money' && level.videoUrl) {
+        window.open(level.videoUrl, '_blank');
+      } else {
+        onStartLesson();
+      }
     } else {
       console.log('Opening exercise challenge:', level);
     }
+  };
+
+  const handleMarkComplete = (level: LevelNode) => {
+    // TODO: Implement mark as complete functionality
+    console.log('Marking level as complete:', level);
+    // This will integrate with the backend to save completion status
   };
 
   // Smooth curvy path positioning using sine wave
@@ -657,6 +768,42 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
                         }`}>
                           {level.name}
                         </p>
+                        
+                        {/* Video lesson details */}
+                        {level.type === 'video' && level.videoUrl && level.status !== 'locked' && area.name === 'Money' && (
+                          <div className="flex flex-col gap-1 mt-2">
+                            <Button
+                              size="sm"
+                              variant="default"
+                              className="h-7 text-xs bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                window.open(level.videoUrl, '_blank');
+                              }}
+                              data-testid={`watch-video-${level.id}`}
+                            >
+                              <Play className="w-3 h-3 mr-1" />
+                              Watch Video
+                            </Button>
+                            {level.status === 'current' && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 text-xs border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-950"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleMarkComplete(level);
+                                }}
+                                data-testid={`mark-complete-${level.id}`}
+                              >
+                                <Check className="w-3 h-3 mr-1" />
+                                Mark as Complete
+                              </Button>
+                            )}
+                          </div>
+                        )}
+                        
+                        {/* Exercise details */}
                         {level.exerciseDetails && level.status !== 'locked' && (
                           <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
                             {level.exerciseDetails.task}
