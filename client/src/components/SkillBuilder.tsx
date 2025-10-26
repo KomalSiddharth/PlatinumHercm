@@ -34,7 +34,7 @@ export default function SkillBuilder() {
       currentRating: 3, 
       targetRating: 7, 
       status: 'available', 
-      color: 'from-red-400 to-pink-500',
+      color: 'from-pink-400 to-purple-500',
       currentProblem: 'No consistent diet or exercise routine',
       skillsNeeded: ['Meal Planning', 'Exercise Basics', 'Habit Building']
     },
@@ -56,7 +56,7 @@ export default function SkillBuilder() {
       currentRating: 4, 
       targetRating: 5, 
       status: 'available', 
-      color: 'from-blue-400 to-cyan-500',
+      color: 'from-pink-400 to-purple-500',
       currentProblem: 'Lack of focus and productivity',
       skillsNeeded: ['Time Management']
     },
@@ -67,7 +67,7 @@ export default function SkillBuilder() {
       currentRating: 2, 
       targetRating: 6, 
       status: 'available', 
-      color: 'from-yellow-400 to-orange-500',
+      color: 'from-pink-400 to-purple-500',
       currentProblem: 'Poor money management and saving habits',
       skillsNeeded: ['Financial Planning', 'Investment Basics', 'Money Mindset']
     }
