@@ -24,15 +24,23 @@ interface LevelNode {
   status: 'locked' | 'current' | 'completed';
   xp: number;
   emoji: string;
+  contentTypes: string[];
 }
 
 export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
   const levels: LevelNode[] = [
-    { id: 1, name: 'Health Basics', lessons: 5, completed: 5, status: 'completed', xp: 250, emoji: '🌱' },
-    { id: 2, name: 'Nutrition Fundamentals', lessons: 8, completed: 8, status: 'completed', xp: 400, emoji: '🥗' },
-    { id: 3, name: 'Meal Planning', lessons: 10, completed: 3, status: 'current', xp: 150, emoji: '📋' },
-    { id: 4, name: 'Exercise & Movement', lessons: 7, completed: 0, status: 'locked', xp: 0, emoji: '💪' },
-    { id: 5, name: 'Habit Building', lessons: 5, completed: 0, status: 'locked', xp: 0, emoji: '⭐' }
+    { id: 1, name: 'Health Basics', lessons: 5, completed: 5, status: 'completed', xp: 250, emoji: '🌱', contentTypes: ['Video', 'Quiz'] },
+    { id: 2, name: 'Nutrition Fundamentals', lessons: 8, completed: 8, status: 'completed', xp: 400, emoji: '🥗', contentTypes: ['Video', 'Reading', 'Quiz'] },
+    { id: 3, name: 'Meal Planning', lessons: 10, completed: 3, status: 'current', xp: 150, emoji: '📋', contentTypes: ['Interactive', 'Reading', 'Challenge'] },
+    { id: 4, name: 'Exercise & Movement', lessons: 12, completed: 0, status: 'locked', xp: 0, emoji: '💪', contentTypes: ['Video', 'Exercise', 'Challenge'] },
+    { id: 5, name: 'Habit Building', lessons: 8, completed: 0, status: 'locked', xp: 0, emoji: '⭐', contentTypes: ['Video', 'Interactive', 'Quiz'] },
+    { id: 6, name: 'Mindfulness & Stress', lessons: 10, completed: 0, status: 'locked', xp: 0, emoji: '🧘', contentTypes: ['Audio', 'Exercise', 'Quiz'] },
+    { id: 7, name: 'Sleep Optimization', lessons: 7, completed: 0, status: 'locked', xp: 0, emoji: '😴', contentTypes: ['Video', 'Reading', 'Challenge'] },
+    { id: 8, name: 'Energy Management', lessons: 9, completed: 0, status: 'locked', xp: 0, emoji: '⚡', contentTypes: ['Interactive', 'Video', 'Exercise'] },
+    { id: 9, name: 'Emotional Health', lessons: 11, completed: 0, status: 'locked', xp: 0, emoji: '❤️', contentTypes: ['Video', 'Exercise', 'Quiz'] },
+    { id: 10, name: 'Advanced Wellness', lessons: 13, completed: 0, status: 'locked', xp: 0, emoji: '🏆', contentTypes: ['Video', 'Challenge', 'Assessment'] },
+    { id: 11, name: 'Longevity Mastery', lessons: 10, completed: 0, status: 'locked', xp: 0, emoji: '🌟', contentTypes: ['Reading', 'Interactive', 'Challenge'] },
+    { id: 12, name: 'Health Champion', lessons: 15, completed: 0, status: 'locked', xp: 0, emoji: '👑', contentTypes: ['All Types', 'Final Assessment'] }
   ];
 
   const totalLessons = levels.reduce((sum, level) => sum + level.lessons, 0);
@@ -121,7 +129,7 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
                       <h3 className="text-xl font-bold flex items-center gap-2">
                         Level {level.id}: {level.name}
                       </h3>
-                      <div className="flex items-center gap-2 mt-1">
+                      <div className="flex items-center flex-wrap gap-2 mt-1">
                         {level.status === 'current' && (
                           <Badge className="bg-yellow-400 text-yellow-900 border-0 animate-pulse">
                             <Sparkles className="w-3 h-3 mr-1" />
@@ -141,8 +149,15 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
                           </Badge>
                         )}
                         <span className="text-sm text-muted-foreground">
-                          {level.lessons} lessons • {level.xp > 0 ? `${level.xp} XP` : '350 XP available'}
+                          {level.lessons} lessons • {level.xp > 0 ? `${level.xp} XP` : `${level.lessons * 50} XP available`}
                         </span>
+                      </div>
+                      <div className="flex items-center flex-wrap gap-1 mt-2">
+                        {level.contentTypes.map((type, idx) => (
+                          <Badge key={idx} variant="outline" className="text-xs">
+                            {type}
+                          </Badge>
+                        ))}
                       </div>
                     </div>
 
@@ -239,11 +254,11 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
           <div className="text-4xl">💡</div>
           <div>
             <h4 className="font-bold text-lg text-blue-900 dark:text-blue-100 mb-2">
-              Pro Tip!
+              Your Learning Journey!
             </h4>
             <p className="text-blue-800 dark:text-blue-200 text-sm">
-              Complete at least 1 lesson per day to maintain your streak! 
-              Most successful learners spend 10-15 minutes daily. You got this! 🚀
+              {levels.length} comprehensive levels with {totalLessons} lessons await you! Mix of videos, readings, quizzes, 
+              interactive exercises, and real-world challenges. Complete 1-2 lessons daily. You got this! 🚀
             </p>
           </div>
         </div>
