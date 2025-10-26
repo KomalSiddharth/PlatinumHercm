@@ -1,7 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { CheckCircle2, Lock, Play, Star, Crown, Sparkles, TrendingUp, Coins, DollarSign, Zap } from 'lucide-react';
+import { Check, Lock, Play, Crown, Sparkles, TrendingUp, Coins, DollarSign, Zap, Trophy } from 'lucide-react';
 import { useState } from 'react';
 
 interface SkillTreeProps {
@@ -176,9 +176,9 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
 
   // Smooth curvy path positioning using sine wave
   const getCurvyPosition = (index: number) => {
-    const baseY = index * 100;
-    const amplitude = 120; // How far left/right the curve goes
-    const frequency = 0.4; // How many curves
+    const baseY = index * 120; // More vertical spacing to prevent overlap
+    const amplitude = 180; // Increased for more curviness
+    const frequency = 0.5; // More waves for dramatic curves
     
     // Sine wave for smooth curvy path
     const x = Math.sin(index * frequency) * amplitude;
@@ -254,24 +254,24 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
           <div 
             className="relative rounded-3xl shadow-2xl overflow-hidden bg-gradient-to-br from-pink-100 via-purple-100 to-indigo-100 dark:from-gray-900 dark:via-purple-950 dark:to-pink-950"
             style={{
-              minHeight: `${levels.length * 100 + 150}px`,
+              minHeight: `${levels.length * 120 + 200}px`,
             }}
           >
-            {/* Animated Floating Money Symbols */}
+            {/* Animated Floating Money Symbols - HIGHER OPACITY */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              {/* Dollar signs floating */}
-              <div className="absolute text-4xl opacity-20 animate-float" style={{ top: '5%', left: '10%', animationDelay: '0s', animationDuration: '8s' }}>💵</div>
-              <div className="absolute text-5xl opacity-15 animate-float" style={{ top: '15%', right: '8%', animationDelay: '2s', animationDuration: '10s' }}>💰</div>
-              <div className="absolute text-3xl opacity-25 animate-float" style={{ top: '25%', left: '5%', animationDelay: '1s', animationDuration: '9s' }}>💸</div>
-              <div className="absolute text-6xl opacity-10 animate-float" style={{ top: '35%', right: '12%', animationDelay: '3s', animationDuration: '11s' }}>💎</div>
-              <div className="absolute text-5xl opacity-20 animate-float" style={{ top: '45%', left: '8%', animationDelay: '1.5s', animationDuration: '10s' }}>📈</div>
-              <div className="absolute text-4xl opacity-15 animate-float" style={{ top: '55%', right: '10%', animationDelay: '2.5s', animationDuration: '9s' }}>💼</div>
-              <div className="absolute text-7xl opacity-10 animate-float" style={{ top: '65%', left: '12%', animationDelay: '0.5s', animationDuration: '12s' }}>🏆</div>
-              <div className="absolute text-6xl opacity-15 animate-float" style={{ top: '75%', right: '7%', animationDelay: '3.5s', animationDuration: '11s' }}>👑</div>
-              <div className="absolute text-5xl opacity-20 animate-float" style={{ top: '85%', left: '15%', animationDelay: '1s', animationDuration: '10s' }}>✨</div>
-              <div className="absolute text-4xl opacity-25 animate-float" style={{ top: '10%', left: '85%', animationDelay: '2s', animationDuration: '9s' }}>💵</div>
-              <div className="absolute text-3xl opacity-20 animate-float" style={{ top: '40%', left: '90%', animationDelay: '0s', animationDuration: '8s' }}>📊</div>
-              <div className="absolute text-5xl opacity-15 animate-float" style={{ top: '70%', right: '85%', animationDelay: '3s', animationDuration: '11s' }}>💰</div>
+              {/* Dollar signs floating - Much more visible */}
+              <div className="absolute text-4xl animate-float" style={{ top: '5%', left: '10%', animationDelay: '0s', animationDuration: '8s', opacity: 0.5 }}>💵</div>
+              <div className="absolute text-5xl animate-float" style={{ top: '15%', right: '8%', animationDelay: '2s', animationDuration: '10s', opacity: 0.45 }}>💰</div>
+              <div className="absolute text-3xl animate-float" style={{ top: '25%', left: '5%', animationDelay: '1s', animationDuration: '9s', opacity: 0.55 }}>💸</div>
+              <div className="absolute text-6xl animate-float" style={{ top: '35%', right: '12%', animationDelay: '3s', animationDuration: '11s', opacity: 0.4 }}>💎</div>
+              <div className="absolute text-5xl animate-float" style={{ top: '45%', left: '8%', animationDelay: '1.5s', animationDuration: '10s', opacity: 0.5 }}>📈</div>
+              <div className="absolute text-4xl animate-float" style={{ top: '55%', right: '10%', animationDelay: '2.5s', animationDuration: '9s', opacity: 0.45 }}>💼</div>
+              <div className="absolute text-7xl animate-float" style={{ top: '65%', left: '12%', animationDelay: '0.5s', animationDuration: '12s', opacity: 0.4 }}>🏆</div>
+              <div className="absolute text-6xl animate-float" style={{ top: '75%', right: '7%', animationDelay: '3.5s', animationDuration: '11s', opacity: 0.45 }}>👑</div>
+              <div className="absolute text-5xl animate-float" style={{ top: '85%', left: '15%', animationDelay: '1s', animationDuration: '10s', opacity: 0.5 }}>✨</div>
+              <div className="absolute text-4xl animate-float" style={{ top: '10%', left: '85%', animationDelay: '2s', animationDuration: '9s', opacity: 0.55 }}>💵</div>
+              <div className="absolute text-3xl animate-float" style={{ top: '40%', left: '90%', animationDelay: '0s', animationDuration: '8s', opacity: 0.5 }}>📊</div>
+              <div className="absolute text-5xl animate-float" style={{ top: '70%', right: '85%', animationDelay: '3s', animationDuration: '11s', opacity: 0.45 }}>💰</div>
             </div>
 
             {/* Curvy path container */}
@@ -337,6 +337,9 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
                 {levels.map((level, index) => {
                   const position = getCurvyPosition(index);
                   
+                  // Alternate between treasure and trophy for current levels
+                  const CurrentIcon = index % 2 === 0 ? Coins : Trophy;
+                  
                   return (
                     <div 
                       key={level.id}
@@ -361,7 +364,7 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
                             <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-500 opacity-60 blur-lg rounded-full animate-pulse" />
                           )}
                           
-                          {/* Main node */}
+                          {/* Main node - NO BORDER, solid fill */}
                           <div className={`relative w-16 h-16 rounded-full flex items-center justify-center transform transition-all duration-300 ${
                             level.status === 'current'
                               ? 'bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-600 shadow-xl scale-110 animate-pulse'
@@ -369,13 +372,13 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
                               ? 'bg-gradient-to-br from-pink-500 via-purple-600 to-indigo-700 shadow-lg'
                               : 'bg-gradient-to-br from-gray-300 via-gray-400 to-gray-500 opacity-40'
                           }`}>
-                            {/* Icon */}
+                            {/* Icon - Simple check for completed, treasure/trophy for current */}
                             {level.status === 'completed' ? (
-                              <CheckCircle2 className="w-8 h-8 text-white drop-shadow" strokeWidth={2.5} />
+                              <Check className="w-10 h-10 text-white drop-shadow-lg" strokeWidth={4} />
                             ) : level.status === 'locked' ? (
                               <Lock className="w-6 h-6 text-white/70" />
                             ) : (
-                              <Star className="w-8 h-8 text-white animate-pulse drop-shadow" />
+                              <CurrentIcon className="w-8 h-8 text-white animate-pulse drop-shadow-lg" strokeWidth={2.5} />
                             )}
                             
                             {/* Level badge */}
@@ -541,11 +544,11 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
                   >
                     {/* Status Icon */}
                     {level.status === 'completed' ? (
-                      <CheckCircle2 className="w-12 h-12 text-white" strokeWidth={3} />
+                      <Check className="w-12 h-12 text-white" strokeWidth={4} />
                     ) : level.status === 'locked' ? (
                       <Lock className="w-10 h-10 text-white opacity-70" />
                     ) : (
-                      <Star className="w-12 h-12 text-white animate-pulse" />
+                      <Trophy className="w-12 h-12 text-white animate-pulse" />
                     )}
 
                     {/* Level Number Badge */}
