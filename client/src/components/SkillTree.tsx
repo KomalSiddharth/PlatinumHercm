@@ -1,7 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { CheckCircle2, Lock, Play, Star, Crown, Sparkles, TrendingUp, Coins, DollarSign } from 'lucide-react';
+import { CheckCircle2, Lock, Play, Star, Crown, Sparkles, TrendingUp, Coins, DollarSign, Zap } from 'lucide-react';
 import { useState } from 'react';
 
 interface SkillTreeProps {
@@ -31,7 +31,6 @@ interface LevelNode {
 }
 
 export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
-  // Check if this is Money area
   const isMoney = area.name === 'Money';
 
   // 24 Health Transformation Levels
@@ -97,7 +96,6 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
   const overallProgress = Math.round((totalXP / maxXP) * 100);
   const completedLevels = levels.filter(l => l.status === 'completed').length;
 
-  // Animated Avatar Evolution based on progress
   const getHealthAvatar = (progress: number) => {
     if (progress >= 90) return { 
       icon: '🦸', 
@@ -169,227 +167,278 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
   const handleLevelClick = (level: LevelNode) => {
     if (level.status === 'locked') return;
     
-    // Level 1 & 2 (videos) - open course lesson player
     if (level.type === 'video') {
       onStartLesson();
     } else {
-      // Exercise levels - show exercise dialog
-      // TODO: Implement exercise challenge dialog
       console.log('Opening exercise challenge:', level);
     }
   };
 
-  // Curvy path positioning for Money section (zigzag pattern)
+  // Smooth curvy path positioning
   const getCurvyPosition = (index: number) => {
-    const baseY = index * 140; // Vertical spacing
-    const zigzagOffset = 80; // Horizontal zigzag amount
+    const baseY = index * 120;
+    const amplitude = 100; // How far left/right the curve goes
+    const frequency = 0.5; // How many curves
     
-    // Zigzag pattern: alternates left-center-right
-    const pattern = index % 3;
-    let x = 0;
-    
-    if (pattern === 0) x = -zigzagOffset; // Left
-    else if (pattern === 1) x = 0; // Center
-    else x = zigzagOffset; // Right
+    // Sine wave for smooth curvy path
+    const x = Math.sin(index * frequency) * amplitude;
     
     return { x, y: baseY };
   };
 
-  // Money section - Curvy Path Design
+  // Money section - Premium Design
   if (isMoney) {
     return (
-      <div className="space-y-6 p-4 sm:p-6">
-        {/* Avatar Header */}
-        <div className="text-center">
-          <div className={`w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br ${avatar.bg} flex items-center justify-center shadow-2xl border-4 border-white dark:border-gray-800 transform transition-all duration-1000`}>
-            <div className="text-7xl">{avatar.icon}</div>
+      <div className="min-h-screen">
+        {/* Premium Header */}
+        <div className="relative overflow-hidden">
+          {/* Animated gradient background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 dark:from-gray-900 dark:via-purple-950/20 dark:to-pink-950/20" />
+          
+          {/* Decorative elements */}
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-pink-200/30 dark:bg-pink-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-200/30 dark:bg-purple-500/10 rounded-full blur-3xl" />
+          
+          <div className="relative z-10 text-center py-12 px-4">
+            {/* Avatar with animated glow */}
+            <div className="relative inline-block mb-6">
+              <div className={`absolute inset-0 bg-gradient-to-r ${avatar.bg} opacity-20 blur-2xl rounded-full animate-pulse`} />
+              <div className={`relative w-40 h-40 mx-auto rounded-full bg-gradient-to-br ${avatar.bg} flex items-center justify-center shadow-2xl border-4 border-white dark:border-gray-800 transform transition-all duration-1000 hover:scale-105`}>
+                <div className="text-8xl">{avatar.icon}</div>
+              </div>
+            </div>
+            
+            <h1 className="text-5xl font-black bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-3">
+              Money Mastery Journey
+            </h1>
+            
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <Badge className={`bg-gradient-to-r ${avatar.bg} text-white border-0 px-4 py-2 text-base shadow-lg`}>
+                <Crown className="w-5 h-5 mr-2" />
+                {avatar.title}
+              </Badge>
+            </div>
+            
+            <p className="text-lg text-muted-foreground max-w-md mx-auto">
+              {avatar.description}
+            </p>
           </div>
-          <h2 className={`text-3xl font-black bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-600 bg-clip-text text-transparent mb-2`}>
-            Money Mastery Journey
-          </h2>
-          <Badge className={`bg-gradient-to-r ${avatar.bg} text-white border-0 mb-2`}>
-            <Crown className="w-4 h-4 mr-1" />
-            {avatar.title}
-          </Badge>
-          <p className="text-sm text-muted-foreground">{avatar.description}</p>
         </div>
 
-        {/* Progress Stats */}
-        <Card className="p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <p className="text-sm text-muted-foreground">Progress</p>
-              <p className="text-2xl font-black">{overallProgress}%</p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-muted-foreground">XP Earned</p>
-              <p className="text-2xl font-black text-primary">{totalXP} / {maxXP}</p>
-            </div>
-          </div>
-          <div className="h-3 bg-muted rounded-full overflow-hidden">
-            <div 
-              className={`h-full bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-600 transition-all duration-500`}
-              style={{ width: `${overallProgress}%` }}
-            />
-          </div>
-          <p className="text-xs text-muted-foreground text-center mt-2">
-            {completedLevels} / {levels.length} levels completed
-          </p>
-        </Card>
-
-        {/* Curvy Path with Money Background */}
-        <div 
-          className="relative rounded-3xl p-8 overflow-hidden"
-          style={{
-            minHeight: `${levels.length * 140}px`,
-            background: `linear-gradient(180deg, 
-              #f3f4f6 0%, 
-              #e5e7eb 5%, 
-              #fce7f3 10%, 
-              #fbcfe8 20%, 
-              #f9a8d4 30%, 
-              #f472b6 40%, 
-              #ec4899 45%, 
-              #db2777 50%, 
-              #be185d 55%, 
-              #a21caf 60%, 
-              #9333ea 65%, 
-              #7e22ce 70%, 
-              #6b21a8 75%, 
-              #fbbf24 80%, 
-              #f59e0b 85%, 
-              #d97706 90%, 
-              #b45309 95%, 
-              #92400e 100%
-            )`
-          }}
-        >
-          {/* Money-themed decorative elements */}
-          <div className="absolute inset-0 opacity-20 pointer-events-none">
-            {/* Poor symbols at top */}
-            <div className="absolute top-10 left-10 text-4xl">💸</div>
-            <div className="absolute top-20 right-10 text-4xl">📉</div>
-            <div className="absolute top-40 left-20 text-3xl">😔</div>
-            
-            {/* Middle - growth symbols */}
-            <div className="absolute text-5xl" style={{top: '40%', left: '15%'}}>💰</div>
-            <div className="absolute text-5xl" style={{top: '45%', right: '15%'}}>📈</div>
-            <div className="absolute text-4xl" style={{top: '50%', left: '10%'}}>💼</div>
-            
-            {/* Bottom - wealth symbols */}
-            <div className="absolute text-6xl" style={{top: '70%', right: '10%'}}>💎</div>
-            <div className="absolute text-6xl" style={{top: '75%', left: '15%'}}>👑</div>
-            <div className="absolute text-7xl" style={{top: '85%', right: '15%'}}>🏆</div>
-            <div className="absolute text-6xl" style={{top: '90%', left: '10%'}}>✨</div>
-            <div className="absolute text-5xl" style={{top: '80%', right: '20%'}}>🎯</div>
-          </div>
-
-          {/* Curvy Path */}
-          <div className="relative max-w-md mx-auto">
-            {levels.map((level, index) => {
-              const position = getCurvyPosition(index);
-              const isLast = index === levels.length - 1;
+        {/* Progress Card */}
+        <div className="px-4 pb-8">
+          <Card className="max-w-2xl mx-auto shadow-xl border-2 border-pink-100 dark:border-pink-900/30">
+            <div className="p-6">
+              <div className="grid grid-cols-3 gap-6 mb-6">
+                <div className="text-center">
+                  <div className="text-4xl font-black bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-1">
+                    {overallProgress}%
+                  </div>
+                  <p className="text-sm text-muted-foreground font-medium">Progress</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-4xl font-black bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent mb-1">
+                    {totalXP}
+                  </div>
+                  <p className="text-sm text-muted-foreground font-medium">XP Earned</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-4xl font-black bg-gradient-to-r from-indigo-600 to-pink-600 bg-clip-text text-transparent mb-1">
+                    {completedLevels}
+                  </div>
+                  <p className="text-sm text-muted-foreground font-medium">Completed</p>
+                </div>
+              </div>
               
-              return (
+              <div className="relative h-4 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 rounded-full overflow-hidden shadow-inner">
                 <div 
-                  key={level.id} 
-                  className="relative mb-8"
-                  style={{
-                    marginLeft: `${position.x}px`,
-                    transition: 'all 0.3s ease'
-                  }}
+                  className="absolute top-0 left-0 h-full bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-600 transition-all duration-1000 ease-out shadow-lg"
+                  style={{ width: `${overallProgress}%` }}
                 >
-                  {/* Connection Line to Next Level */}
-                  {!isLast && (() => {
-                    const nextPosition = getCurvyPosition(index + 1);
-                    const dx = nextPosition.x - position.x;
-                    const dy = 140;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-                    
-                    return (
-                      <div 
-                        className="absolute left-1/2 top-full z-0"
-                        style={{
-                          width: `${distance}px`,
-                          height: '4px',
-                          transform: `rotate(${angle}deg)`,
-                          transformOrigin: 'top left',
-                          background: level.status === 'completed' 
-                            ? 'linear-gradient(to right, #ec4899, #a855f7)' 
-                            : level.status === 'current'
-                            ? 'linear-gradient(to right, #fbbf24, #f59e0b)'
-                            : 'linear-gradient(to right, #d1d5db, #9ca3af)'
-                        }}
-                      />
-                    );
-                  })()}
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/30 to-transparent animate-pulse" />
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
+                <span className="font-medium">0 XP</span>
+                <span className="font-semibold">{totalXP} / {maxXP} XP</span>
+                <span className="font-medium">{maxXP} XP</span>
+              </div>
+            </div>
+          </Card>
+        </div>
 
-                  {/* Level Node - Smaller Size */}
-                  <div className="relative flex justify-center">
-                    <button
-                      onClick={() => handleLevelClick(level)}
-                      disabled={level.status === 'locked'}
-                      className={`relative w-16 h-16 rounded-full flex items-center justify-center transition-all transform hover:scale-110 z-10 ${
-                        level.status === 'current'
-                          ? 'bg-gradient-to-br from-yellow-300 via-amber-400 to-orange-500 shadow-2xl shadow-yellow-400/60 scale-110 animate-pulse cursor-pointer'
-                          : level.status === 'completed'
-                          ? 'bg-gradient-to-br from-pink-400 via-purple-500 to-indigo-600 shadow-xl cursor-pointer'
-                          : 'bg-gradient-to-br from-gray-300 via-gray-400 to-gray-500 opacity-40 cursor-not-allowed'
-                      }`}
-                      data-testid={`level-${level.id}`}
+        {/* Skills Path */}
+        <div className="px-4 pb-12">
+          <div 
+            className="relative rounded-3xl shadow-2xl overflow-hidden"
+            style={{
+              minHeight: `${levels.length * 120 + 200}px`,
+              background: 'linear-gradient(180deg, #f9fafb 0%, #f3f4f6 5%, #fdf2f8 10%, #fce7f3 15%, #fbcfe8 25%, #f9a8d4 35%, #f472b6 45%, #ec4899 50%, #db2777 55%, #be185d 60%, #9333ea 65%, #7e22ce 70%, #6b21a8 75%, #fbbf24 80%, #f59e0b 85%, #fb923c 90%, #f97316 95%, #ea580c 100%)'
+            }}
+          >
+            {/* Wealth symbols overlay */}
+            <div className="absolute inset-0 opacity-10 pointer-events-none">
+              <div className="absolute top-8 left-8 text-6xl">💸</div>
+              <div className="absolute top-24 right-12 text-5xl">📊</div>
+              <div className="absolute text-7xl" style={{top: '30%', left: '10%'}}>💰</div>
+              <div className="absolute text-6xl" style={{top: '40%', right: '8%'}}>📈</div>
+              <div className="absolute text-8xl" style={{top: '55%', left: '12%'}}>💼</div>
+              <div className="absolute text-9xl" style={{top: '70%', right: '10%'}}>💎</div>
+              <div className="absolute text-9xl" style={{top: '82%', left: '8%'}}>👑</div>
+              <div className="absolute text-10xl" style={{top: '92%', right: '12%'}}>🏆</div>
+            </div>
+
+            {/* Curvy path container */}
+            <div className="relative py-20 px-8">
+              <div className="relative max-w-2xl mx-auto">
+                {levels.map((level, index) => {
+                  const position = getCurvyPosition(index);
+                  const isLast = index === levels.length - 1;
+                  
+                  return (
+                    <div 
+                      key={level.id}
+                      className="relative mb-16 transition-all duration-300"
+                      style={{
+                        transform: `translateX(${position.x}px)`,
+                      }}
                     >
-                      {/* Status Icon */}
-                      {level.status === 'completed' ? (
-                        <CheckCircle2 className="w-8 h-8 text-white" strokeWidth={3} />
-                      ) : level.status === 'locked' ? (
-                        <Lock className="w-6 h-6 text-white opacity-70" />
-                      ) : (
-                        <Star className="w-8 h-8 text-white animate-pulse" />
-                      )}
+                      {/* Connection curve to next level */}
+                      {!isLast && (() => {
+                        const nextPosition = getCurvyPosition(index + 1);
+                        const dx = nextPosition.x - position.x;
+                        const dy = 120;
+                        
+                        return (
+                          <svg
+                            className="absolute left-1/2 top-full z-0"
+                            style={{
+                              width: Math.abs(dx) + 50,
+                              height: dy + 20,
+                              transform: `translateX(-50%)`,
+                            }}
+                          >
+                            <defs>
+                              <linearGradient id={`gradient-${level.id}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stopColor={level.status === 'completed' ? '#ec4899' : level.status === 'current' ? '#fbbf24' : '#d1d5db'} />
+                                <stop offset="100%" stopColor={level.status === 'completed' ? '#a855f7' : level.status === 'current' ? '#f59e0b' : '#9ca3af'} />
+                              </linearGradient>
+                            </defs>
+                            <path
+                              d={`M ${Math.abs(dx)/2 + 25} 0 Q ${Math.abs(dx)/2 + 25 + dx/2} ${dy/2}, ${Math.abs(dx)/2 + 25 + dx} ${dy}`}
+                              stroke={`url(#gradient-${level.id})`}
+                              strokeWidth="6"
+                              fill="none"
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                        );
+                      })()}
 
-                      {/* Level Number Badge */}
-                      <div className="absolute -bottom-1 bg-white dark:bg-gray-900 rounded-full px-2 py-0.5 shadow-lg border-2 border-current">
-                        <span className="text-xs font-black">{level.id}</span>
+                      {/* Level node */}
+                      <div className="relative flex justify-center z-10">
+                        <button
+                          onClick={() => handleLevelClick(level)}
+                          disabled={level.status === 'locked'}
+                          className={`group relative transition-all duration-300 ${
+                            level.status === 'locked' ? 'cursor-not-allowed' : 'cursor-pointer'
+                          }`}
+                          data-testid={`level-${level.id}`}
+                        >
+                          {/* Glow effect */}
+                          {level.status === 'current' && (
+                            <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-500 opacity-50 blur-xl rounded-full animate-pulse" />
+                          )}
+                          
+                          {/* Main node */}
+                          <div className={`relative w-20 h-20 rounded-full flex items-center justify-center transform transition-all duration-300 ${
+                            level.status === 'current'
+                              ? 'bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-600 shadow-2xl scale-110 animate-pulse'
+                              : level.status === 'completed'
+                              ? 'bg-gradient-to-br from-pink-500 via-purple-600 to-indigo-700 shadow-xl hover:scale-105'
+                              : 'bg-gradient-to-br from-gray-300 via-gray-400 to-gray-500 opacity-50'
+                          }`}>
+                            {/* Icon */}
+                            {level.status === 'completed' ? (
+                              <CheckCircle2 className="w-10 h-10 text-white drop-shadow-lg" strokeWidth={3} />
+                            ) : level.status === 'locked' ? (
+                              <Lock className="w-8 h-8 text-white/70" />
+                            ) : (
+                              <Star className="w-10 h-10 text-white animate-pulse drop-shadow-lg" />
+                            )}
+                            
+                            {/* Level badge */}
+                            <div className={`absolute -bottom-2 px-3 py-1 rounded-full shadow-lg border-2 ${
+                              level.status === 'current' ? 'bg-white border-yellow-400' : 'bg-white dark:bg-gray-900 border-current'
+                            }`}>
+                              <span className="text-xs font-black">{level.id}</span>
+                            </div>
+                            
+                            {/* XP badge */}
+                            {level.status === 'completed' && (
+                              <div className="absolute -top-2 -right-2 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full px-2 py-1 shadow-lg border-2 border-white">
+                                <span className="text-xs font-bold text-white">+5</span>
+                              </div>
+                            )}
+                          </div>
+                        </button>
                       </div>
 
-                      {/* XP Badge */}
-                      {level.status === 'completed' && (
-                        <div className="absolute -top-1 -right-1 bg-primary rounded-full px-1.5 py-0.5 shadow-lg">
-                          <span className="text-xs font-bold text-white">+5</span>
-                        </div>
-                      )}
-                    </button>
-                  </div>
-
-                  {/* Level Name (below node) */}
-                  <div className="text-center mt-2">
-                    <p className="text-xs font-bold text-white dark:text-gray-100">
-                      {level.name}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Evolution Message */}
-        <Card className="p-4 bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-950/20 dark:to-purple-950/20 border-2 border-pink-200 dark:border-pink-800">
-          <div className="flex items-start gap-3">
-            <div className="text-5xl">{avatar.icon}</div>
-            <div>
-              <h4 className="font-bold text-lg mb-1">Financial Avatar Evolution</h4>
-              <p className="text-sm text-muted-foreground">
-                Complete quests to evolve: 😔 Struggling → 💸 Learning → 💰 Growing → 💼 Prosperous → 👑 Wealth Master!
-              </p>
-              <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-                <Badge variant="secondary" className="text-xs">5 XP per quest</Badge>
-                <Badge variant="secondary" className="text-xs">{levels.length} total quests</Badge>
+                      {/* Level info */}
+                      <div className="text-center mt-4 px-4">
+                        <p className={`text-sm font-bold mb-1 ${
+                          level.status === 'locked' 
+                            ? 'text-white/60 dark:text-gray-400' 
+                            : 'text-white dark:text-gray-100'
+                        }`}>
+                          {level.name}
+                        </p>
+                        {level.exerciseDetails && level.status !== 'locked' && (
+                          <p className="text-xs text-white/80 dark:text-gray-300">
+                            {level.exerciseDetails.task}
+                            {level.exerciseDetails.count && ` (${level.exerciseDetails.count} ${level.exerciseDetails.unit})`}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
-        </Card>
+        </div>
+
+        {/* Info Card */}
+        <div className="px-4 pb-12">
+          <Card className="max-w-2xl mx-auto bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-950/20 dark:to-purple-950/20 border-2 border-pink-200 dark:border-pink-800 shadow-xl">
+            <div className="p-6 flex items-start gap-4">
+              <div className="text-6xl">{avatar.icon}</div>
+              <div className="flex-1">
+                <h3 className="text-xl font-bold mb-2 bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+                  Financial Avatar Evolution
+                </h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Complete quests to transform: 😔 Struggling → 💸 Learning → 💰 Growing → 💼 Prosperous → 👑 Wealth Master!
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="secondary" className="shadow">
+                    <Zap className="w-3 h-3 mr-1" />
+                    5 XP per quest
+                  </Badge>
+                  <Badge variant="secondary" className="shadow">
+                    <TrendingUp className="w-3 h-3 mr-1" />
+                    {levels.length} total quests
+                  </Badge>
+                  <Badge variant="secondary" className="shadow">
+                    <Coins className="w-3 h-3 mr-1" />
+                    {maxXP} max XP
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </div>
       </div>
     );
   }
