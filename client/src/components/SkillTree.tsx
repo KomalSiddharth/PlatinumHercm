@@ -35,38 +35,48 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
   // State to manage level statuses dynamically
   const [levelStatuses, setLevelStatuses] = useState<Record<number, 'locked' | 'current' | 'completed'>>({});
 
-  // 144 Health Mastery Levels (36 video lessons + 108 exercise challenges)
-  // Pattern: 1 video lesson → 3 exercise challenges (repeat)
+  // 216 Health Mastery Levels (36 video lessons + 180 exercise challenges)
+  // Pattern: 1 video lesson → 5 exercise challenges (repeat)
   const healthLevels: LevelNode[] = [
-    // Levels 1-4: Lesson 1 + 3 Exercises
+    // Levels 1-6: Lesson 1 + 5 Exercises
     { id: 1, name: 'Lesson 1: 3rd April Part 1', type: 'video', status: 'current', xp: 0, affirmation: 'I am ready for transformation!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2150122912/posts/2157032446' },
     { id: 2, name: 'Drink 8 Glasses of Water', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Water is my source of vitality', exerciseDetails: { task: 'Drink water daily', count: 8, unit: 'glasses' } },
     { id: 3, name: 'Morning Gratitude Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Gratitude heals me', exerciseDetails: { task: 'Write health gratitude', count: 5, unit: 'items' } },
     { id: 4, name: 'Body Appreciation', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I love my body', exerciseDetails: { task: 'Mirror appreciation practice' } },
+    { id: 5, name: 'Health Vision Board', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I visualize my health', exerciseDetails: { task: 'Create vision board' } },
+    { id: 6, name: 'Health Declaration', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I declare perfect health', exerciseDetails: { task: 'Write health declaration' } },
     
-    // Levels 5-8: Lesson 2 + 3 Exercises
-    { id: 5, name: 'Lesson 2: 3rd April Part 2', type: 'video', status: 'locked', xp: 0, affirmation: 'Health is my natural state!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2150204707/posts/2157330556' },
-    { id: 6, name: 'Define Health Goals', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I set clear goals', exerciseDetails: { task: 'Write 10 health goals' } },
-    { id: 7, name: 'Visualize Perfect Health', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I see my healthy self', exerciseDetails: { task: 'Visualization practice', count: 10, unit: 'minutes' } },
-    { id: 8, name: 'Health Affirmations', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I speak health into being', exerciseDetails: { task: 'Repeat affirmations', count: 21, unit: 'times' } },
+    // Levels 7-12: Lesson 2 + 5 Exercises
+    { id: 7, name: 'Lesson 2: 3rd April Part 2', type: 'video', status: 'locked', xp: 0, affirmation: 'Health is my natural state!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2150204707/posts/2157330556' },
+    { id: 8, name: 'Define Health Goals', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I set clear goals', exerciseDetails: { task: 'Write 10 health goals' } },
+    { id: 9, name: 'Visualize Perfect Health', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I see my healthy self', exerciseDetails: { task: 'Visualization practice', count: 10, unit: 'minutes' } },
+    { id: 10, name: 'Health Affirmations', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I speak health into being', exerciseDetails: { task: 'Repeat affirmations', count: 21, unit: 'times' } },
+    { id: 11, name: 'Energy Level Check', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I monitor my energy', exerciseDetails: { task: 'Track energy levels hourly' } },
+    { id: 12, name: 'Health Journal Start', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I document my journey', exerciseDetails: { task: 'Start health journal' } },
     
-    // Levels 9-12: Lesson 3 + 3 Exercises
-    { id: 9, name: 'Lesson 3: 18th April Session', type: 'video', status: 'locked', xp: 0, affirmation: 'I commit to my health!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2150248651/posts/2157496270' },
-    { id: 10, name: 'Walk 3 Kilometers', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Every step heals me', exerciseDetails: { task: 'Walk daily', count: 3, unit: 'km' } },
-    { id: 11, name: 'Track Daily Habits', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am consistent', exerciseDetails: { task: 'Track 3 health habits', count: 7, unit: 'days' } },
-    { id: 12, name: 'Commitment Declaration', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I commit fully', exerciseDetails: { task: 'Write health commitment letter' } },
+    // Levels 13-18: Lesson 3 + 5 Exercises
+    { id: 13, name: 'Lesson 3: 18th April Session', type: 'video', status: 'locked', xp: 0, affirmation: 'I commit to my health!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2150248651/posts/2157496270' },
+    { id: 14, name: 'Walk 3 Kilometers', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Every step heals me', exerciseDetails: { task: 'Walk daily', count: 3, unit: 'km' } },
+    { id: 15, name: 'Track Daily Habits', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am consistent', exerciseDetails: { task: 'Track 3 health habits', count: 7, unit: 'days' } },
+    { id: 16, name: 'Commitment Declaration', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I commit fully', exerciseDetails: { task: 'Write health commitment letter' } },
+    { id: 17, name: 'Daily Movement Ritual', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Movement is medicine', exerciseDetails: { task: 'Move every hour', count: 5, unit: 'minutes' } },
+    { id: 18, name: 'Progress Photo', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I celebrate progress', exerciseDetails: { task: 'Take baseline photo' } },
     
-    // Levels 13-16: Lesson 4 + 3 Exercises
-    { id: 13, name: 'Lesson 4: 24th April Session', type: 'video', status: 'locked', xp: 0, affirmation: 'I am consistent!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2150248651/posts/2157496270' },
-    { id: 14, name: 'Morning Routine Challenge', type: 'exercise', status: 'locked', xp: 0, affirmation: 'My morning sets the tone', exerciseDetails: { task: 'Create energizing morning routine' } },
-    { id: 15, name: 'Evening Reflection', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I review my progress', exerciseDetails: { task: 'Evening health reflection', count: 10, unit: 'minutes' } },
-    { id: 16, name: 'Sleep 8 Hours Challenge', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Sleep restores me', exerciseDetails: { task: 'Get quality sleep', count: 8, unit: 'hours' } },
+    // Levels 19-24: Lesson 4 + 5 Exercises
+    { id: 19, name: 'Lesson 4: 24th April Session', type: 'video', status: 'locked', xp: 0, affirmation: 'I am consistent!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2150248651/posts/2157496270' },
+    { id: 20, name: 'Morning Routine Challenge', type: 'exercise', status: 'locked', xp: 0, affirmation: 'My morning sets the tone', exerciseDetails: { task: 'Create energizing morning routine' } },
+    { id: 21, name: 'Evening Reflection', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I review my progress', exerciseDetails: { task: 'Evening health reflection', count: 10, unit: 'minutes' } },
+    { id: 22, name: 'Sleep 8 Hours Challenge', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Sleep restores me', exerciseDetails: { task: 'Get quality sleep', count: 8, unit: 'hours' } },
+    { id: 23, name: 'Consistency Tracker', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I show up daily', exerciseDetails: { task: 'Track daily consistency', count: 21, unit: 'days' } },
+    { id: 24, name: 'Accountability Setup', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I find support', exerciseDetails: { task: 'Find accountability partner' } },
     
-    // Levels 17-20: Lesson 5 + 3 Exercises
-    { id: 17, name: 'Lesson 5: What is Health', type: 'video', status: 'locked', xp: 0, affirmation: 'I understand true health!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/11723270' },
-    { id: 18, name: 'Define Perfect Health', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I know what health means', exerciseDetails: { task: 'Write your health definition' } },
-    { id: 19, name: 'Health Vision Board', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I visualize my health', exerciseDetails: { task: 'Create vision board' } },
-    { id: 20, name: 'Health Standards List', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I set my standards', exerciseDetails: { task: 'Write 10 health standards' } },
+    // Levels 25-30: Lesson 5 + 5 Exercises
+    { id: 25, name: 'Lesson 5: What is Health', type: 'video', status: 'locked', xp: 0, affirmation: 'I understand true health!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/11723270' },
+    { id: 26, name: 'Define Perfect Health', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I know what health means', exerciseDetails: { task: 'Write your health definition' } },
+    { id: 27, name: 'Health Philosophy', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I create my philosophy', exerciseDetails: { task: 'Write health philosophy' } },
+    { id: 28, name: 'Health Standards List', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I set my standards', exerciseDetails: { task: 'Write 10 health standards' } },
+    { id: 29, name: 'Health Role Models', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I find inspiration', exerciseDetails: { task: 'List 3 health role models' } },
+    { id: 30, name: 'Health Blueprint', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I design my blueprint', exerciseDetails: { task: 'Create health blueprint' } },
     
     // Levels 21-24: Lesson 6 + 3 Exercises
     { id: 21, name: 'Lesson 6: Breaking Limiting Beliefs', type: 'video', status: 'locked', xp: 0, affirmation: 'I release health blocks!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/11880530' },
