@@ -36,86 +36,98 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
   const [levelStatuses, setLevelStatuses] = useState<Record<number, 'locked' | 'current' | 'completed'>>({});
 
   // 108 Health Mastery Levels (36 video lessons + 72 exercise challenges)
+  // Pattern: Every 4th level is an exercise challenge
   const healthLevels: LevelNode[] = [
-    // BATCH 2 LESSONS (Levels 1-8)
+    // Levels 1-4
     { id: 1, name: 'Lesson 1: 3rd April Part 1', type: 'video', status: 'current', xp: 0, affirmation: 'I am ready for transformation!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2150122912/posts/2157032446' },
-    { id: 2, name: 'Drink Water Challenge', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Water is my source of vitality', exerciseDetails: { task: 'Drink water', count: 8, unit: 'glasses' } },
-    { id: 3, name: 'Lesson 2: 3rd April Part 2', type: 'video', status: 'locked', xp: 0, affirmation: 'Health is my natural state!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2150204707/posts/2157330556' },
-    { id: 4, name: 'Morning Gratitude', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Gratitude heals me', exerciseDetails: { task: 'Write health gratitude', count: 5, unit: 'items' } },
-    { id: 5, name: 'Lesson 3: 18th April Session', type: 'video', status: 'locked', xp: 0, affirmation: 'I commit to my health!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2150248651/posts/2157496270' },
-    { id: 6, name: 'Body Appreciation', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I love my body', exerciseDetails: { task: 'Mirror appreciation practice' } },
-    { id: 7, name: 'Lesson 4: 24th April Session', type: 'video', status: 'locked', xp: 0, affirmation: 'I am consistent!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2150248651/posts/2157496270' },
-    { id: 8, name: 'Walking Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Movement is medicine', exerciseDetails: { task: 'Walk', count: 3, unit: 'km' } },
-    
-    // CORE HEALTH MASTERY (Levels 9-26)
-    { id: 9, name: 'Lesson 5: What is Health', type: 'video', status: 'locked', xp: 0, affirmation: 'I understand true health!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/11723270' },
-    { id: 10, name: 'Define Health Goals', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I set clear goals', exerciseDetails: { task: 'Write 10 health goals' } },
-    { id: 11, name: 'Lesson 6: Breaking Limiting Beliefs', type: 'video', status: 'locked', xp: 0, affirmation: 'I release health blocks!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/11880530' },
-    { id: 12, name: 'Identify Beliefs', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I recognize my blocks', exerciseDetails: { task: 'List limiting beliefs', count: 10, unit: 'beliefs' } },
-    { id: 13, name: 'Lesson 7: Lifestyle Diet Plan', type: 'video', status: 'locked', xp: 0, affirmation: 'I create my perfect diet!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/12035104' },
-    { id: 14, name: 'Design Your Diet', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I eat for energy', exerciseDetails: { task: 'Create meal plan' } },
-    { id: 15, name: 'Lesson 8: Transform Habits Part 1', type: 'video', status: 'locked', xp: 0, affirmation: 'I build powerful habits!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/12198567' },
-    { id: 16, name: 'Track Habits', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am consistent', exerciseDetails: { task: 'Track 3 habits', count: 7, unit: 'days' } },
-    { id: 17, name: 'Lesson 9: Transform Habits Part 2', type: 'video', status: 'locked', xp: 0, affirmation: 'I master transformation!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/12367867' },
-    { id: 18, name: 'Cancel-Cancel Technique', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I reject negativity', exerciseDetails: { task: 'Practice cancel-cancel' } },
-    { id: 19, name: 'Lesson 10: 7 Master Steps', type: 'video', status: 'locked', xp: 0, affirmation: 'I integrate the steps!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/12544878' },
-    { id: 20, name: 'Deep Breathing', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Breath is life', exerciseDetails: { task: 'Practice breathing', count: 10, unit: 'minutes' } },
-    { id: 21, name: 'Lesson 11: Raise Health Standards', type: 'video', status: 'locked', xp: 0, affirmation: 'I set platinum standards!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/12713231' },
-    { id: 22, name: 'Define Standards', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I demand excellence', exerciseDetails: { task: 'Write 10 standards' } },
-    { id: 23, name: 'Lesson 12: Recap Master Steps', type: 'video', status: 'locked', xp: 0, affirmation: 'I solidify my foundation!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/13221408' },
-    { id: 24, name: 'Ho\'oponopono Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I heal myself', exerciseDetails: { task: 'Practice ho\'oponopono', count: 15, unit: 'minutes' } },
-    { id: 25, name: 'Lesson 13: Design Your Workout', type: 'video', status: 'locked', xp: 0, affirmation: 'I create my workout!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/13221310' },
-    { id: 26, name: 'Create Workout Plan', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I design my fitness', exerciseDetails: { task: 'Design weekly workout' } },
-    
-    // HAPPY GYM VIDEOS (Levels 27-68)
-    { id: 27, name: 'Lesson 14: Happy Gym Intro', type: 'video', status: 'locked', xp: 0, affirmation: 'I move with joy!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149258653' },
-    { id: 28, name: 'Dance Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Dancing heals me', exerciseDetails: { task: 'Dance workout', count: 10, unit: 'minutes' } },
-    { id: 29, name: 'Lesson 15: Happy Gym Orientation', type: 'video', status: 'locked', xp: 0, affirmation: 'I understand the system!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149258778' },
-    { id: 30, name: 'Morning Routine', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I energize my morning', exerciseDetails: { task: 'Morning workout' } },
-    { id: 31, name: 'Lesson 16: Day 1 Happy Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'I start strong!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149258778' },
-    { id: 32, name: 'Pushup Challenge', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am getting stronger', exerciseDetails: { task: 'Do pushups', count: 20, unit: 'reps' } },
-    { id: 33, name: 'Lesson 17: Day 2 Happy Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'I keep going!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149258780' },
-    { id: 34, name: 'Squat Challenge', type: 'exercise', status: 'locked', xp: 0, affirmation: 'My legs are powerful', exerciseDetails: { task: 'Do squats', count: 30, unit: 'reps' } },
-    { id: 35, name: 'Lesson 18: 25th May Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'I am consistent!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149335453' },
-    { id: 36, name: 'Stretching Routine', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Flexibility is strength', exerciseDetails: { task: 'Full body stretch', count: 10, unit: 'minutes' } },
-    { id: 37, name: 'Lesson 19: 27th May Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'I show up daily!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149398426' },
-    { id: 38, name: 'Core Workout', type: 'exercise', status: 'locked', xp: 0, affirmation: 'My core is strong', exerciseDetails: { task: 'Core exercises', count: 15, unit: 'minutes' } },
-    { id: 39, name: 'Lesson 20: 28th May Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'I build momentum!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149423392' },
-    { id: 40, name: 'Cardio Session', type: 'exercise', status: 'locked', xp: 0, affirmation: 'My heart is healthy', exerciseDetails: { task: 'Cardio workout', count: 20, unit: 'minutes' } },
-    { id: 41, name: 'Lesson 21: 29th May Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'I am unstoppable!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149439289' },
-    { id: 42, name: 'HIIT Training', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I train intensely', exerciseDetails: { task: 'HIIT workout', count: 15, unit: 'minutes' } },
-    { id: 43, name: 'Lesson 22: 31st May Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'I finish May strong!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149472696' },
-    { id: 44, name: 'Yoga Flow', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I flow with energy', exerciseDetails: { task: 'Yoga practice', count: 20, unit: 'minutes' } },
-    { id: 45, name: 'Lesson 23: 1st June Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'June begins powerfully!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149503733' },
-    { id: 46, name: 'Plank Challenge', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I hold strong', exerciseDetails: { task: 'Hold plank', count: 2, unit: 'minutes' } },
-    { id: 47, name: 'Lesson 24: 3rd June Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'I am energized!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149557385' },
-    { id: 48, name: 'Jump Rope', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I jump with joy', exerciseDetails: { task: 'Jump rope', count: 10, unit: 'minutes' } },
-    { id: 49, name: 'Lesson 25: 4th June Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'I maintain rhythm!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149580868' },
-    { id: 50, name: 'Lunges Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I build leg power', exerciseDetails: { task: 'Do lunges', count: 30, unit: 'reps' } },
-    { id: 51, name: 'Lesson 26: 5th June Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'I stay committed!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149607368' },
-    { id: 52, name: 'Burpee Challenge', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I embrace the burn', exerciseDetails: { task: 'Do burpees', count: 20, unit: 'reps' } },
-    { id: 53, name: 'Lesson 27: 7th June Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'I push forward!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149648354' },
-    { id: 54, name: 'Mountain Climbers', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I climb higher', exerciseDetails: { task: 'Mountain climbers', count: 50, unit: 'reps' } },
-    { id: 55, name: 'Lesson 28: 8th June Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'I grow stronger!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149679898' },
-    { id: 56, name: 'Shadow Boxing', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am powerful', exerciseDetails: { task: 'Shadow boxing', count: 10, unit: 'minutes' } },
-    { id: 57, name: 'Lesson 29: 10th June Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'I am dedicated!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149737410' },
-    { id: 58, name: 'Kettlebell Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I swing with power', exerciseDetails: { task: 'Kettlebell workout', count: 15, unit: 'minutes' } },
-    { id: 59, name: 'Lesson 30: 11th June Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'I never quit!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149776430' },
-    { id: 60, name: 'Full Body Workout', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I work my whole body', exerciseDetails: { task: 'Full body routine', count: 30, unit: 'minutes' } },
-    { id: 61, name: 'Lesson 31: Back & Biceps', type: 'video', status: 'locked', xp: 0, affirmation: 'I build my back!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149806929' },
-    { id: 62, name: 'Pull-ups Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I pull myself up', exerciseDetails: { task: 'Do pull-ups', count: 10, unit: 'reps' } },
-    { id: 63, name: 'Lesson 32: Shoulder & Legs', type: 'video', status: 'locked', xp: 0, affirmation: 'I strengthen shoulders!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149833643' },
-    { id: 64, name: 'Shoulder Press', type: 'exercise', status: 'locked', xp: 0, affirmation: 'My shoulders are strong', exerciseDetails: { task: 'Shoulder exercises', count: 15, unit: 'minutes' } },
-    { id: 65, name: 'Lesson 33: Chest & Triceps', type: 'video', status: 'locked', xp: 0, affirmation: 'I build my chest!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149888103' },
-    { id: 66, name: 'Push-up Variations', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I master pushups', exerciseDetails: { task: 'Various pushups', count: 30, unit: 'reps' } },
-    { id: 67, name: 'Lesson 34: 22nd June Back & Biceps', type: 'video', status: 'locked', xp: 0, affirmation: 'I refine my form!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149997031' },
-    { id: 68, name: 'Bicep Curls', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I build my arms', exerciseDetails: { task: 'Bicep training', count: 15, unit: 'minutes' } },
-    
-    // OCT'21 HAPPY GYM (Levels 69-72)
-    { id: 69, name: 'Lesson 35: 12th Oct Happy Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'I return stronger!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2148966126/posts/2152730276' },
-    { id: 70, name: 'Body Scan Meditation', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I listen to my body', exerciseDetails: { task: 'Body scan', count: 15, unit: 'minutes' } },
-    { id: 71, name: 'Lesson 36: 18th Oct Happy Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'I complete the journey!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2148966126/posts/2152883616' },
-    { id: 72, name: 'Health Champion Mastery', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am a health champion!', exerciseDetails: { task: 'Complete all practices' } }
+    { id: 2, name: 'Lesson 2: 3rd April Part 2', type: 'video', status: 'locked', xp: 0, affirmation: 'Health is my natural state!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2150204707/posts/2157330556' },
+    { id: 3, name: 'Lesson 3: 18th April Session', type: 'video', status: 'locked', xp: 0, affirmation: 'I commit to my health!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2150248651/posts/2157496270' },
+    { id: 4, name: 'Drink 8 Glasses of Water', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Water is my source of vitality', exerciseDetails: { task: 'Drink water daily', count: 8, unit: 'glasses' } },
+    // Levels 5-8
+    { id: 5, name: 'Lesson 4: 24th April Session', type: 'video', status: 'locked', xp: 0, affirmation: 'I am consistent!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2150248651/posts/2157496270' },
+    { id: 6, name: 'Lesson 5: What is Health', type: 'video', status: 'locked', xp: 0, affirmation: 'I understand true health!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/11723270' },
+    { id: 7, name: 'Lesson 6: Breaking Limiting Beliefs', type: 'video', status: 'locked', xp: 0, affirmation: 'I release health blocks!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/11880530' },
+    { id: 8, name: 'Morning Gratitude Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Gratitude heals me', exerciseDetails: { task: 'Write health gratitude', count: 5, unit: 'items' } },
+    // Levels 9-12
+    { id: 9, name: 'Lesson 7: Lifestyle Diet Plan', type: 'video', status: 'locked', xp: 0, affirmation: 'I create my perfect diet!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/12035104' },
+    { id: 10, name: 'Lesson 8: Transform Habits Part 1', type: 'video', status: 'locked', xp: 0, affirmation: 'I build powerful habits!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/12198567' },
+    { id: 11, name: 'Lesson 9: Transform Habits Part 2', type: 'video', status: 'locked', xp: 0, affirmation: 'I master transformation!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/12367867' },
+    { id: 12, name: 'Body Appreciation Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I love my body', exerciseDetails: { task: 'Mirror appreciation daily' } },
+    // Levels 13-16
+    { id: 13, name: 'Lesson 10: 7 Master Steps', type: 'video', status: 'locked', xp: 0, affirmation: 'I integrate the steps!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/12544878' },
+    { id: 14, name: 'Lesson 11: Raise Health Standards', type: 'video', status: 'locked', xp: 0, affirmation: 'I set platinum standards!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/12713231' },
+    { id: 15, name: 'Lesson 12: Recap Master Steps', type: 'video', status: 'locked', xp: 0, affirmation: 'I solidify my foundation!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/13221408' },
+    { id: 16, name: 'Design Your Diet Plan', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I eat for energy', exerciseDetails: { task: 'Create personalized meal plan' } },
+    // Levels 17-20
+    { id: 17, name: 'Lesson 13: Design Your Workout', type: 'video', status: 'locked', xp: 0, affirmation: 'I create my workout!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/13221310' },
+    { id: 18, name: 'Lesson 14: Happy Gym Intro', type: 'video', status: 'locked', xp: 0, affirmation: 'I move with joy!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149258653' },
+    { id: 19, name: 'Lesson 15: Happy Gym Orientation', type: 'video', status: 'locked', xp: 0, affirmation: 'I understand the system!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149258778' },
+    { id: 20, name: 'Track Daily Habits', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am consistent', exerciseDetails: { task: 'Track 3 health habits', count: 7, unit: 'days' } },
+    // Levels 21-24
+    { id: 21, name: 'Lesson 16: Day 1 Happy Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'I start strong!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149258778' },
+    { id: 22, name: 'Lesson 17: Day 2 Happy Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'I keep going!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149258780' },
+    { id: 23, name: 'Lesson 18: 25th May Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'I am consistent!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149335453' },
+    { id: 24, name: 'Walk 3 Kilometers', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Every step heals me', exerciseDetails: { task: 'Walk daily', count: 3, unit: 'km' } },
+    // Levels 25-28
+    { id: 25, name: 'Lesson 19: 27th May Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'I show up daily!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149398426' },
+    { id: 26, name: 'Lesson 20: 28th May Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'I build momentum!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149423392' },
+    { id: 27, name: 'Lesson 21: 29th May Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'I am unstoppable!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149439289' },
+    { id: 28, name: 'Sleep 8 Hours Challenge', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Sleep restores me', exerciseDetails: { task: 'Get quality sleep', count: 8, unit: 'hours' } },
+    // Levels 29-32
+    { id: 29, name: 'Lesson 22: 31st May Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'I finish May strong!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149472696' },
+    { id: 30, name: 'Lesson 23: 1st June Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'June begins powerfully!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149503733' },
+    { id: 31, name: 'Lesson 24: 3rd June Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'I am energized!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149557385' },
+    { id: 32, name: 'Identify Limiting Beliefs', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I recognize my blocks', exerciseDetails: { task: 'List health limiting beliefs', count: 10, unit: 'beliefs' } },
+    // Levels 33-36
+    { id: 33, name: 'Lesson 25: 4th June Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'I maintain rhythm!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149580868' },
+    { id: 34, name: 'Lesson 26: 5th June Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'I stay committed!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149607368' },
+    { id: 35, name: 'Lesson 27: 7th June Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'I push forward!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149648354' },
+    { id: 36, name: 'Cancel-Cancel Technique', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I reject negativity', exerciseDetails: { task: 'Practice cancel-cancel technique' } },
+    // Levels 37-40
+    { id: 37, name: 'Lesson 28: 8th June Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'I grow stronger!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149679898' },
+    { id: 38, name: 'Lesson 29: 10th June Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'I am dedicated!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149737410' },
+    { id: 39, name: 'Lesson 30: 11th June Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'I never quit!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149776430' },
+    { id: 40, name: 'Deep Breathing Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Breath is life', exerciseDetails: { task: 'Practice deep breathing', count: 10, unit: 'minutes' } },
+    // Levels 41-44
+    { id: 41, name: 'Lesson 31: Back & Biceps', type: 'video', status: 'locked', xp: 0, affirmation: 'I build my back!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149806929' },
+    { id: 42, name: 'Lesson 32: Shoulder & Legs', type: 'video', status: 'locked', xp: 0, affirmation: 'I strengthen shoulders!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149833643' },
+    { id: 43, name: 'Lesson 33: Chest & Triceps', type: 'video', status: 'locked', xp: 0, affirmation: 'I build my chest!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149888103' },
+    { id: 44, name: 'Ho\'oponopono Healing', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I heal myself', exerciseDetails: { task: 'Practice ho\'oponopono', count: 15, unit: 'minutes' } },
+    // Levels 45-48
+    { id: 45, name: 'Lesson 34: 22nd June Back & Biceps', type: 'video', status: 'locked', xp: 0, affirmation: 'I refine my form!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2147982346/posts/2149997031' },
+    { id: 46, name: 'Lesson 35: 12th Oct Happy Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'I return stronger!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2148966126/posts/2152730276' },
+    { id: 47, name: 'Lesson 36: 18th Oct Happy Gym', type: 'video', status: 'locked', xp: 0, affirmation: 'I complete the journey!', videoUrl: 'https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/2148966126/posts/2152883616' },
+    { id: 48, name: 'Define Health Standards', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I demand excellence', exerciseDetails: { task: 'Write 10 health standards' } },
+    // Levels 49-52
+    { id: 49, name: 'Healthy Breakfast', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I nourish my body', exerciseDetails: { task: 'Eat healthy breakfast', count: 7, unit: 'days' } },
+    { id: 50, name: 'Mindful Eating', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I eat with awareness', exerciseDetails: { task: 'Practice mindful eating' } },
+    { id: 51, name: 'Emotional Frequency Check', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I control my state', exerciseDetails: { task: 'Check emotions every 2 hours' } },
+    { id: 52, name: 'Body Scan Meditation', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I listen to my body', exerciseDetails: { task: 'Body scan awareness', count: 15, unit: 'minutes' } },
+    // Levels 53-56
+    { id: 53, name: 'Stretching Routine', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Flexibility is strength', exerciseDetails: { task: 'Full body stretch', count: 10, unit: 'minutes' } },
+    { id: 54, name: 'Core Workout', type: 'exercise', status: 'locked', xp: 0, affirmation: 'My core is strong', exerciseDetails: { task: 'Core exercises', count: 15, unit: 'minutes' } },
+    { id: 55, name: 'Cardio Session', type: 'exercise', status: 'locked', xp: 0, affirmation: 'My heart is healthy', exerciseDetails: { task: 'Cardio workout', count: 20, unit: 'minutes' } },
+    { id: 56, name: 'HIIT Training', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I train intensely', exerciseDetails: { task: 'HIIT workout', count: 15, unit: 'minutes' } },
+    // Levels 57-60
+    { id: 57, name: 'Yoga Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I flow with energy', exerciseDetails: { task: 'Yoga practice', count: 20, unit: 'minutes' } },
+    { id: 58, name: 'Plank Challenge', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I hold strong', exerciseDetails: { task: 'Hold plank', count: 2, unit: 'minutes' } },
+    { id: 59, name: 'Jump Rope', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I jump with joy', exerciseDetails: { task: 'Jump rope', count: 10, unit: 'minutes' } },
+    { id: 60, name: 'Lunges Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I build leg power', exerciseDetails: { task: 'Do lunges', count: 30, unit: 'reps' } },
+    // Levels 61-64
+    { id: 61, name: 'Burpee Challenge', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I embrace the burn', exerciseDetails: { task: 'Do burpees', count: 20, unit: 'reps' } },
+    { id: 62, name: 'Mountain Climbers', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I climb higher', exerciseDetails: { task: 'Mountain climbers', count: 50, unit: 'reps' } },
+    { id: 63, name: 'Shadow Boxing', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am powerful', exerciseDetails: { task: 'Shadow boxing', count: 10, unit: 'minutes' } },
+    { id: 64, name: 'Kettlebell Workout', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I swing with power', exerciseDetails: { task: 'Kettlebell training', count: 15, unit: 'minutes' } },
+    // Levels 65-68
+    { id: 65, name: 'Full Body Routine', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I work my whole body', exerciseDetails: { task: 'Full body workout', count: 30, unit: 'minutes' } },
+    { id: 66, name: 'Pull-ups Challenge', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I pull myself up', exerciseDetails: { task: 'Do pull-ups', count: 10, unit: 'reps' } },
+    { id: 67, name: 'Shoulder Press', type: 'exercise', status: 'locked', xp: 0, affirmation: 'My shoulders are strong', exerciseDetails: { task: 'Shoulder training', count: 15, unit: 'minutes' } },
+    { id: 68, name: 'Push-up Variations', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I master pushups', exerciseDetails: { task: 'Various pushups', count: 30, unit: 'reps' } },
+    // Levels 69-72
+    { id: 69, name: 'Bicep Curls', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I build my arms', exerciseDetails: { task: 'Bicep training', count: 15, unit: 'minutes' } },
+    { id: 70, name: 'Squat Challenge', type: 'exercise', status: 'locked', xp: 0, affirmation: 'My legs are powerful', exerciseDetails: { task: 'Build up to 100 squats' } },
+    { id: 71, name: 'Pushup Challenge', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am getting stronger', exerciseDetails: { task: 'Build up to 100 pushups' } },
+    { id: 72, name: 'Health Champion Mastery', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am a health champion!', exerciseDetails: { task: 'Complete all health practices' } }
   ];
 
   // 52 Relationship Mastery Levels (13 video lessons + 39 exercise challenges)
