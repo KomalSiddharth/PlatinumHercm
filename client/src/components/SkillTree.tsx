@@ -63,32 +63,98 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
     { id: 24, name: 'Health Champion Mastery', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am a health champion!', exerciseDetails: { task: 'Complete all daily health practices' } }
   ];
 
-  // 24 Relationship Mastery Levels
+  // 52 Relationship Mastery Levels (13 video lessons + 39 exercise challenges)
   const relationshipLevels: LevelNode[] = [
-    { id: 1, name: 'Relationship Foundations', type: 'video', status: 'completed', xp: 5, affirmation: 'I attract loving relationships!' },
-    { id: 2, name: 'Communication Mastery', type: 'video', status: 'completed', xp: 5, affirmation: 'I speak with love and clarity' },
-    { id: 3, name: 'Active Listening Practice', type: 'exercise', status: 'current', xp: 0, affirmation: 'I truly hear others', exerciseDetails: { task: 'Practice active listening', count: 3, unit: 'conversations' } },
-    { id: 4, name: 'Express Gratitude', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Appreciation deepens bonds', exerciseDetails: { task: 'Thank someone genuinely', count: 3, unit: 'people' } },
-    { id: 5, name: 'Quality Time Together', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Presence is my gift', exerciseDetails: { task: 'Spend quality time', count: 1, unit: 'hour' } },
-    { id: 6, name: 'Conflict Resolution', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I navigate conflicts with grace', exerciseDetails: { task: 'Practice peaceful conflict resolution' } },
-    { id: 7, name: 'Words of Affirmation', type: 'exercise', status: 'locked', xp: 0, affirmation: 'My words uplift others', exerciseDetails: { task: 'Give genuine compliments', count: 5, unit: 'compliments' } },
-    { id: 8, name: 'Acts of Service', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I serve with love', exerciseDetails: { task: 'Do something helpful', count: 2, unit: 'acts' } },
-    { id: 9, name: 'Physical Touch', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Connection heals', exerciseDetails: { task: 'Hug loved ones', count: 5, unit: 'hugs' } },
-    { id: 10, name: 'Receiving Love', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am worthy of love', exerciseDetails: { task: 'Accept love graciously' } },
-    { id: 11, name: 'Forgiveness Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I release resentment', exerciseDetails: { task: 'Forgive someone' } },
-    { id: 12, name: 'Empathy Building', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I understand others deeply', exerciseDetails: { task: 'Practice empathy', count: 10, unit: 'minutes' } },
-    { id: 13, name: 'Boundaries Setting', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I honor my boundaries', exerciseDetails: { task: 'Set healthy boundary', count: 1, unit: 'boundary' } },
-    { id: 14, name: 'Trust Building', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am trustworthy', exerciseDetails: { task: 'Keep a promise' } },
-    { id: 15, name: 'Vulnerability Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Vulnerability is strength', exerciseDetails: { task: 'Share feelings openly' } },
-    { id: 16, name: 'Date Night Planning', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Romance flourishes', exerciseDetails: { task: 'Plan special date', count: 1, unit: 'date' } },
-    { id: 17, name: 'Family Bonding', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Family strengthens me', exerciseDetails: { task: 'Family activity', count: 1, unit: 'activity' } },
-    { id: 18, name: 'Friendship Nurturing', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I cherish my friends', exerciseDetails: { task: 'Connect with friend', count: 1, unit: 'friend' } },
-    { id: 19, name: 'Laughter Together', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Joy multiplies when shared', exerciseDetails: { task: 'Laugh together', count: 15, unit: 'minutes' } },
-    { id: 20, name: 'Relationship Vision', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I create beautiful connections', exerciseDetails: { task: 'Visualize ideal relationships', count: 10, unit: 'minutes' } },
-    { id: 21, name: 'Difficult Conversations', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I communicate bravely', exerciseDetails: { task: 'Have honest conversation' } },
-    { id: 22, name: 'Love Languages', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I speak all love languages', exerciseDetails: { task: 'Practice partner\'s love language' } },
-    { id: 23, name: 'Appreciation Ritual', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Gratitude deepens love', exerciseDetails: { task: 'Evening appreciation sharing' } },
-    { id: 24, name: 'Relationship Champion', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am a relationship master!', exerciseDetails: { task: 'Complete all relationship practices' } }
+    // Level 1: Lesson 1
+    { id: 1, name: 'Lesson 1: The Source - Your Parents', type: 'video', status: 'current', xp: 0, affirmation: 'I honor my relationship roots!', videoUrl: 'https://www.miteshkhatri.com/Source' },
+    // Levels 2-4: Exercises
+    { id: 2, name: 'Gratitude for Parents', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I appreciate my roots', exerciseDetails: { task: 'Write gratitude letter to parents' } },
+    { id: 3, name: 'Reflect on Childhood', type: 'exercise', status: 'locked', xp: 0, affirmation: 'My past shapes my love', exerciseDetails: { task: 'Journal childhood memories', count: 30, unit: 'minutes' } },
+    { id: 4, name: 'Forgive Parents', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I release old patterns', exerciseDetails: { task: 'Practice ho\'oponopono for parents' } },
+    
+    // Level 5: Lesson 2
+    { id: 5, name: 'Lesson 2: Self-Love with Reflection', type: 'video', status: 'locked', xp: 0, affirmation: 'I love and accept myself completely!', videoUrl: 'https://www.miteshkhatri.com/Reflection' },
+    // Levels 6-8: Exercises
+    { id: 6, name: 'Mirror Affirmations', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am worthy of love', exerciseDetails: { task: 'Say affirmations in mirror', count: 21, unit: 'days' } },
+    { id: 7, name: 'Self-Care Ritual', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I prioritize myself', exerciseDetails: { task: 'Create self-care routine', count: 1, unit: 'hour' } },
+    { id: 8, name: 'Celebrate Yourself', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am amazing', exerciseDetails: { task: 'List 10 things you love about yourself' } },
+    
+    // Level 9: Lesson 3
+    { id: 9, name: 'Lesson 3: Men Vs Women Differences', type: 'video', status: 'locked', xp: 0, affirmation: 'I understand and celebrate differences!', videoUrl: 'https://www.miteshkhatri.com/MenWomen' },
+    // Levels 10-12: Exercises
+    { id: 10, name: 'Observe Gender Patterns', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Understanding creates harmony', exerciseDetails: { task: 'Notice communication differences', count: 3, unit: 'conversations' } },
+    { id: 11, name: 'Appreciate Partner', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I value our differences', exerciseDetails: { task: 'Compliment partner genuinely', count: 3, unit: 'times' } },
+    { id: 12, name: 'Gender Appreciation', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Differences make us stronger', exerciseDetails: { task: 'Journal what you appreciate about opposite gender' } },
+    
+    // Level 13: Lesson 4
+    { id: 13, name: 'Lesson 4: Ritual of Relating', type: 'video', status: 'locked', xp: 0, affirmation: 'I create loving rituals daily!', videoUrl: 'https://www.miteshkhatri.com/Rituals' },
+    // Levels 14-16: Exercises
+    { id: 14, name: 'Morning Connection', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I start the day with love', exerciseDetails: { task: 'Morning hug and greeting', count: 7, unit: 'days' } },
+    { id: 15, name: 'Evening Check-in', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I end the day connected', exerciseDetails: { task: 'Share daily highlights together' } },
+    { id: 16, name: 'Weekly Date Night', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Romance keeps love alive', exerciseDetails: { task: 'Plan weekly quality time' } },
+    
+    // Level 17: Lesson 5
+    { id: 17, name: 'Lesson 5: FIRO-B Understanding', type: 'video', status: 'locked', xp: 0, affirmation: 'I understand my partner\'s needs!', videoUrl: 'https://www.miteshkhatri.com/FiroB' },
+    // Levels 18-20: Exercises
+    { id: 18, name: 'Discover Your FIRO-B', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Self-awareness improves relationships', exerciseDetails: { task: 'Take FIRO-B assessment' } },
+    { id: 19, name: 'Partner\'s Needs Analysis', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I understand deeply', exerciseDetails: { task: 'Identify partner\'s FIRO-B needs' } },
+    { id: 20, name: 'Meet Their Needs', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I fulfill what they need', exerciseDetails: { task: 'Act on partner\'s needs', count: 3, unit: 'ways' } },
+    
+    // Level 21: Lesson 6
+    { id: 21, name: 'Lesson 6: Fulfilling Each Other\'s Needs', type: 'video', status: 'locked', xp: 0, affirmation: 'We fulfill each other completely!', videoUrl: 'https://www.miteshkhatri.com/RNeeds' },
+    // Levels 22-24: Exercises
+    { id: 22, name: 'Love Language Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I speak their love language', exerciseDetails: { task: 'Express love in their language', count: 5, unit: 'times' } },
+    { id: 23, name: 'Need Communication', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I express my needs clearly', exerciseDetails: { task: 'Share your needs openly' } },
+    { id: 24, name: 'Quality Time Together', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Presence is my gift', exerciseDetails: { task: 'Undistracted quality time', count: 2, unit: 'hours' } },
+    
+    // Level 25: Lesson 7
+    { id: 25, name: 'Lesson 7: Balance Perspective', type: 'video', status: 'locked', xp: 0, affirmation: 'I see all perspectives with love!', videoUrl: 'https://www.miteshkhatri.com/Balance' },
+    // Levels 26-28: Exercises
+    { id: 26, name: 'Demartini Method', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I balance my perceptions', exerciseDetails: { task: 'Practice Demartini on partner', count: 30, unit: 'minutes' } },
+    { id: 27, name: 'Find the Blessing', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Everything serves me', exerciseDetails: { task: 'Find blessing in challenge' } },
+    { id: 28, name: 'Gratitude for Partner', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I appreciate them fully', exerciseDetails: { task: 'List 50 things you love about partner' } },
+    
+    // Level 29: Lesson 8
+    { id: 29, name: 'Lesson 8: Trust Bank Account', type: 'video', status: 'locked', xp: 0, affirmation: 'I build trust every day!', videoUrl: 'https://www.miteshkhatri.com/TBA' },
+    // Levels 30-32: Exercises
+    { id: 30, name: 'Keep Promises', type: 'exercise', status: 'locked', xp: 0, affirmation: 'My word is my bond', exerciseDetails: { task: 'Keep all promises today', count: 7, unit: 'days' } },
+    { id: 31, name: 'Build Trust Deposits', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I add to trust bank daily', exerciseDetails: { task: 'Make 5 trust deposits', count: 5, unit: 'actions' } },
+    { id: 32, name: 'Reliability Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am dependable', exerciseDetails: { task: 'Be on time for everything' } },
+    
+    // Level 33: Lesson 9
+    { id: 33, name: 'Lesson 9: Rapport Building', type: 'video', status: 'locked', xp: 0, affirmation: 'I connect deeply with everyone!', videoUrl: 'https://www.miteshkhatri.com/Rapport' },
+    // Levels 34-36: Exercises
+    { id: 34, name: 'Active Listening Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I truly hear others', exerciseDetails: { task: 'Practice active listening', count: 5, unit: 'conversations' } },
+    { id: 35, name: 'Mirror & Match', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I create instant connection', exerciseDetails: { task: 'Practice mirroring body language' } },
+    { id: 36, name: 'Deep Questions', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Meaningful talks create bonds', exerciseDetails: { task: 'Ask deep questions', count: 10, unit: 'questions' } },
+    
+    // Level 37: Lesson 10
+    { id: 37, name: 'Lesson 10: Let People Go with Love', type: 'video', status: 'locked', xp: 0, affirmation: 'I release with grace and love!', videoUrl: 'https://www.miteshkhatri.com/BreakUp' },
+    // Levels 38-40: Exercises
+    { id: 38, name: 'Forgiveness Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I release and heal', exerciseDetails: { task: 'Forgive past relationships' } },
+    { id: 39, name: 'Ho\'oponopono for Ex', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I send love to all', exerciseDetails: { task: 'Practice ho\'oponopono for ex', count: 21, unit: 'days' } },
+    { id: 40, name: 'Closure Ritual', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am complete', exerciseDetails: { task: 'Create closure ritual' } },
+    
+    // Level 41: Lesson 11
+    { id: 41, name: 'Lesson 11: Manage Conflict Categories', type: 'video', status: 'locked', xp: 0, affirmation: 'I handle conflicts with wisdom!', videoUrl: 'https://www.miteshkhatri.com/Conflicts' },
+    // Levels 42-44: Exercises
+    { id: 42, name: 'Conflict Resolution', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I resolve peacefully', exerciseDetails: { task: 'Resolve a conflict today' } },
+    { id: 43, name: 'Communication Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I communicate clearly', exerciseDetails: { task: 'Use "I" statements in conflict' } },
+    { id: 44, name: 'Categorize Relationships', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I manage boundaries wisely', exerciseDetails: { task: 'List and categorize all relationships' } },
+    
+    // Level 45: Lesson 12
+    { id: 45, name: 'Lesson 12: Recover from Fights', type: 'video', status: 'locked', xp: 0, affirmation: 'I repair and reconnect quickly!', videoUrl: 'https://www.miteshkhatri.com/Fights' },
+    // Levels 46-48: Exercises
+    { id: 46, name: 'Apology Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I admit mistakes easily', exerciseDetails: { task: 'Give sincere apology', count: 3, unit: 'times' } },
+    { id: 47, name: 'Repair Ritual', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I heal relationships fast', exerciseDetails: { task: 'Create post-fight ritual' } },
+    { id: 48, name: 'Reconnection Time', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Love repairs everything', exerciseDetails: { task: 'Schedule makeup time after fights' } },
+    
+    // Level 49: Lesson 13
+    { id: 49, name: 'Lesson 13: Managing Ego States', type: 'video', status: 'locked', xp: 0, affirmation: 'I master my ego states!', videoUrl: 'https://www.miteshkhatri.com/Ego' },
+    // Levels 50-52: Final Challenges
+    { id: 50, name: 'Adult State Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I respond from wisdom', exerciseDetails: { task: 'Stay in adult ego state', count: 24, unit: 'hours' } },
+    { id: 51, name: 'Ego Awareness', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I notice my states', exerciseDetails: { task: 'Track ego states throughout day' } },
+    { id: 52, name: 'Love Master Champion', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am a relationship master!', exerciseDetails: { task: 'Complete all relationship mastery practices' } }
   ];
 
   // 24 Career Mastery Levels
