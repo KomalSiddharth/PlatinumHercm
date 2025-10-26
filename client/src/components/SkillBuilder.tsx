@@ -29,24 +29,29 @@ interface HRCMWeekData {
   targetR: number;
   targetC: number;
   targetM: number;
-  healthProblems: string | null;
-  relationshipProblems: string | null;
-  careerProblems: string | null;
-  moneyProblems: string | null;
+  healthBelief: string | null;
+  relationshipBelief: string | null;
+  careerBelief: string | null;
+  moneyBelief: string | null;
 }
 
 // Helper function to parse problems into bullet points
 function parseProblems(problemText: string | null): string[] {
-  if (!problemText) return [];
+  if (!problemText) return ['Working on improvements'];
   
-  // Split by common delimiters and clean up
-  const problems = problemText
-    .split(/[.\n]/)
-    .map(p => p.trim())
-    .filter(p => p.length > 10) // Filter out very short fragments
-    .slice(0, 3); // Take max 3 problems
-    
-  return problems.length > 0 ? problems : ['Working on improvements'];
+  // The belief field contains the actual problem statement
+  // Just return it as a single item since it's already concise
+  const trimmed = problemText.trim();
+  
+  if (trimmed.length === 0) return ['Working on improvements'];
+  
+  // If it's too long (>100 chars), take first sentence
+  if (trimmed.length > 100) {
+    const firstSentence = trimmed.split(/[.!?]/)[0].trim();
+    return firstSentence.length > 10 ? [firstSentence] : [trimmed.slice(0, 100) + '...'];
+  }
+  
+  return [trimmed];
 }
 
 // Helper function to generate skills based on problems
@@ -99,44 +104,44 @@ export default function SkillBuilder() {
       name: 'Health', 
       emoji: '🏥', 
       currentRating: weekData.currentH || 0,
-      targetRating: weekData.targetH || 0,
+      targetRating: 7, // Fixed target
       status: 'available', 
-      color: 'from-green-400 to-green-600',
-      currentProblems: parseProblems(weekData.healthProblems),
-      skillsNeeded: generateSkills(parseProblems(weekData.healthProblems))
+      color: 'from-pink-400 to-purple-500',
+      currentProblems: parseProblems(weekData.healthBelief),
+      skillsNeeded: generateSkills(parseProblems(weekData.healthBelief))
     },
     { 
       id: 'relationship', 
       name: 'Relationships', 
       emoji: '💑', 
       currentRating: weekData.currentR || 0,
-      targetRating: weekData.targetR || 0,
+      targetRating: 7, // Fixed target
       status: 'available', 
-      color: 'from-purple-400 to-purple-600',
-      currentProblems: parseProblems(weekData.relationshipProblems),
-      skillsNeeded: generateSkills(parseProblems(weekData.relationshipProblems))
+      color: 'from-pink-400 to-purple-500',
+      currentProblems: parseProblems(weekData.relationshipBelief),
+      skillsNeeded: generateSkills(parseProblems(weekData.relationshipBelief))
     },
     { 
       id: 'career', 
       name: 'Career', 
       emoji: '💼', 
       currentRating: weekData.currentC || 0,
-      targetRating: weekData.targetC || 0,
+      targetRating: 7, // Fixed target
       status: 'available', 
-      color: 'from-blue-400 to-blue-600',
-      currentProblems: parseProblems(weekData.careerProblems),
-      skillsNeeded: generateSkills(parseProblems(weekData.careerProblems))
+      color: 'from-pink-400 to-purple-500',
+      currentProblems: parseProblems(weekData.careerBelief),
+      skillsNeeded: generateSkills(parseProblems(weekData.careerBelief))
     },
     { 
       id: 'money', 
       name: 'Money', 
       emoji: '💰', 
       currentRating: weekData.currentM || 0,
-      targetRating: weekData.targetM || 0,
+      targetRating: 7, // Fixed target
       status: 'available', 
-      color: 'from-purple-400 to-purple-600',
-      currentProblems: parseProblems(weekData.moneyProblems),
-      skillsNeeded: generateSkills(parseProblems(weekData.moneyProblems))
+      color: 'from-pink-400 to-purple-500',
+      currentProblems: parseProblems(weekData.moneyBelief),
+      skillsNeeded: generateSkills(parseProblems(weekData.moneyBelief))
     }
   ] : [];
 
