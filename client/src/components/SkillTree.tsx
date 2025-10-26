@@ -497,41 +497,26 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
     }
   };
 
+  // Calculate avatar position along the curvy path
+  const getCurrentLevelIndex = () => {
+    // Find the first 'current' or 'locked' level (avatar should be at current progress point)
+    const currentIndex = levels.findIndex(l => l.status === 'current');
+    if (currentIndex !== -1) return currentIndex;
+    
+    // If no current level, place at last completed level
+    const lastCompleted = levels.filter(l => l.status === 'completed').length;
+    return Math.min(lastCompleted, levels.length - 1);
+  };
+
+  const avatarLevelIndex = getCurrentLevelIndex();
+  const avatarPosition = getCurvyPosition(avatarLevelIndex);
+
   // UNIFIED PREMIUM DESIGN FOR ALL AREAS
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-100 to-indigo-100 dark:from-gray-900 dark:via-purple-950 dark:to-pink-950">
-      {/* Animated Avatar Header */}
+      {/* Compact Header */}
       <div className="relative overflow-hidden border-b border-pink-200 dark:border-pink-800/30">
-        <div className="relative z-10 text-center py-6 px-4">
-          {/* Animated Avatar with Affirmation Pop-ups */}
-          <div className="relative inline-block mb-3">
-            {/* Affirmation Pop-up */}
-            {currentAffirmation && (
-              <div 
-                className="affirmation-popup absolute -top-16 left-1/2 -translate-x-1/2 z-50 whitespace-nowrap"
-                data-testid="affirmation-popup"
-              >
-                <Card className="px-4 py-2 bg-gradient-to-r from-yellow-400 via-amber-400 to-orange-500 border-2 border-white shadow-2xl">
-                  <p className="text-sm font-bold text-white drop-shadow-lg flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 animate-pulse" />
-                    {currentAffirmation}
-                    <Sparkles className="w-4 h-4 animate-pulse" />
-                  </p>
-                </Card>
-              </div>
-            )}
-            
-            <div className={`absolute inset-0 bg-gradient-to-r ${avatar.bg} opacity-20 blur-xl rounded-full animate-pulse`} />
-            <div 
-              className={`relative w-24 h-24 mx-auto rounded-full bg-gradient-to-br ${avatar.bg} flex items-center justify-center shadow-lg border-3 border-white dark:border-gray-800 ${
-                isDancing ? 'animate-dance' : isWalking ? 'animate-walk' : 'animate-bounce-continuous'
-              }`}
-              data-testid="animated-avatar"
-            >
-              <div className="text-6xl">{avatar.icon}</div>
-            </div>
-          </div>
-          
+        <div className="relative z-10 text-center py-4 px-4">
           <h1 className="text-3xl font-black bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-2">
             {area.name} Mastery
           </h1>
@@ -540,23 +525,6 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
             <Crown className="w-4 h-4 mr-1" />
             {avatar.title}
           </Badge>
-          
-          {/* Progress Indicator */}
-          <div className="mt-3 text-xs text-muted-foreground">
-            {isDancing && (
-              <div className="flex items-center justify-center gap-2 text-yellow-600 dark:text-yellow-400 font-bold animate-pulse">
-                <Star className="w-3 h-3 fill-current" />
-                Level Unlocked! Keep Going!
-                <Star className="w-3 h-3 fill-current" />
-              </div>
-            )}
-            {!isDancing && completedLevels > 0 && (
-              <div className="flex items-center justify-center gap-2">
-                <Trophy className="w-3 h-3" />
-                {completedLevels} levels mastered - You're doing amazing!
-              </div>
-            )}
-          </div>
         </div>
       </div>
 
@@ -739,6 +707,59 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
                     </div>
                   );
                 })}
+
+                {/* Animated Avatar Traveling Along the Path */}
+                <div 
+                  className="absolute transition-all duration-1000 ease-out pointer-events-none"
+                  style={{
+                    transform: `translateX(${avatarPosition.x}px) translateY(${avatarPosition.y}px)`,
+                    zIndex: 50,
+                    left: '50%',
+                    marginLeft: '-40px', // Center the 80px avatar
+                    top: '0',
+                  }}
+                >
+                  {/* Affirmation Pop-up Above Avatar */}
+                  {currentAffirmation && (
+                    <div 
+                      className="affirmation-popup absolute -top-20 left-1/2 -translate-x-1/2 z-50 whitespace-nowrap"
+                      data-testid="affirmation-popup"
+                    >
+                      <Card className="px-4 py-2 bg-gradient-to-r from-yellow-400 via-amber-400 to-orange-500 border-2 border-white shadow-2xl">
+                        <p className="text-sm font-bold text-white drop-shadow-lg flex items-center gap-2">
+                          <Sparkles className="w-4 h-4 animate-pulse" />
+                          {currentAffirmation}
+                          <Sparkles className="w-4 h-4 animate-pulse" />
+                        </p>
+                      </Card>
+                    </div>
+                  )}
+                  
+                  {/* Avatar Background Glow */}
+                  <div className={`absolute inset-0 bg-gradient-to-r ${avatar.bg} opacity-30 blur-2xl rounded-full animate-pulse`} />
+                  
+                  {/* Animated Avatar */}
+                  <div 
+                    className={`relative w-20 h-20 mx-auto rounded-full bg-gradient-to-br ${avatar.bg} flex items-center justify-center shadow-2xl border-4 border-white dark:border-gray-800 ${
+                      isDancing ? 'animate-dance' : isWalking ? 'animate-walk' : 'animate-bounce-continuous'
+                    }`}
+                    data-testid="animated-avatar"
+                  >
+                    <div className="text-5xl">{avatar.icon}</div>
+                  </div>
+
+                  {/* Progress indicator below avatar */}
+                  {!isDancing && completedLevels > 0 && (
+                    <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                      <div className="flex items-center justify-center gap-1 bg-white/90 dark:bg-gray-800/90 backdrop-blur px-2 py-1 rounded-full shadow-lg border border-pink-200 dark:border-pink-800/30">
+                        <Trophy className="w-3 h-3 text-yellow-600" />
+                        <span className="text-[10px] font-bold text-gray-700 dark:text-gray-200">
+                          {completedLevels} Complete
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
