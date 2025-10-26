@@ -2,7 +2,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Check, Lock, Play, Crown, Sparkles, TrendingUp, Coins, DollarSign, Zap, Trophy, Heart, Users, Briefcase, Target, Star } from 'lucide-react';
-import { useState, useEffect } from 'react';
 
 interface SkillTreeProps {
   area: {
@@ -161,29 +160,6 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
   const overallProgress = Math.round((totalXP / maxXP) * 100);
   const completedLevels = levels.filter(l => l.status === 'completed').length;
 
-  // State for animated avatar and affirmations
-  const [currentAffirmation, setCurrentAffirmation] = useState<string | null>(null);
-  const [isWalking, setIsWalking] = useState(false);
-  const [isDancing, setIsDancing] = useState(false);
-
-  // Trigger affirmation pop-ups and animations
-  const showAffirmation = (affirmation: string) => {
-    setCurrentAffirmation(affirmation);
-    setIsDancing(true);
-    
-    // Clear affirmation after 3 seconds
-    setTimeout(() => {
-      setCurrentAffirmation(null);
-      setIsDancing(false);
-    }, 3000);
-  };
-
-  // Auto-walk animation when making progress
-  useEffect(() => {
-    if (completedLevels > 0) {
-      setIsWalking(true);
-    }
-  }, [completedLevels]);
 
   const getHealthAvatar = (progress: number) => {
     if (progress >= 90) return { 
@@ -311,9 +287,6 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
 
   const handleLevelClick = (level: LevelNode) => {
     if (level.status === 'locked') return;
-    
-    // Show affirmation pop-up
-    showAffirmation(level.affirmation);
     
     if (level.type === 'video') {
       onStartLesson();
@@ -497,19 +470,6 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
     }
   };
 
-  // Calculate avatar position along the curvy path
-  const getCurrentLevelIndex = () => {
-    // Find the first 'current' or 'locked' level (avatar should be at current progress point)
-    const currentIndex = levels.findIndex(l => l.status === 'current');
-    if (currentIndex !== -1) return currentIndex;
-    
-    // If no current level, place at last completed level
-    const lastCompleted = levels.filter(l => l.status === 'completed').length;
-    return Math.min(lastCompleted, levels.length - 1);
-  };
-
-  const avatarLevelIndex = getCurrentLevelIndex();
-  const avatarPosition = getCurvyPosition(avatarLevelIndex);
 
   // UNIFIED PREMIUM DESIGN FOR ALL AREAS
   return (
@@ -708,95 +668,6 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
                   );
                 })}
 
-                {/* Animated Cute Human Avatar Traveling Along the Path */}
-                <div 
-                  className="absolute transition-all duration-1000 ease-out"
-                  style={{
-                    transform: `translateX(${avatarPosition.x + 120}px) translateY(${avatarPosition.y - 20}px)`, // Offset to right side
-                    zIndex: 50,
-                    left: '50%',
-                    top: '0',
-                  }}
-                >
-                  {/* Affirmation Pop-up Above Avatar */}
-                  {currentAffirmation && (
-                    <div 
-                      className="affirmation-popup absolute -top-24 left-1/2 -translate-x-1/2 z-50 whitespace-nowrap"
-                      data-testid="affirmation-popup"
-                    >
-                      <Card className="px-4 py-2 bg-gradient-to-r from-yellow-400 via-amber-400 to-orange-500 border-2 border-white shadow-2xl">
-                        <p className="text-sm font-bold text-white drop-shadow-lg flex items-center gap-2">
-                          <Sparkles className="w-4 h-4 animate-pulse" />
-                          {currentAffirmation}
-                          <Sparkles className="w-4 h-4 animate-pulse" />
-                        </p>
-                      </Card>
-                    </div>
-                  )}
-                  
-                  {/* Cute Human Character */}
-                  <div 
-                    className={`relative ${
-                      isDancing ? 'animate-dance' : isWalking ? 'animate-walk' : 'animate-bounce-continuous'
-                    }`}
-                    data-testid="animated-avatar"
-                  >
-                    {/* Character Container */}
-                    <div className="relative w-16 h-24">
-                      {/* Head */}
-                      <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-gradient-to-br ${avatar.bg} border-3 border-white dark:border-gray-800 shadow-xl flex items-center justify-center overflow-hidden`}>
-                        {/* Face */}
-                        <div className="relative w-full h-full flex flex-col items-center justify-center">
-                          {/* Eyes */}
-                          <div className="flex gap-2 mb-1">
-                            <div className="w-1.5 h-1.5 bg-gray-800 dark:bg-white rounded-full"></div>
-                            <div className="w-1.5 h-1.5 bg-gray-800 dark:bg-white rounded-full"></div>
-                          </div>
-                          {/* Happy Smile */}
-                          <div className="w-4 h-2 border-b-2 border-gray-800 dark:border-white rounded-b-full"></div>
-                        </div>
-                      </div>
-
-                      {/* Body */}
-                      <div className={`absolute top-10 left-1/2 -translate-x-1/2 w-8 h-10 bg-gradient-to-br ${avatar.bg} rounded-lg border-2 border-white dark:border-gray-800 shadow-lg`}>
-                        {/* Shirt design - simple stripes */}
-                        <div className="absolute top-2 left-0 right-0 h-0.5 bg-white/40"></div>
-                        <div className="absolute top-4 left-0 right-0 h-0.5 bg-white/40"></div>
-                      </div>
-
-                      {/* Arms */}
-                      <div className={`absolute top-12 left-0 w-3 h-6 bg-gradient-to-br ${avatar.bg} rounded-full border border-white dark:border-gray-800 shadow ${isDancing ? 'animate-pulse' : ''}`}></div>
-                      <div className={`absolute top-12 right-0 w-3 h-6 bg-gradient-to-br ${avatar.bg} rounded-full border border-white dark:border-gray-800 shadow ${isDancing ? 'animate-pulse' : ''}`}></div>
-
-                      {/* Legs */}
-                      <div className={`absolute top-[72px] left-3 w-3 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg border border-white dark:border-gray-800 shadow ${isWalking ? 'animate-pulse' : ''}`}></div>
-                      <div className={`absolute top-[72px] right-3 w-3 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg border border-white dark:border-gray-800 shadow ${isWalking ? 'animate-pulse' : ''}`}></div>
-
-                      {/* Sparkle Effect when dancing */}
-                      {isDancing && (
-                        <>
-                          <Sparkles className="absolute -top-2 -left-2 w-4 h-4 text-yellow-400 animate-ping" />
-                          <Sparkles className="absolute -top-2 -right-2 w-4 h-4 text-pink-400 animate-ping" />
-                        </>
-                      )}
-                    </div>
-
-                    {/* Shadow */}
-                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-12 h-2 bg-gray-900/20 dark:bg-white/10 rounded-full blur-sm"></div>
-                  </div>
-
-                  {/* Progress indicator below avatar */}
-                  {!isDancing && completedLevels > 0 && (
-                    <div className="absolute top-28 left-1/2 -translate-x-1/2 whitespace-nowrap">
-                      <div className="flex items-center justify-center gap-1 bg-white/90 dark:bg-gray-800/90 backdrop-blur px-2 py-1 rounded-full shadow-lg border border-pink-200 dark:border-pink-800/30">
-                        <Trophy className="w-3 h-3 text-yellow-600" />
-                        <span className="text-[10px] font-bold text-gray-700 dark:text-gray-200">
-                          {completedLevels} Complete
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </div>
               </div>
             </div>
           </div>
