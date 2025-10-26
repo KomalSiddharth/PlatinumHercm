@@ -2,7 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card } from '@/components/ui/card';
-import { CheckCircle2, Circle, Lock, Play, Trophy, Star, Sparkles, Zap } from 'lucide-react';
+import { CheckCircle2, Circle, Lock, Play, Trophy, Star, Sparkles, Zap, Crown, Heart } from 'lucide-react';
 
 interface SkillTreeProps {
   area: {
@@ -48,218 +48,222 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
   const overallProgress = Math.round((completedLessons / totalLessons) * 100);
   const totalXP = levels.reduce((sum, level) => sum + level.xp, 0);
 
+  const getAvatarForProgress = (progress: number) => {
+    if (progress >= 90) return { emoji: '👑', title: 'Master', bg: 'from-yellow-400 via-amber-400 to-orange-500' };
+    if (progress >= 70) return { emoji: '🎖️', title: 'Expert', bg: 'from-purple-400 via-pink-400 to-rose-400' };
+    if (progress >= 50) return { emoji: '⭐', title: 'Advanced', bg: 'from-blue-400 via-cyan-400 to-teal-400' };
+    if (progress >= 30) return { emoji: '🌟', title: 'Intermediate', bg: 'from-green-400 via-emerald-400 to-teal-400' };
+    if (progress >= 10) return { emoji: '✨', title: 'Beginner', bg: 'from-indigo-400 via-purple-400 to-pink-400' };
+    return { emoji: '🌱', title: 'Starter', bg: 'from-gray-400 via-gray-500 to-gray-600' };
+  };
+
+  const avatar = getAvatarForProgress(overallProgress);
+
+  const getLevelPosition = (index: number) => {
+    const row = Math.floor(index / 3);
+    const col = index % 3;
+    
+    const isEvenRow = row % 2 === 0;
+    const actualCol = isEvenRow ? col : 2 - col;
+    
+    return {
+      left: `${actualCol * 40 + 10}%`,
+      top: `${row * 220}px`
+    };
+  };
+
   return (
     <div className="space-y-6 p-4">
-      {/* Header */}
-      <div className="text-center">
-        <div className="text-6xl mb-3">{area.emoji}</div>
-        <h2 className={`text-3xl font-black bg-gradient-to-r ${area.color} bg-clip-text text-transparent mb-2`}>
-          {area.name}
+      {/* Header with Avatar */}
+      <div className="text-center relative">
+        <div className={`w-28 h-28 mx-auto mb-4 rounded-full bg-gradient-to-br ${avatar.bg} flex items-center justify-center shadow-2xl border-4 border-white dark:border-gray-800 animate-pulse`}>
+          <div className="text-6xl">{avatar.emoji}</div>
+        </div>
+        <h2 className={`text-3xl font-black bg-gradient-to-r ${area.color} bg-clip-text text-transparent mb-1`}>
+          {area.name} Journey
         </h2>
-        <p className="text-muted-foreground">Your personalized learning journey</p>
+        <Badge className={`bg-gradient-to-r ${avatar.bg} text-white border-0 mb-2`}>
+          <Crown className="w-3 h-3 mr-1" />
+          {avatar.title}
+        </Badge>
+        <p className="text-sm text-muted-foreground">
+          Rating {area.currentRating} → {area.targetRating} • {completedLessons}/{totalLessons} lessons
+        </p>
       </div>
 
-      {/* Progress Summary */}
-      <div className={`bg-gradient-to-r ${area.color} p-6 rounded-2xl text-white shadow-xl`}>
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <div className="text-sm opacity-90 mb-1">Your Goal</div>
-            <div className="text-2xl font-black">
-              Rating {area.currentRating} → {area.targetRating}
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="text-4xl font-black">{overallProgress}%</div>
-            <div className="text-sm opacity-90">Complete</div>
-          </div>
+      {/* Progress Bar */}
+      <div className={`bg-gradient-to-r ${area.color} p-4 rounded-2xl text-white shadow-xl`}>
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm opacity-90">Journey Progress</span>
+          <span className="font-black flex items-center gap-1">
+            <Zap className="w-4 h-4" />
+            {totalXP} XP
+          </span>
         </div>
-        <div className="h-4 bg-white/30 rounded-full overflow-hidden">
+        <div className="h-3 bg-white/30 rounded-full overflow-hidden">
           <div 
             className="h-full bg-white rounded-full transition-all duration-500"
             style={{ width: `${overallProgress}%` }}
           />
         </div>
-        <div className="flex items-center justify-between mt-3 text-sm">
-          <span className="opacity-90">{completedLessons} / {totalLessons} lessons</span>
-          <span className="opacity-90 flex items-center gap-1">
-            <Zap className="w-4 h-4" />
-            {totalXP} XP earned
-          </span>
-        </div>
+        <div className="text-right text-2xl font-black mt-1">{overallProgress}%</div>
       </div>
 
-      {/* Level Path */}
-      <div className="space-y-6">
-        {levels.map((level, index) => (
-          <Card
-            key={level.id}
-            className={`relative overflow-hidden border-3 transition-all ${
-              level.status === 'current'
-                ? 'border-yellow-400 shadow-2xl shadow-yellow-400/30 scale-105'
-                : level.status === 'completed'
-                ? 'border-green-400 shadow-lg'
-                : level.status === 'locked'
-                ? 'border-gray-300 opacity-60'
-                : 'border-primary/30 shadow-md hover-elevate'
-            }`}
-            data-testid={`level-${level.id}`}
-          >
-            {/* Level Number Badge */}
-            <div className={`absolute -left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full flex items-center justify-center font-black text-lg shadow-lg z-10 ${
-              level.status === 'completed'
-                ? 'bg-green-500 text-white'
-                : level.status === 'current'
-                ? 'bg-yellow-400 text-yellow-900'
-                : level.status === 'locked'
-                ? 'bg-gray-400 text-white'
-                : 'bg-primary text-white'
-            }`}>
-              {level.status === 'completed' ? '✓' : level.id}
-            </div>
+      {/* Duolingo-Style Path */}
+      <div 
+        className="relative min-h-[2800px] rounded-3xl p-8 overflow-hidden"
+        style={{
+          background: 'linear-gradient(180deg, #fef3c7 0%, #fde68a 10%, #fcd34d 20%, #fbbf24 30%, #f59e0b 40%, #f97316 50%, #fb923c 60%, #fdba74 70%, #fed7aa 80%, #ffedd5 90%, #fff7ed 100%)'
+        }}
+      >
+        {/* Decorative elements */}
+        <div className="absolute top-10 left-10 text-6xl opacity-20">☁️</div>
+        <div className="absolute top-40 right-20 text-5xl opacity-20">⭐</div>
+        <div className="absolute top-80 left-5 text-4xl opacity-20">🌈</div>
+        <div className="absolute top-[500px] right-10 text-5xl opacity-20">✨</div>
+        <div className="absolute top-[800px] left-16 text-6xl opacity-20">🎯</div>
+        <div className="absolute top-[1100px] right-12 text-5xl opacity-20">🚀</div>
+        <div className="absolute top-[1400px] left-8 text-4xl opacity-20">💎</div>
+        <div className="absolute top-[1700px] right-16 text-6xl opacity-20">🏆</div>
+        <div className="absolute top-[2000px] left-12 text-5xl opacity-20">👑</div>
+        <div className="absolute top-[2300px] right-8 text-6xl opacity-20">🎉</div>
 
-            <div className="p-6 pl-10">
-              <div className="flex items-start gap-4">
-                {/* Emoji */}
-                <div className="text-5xl">{level.emoji}</div>
+        {/* Level Path */}
+        <div className="relative">
+        {levels.map((level, index) => {
+          const position = getLevelPosition(index);
+          const isLast = index === levels.length - 1;
+          
+          return (
+            <div
+              key={level.id}
+              className="absolute transition-all duration-500"
+              style={{
+                left: position.left,
+                top: position.top,
+                transform: 'translateX(-50%)'
+              }}
+            >
+              {/* Connection Line to Next Level */}
+              {!isLast && (
+                <div 
+                  className="absolute top-full left-1/2 w-1 bg-gradient-to-b from-amber-400 to-orange-400 z-0"
+                  style={{ 
+                    height: '60px',
+                    transform: 'translateX(-50%)'
+                  }}
+                />
+              )}
 
-                {/* Content */}
-                <div className="flex-1">
-                  <div className="flex items-start justify-between gap-4 mb-3">
-                    <div>
-                      <h3 className="text-xl font-bold flex items-center gap-2">
-                        Level {level.id}: {level.name}
-                      </h3>
-                      <div className="flex items-center flex-wrap gap-2 mt-1">
-                        {level.status === 'current' && (
-                          <Badge className="bg-yellow-400 text-yellow-900 border-0 animate-pulse">
-                            <Sparkles className="w-3 h-3 mr-1" />
-                            Active
-                          </Badge>
-                        )}
-                        {level.status === 'completed' && (
-                          <Badge className="bg-green-500 text-white border-0">
-                            <Trophy className="w-3 h-3 mr-1" />
-                            Mastered
-                          </Badge>
-                        )}
-                        {level.status === 'locked' && (
-                          <Badge variant="secondary">
-                            <Lock className="w-3 h-3 mr-1" />
-                            Locked
-                          </Badge>
-                        )}
-                        <span className="text-sm text-muted-foreground">
-                          {level.lessons} lessons • {level.xp > 0 ? `${level.xp} XP` : `${level.lessons * 50} XP available`}
-                        </span>
-                      </div>
-                      <div className="flex items-center flex-wrap gap-1 mt-2">
-                        {level.contentTypes.map((type, idx) => (
-                          <Badge key={idx} variant="outline" className="text-xs">
-                            {type}
-                          </Badge>
-                        ))}
-                      </div>
+              {/* Level Node */}
+              <div 
+                className={`relative w-32 h-32 rounded-3xl flex flex-col items-center justify-center cursor-pointer transition-all transform hover:scale-110 ${
+                  level.status === 'current'
+                    ? 'bg-gradient-to-br from-yellow-400 via-amber-400 to-orange-400 shadow-2xl shadow-yellow-400/50 scale-110 animate-pulse'
+                    : level.status === 'completed'
+                    ? 'bg-gradient-to-br from-green-400 via-emerald-400 to-teal-400 shadow-xl'
+                    : 'bg-gradient-to-br from-gray-300 via-gray-400 to-gray-500 opacity-50'
+                }`}
+                data-testid={`level-${level.id}`}
+              >
+                {/* Status Badge */}
+                <div className={`absolute -top-3 -right-3 w-10 h-10 rounded-full flex items-center justify-center shadow-lg ${
+                  level.status === 'completed' ? 'bg-green-600' : level.status === 'current' ? 'bg-yellow-500' : 'bg-gray-500'
+                }`}>
+                  {level.status === 'completed' ? (
+                    <CheckCircle2 className="w-6 h-6 text-white" />
+                  ) : level.status === 'locked' ? (
+                    <Lock className="w-5 h-5 text-white" />
+                  ) : (
+                    <Star className="w-5 h-5 text-white animate-spin" style={{ animationDuration: '3s' }} />
+                  )}
+                </div>
+
+                {/* Level Content */}
+                <div className="text-5xl mb-1">{level.emoji}</div>
+                <div className="text-xs font-black text-white text-center px-2">
+                  Lv {level.id}
+                </div>
+                
+                {/* Progress Ring for Current */}
+                {level.status === 'current' && (
+                  <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-20 h-2 bg-white/30 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-white rounded-full transition-all"
+                      style={{ width: `${(level.completed / level.lessons) * 100}%` }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Level Info Card on Hover */}
+              <div className="absolute left-1/2 -translate-x-1/2 top-36 w-72 opacity-0 hover:opacity-100 transition-opacity z-50 pointer-events-none">
+                <Card className="p-4 shadow-2xl border-4 border-primary/20">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-bold text-sm">{level.name}</h3>
+                      {level.status === 'current' && (
+                        <Badge className="bg-yellow-400 text-yellow-900 text-xs">Active</Badge>
+                      )}
                     </div>
-
-                    {/* Action Button */}
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span>{level.lessons} lessons</span>
+                      <span>•</span>
+                      <span>{level.xp > 0 ? level.xp : level.lessons * 50} XP</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {level.contentTypes.map((type, idx) => (
+                        <Badge key={idx} variant="outline" className="text-xs">
+                          {type}
+                        </Badge>
+                      ))}
+                    </div>
                     {level.status === 'current' && (
                       <Button 
                         onClick={onStartLesson}
-                        className="gap-2 font-bold shadow-lg"
+                        size="sm"
+                        className="w-full pointer-events-auto"
                         data-testid={`button-continue-level-${level.id}`}
                       >
-                        <Play className="w-4 h-4" />
+                        <Play className="w-3 h-3 mr-1" />
                         Continue
                       </Button>
                     )}
                     {level.status === 'completed' && (
                       <Button 
                         onClick={onStartLesson}
+                        size="sm"
                         variant="outline"
-                        className="gap-2"
+                        className="w-full pointer-events-auto"
                         data-testid={`button-review-level-${level.id}`}
                       >
-                        Practice
+                        Practice Again
                       </Button>
                     )}
                   </div>
-
-                  {/* Progress for current level */}
-                  {level.status === 'current' && (
-                    <div className="mb-4 space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Progress</span>
-                        <span className="font-bold">
-                          {level.completed}/{level.lessons} lessons
-                        </span>
-                      </div>
-                      <div className="h-3 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
-                        <div 
-                          className={`h-full bg-gradient-to-r ${area.color} transition-all duration-500`}
-                          style={{ width: `${(level.completed / level.lessons) * 100}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Lesson Dots */}
-                  {level.status !== 'locked' && (
-                    <div className="flex flex-wrap gap-2">
-                      {Array.from({ length: level.lessons }).map((_, i) => (
-                        <div
-                          key={i}
-                          className={`relative w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold border-2 transition-all ${
-                            i < level.completed
-                              ? 'bg-green-100 dark:bg-green-900/30 border-green-500 text-green-700 dark:text-green-300'
-                              : 'bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-500 hover:scale-110'
-                          }`}
-                          data-testid={`lesson-indicator-${level.id}-${i + 1}`}
-                        >
-                          {i < level.completed ? (
-                            <CheckCircle2 className="w-5 h-5" />
-                          ) : (
-                            <Circle className="w-5 h-5" />
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Lock message */}
-                  {level.status === 'locked' && (
-                    <div className="bg-gray-100 dark:bg-gray-800 rounded-xl p-4 text-center">
-                      <Lock className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-muted-foreground">
-                        Complete Level {level.id - 1} to unlock
-                      </p>
-                    </div>
-                  )}
-                </div>
+                </Card>
               </div>
             </div>
-
-            {/* Completion celebration overlay */}
-            {level.status === 'completed' && (
-              <div className="absolute top-2 right-2">
-                <div className="text-3xl animate-bounce">🎉</div>
-              </div>
-            )}
-          </Card>
-        ))}
+          );
+        })}
+        </div>
       </div>
 
-      {/* Encouragement */}
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 p-6 rounded-2xl border-2 border-blue-200 dark:border-blue-800">
+      {/* Achievement Message */}
+      <div className="bg-gradient-to-r from-purple-50 via-pink-50 to-orange-50 dark:from-purple-950/20 dark:via-pink-950/20 dark:to-orange-950/20 p-6 rounded-2xl border-2 border-purple-200 dark:border-purple-800">
         <div className="flex items-start gap-4">
-          <div className="text-4xl">💡</div>
-          <div>
-            <h4 className="font-bold text-lg text-blue-900 dark:text-blue-100 mb-2">
-              Your Learning Journey!
+          <div className="text-5xl">{avatar.emoji}</div>
+          <div className="flex-1">
+            <h4 className="font-bold text-lg bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+              {avatar.title} Level Unlocked!
             </h4>
-            <p className="text-blue-800 dark:text-blue-200 text-sm">
-              {levels.length} comprehensive levels with {totalLessons} lessons await you! Mix of videos, readings, quizzes, 
-              interactive exercises, and real-world challenges. Complete 1-2 lessons daily. You got this! 🚀
+            <p className="text-sm text-muted-foreground mb-3">
+              Keep learning to unlock better avatars! Complete lessons to progress from 🌱 Starter → ✨ Beginner → 🌟 Intermediate → ⭐ Advanced → 🎖️ Expert → 👑 Master
             </p>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Heart className="w-4 h-4 text-pink-500" />
+              <span>{levels.length} levels • {totalLessons} lessons • {levels.length * 50 * 10} total XP available</span>
+            </div>
           </div>
         </div>
       </div>
