@@ -115,152 +115,6 @@ function generateSkills(problems: string[]): string[] {
   return Array.from(skills).slice(0, 4); // Max 4 skills
 }
 
-// Human Avatar Component - Realistic CSS Person
-function HumanAvatar({ progress = 0 }: { progress: number }) {
-  // Different stages based on progress
-  const getAvatarStage = () => {
-    if (progress < 20) return { skin: '#FFD4A3', shirt: '#9CA3AF', mood: 'tired' }; // Gray shirt, tired
-    if (progress < 40) return { skin: '#FFCB9A', shirt: '#60A5FA', mood: 'awake' }; // Blue shirt, awake
-    if (progress < 70) return { skin: '#FFC491', shirt: '#34D399', mood: 'happy' }; // Green shirt, happy
-    if (progress < 90) return { skin: '#FFBD88', shirt: '#F59E0B', mood: 'fit' }; // Orange shirt, fit
-    return { skin: '#FFB67F', shirt: '#8B5CF6', mood: 'champion' }; // Purple shirt, champion
-  };
-
-  const stage = getAvatarStage();
-  
-  return (
-    <div className="relative inline-block" style={{ width: '60px', height: '80px' }}>
-      {/* Head */}
-      <div 
-        className="absolute rounded-full"
-        style={{
-          width: '28px',
-          height: '28px',
-          top: '0px',
-          left: '16px',
-          backgroundColor: stage.skin,
-          border: '2px solid rgba(0,0,0,0.1)'
-        }}
-      >
-        {/* Hair */}
-        <div 
-          className="absolute rounded-t-full"
-          style={{
-            width: '32px',
-            height: '18px',
-            top: '-8px',
-            left: '-2px',
-            backgroundColor: '#4A3728',
-            borderRadius: '50% 50% 0 0'
-          }}
-        />
-        
-        {/* Eyes */}
-        <div className="absolute flex gap-1.5" style={{ top: '10px', left: '7px' }}>
-          <div className="w-1.5 h-1.5 bg-black rounded-full" />
-          <div className="w-1.5 h-1.5 bg-black rounded-full" />
-        </div>
-        
-        {/* Smile (for happy stages) */}
-        {stage.mood !== 'tired' && (
-          <div 
-            className="absolute"
-            style={{
-              width: '10px',
-              height: '5px',
-              top: '18px',
-              left: '9px',
-              borderBottom: '2px solid rgba(0,0,0,0.6)',
-              borderRadius: '0 0 50% 50%'
-            }}
-          />
-        )}
-      </div>
-
-      {/* Neck */}
-      <div
-        className="absolute"
-        style={{
-          width: '10px',
-          height: '8px',
-          top: '26px',
-          left: '25px',
-          backgroundColor: stage.skin
-        }}
-      />
-
-      {/* Body/Shirt */}
-      <div
-        className="absolute rounded-lg"
-        style={{
-          width: '32px',
-          height: '30px',
-          top: '32px',
-          left: '14px',
-          backgroundColor: stage.shirt,
-          border: '2px solid rgba(0,0,0,0.1)'
-        }}
-      >
-        {/* Collar */}
-        <div className="absolute w-full h-2 top-0 bg-white/20 rounded-t-lg" />
-      </div>
-
-      {/* Arms */}
-      <div
-        className="absolute rounded-full"
-        style={{
-          width: '8px',
-          height: '22px',
-          top: '36px',
-          left: '6px',
-          backgroundColor: stage.shirt,
-          transform: 'rotate(-10deg)'
-        }}
-      />
-      <div
-        className="absolute rounded-full"
-        style={{
-          width: '8px',
-          height: '22px',
-          top: '36px',
-          right: '6px',
-          backgroundColor: stage.shirt,
-          transform: 'rotate(10deg)'
-        }}
-      />
-
-      {/* Legs */}
-      <div
-        className="absolute rounded-full"
-        style={{
-          width: '10px',
-          height: '20px',
-          top: '60px',
-          left: '18px',
-          backgroundColor: '#1F2937'
-        }}
-      />
-      <div
-        className="absolute rounded-full"
-        style={{
-          width: '10px',
-          height: '20px',
-          top: '60px',
-          right: '18px',
-          backgroundColor: '#1F2937'
-        }}
-      />
-      
-      {/* Champion Badge */}
-      {stage.mood === 'champion' && (
-        <div className="absolute -top-8 left-1/2 -translate-x-1/2 text-2xl animate-bounce">
-          👑
-        </div>
-      )}
-    </div>
-  );
-}
-
 export default function SkillBuilder() {
   const [selectedNode, setSelectedNode] = useState<SkillNode | null>(null);
   const [treeOpen, setTreeOpen] = useState(false);
@@ -296,11 +150,6 @@ export default function SkillBuilder() {
       setTreeOpen(true);
     }
   };
-  
-  // Calculate overall progress for avatar
-  const overallProgress = nodes.length > 0 
-    ? Math.round(nodes.reduce((sum, n) => sum + (n.currentRating / n.targetRating * 100), 0) / nodes.length)
-    : 0;
 
   return (
     <>
@@ -311,25 +160,6 @@ export default function SkillBuilder() {
             Your Skills Map
           </h2>
           <p className="text-sm text-muted-foreground">Close the gap with focused learning! 🎯</p>
-        </div>
-
-        {/* Human Avatar - Overall Progress */}
-        <div className="flex flex-col items-center mb-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 rounded-xl border border-purple-200 dark:border-purple-800">
-          <div className="mb-3">
-            <HumanAvatar progress={overallProgress} />
-          </div>
-          <div className="text-center">
-            <p className="text-sm font-bold text-purple-900 dark:text-purple-100">
-              Your Journey: {overallProgress}% Complete
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {overallProgress < 20 && "Starting your transformation... 💪"}
-              {overallProgress >= 20 && overallProgress < 40 && "You're waking up! Keep going! 🌅"}
-              {overallProgress >= 40 && overallProgress < 70 && "Great progress! You're thriving! 🌟"}
-              {overallProgress >= 70 && overallProgress < 90 && "You're becoming unstoppable! 🔥"}
-              {overallProgress >= 90 && "You're a true champion! 👑"}
-            </p>
-          </div>
         </div>
 
         {/* HRCM Cards Grid - 2x2 Layout */}
