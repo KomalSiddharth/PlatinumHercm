@@ -1,7 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Check, Lock, Play, Crown, Sparkles, TrendingUp, Coins, DollarSign, Zap, Trophy } from 'lucide-react';
+import { Check, Lock, Play, Crown, Sparkles, TrendingUp, Coins, DollarSign, Zap, Trophy, Heart, Users, Briefcase, Target, Star } from 'lucide-react';
 import { useState } from 'react';
 
 interface SkillTreeProps {
@@ -31,8 +31,6 @@ interface LevelNode {
 }
 
 export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
-  const isMoney = area.name === 'Money';
-
   // 24 Health Transformation Levels
   const healthLevels: LevelNode[] = [
     { id: 1, name: 'Welcome to Health Mastery', type: 'video', status: 'completed', xp: 5, affirmation: 'I am ready to transform my health!' },
@@ -59,6 +57,62 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
     { id: 22, name: 'Laughter Therapy', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Joy is my natural state', exerciseDetails: { task: 'Laugh intentionally', count: 5, unit: 'minutes' } },
     { id: 23, name: 'Cold Shower Challenge', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I embrace discomfort for growth', exerciseDetails: { task: 'Take cold shower', count: 2, unit: 'minutes' } },
     { id: 24, name: 'Health Champion Mastery', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am a health champion!', exerciseDetails: { task: 'Complete all daily health practices' } }
+  ];
+
+  // 24 Relationship Mastery Levels
+  const relationshipLevels: LevelNode[] = [
+    { id: 1, name: 'Relationship Foundations', type: 'video', status: 'completed', xp: 5, affirmation: 'I attract loving relationships!' },
+    { id: 2, name: 'Communication Mastery', type: 'video', status: 'completed', xp: 5, affirmation: 'I speak with love and clarity' },
+    { id: 3, name: 'Active Listening Practice', type: 'exercise', status: 'current', xp: 0, affirmation: 'I truly hear others', exerciseDetails: { task: 'Practice active listening', count: 3, unit: 'conversations' } },
+    { id: 4, name: 'Express Gratitude', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Appreciation deepens bonds', exerciseDetails: { task: 'Thank someone genuinely', count: 3, unit: 'people' } },
+    { id: 5, name: 'Quality Time Together', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Presence is my gift', exerciseDetails: { task: 'Spend quality time', count: 1, unit: 'hour' } },
+    { id: 6, name: 'Conflict Resolution', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I navigate conflicts with grace', exerciseDetails: { task: 'Practice peaceful conflict resolution' } },
+    { id: 7, name: 'Words of Affirmation', type: 'exercise', status: 'locked', xp: 0, affirmation: 'My words uplift others', exerciseDetails: { task: 'Give genuine compliments', count: 5, unit: 'compliments' } },
+    { id: 8, name: 'Acts of Service', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I serve with love', exerciseDetails: { task: 'Do something helpful', count: 2, unit: 'acts' } },
+    { id: 9, name: 'Physical Touch', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Connection heals', exerciseDetails: { task: 'Hug loved ones', count: 5, unit: 'hugs' } },
+    { id: 10, name: 'Receiving Love', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am worthy of love', exerciseDetails: { task: 'Accept love graciously' } },
+    { id: 11, name: 'Forgiveness Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I release resentment', exerciseDetails: { task: 'Forgive someone' } },
+    { id: 12, name: 'Empathy Building', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I understand others deeply', exerciseDetails: { task: 'Practice empathy', count: 10, unit: 'minutes' } },
+    { id: 13, name: 'Boundaries Setting', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I honor my boundaries', exerciseDetails: { task: 'Set healthy boundary', count: 1, unit: 'boundary' } },
+    { id: 14, name: 'Trust Building', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am trustworthy', exerciseDetails: { task: 'Keep a promise' } },
+    { id: 15, name: 'Vulnerability Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Vulnerability is strength', exerciseDetails: { task: 'Share feelings openly' } },
+    { id: 16, name: 'Date Night Planning', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Romance flourishes', exerciseDetails: { task: 'Plan special date', count: 1, unit: 'date' } },
+    { id: 17, name: 'Family Bonding', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Family strengthens me', exerciseDetails: { task: 'Family activity', count: 1, unit: 'activity' } },
+    { id: 18, name: 'Friendship Nurturing', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I cherish my friends', exerciseDetails: { task: 'Connect with friend', count: 1, unit: 'friend' } },
+    { id: 19, name: 'Laughter Together', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Joy multiplies when shared', exerciseDetails: { task: 'Laugh together', count: 15, unit: 'minutes' } },
+    { id: 20, name: 'Relationship Vision', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I create beautiful connections', exerciseDetails: { task: 'Visualize ideal relationships', count: 10, unit: 'minutes' } },
+    { id: 21, name: 'Difficult Conversations', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I communicate bravely', exerciseDetails: { task: 'Have honest conversation' } },
+    { id: 22, name: 'Love Languages', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I speak all love languages', exerciseDetails: { task: 'Practice partner\'s love language' } },
+    { id: 23, name: 'Appreciation Ritual', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Gratitude deepens love', exerciseDetails: { task: 'Evening appreciation sharing' } },
+    { id: 24, name: 'Relationship Champion', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am a relationship master!', exerciseDetails: { task: 'Complete all relationship practices' } }
+  ];
+
+  // 24 Career Mastery Levels
+  const careerLevels: LevelNode[] = [
+    { id: 1, name: 'Career Vision Clarity', type: 'video', status: 'completed', xp: 5, affirmation: 'My career path is clear!' },
+    { id: 2, name: 'Professional Excellence', type: 'video', status: 'completed', xp: 5, affirmation: 'I excel in my work' },
+    { id: 3, name: 'Daily Planning', type: 'exercise', status: 'current', xp: 0, affirmation: 'I plan for success', exerciseDetails: { task: 'Create daily plan', count: 1, unit: 'plan' } },
+    { id: 4, name: 'Priority Management', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I focus on what matters', exerciseDetails: { task: 'Identify top priorities', count: 3, unit: 'priorities' } },
+    { id: 5, name: 'Deep Work Session', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Focus fuels excellence', exerciseDetails: { task: 'Deep work session', count: 90, unit: 'minutes' } },
+    { id: 6, name: 'Skill Development', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I grow daily', exerciseDetails: { task: 'Learn new skill', count: 30, unit: 'minutes' } },
+    { id: 7, name: 'Value Creation', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I add tremendous value', exerciseDetails: { task: 'Deliver 10x value today' } },
+    { id: 8, name: 'Networking Activity', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Connections create opportunities', exerciseDetails: { task: 'Connect with professional', count: 1, unit: 'person' } },
+    { id: 9, name: 'Goal Setting', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Clear goals guide me', exerciseDetails: { task: 'Set career goals', count: 3, unit: 'goals' } },
+    { id: 10, name: 'Productivity Boost', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I work smart', exerciseDetails: { task: 'Use productivity technique' } },
+    { id: 11, name: 'Professional Reading', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Knowledge is power', exerciseDetails: { task: 'Read professional content', count: 30, unit: 'minutes' } },
+    { id: 12, name: 'Presentation Skills', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I communicate powerfully', exerciseDetails: { task: 'Practice presentation' } },
+    { id: 13, name: 'Problem Solving', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I solve challenges creatively', exerciseDetails: { task: 'Solve difficult problem' } },
+    { id: 14, name: 'Leadership Practice', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I inspire others', exerciseDetails: { task: 'Lead team activity' } },
+    { id: 15, name: 'Innovation Time', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I create new solutions', exerciseDetails: { task: 'Brainstorm innovations', count: 5, unit: 'ideas' } },
+    { id: 16, name: 'Feedback Seeking', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Feedback helps me grow', exerciseDetails: { task: 'Ask for constructive feedback' } },
+    { id: 17, name: 'Time Blocking', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I control my time', exerciseDetails: { task: 'Block time for priorities' } },
+    { id: 18, name: 'Energy Management', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I manage my energy wisely', exerciseDetails: { task: 'Take strategic breaks', count: 3, unit: 'breaks' } },
+    { id: 19, name: 'Celebration Ritual', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I celebrate my wins', exerciseDetails: { task: 'Acknowledge achievements' } },
+    { id: 20, name: 'Mentor Connection', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I learn from the best', exerciseDetails: { task: 'Connect with mentor' } },
+    { id: 21, name: 'Project Completion', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I finish what I start', exerciseDetails: { task: 'Complete important project' } },
+    { id: 22, name: 'Strategic Thinking', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I think long-term', exerciseDetails: { task: 'Plan strategic moves', count: 15, unit: 'minutes' } },
+    { id: 23, name: 'Excellence Standard', type: 'exercise', status: 'locked', xp: 0, affirmation: 'Excellence is my standard', exerciseDetails: { task: 'Deliver exceptional work' } },
+    { id: 24, name: 'Career Champion', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am a career master!', exerciseDetails: { task: 'Complete all career practices' } }
   ];
 
   // 24 Money Mastery Levels
@@ -89,7 +143,18 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
     { id: 24, name: 'Millionaire Mastery', type: 'exercise', status: 'locked', xp: 0, affirmation: 'I am a wealth creator!', exerciseDetails: { task: 'Complete all money practices' } }
   ];
 
-  const levels = isMoney ? moneyLevels : healthLevels;
+  // Select levels based on area
+  const getLevels = () => {
+    switch (area.name) {
+      case 'Health': return healthLevels;
+      case 'Relationships': return relationshipLevels;
+      case 'Career': return careerLevels;
+      case 'Money': return moneyLevels;
+      default: return healthLevels;
+    }
+  };
+
+  const levels = getLevels();
 
   const totalXP = levels.reduce((sum, level) => sum + level.xp, 0);
   const maxXP = levels.length * 5;
@@ -100,32 +165,83 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
     if (progress >= 90) return { 
       icon: '🦸', 
       title: 'Health Champion', 
-      bg: 'from-yellow-400 via-amber-400 to-orange-500',
-      description: 'Heroic aura, peak vitality!'
+      bg: 'from-yellow-400 via-amber-400 to-orange-500'
     };
     if (progress >= 60) return { 
       icon: '💪', 
       title: 'Fit Warrior', 
-      bg: 'from-purple-400 via-pink-400 to-rose-400',
-      description: 'Fit posture, showing biceps!'
+      bg: 'from-purple-400 via-pink-400 to-rose-400'
     };
     if (progress >= 30) return { 
       icon: '😊', 
       title: 'Energetic Being', 
-      bg: 'from-blue-400 via-cyan-400 to-teal-400',
-      description: 'Smiling, more colorful!'
+      bg: 'from-blue-400 via-cyan-400 to-teal-400'
     };
     if (progress >= 10) return { 
       icon: '🙂', 
       title: 'Awakening', 
-      bg: 'from-green-400 via-emerald-400 to-teal-400',
-      description: 'Starting to feel better...'
+      bg: 'from-green-400 via-emerald-400 to-teal-400'
     };
     return { 
       icon: '😓', 
       title: 'Starting Journey', 
-      bg: 'from-gray-400 via-gray-500 to-gray-600',
-      description: 'Tired & slouched'
+      bg: 'from-gray-400 via-gray-500 to-gray-600'
+    };
+  };
+
+  const getRelationshipAvatar = (progress: number) => {
+    if (progress >= 90) return { 
+      icon: '💖', 
+      title: 'Love Master', 
+      bg: 'from-yellow-400 via-amber-400 to-orange-500'
+    };
+    if (progress >= 60) return { 
+      icon: '🫂', 
+      title: 'Connection Expert', 
+      bg: 'from-purple-400 via-pink-400 to-rose-400'
+    };
+    if (progress >= 30) return { 
+      icon: '💕', 
+      title: 'Growing Bonds', 
+      bg: 'from-pink-400 via-purple-400 to-indigo-400'
+    };
+    if (progress >= 10) return { 
+      icon: '❤️', 
+      title: 'Opening Heart', 
+      bg: 'from-purple-300 via-pink-300 to-rose-300'
+    };
+    return { 
+      icon: '💔', 
+      title: 'Healing Relationships', 
+      bg: 'from-gray-400 via-gray-500 to-gray-600'
+    };
+  };
+
+  const getCareerAvatar = (progress: number) => {
+    if (progress >= 90) return { 
+      icon: '👑', 
+      title: 'Career Champion', 
+      bg: 'from-yellow-400 via-amber-400 to-orange-500'
+    };
+    if (progress >= 60) return { 
+      icon: '🎯', 
+      title: 'High Achiever', 
+      bg: 'from-purple-400 via-pink-400 to-rose-400'
+    };
+    if (progress >= 30) return { 
+      icon: '📈', 
+      title: 'Rising Star', 
+      bg: 'from-pink-400 via-purple-400 to-indigo-400'
+    };
+    if (progress >= 10) return { 
+      icon: '🌱', 
+      title: 'Career Builder', 
+      bg: 'from-purple-300 via-pink-300 to-rose-300'
+    };
+    return { 
+      icon: '😕', 
+      title: 'Finding Path', 
+      bg: 'from-gray-400 via-gray-500 to-gray-600'
     };
   };
 
@@ -133,36 +249,41 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
     if (progress >= 90) return { 
       icon: '👑', 
       title: 'Wealth Master', 
-      bg: 'from-yellow-400 via-amber-400 to-orange-500',
-      description: 'Living in abundance!'
+      bg: 'from-yellow-400 via-amber-400 to-orange-500'
     };
     if (progress >= 60) return { 
       icon: '💼', 
       title: 'Prosperous Professional', 
-      bg: 'from-purple-400 via-pink-400 to-rose-400',
-      description: 'Money flows easily'
+      bg: 'from-purple-400 via-pink-400 to-rose-400'
     };
     if (progress >= 30) return { 
       icon: '💰', 
       title: 'Growing Wealth', 
-      bg: 'from-pink-400 via-purple-400 to-indigo-400',
-      description: 'Building prosperity'
+      bg: 'from-pink-400 via-purple-400 to-indigo-400'
     };
     if (progress >= 10) return { 
       icon: '💸', 
       title: 'Money Learner', 
-      bg: 'from-purple-300 via-pink-300 to-rose-300',
-      description: 'Opening to abundance'
+      bg: 'from-purple-300 via-pink-300 to-rose-300'
     };
     return { 
       icon: '😔', 
       title: 'Struggling Financially', 
-      bg: 'from-gray-400 via-gray-500 to-gray-600',
-      description: 'Feeling scarcity'
+      bg: 'from-gray-400 via-gray-500 to-gray-600'
     };
   };
 
-  const avatar = isMoney ? getMoneyAvatar(overallProgress) : getHealthAvatar(overallProgress);
+  const getAvatar = () => {
+    switch (area.name) {
+      case 'Health': return getHealthAvatar(overallProgress);
+      case 'Relationships': return getRelationshipAvatar(overallProgress);
+      case 'Career': return getCareerAvatar(overallProgress);
+      case 'Money': return getMoneyAvatar(overallProgress);
+      default: return getHealthAvatar(overallProgress);
+    }
+  };
+
+  const avatar = getAvatar();
 
   const handleLevelClick = (level: LevelNode) => {
     if (level.status === 'locked') return;
@@ -176,203 +297,304 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
 
   // Smooth curvy path positioning using sine wave
   const getCurvyPosition = (index: number) => {
-    const baseY = index * 120; // More vertical spacing to prevent overlap
-    const amplitude = 180; // Increased for more curviness
-    const frequency = 0.5; // More waves for dramatic curves
-    
-    // Sine wave for smooth curvy path
+    const baseY = index * 120;
+    const amplitude = 180;
+    const frequency = 0.5;
     const x = Math.sin(index * frequency) * amplitude;
-    
     return { x, y: baseY };
   };
 
-  // Money section - Premium Design with Consistent Background
-  if (isMoney) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-100 to-indigo-100 dark:from-gray-900 dark:via-purple-950 dark:to-pink-950">
-        {/* Compact Header */}
-        <div className="relative overflow-hidden border-b border-pink-200 dark:border-pink-800/30">
-          <div className="relative z-10 text-center py-6 px-4">
-            {/* Compact Avatar */}
-            <div className="relative inline-block mb-3">
-              <div className={`absolute inset-0 bg-gradient-to-r ${avatar.bg} opacity-20 blur-xl rounded-full animate-pulse`} />
-              <div className={`relative w-20 h-20 mx-auto rounded-full bg-gradient-to-br ${avatar.bg} flex items-center justify-center shadow-lg border-2 border-white dark:border-gray-800`}>
-                <div className="text-5xl">{avatar.icon}</div>
-              </div>
+  // Themed Background Elements
+  const getBackgroundElements = () => {
+    const commonProps = { className: "absolute animate-float" };
+    
+    switch (area.name) {
+      case 'Health':
+        return (
+          <>
+            <div {...commonProps} style={{ top: '3%', left: '8%', animationDelay: '0s', animationDuration: '9s', opacity: 0.6 }}>💪</div>
+            <div {...commonProps} style={{ top: '8%', right: '5%', animationDelay: '2s', animationDuration: '11s', opacity: 0.55 }}>🏃</div>
+            <div {...commonProps} style={{ top: '12%', left: '15%', animationDelay: '1s', animationDuration: '10s', opacity: 0.5 }}>🧘</div>
+            <div {...commonProps} style={{ top: '18%', right: '10%', animationDelay: '3s', animationDuration: '12s', opacity: 0.6 }}>🍎</div>
+            <div {...commonProps} style={{ top: '22%', left: '3%', animationDelay: '1.5s', animationDuration: '10s', opacity: 0.55 }}>💧</div>
+            <div {...commonProps} style={{ top: '28%', right: '18%', animationDelay: '2.5s', animationDuration: '11s', opacity: 0.5 }}>😴</div>
+            <div {...commonProps} style={{ top: '32%', left: '12%', animationDelay: '0.5s', animationDuration: '9s', opacity: 0.6 }}>❤️</div>
+            <div {...commonProps} style={{ top: '38%', right: '8%', animationDelay: '1s', animationDuration: '10s', opacity: 0.55 }}>⚡</div>
+            <div {...commonProps} style={{ top: '42%', left: '6%', animationDelay: '3s', animationDuration: '12s', opacity: 0.5 }}>🔥</div>
+            <div {...commonProps} style={{ top: '48%', right: '15%', animationDelay: '0s', animationDuration: '9s', opacity: 0.6 }}>🎯</div>
+            <div {...commonProps} style={{ top: '52%', left: '10%', animationDelay: '2s', animationDuration: '11s', opacity: 0.5 }}>🏆</div>
+            <div {...commonProps} style={{ top: '58%', right: '12%', animationDelay: '1.5s', animationDuration: '10s', opacity: 0.55 }}>✨</div>
+            <div {...commonProps} style={{ top: '62%', left: '18%', animationDelay: '3.5s', animationDuration: '12s', opacity: 0.6 }}>💪</div>
+            <div {...commonProps} style={{ top: '68%', right: '6%', animationDelay: '0.5s', animationDuration: '9s', opacity: 0.55 }}>🏃</div>
+            <div {...commonProps} style={{ top: '72%', left: '8%', animationDelay: '2.5s', animationDuration: '11s', opacity: 0.6 }}>🧘</div>
+            <div {...commonProps} style={{ top: '78%', right: '14%', animationDelay: '1s', animationDuration: '10s', opacity: 0.5 }}>🍎</div>
+            <div {...commonProps} style={{ top: '82%', left: '12%', animationDelay: '3s', animationDuration: '12s', opacity: 0.55 }}>💧</div>
+            <div {...commonProps} style={{ top: '88%', right: '10%', animationDelay: '1.5s', animationDuration: '10s', opacity: 0.6 }}>😴</div>
+            <div {...commonProps} style={{ top: '92%', left: '15%', animationDelay: '0s', animationDuration: '9s', opacity: 0.55 }}>❤️</div>
+            <div {...commonProps} style={{ top: '5%', left: '85%', animationDelay: '2s', animationDuration: '10s', opacity: 0.6 }}>⚡</div>
+            <div {...commonProps} style={{ top: '15%', left: '88%', animationDelay: '0.5s', animationDuration: '11s', opacity: 0.55 }}>🔥</div>
+            <div {...commonProps} style={{ top: '25%', left: '92%', animationDelay: '3s', animationDuration: '9s', opacity: 0.5 }}>🎯</div>
+            <div {...commonProps} style={{ top: '35%', left: '86%', animationDelay: '1s', animationDuration: '12s', opacity: 0.6 }}>🏆</div>
+            <div {...commonProps} style={{ top: '45%', left: '90%', animationDelay: '2.5s', animationDuration: '10s', opacity: 0.55 }}>✨</div>
+            <div {...commonProps} style={{ top: '55%', left: '88%', animationDelay: '0s', animationDuration: '11s', opacity: 0.6 }}>💪</div>
+            <div {...commonProps} style={{ top: '65%', left: '84%', animationDelay: '3.5s', animationDuration: '12s', opacity: 0.5 }}>🏃</div>
+            <div {...commonProps} style={{ top: '75%', left: '90%', animationDelay: '1.5s', animationDuration: '10s', opacity: 0.55 }}>🧘</div>
+            <div {...commonProps} style={{ top: '85%', left: '87%', animationDelay: '2s', animationDuration: '9s', opacity: 0.6 }}>🍎</div>
+            <div {...commonProps} style={{ top: '10%', left: '50%', animationDelay: '1s', animationDuration: '8s', opacity: 0.7 }}>✨</div>
+            <div {...commonProps} style={{ top: '30%', left: '45%', animationDelay: '2.5s', animationDuration: '9s', opacity: 0.65 }}>✨</div>
+            <div {...commonProps} style={{ top: '50%', left: '55%', animationDelay: '0.5s', animationDuration: '10s', opacity: 0.7 }}>✨</div>
+            <div {...commonProps} style={{ top: '70%', left: '48%', animationDelay: '3s', animationDuration: '8s', opacity: 0.65 }}>✨</div>
+            <div {...commonProps} style={{ top: '90%', left: '52%', animationDelay: '1.5s', animationDuration: '9s', opacity: 0.7 }}>✨</div>
+          </>
+        );
+
+      case 'Relationships':
+        return (
+          <>
+            <div {...commonProps} style={{ top: '3%', left: '8%', animationDelay: '0s', animationDuration: '9s', opacity: 0.6 }}>💕</div>
+            <div {...commonProps} style={{ top: '8%', right: '5%', animationDelay: '2s', animationDuration: '11s', opacity: 0.55 }}>💖</div>
+            <div {...commonProps} style={{ top: '12%', left: '15%', animationDelay: '1s', animationDuration: '10s', opacity: 0.5 }}>❤️</div>
+            <div {...commonProps} style={{ top: '18%', right: '10%', animationDelay: '3s', animationDuration: '12s', opacity: 0.6 }}>💝</div>
+            <div {...commonProps} style={{ top: '22%', left: '3%', animationDelay: '1.5s', animationDuration: '10s', opacity: 0.55 }}>💗</div>
+            <div {...commonProps} style={{ top: '28%', right: '18%', animationDelay: '2.5s', animationDuration: '11s', opacity: 0.5 }}>🫂</div>
+            <div {...commonProps} style={{ top: '32%', left: '12%', animationDelay: '0.5s', animationDuration: '9s', opacity: 0.6 }}>👫</div>
+            <div {...commonProps} style={{ top: '38%', right: '8%', animationDelay: '1s', animationDuration: '10s', opacity: 0.55 }}>👨‍👩‍👧‍👦</div>
+            <div {...commonProps} style={{ top: '42%', left: '6%', animationDelay: '3s', animationDuration: '12s', opacity: 0.5 }}>💑</div>
+            <div {...commonProps} style={{ top: '48%', right: '15%', animationDelay: '0s', animationDuration: '9s', opacity: 0.6 }}>🤗</div>
+            <div {...commonProps} style={{ top: '52%', left: '10%', animationDelay: '2s', animationDuration: '11s', opacity: 0.5 }}>💞</div>
+            <div {...commonProps} style={{ top: '58%', right: '12%', animationDelay: '1.5s', animationDuration: '10s', opacity: 0.55 }}>🌟</div>
+            <div {...commonProps} style={{ top: '62%', left: '18%', animationDelay: '3.5s', animationDuration: '12s', opacity: 0.6 }}>💕</div>
+            <div {...commonProps} style={{ top: '68%', right: '6%', animationDelay: '0.5s', animationDuration: '9s', opacity: 0.55 }}>💖</div>
+            <div {...commonProps} style={{ top: '72%', left: '8%', animationDelay: '2.5s', animationDuration: '11s', opacity: 0.6 }}>❤️</div>
+            <div {...commonProps} style={{ top: '78%', right: '14%', animationDelay: '1s', animationDuration: '10s', opacity: 0.5 }}>💝</div>
+            <div {...commonProps} style={{ top: '82%', left: '12%', animationDelay: '3s', animationDuration: '12s', opacity: 0.55 }}>💗</div>
+            <div {...commonProps} style={{ top: '88%', right: '10%', animationDelay: '1.5s', animationDuration: '10s', opacity: 0.6 }}>🫂</div>
+            <div {...commonProps} style={{ top: '92%', left: '15%', animationDelay: '0s', animationDuration: '9s', opacity: 0.55 }}>👫</div>
+            <div {...commonProps} style={{ top: '5%', left: '85%', animationDelay: '2s', animationDuration: '10s', opacity: 0.6 }}>👨‍👩‍👧‍👦</div>
+            <div {...commonProps} style={{ top: '15%', left: '88%', animationDelay: '0.5s', animationDuration: '11s', opacity: 0.55 }}>💑</div>
+            <div {...commonProps} style={{ top: '25%', left: '92%', animationDelay: '3s', animationDuration: '9s', opacity: 0.5 }}>🤗</div>
+            <div {...commonProps} style={{ top: '35%', left: '86%', animationDelay: '1s', animationDuration: '12s', opacity: 0.6 }}>💞</div>
+            <div {...commonProps} style={{ top: '45%', left: '90%', animationDelay: '2.5s', animationDuration: '10s', opacity: 0.55 }}>🌟</div>
+            <div {...commonProps} style={{ top: '55%', left: '88%', animationDelay: '0s', animationDuration: '11s', opacity: 0.6 }}>💕</div>
+            <div {...commonProps} style={{ top: '65%', left: '84%', animationDelay: '3.5s', animationDuration: '12s', opacity: 0.5 }}>💖</div>
+            <div {...commonProps} style={{ top: '75%', left: '90%', animationDelay: '1.5s', animationDuration: '10s', opacity: 0.55 }}>❤️</div>
+            <div {...commonProps} style={{ top: '85%', left: '87%', animationDelay: '2s', animationDuration: '9s', opacity: 0.6 }}>💝</div>
+            <div {...commonProps} style={{ top: '10%', left: '50%', animationDelay: '1s', animationDuration: '8s', opacity: 0.7 }}>✨</div>
+            <div {...commonProps} style={{ top: '30%', left: '45%', animationDelay: '2.5s', animationDuration: '9s', opacity: 0.65 }}>✨</div>
+            <div {...commonProps} style={{ top: '50%', left: '55%', animationDelay: '0.5s', animationDuration: '10s', opacity: 0.7 }}>✨</div>
+            <div {...commonProps} style={{ top: '70%', left: '48%', animationDelay: '3s', animationDuration: '8s', opacity: 0.65 }}>✨</div>
+            <div {...commonProps} style={{ top: '90%', left: '52%', animationDelay: '1.5s', animationDuration: '9s', opacity: 0.7 }}>✨</div>
+          </>
+        );
+
+      case 'Career':
+        return (
+          <>
+            <div {...commonProps} style={{ top: '3%', left: '8%', animationDelay: '0s', animationDuration: '9s', opacity: 0.6 }}>💼</div>
+            <div {...commonProps} style={{ top: '8%', right: '5%', animationDelay: '2s', animationDuration: '11s', opacity: 0.55 }}>📈</div>
+            <div {...commonProps} style={{ top: '12%', left: '15%', animationDelay: '1s', animationDuration: '10s', opacity: 0.5 }}>🎯</div>
+            <div {...commonProps} style={{ top: '18%', right: '10%', animationDelay: '3s', animationDuration: '12s', opacity: 0.6 }}>🏆</div>
+            <div {...commonProps} style={{ top: '22%', left: '3%', animationDelay: '1.5s', animationDuration: '10s', opacity: 0.55 }}>⭐</div>
+            <div {...commonProps} style={{ top: '28%', right: '18%', animationDelay: '2.5s', animationDuration: '11s', opacity: 0.5 }}>💡</div>
+            <div {...commonProps} style={{ top: '32%', left: '12%', animationDelay: '0.5s', animationDuration: '9s', opacity: 0.6 }}>📊</div>
+            <div {...commonProps} style={{ top: '38%', right: '8%', animationDelay: '1s', animationDuration: '10s', opacity: 0.55 }}>🚀</div>
+            <div {...commonProps} style={{ top: '42%', left: '6%', animationDelay: '3s', animationDuration: '12s', opacity: 0.5 }}>📝</div>
+            <div {...commonProps} style={{ top: '48%', right: '15%', animationDelay: '0s', animationDuration: '9s', opacity: 0.6 }}>💻</div>
+            <div {...commonProps} style={{ top: '52%', left: '10%', animationDelay: '2s', animationDuration: '11s', opacity: 0.5 }}>👔</div>
+            <div {...commonProps} style={{ top: '58%', right: '12%', animationDelay: '1.5s', animationDuration: '10s', opacity: 0.55 }}>📱</div>
+            <div {...commonProps} style={{ top: '62%', left: '18%', animationDelay: '3.5s', animationDuration: '12s', opacity: 0.6 }}>💼</div>
+            <div {...commonProps} style={{ top: '68%', right: '6%', animationDelay: '0.5s', animationDuration: '9s', opacity: 0.55 }}>📈</div>
+            <div {...commonProps} style={{ top: '72%', left: '8%', animationDelay: '2.5s', animationDuration: '11s', opacity: 0.6 }}>🎯</div>
+            <div {...commonProps} style={{ top: '78%', right: '14%', animationDelay: '1s', animationDuration: '10s', opacity: 0.5 }}>🏆</div>
+            <div {...commonProps} style={{ top: '82%', left: '12%', animationDelay: '3s', animationDuration: '12s', opacity: 0.55 }}>⭐</div>
+            <div {...commonProps} style={{ top: '88%', right: '10%', animationDelay: '1.5s', animationDuration: '10s', opacity: 0.6 }}>💡</div>
+            <div {...commonProps} style={{ top: '92%', left: '15%', animationDelay: '0s', animationDuration: '9s', opacity: 0.55 }}>📊</div>
+            <div {...commonProps} style={{ top: '5%', left: '85%', animationDelay: '2s', animationDuration: '10s', opacity: 0.6 }}>🚀</div>
+            <div {...commonProps} style={{ top: '15%', left: '88%', animationDelay: '0.5s', animationDuration: '11s', opacity: 0.55 }}>📝</div>
+            <div {...commonProps} style={{ top: '25%', left: '92%', animationDelay: '3s', animationDuration: '9s', opacity: 0.5 }}>💻</div>
+            <div {...commonProps} style={{ top: '35%', left: '86%', animationDelay: '1s', animationDuration: '12s', opacity: 0.6 }}>👔</div>
+            <div {...commonProps} style={{ top: '45%', left: '90%', animationDelay: '2.5s', animationDuration: '10s', opacity: 0.55 }}>📱</div>
+            <div {...commonProps} style={{ top: '55%', left: '88%', animationDelay: '0s', animationDuration: '11s', opacity: 0.6 }}>💼</div>
+            <div {...commonProps} style={{ top: '65%', left: '84%', animationDelay: '3.5s', animationDuration: '12s', opacity: 0.5 }}>📈</div>
+            <div {...commonProps} style={{ top: '75%', left: '90%', animationDelay: '1.5s', animationDuration: '10s', opacity: 0.55 }}>🎯</div>
+            <div {...commonProps} style={{ top: '85%', left: '87%', animationDelay: '2s', animationDuration: '9s', opacity: 0.6 }}>🏆</div>
+            <div {...commonProps} style={{ top: '10%', left: '50%', animationDelay: '1s', animationDuration: '8s', opacity: 0.7 }}>✨</div>
+            <div {...commonProps} style={{ top: '30%', left: '45%', animationDelay: '2.5s', animationDuration: '9s', opacity: 0.65 }}>✨</div>
+            <div {...commonProps} style={{ top: '50%', left: '55%', animationDelay: '0.5s', animationDuration: '10s', opacity: 0.7 }}>✨</div>
+            <div {...commonProps} style={{ top: '70%', left: '48%', animationDelay: '3s', animationDuration: '8s', opacity: 0.65 }}>✨</div>
+            <div {...commonProps} style={{ top: '90%', left: '52%', animationDelay: '1.5s', animationDuration: '9s', opacity: 0.7 }}>✨</div>
+          </>
+        );
+
+      case 'Money':
+        return (
+          <>
+            <div {...commonProps} style={{ top: '3%', left: '8%', animationDelay: '0s', animationDuration: '9s', opacity: 0.6 }}>💵</div>
+            <div {...commonProps} style={{ top: '8%', right: '5%', animationDelay: '2s', animationDuration: '11s', opacity: 0.55 }}>💰</div>
+            <div {...commonProps} style={{ top: '12%', left: '15%', animationDelay: '1s', animationDuration: '10s', opacity: 0.5 }}>🪙</div>
+            <div {...commonProps} style={{ top: '18%', right: '10%', animationDelay: '3s', animationDuration: '12s', opacity: 0.6 }}>💎</div>
+            <div {...commonProps} style={{ top: '22%', left: '3%', animationDelay: '1.5s', animationDuration: '10s', opacity: 0.55 }}>💠</div>
+            <div {...commonProps} style={{ top: '28%', right: '18%', animationDelay: '2.5s', animationDuration: '11s', opacity: 0.5 }}>🔷</div>
+            <div {...commonProps} style={{ top: '32%', left: '12%', animationDelay: '0.5s', animationDuration: '9s', opacity: 0.6 }}>💎</div>
+            <div {...commonProps} style={{ top: '38%', right: '8%', animationDelay: '1s', animationDuration: '10s', opacity: 0.55 }}>🪙</div>
+            <div {...commonProps} style={{ top: '42%', left: '6%', animationDelay: '3s', animationDuration: '12s', opacity: 0.5 }}>💰</div>
+            <div {...commonProps} style={{ top: '48%', right: '15%', animationDelay: '0s', animationDuration: '9s', opacity: 0.6 }}>💵</div>
+            <div {...commonProps} style={{ top: '52%', left: '10%', animationDelay: '2s', animationDuration: '11s', opacity: 0.5 }}>👑</div>
+            <div {...commonProps} style={{ top: '58%', right: '12%', animationDelay: '1.5s', animationDuration: '10s', opacity: 0.55 }}>🏆</div>
+            <div {...commonProps} style={{ top: '62%', left: '18%', animationDelay: '3.5s', animationDuration: '12s', opacity: 0.6 }}>💎</div>
+            <div {...commonProps} style={{ top: '68%', right: '6%', animationDelay: '0.5s', animationDuration: '9s', opacity: 0.55 }}>✨</div>
+            <div {...commonProps} style={{ top: '72%', left: '8%', animationDelay: '2.5s', animationDuration: '11s', opacity: 0.6 }}>💠</div>
+            <div {...commonProps} style={{ top: '78%', right: '14%', animationDelay: '1s', animationDuration: '10s', opacity: 0.5 }}>🪙</div>
+            <div {...commonProps} style={{ top: '82%', left: '12%', animationDelay: '3s', animationDuration: '12s', opacity: 0.55 }}>💎</div>
+            <div {...commonProps} style={{ top: '88%', right: '10%', animationDelay: '1.5s', animationDuration: '10s', opacity: 0.6 }}>💰</div>
+            <div {...commonProps} style={{ top: '92%', left: '15%', animationDelay: '0s', animationDuration: '9s', opacity: 0.55 }}>🪙</div>
+            <div {...commonProps} style={{ top: '5%', left: '85%', animationDelay: '2s', animationDuration: '10s', opacity: 0.6 }}>💵</div>
+            <div {...commonProps} style={{ top: '15%', left: '88%', animationDelay: '0.5s', animationDuration: '11s', opacity: 0.55 }}>💎</div>
+            <div {...commonProps} style={{ top: '25%', left: '92%', animationDelay: '3s', animationDuration: '9s', opacity: 0.5 }}>✨</div>
+            <div {...commonProps} style={{ top: '35%', left: '86%', animationDelay: '1s', animationDuration: '12s', opacity: 0.6 }}>🪙</div>
+            <div {...commonProps} style={{ top: '45%', left: '90%', animationDelay: '2.5s', animationDuration: '10s', opacity: 0.55 }}>💠</div>
+            <div {...commonProps} style={{ top: '55%', left: '88%', animationDelay: '0s', animationDuration: '11s', opacity: 0.6 }}>💰</div>
+            <div {...commonProps} style={{ top: '65%', left: '84%', animationDelay: '3.5s', animationDuration: '12s', opacity: 0.5 }}>👑</div>
+            <div {...commonProps} style={{ top: '75%', left: '90%', animationDelay: '1.5s', animationDuration: '10s', opacity: 0.55 }}>💎</div>
+            <div {...commonProps} style={{ top: '85%', left: '87%', animationDelay: '2s', animationDuration: '9s', opacity: 0.6 }}>🪙</div>
+            <div {...commonProps} style={{ top: '10%', left: '50%', animationDelay: '1s', animationDuration: '8s', opacity: 0.7 }}>✨</div>
+            <div {...commonProps} style={{ top: '30%', left: '45%', animationDelay: '2.5s', animationDuration: '9s', opacity: 0.65 }}>✨</div>
+            <div {...commonProps} style={{ top: '50%', left: '55%', animationDelay: '0.5s', animationDuration: '10s', opacity: 0.7 }}>✨</div>
+            <div {...commonProps} style={{ top: '70%', left: '48%', animationDelay: '3s', animationDuration: '8s', opacity: 0.65 }}>✨</div>
+            <div {...commonProps} style={{ top: '90%', left: '52%', animationDelay: '1.5s', animationDuration: '9s', opacity: 0.7 }}>✨</div>
+          </>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  // UNIFIED PREMIUM DESIGN FOR ALL AREAS
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-100 to-indigo-100 dark:from-gray-900 dark:via-purple-950 dark:to-pink-950">
+      {/* Compact Header */}
+      <div className="relative overflow-hidden border-b border-pink-200 dark:border-pink-800/30">
+        <div className="relative z-10 text-center py-6 px-4">
+          {/* Compact Avatar */}
+          <div className="relative inline-block mb-3">
+            <div className={`absolute inset-0 bg-gradient-to-r ${avatar.bg} opacity-20 blur-xl rounded-full animate-pulse`} />
+            <div className={`relative w-20 h-20 mx-auto rounded-full bg-gradient-to-br ${avatar.bg} flex items-center justify-center shadow-lg border-2 border-white dark:border-gray-800`}>
+              <div className="text-5xl">{avatar.icon}</div>
             </div>
-            
-            <h1 className="text-3xl font-black bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-2">
-              Money Mastery
-            </h1>
-            
-            <Badge className={`bg-gradient-to-r ${avatar.bg} text-white border-0 px-3 py-1 text-sm shadow-lg`}>
-              <Crown className="w-4 h-4 mr-1" />
-              {avatar.title}
-            </Badge>
           </div>
+          
+          <h1 className="text-3xl font-black bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-2">
+            {area.name} Mastery
+          </h1>
+          
+          <Badge className={`bg-gradient-to-r ${avatar.bg} text-white border-0 px-3 py-1 text-sm shadow-lg`}>
+            <Crown className="w-4 h-4 mr-1" />
+            {avatar.title}
+          </Badge>
         </div>
+      </div>
 
-        {/* Compact Progress Card */}
-        <div className="px-4 py-4">
-          <Card className="max-w-xl mx-auto shadow-lg bg-white/90 dark:bg-gray-800/90 backdrop-blur border border-pink-200 dark:border-pink-800/30">
-            <div className="p-4">
-              <div className="grid grid-cols-3 gap-4 mb-3">
-                <div className="text-center">
-                  <div className="text-2xl font-black bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-                    {overallProgress}%
-                  </div>
-                  <p className="text-xs text-muted-foreground">Progress</p>
+      {/* Compact Progress Card */}
+      <div className="px-4 py-4">
+        <Card className="max-w-xl mx-auto shadow-lg bg-white/90 dark:bg-gray-800/90 backdrop-blur border border-pink-200 dark:border-pink-800/30">
+          <div className="p-4">
+            <div className="grid grid-cols-3 gap-4 mb-3">
+              <div className="text-center">
+                <div className="text-2xl font-black bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+                  {overallProgress}%
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-black bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                    {totalXP}
-                  </div>
-                  <p className="text-xs text-muted-foreground">XP Earned</p>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-black bg-gradient-to-r from-indigo-600 to-pink-600 bg-clip-text text-transparent">
-                    {completedLevels}
-                  </div>
-                  <p className="text-xs text-muted-foreground">Completed</p>
-                </div>
+                <p className="text-xs text-muted-foreground">Progress</p>
               </div>
-              
-              <div className="relative h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                <div 
-                  className="absolute top-0 left-0 h-full bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-600 transition-all duration-1000 ease-out"
-                  style={{ width: `${overallProgress}%` }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/30 to-transparent animate-pulse" />
+              <div className="text-center">
+                <div className="text-2xl font-black bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                  {totalXP}
                 </div>
+                <p className="text-xs text-muted-foreground">XP Earned</p>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-black bg-gradient-to-r from-indigo-600 to-pink-600 bg-clip-text text-transparent">
+                  {completedLevels}
+                </div>
+                <p className="text-xs text-muted-foreground">Completed</p>
               </div>
             </div>
-          </Card>
-        </div>
-
-        {/* Skills Path with Animated Money Background */}
-        <div className="px-4 pb-12">
-          <div 
-            className="relative rounded-3xl shadow-2xl overflow-hidden bg-gradient-to-br from-pink-100 via-purple-100 to-indigo-100 dark:from-gray-900 dark:via-purple-950 dark:to-pink-950"
-            style={{
-              minHeight: `${levels.length * 120 + 200}px`,
-            }}
-          >
-            {/* ABUNDANT TREASURE BACKGROUND - Jewels, Gold, Money */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              {/* TREASURE LAYER 1 - Money & Gold */}
-              <div className="absolute text-4xl animate-float" style={{ top: '3%', left: '8%', animationDelay: '0s', animationDuration: '9s', opacity: 0.6 }}>💵</div>
-              <div className="absolute text-5xl animate-float" style={{ top: '8%', right: '5%', animationDelay: '2s', animationDuration: '11s', opacity: 0.55 }}>💰</div>
-              <div className="absolute text-6xl animate-float" style={{ top: '12%', left: '15%', animationDelay: '1s', animationDuration: '10s', opacity: 0.5 }}>🪙</div>
-              
-              {/* TREASURE LAYER 2 - Precious Gems & Jewels */}
-              <div className="absolute text-6xl animate-float" style={{ top: '18%', right: '10%', animationDelay: '3s', animationDuration: '12s', opacity: 0.6 }}>💎</div>
-              <div className="absolute text-5xl animate-float" style={{ top: '22%', left: '3%', animationDelay: '1.5s', animationDuration: '10s', opacity: 0.55 }}>💠</div>
-              <div className="absolute text-4xl animate-float" style={{ top: '28%', right: '18%', animationDelay: '2.5s', animationDuration: '11s', opacity: 0.5 }}>🔷</div>
-              <div className="absolute text-5xl animate-float" style={{ top: '32%', left: '12%', animationDelay: '0.5s', animationDuration: '9s', opacity: 0.6 }}>💎</div>
-              
-              {/* TREASURE LAYER 3 - Gold Bars & Coins */}
-              <div className="absolute text-6xl animate-float" style={{ top: '38%', right: '8%', animationDelay: '1s', animationDuration: '10s', opacity: 0.55 }}>🪙</div>
-              <div className="absolute text-5xl animate-float" style={{ top: '42%', left: '6%', animationDelay: '3s', animationDuration: '12s', opacity: 0.5 }}>💰</div>
-              <div className="absolute text-4xl animate-float" style={{ top: '48%', right: '15%', animationDelay: '0s', animationDuration: '9s', opacity: 0.6 }}>💵</div>
-              
-              {/* TREASURE LAYER 4 - Crown, Trophy, Success */}
-              <div className="absolute text-7xl animate-float" style={{ top: '52%', left: '10%', animationDelay: '2s', animationDuration: '11s', opacity: 0.5 }}>👑</div>
-              <div className="absolute text-6xl animate-float" style={{ top: '58%', right: '12%', animationDelay: '1.5s', animationDuration: '10s', opacity: 0.55 }}>🏆</div>
-              <div className="absolute text-5xl animate-float" style={{ top: '62%', left: '18%', animationDelay: '3.5s', animationDuration: '12s', opacity: 0.6 }}>💎</div>
-              
-              {/* TREASURE LAYER 5 - More Jewels & Sparkles */}
-              <div className="absolute text-4xl animate-float" style={{ top: '68%', right: '6%', animationDelay: '0.5s', animationDuration: '9s', opacity: 0.55 }}>✨</div>
-              <div className="absolute text-6xl animate-float" style={{ top: '72%', left: '8%', animationDelay: '2.5s', animationDuration: '11s', opacity: 0.6 }}>💠</div>
-              <div className="absolute text-5xl animate-float" style={{ top: '78%', right: '14%', animationDelay: '1s', animationDuration: '10s', opacity: 0.5 }}>🪙</div>
-              <div className="absolute text-7xl animate-float" style={{ top: '82%', left: '12%', animationDelay: '3s', animationDuration: '12s', opacity: 0.55 }}>💎</div>
-              
-              {/* TREASURE LAYER 6 - Bottom Abundance */}
-              <div className="absolute text-5xl animate-float" style={{ top: '88%', right: '10%', animationDelay: '1.5s', animationDuration: '10s', opacity: 0.6 }}>💰</div>
-              <div className="absolute text-6xl animate-float" style={{ top: '92%', left: '15%', animationDelay: '0s', animationDuration: '9s', opacity: 0.55 }}>🪙</div>
-              
-              {/* RIGHT SIDE - Additional Treasure Elements */}
-              <div className="absolute text-4xl animate-float" style={{ top: '5%', left: '85%', animationDelay: '2s', animationDuration: '10s', opacity: 0.6 }}>💵</div>
-              <div className="absolute text-5xl animate-float" style={{ top: '15%', left: '88%', animationDelay: '0.5s', animationDuration: '11s', opacity: 0.55 }}>💎</div>
-              <div className="absolute text-3xl animate-float" style={{ top: '25%', left: '92%', animationDelay: '3s', animationDuration: '9s', opacity: 0.5 }}>✨</div>
-              <div className="absolute text-6xl animate-float" style={{ top: '35%', left: '86%', animationDelay: '1s', animationDuration: '12s', opacity: 0.6 }}>🪙</div>
-              <div className="absolute text-4xl animate-float" style={{ top: '45%', left: '90%', animationDelay: '2.5s', animationDuration: '10s', opacity: 0.55 }}>💠</div>
-              <div className="absolute text-5xl animate-float" style={{ top: '55%', left: '88%', animationDelay: '0s', animationDuration: '11s', opacity: 0.6 }}>💰</div>
-              <div className="absolute text-7xl animate-float" style={{ top: '65%', left: '84%', animationDelay: '3.5s', animationDuration: '12s', opacity: 0.5 }}>👑</div>
-              <div className="absolute text-6xl animate-float" style={{ top: '75%', left: '90%', animationDelay: '1.5s', animationDuration: '10s', opacity: 0.55 }}>💎</div>
-              <div className="absolute text-4xl animate-float" style={{ top: '85%', left: '87%', animationDelay: '2s', animationDuration: '9s', opacity: 0.6 }}>🪙</div>
-              
-              {/* SPARKLE LAYER - Magical Shimmer Effect */}
-              <div className="absolute text-3xl animate-float" style={{ top: '10%', left: '50%', animationDelay: '1s', animationDuration: '8s', opacity: 0.7 }}>✨</div>
-              <div className="absolute text-4xl animate-float" style={{ top: '30%', left: '45%', animationDelay: '2.5s', animationDuration: '9s', opacity: 0.65 }}>✨</div>
-              <div className="absolute text-3xl animate-float" style={{ top: '50%', left: '55%', animationDelay: '0.5s', animationDuration: '10s', opacity: 0.7 }}>✨</div>
-              <div className="absolute text-4xl animate-float" style={{ top: '70%', left: '48%', animationDelay: '3s', animationDuration: '8s', opacity: 0.65 }}>✨</div>
-              <div className="absolute text-3xl animate-float" style={{ top: '90%', left: '52%', animationDelay: '1.5s', animationDuration: '9s', opacity: 0.7 }}>✨</div>
+            
+            <div className="relative h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+              <div 
+                className="absolute top-0 left-0 h-full bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-600 transition-all duration-1000 ease-out"
+                style={{ width: `${overallProgress}%` }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-white/30 to-transparent animate-pulse" />
+              </div>
             </div>
+          </div>
+        </Card>
+      </div>
 
-            {/* Curvy path container */}
-            <div className="relative py-16 px-8">
-              <div className="relative max-w-2xl mx-auto">
-                <svg className="absolute inset-0 w-full h-full" style={{ zIndex: 0 }}>
-                  <defs>
-                    {levels.map((level, index) => {
-                      if (index === levels.length - 1) return null;
-                      
-                      const currentPos = getCurvyPosition(index);
-                      const nextPos = getCurvyPosition(index + 1);
-                      
-                      const startX = currentPos.x + 400;
-                      const startY = currentPos.y + 40;
-                      const endX = nextPos.x + 400;
-                      const endY = nextPos.y + 40;
-                      
-                      const controlX1 = startX + (endX - startX) * 0.3;
-                      const controlY1 = startY + (endY - startY) * 0.7;
-                      const controlX2 = startX + (endX - startX) * 0.7;
-                      const controlY2 = startY + (endY - startY) * 0.3;
-                      
-                      return (
-                        <linearGradient key={`grad-${level.id}`} id={`gradient-${level.id}`} x1="0%" y1="0%" x2="0%" y2="100%">
-                          <stop offset="0%" stopColor={level.status === 'completed' ? '#ec4899' : level.status === 'current' ? '#fbbf24' : '#d1d5db'} stopOpacity="0.6" />
-                          <stop offset="100%" stopColor={level.status === 'completed' ? '#a855f7' : level.status === 'current' ? '#f59e0b' : '#9ca3af'} stopOpacity="0.6" />
-                        </linearGradient>
-                      );
-                    })}
-                  </defs>
-                  
+      {/* Skills Path with Themed Background */}
+      <div className="px-4 pb-12">
+        <div 
+          className="relative rounded-3xl shadow-2xl overflow-hidden bg-gradient-to-br from-pink-100 via-purple-100 to-indigo-100 dark:from-gray-900 dark:via-purple-950 dark:to-pink-950"
+          style={{
+            minHeight: `${levels.length * 120 + 200}px`,
+          }}
+        >
+          {/* Themed Background Elements */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none text-4xl">
+            {getBackgroundElements()}
+          </div>
+
+          {/* Curvy path container */}
+          <div className="relative py-16 px-8">
+            <div className="relative max-w-2xl mx-auto">
+              <svg className="absolute inset-0 w-full h-full" style={{ zIndex: 0 }}>
+                <defs>
                   {levels.map((level, index) => {
                     if (index === levels.length - 1) return null;
                     
-                    const currentPos = getCurvyPosition(index);
-                    const nextPos = getCurvyPosition(index + 1);
-                    
-                    const startX = currentPos.x + 400;
-                    const startY = currentPos.y + 40;
-                    const endX = nextPos.x + 400;
-                    const endY = nextPos.y + 40;
-                    
-                    const controlX1 = startX + (endX - startX) * 0.3;
-                    const controlY1 = startY + (endY - startY) * 0.7;
-                    const controlX2 = startX + (endX - startX) * 0.7;
-                    const controlY2 = startY + (endY - startY) * 0.3;
-                    
                     return (
-                      <path
-                        key={`path-${level.id}`}
-                        d={`M ${startX} ${startY} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${endX} ${endY}`}
-                        stroke={`url(#gradient-${level.id})`}
-                        strokeWidth="4"
-                        fill="none"
-                        strokeLinecap="round"
-                        opacity="0.7"
-                      />
+                      <linearGradient key={`grad-${level.id}`} id={`gradient-${level.id}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor={level.status === 'completed' ? '#ec4899' : level.status === 'current' ? '#fbbf24' : '#d1d5db'} stopOpacity="0.6" />
+                        <stop offset="100%" stopColor={level.status === 'completed' ? '#a855f7' : level.status === 'current' ? '#f59e0b' : '#9ca3af'} stopOpacity="0.6" />
+                      </linearGradient>
                     );
                   })}
-                </svg>
+                </defs>
 
                 {levels.map((level, index) => {
-                  const position = getCurvyPosition(index);
+                  if (index === levels.length - 1) return null;
                   
-                  // Alternate between treasure and trophy for current levels
+                  const currentPos = getCurvyPosition(index);
+                  const nextPos = getCurvyPosition(index + 1);
+                  
+                  const startX = currentPos.x + 400;
+                  const startY = currentPos.y + 40;
+                  const endX = nextPos.x + 400;
+                  const endY = nextPos.y + 40;
+                  
+                  const controlX1 = startX + (endX - startX) * 0.3;
+                  const controlY1 = startY + (endY - startY) * 0.7;
+                  const controlX2 = startX + (endX - startX) * 0.7;
+                  const controlY2 = startY + (endY - startY) * 0.3;
+                  
+                  return (
+                    <path
+                      key={`path-${level.id}`}
+                      d={`M ${startX} ${startY} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${endX} ${endY}`}
+                      fill="none"
+                      stroke={`url(#gradient-${level.id})`}
+                      strokeWidth="6"
+                      strokeLinecap="round"
+                    />
+                  );
+                })}
+              </svg>
+
+              {/* Level nodes */}
+              <div className="relative" style={{ zIndex: 10 }}>
+                {levels.map((level, index) => {
+                  const position = getCurvyPosition(index);
                   const CurrentIcon = index % 2 === 0 ? Coins : Trophy;
                   
                   return (
@@ -399,7 +621,7 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
                             <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-500 opacity-60 blur-lg rounded-full animate-pulse" />
                           )}
                           
-                          {/* Main node - NO BORDER, solid fill */}
+                          {/* Main node */}
                           <div className={`relative w-16 h-16 rounded-full flex items-center justify-center transform transition-all duration-300 ${
                             level.status === 'current'
                               ? 'bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-600 shadow-xl scale-110 animate-pulse'
@@ -407,7 +629,7 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
                               ? 'bg-gradient-to-br from-pink-500 via-purple-600 to-indigo-700 shadow-lg'
                               : 'bg-gradient-to-br from-gray-300 via-gray-400 to-gray-500 opacity-40'
                           }`}>
-                            {/* Icon - Simple check for completed, treasure/trophy for current */}
+                            {/* Icon */}
                             {level.status === 'completed' ? (
                               <Check className="w-10 h-10 text-white drop-shadow-lg" strokeWidth={4} />
                             ) : level.status === 'locked' ? (
@@ -457,183 +679,6 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
           </div>
         </div>
       </div>
-    );
-  }
-
-  // Health section - Vertical Path Design (original)
-  return (
-    <div className="space-y-6 p-4 sm:p-6">
-      {/* Avatar Header */}
-      <div className="text-center">
-        <div className={`w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br ${avatar.bg} flex items-center justify-center shadow-2xl border-4 border-white dark:border-gray-800 transform transition-all duration-1000`}>
-          <div className="text-7xl">{avatar.icon}</div>
-        </div>
-        <h2 className={`text-3xl font-black bg-gradient-to-r ${area.color} bg-clip-text text-transparent mb-2`}>
-          Health Transformation
-        </h2>
-        <Badge className={`bg-gradient-to-r ${avatar.bg} text-white border-0 mb-2`}>
-          <Crown className="w-4 h-4 mr-1" />
-          {avatar.title}
-        </Badge>
-        <p className="text-sm text-muted-foreground">{avatar.description}</p>
-      </div>
-
-      {/* Progress Stats */}
-      <Card className="p-4">
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <p className="text-sm text-muted-foreground">Progress</p>
-            <p className="text-2xl font-black">{overallProgress}%</p>
-          </div>
-          <div className="text-right">
-            <p className="text-sm text-muted-foreground">XP Earned</p>
-            <p className="text-2xl font-black text-primary">{totalXP} / {maxXP}</p>
-          </div>
-        </div>
-        <div className="h-3 bg-muted rounded-full overflow-hidden">
-          <div 
-            className={`h-full bg-gradient-to-r ${avatar.bg} transition-all duration-500`}
-            style={{ width: `${overallProgress}%` }}
-          />
-        </div>
-        <p className="text-xs text-muted-foreground text-center mt-2">
-          {completedLevels} / {levels.length} levels completed
-        </p>
-      </Card>
-
-      {/* Duolingo-Style Vertical Path */}
-      <div 
-        className="relative rounded-3xl p-8 overflow-hidden"
-        style={{
-          minHeight: `${levels.length * 180}px`,
-          background: 'linear-gradient(180deg, #dbeafe 0%, #bfdbfe 10%, #93c5fd 20%, #60a5fa 30%, #3b82f6 40%, #2563eb 50%, #1d4ed8 60%, #1e40af 70%, #1e3a8a 80%, #312e81 85%, #4c1d95 90%, #7e22ce 95%, #9333ea 100%)'
-        }}
-      >
-        {/* Background decorative elements */}
-        <div className="absolute inset-0 opacity-10">
-          {[...Array(12)].map((_, i) => (
-            <div 
-              key={i}
-              className="absolute text-6xl"
-              style={{
-                top: `${i * 200 + 50}px`,
-                left: i % 2 === 0 ? '20px' : 'auto',
-                right: i % 2 === 1 ? '20px' : 'auto'
-              }}
-            >
-              {['💪', '🏃', '🧘', '🍎', '💧', '😴', '❤️', '⚡', '🔥', '🎯', '🏆', '✨'][i % 12]}
-            </div>
-          ))}
-        </div>
-
-        {/* Vertical Path */}
-        <div className="relative max-w-md mx-auto">
-          {levels.map((level, index) => {
-            const isLast = index === levels.length - 1;
-            const isLeftAffirmation = index % 2 === 0;
-            
-            return (
-              <div key={level.id} className="relative mb-12">
-                {/* Connection Line */}
-                {!isLast && (
-                  <div className="absolute left-1/2 top-full w-1 h-12 -translate-x-1/2 z-0"
-                    style={{
-                      background: level.status === 'completed' 
-                        ? 'linear-gradient(to bottom, #10b981, #059669)' 
-                        : level.status === 'current'
-                        ? 'linear-gradient(to bottom, #fbbf24, #f59e0b)'
-                        : 'linear-gradient(to bottom, #d1d5db, #9ca3af)'
-                    }}
-                  />
-                )}
-
-                {/* Affirmation on Connection Line - Alternating Sides */}
-                {!isLast && (
-                  <div 
-                    className={`absolute top-full mt-3 ${isLeftAffirmation ? 'right-full mr-6' : 'left-full ml-6'} w-48 z-20`}
-                  >
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-3 shadow-lg border-2 border-purple-200 dark:border-purple-700">
-                      <div className="flex items-start gap-2">
-                        <Sparkles className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
-                        <p className="text-xs font-semibold italic text-purple-700 dark:text-purple-300">
-                          "{level.affirmation}"
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Level Node */}
-                <div className="relative flex justify-center">
-                  <button
-                    onClick={() => handleLevelClick(level)}
-                    disabled={level.status === 'locked'}
-                    className={`relative w-24 h-24 rounded-full flex items-center justify-center transition-all transform hover:scale-110 z-10 ${
-                      level.status === 'current'
-                        ? 'bg-gradient-to-br from-yellow-300 via-amber-400 to-orange-500 shadow-2xl shadow-yellow-400/60 scale-110 animate-pulse cursor-pointer'
-                        : level.status === 'completed'
-                        ? 'bg-gradient-to-br from-green-400 via-emerald-500 to-teal-600 shadow-xl cursor-pointer'
-                        : 'bg-gradient-to-br from-gray-300 via-gray-400 to-gray-500 opacity-40 cursor-not-allowed'
-                    }`}
-                    data-testid={`level-${level.id}`}
-                  >
-                    {/* Status Icon */}
-                    {level.status === 'completed' ? (
-                      <Check className="w-12 h-12 text-white" strokeWidth={4} />
-                    ) : level.status === 'locked' ? (
-                      <Lock className="w-10 h-10 text-white opacity-70" />
-                    ) : (
-                      <Trophy className="w-12 h-12 text-white animate-pulse" />
-                    )}
-
-                    {/* Level Number Badge */}
-                    <div className="absolute -bottom-2 bg-white dark:bg-gray-900 rounded-full px-3 py-1 shadow-lg border-2 border-current">
-                      <span className="text-xs font-black">{level.id}</span>
-                    </div>
-
-                    {/* XP Badge */}
-                    {level.status === 'completed' && (
-                      <div className="absolute -top-2 -right-2 bg-primary rounded-full px-2 py-1 shadow-lg">
-                        <span className="text-xs font-bold text-white">+5</span>
-                      </div>
-                    )}
-                  </button>
-                </div>
-
-                {/* Level Name (below node) */}
-                <div className="text-center mt-3">
-                  <p className="text-sm font-bold text-white dark:text-gray-100">
-                    {level.name}
-                  </p>
-                  {level.exerciseDetails && level.status !== 'locked' && (
-                    <p className="text-xs text-white/80 dark:text-gray-300 mt-1">
-                      {level.exerciseDetails.task}
-                      {level.exerciseDetails.count && ` (${level.exerciseDetails.count} ${level.exerciseDetails.unit})`}
-                    </p>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Evolution Message */}
-      <Card className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 border-2 border-purple-200 dark:border-purple-800">
-        <div className="flex items-start gap-3">
-          <div className="text-5xl">{avatar.icon}</div>
-          <div>
-            <h4 className="font-bold text-lg mb-1">Avatar Evolution System</h4>
-            <p className="text-sm text-muted-foreground">
-              Complete quests to evolve: 😓 Tired → 🙂 Awakening → 😊 Energetic → 💪 Fit Warrior → 🦸 Health Champion!
-            </p>
-            <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-              <Badge variant="secondary" className="text-xs">5 XP per quest</Badge>
-              <Badge variant="secondary" className="text-xs">{levels.length} total quests</Badge>
-            </div>
-          </div>
-        </div>
-      </Card>
     </div>
   );
 }
