@@ -1,9 +1,10 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Trophy, Sparkles, TrendingUp, Lock, ArrowRight, Lightbulb, Target } from 'lucide-react';
+import { Trophy, Sparkles, TrendingUp, Lock, ArrowDown, Lightbulb, Target } from 'lucide-react';
 import SkillTree from './SkillTree';
 import LessonPlayer from './LessonPlayer';
 
@@ -15,8 +16,70 @@ interface SkillNode {
   targetRating: number;
   status: 'locked' | 'available' | 'current' | 'completed';
   color: string;
-  currentProblem: string; // What's the current issue?
+  currentProblems: string[]; // Pointwise problems from current week
   skillsNeeded: string[]; // What skills will solve it?
+}
+
+interface HRCMWeekData {
+  currentH: number;
+  currentR: number;
+  currentC: number;
+  currentM: number;
+  targetH: number;
+  targetR: number;
+  targetC: number;
+  targetM: number;
+  healthProblems: string | null;
+  relationshipProblems: string | null;
+  careerProblems: string | null;
+  moneyProblems: string | null;
+}
+
+// Helper function to parse problems into bullet points
+function parseProblems(problemText: string | null): string[] {
+  if (!problemText) return [];
+  
+  // Split by common delimiters and clean up
+  const problems = problemText
+    .split(/[.\n]/)
+    .map(p => p.trim())
+    .filter(p => p.length > 10) // Filter out very short fragments
+    .slice(0, 3); // Take max 3 problems
+    
+  return problems.length > 0 ? problems : ['Working on improvements'];
+}
+
+// Helper function to generate skills based on problems
+function generateSkills(problems: string[]): string[] {
+  const skillMap: { [key: string]: string[] } = {
+    'diet': ['Meal Planning', 'Nutrition Basics'],
+    'exercise': ['Workout Routine', 'Fitness Habits'],
+    'sleep': ['Sleep Hygiene', 'Rest Optimization'],
+    'communication': ['Active Listening', 'Empathy'],
+    'conflict': ['Conflict Resolution', 'Emotional Intelligence'],
+    'time': ['Time Management', 'Prioritization'],
+    'focus': ['Concentration Techniques', 'Productivity'],
+    'money': ['Financial Planning', 'Budgeting'],
+    'saving': ['Saving Habits', 'Investment Basics'],
+    'spending': ['Expense Tracking', 'Money Mindset']
+  };
+
+  const skills = new Set<string>();
+  const problemText = problems.join(' ').toLowerCase();
+
+  // Match keywords and add relevant skills
+  Object.entries(skillMap).forEach(([keyword, relatedSkills]) => {
+    if (problemText.includes(keyword)) {
+      relatedSkills.forEach(skill => skills.add(skill));
+    }
+  });
+
+  // Default skills if none matched
+  if (skills.size === 0) {
+    return ['Self-Awareness', 'Habit Building', 'Goal Setting'];
+  }
+
+  return Array.from(skills).slice(0, 4); // Max 4 skills
 }
 
 export default function SkillBuilder() {
@@ -24,54 +87,58 @@ export default function SkillBuilder() {
   const [treeOpen, setTreeOpen] = useState(false);
   const [lessonOpen, setLessonOpen] = useState(false);
 
-  // Static dummy data
+  // Fetch current week data
+  const { data: weekData } = useQuery<HRCMWeekData>({
+    queryKey: ['/api/hercm/week/1']
+  });
 
-  const nodes: SkillNode[] = [
+  // Build nodes from current week data
+  const nodes: SkillNode[] = weekData ? [
     { 
       id: 'health', 
       name: 'Health', 
       emoji: '🏥', 
-      currentRating: 3, 
-      targetRating: 7, 
+      currentRating: weekData.currentH || 0,
+      targetRating: weekData.targetH || 0,
       status: 'available', 
-      color: 'from-pink-400 to-purple-500',
-      currentProblem: 'No consistent diet or exercise routine',
-      skillsNeeded: ['Meal Planning', 'Exercise Basics', 'Habit Building']
+      color: 'from-green-400 to-green-600',
+      currentProblems: parseProblems(weekData.healthProblems),
+      skillsNeeded: generateSkills(parseProblems(weekData.healthProblems))
     },
     { 
       id: 'relationship', 
       name: 'Relationships', 
       emoji: '💑', 
-      currentRating: 6, 
-      targetRating: 8, 
-      status: 'current', 
-      color: 'from-pink-400 to-purple-500',
-      currentProblem: 'Need better communication skills',
-      skillsNeeded: ['Active Listening', 'Conflict Management']
+      currentRating: weekData.currentR || 0,
+      targetRating: weekData.targetR || 0,
+      status: 'available', 
+      color: 'from-purple-400 to-purple-600',
+      currentProblems: parseProblems(weekData.relationshipProblems),
+      skillsNeeded: generateSkills(parseProblems(weekData.relationshipProblems))
     },
     { 
       id: 'career', 
       name: 'Career', 
       emoji: '💼', 
-      currentRating: 4, 
-      targetRating: 5, 
+      currentRating: weekData.currentC || 0,
+      targetRating: weekData.targetC || 0,
       status: 'available', 
-      color: 'from-pink-400 to-purple-500',
-      currentProblem: 'Lack of focus and productivity',
-      skillsNeeded: ['Time Management']
+      color: 'from-blue-400 to-blue-600',
+      currentProblems: parseProblems(weekData.careerProblems),
+      skillsNeeded: generateSkills(parseProblems(weekData.careerProblems))
     },
     { 
       id: 'money', 
       name: 'Money', 
       emoji: '💰', 
-      currentRating: 2, 
-      targetRating: 6, 
+      currentRating: weekData.currentM || 0,
+      targetRating: weekData.targetM || 0,
       status: 'available', 
-      color: 'from-pink-400 to-purple-500',
-      currentProblem: 'Poor money management and saving habits',
-      skillsNeeded: ['Financial Planning', 'Investment Basics', 'Money Mindset']
+      color: 'from-purple-400 to-purple-600',
+      currentProblems: parseProblems(weekData.moneyProblems),
+      skillsNeeded: generateSkills(parseProblems(weekData.moneyProblems))
     }
-  ];
+  ] : [];
 
   const handleNodeClick = (node: SkillNode) => {
     if (node.status !== 'locked') {
@@ -146,24 +213,29 @@ export default function SkillBuilder() {
                   <div className="p-4 space-y-3">
                     {node.status !== 'locked' && gap > 0 && (
                       <>
-                        {/* Problem Statement */}
+                        {/* Problem Statement - Pointwise */}
                         <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
                           <div className="flex items-start gap-2">
                             <Lightbulb className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
                             <div className="flex-1">
-                              <div className="text-xs font-semibold text-red-900 dark:text-red-100 mb-1">
-                                Current Problem:
+                              <div className="text-xs font-semibold text-red-900 dark:text-red-100 mb-2">
+                                Current Problems:
                               </div>
-                              <div className="text-xs text-red-800 dark:text-red-200">
-                                {node.currentProblem}
-                              </div>
+                              <ul className="space-y-1 text-xs text-red-800 dark:text-red-200">
+                                {node.currentProblems.map((problem, idx) => (
+                                  <li key={idx} className="flex items-start gap-1">
+                                    <span className="text-red-600 mt-0.5">•</span>
+                                    <span className="flex-1">{problem}</span>
+                                  </li>
+                                ))}
+                              </ul>
                             </div>
                           </div>
                         </div>
 
-                        {/* Arrow */}
+                        {/* Arrow Pointing Down */}
                         <div className="flex justify-center">
-                          <ArrowRight className="w-5 h-5 text-primary animate-pulse" />
+                          <ArrowDown className="w-5 h-5 text-primary animate-bounce" />
                         </div>
 
                         {/* Skills Needed */}
@@ -208,7 +280,9 @@ export default function SkillBuilder() {
                     {node.status === 'locked' && (
                       <div className="text-center py-4">
                         <Lock className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                        <p className="text-sm text-muted-foreground font-medium">{node.currentProblem}</p>
+                        <p className="text-sm text-muted-foreground font-medium">
+                          {node.currentProblems.join('. ')}
+                        </p>
                       </div>
                     )}
 
