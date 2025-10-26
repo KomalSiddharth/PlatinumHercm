@@ -807,14 +807,14 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
                             <Button
                               size="sm"
                               variant="default"
-                              className="h-6 text-[10px] px-2 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
+                              className="h-5 text-[9px] px-1.5 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 window.open(level.videoUrl, '_blank');
                               }}
                               data-testid={`watch-video-${level.id}`}
                             >
-                              <Play className="w-2.5 h-2.5 mr-0.5" />
+                              <Play className="w-2 h-2 mr-0.5" />
                               Watch
                             </Button>
                             {level.status === 'current' && (
