@@ -2,7 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Check, Lock, Play, Crown, Sparkles, TrendingUp, Coins, DollarSign, Zap, Trophy, Heart, Users, Briefcase, Target, Star } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface SkillTreeProps {
   area: {
@@ -161,6 +161,30 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
   const overallProgress = Math.round((totalXP / maxXP) * 100);
   const completedLevels = levels.filter(l => l.status === 'completed').length;
 
+  // State for animated avatar and affirmations
+  const [currentAffirmation, setCurrentAffirmation] = useState<string | null>(null);
+  const [isWalking, setIsWalking] = useState(false);
+  const [isDancing, setIsDancing] = useState(false);
+
+  // Trigger affirmation pop-ups and animations
+  const showAffirmation = (affirmation: string) => {
+    setCurrentAffirmation(affirmation);
+    setIsDancing(true);
+    
+    // Clear affirmation after 3 seconds
+    setTimeout(() => {
+      setCurrentAffirmation(null);
+      setIsDancing(false);
+    }, 3000);
+  };
+
+  // Auto-walk animation when making progress
+  useEffect(() => {
+    if (completedLevels > 0) {
+      setIsWalking(true);
+    }
+  }, [completedLevels]);
+
   const getHealthAvatar = (progress: number) => {
     if (progress >= 90) return { 
       icon: '🦸', 
@@ -287,6 +311,9 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
 
   const handleLevelClick = (level: LevelNode) => {
     if (level.status === 'locked') return;
+    
+    // Show affirmation pop-up
+    showAffirmation(level.affirmation);
     
     if (level.type === 'video') {
       onStartLesson();
@@ -473,14 +500,35 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
   // UNIFIED PREMIUM DESIGN FOR ALL AREAS
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-100 to-indigo-100 dark:from-gray-900 dark:via-purple-950 dark:to-pink-950">
-      {/* Compact Header */}
+      {/* Animated Avatar Header */}
       <div className="relative overflow-hidden border-b border-pink-200 dark:border-pink-800/30">
         <div className="relative z-10 text-center py-6 px-4">
-          {/* Compact Avatar */}
+          {/* Animated Avatar with Affirmation Pop-ups */}
           <div className="relative inline-block mb-3">
+            {/* Affirmation Pop-up */}
+            {currentAffirmation && (
+              <div 
+                className="affirmation-popup absolute -top-16 left-1/2 -translate-x-1/2 z-50 whitespace-nowrap"
+                data-testid="affirmation-popup"
+              >
+                <Card className="px-4 py-2 bg-gradient-to-r from-yellow-400 via-amber-400 to-orange-500 border-2 border-white shadow-2xl">
+                  <p className="text-sm font-bold text-white drop-shadow-lg flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 animate-pulse" />
+                    {currentAffirmation}
+                    <Sparkles className="w-4 h-4 animate-pulse" />
+                  </p>
+                </Card>
+              </div>
+            )}
+            
             <div className={`absolute inset-0 bg-gradient-to-r ${avatar.bg} opacity-20 blur-xl rounded-full animate-pulse`} />
-            <div className={`relative w-20 h-20 mx-auto rounded-full bg-gradient-to-br ${avatar.bg} flex items-center justify-center shadow-lg border-2 border-white dark:border-gray-800`}>
-              <div className="text-5xl">{avatar.icon}</div>
+            <div 
+              className={`relative w-24 h-24 mx-auto rounded-full bg-gradient-to-br ${avatar.bg} flex items-center justify-center shadow-lg border-3 border-white dark:border-gray-800 ${
+                isDancing ? 'animate-dance' : isWalking ? 'animate-walk' : 'animate-bounce-continuous'
+              }`}
+              data-testid="animated-avatar"
+            >
+              <div className="text-6xl">{avatar.icon}</div>
             </div>
           </div>
           
@@ -492,6 +540,23 @@ export default function SkillTree({ area, onStartLesson }: SkillTreeProps) {
             <Crown className="w-4 h-4 mr-1" />
             {avatar.title}
           </Badge>
+          
+          {/* Progress Indicator */}
+          <div className="mt-3 text-xs text-muted-foreground">
+            {isDancing && (
+              <div className="flex items-center justify-center gap-2 text-yellow-600 dark:text-yellow-400 font-bold animate-pulse">
+                <Star className="w-3 h-3 fill-current" />
+                Level Unlocked! Keep Going!
+                <Star className="w-3 h-3 fill-current" />
+              </div>
+            )}
+            {!isDancing && completedLevels > 0 && (
+              <div className="flex items-center justify-center gap-2">
+                <Trophy className="w-3 h-3" />
+                {completedLevels} levels mastered - You're doing amazing!
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
