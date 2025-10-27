@@ -178,10 +178,15 @@ export default function AdminPanel() {
       return apiRequest('POST', '/api/admin/approved-emails', data);
     },
     onSuccess: () => {
+      // Invalidate all related queries to auto-refresh analytics
       queryClient.invalidateQueries({ queryKey: ['/api/admin/approved-emails'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/users-analytics'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/team-analytics'] });
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey[0] as string;
+          return key?.includes('/api/admin/users-analytics') || key?.includes('/api/admin/team-analytics');
+        }
+      });
       toast({ title: "Email Added", description: "Email has been approved successfully" });
       setShowAddDialog(false);
       setNewEmail('');
@@ -201,10 +206,15 @@ export default function AdminPanel() {
       return apiRequest('POST', '/api/admin/bulk-upload', { emails });
     },
     onSuccess: () => {
+      // Invalidate all related queries to auto-refresh analytics
       queryClient.invalidateQueries({ queryKey: ['/api/admin/approved-emails'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/users-analytics'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/team-analytics'] });
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey[0] as string;
+          return key?.includes('/api/admin/users-analytics') || key?.includes('/api/admin/team-analytics');
+        }
+      });
       toast({ title: "Bulk Upload Complete", description: "Emails have been added successfully" });
       setShowBulkDialog(false);
       setBulkEmails('');
@@ -244,11 +254,15 @@ export default function AdminPanel() {
       return { previousEmails };
     },
     onSuccess: () => {
-      // Invalidate to ensure data is fresh
+      // Invalidate all related queries to auto-refresh analytics
       queryClient.invalidateQueries({ queryKey: ['/api/admin/approved-emails'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/users-analytics'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/team-analytics'] });
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey[0] as string;
+          return key?.includes('/api/admin/users-analytics') || key?.includes('/api/admin/team-analytics');
+        }
+      });
       toast({ title: "Email Deleted", description: "Email and all user data removed permanently" });
     },
     onError: (error: any, id: string, context: any) => {
@@ -269,10 +283,15 @@ export default function AdminPanel() {
       return apiRequest('PUT', `/api/admin/approved-emails/${id}`, data);
     },
     onSuccess: () => {
+      // Invalidate all related queries to auto-refresh analytics
       queryClient.invalidateQueries({ queryKey: ['/api/admin/approved-emails'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/users-analytics'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/team-analytics'] });
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey[0] as string;
+          return key?.includes('/api/admin/users-analytics') || key?.includes('/api/admin/team-analytics');
+        }
+      });
       setEditingEmail(null);
       toast({ title: "Email Updated", description: "Email has been updated successfully" });
     },
@@ -290,10 +309,15 @@ export default function AdminPanel() {
       return apiRequest('DELETE', '/api/admin/approved-emails/all');
     },
     onSuccess: () => {
+      // Invalidate all related queries to auto-refresh analytics
       queryClient.invalidateQueries({ queryKey: ['/api/admin/approved-emails'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/users-analytics'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/team-analytics'] });
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey[0] as string;
+          return key?.includes('/api/admin/users-analytics') || key?.includes('/api/admin/team-analytics');
+        }
+      });
       setSelectedEmails([]);
       toast({ title: "All Emails Deleted", description: "All approved emails have been removed" });
     }
@@ -574,11 +598,15 @@ export default function AdminPanel() {
         setUploadProgress({ current: uploadedCount, total: emails.length, isUploading: true });
       }
 
-      // Success
+      // Success - Invalidate all related queries to auto-refresh analytics
       queryClient.invalidateQueries({ queryKey: ['/api/admin/approved-emails'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/users-analytics'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/team-analytics'] });
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey[0] as string;
+          return key?.includes('/api/admin/users-analytics') || key?.includes('/api/admin/team-analytics');
+        }
+      });
       toast({ 
         title: "Bulk Upload Complete", 
         description: `Successfully uploaded ${emails.length.toLocaleString()} emails` 
