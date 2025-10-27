@@ -1110,16 +1110,248 @@ export default function AdminPanel() {
             </>
           )}
 
-          {/* User Analytics Tab Content - Redesigned for Clarity */}
+          {/* User Analytics Tab Content - Redesigned with Team Analytics Section */}
           {activeTab === 'analytics' && (
-            <div className="p-6 space-y-6">
-              {/* Info Banner */}
-              <div className="bg-gradient-to-r from-pink-500 to-blue-500 text-white p-6 rounded-lg">
-                <h2 className="text-2xl font-bold mb-2">📊 User Analytics Overview</h2>
+            <div className="p-6 space-y-8">
+              {/* Purple Main Heading */}
+              <div className="bg-gradient-to-r from-purple-600 to-purple-800 text-white p-6 rounded-lg shadow-lg">
+                <h1 className="text-3xl font-bold mb-2">📊 User Analytics</h1>
                 <p className="text-sm opacity-90">
-                  Track individual user progress across all HRCM areas. Search for specific users or browse the complete list below.
+                  Complete analytics overview: Team performance metrics and individual user progress tracking
                 </p>
               </div>
+
+              {/* SECTION 1: Team Analytics & Growth */}
+              <div className="space-y-6">
+                <div className="flex justify-between items-center border-b-2 border-purple-500 pb-3">
+                  <div>
+                    <h2 className="text-2xl font-bold text-purple-700 dark:text-purple-400">Team Analytics & Growth</h2>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Performance metrics for the selected time period
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant={teamAnalyticsPeriod === 'weekly' ? 'default' : 'outline'} 
+                      size="sm"
+                      onClick={() => setTeamAnalyticsPeriod('weekly')}
+                      data-testid="button-period-weekly"
+                      className="bg-purple-600 hover:bg-purple-700"
+                    >
+                      Weekly
+                    </Button>
+                    <Button 
+                      variant={teamAnalyticsPeriod === 'monthly' ? 'default' : 'outline'} 
+                      size="sm"
+                      onClick={() => setTeamAnalyticsPeriod('monthly')}
+                      data-testid="button-period-monthly"
+                      className="bg-purple-600 hover:bg-purple-700"
+                    >
+                      Monthly
+                    </Button>
+                    <Button 
+                      variant={teamAnalyticsPeriod === 'yearly' ? 'default' : 'outline'} 
+                      size="sm"
+                      onClick={() => setTeamAnalyticsPeriod('yearly')}
+                      data-testid="button-period-yearly"
+                      className="bg-purple-600 hover:bg-purple-700"
+                    >
+                      Yearly
+                    </Button>
+                  </div>
+                </div>
+
+                {isLoadingTeamAnalytics ? (
+                  <div className="flex items-center justify-center py-12">
+                    <RefreshCw className="w-8 h-8 animate-spin text-purple-600" />
+                  </div>
+                ) : teamAnalytics ? (
+                  <>
+                    {/* HRCM Average Ratings Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <Card>
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-sm flex items-center gap-2">
+                            <span className="text-2xl">💪</span>
+                            Health
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-3xl font-bold text-coral-600" data-testid="metric-avg-health">
+                            {teamAnalytics.averageRatings.health.toFixed(1)}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">Average rating</p>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-sm flex items-center gap-2">
+                            <span className="text-2xl">❤️</span>
+                            Relationship
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-3xl font-bold text-pink-600" data-testid="metric-avg-relationship">
+                            {teamAnalytics.averageRatings.relationship.toFixed(1)}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">Average rating</p>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-sm flex items-center gap-2">
+                            <span className="text-2xl">💼</span>
+                            Career
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-3xl font-bold text-lavender-600" data-testid="metric-avg-career">
+                            {teamAnalytics.averageRatings.career.toFixed(1)}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">Average rating</p>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-sm flex items-center gap-2">
+                            <span className="text-2xl">💰</span>
+                            Money
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-3xl font-bold text-teal-600" data-testid="metric-avg-money">
+                            {teamAnalytics.averageRatings.money.toFixed(1)}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">Average rating</p>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Key Metrics Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <Card>
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-sm">Total Users</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-3xl font-bold text-purple-600" data-testid="metric-total-users">
+                            {teamAnalytics.totalUsers}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">In the system</p>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-sm">Active Users</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-3xl font-bold text-blue-600" data-testid="metric-active-users">
+                            {teamAnalytics.activeUsers}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {teamAnalyticsPeriod === 'weekly' ? 'This week' : teamAnalyticsPeriod === 'monthly' ? 'This month' : 'This year'}
+                          </p>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-sm">Growth Rate</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="flex items-center gap-2">
+                            <div className="text-3xl font-bold text-green-600" data-testid="metric-growth-rate">
+                              {teamAnalytics.growthMetrics.percentChange > 0 ? '+' : ''}{teamAnalytics.growthMetrics.percentChange}%
+                            </div>
+                            {teamAnalytics.growthMetrics.percentChange > 0 ? (
+                              <TrendingUp className="w-6 h-6 text-green-600" />
+                            ) : (
+                              <TrendingDown className="w-6 h-6 text-red-600" />
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {teamAnalytics.growthMetrics.newUsers} new users in period
+                          </p>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Top Performers */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>🏆 Top Performers</CardTitle>
+                        <CardDescription>
+                          Users with highest average HRCM ratings in the {teamAnalyticsPeriod} period
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        {teamAnalytics.topPerformers.length === 0 ? (
+                          <div className="text-center py-8 text-muted-foreground">
+                            No active users in this period
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            {teamAnalytics.topPerformers.map((user, index) => (
+                              <div 
+                                key={user.userId} 
+                                className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover-elevate"
+                                data-testid={`top-performer-${index + 1}`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
+                                    index === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600' :
+                                    index === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-500' :
+                                    index === 2 ? 'bg-gradient-to-br from-orange-400 to-orange-600' :
+                                    'bg-gradient-to-br from-teal-500 to-blue-600'
+                                  }`}>
+                                    #{index + 1}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-medium truncate" data-testid={`performer-name-${index + 1}`}>
+                                      {user.firstName && user.lastName 
+                                        ? `${user.firstName} ${user.lastName}`
+                                        : user.firstName || user.email
+                                      }
+                                    </div>
+                                    <div className="text-xs text-muted-foreground truncate" data-testid={`performer-email-${index + 1}`}>
+                                      {user.email}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <div className="text-xl font-bold text-purple-600" data-testid={`performer-rating-${index + 1}`}>
+                                    {user.averageRating.toFixed(1)}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">avg rating</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </>
+                ) : (
+                  <Card>
+                    <CardContent className="py-12 text-center text-muted-foreground">
+                      No team analytics data available
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+
+              {/* SECTION 2: Individual User Analytics */}
+              <div className="space-y-6 border-t-4 border-purple-300 pt-8">
+                <div className="border-b-2 border-purple-500 pb-3">
+                  <h2 className="text-2xl font-bold text-purple-700 dark:text-purple-400">Individual User Performance</h2>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Track individual user progress across all HRCM areas
+                  </p>
+                </div>
 
               {/* Search User Section */}
               <Card className="border-2 border-blue-200 dark:border-blue-800">
@@ -1390,230 +1622,6 @@ export default function AdminPanel() {
           {activeTab === 'dashboard-viewer' && (
             <div className="p-6">
               <AdminUserDashboardViewer />
-            </div>
-          )}
-
-          {/* Team Analytics Tab */}
-          {activeTab === 'team-analytics' && (
-            <div className="p-6">
-              <div className="space-y-6">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="text-lg font-semibold">Team Analytics & Growth</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Performance metrics for the selected time period
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button 
-                      variant={teamAnalyticsPeriod === 'weekly' ? 'default' : 'outline'} 
-                      size="sm"
-                      onClick={() => setTeamAnalyticsPeriod('weekly')}
-                      data-testid="button-period-weekly"
-                    >
-                      Weekly
-                    </Button>
-                    <Button 
-                      variant={teamAnalyticsPeriod === 'monthly' ? 'default' : 'outline'} 
-                      size="sm"
-                      onClick={() => setTeamAnalyticsPeriod('monthly')}
-                      data-testid="button-period-monthly"
-                    >
-                      Monthly
-                    </Button>
-                    <Button 
-                      variant={teamAnalyticsPeriod === 'yearly' ? 'default' : 'outline'} 
-                      size="sm"
-                      onClick={() => setTeamAnalyticsPeriod('yearly')}
-                      data-testid="button-period-yearly"
-                    >
-                      Yearly
-                    </Button>
-                  </div>
-                </div>
-
-                {isLoadingTeamAnalytics ? (
-                  <div className="flex items-center justify-center py-12">
-                    <RefreshCw className="w-8 h-8 animate-spin text-primary" />
-                  </div>
-                ) : teamAnalytics ? (
-                  <>
-                    {/* HRCM Average Ratings Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                      <Card>
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-sm flex items-center gap-2">
-                            <span className="text-2xl">💪</span>
-                            Health
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="text-3xl font-bold text-coral-600" data-testid="metric-avg-health">
-                            {teamAnalytics.averageRatings.health.toFixed(1)}
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-1">Average rating</p>
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-sm flex items-center gap-2">
-                            <span className="text-2xl">❤️</span>
-                            Relationship
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="text-3xl font-bold text-pink-600" data-testid="metric-avg-relationship">
-                            {teamAnalytics.averageRatings.relationship.toFixed(1)}
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-1">Average rating</p>
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-sm flex items-center gap-2">
-                            <span className="text-2xl">💼</span>
-                            Career
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="text-3xl font-bold text-lavender-600" data-testid="metric-avg-career">
-                            {teamAnalytics.averageRatings.career.toFixed(1)}
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-1">Average rating</p>
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-sm flex items-center gap-2">
-                            <span className="text-2xl">💰</span>
-                            Money
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="text-3xl font-bold text-teal-600" data-testid="metric-avg-money">
-                            {teamAnalytics.averageRatings.money.toFixed(1)}
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-1">Average rating</p>
-                        </CardContent>
-                      </Card>
-                    </div>
-
-                    {/* Key Metrics Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <Card>
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-sm">Total Users</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="text-3xl font-bold text-primary" data-testid="metric-total-users">
-                            {teamAnalytics.totalUsers}
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-1">In the system</p>
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-sm">Active Users</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="text-3xl font-bold text-blue-600" data-testid="metric-active-users">
-                            {teamAnalytics.activeUsers}
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {teamAnalyticsPeriod === 'weekly' ? 'This week' : teamAnalyticsPeriod === 'monthly' ? 'This month' : 'This year'}
-                          </p>
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-sm">Growth Rate</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="flex items-center gap-2">
-                            <div className="text-3xl font-bold text-green-600" data-testid="metric-growth-rate">
-                              {teamAnalytics.growthMetrics.percentChange > 0 ? '+' : ''}{teamAnalytics.growthMetrics.percentChange}%
-                            </div>
-                            {teamAnalytics.growthMetrics.percentChange > 0 ? (
-                              <TrendingUp className="w-6 h-6 text-green-600" />
-                            ) : (
-                              <TrendingDown className="w-6 h-6 text-red-600" />
-                            )}
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {teamAnalytics.growthMetrics.newUsers} new users in period
-                          </p>
-                        </CardContent>
-                      </Card>
-                    </div>
-
-                    {/* Top Performers */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>🏆 Top Performers</CardTitle>
-                        <CardDescription>
-                          Users with highest average HRCM ratings in the {teamAnalyticsPeriod} period
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        {teamAnalytics.topPerformers.length === 0 ? (
-                          <div className="text-center py-8 text-muted-foreground">
-                            No active users in this period
-                          </div>
-                        ) : (
-                          <div className="space-y-2">
-                            {teamAnalytics.topPerformers.map((user, index) => (
-                              <div 
-                                key={user.userId} 
-                                className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover-elevate"
-                                data-testid={`top-performer-${index + 1}`}
-                              >
-                                <div className="flex items-center gap-3">
-                                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
-                                    index === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600' :
-                                    index === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-500' :
-                                    index === 2 ? 'bg-gradient-to-br from-orange-400 to-orange-600' :
-                                    'bg-gradient-to-br from-teal-500 to-blue-600'
-                                  }`}>
-                                    #{index + 1}
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <div className="font-medium truncate" data-testid={`performer-name-${index + 1}`}>
-                                      {user.firstName && user.lastName 
-                                        ? `${user.firstName} ${user.lastName}`
-                                        : user.firstName || user.email
-                                      }
-                                    </div>
-                                    <div className="text-xs text-muted-foreground truncate" data-testid={`performer-email-${index + 1}`}>
-                                      {user.email}
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="text-right">
-                                  <div className="text-xl font-bold text-primary" data-testid={`performer-rating-${index + 1}`}>
-                                    {user.averageRating.toFixed(1)}
-                                  </div>
-                                  <div className="text-xs text-muted-foreground">avg rating</div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </>
-                ) : (
-                  <Card>
-                    <CardContent className="py-12 text-center text-muted-foreground">
-                      No analytics data available
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
             </div>
           )}
 
@@ -1979,7 +1987,6 @@ export default function AdminPanel() {
             </div>
           )}
         </div>
-      </div>
 
       {/* Add Email Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
