@@ -24,7 +24,9 @@ import {
   TrendingDown,
   Eye,
   BarChart3,
-  Pencil
+  Pencil,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import type { ApprovedEmail, AdminUser, AccessLog } from '@shared/schema';
 import {
@@ -65,6 +67,8 @@ export default function AdminPanel() {
   const [selectedUserForDetail, setSelectedUserForDetail] = useState<string | null>(null);
   const [emailSearchQuery, setEmailSearchQuery] = useState('');
   const [searchedUser, setSearchedUser] = useState<any>(null);
+  const [analyticsCurrentPage, setAnalyticsCurrentPage] = useState(1);
+  const [analyticsItemsPerPage, setAnalyticsItemsPerPage] = useState(10);
   
   // Course recommendation states
   const [recUserEmail, setRecUserEmail] = useState('');
@@ -1526,7 +1530,13 @@ export default function AdminPanel() {
                                 </td>
                               </tr>
                             ) : (
-                              userAnalytics.map((user: any) => (
+                              (()=> {
+                                // Calculate pagination
+                                const startIndex = (analyticsCurrentPage - 1) * analyticsItemsPerPage;
+                                const endIndex = startIndex + analyticsItemsPerPage;
+                                const paginatedUsers = userAnalytics.slice(startIndex, endIndex);
+                                
+                                return paginatedUsers.map((user: any) =>(
                                 <tr key={user.userId} className="hover:bg-gray-50 dark:hover:bg-gray-900/30 transition-colors">
                                   <td className="px-4 py-4">
                                     <div>
@@ -1597,11 +1607,99 @@ export default function AdminPanel() {
                                     </Button>
                                   </td>
                                 </tr>
-                              ))
+                              ));
+                              })()
                             )}
                           </tbody>
                         </table>
                       </div>
+
+                      {/* Pagination Controls */}
+                      {userAnalytics.length > 0 && (
+                        <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                          <div className="flex items-center gap-4">
+                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                              Showing {Math.min((analyticsCurrentPage - 1) * analyticsItemsPerPage + 1, userAnalytics.length)} to {Math.min(analyticsCurrentPage * analyticsItemsPerPage, userAnalytics.length)} of {userAnalytics.length} users
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <label className="text-sm text-gray-600 dark:text-gray-400">Rows per page:</label>
+                              <select
+                                value={analyticsItemsPerPage}
+                                onChange={(e) => {
+                                  setAnalyticsItemsPerPage(Number(e.target.value));
+                                  setAnalyticsCurrentPage(1);
+                                }}
+                                className="border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1 text-sm bg-white dark:bg-gray-800"
+                                data-testid="select-items-per-page"
+                              >
+                                <option value={5}>5</option>
+                                <option value={10}>10</option>
+                                <option value={20}>20</option>
+                                <option value={50}>50</option>
+                                <option value={100}>100</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setAnalyticsCurrentPage(prev => Math.max(1, prev - 1))}
+                              disabled={analyticsCurrentPage === 1}
+                              data-testid="button-prev-page"
+                              className="hover-elevate"
+                            >
+                              <ChevronLeft className="w-4 h-4 mr-1" />
+                              Previous
+                            </Button>
+                            
+                            <div className="flex items-center gap-1">
+                              {(() => {
+                                const totalPages = Math.ceil(userAnalytics.length / analyticsItemsPerPage);
+                                const pages = [];
+                                const maxVisiblePages = 5;
+                                
+                                let startPage = Math.max(1, analyticsCurrentPage - Math.floor(maxVisiblePages / 2));
+                                let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+                                
+                                if (endPage - startPage < maxVisiblePages - 1) {
+                                  startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                                }
+                                
+                                for (let i = startPage; i <= endPage; i++) {
+                                  pages.push(
+                                    <Button
+                                      key={i}
+                                      variant={i === analyticsCurrentPage ? "default" : "outline"}
+                                      size="sm"
+                                      onClick={() => setAnalyticsCurrentPage(i)}
+                                      className="min-w-[2.5rem] hover-elevate"
+                                      data-testid={`button-page-${i}`}
+                                    >
+                                      {i}
+                                    </Button>
+                                  );
+                                }
+                                
+                                return pages;
+                              })()}
+                            </div>
+
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setAnalyticsCurrentPage(prev => Math.min(Math.ceil(userAnalytics.length / analyticsItemsPerPage), prev + 1))}
+                              disabled={analyticsCurrentPage >= Math.ceil(userAnalytics.length / analyticsItemsPerPage)}
+                              data-testid="button-next-page"
+                              className="hover-elevate"
+                            >
+                              Next
+                              <ChevronRight className="w-4 h-4 ml-1" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </>
