@@ -1228,35 +1228,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin analytics - Get all users progress summary (approved users only)
   app.get('/api/admin/users-analytics', isAdmin, async (req, res) => {
     try {
-      // Get approved emails
+      // Get ALL approved emails (including those who haven't logged in yet)
       const approvedEmailsList = await storage.getAllApprovedEmails();
-      const approvedEmailSet = new Set(approvedEmailsList.filter(ae => ae.status === 'active').map(ae => ae.email));
+      const activeApprovedEmails = approvedEmailsList.filter(ae => ae.status === 'active');
       
-      // Get all users and filter by approved emails
-      // Match by either user.email OR user.id (since some users have userId = email but email field is null)
+      // Get all users from users table
       const allUsers = await storage.getAllUsers();
-      const matchedUsers = allUsers.filter(u => 
-        (u.email && approvedEmailSet.has(u.email)) || approvedEmailSet.has(u.id)
-      );
       
-      // Deduplicate users by email (prefer user with HRCM data, then non-admin dashboard user)
+      // Create a map: email -> user data (ONLY for approved emails)
       const usersByEmail = new Map<string, any>();
       
-      for (const user of matchedUsers) {
+      // Start with ALL approved emails (even if they haven't logged in)
+      for (const approvedEmail of activeApprovedEmails) {
+        const nameParts = approvedEmail.name ? approvedEmail.name.trim().split(' ') : [];
+        usersByEmail.set(approvedEmail.email, {
+          id: approvedEmail.email, // Use email as ID placeholder (will be replaced if user exists)
+          email: approvedEmail.email,
+          firstName: nameParts[0] || '',
+          lastName: nameParts.slice(1).join(' ') || '',
+          isPlaceholder: true, // Mark as placeholder
+        });
+      }
+      
+      // Now, overlay user data from users table (ONLY for approved emails)
+      for (const user of allUsers) {
         const emailKey = user.email || user.id;
         
-        if (!usersByEmail.has(emailKey)) {
-          usersByEmail.set(emailKey, user);
-        } else {
-          // If duplicate, prefer the user with more HRCM weeks
-          const existingUser = usersByEmail.get(emailKey);
-          const existingWeeks = await storage.getHercmWeeksByUser(existingUser.id);
-          const currentWeeks = await storage.getHercmWeeksByUser(user.id);
+        // Only process if this email is in approved list
+        if (usersByEmail.has(emailKey)) {
+          const existing = usersByEmail.get(emailKey);
           
-          // Prefer user with HRCM data, or if both have data, prefer the dashboard user (email field is null)
-          if (currentWeeks.length > existingWeeks.length || 
-              (currentWeeks.length === existingWeeks.length && !user.email && existingUser.email)) {
+          // Replace placeholder with actual user data, or prefer user with more HRCM weeks
+          if (existing.isPlaceholder) {
             usersByEmail.set(emailKey, user);
+          } else {
+            // If duplicate users for same email, prefer one with more HRCM data
+            const existingWeeks = await storage.getHercmWeeksByUser(existing.id);
+            const currentWeeks = await storage.getHercmWeeksByUser(user.id);
+            
+            if (currentWeeks.length > existingWeeks.length || 
+                (currentWeeks.length === existingWeeks.length && !user.email && existing.email)) {
+              usersByEmail.set(emailKey, user);
+            }
           }
         }
       }
