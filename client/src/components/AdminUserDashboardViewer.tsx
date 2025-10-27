@@ -89,8 +89,36 @@ export default function AdminUserDashboardViewer() {
   };
 
   const handleViewHistory = (ritual: any) => {
-    setSelectedRitual(ritual);
+    // Build history from allRitualCompletions
+    const history = buildRitualHistory(ritual.id, dashboardData?.allRitualCompletions || []);
+    setSelectedRitual({ ...ritual, history });
     setHistoryOpen(true);
+  };
+
+  // Helper function to build ritual history for current month
+  const buildRitualHistory = (ritualId: string, completions: any[]) => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const history = [];
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month, day);
+      const dateStr = date.toISOString().split('T')[0];
+      const completion = completions.find(
+        (c: any) => c.ritualId === ritualId && c.date === dateStr
+      );
+      
+      history.push({
+        date: dateStr,
+        completed: !!completion,
+        skipped: completion?.skipped || false,
+      });
+    }
+
+    return history;
   };
 
   const getRatingColor = (rating: number) => {
