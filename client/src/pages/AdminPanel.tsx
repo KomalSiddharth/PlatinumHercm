@@ -769,17 +769,6 @@ export default function AdminPanel() {
                 User Dashboards
               </button>
               <button 
-                onClick={() => setActiveTab('team-analytics')}
-                className={`pb-3 border-b-2 transition-colors ${
-                  activeTab === 'team-analytics' 
-                    ? 'border-blue-600 text-blue-600 font-medium' 
-                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-                }`}
-                data-testid="tab-team-analytics"
-              >
-                Team Analytics
-              </button>
-              <button 
                 onClick={() => setActiveTab('recommendations')}
                 className={`pb-3 border-b-2 transition-colors ${
                   activeTab === 'recommendations' 
