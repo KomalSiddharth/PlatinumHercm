@@ -461,27 +461,27 @@ const lifeSkillsData: CategoryData[] = [
       {
         problem: "What exactly is Leading people?",
         skills: ["1. Leadership Transition"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/lead-people/categories/4175217/posts/14020165"]
       },
       {
         problem: "I am not able to get along with my Boss, colleagues, etc. People don't listen to me, don't understand me.",
         skills: ["2. Rapport Building"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/lead-people/categories/4175217/posts/14020166"]
       },
       {
         problem: "My Boss does not appreciate my work, my colleagues don't like me.",
         skills: ["3. Perception Management"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/lead-people/categories/4175217/posts/14020168"]
       },
       {
         problem: "I am not able to fulfill my Boss Expectations, I have too many conflicts in my relationships.",
         skills: ["4. Firo-B"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/lead-people/categories/4175217/posts/14020170"]
       },
       {
         problem: "People don't listen to me, they don't trust me, they are angry with me, they are not convinced with me, they don't follow what I say.",
         skills: ["5. Trust Bank Account"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/lead-people/categories/4175217/posts/14020172"]
       },
       {
         problem: "Leadership Styles",
@@ -521,37 +521,37 @@ const lifeSkillsData: CategoryData[] = [
       {
         problem: "I am not happy with my current job, I am frustrated with my Boss, I want to change my job desperately, I am not paid as per my strengths.",
         skills: ["1. The Entrepreneur Identity"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/lead-business/categories/4241548/posts/14243457"]
       },
       {
         problem: "I am not able to Grow my Business",
         skills: ["2. Creating a BIG Goal with Blind Faith"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/lead-business/categories/4241548/posts/14243458"]
       },
       {
         problem: "How do I convert my Business into a large Coorportion?",
         skills: ["3. Five Pillars of Business Mastery"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/lead-business/categories/4241548/posts/14507725"]
       },
       {
         problem: "How do I sleep well?",
         skills: ["4. Sleeping Technique"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/lead-business/categories/4241548/posts/14507723"]
       },
       {
         problem: "Why is my Business not Growing?",
         skills: ["5. Recognising Business Limiting Beliefs"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/lead-business/categories/4241548/posts/14644127"]
       },
       {
         problem: "There are too many conflicts within our team members.",
         skills: ["6. Values - A Compass to Guide your Team"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/lead-business/categories/4241548/posts/14838778"]
       },
       {
         problem: "My team is not productive and I need to keep micro managing everything.",
         skills: ["7. Creating Business Systems for Growth"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/lead-business/categories/4479879/posts/15034807"]
       }
     ]
   },
