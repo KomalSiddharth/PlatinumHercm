@@ -376,82 +376,82 @@ const lifeSkillsData: CategoryData[] = [
       {
         problem: "What Is Leadership?",
         skills: ["Leadership"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/10369559"]
       },
       {
         problem: "Managing Your Emotional Energy",
         skills: ["Emotional Energy"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/10512984"]
       },
       {
         problem: "Emotional Patterns Exercise",
         skills: ["Emotional Patterns Exercise"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/10668058"]
       },
       {
         problem: "Control your Focus & Meanings",
         skills: ["Control your Focus & Meanings"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/10962361"]
       },
       {
         problem: "Conditioning Exercise P+F",
         skills: ["Conditioning Exercise P+F"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/10963518"]
       },
       {
         problem: "Creating Emotions at Will - Anchoring Exercise",
         skills: ["Creating Emotions at Will - Anchoring Exercise"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/11127413"]
       },
       {
         problem: "Creating Vision with Standards & Purpose",
         skills: ["Creating Vision with Standards & Purpose"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/11262538"]
       },
       {
         problem: "Clarity of Values - The Foundation of Unlimited Power",
         skills: ["Clarity of Values - The Foundation of Unlimited Power"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/11427352"]
       },
       {
         problem: "Creating Beliefs to Support Your Values",
         skills: ["Creating Beliefs to Support Your Values"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/11562234"]
       },
       {
         problem: "Recognising & Changing Beliefs",
         skills: ["Recognising & Changing Beliefs"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/11683127"]
       },
       {
         problem: "Understanding & Rewiring Your Needs",
         skills: ["Understanding & Rewiring Your Needs"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/11878114"]
       },
       {
         problem: "Integration of Complete Psychology",
         skills: ["Integration of Complete Psychology"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/12035103"]
       },
       {
         problem: "Managing Conflicts like a Leader",
         skills: ["Managing Conflicts like a Leader", "9. Conflict Management"],
-        skillUrls: ["https://coaching.miteshkhatri.com/", "https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/12198556", "https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/12198556"]
       },
       {
         problem: "Balancing your Yin-Yang Energy",
         skills: ["Balancing your Yin-Yang Energy"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/12367473"]
       },
       {
         problem: "Managing Time Like a Leader",
         skills: ["Managing Time Like a Leader", "11. Time Management"],
-        skillUrls: ["https://coaching.miteshkhatri.com/", "https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/12544867", "https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/12544867"]
       },
       {
         problem: "Recap of all Lead Self Modules",
         skills: ["Recap of all Lead Self Modules"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/lead-self/categories/3050135/posts/12712244"]
       }
     ]
   },
