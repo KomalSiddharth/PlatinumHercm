@@ -755,7 +755,7 @@ export default function AdminPanel() {
                 }`}
                 data-testid="tab-analytics"
               >
-                User Analytics
+                Analytics
               </button>
               <button 
                 onClick={() => setActiveTab('dashboard-viewer')}
@@ -1115,7 +1115,7 @@ export default function AdminPanel() {
             <div className="p-6 space-y-8">
               {/* Purple Main Heading */}
               <div className="bg-gradient-to-r from-purple-600 to-purple-800 text-white p-6 rounded-lg shadow-lg">
-                <h1 className="text-3xl font-bold mb-2">📊 User Analytics</h1>
+                <h1 className="text-3xl font-bold mb-2">📊 Analytics</h1>
                 <p className="text-sm opacity-90">
                   Complete analytics overview: Team performance metrics and individual user progress tracking
                 </p>
