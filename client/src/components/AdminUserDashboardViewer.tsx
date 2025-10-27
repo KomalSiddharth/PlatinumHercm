@@ -322,6 +322,16 @@ export default function AdminUserDashboardViewer() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Ritual History Modal */}
+            {selectedRitual && (
+              <RitualHistoryModal
+                open={historyOpen}
+                onOpenChange={setHistoryOpen}
+                ritualTitle={selectedRitual.title}
+                history={selectedRitual.history || []}
+              />
+            )}
           </>
         )}
       </div>
@@ -490,16 +500,6 @@ export default function AdminUserDashboardViewer() {
             <p className="text-sm">Enter a name or email above to search for a user's dashboard</p>
           </CardContent>
         </Card>
-      )}
-
-      {/* Ritual History Modal */}
-      {selectedRitual && (
-        <RitualHistoryModal
-          open={historyOpen}
-          onOpenChange={setHistoryOpen}
-          ritualTitle={selectedRitual.title}
-          history={selectedRitual.history || []}
-        />
       )}
     </div>
   );
