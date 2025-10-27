@@ -12,6 +12,7 @@ import RitualHistoryModal from '@/components/RitualHistoryModal';
 import UpdateProgressModal from '@/components/UpdateProgressModal';
 import BadgeDisplayCard from '@/components/BadgeDisplayCard';
 import UserActivitySearch from '@/components/UserActivitySearch';
+import UserDashboardSearch from '@/components/UserDashboardSearch';
 import EmotionalTracker from '@/components/EmotionalTracker';
 import { CourseRecommendations } from '@/components/CourseRecommendations';
 import SkillBuilder from '@/components/SkillBuilder';
@@ -2300,6 +2301,18 @@ export default function Dashboard() {
             leaderboardEntries={leaderboardEntries} 
             currentUserId={currentUser?.id}
           />
+        </section>
+
+        {/* Team Dashboard Search Section */}
+        <section className="scroll-mt-20 bg-purple-50 dark:bg-purple-950/40 p-6 rounded-lg border-2 border-purple-200 dark:border-purple-800">
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-3xl font-bold">Team Dashboard Search</h2>
+              <p className="text-muted-foreground mt-1">Search and view team members' complete dashboards</p>
+            </div>
+
+            <UserDashboardSearch />
+          </div>
         </section>
       </main>
 
