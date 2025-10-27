@@ -180,6 +180,8 @@ export default function AdminPanel() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/approved-emails'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users-analytics'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/team-analytics'] });
       toast({ title: "Email Added", description: "Email has been approved successfully" });
       setShowAddDialog(false);
       setNewEmail('');
@@ -201,6 +203,8 @@ export default function AdminPanel() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/approved-emails'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users-analytics'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/team-analytics'] });
       toast({ title: "Bulk Upload Complete", description: "Emails have been added successfully" });
       setShowBulkDialog(false);
       setBulkEmails('');
@@ -222,6 +226,8 @@ export default function AdminPanel() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/approved-emails'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users-analytics'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/team-analytics'] });
       toast({ title: "Email Deleted", description: "Email has been removed" });
     }
   });
@@ -233,6 +239,8 @@ export default function AdminPanel() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/approved-emails'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users-analytics'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/team-analytics'] });
       setEditingEmail(null);
       toast({ title: "Email Updated", description: "Email has been updated successfully" });
     },
@@ -252,6 +260,8 @@ export default function AdminPanel() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/approved-emails'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users-analytics'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/team-analytics'] });
       setSelectedEmails([]);
       toast({ title: "All Emails Deleted", description: "All approved emails have been removed" });
     }
@@ -535,6 +545,8 @@ export default function AdminPanel() {
       // Success
       queryClient.invalidateQueries({ queryKey: ['/api/admin/approved-emails'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users-analytics'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/team-analytics'] });
       toast({ 
         title: "Bulk Upload Complete", 
         description: `Successfully uploaded ${emails.length.toLocaleString()} emails` 
