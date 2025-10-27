@@ -5,10 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Search, User, ArrowLeft, TrendingUp, AlertCircle, Loader2 } from 'lucide-react';
+import { Search, User, ArrowLeft, TrendingUp, AlertCircle, Loader2, Trophy, History as HistoryIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import UnifiedHRCMTable from './UnifiedHRCMTable';
 import AdminEmotionalTrackerView from './AdminEmotionalTrackerView';
+import RitualHistoryModal from './RitualHistoryModal';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 interface UserSearchResult {
@@ -48,6 +50,8 @@ export default function UserDashboardSearch() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [selectedRitual, setSelectedRitual] = useState<any | null>(null);
   const { toast } = useToast();
 
   // Search users by name or email
@@ -87,6 +91,39 @@ export default function UserDashboardSearch() {
     if (rating >= 8) return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
     if (rating >= 5) return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
     return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
+  };
+
+  // Handle ritual history view
+  const handleViewHistory = (ritual: any) => {
+    if (!dashboardData?.allRitualCompletions) return;
+    
+    // Get current month's date range
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+    const startOfMonth = new Date(currentYear, currentMonth, 1);
+    const endOfMonth = new Date(currentYear, currentMonth + 1, 0);
+
+    // Build history for each day of current month
+    const history = [];
+    for (let day = startOfMonth.getDate(); day <= endOfMonth.getDate(); day++) {
+      const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const completion = dashboardData.allRitualCompletions.find((c: any) => 
+        c.ritualId === ritual.id && c.date === dateStr
+      );
+      
+      history.push({
+        date: dateStr,
+        completed: !!completion,
+        skipped: false
+      });
+    }
+
+    setSelectedRitual({
+      ...ritual,
+      history
+    });
+    setHistoryOpen(true);
   };
 
   // If viewing a user's dashboard
@@ -179,12 +216,12 @@ export default function UserDashboardSearch() {
               />
             )}
             
-            {/* Daily Rituals Section - Matching User Dashboard Styling */}
+            {/* Daily Rituals Section - Matching User Dashboard Styling with History Button */}
             <section className="scroll-mt-20 p-3 sm:p-4 md:p-6 rounded-lg border-2" style={{ backgroundColor: '#00008c', borderColor: '#0000cc' }}>
               <div className="space-y-4 sm:space-y-6">
                 <div>
                   <h2 className="text-2xl sm:text-2xl md:text-3xl font-bold text-white">Daily Rituals</h2>
-                  <p className="text-sm sm:text-base text-white/80 mt-1">User's daily habits and completions (Read Only)</p>
+                  <p className="text-sm sm:text-base text-white/80 mt-1">Team member's daily habits and completions (Read Only)</p>
                 </div>
 
                 {(dashboardData.rituals || []).length === 0 ? (
@@ -194,110 +231,68 @@ export default function UserDashboardSearch() {
                     </CardContent>
                   </Card>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                    {(dashboardData.rituals || []).map((ritual: any) => {
-                      const isCompleted = dashboardData.todayCompletions?.some((c: any) => c.ritualId === ritual.id);
-                      const isPaused = !ritual.isActive;
-                      
-                      return (
-                        <Card 
-                          key={ritual.id} 
-                          className={`relative ${isPaused ? 'opacity-60' : ''}`}
-                          data-testid={`team-ritual-card-${ritual.id}`}
-                        >
-                          <CardContent className="p-3 sm:p-4">
-                            <div className="flex items-start gap-2 sm:gap-3">
-                              <Checkbox
-                                checked={isCompleted}
-                                disabled={true}
-                                className="mt-0.5"
-                                data-testid={`team-ritual-checkbox-${ritual.id}`}
-                              />
-                              <div className="flex-1 min-w-0">
-                                <h4 className="font-medium text-sm sm:text-base truncate" data-testid={`team-ritual-title-${ritual.id}`}>
-                                  {ritual.title}
-                                </h4>
-                                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1">
-                                  <Badge className="text-[10px] sm:text-xs px-1.5 py-0 h-4 sm:h-5 bg-gradient-to-r from-primary to-accent text-white border-0">
-                                    +{ritual.points} pts
-                                  </Badge>
-                                  {isPaused && (
-                                    <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0 h-4 sm:h-5">
-                                      ⏸ Paused
-                                    </Badge>
-                                  )}
-                                </div>
-                              </div>
+                  <Card>
+                    <div className="divide-y">
+                      {(dashboardData.rituals || []).map((ritual: any) => {
+                        const isCompleted = dashboardData.todayCompletions?.some((c: any) => c.ritualId === ritual.id);
+                        const isPaused = !ritual.isActive;
+
+                        return (
+                          <div 
+                            key={ritual.id} 
+                            className={`flex items-center gap-2 sm:gap-3 md:gap-4 p-2 sm:p-3 md:p-4 hover:bg-muted/30 transition-colors ${isPaused ? 'opacity-40' : ''}`}
+                            data-testid={`team-ritual-row-${ritual.id}`}
+                          >
+                            <Checkbox
+                              checked={isCompleted}
+                              disabled={true}
+                              className="w-4 h-4 sm:w-5 sm:h-5"
+                              data-testid={`team-ritual-checkbox-${ritual.id}`}
+                            />
+
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium text-sm sm:text-base" data-testid={`team-ritual-title-${ritual.id}`}>
+                                {ritual.title}
+                              </h4>
+                              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                                {ritual.frequency === 'daily' ? 'Daily' : ritual.frequency === 'mon-fri' ? 'Mon-Fri' : 'Custom'}
+                              </p>
                             </div>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                  </div>
+
+                            <div className="flex items-center gap-1 sm:gap-2">
+                              <Badge className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0 h-5 sm:h-6 bg-gradient-to-r from-primary to-accent text-white border-0 gap-1">
+                                <Trophy className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                                {ritual.points}
+                              </Badge>
+
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => handleViewHistory(ritual)}
+                                      data-testid={`button-history-${ritual.id}`}
+                                      className="w-7 h-7 sm:w-8 sm:h-8"
+                                    >
+                                      <HistoryIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>View history</TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </Card>
                 )}
               </div>
             </section>
 
             {/* Daily Emotional Tracker - Team View */}
             <AdminEmotionalTrackerView userId={selectedUserId} />
-
-            {/* Course Progress Section - Read-Only Team View */}
-            <section className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-3 sm:p-4 md:p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
-              <div className="space-y-4 sm:space-y-6">
-                <div>
-                  <h2 className="text-2xl sm:text-2xl md:text-3xl font-bold">Course Progress</h2>
-                  <p className="text-sm sm:text-base text-muted-foreground mt-1">Completed lessons across all courses (Read Only)</p>
-                </div>
-
-                {dashboardData.completedLessons && dashboardData.completedLessons.length > 0 ? (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="font-medium">Total Completed Lessons</span>
-                      <Badge className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white">
-                        {dashboardData.completedLessons.length} lessons completed
-                      </Badge>
-                    </div>
-                    
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="space-y-2">
-                          {dashboardData.completedLessons.map((lesson: any, index: number) => (
-                            <div 
-                              key={lesson.id || index} 
-                              className="flex items-start gap-2 p-2 rounded-md hover:bg-muted/30"
-                              data-testid={`team-lesson-item-${index}`}
-                            >
-                              <Checkbox
-                                checked={true}
-                                disabled={true}
-                                className="mt-0.5"
-                              />
-                              <div className="flex-1">
-                                <p className="text-sm font-medium">
-                                  {lesson.videoId || lesson.id || `Lesson ${index + 1}`}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  Completed {lesson.completedAt ? new Date(lesson.completedAt).toLocaleDateString() : 'N/A'}
-                                </p>
-                              </div>
-                              <Badge className="text-[10px] px-1.5 py-0 h-5 bg-gradient-to-r from-primary to-accent text-white border-0">
-                                +10 pts
-                              </Badge>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                ) : (
-                  <Card>
-                    <CardContent className="p-8 text-center text-muted-foreground">
-                      <p>No lessons completed yet</p>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-            </section>
 
             {/* Badges Section */}
             <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20 border-yellow-200 dark:border-yellow-800">
@@ -335,6 +330,16 @@ export default function UserDashboardSearch() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Ritual History Modal */}
+            {selectedRitual && (
+              <RitualHistoryModal
+                open={historyOpen}
+                onOpenChange={setHistoryOpen}
+                ritualTitle={selectedRitual.title}
+                history={selectedRitual.history || []}
+              />
+            )}
           </>
         )}
       </div>
