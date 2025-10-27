@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Sparkles, Check, X, TrendingUp, Save, Loader2, ArrowUp, ArrowDown, Plus, MoreHorizontal, Calendar as CalendarIcon, Trash2 } from 'lucide-react';
+import { Sparkles, Check, X, TrendingUp, Save, Loader2, ArrowUp, ArrowDown, Plus, MoreHorizontal, Calendar as CalendarIcon, Trash2, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -263,6 +263,25 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   const lastFocusedButton = useRef<HTMLButtonElement | null>(null);
   const hasAutoProgressed = useRef<Set<number>>(new Set()); // Track which weeks have been auto-progressed
   const { toast} = useToast();
+
+  // Navigate date (Previous/Next) - similar to EmotionalTracker
+  const navigateDate = (direction: 'prev' | 'next') => {
+    const currentDate = selectedHistoryDate || new Date();
+    const newDate = new Date(currentDate);
+    if (direction === 'prev') {
+      newDate.setDate(newDate.getDate() - 1);
+    } else {
+      newDate.setDate(newDate.getDate() + 1);
+    }
+    setSelectedHistoryDate(newDate);
+    
+    // Set viewingHistory based on whether new date is today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selected = new Date(newDate);
+    selected.setHours(0, 0, 0, 0);
+    setViewingHistory(selected.getTime() !== today.getTime());
+  };
 
   // When in admin view mode, fetch data for the specific user
   // Build query key based on admin view or regular user view
@@ -1610,18 +1629,29 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       <div className="border-2 border-coral-red/70 dark:border-coral-red/50 rounded-lg overflow-x-auto shadow-lg">
         <div className="px-2 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-b-2 border-coral-red/80 dark:border-coral-red/60 bg-coral-red">
           <div className="flex items-center justify-between">
-            {/* Left: Calendar Icon */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-white hover:bg-white/20 h-7 w-7 sm:h-8 sm:w-8 p-0"
-                  data-testid="button-calendar-picker"
-                >
-                  <CalendarIcon className="w-4 h-4 sm:w-5 sm:h-5" />
-                </Button>
-              </PopoverTrigger>
+            {/* Left: Date Navigation Controls */}
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigateDate('prev')}
+                data-testid="button-prev-date"
+                className="text-white hover:bg-white/20 h-7 w-7 sm:h-8 sm:w-8 p-0"
+              >
+                <ChevronLeftIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </Button>
+              
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-white hover:bg-white/20 h-7 w-7 sm:h-8 sm:w-8 p-0"
+                    data-testid="button-calendar-picker"
+                  >
+                    <CalendarIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </Button>
+                </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   mode="single"
@@ -1665,6 +1695,17 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 )}
               </PopoverContent>
             </Popover>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigateDate('next')}
+              data-testid="button-next-date"
+              className="text-white hover:bg-white/20 h-7 w-7 sm:h-8 sm:w-8 p-0"
+            >
+              <ChevronRightIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            </Button>
+          </div>
 
             {/* Center: Heading */}
             <h3 className="font-bold text-white text-sm sm:text-base md:text-lg lg:text-xl drop-shadow-md flex items-center gap-1 sm:gap-2">
