@@ -522,6 +522,36 @@ const lifeSkillsData: CategoryData[] = [
         problem: "I am not happy with my current job, I am frustrated with my Boss, I want to change my job desperately, I am not paid as per my strengths.",
         skills: ["1. The Entrepreneur Identity"],
         skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "I am not able to Grow my Business",
+        skills: ["2. Creating a BIG Goal with Blind Faith"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "How do I convert my Business into a large Coorportion?",
+        skills: ["3. Five Pillars of Business Mastery"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "How do I sleep well?",
+        skills: ["4. Sleeping Technique"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Why is my Business not Growing?",
+        skills: ["5. Recognising Business Limiting Beliefs"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "There are too many conflicts within our team members.",
+        skills: ["6. Values - A Compass to Guide your Team"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "My team is not productive and I need to keep micro managing everything.",
+        skills: ["7. Creating Business Systems for Growth"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
       }
     ]
   },
