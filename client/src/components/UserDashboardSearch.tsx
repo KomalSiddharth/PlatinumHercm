@@ -252,7 +252,7 @@ export default function UserDashboardSearch() {
               <UnifiedHRCMTable 
                 weekNumber={selectedWeekNumber}
                 viewAsUserId={selectedUserId} 
-                isAdminView={false}
+                isAdminView={true}
               />
             </div>
             
