@@ -11,7 +11,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import UnifiedHRCMTable from './UnifiedHRCMTable';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import AdminEmotionalTrackerView from './AdminEmotionalTrackerView';
-import LifeSkillsMap from './LifeSkillsMap';
 import RitualHistoryModal from './RitualHistoryModal';
 
 interface UserSearchResult {
@@ -200,11 +199,6 @@ export default function AdminUserDashboardViewer() {
               viewAsUserId={selectedUserId} 
               isAdminView={true}
             />
-
-            {/* Life Problems & Life Skill Map Section */}
-            <section className="scroll-mt-20">
-              <LifeSkillsMap />
-            </section>
             
             {/* Daily Rituals Section - Matching User Dashboard */}
             <section className="scroll-mt-20 p-3 sm:p-4 md:p-6 rounded-lg border-2" style={{ backgroundColor: '#00008c', borderColor: '#0000cc' }}>
