@@ -1047,14 +1047,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTeamAnalytics(period: 'weekly' | 'monthly' | 'yearly') {
-    // Get approved emails
-    const approvedEmailsList = await db.select().from(approvedEmails).where(eq(approvedEmails.status, 'active'));
-    const approvedEmailSet = new Set(approvedEmailsList.map(ae => ae.email));
+    // Get approved emails - count directly from approved_emails table
+    const allApprovedEmailsList = await db.select().from(approvedEmails);
+    const activeApprovedEmailsList = allApprovedEmailsList.filter(ae => ae.status === 'active');
+    
+    // Count total and active users from approved_emails (not users table)
+    const totalUsers = allApprovedEmailsList.length;
+    const activeUsers = activeApprovedEmailsList.length;
+    
+    const approvedEmailSet = new Set(activeApprovedEmailsList.map(ae => ae.email));
     
     // Get all users and filter by approved emails
     const allUsers = await this.getAllUsers();
     const approvedUsers = allUsers.filter(u => approvedEmailSet.has(u.email));
-    const totalUsers = approvedUsers.length;
     
     // Get both user IDs and emails from approved users (some weeks use email as userId)
     const approvedUserIds = new Set(approvedUsers.map(u => u.id));
@@ -1082,9 +1087,6 @@ export class DatabaseStorage implements IStorage {
         return weekDate >= yearAgo;
       }
     });
-
-    // Calculate active users (ALL approved users with active status, regardless of data)
-    const activeUsers = approvedUsers.length;  // All approved users are active
 
     // Calculate average ratings across all users
     const avgHealth = filteredWeeks.reduce((sum, w) => sum + (w.currentH || 0), 0) / (filteredWeeks.length || 1);
@@ -1122,7 +1124,7 @@ export class DatabaseStorage implements IStorage {
       
       if (!firstName && !lastName && user) {
         // Try to get name from approved_emails
-        const approvedEmail = approvedEmailsList.find(ae => ae.email === user.email || ae.email === user.id);
+        const approvedEmail = activeApprovedEmailsList.find(ae => ae.email === user.email || ae.email === user.id);
         if (approvedEmail && approvedEmail.name) {
           const nameParts = approvedEmail.name.trim().split(' ');
           firstName = nameParts[0] || '';
