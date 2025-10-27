@@ -708,17 +708,17 @@ export default function AdminPanel() {
           </div>
         </div>
 
-        {/* Email Management Table */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-          {/* Tabs */}
-          <div className="border-b border-gray-200 dark:border-gray-700">
-            <div className="flex gap-6 px-6 pt-4">
+        {/* Admin Panel Content with Vertical Sidebar */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 flex flex-row overflow-hidden">
+          {/* Left Vertical Sidebar - Tabs */}
+          <div className="w-64 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+            <div className="flex flex-col p-4 space-y-1">
               <button 
                 onClick={() => setActiveTab('approved')}
-                className={`pb-3 border-b-2 transition-colors ${
+                className={`px-4 py-3 rounded-md text-left transition-colors ${
                   activeTab === 'approved' 
-                    ? 'border-blue-600 text-blue-600 font-medium' 
-                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                    ? 'bg-blue-600 text-white font-medium' 
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'
                 }`}
                 data-testid="tab-approved"
               >
@@ -726,10 +726,10 @@ export default function AdminPanel() {
               </button>
               <button 
                 onClick={() => setActiveTab('team')}
-                className={`pb-3 border-b-2 transition-colors ${
+                className={`px-4 py-3 rounded-md text-left transition-colors ${
                   activeTab === 'team' 
-                    ? 'border-blue-600 text-blue-600 font-medium' 
-                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                    ? 'bg-blue-600 text-white font-medium' 
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'
                 }`}
                 data-testid="tab-team"
               >
@@ -737,10 +737,10 @@ export default function AdminPanel() {
               </button>
               <button 
                 onClick={() => setActiveTab('logs')}
-                className={`pb-3 border-b-2 transition-colors ${
+                className={`px-4 py-3 rounded-md text-left transition-colors ${
                   activeTab === 'logs' 
-                    ? 'border-blue-600 text-blue-600 font-medium' 
-                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                    ? 'bg-blue-600 text-white font-medium' 
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'
                 }`}
                 data-testid="tab-logs"
               >
@@ -748,10 +748,10 @@ export default function AdminPanel() {
               </button>
               <button 
                 onClick={() => setActiveTab('analytics')}
-                className={`pb-3 border-b-2 transition-colors ${
+                className={`px-4 py-3 rounded-md text-left transition-colors ${
                   activeTab === 'analytics' 
-                    ? 'border-blue-600 text-blue-600 font-medium' 
-                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                    ? 'bg-blue-600 text-white font-medium' 
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'
                 }`}
                 data-testid="tab-analytics"
               >
@@ -759,10 +759,10 @@ export default function AdminPanel() {
               </button>
               <button 
                 onClick={() => setActiveTab('dashboard-viewer')}
-                className={`pb-3 border-b-2 transition-colors ${
+                className={`px-4 py-3 rounded-md text-left transition-colors ${
                   activeTab === 'dashboard-viewer' 
-                    ? 'border-blue-600 text-blue-600 font-medium' 
-                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                    ? 'bg-blue-600 text-white font-medium' 
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'
                 }`}
                 data-testid="tab-dashboard-viewer"
               >
@@ -770,10 +770,10 @@ export default function AdminPanel() {
               </button>
               <button 
                 onClick={() => setActiveTab('recommendations')}
-                className={`pb-3 border-b-2 transition-colors ${
+                className={`px-4 py-3 rounded-md text-left transition-colors ${
                   activeTab === 'recommendations' 
-                    ? 'border-blue-600 text-blue-600 font-medium' 
-                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                    ? 'bg-blue-600 text-white font-medium' 
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'
                 }`}
                 data-testid="tab-recommendations"
               >
@@ -781,10 +781,10 @@ export default function AdminPanel() {
               </button>
               <button 
                 onClick={() => setActiveTab('platinum-standards')}
-                className={`pb-3 border-b-2 transition-colors ${
+                className={`px-4 py-3 rounded-md text-left transition-colors ${
                   activeTab === 'platinum-standards' 
-                    ? 'border-blue-600 text-blue-600 font-medium' 
-                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                    ? 'bg-blue-600 text-white font-medium' 
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'
                 }`}
                 data-testid="tab-platinum-standards"
               >
@@ -792,6 +792,9 @@ export default function AdminPanel() {
               </button>
             </div>
           </div>
+
+          {/* Right Content Area */}
+          <div className="flex-1 overflow-y-auto">
 
           {/* Approved Emails Tab Content */}
           {activeTab === 'approved' && (
@@ -1976,8 +1979,10 @@ export default function AdminPanel() {
               </div>
             </div>
           )}
-        </div>
-      </div>
+
+          </div> {/* Close right content area */}
+        </div> {/* Close vertical sidebar container */}
+      </div> {/* Close main admin panel container */}
 
       {/* Add Email Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
