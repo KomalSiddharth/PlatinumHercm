@@ -167,6 +167,51 @@ const lifeSkillsData: CategoryData[] = [
         problem: "I lack the drive to make money, I keep postponing my actions",
         skills: ["16. Align Your 6 Needs with your Money Goals"],
         skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "I am feeling poor, feeling small, not good enough.",
+        skills: ["17. Live Life Like a Millionaire for 24 Hrs"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "I am not able to convince, influence, get a promotion.",
+        skills: ["18. Perception Management"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "I am not able to start a business, I am not able to grow my business.",
+        skills: ["19. Invest More Money To Make More Money"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "I am not able to make a decision, I am confused, what should I do?",
+        skills: ["20. Making Decisions Like a Millionaire"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "How do I make Investments to Make Passive Income?",
+        skills: ["21. Make Investments Like a Millionaire"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "How do I do Affiliate Marketing?",
+        skills: ["22. Making Millions with Affiliate Marketing"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "I am not able to Attract the Work I Love, I want to change my Job but I am not able to.",
+        skills: ["23. Love Your Work More Than Money"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "I feel like I don't have enough, I feel I have lack of money all the time, I feel helpless and poor.",
+        skills: ["24. Unconditional Giving"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Importance of Vastu",
+        skills: ["25. Importance of Vastu"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
       }
     ]
   },
