@@ -1,4 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ChevronDown } from "lucide-react";
+import { useState } from "react";
 
 interface SkillMapping {
   problem: string;
@@ -85,6 +88,18 @@ const lifeSkillsData: CategoryData[] = [
 ];
 
 export default function LifeSkillsMap() {
+  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({
+    "Basic LOA": true,
+    "Health Mastery": true,
+  });
+
+  const toggleCategory = (category: string) => {
+    setOpenCategories(prev => ({
+      ...prev,
+      [category]: !prev[category]
+    }));
+  };
+
   return (
     <Card className="w-full border-2 border-primary/30 dark:border-primary/50 bg-gradient-to-br from-primary/5 to-accent/5 dark:from-primary/10 dark:to-accent/10" data-testid="card-life-skills-map">
       <CardHeader className="p-3 sm:p-4 md:p-6">
@@ -92,72 +107,79 @@ export default function LifeSkillsMap() {
           Life Problems & Life Skill Map
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-3 sm:p-4 md:p-6">
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse" data-testid="table-life-skills">
-            <thead>
-              <tr>
-                <th 
-                  className="bg-red-600 text-white font-bold text-lg p-3 text-left border border-gray-300"
-                  data-testid="header-problems"
-                >
-                  Problems
-                </th>
-                <th 
-                  className="bg-green-600 text-white font-bold text-lg p-3 text-left border border-gray-300"
-                  data-testid="header-life-skills"
-                >
-                  Life Skills
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {lifeSkillsData.map((category, categoryIdx) => (
-                <>
-                  {/* Category Header Row */}
-                  <tr key={`category-${categoryIdx}`}>
-                    <td 
-                      colSpan={2} 
-                      className="bg-blue-100 dark:bg-blue-900/30 font-bold text-center p-2 border border-gray-300"
-                      data-testid={`category-${category.category.toLowerCase().replace(/\s+/g, '-')}`}
-                    >
-                      {category.category}
-                    </td>
-                  </tr>
-                  
-                  {/* Mapping Rows */}
-                  {category.mappings.map((mapping, mappingIdx) => (
-                    <tr 
-                      key={`mapping-${categoryIdx}-${mappingIdx}`}
-                      className={mappingIdx % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800'}
-                      data-testid={`row-skill-mapping-${categoryIdx}-${mappingIdx}`}
-                    >
-                      <td className="p-2.5 border border-gray-300 align-top">
-                        <span className="text-sm md:text-base">{mapping.problem}</span>
-                      </td>
-                      <td className="p-2.5 border border-gray-300 align-top">
-                        <div className="flex flex-col gap-1">
-                          {mapping.skills.map((skill, skillIdx) => (
-                            <a
-                              key={`skill-${categoryIdx}-${mappingIdx}-${skillIdx}`}
-                              href={mapping.skillUrls?.[skillIdx] || '#'}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-600 dark:text-blue-400 hover:underline text-sm md:text-base"
-                              data-testid={`link-skill-${categoryIdx}-${mappingIdx}-${skillIdx}`}
-                            >
-                              {skill}
-                            </a>
-                          ))}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      <CardContent className="p-3 sm:p-4 md:p-6 space-y-4">
+        {lifeSkillsData.map((category, categoryIdx) => (
+          <Collapsible 
+            key={`category-${categoryIdx}`}
+            open={openCategories[category.category]}
+            onOpenChange={() => toggleCategory(category.category)}
+          >
+            <div className="border-2 border-primary/20 dark:border-primary/30 rounded-lg overflow-hidden shadow-md">
+              {/* Category Header */}
+              <CollapsibleTrigger className="w-full bg-primary/10 dark:bg-primary/20 hover:bg-primary/15 dark:hover:bg-primary/25 transition-colors" data-testid={`button-toggle-${category.category.toLowerCase().replace(/\s+/g, '-')}`}>
+                <div className="flex items-center justify-between p-2 sm:p-2.5 md:p-3">
+                  <h3 className="font-bold text-sm sm:text-base text-primary dark:text-primary/90">
+                    {category.category}
+                  </h3>
+                  <ChevronDown className={`h-4 w-4 sm:h-5 sm:w-5 text-primary transition-transform duration-200 ${openCategories[category.category] ? 'transform rotate-180' : ''}`} />
+                </div>
+              </CollapsibleTrigger>
+
+              <CollapsibleContent>
+                {/* Scrollable Table Container */}
+                <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
+                  <table className="w-full border-collapse">
+                    <thead className="sticky top-0 z-10">
+                      <tr>
+                        <th 
+                          className="bg-red-600 text-white font-semibold text-xs sm:text-sm p-2 sm:p-2.5 text-left border-b-2 border-white/20"
+                          data-testid={`header-problems-${categoryIdx}`}
+                        >
+                          Problems
+                        </th>
+                        <th 
+                          className="bg-green-600 text-white font-semibold text-xs sm:text-sm p-2 sm:p-2.5 text-left border-b-2 border-white/20"
+                          data-testid={`header-life-skills-${categoryIdx}`}
+                        >
+                          Life Skills
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {category.mappings.map((mapping, mappingIdx) => (
+                        <tr 
+                          key={`mapping-${categoryIdx}-${mappingIdx}`}
+                          className={mappingIdx % 2 === 0 ? 'bg-white dark:bg-gray-900/50' : 'bg-gray-50 dark:bg-gray-800/50'}
+                          data-testid={`row-skill-mapping-${categoryIdx}-${mappingIdx}`}
+                        >
+                          <td className="p-2 sm:p-2.5 border-b border-gray-200 dark:border-gray-700 align-top">
+                            <span className="text-xs sm:text-sm">{mapping.problem}</span>
+                          </td>
+                          <td className="p-2 sm:p-2.5 border-b border-gray-200 dark:border-gray-700 align-top">
+                            <div className="flex flex-col gap-1">
+                              {mapping.skills.map((skill, skillIdx) => (
+                                <a
+                                  key={`skill-${categoryIdx}-${mappingIdx}-${skillIdx}`}
+                                  href={mapping.skillUrls?.[skillIdx] || '#'}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 dark:text-blue-400 hover:underline text-xs sm:text-sm"
+                                  data-testid={`link-skill-${categoryIdx}-${mappingIdx}-${skillIdx}`}
+                                >
+                                  {skill}
+                                </a>
+                              ))}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CollapsibleContent>
+            </div>
+          </Collapsible>
+        ))}
       </CardContent>
     </Card>
   );
