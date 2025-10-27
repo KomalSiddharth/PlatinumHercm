@@ -1614,6 +1614,7 @@ export default function AdminPanel() {
                   </Card>
                 </>
               )}
+              </div>
             </div>
           )}
 
@@ -1987,6 +1988,7 @@ export default function AdminPanel() {
             </div>
           )}
         </div>
+      </div>
 
       {/* Add Email Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
