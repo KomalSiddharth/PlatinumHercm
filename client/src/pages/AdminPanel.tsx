@@ -43,7 +43,7 @@ import AdminUserDashboardViewer from '@/components/AdminUserDashboardViewer';
 
 export default function AdminPanel() {
   const [, setLocation] = useLocation();
-  const [activeTab, setActiveTab] = useState<'approved' | 'team' | 'logs' | 'analytics' | 'dashboard-viewer' | 'team-analytics' | 'recommendations' | 'platinum-standards'>('approved');
+  const [activeTab, setActiveTab] = useState<'approved' | 'team' | 'logs' | 'analytics' | 'dashboard-viewer' | 'team-analytics' | 'recommendations' | 'platinum-standards'>('analytics');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -714,39 +714,6 @@ export default function AdminPanel() {
           <div className="w-64 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
             <div className="flex flex-col p-4 space-y-1">
               <button 
-                onClick={() => setActiveTab('approved')}
-                className={`px-4 py-3 rounded-md text-left transition-colors ${
-                  activeTab === 'approved' 
-                    ? 'bg-blue-600 text-white font-medium' 
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'
-                }`}
-                data-testid="tab-approved"
-              >
-                Approved Emails
-              </button>
-              <button 
-                onClick={() => setActiveTab('team')}
-                className={`px-4 py-3 rounded-md text-left transition-colors ${
-                  activeTab === 'team' 
-                    ? 'bg-blue-600 text-white font-medium' 
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'
-                }`}
-                data-testid="tab-team"
-              >
-                Team Management
-              </button>
-              <button 
-                onClick={() => setActiveTab('logs')}
-                className={`px-4 py-3 rounded-md text-left transition-colors ${
-                  activeTab === 'logs' 
-                    ? 'bg-blue-600 text-white font-medium' 
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'
-                }`}
-                data-testid="tab-logs"
-              >
-                Access Logs
-              </button>
-              <button 
                 onClick={() => setActiveTab('analytics')}
                 className={`px-4 py-3 rounded-md text-left transition-colors ${
                   activeTab === 'analytics' 
@@ -789,6 +756,39 @@ export default function AdminPanel() {
                 data-testid="tab-platinum-standards"
               >
                 ⭐ Platinum Standards
+              </button>
+              <button 
+                onClick={() => setActiveTab('approved')}
+                className={`px-4 py-3 rounded-md text-left transition-colors ${
+                  activeTab === 'approved' 
+                    ? 'bg-blue-600 text-white font-medium' 
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'
+                }`}
+                data-testid="tab-approved"
+              >
+                Approved Emails
+              </button>
+              <button 
+                onClick={() => setActiveTab('team')}
+                className={`px-4 py-3 rounded-md text-left transition-colors ${
+                  activeTab === 'team' 
+                    ? 'bg-blue-600 text-white font-medium' 
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'
+                }`}
+                data-testid="tab-team"
+              >
+                Team Management
+              </button>
+              <button 
+                onClick={() => setActiveTab('logs')}
+                className={`px-4 py-3 rounded-md text-left transition-colors ${
+                  activeTab === 'logs' 
+                    ? 'bg-blue-600 text-white font-medium' 
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'
+                }`}
+                data-testid="tab-logs"
+              >
+                Access Logs
               </button>
             </div>
           </div>
