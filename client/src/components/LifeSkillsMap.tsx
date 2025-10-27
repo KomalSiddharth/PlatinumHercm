@@ -605,13 +605,13 @@ export default function LifeSkillsMap() {
           {/* Common Table Headers */}
           <div className="sticky top-0 z-20 grid grid-cols-2">
             <div 
-              className="bg-red-600 text-white font-semibold text-xs sm:text-sm p-2 sm:p-2.5 text-center border-b-2 border-white/20"
+              className="bg-[#ff6b6b] dark:bg-[#ff6b6b]/90 text-white font-semibold text-xs sm:text-sm p-2 sm:p-2.5 text-center border-b-2 border-white/20"
               data-testid="header-problems-common"
             >
               Problems
             </div>
             <div 
-              className="bg-green-600 text-white font-semibold text-xs sm:text-sm p-2 sm:p-2.5 text-center border-b-2 border-white/20"
+              className="bg-[#10b981] dark:bg-[#10b981]/90 text-white font-semibold text-xs sm:text-sm p-2 sm:p-2.5 text-center border-b-2 border-white/20"
               data-testid="header-life-skills-common"
             >
               Life Skills
@@ -632,8 +632,8 @@ export default function LifeSkillsMap() {
                   className="w-full bg-primary/10 dark:bg-primary/20 hover:bg-primary/15 dark:hover:bg-primary/25 transition-colors border-b border-primary/10" 
                   data-testid={`button-toggle-${category.category.toLowerCase().replace(/\s+/g, '-')}`}
                 >
-                  <div className="flex items-center justify-between p-2 sm:p-2.5">
-                    <h3 className="font-bold text-sm sm:text-base text-primary dark:text-primary/90">
+                  <div className="flex items-center justify-center gap-2 p-2 sm:p-2.5">
+                    <h3 className="font-bold text-sm sm:text-base text-primary dark:text-primary/90 text-center">
                       {category.category}
                     </h3>
                     <ChevronDown className={`h-4 w-4 sm:h-5 sm:w-5 text-primary transition-transform duration-200 ${openCategories[category.category] ? 'transform rotate-180' : ''}`} />
