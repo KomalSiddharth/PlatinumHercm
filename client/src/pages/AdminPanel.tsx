@@ -69,6 +69,7 @@ export default function AdminPanel() {
   const [searchedUser, setSearchedUser] = useState<any>(null);
   const [analyticsCurrentPage, setAnalyticsCurrentPage] = useState(1);
   const [analyticsItemsPerPage, setAnalyticsItemsPerPage] = useState(10);
+  const [showMetricsDialog, setShowMetricsDialog] = useState(false);
   
   // Course recommendation states
   const [recUserEmail, setRecUserEmail] = useState('');
@@ -1355,6 +1356,16 @@ export default function AdminPanel() {
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Search className="w-5 h-5" />
                     Quick User Lookup
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setShowMetricsDialog(true)}
+                      data-testid="button-show-metrics-help"
+                      className="ml-auto hover-elevate"
+                      title="Understanding the Metrics"
+                    >
+                      <HelpCircle className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    </Button>
                   </CardTitle>
                   <CardDescription>
                     Enter a user's email address to view their detailed analytics and progress report
@@ -1380,58 +1391,6 @@ export default function AdminPanel() {
                       <Search className="w-4 h-4 mr-2" />
                       {searchUserMutation.isPending ? 'Searching...' : 'Search User'}
                     </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Understanding Metrics Card */}
-              <Card className="bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
-                <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <HelpCircle className="w-5 h-5 text-blue-600" />
-                    Understanding the Metrics
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
-                    <div className="space-y-1">
-                      <div className="font-semibold text-blue-700 dark:text-blue-300">📈 Overall Score</div>
-                      <div className="text-gray-700 dark:text-gray-300">
-                        Average rating (out of 10) across Health, Relationship, Career, and Money areas
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <div className="font-semibold text-blue-700 dark:text-blue-300">🎯 Achievement Rate</div>
-                      <div className="text-gray-700 dark:text-gray-300">
-                        Percentage of targets completed for the week (70%+ = Excellent, 50-69% = Good, below 50% = Needs Support)
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <div className="font-semibold text-blue-700 dark:text-blue-300">📊 Trend</div>
-                      <div className="text-gray-700 dark:text-gray-300">
-                        Change in score compared to previous week (↑ Improving, ↓ Declining, — Stable)
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <div className="font-semibold text-blue-700 dark:text-blue-300">🗓️ Total Weeks</div>
-                      <div className="text-gray-700 dark:text-gray-300">
-                        Number of weeks the user has been actively tracking their HRCM progress
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <div className="font-semibold text-blue-700 dark:text-blue-300">✅ Status</div>
-                      <div className="text-gray-700 dark:text-gray-300">
-                        <span className="text-green-600 font-medium">Excellent</span> (70%+) | 
-                        <span className="text-blue-600 font-medium"> Good</span> (50-69%) | 
-                        <span className="text-orange-600 font-medium"> Needs Support</span> (below 50%)
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <div className="font-semibold text-blue-700 dark:text-blue-300">👁️ View Details</div>
-                      <div className="text-gray-700 dark:text-gray-300">
-                        Opens complete progress report with weekly data, HRCM breakdown, and course completions
-                      </div>
-                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -1704,6 +1663,61 @@ export default function AdminPanel() {
                   </Card>
                 </>
               )}
+
+              {/* Understanding Metrics Dialog */}
+              <Dialog open={showMetricsDialog} onOpenChange={setShowMetricsDialog}>
+                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2 text-xl">
+                      <HelpCircle className="w-6 h-6 text-blue-600" />
+                      Understanding the Metrics
+                    </DialogTitle>
+                    <DialogDescription>
+                      Learn what each metric means in the analytics dashboard
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
+                    <div className="space-y-2">
+                      <div className="font-semibold text-blue-700 dark:text-blue-300 text-base">📈 Overall Score</div>
+                      <div className="text-gray-700 dark:text-gray-300 text-sm">
+                        Average rating (out of 10) across Health, Relationship, Career, and Money areas
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="font-semibold text-blue-700 dark:text-blue-300 text-base">🎯 Achievement Rate</div>
+                      <div className="text-gray-700 dark:text-gray-300 text-sm">
+                        Percentage of targets completed for the week (70%+ = Excellent, 50-69% = Good, below 50% = Needs Support)
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="font-semibold text-blue-700 dark:text-blue-300 text-base">📊 Trend</div>
+                      <div className="text-gray-700 dark:text-gray-300 text-sm">
+                        Change in score compared to previous week (↑ Improving, ↓ Declining, — Stable)
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="font-semibold text-blue-700 dark:text-blue-300 text-base">🗓️ Total Weeks</div>
+                      <div className="text-gray-700 dark:text-gray-300 text-sm">
+                        Number of weeks the user has been actively tracking their HRCM progress
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="font-semibold text-blue-700 dark:text-blue-300 text-base">✅ Status</div>
+                      <div className="text-gray-700 dark:text-gray-300 text-sm">
+                        <span className="text-green-600 font-medium">Excellent</span> (70%+) | 
+                        <span className="text-blue-600 font-medium"> Good</span> (50-69%) | 
+                        <span className="text-orange-600 font-medium"> Needs Support</span> (below 50%)
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="font-semibold text-blue-700 dark:text-blue-300 text-base">👁️ View Details</div>
+                      <div className="text-gray-700 dark:text-gray-300 text-sm">
+                        Opens complete progress report with weekly data, HRCM breakdown, and course completions
+                      </div>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
               </div>
             </div>
           )}
