@@ -84,6 +84,491 @@ const lifeSkillsData: CategoryData[] = [
         skillUrls: ["https://coaching.miteshkhatri.com/"]
       }
     ]
+  },
+  {
+    category: "Wealth Mastery",
+    mappings: [
+      {
+        problem: "Not sure what's my Ultimate Financial Goal",
+        skills: ["1. Create Wealth Frequency"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "What exactly is my current Money Frequency?",
+        skills: ["2. Recognise your Current Money Frequency"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "What Exactly is Blocking my Money Frequency?",
+        skills: ["3. Recognise the Negativity in your Money FTBA"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "How can I Create New Money Attraction Frequency?",
+        skills: ["4. Create New Money FTBA"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "How do I Release my Negative Money Blocks?",
+        skills: ["5. Release Money Blocks with EFT"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "How should be my New Emotional Frequency to Attract More Money?",
+        skills: ["6. Create New Emotional Frequency for Money"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Why am I not Able to Make More Money? Why is my Income Stuck?",
+        skills: ["7. Create New Wealth Beliefs"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "My Income is Limited",
+        skills: ["8. Create Multiple Sources of Income (MSI)"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "I am not able to Grow my Business",
+        skills: ["9. Increase your Working Income"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "I am not able to Manifest Beyond a Certain Point",
+        skills: ["10. Increase your Comfort Zone to Increase your Income"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "I am Making Money but Still Stressed",
+        skills: ["11. Manage Money with PMDSPM"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "I don't have the motivation to invest",
+        skills: ["12. Understand The Power of Compound Interest"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "I am Feeling Confused & Stuck for a very long time, should I do it or not.",
+        skills: ["13. Fail Fast to Succeed Fast"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "I am planning a lot but still unable to take action.",
+        skills: ["14. Sell First Make Later"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "I feel like a Failure, Frustrated, Sad when I am not able to make money.",
+        skills: ["15. Create a High Self Esteem to Attract More Money"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "I lack the drive to make money, I keep postponing my actions",
+        skills: ["16. Align Your 6 Needs with your Money Goals"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      }
+    ]
+  },
+  {
+    category: "NLP",
+    mappings: [
+      {
+        problem: "I am not able to control my thoughts",
+        skills: ["1. Understand What is NLP & Generalisation, Distortion & Deletion"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "I don't understand why people think and talk like that.",
+        skills: ["1. Understand What is NLP & Generalisation, Distortion & Deletion"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "I don't know how to my control my mind, I cant stop thinking.",
+        skills: ["2. Understand NLP Modalities - VAK"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "I forget things, I enjoy anything fully",
+        skills: ["3. Increasing VAK Senses Practice"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "I am able to Control how I Feel in specific situations of my life.",
+        skills: ["4. Master Sub-Modalities to Master your Emotions & Thoughts"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "I am not able to change my Limiting Beliefs",
+        skills: ["5. Changing Beliefs with Sub-Modalities"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "I Have Panic Attacks / I Have Phobias / I Get Scared Easily / I Feel Fear by Habit",
+        skills: ["6. Cure Phobias with Sub-Modalities"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "By Habit I Feel Angry, Irritated, Frustrated, Sad, Hurt, Lack of Love, Helpless, Anxious, Pressure and all negative Emotions.",
+        skills: ["7. Master Anchoring to Stop Any Negative Emotion & Create Any Positive Emotion"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "I would like to feel more Calm, Relaxed, Patience, Happy, Confident, Love, Courage, all Positive Emotions by Automatic Habit.",
+        skills: ["7. Master Anchoring to Stop Any Negative Emotion & Create Any Positive Emotion"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "I am not able to Believe in myself",
+        skills: ["8. Learn To Change Beliefs Fast with Sub-Modalities"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      }
+    ]
+  },
+  {
+    category: "Relationship Mastery",
+    mappings: [
+      {
+        problem: "I don't understand Why my relationships don't work? I am completely frustrated with my Relationship problems.",
+        skills: ["1. Understand What is Relationships"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "I am angry with my partner, I don't have the same relationship I used to.",
+        skills: ["2. Master Dropping Rackets Instantly"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "I don't understand why he/she behaves like this. I just cannot tolerate this behaviour of my partner.",
+        skills: ["3. Master Reflections"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "I feel irritated and lack of love and sad all the time.",
+        skills: ["4. Programming Self Love & Acceptance"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Why is my partner not able to fulfill my expectations.",
+        skills: ["5. Master Balanced Perspective for Acceptance"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "I feel so helpless, angry, irritated, sad, negative all the time in my relationship. I find it really difficult to feel love, happiness, comfortable in my relationship the way I used to.",
+        skills: ["6. Master Rules of Love"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Relationship Rituals",
+        skills: ["7. Master Rituals of Love"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "My partner has too much Ego and I don't know how to manage that.",
+        skills: ["8. Master Ego Management in Relationships"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "We are very different from each other, he/she never listens to me, does not trust me, doubts me, controls me.",
+        skills: ["9. Understanding Differences & Mastering Trust Bank Account"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      }
+    ]
+  },
+  {
+    category: "Lead Self",
+    mappings: [
+      {
+        problem: "What Is Leadership?",
+        skills: ["Leadership"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Managing Your Emotional Energy",
+        skills: ["Emotional Energy"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Emotional Patterns Exercise",
+        skills: ["Emotional Patterns Exercise"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Control your Focus & Meanings",
+        skills: ["Control your Focus & Meanings"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Conditioning Exercise P+F",
+        skills: ["Conditioning Exercise P+F"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Creating Emotions at Will - Anchoring Exercise",
+        skills: ["Creating Emotions at Will - Anchoring Exercise"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Creating Vision with Standards & Purpose",
+        skills: ["Creating Vision with Standards & Purpose"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Clarity of Values - The Foundation of Unlimited Power",
+        skills: ["Clarity of Values - The Foundation of Unlimited Power"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Creating Beliefs to Support Your Values",
+        skills: ["Creating Beliefs to Support Your Values"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Recognising & Changing Beliefs",
+        skills: ["Recognising & Changing Beliefs"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Understanding & Rewiring Your Needs",
+        skills: ["Understanding & Rewiring Your Needs"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Integration of Complete Psychology",
+        skills: ["Integration of Complete Psychology"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Managing Conflicts like a Leader",
+        skills: ["Managing Conflicts like a Leader", "9. Conflict Management"],
+        skillUrls: ["https://coaching.miteshkhatri.com/", "https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Balancing your Yin-Yang Energy",
+        skills: ["Balancing your Yin-Yang Energy"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Managing Time Like a Leader",
+        skills: ["Managing Time Like a Leader", "11. Time Management"],
+        skillUrls: ["https://coaching.miteshkhatri.com/", "https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Recap of all Lead Self Modules",
+        skills: ["Recap of all Lead Self Modules"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      }
+    ]
+  },
+  {
+    category: "Lead People",
+    mappings: [
+      {
+        problem: "What exactly is Leading people?",
+        skills: ["1. Leadership Transition"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "I am not able to get along with my Boss, colleagues, etc. People don't listen to me, don't understand me.",
+        skills: ["2. Rapport Building"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "My Boss does not appreciate my work, my colleagues don't like me.",
+        skills: ["3. Perception Management"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "I am not able to fulfill my Boss Expectations, I have too many conflicts in my relationships.",
+        skills: ["4. Firo-B"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "People don't listen to me, they don't trust me, they are angry with me, they are not convinced with me, they don't follow what I say.",
+        skills: ["5. Trust Bank Account"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Leadership Styles",
+        skills: ["6. Situational Leadership Styles"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Balanced Perspective",
+        skills: ["7. Balanced Perspective"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Giving Feedback",
+        skills: ["8. How to Give Feedback"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Category of Relationships",
+        skills: ["9. Category of Relationships"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Decision Making",
+        skills: ["10. Decision Making"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Training & Coaching People",
+        skills: ["11. Training & Coaching People"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Appraisal Skills",
+        skills: ["12. Appraisal Skills"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "I am not happy with my current job, I am frustrated with my Boss, I want to change my job desperately, I am not paid as per my strengths.",
+        skills: ["1. The Entrepreneur Identity"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      }
+    ]
+  },
+  {
+    category: "Train The Trainer",
+    mappings: [
+      {
+        problem: "How do I become a really Rich & Powerful Trainer?",
+        skills: ["1. 5 Principles of Being a Rich & Powerful Trainer"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "How do I start a Training in a very Impressive way?",
+        skills: ["2. How to Start a Training Session with a WOW Impact"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "How do I control the flow of my Training? How do I handle Objections?",
+        skills: ["3. Power of Pre-Framing, Re-Framing & Post-Framing"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "How do I Engage my Students?",
+        skills: ["4. How to Reframe to Engage your Audience", "5. Multiple Methods to Keep your Audience Engaged"],
+        skillUrls: ["https://coaching.miteshkhatri.com/", "https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "How can I become more Confident with Public Speaking?",
+        skills: ["6. How to Create Extraordinary Comfort for Public Speaking"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "How do I handle difficult people and difficult questions?",
+        skills: ["7. How to Handle Difficult People Questions"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "How can I design my courses for creating amazing results?",
+        skills: ["8. 4 Steps to Design Trainings Like a Master"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "How do I sell & market my trainings and courses?",
+        skills: ["9. Selling & Marketing your Courses"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      }
+    ]
+  },
+  {
+    category: "Digital Coaching System - Becoming a Digital Millionaire Coach",
+    mappings: [
+      {
+        problem: "What topic should I coach on?",
+        skills: ["1. Niche Clarity Blueprint"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "How do I create my Course? How many chapters should it have? How long should it be?",
+        skills: ["2. Creating Result Oriented Courses"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "How do I Attract Clients?",
+        skills: ["3. Attracting Clients with Trust Building Webinars"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "How do I Create my Courses Platform, Videos, Email Marketing.",
+        skills: ["4. Creating your Website in Kajabi"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "How do I create my Video Lessons? What Equipment do I use?",
+        skills: ["5. How to Create your Video Lessons"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "How do I create Facebook Ads?",
+        skills: ["6. How to Create Facebook Ads"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Lack of Confidence, Lack of Courage",
+        skills: ["Catch Patterns", "Affirmations for Being a Successful Coach"],
+        skillUrls: ["https://coaching.miteshkhatri.com/", "https://coaching.miteshkhatri.com/"]
+      }
+    ]
+  },
+  {
+    category: "Practical Spirituality",
+    mappings: [
+      {
+        problem: "What is Pratical Spirituality?",
+        skills: ["Practical Spirituality, Two parts of spirituality"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Practical Spirituality Lesson 2",
+        skills: ["Practical Spirituality Lesson 2"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Practical Spirituality Meditation",
+        skills: ["Practical Spirituality Meditation"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Practical Spirituality Lesson 3",
+        skills: ["Practical Spirituality Lesson 3"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Practical Spirituality Lesson 4",
+        skills: ["Practical Spirituality Lesson 4"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Practical Spirituality Lesson 4 Sharing",
+        skills: ["Practical Spirituality Lesson 4 Sharing"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Practical Spirituality Lesson 5",
+        skills: ["Practical Spirituality Lesson 5"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Practical Spirituality Lesson 6 Part 1",
+        skills: ["Practical Spirituality Lesson 6 Part 1"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Practical Spirituality Lesson 6 Part 2",
+        skills: ["Practical Spirituality Lesson 6 Part 2"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Practical Spirituality Lesson 7",
+        skills: ["Practical Spirituality Lesson 7"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      }
+    ]
   }
 ];
 
@@ -91,6 +576,14 @@ export default function LifeSkillsMap() {
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({
     "Basic LOA": true,
     "Health Mastery": true,
+    "Wealth Mastery": true,
+    "NLP": true,
+    "Relationship Mastery": true,
+    "Lead Self": true,
+    "Lead People": true,
+    "Train The Trainer": true,
+    "Digital Coaching System - Becoming a Digital Millionaire Coach": true,
+    "Practical Spirituality": true,
   });
 
   const toggleCategory = (category: string) => {
