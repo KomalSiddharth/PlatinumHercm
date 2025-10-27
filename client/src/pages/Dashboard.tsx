@@ -1389,7 +1389,7 @@ export default function Dashboard() {
     },
     {
       id: 'dmp-recording',
-      title: 'DMP Recording - Daily Mindful Practice',
+      title: 'DMP Recording',
       url: 'https://coaching.miteshkhatri.com/products/platinum-dmp',
       tags: ['Mindfulness', 'Daily Practice', 'Affirmations'],
       source: 'Mitesh Khatri',
