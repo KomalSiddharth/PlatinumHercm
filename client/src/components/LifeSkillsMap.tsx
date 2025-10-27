@@ -362,6 +362,11 @@ const lifeSkillsData: CategoryData[] = [
         problem: "We are very different from each other, he/she never listens to me, does not trust me, doubts me, controls me.",
         skills: ["9. Understanding Differences & Mastering Trust Bank Account"],
         skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "My partner cheats on me, thinks about someone else, I feel insecured in my relationships.",
+        skills: ["10. Master Problems of Love & Affairs"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
       }
     ]
   },
