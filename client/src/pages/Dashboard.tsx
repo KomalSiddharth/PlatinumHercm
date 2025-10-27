@@ -185,6 +185,7 @@ export default function Dashboard() {
   }, [dbRituals, todayCompletions, monthlyCompletions]);
 
   const hrcmRef = useRef<HTMLDivElement>(null);
+  const skillMapRef = useRef<HTMLDivElement>(null);
   const ritualsRef = useRef<HTMLDivElement>(null);
   const emotionalRef = useRef<HTMLDivElement>(null);
   const coursesRef = useRef<HTMLDivElement>(null);
@@ -196,6 +197,7 @@ export default function Dashboard() {
   const scrollToSection = (section: string) => {
     const refs = {
       hrcm: hrcmRef,
+      skillmap: skillMapRef,
       rituals: ritualsRef,
       emotional: emotionalRef,
       courses: coursesRef,
@@ -1938,7 +1940,7 @@ export default function Dashboard() {
         </section>
 
         {/* Life Problems & Life Skill Map Section */}
-        <section className="scroll-mt-20">
+        <section ref={skillMapRef} id="skillmap" className="scroll-mt-20">
           <LifeSkillsMap />
         </section>
 
