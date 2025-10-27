@@ -265,7 +265,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   const { toast} = useToast();
 
   // Navigate date (Previous/Next) - similar to EmotionalTracker
-  const navigateDate = (direction: 'prev' | 'next') => {
+  const navigateDate = async (direction: 'prev' | 'next') => {
     const currentDate = selectedHistoryDate || new Date();
     const newDate = new Date(currentDate);
     if (direction === 'prev') {
@@ -281,6 +281,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     const selected = new Date(newDate);
     selected.setHours(0, 0, 0, 0);
     setViewingHistory(selected.getTime() !== today.getTime());
+    
+    // Immediately refetch all weeks data to get fresh snapshot for new date
+    await queryClient.invalidateQueries({ queryKey: allWeeksQueryKey });
+    await queryClient.refetchQueries({ queryKey: allWeeksQueryKey });
   };
 
   // When in admin view mode, fetch data for the specific user
@@ -489,7 +493,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       }
       return;
     }
-  }, [viewingHistory, historicalSnapshot]);
+  }, [viewingHistory, historicalSnapshot, selectedHistoryDate, allWeeksData]);
 
   useEffect(() => {
     // Skip if viewing history
@@ -1656,7 +1660,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 <Calendar
                   mode="single"
                   selected={selectedHistoryDate}
-                  onSelect={(date) => {
+                  onSelect={async (date) => {
                     setSelectedHistoryDate(date);
                     if (date) {
                       const today = new Date();
@@ -1665,6 +1669,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       selected.setHours(0, 0, 0, 0);
                       // Only set viewingHistory to true if selected date is NOT today
                       setViewingHistory(selected.getTime() !== today.getTime());
+                      // Immediately refetch all weeks data to get fresh snapshot for selected date
+                      await queryClient.invalidateQueries({ queryKey: allWeeksQueryKey });
+                      await queryClient.refetchQueries({ queryKey: allWeeksQueryKey });
                     } else {
                       setViewingHistory(false);
                     }
