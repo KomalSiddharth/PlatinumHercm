@@ -267,6 +267,51 @@ const lifeSkillsData: CategoryData[] = [
         problem: "I am not able to Believe in myself",
         skills: ["8. Learn To Change Beliefs Fast with Sub-Modalities"],
         skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "I have Nail Biting Habits, All Compulsive Bad Habits",
+        skills: ["9. Swish Pattern"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Managing Multiple Anchors",
+        skills: ["10. Stancking & Collapse Anchors"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "I am not able to convince myself and others easily. Its taking me too much time to succeed. I am not able to get desired results. How can I replacate someone's success?",
+        skills: ["11. Master Metaphors Influence on yourself & Others", "12. Modelling for FastTrack Success"],
+        skillUrls: ["https://coaching.miteshkhatri.com/", "https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "How do i make anyone Comfortable in 10 Mins?",
+        skills: ["13. Rapport Building"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "How do I influence and convince people like a Master?",
+        skills: ["14. Hypnotic Language Pattern to Master Influence - Meta & Milton Model"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Discovering Success Strategies",
+        skills: ["15. Discovering VAK Strategies to Discover Success Model"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "How can I make instant changes to my Emotions and Perspective?",
+        skills: ["16. Master TimeLine Questions for Instantly Changing Emotions"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "How can instantly change the way I feel?",
+        skills: ["17. Transformational Vocabulary"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "How can I control the way people think and what they think?",
+        skills: ["18. Pre-Framing, Re-Framing & Post-Framing"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
       }
     ]
   },
