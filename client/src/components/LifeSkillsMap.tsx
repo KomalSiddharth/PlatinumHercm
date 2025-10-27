@@ -646,52 +646,52 @@ const lifeSkillsData: CategoryData[] = [
       {
         problem: "What is Pratical Spirituality?",
         skills: ["Practical Spirituality, Two parts of spirituality"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2148801629/posts/2152145750"]
       },
       {
         problem: "Practical Spirituality Lesson 2",
         skills: ["Practical Spirituality Lesson 2"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2148801629/posts/2152319533"]
       },
       {
         problem: "Practical Spirituality Meditation",
         skills: ["Practical Spirituality Meditation"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2148801629/posts/2152368852"]
       },
       {
         problem: "Practical Spirituality Lesson 3",
         skills: ["Practical Spirituality Lesson 3"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2148801629/posts/2152502428"]
       },
       {
         problem: "Practical Spirituality Lesson 4",
         skills: ["Practical Spirituality Lesson 4"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2148801629/posts/2152673833"]
       },
       {
         problem: "Practical Spirituality Lesson 4 Sharing",
         skills: ["Practical Spirituality Lesson 4 Sharing"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2148801629/posts/2152673833"]
       },
       {
         problem: "Practical Spirituality Lesson 5",
         skills: ["Practical Spirituality Lesson 5"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2148801629/posts/2152851624"]
       },
       {
         problem: "Practical Spirituality Lesson 6 Part 1",
         skills: ["Practical Spirituality Lesson 6 Part 1"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2148801629/posts/2153204713"]
       },
       {
         problem: "Practical Spirituality Lesson 6 Part 2",
         skills: ["Practical Spirituality Lesson 6 Part 2"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2148801629/posts/2153204755"]
       },
       {
         problem: "Practical Spirituality Lesson 7",
         skills: ["Practical Spirituality Lesson 7"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2148801629/posts/2153372417"]
       }
     ]
   }
