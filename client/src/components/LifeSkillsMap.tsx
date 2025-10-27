@@ -61,27 +61,27 @@ const lifeSkillsData: CategoryData[] = [
       {
         problem: "Health Problems",
         skills: ["1. Master Understanding Health"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/11723270"]
       },
       {
         problem: "Limiting Health Beliefs",
         skills: ["2. Breaking Limiting Health Habits"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/11880530"]
       },
       {
         problem: "Weight Loss & Gain, How to Create a Diet Plan and Still Lose Weight",
         skills: ["3. Master the Lifestyle Diet Plans"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/12035104"]
       },
       {
         problem: "Motivation for Weight Loss",
         skills: ["4. Master the 7 Steps to Love Exercising"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/12544878"]
       },
       {
         problem: "What Workouts to Do",
         skills: ["5. Master Designing your Own Workouts"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/health-mastery-happy-gym/categories/3437855/posts/13221310"]
       }
     ]
   },
