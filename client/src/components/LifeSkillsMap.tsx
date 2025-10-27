@@ -606,37 +606,37 @@ const lifeSkillsData: CategoryData[] = [
       {
         problem: "What topic should I coach on?",
         skills: ["1. Niche Clarity Blueprint"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/digital-coaching-system/categories/2347937"]
       },
       {
         problem: "How do I create my Course? How many chapters should it have? How long should it be?",
         skills: ["2. Creating Result Oriented Courses"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/digital-coaching-system/categories/2347941/posts/8268493"]
       },
       {
         problem: "How do I Attract Clients?",
         skills: ["3. Attracting Clients with Trust Building Webinars"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/digital-coaching-system/categories/2347959/posts/8384062"]
       },
       {
         problem: "How do I Create my Courses Platform, Videos, Email Marketing.",
         skills: ["4. Creating your Website in Kajabi"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/digital-coaching-system/categories/2347964/posts/8789930"]
       },
       {
         problem: "How do I create my Video Lessons? What Equipment do I use?",
         skills: ["5. How to Create your Video Lessons"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/digital-coaching-system/categories/2658685/posts/8871571"]
       },
       {
         problem: "How do I create Facebook Ads?",
         skills: ["6. How to Create Facebook Ads"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/digital-coaching-system/categories/2666531/posts/9446825"]
       },
       {
         problem: "Lack of Confidence, Lack of Courage",
         skills: ["Catch Patterns", "Affirmations for Being a Successful Coach"],
-        skillUrls: ["https://coaching.miteshkhatri.com/", "https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/digital-coaching-success-platinum-version/categories/2149971845/posts/2156433295", "https://coaching.miteshkhatri.com/products/digital-coaching-success-platinum-version/categories/2149971845/posts/2156433295"]
       }
     ]
   },
