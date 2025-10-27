@@ -730,7 +730,7 @@ export default function LifeSkillsMap() {
           {/* Common Table Headers */}
           <div className="sticky top-0 z-20 grid grid-cols-2">
             <div 
-              className="bg-[#ff6b6b] dark:bg-[#ff6b6b]/90 text-white font-semibold text-xs sm:text-sm p-2 sm:p-2.5 text-center border-b-2 border-white/20"
+              className="bg-[#bc0000] dark:bg-[#bc0000]/90 text-white font-semibold text-xs sm:text-sm p-2 sm:p-2.5 text-center border-b-2 border-white/20"
               data-testid="header-problems-common"
             >
               Problems
