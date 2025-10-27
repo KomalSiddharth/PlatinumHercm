@@ -130,7 +130,7 @@ export default function AdminPanel() {
     completionRates: { courses: number; rituals: number };
   }>({
     queryKey: [`/api/admin/team-analytics?period=${teamAnalyticsPeriod}`],
-    enabled: activeTab === 'team-analytics',
+    enabled: activeTab === 'analytics',
   });
 
   const searchUserMutation = useMutation({
