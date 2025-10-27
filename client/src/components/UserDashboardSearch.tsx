@@ -4,9 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Search, User, ArrowLeft, TrendingUp, AlertCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import UnifiedHRCMTable from './UnifiedHRCMTable';
+import AdminEmotionalTrackerView from './AdminEmotionalTrackerView';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 interface UserSearchResult {
@@ -155,54 +157,147 @@ export default function UserDashboardSearch() {
           </Card>
         ) : (
           <>
-            <UnifiedHRCMTable 
-              weekNumber={1}
-              viewAsUserId={selectedUserId} 
-              isAdminView={false}
-            />
+            {/* Show all weeks history - matching admin view */}
+            {dashboardData.allWeeks && dashboardData.allWeeks.length > 0 ? (
+              <div className="space-y-6">
+                <h3 className="text-xl font-semibold">HRCM Weekly History (All {dashboardData.allWeeks.length} Weeks)</h3>
+                {dashboardData.allWeeks.map((week: any) => (
+                  <div key={week.id} className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-3 sm:p-4 md:p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
+                    <UnifiedHRCMTable 
+                      weekNumber={week.weekNumber}
+                      viewAsUserId={selectedUserId} 
+                      isAdminView={false}
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <UnifiedHRCMTable 
+                weekNumber={1}
+                viewAsUserId={selectedUserId} 
+                isAdminView={false}
+              />
+            )}
             
-            {/* Daily Rituals Section */}
-            <Card className="bg-blue-900 border-blue-700">
-              <CardHeader>
-                <CardTitle className="text-white text-2xl">Daily Rituals</CardTitle>
-                <CardDescription className="text-white/80">
-                  User's daily habits and completions
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+            {/* Daily Rituals Section - Matching User Dashboard Styling */}
+            <section className="scroll-mt-20 p-3 sm:p-4 md:p-6 rounded-lg border-2" style={{ backgroundColor: '#00008c', borderColor: '#0000cc' }}>
+              <div className="space-y-4 sm:space-y-6">
+                <div>
+                  <h2 className="text-2xl sm:text-2xl md:text-3xl font-bold text-white">Daily Rituals</h2>
+                  <p className="text-sm sm:text-base text-white/80 mt-1">User's daily habits and completions (Read Only)</p>
+                </div>
+
                 {(dashboardData.rituals || []).length === 0 ? (
-                  <p className="text-white/70 text-center py-8">No rituals added yet</p>
+                  <Card>
+                    <CardContent className="p-8 text-center text-muted-foreground">
+                      <p>No rituals added yet</p>
+                    </CardContent>
+                  </Card>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                     {(dashboardData.rituals || []).map((ritual: any) => {
                       const isCompleted = dashboardData.todayCompletions?.some((c: any) => c.ritualId === ritual.id);
+                      const isPaused = !ritual.isActive;
+                      
                       return (
-                        <div 
+                        <Card 
                           key={ritual.id} 
-                          className="bg-white dark:bg-gray-800 p-4 rounded-lg flex items-center justify-between"
-                          data-testid={`user-ritual-item-${ritual.id}`}
+                          className={`relative ${isPaused ? 'opacity-60' : ''}`}
+                          data-testid={`team-ritual-card-${ritual.id}`}
                         >
-                          <div className="flex items-center gap-3">
-                            <div className={`w-6 h-6 rounded-full flex items-center justify-center ${isCompleted ? 'bg-green-500' : 'bg-gray-300'}`}>
-                              {isCompleted && <span className="text-white text-sm">✓</span>}
+                          <CardContent className="p-3 sm:p-4">
+                            <div className="flex items-start gap-2 sm:gap-3">
+                              <Checkbox
+                                checked={isCompleted}
+                                disabled={true}
+                                className="mt-0.5"
+                                data-testid={`team-ritual-checkbox-${ritual.id}`}
+                              />
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-medium text-sm sm:text-base truncate" data-testid={`team-ritual-title-${ritual.id}`}>
+                                  {ritual.title}
+                                </h4>
+                                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1">
+                                  <Badge className="text-[10px] sm:text-xs px-1.5 py-0 h-4 sm:h-5 bg-gradient-to-r from-primary to-accent text-white border-0">
+                                    +{ritual.points} pts
+                                  </Badge>
+                                  {isPaused && (
+                                    <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0 h-4 sm:h-5">
+                                      ⏸ Paused
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
                             </div>
-                            <div>
-                              <h4 className="font-medium text-gray-900 dark:text-white">{ritual.title}</h4>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">
-                                {ritual.frequency === 'daily' ? 'Daily' : 'Mon-Fri'} • {ritual.points} points
-                              </p>
-                            </div>
-                          </div>
-                          <Badge variant={isCompleted ? "default" : "outline"}>
-                            {isCompleted ? 'Completed' : 'Pending'}
-                          </Badge>
-                        </div>
+                          </CardContent>
+                        </Card>
                       );
                     })}
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </section>
+
+            {/* Daily Emotional Tracker - Team View */}
+            <AdminEmotionalTrackerView userId={selectedUserId} />
+
+            {/* Course Progress Section - Read-Only Team View */}
+            <section className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-3 sm:p-4 md:p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
+              <div className="space-y-4 sm:space-y-6">
+                <div>
+                  <h2 className="text-2xl sm:text-2xl md:text-3xl font-bold">Course Progress</h2>
+                  <p className="text-sm sm:text-base text-muted-foreground mt-1">Completed lessons across all courses (Read Only)</p>
+                </div>
+
+                {dashboardData.completedLessons && dashboardData.completedLessons.length > 0 ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-medium">Total Completed Lessons</span>
+                      <Badge className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white">
+                        {dashboardData.completedLessons.length} lessons completed
+                      </Badge>
+                    </div>
+                    
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="space-y-2">
+                          {dashboardData.completedLessons.map((lesson: any, index: number) => (
+                            <div 
+                              key={lesson.id || index} 
+                              className="flex items-start gap-2 p-2 rounded-md hover:bg-muted/30"
+                              data-testid={`team-lesson-item-${index}`}
+                            >
+                              <Checkbox
+                                checked={true}
+                                disabled={true}
+                                className="mt-0.5"
+                              />
+                              <div className="flex-1">
+                                <p className="text-sm font-medium">
+                                  {lesson.videoId || lesson.id || `Lesson ${index + 1}`}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  Completed {lesson.completedAt ? new Date(lesson.completedAt).toLocaleDateString() : 'N/A'}
+                                </p>
+                              </div>
+                              <Badge className="text-[10px] px-1.5 py-0 h-5 bg-gradient-to-r from-primary to-accent text-white border-0">
+                                +10 pts
+                              </Badge>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                ) : (
+                  <Card>
+                    <CardContent className="p-8 text-center text-muted-foreground">
+                      <p>No lessons completed yet</p>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </section>
 
             {/* Badges Section */}
             <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20 border-yellow-200 dark:border-yellow-800">
@@ -223,7 +318,7 @@ export default function UserDashboardSearch() {
                       <div 
                         key={badge.id}
                         className="bg-white dark:bg-gray-800 p-4 rounded-lg border-2 border-yellow-400 dark:border-yellow-600"
-                        data-testid={`user-badge-item-${badge.id}`}
+                        data-testid={`team-badge-item-${badge.id}`}
                       >
                         <div className="flex items-center gap-3">
                           <span className="text-4xl">🏆</span>
