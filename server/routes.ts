@@ -1840,29 +1840,36 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   app.delete('/api/admin/approved-emails/:id', isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
+      console.log(`[DELETE EMAIL] Starting deletion for ID: ${id}`);
       
       // First, get the email to find associated user data
       const approvedEmail = await storage.getApprovedEmailById(id);
       if (!approvedEmail) {
+        console.log(`[DELETE EMAIL] Email not found for ID: ${id}`);
         return res.status(404).json({ message: "Email not found" });
       }
       
       const userEmail = approvedEmail.email;
-      
-      // CASCADE DELETE: Remove all user data associated with this email
       console.log(`[CASCADE DELETE] Removing all data for user: ${userEmail}`);
       
       // Delete all user data (CASCADE)
       await storage.deleteAllUserData(userEmail);
+      console.log(`[CASCADE DELETE] User data deleted for: ${userEmail}`);
       
       // Finally, delete the approved email entry
       await storage.deleteApprovedEmail(id);
+      console.log(`[CASCADE DELETE] Approved email entry deleted for: ${userEmail}`);
       
-      console.log(`[CASCADE DELETE] Successfully deleted all data for: ${userEmail}`);
+      console.log(`[CASCADE DELETE] Successfully completed deletion for: ${userEmail}`);
       res.json({ success: true, message: "Email and all associated data deleted" });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting approved email:", error);
-      res.status(500).json({ message: "Failed to delete email" });
+      console.error("Error stack:", error?.stack);
+      console.error("Error message:", error?.message);
+      res.status(500).json({ 
+        message: "Failed to delete email",
+        error: error?.message || "Unknown error"
+      });
     }
   });
 

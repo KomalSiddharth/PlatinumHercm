@@ -47,7 +47,7 @@ import {
   type InsertEmotionalTracker,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, count, sql, gte, lte } from "drizzle-orm";
+import { eq, desc, and, or, count, sql, gte, lte } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (Required for Replit Auth)
@@ -498,8 +498,13 @@ export class DatabaseStorage implements IStorage {
     await db.delete(emotionalTrackers).where(eq(emotionalTrackers.userId, userId));
     console.log(`[CASCADE DELETE] Deleted emotional trackers`);
     
-    // 7. Delete course recommendations
-    await db.delete(adminCourseRecommendations).where(eq(adminCourseRecommendations.userId, userId));
+    // 7. Delete course recommendations (where user is recipient OR where user is the admin who created them)
+    await db.delete(adminCourseRecommendations).where(
+      or(
+        eq(adminCourseRecommendations.userId, userId),
+        eq(adminCourseRecommendations.adminId, userId)
+      )
+    );
     console.log(`[CASCADE DELETE] Deleted course recommendations`);
     
     // 8. Delete platinum progress

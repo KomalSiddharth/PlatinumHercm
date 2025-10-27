@@ -223,12 +223,44 @@ export default function AdminPanel() {
     mutationFn: async (id: string) => {
       return apiRequest('DELETE', `/api/admin/approved-emails/${id}`);
     },
+    // Optimistic update - instantly remove from UI
+    onMutate: async (id: string) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['/api/admin/approved-emails'] });
+      
+      // Snapshot the previous value
+      const previousEmails = queryClient.getQueryData(['/api/admin/approved-emails']);
+      
+      // Optimistically update by removing the email
+      queryClient.setQueryData(['/api/admin/approved-emails'], (old: any) => {
+        if (!old) return old;
+        return old.filter((email: any) => email.id !== id);
+      });
+      
+      // Show instant feedback
+      toast({ title: "Deleting...", description: "Removing email and user data" });
+      
+      // Return context with previous data for rollback
+      return { previousEmails };
+    },
     onSuccess: () => {
+      // Invalidate to ensure data is fresh
       queryClient.invalidateQueries({ queryKey: ['/api/admin/approved-emails'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users-analytics'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/team-analytics'] });
-      toast({ title: "Email Deleted", description: "Email has been removed" });
+      toast({ title: "Email Deleted", description: "Email and all user data removed permanently" });
+    },
+    onError: (error: any, id: string, context: any) => {
+      // Rollback on error
+      if (context?.previousEmails) {
+        queryClient.setQueryData(['/api/admin/approved-emails'], context.previousEmails);
+      }
+      toast({ 
+        title: "Delete Failed", 
+        description: error.message || "Failed to delete email",
+        variant: "destructive" 
+      });
     }
   });
 
