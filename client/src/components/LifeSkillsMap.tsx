@@ -107,44 +107,49 @@ export default function LifeSkillsMap() {
           Life Problems & Life Skill Map
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-3 sm:p-4 md:p-6 space-y-4">
-        {lifeSkillsData.map((category, categoryIdx) => (
-          <Collapsible 
-            key={`category-${categoryIdx}`}
-            open={openCategories[category.category]}
-            onOpenChange={() => toggleCategory(category.category)}
-          >
-            <div className="border-2 border-primary/20 dark:border-primary/30 rounded-lg overflow-hidden shadow-md">
-              {/* Category Header */}
-              <CollapsibleTrigger className="w-full bg-primary/10 dark:bg-primary/20 hover:bg-primary/15 dark:hover:bg-primary/25 transition-colors" data-testid={`button-toggle-${category.category.toLowerCase().replace(/\s+/g, '-')}`}>
-                <div className="flex items-center justify-between p-2 sm:p-2.5 md:p-3">
-                  <h3 className="font-bold text-sm sm:text-base text-primary dark:text-primary/90">
-                    {category.category}
-                  </h3>
-                  <ChevronDown className={`h-4 w-4 sm:h-5 sm:w-5 text-primary transition-transform duration-200 ${openCategories[category.category] ? 'transform rotate-180' : ''}`} />
-                </div>
-              </CollapsibleTrigger>
+      <CardContent className="p-3 sm:p-4 md:p-6">
+        <div className="border-2 border-primary/20 dark:border-primary/30 rounded-lg overflow-hidden shadow-md">
+          {/* Common Table Headers */}
+          <div className="sticky top-0 z-20 grid grid-cols-2">
+            <div 
+              className="bg-red-600 text-white font-semibold text-xs sm:text-sm p-2 sm:p-2.5 text-center border-b-2 border-white/20"
+              data-testid="header-problems-common"
+            >
+              Problems
+            </div>
+            <div 
+              className="bg-green-600 text-white font-semibold text-xs sm:text-sm p-2 sm:p-2.5 text-center border-b-2 border-white/20"
+              data-testid="header-life-skills-common"
+            >
+              Life Skills
+            </div>
+          </div>
 
-              <CollapsibleContent>
-                {/* Scrollable Table Container */}
-                <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
+          {/* Scrollable Content Container */}
+          <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
+            {/* Category Sections */}
+            {lifeSkillsData.map((category, categoryIdx) => (
+              <Collapsible 
+                key={`category-${categoryIdx}`}
+                open={openCategories[category.category]}
+                onOpenChange={() => toggleCategory(category.category)}
+              >
+                {/* Category Header */}
+                <CollapsibleTrigger 
+                  className="w-full bg-primary/10 dark:bg-primary/20 hover:bg-primary/15 dark:hover:bg-primary/25 transition-colors border-b border-primary/10" 
+                  data-testid={`button-toggle-${category.category.toLowerCase().replace(/\s+/g, '-')}`}
+                >
+                  <div className="flex items-center justify-between p-2 sm:p-2.5">
+                    <h3 className="font-bold text-sm sm:text-base text-primary dark:text-primary/90">
+                      {category.category}
+                    </h3>
+                    <ChevronDown className={`h-4 w-4 sm:h-5 sm:w-5 text-primary transition-transform duration-200 ${openCategories[category.category] ? 'transform rotate-180' : ''}`} />
+                  </div>
+                </CollapsibleTrigger>
+
+                <CollapsibleContent>
+                  {/* Category Content Table */}
                   <table className="w-full border-collapse">
-                    <thead className="sticky top-0 z-10">
-                      <tr>
-                        <th 
-                          className="bg-red-600 text-white font-semibold text-xs sm:text-sm p-2 sm:p-2.5 text-left border-b-2 border-white/20"
-                          data-testid={`header-problems-${categoryIdx}`}
-                        >
-                          Problems
-                        </th>
-                        <th 
-                          className="bg-green-600 text-white font-semibold text-xs sm:text-sm p-2 sm:p-2.5 text-left border-b-2 border-white/20"
-                          data-testid={`header-life-skills-${categoryIdx}`}
-                        >
-                          Life Skills
-                        </th>
-                      </tr>
-                    </thead>
                     <tbody>
                       {category.mappings.map((mapping, mappingIdx) => (
                         <tr 
@@ -152,10 +157,10 @@ export default function LifeSkillsMap() {
                           className={mappingIdx % 2 === 0 ? 'bg-white dark:bg-gray-900/50' : 'bg-gray-50 dark:bg-gray-800/50'}
                           data-testid={`row-skill-mapping-${categoryIdx}-${mappingIdx}`}
                         >
-                          <td className="p-2 sm:p-2.5 border-b border-gray-200 dark:border-gray-700 align-top">
+                          <td className="w-1/2 p-2 sm:p-2.5 border-b border-gray-200 dark:border-gray-700 align-top">
                             <span className="text-xs sm:text-sm">{mapping.problem}</span>
                           </td>
-                          <td className="p-2 sm:p-2.5 border-b border-gray-200 dark:border-gray-700 align-top">
+                          <td className="w-1/2 p-2 sm:p-2.5 border-b border-gray-200 dark:border-gray-700 align-top">
                             <div className="flex flex-col gap-1">
                               {mapping.skills.map((skill, skillIdx) => (
                                 <a
@@ -175,11 +180,11 @@ export default function LifeSkillsMap() {
                       ))}
                     </tbody>
                   </table>
-                </div>
-              </CollapsibleContent>
-            </div>
-          </Collapsible>
-        ))}
+                </CollapsibleContent>
+              </Collapsible>
+            ))}
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
