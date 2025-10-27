@@ -1034,6 +1034,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const weeks = await storage.getHercmWeeksByUser(userId);
       const sortedWeeks = weeks.sort((a, b) => a.weekNumber - b.weekNumber);
       
+      console.log(`[SORTED WEEKS DEBUG] userId: ${userId}, total rows: ${sortedWeeks.length}, week numbers: ${sortedWeeks.map(w => w.weekNumber).join(', ')}`);
+      
       // Get rituals and platinum progress
       const rituals = await storage.getRitualsByUser(userId);
       const platinumProgress = await storage.getPlatinumProgress(userId);
@@ -1163,6 +1165,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      console.log(`[COMPACT WEEKLY DEBUG] weeksByNumber size: ${weeksByNumber.size}, keys: ${Array.from(weeksByNumber.keys()).join(', ')}`);
+      
       const compactWeeklyData = Array.from(weeksByNumber.values())
         .filter(week => week.weekNumber !== null)
         .sort((a, b) => a.weekNumber - b.weekNumber) // Sort by week number
@@ -1185,6 +1189,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             achievement, // NOW: Fresh calculated from checklists (matches dashboard)
           };
         });
+      
+      console.log(`[COMPACT WEEKLY DEBUG] compactWeeklyData length: ${compactWeeklyData.length}, weeks: ${compactWeeklyData.map(w => w.week).join(', ')}`);
       
       res.json({
         user: {
