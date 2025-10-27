@@ -760,7 +760,7 @@ export default function AdminPanel() {
                 }`}
                 data-testid="tab-platinum-standards"
               >
-                ⭐ Platinum Standards
+                Platinum Standards
               </button>
               <button 
                 onClick={() => setActiveTab('approved')}
@@ -1878,7 +1878,7 @@ export default function AdminPanel() {
               <div className="space-y-6">
                 <div>
                   <h3 className="text-2xl font-bold bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent">
-                    ⭐ Global Platinum Standards Management
+                    Global Platinum Standards Management
                   </h3>
                   <p className="text-sm text-muted-foreground mt-2">
                     Manage platinum standards that appear globally for all users across all HRCM areas
