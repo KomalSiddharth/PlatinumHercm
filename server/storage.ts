@@ -72,10 +72,12 @@ export interface IStorage {
   
   // Approved Emails operations
   getApprovedEmail(email: string): Promise<ApprovedEmail | undefined>;
+  getApprovedEmailById(id: string): Promise<ApprovedEmail | undefined>;
   getAllApprovedEmails(): Promise<ApprovedEmail[]>;
   addApprovedEmail(email: InsertApprovedEmail): Promise<ApprovedEmail>;
   bulkAddApprovedEmails(emails: string[]): Promise<ApprovedEmail[]>;
   deleteApprovedEmail(id: string): Promise<void>;
+  deleteAllUserData(userEmail: string): Promise<void>;
   updateApprovedEmail(id: string, data: { email: string; status: string }): Promise<void>;
   deleteAllApprovedEmails(): Promise<void>;
   incrementAccessCount(email: string): Promise<void>;
@@ -444,10 +446,75 @@ export class DatabaseStorage implements IStorage {
     return results;
   }
 
+  async getApprovedEmailById(id: string): Promise<ApprovedEmail | undefined> {
+    const [approvedEmail] = await db
+      .select()
+      .from(approvedEmails)
+      .where(eq(approvedEmails.id, id));
+    return approvedEmail;
+  }
+
   async deleteApprovedEmail(id: string): Promise<void> {
     await db
       .delete(approvedEmails)
       .where(eq(approvedEmails.id, id));
+  }
+
+  async deleteAllUserData(userEmail: string): Promise<void> {
+    console.log(`[CASCADE DELETE] Starting deletion for user: ${userEmail}`);
+    
+    // Get the user record
+    const user = await this.getUserByEmail(userEmail);
+    if (!user) {
+      console.log(`[CASCADE DELETE] No user found for email: ${userEmail}`);
+      return;
+    }
+    
+    const userId = user.id;
+    console.log(`[CASCADE DELETE] Found userId: ${userId} for email: ${userEmail}`);
+    
+    // Delete from all tables in order
+    // 1. Delete HERCM weeks
+    await db.delete(hercmWeeks).where(eq(hercmWeeks.userId, userId));
+    console.log(`[CASCADE DELETE] Deleted HERCM weeks`);
+    
+    // 2. Delete ritual completions
+    await db.delete(ritualCompletions).where(eq(ritualCompletions.userId, userId));
+    console.log(`[CASCADE DELETE] Deleted ritual completions`);
+    
+    // 3. Delete rituals
+    await db.delete(rituals).where(eq(rituals.userId, userId));
+    console.log(`[CASCADE DELETE] Deleted rituals`);
+    
+    // 4. Delete course video completions
+    await db.delete(courseVideoCompletions).where(eq(courseVideoCompletions.userId, userId));
+    console.log(`[CASCADE DELETE] Deleted course video completions`);
+    
+    // 5. Delete courses
+    await db.delete(courses).where(eq(courses.userId, userId));
+    console.log(`[CASCADE DELETE] Deleted courses`);
+    
+    // 6. Delete emotional trackers
+    await db.delete(emotionalTrackers).where(eq(emotionalTrackers.userId, userId));
+    console.log(`[CASCADE DELETE] Deleted emotional trackers`);
+    
+    // 7. Delete course recommendations
+    await db.delete(adminCourseRecommendations).where(eq(adminCourseRecommendations.userId, userId));
+    console.log(`[CASCADE DELETE] Deleted course recommendations`);
+    
+    // 8. Delete platinum progress
+    await db.delete(platinumProgress).where(eq(platinumProgress.userId, userId));
+    console.log(`[CASCADE DELETE] Deleted platinum progress`);
+    
+    // 9. Delete rating progression
+    await db.delete(ratingProgression).where(eq(ratingProgression.userId, userId));
+    console.log(`[CASCADE DELETE] Deleted rating progressions`);
+    
+    // 10. Finally, delete the user record itself
+    await db.delete(users).where(eq(users.id, userId));
+    console.log(`[CASCADE DELETE] Deleted user record`);
+    
+    console.log(`[CASCADE DELETE] Successfully completed deletion for user: ${userEmail}`);
   }
 
   async updateApprovedEmail(id: string, data: { email: string; status: string }): Promise<void> {

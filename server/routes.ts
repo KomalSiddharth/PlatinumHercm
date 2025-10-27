@@ -1840,8 +1840,26 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   app.delete('/api/admin/approved-emails/:id', isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
+      
+      // First, get the email to find associated user data
+      const approvedEmail = await storage.getApprovedEmailById(id);
+      if (!approvedEmail) {
+        return res.status(404).json({ message: "Email not found" });
+      }
+      
+      const userEmail = approvedEmail.email;
+      
+      // CASCADE DELETE: Remove all user data associated with this email
+      console.log(`[CASCADE DELETE] Removing all data for user: ${userEmail}`);
+      
+      // Delete all user data (CASCADE)
+      await storage.deleteAllUserData(userEmail);
+      
+      // Finally, delete the approved email entry
       await storage.deleteApprovedEmail(id);
-      res.json({ success: true, message: "Email deleted" });
+      
+      console.log(`[CASCADE DELETE] Successfully deleted all data for: ${userEmail}`);
+      res.json({ success: true, message: "Email and all associated data deleted" });
     } catch (error) {
       console.error("Error deleting approved email:", error);
       res.status(500).json({ message: "Failed to delete email" });
