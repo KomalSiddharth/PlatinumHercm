@@ -21,37 +21,37 @@ const lifeSkillsData: CategoryData[] = [
       {
         problem: "Tuning Frequency To Attract Goals",
         skills: ["Memorise The Science of Why LOA Works"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/basic-law-of-attraction-level-1/categories/2147690759/posts/2148209424"]
       },
       {
         problem: "Attract Any Goal by Tuning your Frequency",
         skills: ["Master Making Affirmations to Tune Frequency"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/basic-law-of-attraction-level-1/categories/2147748284/posts/2148209430"]
       },
       {
         problem: "Maintaining your Frequency throughout the day",
         skills: ["Follow Routine of LOA - 10RG, Water Bottle, Affirmations, Double Happiness, Cancel Cancel & Keep Filling up Magic Diary."],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://www.youtube.com/watch?v=UeQd1t0-P7g&feature=youtu.be"]
       },
       {
         problem: "Clearing Negative Energy",
         skills: ["Experience Ho Opono to Clear Your Negative Energy"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/basic-law-of-attraction-level-1/categories/2147748295/posts/2148209428"]
       },
       {
         problem: "Sub-Conscious Programming",
         skills: ["Practice DMP with me Everyday for Deep Subconscious Programming - Also Use Recordings for Regular Programming"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/daily-magic-practice"]
       },
       {
         problem: "Ultimate Life Vision",
         skills: ["Ultimate Auto-Biography"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/platinum-membership/categories/2148652220/posts/2151620867"]
       },
       {
         problem: "Short Term Life Vision",
         skills: ["Create Your Vision Board", "Create Magic Miracles Diary"],
-        skillUrls: ["https://coaching.miteshkhatri.com/", "https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/", "https://www.youtube.com/watch?v=uiv3JEZx41Y&t=75s"]
       }
     ]
   },
