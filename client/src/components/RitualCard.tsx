@@ -56,7 +56,7 @@ export default function RitualCard({
           />
 
           <div className="flex-1 min-w-0">
-            <h3 className={`font-medium ${completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+            <h3 className={`font-medium ${completed ? 'text-muted-foreground' : 'text-foreground'}`}>
               {title}
             </h3>
             {!active && (

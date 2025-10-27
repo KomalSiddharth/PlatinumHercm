@@ -1984,7 +1984,7 @@ export default function Dashboard() {
                           />
                           
                           <div className="flex-1 min-w-0">
-                            <h3 className={`text-sm sm:text-base font-medium ${ritual.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                            <h3 className={`text-sm sm:text-base font-medium ${ritual.completed ? 'text-muted-foreground' : 'text-foreground'}`}>
                               {ritual.title}
                             </h3>
                           </div>
