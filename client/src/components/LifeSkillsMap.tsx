@@ -312,6 +312,31 @@ const lifeSkillsData: CategoryData[] = [
         problem: "How can I control the way people think and what they think?",
         skills: ["18. Pre-Framing, Re-Framing & Post-Framing"],
         skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "NLP Intro Results Sharing of Senior Members",
+        skills: ["Lesson 1 - NLP Intro Results Sharing of Senior Members"],
+        skillUrls: ["https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/2157713366/posts/2187916564"]
+      },
+      {
+        problem: "Results of GDD Recap Result Sharing",
+        skills: ["Lesson 2 - Results of GDD Recap Result Sharing"],
+        skillUrls: ["https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/2157713366/posts/2187916591"]
+      },
+      {
+        problem: "How to Achieve 10yr Success in 1 yr",
+        skills: ["How to Achieve 10yr Success in 1 yr"],
+        skillUrls: ["https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/2157718961/posts/2187969292"]
+      },
+      {
+        problem: "Integration Exercise for all NLP Techniques",
+        skills: ["Integration Exercise for all NLP Techniques"],
+        skillUrls: ["https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/2151955891/posts/2164104640"]
+      },
+      {
+        problem: "LOA Remedies For Vastu",
+        skills: ["LOA Remedies For Vastu"],
+        skillUrls: ["https://coaching.miteshkhatri.com/products/loa-with-vastu-frequency/categories/2151814151/posts/2163513607"]
       }
     ]
   },
