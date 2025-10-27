@@ -12,6 +12,7 @@ import UnifiedHRCMTable from './UnifiedHRCMTable';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import AdminEmotionalTrackerView from './AdminEmotionalTrackerView';
 import LifeSkillsMap from './LifeSkillsMap';
+import RitualHistoryModal from './RitualHistoryModal';
 
 interface UserSearchResult {
   id: string;
@@ -50,6 +51,8 @@ export default function AdminUserDashboardViewer() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [selectedRitual, setSelectedRitual] = useState<any | null>(null);
   const { toast } = useToast();
 
   // Search users by name or email
@@ -83,6 +86,11 @@ export default function AdminUserDashboardViewer() {
 
   const handleBackToSearch = () => {
     setSelectedUserId(null);
+  };
+
+  const handleViewHistory = (ritual: any) => {
+    setSelectedRitual(ritual);
+    setHistoryOpen(true);
   };
 
   const getRatingColor = (rating: number) => {
@@ -227,14 +235,14 @@ export default function AdminUserDashboardViewer() {
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      disabled={true}
+                                      onClick={() => handleViewHistory(ritual)}
                                       data-testid={`button-history-${ritual.id}`}
                                       className="w-7 h-7 sm:w-8 sm:h-8"
                                     >
                                       <HistoryIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                     </Button>
                                   </TooltipTrigger>
-                                  <TooltipContent>View history (Admin view - disabled)</TooltipContent>
+                                  <TooltipContent>View history</TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>
                             </div>
@@ -454,6 +462,16 @@ export default function AdminUserDashboardViewer() {
             <p className="text-sm">Enter a name or email above to search for a user's dashboard</p>
           </CardContent>
         </Card>
+      )}
+
+      {/* Ritual History Modal */}
+      {selectedRitual && (
+        <RitualHistoryModal
+          open={historyOpen}
+          onOpenChange={setHistoryOpen}
+          ritualTitle={selectedRitual.title}
+          history={selectedRitual.history || []}
+        />
       )}
     </div>
   );
