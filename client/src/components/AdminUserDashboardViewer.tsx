@@ -4,11 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Search, User, ArrowLeft, TrendingUp, AlertCircle, Loader2 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Search, User, ArrowLeft, TrendingUp, AlertCircle, Loader2, Trophy, History as HistoryIcon, Trash2, Pause } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import UnifiedHRCMTable from './UnifiedHRCMTable';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import AdminEmotionalTrackerView from './AdminEmotionalTrackerView';
+import LifeSkillsMap from './LifeSkillsMap';
 
 interface UserSearchResult {
   id: string;
@@ -161,49 +164,88 @@ export default function AdminUserDashboardViewer() {
               viewAsUserId={selectedUserId} 
               isAdminView={true}
             />
+
+            {/* Life Problems & Life Skill Map Section */}
+            <section className="scroll-mt-20">
+              <LifeSkillsMap />
+            </section>
             
-            {/* Daily Rituals Section */}
-            <Card className="bg-blue-900 border-blue-700">
-              <CardHeader>
-                <CardTitle className="text-white text-2xl">Daily Rituals</CardTitle>
-                <CardDescription className="text-white/80">
-                  User's daily habits and completions
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+            {/* Daily Rituals Section - Matching User Dashboard */}
+            <section className="scroll-mt-20 p-3 sm:p-4 md:p-6 rounded-lg border-2" style={{ backgroundColor: '#00008c', borderColor: '#0000cc' }}>
+              <div className="space-y-4 sm:space-y-6">
+                <div>
+                  <h2 className="text-2xl sm:text-2xl md:text-3xl font-bold text-white">
+                    Daily Rituals
+                  </h2>
+                  <p className="text-sm sm:text-base text-white/80 mt-1">User's daily habits and completions (Admin View - Read Only)</p>
+                </div>
+
                 {(dashboardData.rituals || []).length === 0 ? (
-                  <p className="text-white/70 text-center py-8">No rituals added yet</p>
+                  <div className="text-center py-12 border-2 border-dashed rounded-lg border-white/30">
+                    <p className="text-white/80">No rituals yet</p>
+                  </div>
                 ) : (
-                  <div className="space-y-3">
-                    {(dashboardData.rituals || []).map((ritual: any) => {
-                      const isCompleted = dashboardData.todayCompletions?.some((c: any) => c.ritualId === ritual.id);
-                      return (
-                        <div 
-                          key={ritual.id} 
-                          className="bg-white dark:bg-gray-800 p-4 rounded-lg flex items-center justify-between"
-                          data-testid={`ritual-item-${ritual.id}`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className={`w-6 h-6 rounded-full flex items-center justify-center ${isCompleted ? 'bg-green-500' : 'bg-gray-300'}`}>
-                              {isCompleted && <span className="text-white text-sm">✓</span>}
+                  <Card>
+                    <div className="divide-y">
+                      {(dashboardData.rituals || []).map((ritual: any) => {
+                        const isCompleted = dashboardData.todayCompletions?.some((c: any) => c.ritualId === ritual.id);
+                        return (
+                          <div 
+                            key={ritual.id} 
+                            className={`flex items-center gap-2 sm:gap-3 md:gap-4 p-2 sm:p-3 md:p-4 hover:bg-muted/30 transition-colors ${!ritual.isActive ? 'opacity-40' : ''}`}
+                            data-testid={`ritual-row-${ritual.id}`}
+                          >
+                            <Checkbox
+                              checked={isCompleted}
+                              disabled={true}
+                              className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0"
+                              data-testid={`checkbox-ritual-${ritual.id}`}
+                            />
+                            
+                            <div className="flex-1 min-w-0">
+                              <h3 className={`text-sm sm:text-base font-medium ${isCompleted ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                                {ritual.title}
+                              </h3>
                             </div>
-                            <div>
-                              <h4 className="font-medium text-gray-900 dark:text-white">{ritual.title}</h4>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">
-                                {ritual.frequency === 'daily' ? 'Daily' : 'Mon-Fri'} • {ritual.points} points
-                              </p>
+                            
+                            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                              {!ritual.isActive && (
+                                <Badge variant="secondary" className="text-[10px] sm:text-xs gap-0.5 sm:gap-1 px-1 sm:px-2">
+                                  <Pause className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                                  <span className="hidden sm:inline">Paused</span>
+                                </Badge>
+                              )}
+                              
+                              <Badge className="gap-0.5 sm:gap-1 bg-gradient-to-r from-primary to-accent text-white border-0 smooth-transition text-xs px-1.5 sm:px-2">
+                                <Trophy className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                                <span className="text-[10px] sm:text-xs">{ritual.points}</span>
+                              </Badge>
+                              
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      disabled={true}
+                                      data-testid={`button-history-${ritual.id}`}
+                                      className="w-7 h-7 sm:w-8 sm:h-8"
+                                    >
+                                      <HistoryIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>View history (Admin view - disabled)</TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
                             </div>
                           </div>
-                          <Badge variant={isCompleted ? "default" : "outline"}>
-                            {isCompleted ? 'Completed' : 'Pending'}
-                          </Badge>
-                        </div>
-                      );
-                    })}
-                  </div>
+                        );
+                      })}
+                    </div>
+                  </Card>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </section>
 
             {/* Daily Emotional Tracker (Admin View) - Placed right after Daily Rituals */}
             <AdminEmotionalTrackerView userId={selectedUserId} />
