@@ -1151,24 +1151,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`[DETAILED ANALYTICS DEBUG] progressSummary:`, progressSummary);
       
-      // Compact weekly data - group by date and show only last updated per date
-      const weeksByDate = new Map<string, typeof sortedWeeks[0]>();
+      // Complete weekly data - group by WEEK NUMBER and show last updated per week
+      const weeksByNumber = new Map<number, typeof sortedWeeks[0]>();
       for (const week of sortedWeeks) {
-        if (!week.createdAt) continue;
-        const dateKey = new Date(week.createdAt).toISOString().split('T')[0]; // YYYY-MM-DD
-        const existing = weeksByDate.get(dateKey);
+        if (!week.weekNumber) continue;
+        const weekKey = week.weekNumber;
+        const existing = weeksByNumber.get(weekKey);
+        // Keep the most recently updated entry for this week number
         if (!existing || (week.updatedAt && existing.updatedAt && new Date(week.updatedAt) > new Date(existing.updatedAt))) {
-          weeksByDate.set(dateKey, week);
+          weeksByNumber.set(weekKey, week);
         }
       }
       
-      const compactWeeklyData = Array.from(weeksByDate.values())
-        .filter(week => week.createdAt !== null)
-        .sort((a, b) => {
-          const aDate = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-          const bDate = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-          return aDate - bDate;
-        })
+      const compactWeeklyData = Array.from(weeksByNumber.values())
+        .filter(week => week.weekNumber !== null)
+        .sort((a, b) => a.weekNumber - b.weekNumber) // Sort by week number
         .map(week => {
           // RECALCULATE achievement from checklist completion (match dashboard Weekly Progress)
           const healthProgress = calculateChecklistProgress(week.healthChecklist || []);
