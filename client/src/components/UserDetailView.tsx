@@ -276,11 +276,11 @@ export default function UserDetailView({ userId }: UserDetailViewProps) {
         </Card>
       )}
 
-      {/* Compact Weekly Data - Only Week 1 and Most Recent */}
+      {/* All Weeks Summary - Complete History */}
       <Card>
         <CardHeader>
-          <CardTitle>Key Weeks Summary</CardTitle>
-          <p className="text-sm text-muted-foreground">Comparing your first week with your most recent week</p>
+          <CardTitle>Complete Weekly History</CardTitle>
+          <p className="text-sm text-muted-foreground">All weeks with last updated HRCM ratings and achievement data</p>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -298,56 +298,44 @@ export default function UserDetailView({ userId }: UserDetailViewProps) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {compactWeeklyData.length > 0 && (
-                  <>
-                    {/* First Week */}
-                    {(() => {
-                      const firstWeek = compactWeeklyData[0];
-                      return (
-                        <TableRow key={`first-${firstWeek.week}`} data-testid={`compact-week-${firstWeek.week}`} className="bg-blue-50 dark:bg-blue-950/20">
-                          <TableCell className="font-bold">Week {firstWeek.week}</TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
-                            {new Date(firstWeek.date).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell className="text-center font-medium">{firstWeek.h}</TableCell>
-                          <TableCell className="text-center font-medium">{firstWeek.r}</TableCell>
-                          <TableCell className="text-center font-medium">{firstWeek.c}</TableCell>
-                          <TableCell className="text-center font-medium">{firstWeek.m}</TableCell>
-                          <TableCell className="text-center font-bold">{firstWeek.score.toFixed(1)}</TableCell>
-                          <TableCell className="text-center">
-                            <Badge variant={firstWeek.achievement >= 70 ? 'default' : firstWeek.achievement >= 50 ? 'secondary' : 'destructive'}>
-                              {firstWeek.achievement}%
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })()}
+                {compactWeeklyData.length > 0 ? (
+                  compactWeeklyData.map((weekData: any, index: number) => {
+                    const isFirst = index === 0;
+                    const isLatest = index === compactWeeklyData.length - 1;
+                    const bgClass = isFirst 
+                      ? "bg-blue-50 dark:bg-blue-950/20" 
+                      : isLatest 
+                        ? "bg-green-50 dark:bg-green-950/20" 
+                        : "hover:bg-muted/50";
                     
-                    {/* Most Recent Week (if different from first) */}
-                    {compactWeeklyData.length > 1 && (() => {
-                      const lastWeek = compactWeeklyData[compactWeeklyData.length - 1];
-                      return (
-                        <TableRow key={`latest-${lastWeek.week}`} data-testid={`compact-week-latest-${lastWeek.week}`} className="bg-green-50 dark:bg-green-950/20">
-                          <TableCell className="font-bold">Week {lastWeek.week} (Latest)</TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
-                            {new Date(lastWeek.date).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell className="text-center font-medium">{lastWeek.h}</TableCell>
-                          <TableCell className="text-center font-medium">{lastWeek.r}</TableCell>
-                          <TableCell className="text-center font-medium">{lastWeek.c}</TableCell>
-                          <TableCell className="text-center font-medium">{lastWeek.m}</TableCell>
-                          <TableCell className="text-center font-bold">{lastWeek.score.toFixed(1)}</TableCell>
-                          <TableCell className="text-center">
-                            <Badge variant={lastWeek.achievement >= 70 ? 'default' : lastWeek.achievement >= 50 ? 'secondary' : 'destructive'}>
-                              {lastWeek.achievement}%
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })()}
-                  </>
-                )}
-                {compactWeeklyData.length === 0 && (
+                    return (
+                      <TableRow 
+                        key={`week-${weekData.week}`} 
+                        data-testid={`compact-week-${weekData.week}`} 
+                        className={bgClass}
+                      >
+                        <TableCell className="font-bold">
+                          Week {weekData.week}
+                          {isFirst && " (First)"}
+                          {isLatest && !isFirst && " (Latest)"}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {new Date(weekData.date).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell className="text-center font-medium">{weekData.h}</TableCell>
+                        <TableCell className="text-center font-medium">{weekData.r}</TableCell>
+                        <TableCell className="text-center font-medium">{weekData.c}</TableCell>
+                        <TableCell className="text-center font-medium">{weekData.m}</TableCell>
+                        <TableCell className="text-center font-bold">{weekData.score.toFixed(1)}</TableCell>
+                        <TableCell className="text-center">
+                          <Badge variant={weekData.achievement >= 70 ? 'default' : weekData.achievement >= 50 ? 'secondary' : 'destructive'}>
+                            {weekData.achievement}%
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                ) : (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                       No tracking data available yet
@@ -359,8 +347,8 @@ export default function UserDetailView({ userId }: UserDetailViewProps) {
           </div>
           <div className="mt-4 p-4 bg-muted rounded-lg text-sm">
             <p className="text-muted-foreground">
-              <strong>Progress Snapshot:</strong> Compare where you started (blue) vs. where you are now (green). 
-              Watch your scores improve over time! 🚀
+              <strong>Complete Progress History:</strong> First week highlighted in blue, latest week in green. 
+              Track your complete journey and watch your scores improve over time! 🚀
             </p>
           </div>
         </CardContent>
