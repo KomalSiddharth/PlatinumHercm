@@ -14,6 +14,7 @@ import BadgeDisplayCard from '@/components/BadgeDisplayCard';
 import UserActivitySearch from '@/components/UserActivitySearch';
 import UserDashboardSearch from '@/components/UserDashboardSearch';
 import EmotionalTracker from '@/components/EmotionalTracker';
+import LifeSkillsMap from '@/components/LifeSkillsMap';
 import { CourseRecommendations } from '@/components/CourseRecommendations';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -1934,6 +1935,11 @@ export default function Dashboard() {
             weekNumber={currentWeek}
             onWeekChange={handleWeekChange}
           />
+        </section>
+
+        {/* Life Problems & Life Skill Map Section */}
+        <section className="scroll-mt-20">
+          <LifeSkillsMap />
         </section>
 
         <section ref={ritualsRef} id="rituals" className="scroll-mt-20 p-3 sm:p-4 md:p-6 rounded-lg border-2" style={{ backgroundColor: '#00008c', borderColor: '#0000cc' }}>
