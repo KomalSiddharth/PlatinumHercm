@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, User, ArrowLeft, TrendingUp, AlertCircle, Loader2, Trophy, History as HistoryIcon, Trash2, Pause, ChevronDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -51,6 +52,7 @@ export default function AdminUserDashboardViewer() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [selectedWeekNumber, setSelectedWeekNumber] = useState<number>(1);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [selectedRitual, setSelectedRitual] = useState<any | null>(null);
   const { toast } = useToast();
@@ -66,6 +68,14 @@ export default function AdminUserDashboardViewer() {
     queryKey: [`/api/admin/user/${selectedUserId}/dashboard`],
     enabled: !!selectedUserId,
   });
+
+  // Auto-select latest week when dashboard data loads
+  useEffect(() => {
+    if (dashboardData?.allWeeks && dashboardData.allWeeks.length > 0) {
+      const latestWeek = Math.max(...dashboardData.allWeeks.map((w: any) => w.weekNumber));
+      setSelectedWeekNumber(latestWeek);
+    }
+  }, [dashboardData]);
 
   const handleSearch = () => {
     if (!searchQuery.trim()) {
@@ -195,27 +205,56 @@ export default function AdminUserDashboardViewer() {
           </Card>
         ) : (
           <>
-            {/* Show all weeks history - matching user's dashboard view */}
-            {dashboardData.allWeeks && dashboardData.allWeeks.length > 0 ? (
-              <div className="space-y-6">
-                <h3 className="text-xl font-semibold">HRCM Weekly History (All {dashboardData.allWeeks.length} Weeks)</h3>
-                {dashboardData.allWeeks.map((week: any) => (
-                  <div key={week.id} className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-3 sm:p-4 md:p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
-                    <UnifiedHRCMTable 
-                      weekNumber={week.weekNumber}
-                      viewAsUserId={selectedUserId} 
-                      isAdminView={true}
-                    />
+            {/* Week Selector - Matching User Dashboard */}
+            {dashboardData.allWeeks && dashboardData.allWeeks.length > 0 && (
+              <Card className="bg-blue-50 dark:bg-blue-950/30">
+                <CardContent className="pt-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                        HRCM Weekly Data
+                      </p>
+                      <p className="text-xs text-blue-700 dark:text-blue-300 mt-0.5">
+                        Total {dashboardData.allWeeks.length} {dashboardData.allWeeks.length === 1 ? 'week' : 'weeks'} of data available
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm font-medium whitespace-nowrap">Select Week:</label>
+                      <Select 
+                        value={selectedWeekNumber.toString()} 
+                        onValueChange={(value) => setSelectedWeekNumber(parseInt(value))}
+                      >
+                        <SelectTrigger className="w-[140px]" data-testid="select-week-number">
+                          <SelectValue placeholder="Select week" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {dashboardData.allWeeks
+                            .sort((a: any, b: any) => b.weekNumber - a.weekNumber)
+                            .map((week: any) => (
+                              <SelectItem 
+                                key={week.id} 
+                                value={week.weekNumber.toString()}
+                                data-testid={`option-week-${week.weekNumber}`}
+                              >
+                                Week {week.weekNumber} {week.weekNumber === Math.max(...dashboardData.allWeeks.map((w: any) => w.weekNumber)) ? '(Latest)' : ''}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                ))}
-              </div>
-            ) : (
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Display selected week's HRCM table */}
+            <div className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-3 sm:p-4 md:p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
               <UnifiedHRCMTable 
-                weekNumber={1}
+                weekNumber={selectedWeekNumber}
                 viewAsUserId={selectedUserId} 
                 isAdminView={true}
               />
-            )}
+            </div>
             
             {/* Daily Rituals Section - Matching User Dashboard */}
             <section className="scroll-mt-20 p-3 sm:p-4 md:p-6 rounded-lg border-2" style={{ backgroundColor: '#00008c', borderColor: '#0000cc' }}>
@@ -296,63 +335,6 @@ export default function AdminUserDashboardViewer() {
 
             {/* Daily Emotional Tracker (Admin View) - Placed right after Daily Rituals */}
             <AdminEmotionalTrackerView userId={selectedUserId} />
-
-            {/* Course Tracker Section - Read-Only Admin View */}
-            <section className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-3 sm:p-4 md:p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
-              <div className="space-y-4 sm:space-y-6">
-                <div>
-                  <h2 className="text-2xl sm:text-2xl md:text-3xl font-bold">Course Progress</h2>
-                  <p className="text-sm sm:text-base text-muted-foreground mt-1">Completed lessons across all courses (Admin View - Read Only)</p>
-                </div>
-
-                {dashboardData.completedLessons && dashboardData.completedLessons.length > 0 ? (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="font-medium">Total Completed Lessons</span>
-                      <Badge className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white">
-                        {dashboardData.completedLessons.length} lessons completed
-                      </Badge>
-                    </div>
-                    
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="space-y-2">
-                          {dashboardData.completedLessons.map((lesson: any, index: number) => (
-                            <div 
-                              key={lesson.id || index} 
-                              className="flex items-start gap-2 p-2 rounded-md hover:bg-muted/30"
-                            >
-                              <Checkbox
-                                checked={true}
-                                disabled={true}
-                                className="mt-0.5"
-                              />
-                              <div className="flex-1">
-                                <p className="text-sm font-medium">
-                                  {lesson.videoId || lesson.id || `Lesson ${index + 1}`}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  Completed {lesson.completedAt ? new Date(lesson.completedAt).toLocaleDateString() : 'N/A'}
-                                </p>
-                              </div>
-                              <Badge className="text-[10px] px-1.5 py-0 h-5 bg-gradient-to-r from-primary to-accent text-white border-0">
-                                +10 pts
-                              </Badge>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                ) : (
-                  <Card>
-                    <CardContent className="p-8 text-center text-muted-foreground">
-                      <p>No lessons completed yet</p>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-            </section>
 
             {/* Badges Section */}
             <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20 border-yellow-200 dark:border-yellow-800">
