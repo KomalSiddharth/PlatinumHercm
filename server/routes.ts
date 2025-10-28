@@ -1672,18 +1672,44 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         userAgent: req.headers['user-agent'] || 'unknown'
       });
       
-      // Check if user exists, create only if doesn't exist
+      // Get name from approved emails or admin users table
+      let userName = '';
+      if (isAdmin && adminUser) {
+        userName = adminUser.name || '';
+      } else {
+        const approvedEmail = await storage.getApprovedEmail(email);
+        userName = approvedEmail?.name || '';
+      }
+
+      // Split name into firstName and lastName
+      const nameParts = userName.trim().split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      // Check if user exists, create or update with name
       const existingUser = await storage.getUserByEmail(email);
       console.log(`[LOGIN] User lookup for ${email}:`, existingUser ? 'Found' : 'Not found');
       
       if (!existingUser) {
-        console.log(`[LOGIN] Creating new user with id=${email}, email=${email}`);
+        console.log(`[LOGIN] Creating new user with id=${email}, email=${email}, name=${userName}`);
         const newUser = await storage.upsertUser({
           id: email,
           email: email,
+          firstName: firstName,
+          lastName: lastName,
           isAdmin: isAdmin || false,
         });
         console.log(`[LOGIN] User created:`, newUser);
+      } else {
+        // Update existing user with latest name from approved_emails
+        console.log(`[LOGIN] Updating user ${email} with name=${userName}`);
+        await storage.upsertUser({
+          id: email,
+          email: email,
+          firstName: firstName,
+          lastName: lastName,
+          isAdmin: isAdmin || false,
+        });
       }
       
       req.session.userEmail = email;
