@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -35,6 +35,12 @@ export default function ProfileModal({
   const [name, setName] = useState(userName);
   const [email, setEmail] = useState(userEmail);
   const [isEditing, setIsEditing] = useState(false);
+
+  // Update local state when props change
+  useEffect(() => {
+    setName(userName);
+    setEmail(userEmail);
+  }, [userName, userEmail]);
 
   const handleSave = () => {
     onSave({ name, email });
