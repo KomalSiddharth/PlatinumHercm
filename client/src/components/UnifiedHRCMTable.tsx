@@ -506,30 +506,39 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     if (weekData?.beliefs) {
       console.log('[FRONTEND DEBUG] Processing beliefs from weekData');
       
-      // Use saved checklist data directly - don't overwrite with fresh standards
-      // If checklist exists in saved data, preserve it with checked states
+      // SMART MERGE: Combine saved checklist with fresh platinum standards
+      // Preserves checked states + adds new standards automatically
       const updatedBeliefs = weekData.beliefs.map(belief => {
         console.log(`[FRONTEND DEBUG] ${belief.category} - checklist:`, belief.checklist);
         console.log(`[FRONTEND DEBUG] ${belief.category} - checklist length:`, belief.checklist?.length);
         console.log(`[FRONTEND DEBUG] ${belief.category} - is array:`, Array.isArray(belief.checklist));
         
-        // CRITICAL FIX: Always use saved checklist if it exists (array with length > 0)
-        // Only use fresh platinum standards if checklist is null/undefined/empty
+        // Get fresh platinum standards from database
+        const freshStandards = getPlatinumStandardsForCategory(belief.category);
+        
         if (belief.checklist && Array.isArray(belief.checklist) && belief.checklist.length > 0) {
-          // Saved checklist with data exists - use it to preserve checked states
-          console.log(`[FRONTEND DEBUG] ${belief.category} - USING SAVED CHECKLIST`);
+          // SMART MERGE: Merge saved checklist with fresh platinum standards
+          console.log(`[FRONTEND DEBUG] ${belief.category} - SMART MERGING SAVED + FRESH STANDARDS`);
+          
+          const existingChecklist = belief.checklist;
+          
+          // Merge: preserve checked states for existing items, add new items
+          const mergedChecklist = freshStandards.map(freshItem => {
+            const existing = existingChecklist.find(e => e.id === freshItem.id);
+            return existing ? { ...freshItem, checked: existing.checked } : freshItem;
+          });
+          
           return {
             ...belief,
-            checklist: belief.checklist
+            checklist: mergedChecklist
           };
         }
         
         // No saved checklist or empty - load fresh platinum standards from database
         console.log(`[FRONTEND DEBUG] ${belief.category} - LOADING FRESH STANDARDS`);
-        const newChecklist = getPlatinumStandardsForCategory(belief.category);
         return {
           ...belief,
-          checklist: newChecklist
+          checklist: freshStandards
         };
       });
       
@@ -543,8 +552,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       setBeliefs(getWeekBeliefs(weekNumber));
       setUnifiedAssignment([]);
     }
-  }, [weekNumber, weekData, ratingCaps]);
-  // Note: platinumStandardsData removed from deps to prevent resetting checked states on refresh
+  }, [weekNumber, weekData, ratingCaps, platinumStandardsData]);
+  // FIXED: Added platinumStandardsData to deps to auto-update when admin adds new standards
 
   const weeklyProgress = beliefs.length > 0
     ? Math.round(beliefs.reduce((sum, b) => sum + calculateProgress(b.checklist), 0) / beliefs.length)

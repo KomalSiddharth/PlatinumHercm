@@ -449,6 +449,8 @@ export default function AdminPanel() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/platinum-standards'] });
       queryClient.invalidateQueries({ queryKey: ['/api/platinum-standards'] });
+      // Force immediate refetch for active dashboard users
+      queryClient.refetchQueries({ queryKey: ['/api/platinum-standards'] });
       setNewStandardText('');
       toast({ title: "Success", description: "Platinum standard added successfully" });
     },
@@ -464,6 +466,8 @@ export default function AdminPanel() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/platinum-standards'] });
       queryClient.invalidateQueries({ queryKey: ['/api/platinum-standards'] });
+      // Force immediate refetch for active dashboard users
+      queryClient.refetchQueries({ queryKey: ['/api/platinum-standards'] });
       setEditingStandard(null);
       toast({ title: "Success", description: "Platinum standard updated successfully" });
     },
@@ -479,6 +483,8 @@ export default function AdminPanel() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/platinum-standards'] });
       queryClient.invalidateQueries({ queryKey: ['/api/platinum-standards'] });
+      // Force immediate refetch for active dashboard users
+      queryClient.refetchQueries({ queryKey: ['/api/platinum-standards'] });
       toast({ title: "Success", description: "Platinum standard deleted successfully" });
     },
     onError: (error: any) => {
