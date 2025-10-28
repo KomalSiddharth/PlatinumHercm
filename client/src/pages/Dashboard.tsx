@@ -1896,9 +1896,13 @@ export default function Dashboard() {
   // Update userName and userEmail when user data is fetched
   useEffect(() => {
     if (currentUser) {
+      console.log('[DASHBOARD DEBUG] currentUser object:', currentUser);
+      console.log('[DASHBOARD DEBUG] firstName:', currentUser.firstName);
+      console.log('[DASHBOARD DEBUG] lastName:', currentUser.lastName);
       const fullName = currentUser.firstName && currentUser.lastName 
         ? `${currentUser.firstName} ${currentUser.lastName}`
         : currentUser.firstName || currentUser.lastName || currentUser.email || 'User';
+      console.log('[DASHBOARD DEBUG] fullName:', fullName);
       setUserName(fullName || 'User');
       setUserEmail(currentUser.email || '');
     }
