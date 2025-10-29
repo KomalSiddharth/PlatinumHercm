@@ -94,6 +94,138 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get HRCM data by specific date (like Emotional Tracker)
+  app.get('/api/hercm/by-date/:date', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      let user = await storage.getUser(userId);
+      if (!user && typeof userId === 'string' && userId.includes('@')) {
+        user = await storage.getUserByEmail(userId);
+      }
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      const requestedDate = new Date(req.params.date);
+      requestedDate.setHours(0, 0, 0, 0);
+      
+      // Get all weeks for user
+      const allWeeks = await storage.getHercmWeeksByUser(user.id);
+      
+      if (!allWeeks || allWeeks.length === 0) {
+        return res.json(null);
+      }
+      
+      // Find week(s) that match the requested date
+      const matchingWeeks = allWeeks.filter((week: any) => {
+        const weekDate = new Date(week.createdAt);
+        weekDate.setHours(0, 0, 0, 0);
+        
+        // Check if the date is the same as week creation date
+        return weekDate.getTime() === requestedDate.getTime();
+      });
+      
+      if (matchingWeeks.length === 0) {
+        return res.json(null); // No data for this date - frontend will show blank
+      }
+      
+      // Return the most recent entry if multiple exist for same date
+      const week = matchingWeeks.sort((a: any, b: any) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )[0];
+      
+      // Transform to beliefs format (same as week endpoint)
+      const beliefs = [
+        {
+          category: 'Health',
+          currentRating: week.currentH || 0,
+          targetRating: week.targetH || 0,
+          problems: week.healthProblems || '',
+          currentFeelings: week.healthCurrentFeelings || '',
+          currentBelief: week.healthCurrentBelief || '',
+          currentActions: week.healthCurrentActions || '',
+          result: week.healthResult || '',
+          nextFeelings: week.healthNextFeelings || '',
+          nextWeekTarget: week.healthNextTarget || '',
+          nextActions: week.healthNextActions || '',
+          checklist: week.healthChecklist || [],
+          assignment: week.healthAssignment || { courses: [], lessons: [] },
+          resultChecklist: week.healthResultChecklist || [],
+          feelingsChecklist: week.healthFeelingsChecklist || [],
+          beliefsChecklist: week.healthBeliefsChecklist || [],
+          actionsChecklist: week.healthActionsChecklist || []
+        },
+        {
+          category: 'Relationship',
+          currentRating: week.currentE || 0,
+          targetRating: week.targetE || 0,
+          problems: week.relationshipProblems || '',
+          currentFeelings: week.relationshipCurrentFeelings || '',
+          currentBelief: week.relationshipCurrentBelief || '',
+          currentActions: week.relationshipCurrentActions || '',
+          result: week.relationshipResult || '',
+          nextFeelings: week.relationshipNextFeelings || '',
+          nextWeekTarget: week.relationshipNextTarget || '',
+          nextActions: week.relationshipNextActions || '',
+          checklist: week.relationshipChecklist || [],
+          assignment: week.relationshipAssignment || { courses: [], lessons: [] },
+          resultChecklist: week.relationshipResultChecklist || [],
+          feelingsChecklist: week.relationshipFeelingsChecklist || [],
+          beliefsChecklist: week.relationshipBeliefsChecklist || [],
+          actionsChecklist: week.relationshipActionsChecklist || []
+        },
+        {
+          category: 'Career',
+          currentRating: week.currentR || 0,
+          targetRating: week.targetR || 0,
+          problems: week.careerProblems || '',
+          currentFeelings: week.careerCurrentFeelings || '',
+          currentBelief: week.careerCurrentBelief || '',
+          currentActions: week.careerCurrentActions || '',
+          result: week.careerResult || '',
+          nextFeelings: week.careerNextFeelings || '',
+          nextWeekTarget: week.careerNextTarget || '',
+          nextActions: week.careerNextActions || '',
+          checklist: week.careerChecklist || [],
+          assignment: week.careerAssignment || { courses: [], lessons: [] },
+          resultChecklist: week.careerResultChecklist || [],
+          feelingsChecklist: week.careerFeelingsChecklist || [],
+          beliefsChecklist: week.careerBeliefsChecklist || [],
+          actionsChecklist: week.careerActionsChecklist || []
+        },
+        {
+          category: 'Money',
+          currentRating: week.currentC || 0,
+          targetRating: week.targetC || 0,
+          problems: week.moneyProblems || '',
+          currentFeelings: week.moneyCurrentFeelings || '',
+          currentBelief: week.moneyCurrentBelief || '',
+          currentActions: week.moneyCurrentActions || '',
+          result: week.moneyResult || '',
+          nextFeelings: week.moneyNextFeelings || '',
+          nextWeekTarget: week.moneyNextTarget || '',
+          nextActions: week.moneyNextActions || '',
+          checklist: week.moneyChecklist || [],
+          assignment: week.moneyAssignment || { courses: [], lessons: [] },
+          resultChecklist: week.moneyResultChecklist || [],
+          feelingsChecklist: week.moneyFeelingsChecklist || [],
+          beliefsChecklist: week.moneyBeliefsChecklist || [],
+          actionsChecklist: week.moneyActionsChecklist || []
+        }
+      ];
+      
+      res.json({ beliefs, createdAt: week.createdAt, weekNumber: week.weekNumber });
+    } catch (error) {
+      console.error("Error fetching HRCM data by date:", error);
+      res.status(500).json({ message: "Failed to fetch HRCM data" });
+    }
+  });
+
   app.get('/api/hercm/week/:weekNumber', isAuthenticated, async (req: any, res) => {
     try {
       // Handle both OIDC auth (req.user.claims.sub) and email-based auth (req.session.userEmail)
