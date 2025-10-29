@@ -246,6 +246,9 @@ const MONEY_STANDARDS: ChecklistItem[] = [
 ];
 
 export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsUserId, isAdminView = false }: UnifiedHRCMTableProps) {
+  const today = new Date().toISOString().split('T')[0];
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [currentDateStr, setCurrentDateStr] = useState<string>(today);
   const [beliefs, setBeliefs] = useState<HRCMBelief[]>([]);
   const [editingField, setEditingField] = useState<{ category: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState('');
@@ -264,40 +267,37 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   const hasAutoProgressed = useRef<Set<number>>(new Set()); // Track which weeks have been auto-progressed
   const { toast} = useToast();
 
-  // Navigate date (Previous/Next) - similar to EmotionalTracker
-  const navigateDate = async (direction: 'prev' | 'next') => {
-    const currentDate = selectedHistoryDate || new Date();
-    const newDate = new Date(currentDate);
+  // Update currentDateStr when selectedDate changes (like Emotional Tracker)
+  useEffect(() => {
+    if (selectedDate) {
+      const dateStr = selectedDate.toISOString().split('T')[0];
+      setCurrentDateStr(dateStr);
+    }
+  }, [selectedDate]);
+
+  // Navigate date (Previous/Next) - exactly like EmotionalTracker
+  const navigateDate = (direction: 'prev' | 'next') => {
+    const newDate = new Date(selectedDate);
     if (direction === 'prev') {
       newDate.setDate(newDate.getDate() - 1);
     } else {
       newDate.setDate(newDate.getDate() + 1);
     }
-    setSelectedHistoryDate(newDate);
-    
-    // Set viewingHistory based on whether new date is today
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const selected = new Date(newDate);
-    selected.setHours(0, 0, 0, 0);
-    setViewingHistory(selected.getTime() !== today.getTime());
-    
-    // Immediately refetch all weeks data to get fresh snapshot for new date
-    await queryClient.invalidateQueries({ queryKey: allWeeksQueryKey });
-    await queryClient.refetchQueries({ queryKey: allWeeksQueryKey });
+    setSelectedDate(newDate);
   };
 
-  // When in admin view mode, fetch data for the specific user
-  // Build query key based on admin view or regular user view
-  const weekQueryKey = isAdminView && viewAsUserId 
-    ? [`/api/admin/user/${viewAsUserId}/hercm/week`, weekNumber] 
-    : ['/api/hercm/week', weekNumber];
-
-  // Fetch current week data from database
-  const { data: weekData, isLoading } = useQuery<{ beliefs?: HRCMBelief[]; createdAt?: string }>({
-    queryKey: weekQueryKey,
-    enabled: weekNumber > 0,
+  // Fetch HRCM data for the selected date (like Emotional Tracker)
+  const { data: dateData, isLoading } = useQuery<{ beliefs?: HRCMBelief[]; createdAt?: string; weekNumber?: number }>({
+    queryKey: ['/api/hercm/by-date', currentDateStr],
+    queryFn: async () => {
+      const response = await fetch(`/api/hercm/by-date/${currentDateStr}`);
+      if (!response.ok) throw new Error('Failed to fetch HRCM data');
+      return response.json();
+    },
   });
+
+  // Use dateData as weekData for consistency with existing code
+  const weekData = dateData;
 
   // Fetch previous week data for comparison (only if week > 1)
   const { data: previousWeekData } = useQuery<{ beliefs?: HRCMBelief[] }>({
@@ -1642,7 +1642,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       <div className="border-2 border-coral-red/70 dark:border-coral-red/50 rounded-lg overflow-x-auto shadow-lg">
         <div className="px-2 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-b-2 border-coral-red/80 dark:border-coral-red/60 bg-coral-red">
           <div className="flex items-center justify-between">
-            {/* Left: Date Navigation Controls */}
+            {/* Left: Date Navigation Controls - Like Emotional Tracker */}
             <div className="flex items-center gap-1.5 sm:gap-2">
               <Button
                 variant="ghost"
@@ -1668,47 +1668,26 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   mode="single"
-                  selected={selectedHistoryDate}
-                  onSelect={async (date) => {
-                    setSelectedHistoryDate(date);
+                  selected={selectedDate}
+                  onSelect={(date) => {
                     if (date) {
-                      const today = new Date();
-                      today.setHours(0, 0, 0, 0);
-                      const selected = new Date(date);
-                      selected.setHours(0, 0, 0, 0);
-                      // Only set viewingHistory to true if selected date is NOT today
-                      setViewingHistory(selected.getTime() !== today.getTime());
-                      // Immediately refetch all weeks data to get fresh snapshot for selected date
-                      await queryClient.invalidateQueries({ queryKey: allWeeksQueryKey });
-                      await queryClient.refetchQueries({ queryKey: allWeeksQueryKey });
-                    } else {
-                      setViewingHistory(false);
+                      setSelectedDate(date);
                     }
                   }}
                   initialFocus
                   data-testid="calendar-date-picker"
                 />
-                {selectedHistoryDate && (
-                  <div className="p-3 border-t">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                      onClick={async () => {
-                        setSelectedHistoryDate(undefined);
-                        setViewingHistory(false);
-                        // Invalidate and refetch queries to get latest current week data
-                        await queryClient.invalidateQueries({ queryKey: weekQueryKey });
-                        await queryClient.invalidateQueries({ queryKey: allWeeksQueryKey });
-                        await queryClient.refetchQueries({ queryKey: weekQueryKey });
-                        await queryClient.refetchQueries({ queryKey: allWeeksQueryKey });
-                      }}
-                      data-testid="button-clear-date"
-                    >
-                      Clear & Return to Current Week
-                    </Button>
+                <div className="p-3 border-t">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => setSelectedDate(new Date())}
+                    data-testid="button-reset-to-today"
+                  >
+                    Back to Today
+                  </Button>
                   </div>
-                )}
               </PopoverContent>
             </Popover>
             
@@ -1723,24 +1702,22 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             </Button>
           </div>
 
-            {/* Center: Heading */}
+            {/* Center: Heading - Shows Selected Date */}
             <h3 className="font-bold text-white text-sm sm:text-base md:text-lg lg:text-xl drop-shadow-md flex items-center gap-1 sm:gap-2">
               <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
+              {format(selectedDate, 'MMMM dd, yyyy')}
               {(() => {
-                if (!viewingHistory || !selectedHistoryDate) return 'Current Week';
-                
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
-                const selected = new Date(selectedHistoryDate);
+                const selected = new Date(selectedDate);
                 selected.setHours(0, 0, 0, 0);
                 
-                // If selected date is today, show "Current Week"
+                // If selected date is today, show "(Today)"
                 if (selected.getTime() === today.getTime()) {
-                  return 'Current Week';
+                  return ' (Today)';
                 }
                 
-                // Otherwise show "History - date"
-                return `History - ${format(selectedHistoryDate, 'MMM dd, yyyy')}`;
+                return '';
               })()}
             </h3>
 
