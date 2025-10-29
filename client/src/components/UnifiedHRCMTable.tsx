@@ -267,11 +267,15 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   const hasAutoProgressed = useRef<Set<number>>(new Set()); // Track which weeks have been auto-progressed
   const { toast} = useToast();
 
-  // Update currentDateStr when selectedDate changes (like Emotional Tracker)
+  // Update currentDateStr and viewingHistory when selectedDate changes (like Emotional Tracker)
   useEffect(() => {
     if (selectedDate) {
       const dateStr = selectedDate.toISOString().split('T')[0];
       setCurrentDateStr(dateStr);
+      
+      // Check if we're viewing a historical date (not today)
+      const todayStr = new Date().toISOString().split('T')[0];
+      setViewingHistory(dateStr !== todayStr);
     }
   }, [selectedDate]);
 
@@ -491,7 +495,26 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         ];
         
         setBeliefs(convertedBeliefs);
-        setUnifiedAssignment((historicalSnapshot as any).unifiedAssignment || []);
+        
+        // Extract and combine assignments from all categories into unified list
+        const combinedAssignments: AssignmentLesson[] = [];
+        convertedBeliefs.forEach(belief => {
+          if (belief.assignment && belief.assignment.lessons) {
+            belief.assignment.lessons.forEach((lesson: any) => {
+              combinedAssignments.push({
+                id: lesson.id,
+                courseId: lesson.courseId,
+                courseName: lesson.courseName,
+                lessonName: lesson.lessonName,
+                url: lesson.url,
+                completed: lesson.completed || false,
+                source: lesson.source || 'user',
+                hrcmArea: belief.category.toLowerCase()
+              });
+            });
+          }
+        });
+        setUnifiedAssignment(combinedAssignments);
       } else {
         // No snapshot found (future date or no data for this date) - show blank
         setBeliefs(getBlankBeliefs());
@@ -550,8 +573,26 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       
       console.log('[FRONTEND DEBUG] Final updatedBeliefs:', updatedBeliefs);
       setBeliefs(updatedBeliefs);
-      // Load unified assignment from week data
-      setUnifiedAssignment((weekData as any).unifiedAssignment || []);
+      
+      // Extract and combine assignments from all categories into unified list
+      const combinedAssignments: AssignmentLesson[] = [];
+      updatedBeliefs.forEach(belief => {
+        if (belief.assignment && belief.assignment.lessons) {
+          belief.assignment.lessons.forEach((lesson: any) => {
+            combinedAssignments.push({
+              id: lesson.id,
+              courseId: lesson.courseId,
+              courseName: lesson.courseName,
+              lessonName: lesson.lessonName,
+              url: lesson.url,
+              completed: lesson.completed || false,
+              source: lesson.source || 'user',
+              hrcmArea: belief.category.toLowerCase()
+            });
+          });
+        }
+      });
+      setUnifiedAssignment(combinedAssignments);
     } else {
       console.log('[FRONTEND DEBUG] No weekData - using template');
       // No database data - use demo/blank template immediately (don't wait for loading)
@@ -2220,11 +2261,13 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 {belief.category === 'Health' && (
                   <TableCell rowSpan={4} className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10 align-top">
                     {(() => {
-                      // CRITICAL: Assignment column is date-independent - always use persistent assignments
-                      // Only admin views should see the old unified assignment system
-                      const assignmentsToDisplay = isAdminView 
-                        ? unifiedAssignment 
-                        : persistentAssignments;
+                      // CRITICAL: Assignment column is DATE-SPECIFIC
+                      // - Historical dates: Use HRCM week's assignment data (date-specific snapshot)
+                      // - Today: Use persistent assignments (ongoing to-do list)
+                      // - Admin view: Always use unified assignment
+                      const assignmentsToDisplay = viewingHistory
+                        ? unifiedAssignment  // Historical date - show that day's assignments
+                        : (isAdminView ? unifiedAssignment : persistentAssignments);  // Today or admin view
                       
                       // Filter to show only pending (uncompleted) assignments in UI
                       // Database keeps all records for history/analytics, but UI shows only active work
