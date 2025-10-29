@@ -259,6 +259,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   const [showStandardsDialog, setShowStandardsDialog] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [collapsedCourses, setCollapsedCourses] = useState<Set<string>>(new Set());
+  const [showFirstCheckpointDialog, setShowFirstCheckpointDialog] = useState(false);
+  const [firstCheckpointData, setFirstCheckpointData] = useState<{ category: string; checklistType: 'result' | 'feelings' | 'beliefs' | 'actions'; text: string } | null>(null);
   const [unifiedAssignment, setUnifiedAssignment] = useState<AssignmentLesson[]>([]);
   const [progressOpen, setProgressOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -1067,6 +1069,21 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       saveWeekMutation.mutate({ weekNumber, year: new Date().getFullYear(), beliefs: updated });
       return updated;
     });
+  };
+
+  // Show dialog for first checkpoint
+  const handleShowFirstCheckpointDialog = (category: string, checklistType: 'result' | 'feelings' | 'beliefs' | 'actions') => {
+    setFirstCheckpointData({ category, checklistType, text: '' });
+    setShowFirstCheckpointDialog(true);
+  };
+
+  // Save first checkpoint from dialog
+  const handleSaveFirstCheckpoint = () => {
+    if (firstCheckpointData && firstCheckpointData.text.trim()) {
+      handleAddCheckpoint(firstCheckpointData.category, firstCheckpointData.checklistType, firstCheckpointData.text.trim());
+      setShowFirstCheckpointDialog(false);
+      setFirstCheckpointData(null);
+    }
   };
 
   // Add new checkpoint to a checklist
@@ -2099,7 +2116,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => handleAddCheckpoint(belief.category, 'result')}
+                      onClick={() => handleShowFirstCheckpointDialog(belief.category, 'result')}
                       className="h-6 w-full text-xs text-muted-foreground hover:text-foreground gap-1"
                       data-testid={`button-add-checkpoint-result-${belief.category.toLowerCase()}`}
                     >
@@ -2128,7 +2145,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => handleAddCheckpoint(belief.category, 'feelings')}
+                      onClick={() => handleShowFirstCheckpointDialog(belief.category, 'feelings')}
                       className="h-6 w-full text-xs text-muted-foreground hover:text-foreground gap-1"
                       data-testid={`button-add-checkpoint-feelings-${belief.category.toLowerCase()}`}
                     >
@@ -2157,7 +2174,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => handleAddCheckpoint(belief.category, 'beliefs')}
+                      onClick={() => handleShowFirstCheckpointDialog(belief.category, 'beliefs')}
                       className="h-6 w-full text-xs text-muted-foreground hover:text-foreground gap-1"
                       data-testid={`button-add-checkpoint-beliefs-${belief.category.toLowerCase()}`}
                     >
@@ -2186,7 +2203,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => handleAddCheckpoint(belief.category, 'actions')}
+                      onClick={() => handleShowFirstCheckpointDialog(belief.category, 'actions')}
                       className="h-6 w-full text-xs text-muted-foreground hover:text-foreground gap-1"
                       data-testid={`button-add-checkpoint-actions-${belief.category.toLowerCase()}`}
                     >
@@ -2625,6 +2642,57 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               <Save className="w-4 h-4 mr-2" />
               Save
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* First Checkpoint Dialog */}
+      <Dialog open={showFirstCheckpointDialog} onOpenChange={setShowFirstCheckpointDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base font-semibold">
+              Add New Checkpoint
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="p-4 rounded-lg border-2 bg-gradient-to-br from-primary/10 to-accent/10">
+              <div className="flex items-start gap-2 mb-3">
+                <div className="w-1 h-full bg-gradient-to-b from-primary to-accent rounded-full"></div>
+                <p className="text-sm font-medium">
+                  {firstCheckpointData?.category} - {firstCheckpointData?.checklistType === 'result' ? 'Results' : 
+                   firstCheckpointData?.checklistType === 'feelings' ? 'Feelings' : 
+                   firstCheckpointData?.checklistType === 'beliefs' ? 'Beliefs/Reasons' : 'Actions'}
+                </p>
+              </div>
+              <Textarea
+                value={firstCheckpointData?.text || ''}
+                onChange={(e) => setFirstCheckpointData(prev => prev ? { ...prev, text: e.target.value } : null)}
+                placeholder="Enter your checkpoint..."
+                className="min-h-[100px] text-sm bg-white dark:bg-gray-950 border-muted"
+                autoFocus
+                data-testid="textarea-first-checkpoint"
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowFirstCheckpointDialog(false);
+                  setFirstCheckpointData(null);
+                }}
+                data-testid="button-cancel-first-checkpoint"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSaveFirstCheckpoint}
+                disabled={!firstCheckpointData?.text.trim()}
+                className="bg-gradient-to-r from-primary to-accent text-white hover:opacity-90"
+                data-testid="button-save-first-checkpoint"
+              >
+                Add Checkpoint
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
