@@ -494,3 +494,29 @@ export const insertEmotionalTrackerSchema = createInsertSchema(emotionalTrackers
 
 export type InsertEmotionalTracker = z.infer<typeof insertEmotionalTrackerSchema>;
 export type EmotionalTracker = typeof emotionalTrackers.$inferSelect;
+
+// User Persistent Assignments - User-level assignment list (independent of dates)
+export const userPersistentAssignments = pgTable("user_persistent_assignments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  hrcmArea: varchar("hrcm_area").notNull(), // 'health', 'relationship', 'career', 'money'
+  courseId: varchar("course_id").notNull(),
+  courseName: varchar("course_name", { length: 500 }).notNull(),
+  lessonId: varchar("lesson_id"), // Optional - specific lesson ID
+  lessonName: varchar("lesson_name", { length: 500 }),
+  url: varchar("url", { length: 1000 }), // Optional URL to the lesson/course
+  source: varchar("source").notNull(), // 'user' (self-added) or 'admin' (recommended by admin)
+  recommendationId: varchar("recommendation_id"), // Optional - links to adminCourseRecommendations if from admin
+  completed: boolean("completed").default(false).notNull(), // Track completion
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertUserPersistentAssignmentSchema = createInsertSchema(userPersistentAssignments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertUserPersistentAssignment = z.infer<typeof insertUserPersistentAssignmentSchema>;
+export type UserPersistentAssignment = typeof userPersistentAssignments.$inferSelect;

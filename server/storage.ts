@@ -15,6 +15,7 @@ import {
   adminCourseRecommendations,
   platinumStandards,
   emotionalTrackers,
+  userPersistentAssignments,
   type User,
   type UpsertUser,
   type HercmWeek,
@@ -45,6 +46,8 @@ import {
   type InsertPlatinumStandard,
   type EmotionalTracker,
   type InsertEmotionalTracker,
+  type UserPersistentAssignment,
+  type InsertUserPersistentAssignment,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, count, sql, gte, lte } from "drizzle-orm";
@@ -184,6 +187,13 @@ export interface IStorage {
   getEmotionalTrackersByDate(userId: string, date: string): Promise<EmotionalTracker[]>;
   upsertEmotionalTracker(tracker: InsertEmotionalTracker): Promise<EmotionalTracker>;
   deleteEmotionalTracker(id: string, userId: string): Promise<void>;
+  
+  // User Persistent Assignment operations
+  getUserPersistentAssignments(userId: string): Promise<UserPersistentAssignment[]>;
+  addPersistentAssignment(assignment: InsertUserPersistentAssignment): Promise<UserPersistentAssignment>;
+  togglePersistentAssignmentCompletion(id: string, userId: string): Promise<UserPersistentAssignment>;
+  deletePersistentAssignment(id: string, userId: string): Promise<void>;
+  deleteCompletedAssignments(userId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1352,6 +1362,71 @@ export class DatabaseStorage implements IStorage {
       .where(and(
         eq(emotionalTrackers.id, id),
         eq(emotionalTrackers.userId, userId)
+      ));
+  }
+
+  // User Persistent Assignment operations
+  async getUserPersistentAssignments(userId: string): Promise<UserPersistentAssignment[]> {
+    return await db
+      .select()
+      .from(userPersistentAssignments)
+      .where(eq(userPersistentAssignments.userId, userId))
+      .orderBy(desc(userPersistentAssignments.createdAt));
+  }
+
+  async addPersistentAssignment(assignment: InsertUserPersistentAssignment): Promise<UserPersistentAssignment> {
+    const [newAssignment] = await db
+      .insert(userPersistentAssignments)
+      .values(assignment)
+      .returning();
+    return newAssignment;
+  }
+
+  async togglePersistentAssignmentCompletion(id: string, userId: string): Promise<UserPersistentAssignment> {
+    // First get the current assignment
+    const [current] = await db
+      .select()
+      .from(userPersistentAssignments)
+      .where(and(
+        eq(userPersistentAssignments.id, id),
+        eq(userPersistentAssignments.userId, userId)
+      ));
+
+    if (!current) {
+      throw new Error('Assignment not found');
+    }
+
+    // Toggle the completion status
+    const [updated] = await db
+      .update(userPersistentAssignments)
+      .set({ 
+        completed: !current.completed,
+        updatedAt: new Date()
+      })
+      .where(and(
+        eq(userPersistentAssignments.id, id),
+        eq(userPersistentAssignments.userId, userId)
+      ))
+      .returning();
+
+    return updated;
+  }
+
+  async deletePersistentAssignment(id: string, userId: string): Promise<void> {
+    await db
+      .delete(userPersistentAssignments)
+      .where(and(
+        eq(userPersistentAssignments.id, id),
+        eq(userPersistentAssignments.userId, userId)
+      ));
+  }
+
+  async deleteCompletedAssignments(userId: string): Promise<void> {
+    await db
+      .delete(userPersistentAssignments)
+      .where(and(
+        eq(userPersistentAssignments.userId, userId),
+        eq(userPersistentAssignments.completed, true)
       ));
   }
 }
