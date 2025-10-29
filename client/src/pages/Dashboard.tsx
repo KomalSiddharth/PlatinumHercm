@@ -716,6 +716,7 @@ export default function Dashboard() {
       progressPercent: 0,
       category: 'Relationship',
       lessons: [
+        { id: 'rm-senior-results', title: 'Senior Members Result Sharing', url: 'https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2157909530/posts/2188693211', completed: false },
         { id: 'rm-1', title: 'Lesson 1 - The Source of your Relationships - Your Parents', url: 'https://www.miteshkhatri.com/Source', completed: false },
         { id: 'rm-2', title: 'Lesson 2 - The Skill to Master Loving Accepting Yourself with Reflection', url: 'https://www.miteshkhatri.com/Reflection', completed: false },
         { id: 'rm-3', title: 'Lesson 3 - The Skill to Understand Difference Between Men Vs Women', url: 'https://www.miteshkhatri.com/MenWomen', completed: false },
