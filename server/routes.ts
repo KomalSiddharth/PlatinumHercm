@@ -4544,6 +4544,85 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
     }
   });
 
+  // One-time migration endpoint: Migrate old unified_assignment data to persistent assignments
+  app.post('/api/migrate-assignments', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      // Get user's latest HRCM week with unified_assignment data
+      const weeks = await storage.getAllHercmWeeks(userId);
+      
+      if (!weeks || weeks.length === 0) {
+        return res.json({ success: true, migratedCount: 0, message: "No week data found to migrate" });
+      }
+
+      // Find most recent week with unified_assignment data
+      const weekWithAssignments = weeks
+        .filter((w: any) => w.unifiedAssignment && Array.isArray(w.unifiedAssignment) && w.unifiedAssignment.length > 0)
+        .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+
+      if (!weekWithAssignments) {
+        return res.json({ success: true, migratedCount: 0, message: "No assignments found to migrate" });
+      }
+
+      const oldAssignments = weekWithAssignments.unifiedAssignment || [];
+      
+      // Check existing persistent assignments to avoid duplicates
+      const existingAssignments = await storage.getPersistentAssignments(userId);
+      const existingLessonIds = new Set(existingAssignments.map((a: any) => a.id));
+
+      let migratedCount = 0;
+
+      // Migrate each assignment that doesn't already exist
+      for (const assignment of oldAssignments) {
+        // Skip if already migrated
+        if (existingLessonIds.has(assignment.id)) {
+          continue;
+        }
+
+        // Determine hrcmArea based on course name or default to 'health'
+        let hrcmArea = 'health';
+        const courseLower = (assignment.courseName || '').toLowerCase();
+        if (courseLower.includes('relationship') || courseLower.includes('communication')) {
+          hrcmArea = 'relationship';
+        } else if (courseLower.includes('career') || courseLower.includes('business')) {
+          hrcmArea = 'career';
+        } else if (courseLower.includes('money') || courseLower.includes('wealth') || courseLower.includes('financial')) {
+          hrcmArea = 'money';
+        }
+
+        // Create persistent assignment
+        await storage.addPersistentAssignment({
+          userId,
+          hrcmArea,
+          courseId: assignment.courseId || '',
+          courseName: assignment.courseName || '',
+          lessonId: assignment.id || '',
+          lessonName: assignment.lessonName || '',
+          url: assignment.url || '',
+          source: assignment.source || 'user',
+          completed: assignment.completed || false,
+          recommendationId: assignment.recommendationId || null
+        });
+
+        migratedCount++;
+      }
+
+      res.json({ 
+        success: true, 
+        migratedCount, 
+        message: `Successfully migrated ${migratedCount} assignments to persistent storage` 
+      });
+    } catch (error) {
+      console.error("Error migrating assignments:", error);
+      res.status(500).json({ message: "Failed to migrate assignments" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

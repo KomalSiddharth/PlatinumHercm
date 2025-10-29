@@ -2237,8 +2237,49 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       // Empty state
                       if (totalCount === 0) {
                         return (
-                          <div className="text-xs text-muted-foreground italic text-center py-4">
-                            No assignments yet. Check lessons in Course Tracker to add them here.
+                          <div className="space-y-2 py-4">
+                            <p className="text-xs text-muted-foreground italic text-center">
+                              No assignments yet. Check lessons in Course Tracker to add them here.
+                            </p>
+                            {!viewingHistory && !isAdminView && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={async () => {
+                                  try {
+                                    const response = await fetch('/api/migrate-assignments', {
+                                      method: 'POST',
+                                      credentials: 'include'
+                                    });
+                                    const result = await response.json();
+                                    if (result.success && result.migratedCount > 0) {
+                                      refetchAssignments();
+                                      toast({
+                                        title: "Migration Complete",
+                                        description: `Successfully imported ${result.migratedCount} assignments from your course history!`
+                                      });
+                                    } else {
+                                      toast({
+                                        title: "No Data Found",
+                                        description: "No old assignments found to import.",
+                                        variant: "default"
+                                      });
+                                    }
+                                  } catch (error) {
+                                    console.error("Migration error:", error);
+                                    toast({
+                                      title: "Migration Failed",
+                                      description: "Could not import old assignments. Please try again.",
+                                      variant: "destructive"
+                                    });
+                                  }
+                                }}
+                                className="w-full text-xs h-7"
+                                data-testid="button-import-assignments"
+                              >
+                                Import from Course History
+                              </Button>
+                            )}
                           </div>
                         );
                       }
