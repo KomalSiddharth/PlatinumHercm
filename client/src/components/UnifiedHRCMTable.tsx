@@ -2225,8 +2225,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         ? unifiedAssignment 
                         : persistentAssignments;
                       
-                      const userLessons = assignmentsToDisplay.filter((l: any) => l.source === 'user' || !l.source);
-                      const adminLessons = assignmentsToDisplay.filter((l: any) => l.source === 'admin');
+                      // Filter to show only pending (uncompleted) assignments in UI
+                      // Database keeps all records for history/analytics, but UI shows only active work
+                      const pendingAssignments = assignmentsToDisplay.filter((l: any) => !l.completed);
+                      
+                      const userLessons = pendingAssignments.filter((l: any) => l.source === 'user' || !l.source);
+                      const adminLessons = pendingAssignments.filter((l: any) => l.source === 'admin');
                       const allLessons = [...userLessons, ...adminLessons];
                       const totalCount = allLessons.length;
                       
