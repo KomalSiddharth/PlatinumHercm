@@ -700,6 +700,9 @@ export default function Dashboard() {
         { id: 'ho-17', title: 'Lesson 17 - Subconscious Programming to Get Comfortable to Charge for Healing', url: 'https://www.miteshkhatri.com/HOOPL17', completed: false },
         { id: 'ho-18', title: 'Lesson 18 - How to Share Music in Zoom and What Music to Use', url: 'https://www.miteshkhatri.com/HOOPL18', completed: false },
         { id: 'ho-19', title: 'Lesson 19 - How to Attract Unlimited Students from YouTube', url: 'https://www.miteshkhatri.com/HoYouTube', completed: false },
+        { id: 'ho-intro-results', title: 'Intro Senior Members Result Sharing', url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2158407468/posts/2190761347', completed: false },
+        { id: 'ho-cert-lesson', title: 'Lesson 19 – How to Get Your Certificate', url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2158410541/posts/2190772723', completed: false },
+        { id: 'ho-final-qa', title: 'Final Q&A', url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2158410541/posts/2190772724', completed: false },
       ]
     },
     {
