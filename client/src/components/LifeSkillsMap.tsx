@@ -221,12 +221,12 @@ const lifeSkillsData: CategoryData[] = [
       {
         problem: "I am not able to control my thoughts",
         skills: ["1. Understand What is NLP & Generalisation, Distortion & Deletion"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/3989949/posts/13378136"]
       },
       {
         problem: "I don't understand why people think and talk like that.",
         skills: ["1. Understand What is NLP & Generalisation, Distortion & Deletion"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/3989949/posts/13551497"]
       },
       {
         problem: "I don't know how to my control my mind, I cant stop thinking.",
@@ -236,82 +236,82 @@ const lifeSkillsData: CategoryData[] = [
       {
         problem: "I forget things, I enjoy anything fully",
         skills: ["3. Increasing VAK Senses Practice"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/3989949/posts/13721892"]
       },
       {
         problem: "I am able to Control how I Feel in specific situations of my life.",
         skills: ["4. Master Sub-Modalities to Master your Emotions & Thoughts"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/3892459/posts/13905274"]
       },
       {
         problem: "I am not able to change my Limiting Beliefs",
         skills: ["5. Changing Beliefs with Sub-Modalities"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/3892459/posts/14401872"]
       },
       {
         problem: "I Have Panic Attacks / I Have Phobias / I Get Scared Easily / I Feel Fear by Habit",
         skills: ["6. Cure Phobias with Sub-Modalities"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/3892459/posts/14401874"]
       },
       {
         problem: "By Habit I Feel Angry, Irritated, Frustrated, Sad, Hurt, Lack of Love, Helpless, Anxious, Pressure and all negative Emotions.",
         skills: ["7. Master Anchoring to Stop Any Negative Emotion & Create Any Positive Emotion"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/4363234/posts/14644406"]
       },
       {
         problem: "I would like to feel more Calm, Relaxed, Patience, Happy, Confident, Love, Courage, all Positive Emotions by Automatic Habit.",
         skills: ["7. Master Anchoring to Stop Any Negative Emotion & Create Any Positive Emotion"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/4363234/posts/14644406"]
       },
       {
         problem: "I am not able to Believe in myself",
         skills: ["8. Learn To Change Beliefs Fast with Sub-Modalities"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/4435846/posts/14889525"]
       },
       {
         problem: "I have Nail Biting Habits, All Compulsive Bad Habits",
         skills: ["9. Swish Pattern"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/4480320/posts/15036289"]
       },
       {
         problem: "Managing Multiple Anchors",
         skills: ["10. Stancking & Collapse Anchors"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/4537916/posts/15232535"]
       },
       {
         problem: "I am not able to convince myself and others easily. Its taking me too much time to succeed. I am not able to get desired results. How can I replacate someone's success?",
         skills: ["11. Master Metaphors Influence on yourself & Others", "12. Modelling for FastTrack Success"],
-        skillUrls: ["https://coaching.miteshkhatri.com/", "https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/4656588/posts/15644451", "https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/4762081/posts/16011176"]
       },
       {
         problem: "How do i make anyone Comfortable in 10 Mins?",
         skills: ["13. Rapport Building"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/4815297"]
       },
       {
         problem: "How do I influence and convince people like a Master?",
         skills: ["14. Hypnotic Language Pattern to Master Influence - Meta & Milton Model"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/4870746"]
       },
       {
         problem: "Discovering Success Strategies",
         skills: ["15. Discovering VAK Strategies to Discover Success Model"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/2147534977/posts/2147658103"]
       },
       {
         problem: "How can I make instant changes to my Emotions and Perspective?",
         skills: ["16. Master TimeLine Questions for Instantly Changing Emotions"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/2147642791/posts/2148039362"]
       },
       {
         problem: "How can instantly change the way I feel?",
         skills: ["17. Transformational Vocabulary"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/2148556420/posts/2151280565"]
       },
       {
         problem: "How can I control the way people think and what they think?",
         skills: ["18. Pre-Framing, Re-Framing & Post-Framing"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/2148558613/posts/2151287422"]
       },
       {
         problem: "NLP Intro Results Sharing of Senior Members",
