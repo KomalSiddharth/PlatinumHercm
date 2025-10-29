@@ -321,27 +321,27 @@ const lifeSkillsData: CategoryData[] = [
       {
         problem: "I don't understand Why my relationships don't work? I am completely frustrated with my Relationship problems.",
         skills: ["1. Understand What is Relationships"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2147695208/posts/2148223956"]
       },
       {
         problem: "I am angry with my partner, I don't have the same relationship I used to.",
         skills: ["2. Master Dropping Rackets Instantly"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2147695208/posts/2148223959"]
       },
       {
         problem: "I don't understand why he/she behaves like this. I just cannot tolerate this behaviour of my partner.",
         skills: ["3. Master Reflections"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2147695208/posts/2148223957"]
       },
       {
         problem: "I feel irritated and lack of love and sad all the time.",
         skills: ["4. Programming Self Love & Acceptance"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2147695208/posts/2148223955"]
       },
       {
         problem: "Why is my partner not able to fulfill my expectations.",
         skills: ["5. Master Balanced Perspective for Acceptance"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2147893976/posts/2148938921"]
       },
       {
         problem: "I feel so helpless, angry, irritated, sad, negative all the time in my relationship. I find it really difficult to feel love, happiness, comfortable in my relationship the way I used to.",
@@ -351,22 +351,22 @@ const lifeSkillsData: CategoryData[] = [
       {
         problem: "Relationship Rituals",
         skills: ["7. Master Rituals of Love"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2147942497/posts/2149119657"]
       },
       {
         problem: "My partner has too much Ego and I don't know how to manage that.",
         skills: ["8. Master Ego Management in Relationships"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2148084787/posts/2149618261"]
       },
       {
         problem: "We are very different from each other, he/she never listens to me, does not trust me, doubts me, controls me.",
         skills: ["9. Understanding Differences & Mastering Trust Bank Account"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2148131092/posts/2149786596"]
       },
       {
         problem: "My partner cheats on me, thinks about someone else, I feel insecured in my relationships.",
         skills: ["10. Master Problems of Love & Affairs"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2148215213/posts/2150088970"]
       }
     ]
   },
