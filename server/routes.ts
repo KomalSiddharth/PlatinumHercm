@@ -4480,7 +4480,7 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
       const assignmentData = {
         ...req.body,
         userId,
-        completed: false
+        completed: req.body.completed !== undefined ? req.body.completed : false
       };
 
       const newAssignment = await storage.addPersistentAssignment(assignmentData);
@@ -4554,7 +4554,7 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
       }
 
       // Get user's latest HRCM week with unified_assignment data
-      const weeks = await storage.getAllHercmWeeks(userId);
+      const weeks = await storage.getHercmWeeksByUser(userId);
       
       if (!weeks || weeks.length === 0) {
         return res.json({ success: true, migratedCount: 0, message: "No week data found to migrate" });
@@ -4572,8 +4572,8 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
       const oldAssignments = weekWithAssignments.unifiedAssignment || [];
       
       // Check existing persistent assignments to avoid duplicates
-      const existingAssignments = await storage.getPersistentAssignments(userId);
-      const existingLessonIds = new Set(existingAssignments.map((a: any) => a.id));
+      const existingAssignments = await storage.getUserPersistentAssignments(userId);
+      const existingLessonIds = new Set(existingAssignments.map((a: any) => a.lessonId || a.id));
 
       let migratedCount = 0;
 
