@@ -343,6 +343,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     queryKey: ['/api/platinum-standards'],
   });
 
+  // Fetch persistent assignments (user-level, date-independent)
+  const { data: persistentAssignments = [], refetch: refetchAssignments } = useQuery<any[]>({
+    queryKey: ['/api/persistent-assignments'],
+    enabled: !isAdminView, // Only fetch for non-admin views
+  });
+
   // Transform platinum standards into ChecklistItem format
   // NOTE: This should ONLY be used for NEW weeks with no saved data
   // For existing weeks, ALWAYS use saved checklist data from database
@@ -908,49 +914,42 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     });
   };
 
-  // Toggle unified assignment lesson completion
-  const handleUnifiedAssignmentToggle = async (lessonId: string) => {
+  // Toggle persistent assignment lesson completion
+  const handleUnifiedAssignmentToggle = async (assignmentId: string) => {
     try {
-      const response = await apiRequest('POST', '/api/unified-assignment/toggle-lesson', {
-        weekNumber,
-        lessonId
-      });
+      const response = await apiRequest('PUT', `/api/persistent-assignments/${assignmentId}/toggle`, {});
       
       if (response.ok) {
-        const data = await response.json();
-        setUnifiedAssignment(data.assignment || []);
+        // Refetch assignments to get updated data
+        await refetchAssignments();
       }
     } catch (error) {
-      console.error('Error toggling unified assignment lesson:', error);
+      console.error('Error toggling persistent assignment:', error);
       toast({
         title: 'Error',
-        description: 'Failed to update lesson',
+        description: 'Failed to update assignment',
         variant: 'destructive'
       });
     }
   };
 
-  // Remove lesson from unified assignment
-  const handleRemoveUnifiedAssignment = async (lessonId: string) => {
+  // Remove persistent assignment
+  const handleRemoveUnifiedAssignment = async (assignmentId: string) => {
     try {
-      const response = await apiRequest('POST', '/api/unified-assignment/remove-lesson', {
-        weekNumber,
-        lessonId
-      });
+      const response = await apiRequest('DELETE', `/api/persistent-assignments/${assignmentId}`, {});
       
       if (response.ok) {
-        const data = await response.json();
-        setUnifiedAssignment(data.assignment || []);
+        await refetchAssignments();
         toast({
-          title: 'Lesson Removed',
-          description: 'Lesson removed from Assignment column',
+          title: 'Assignment Removed',
+          description: 'Assignment removed successfully',
         });
       }
     } catch (error) {
-      console.error('Error removing unified assignment lesson:', error);
+      console.error('Error removing persistent assignment:', error);
       toast({
         title: 'Error',
-        description: 'Failed to remove lesson',
+        description: 'Failed to remove assignment',
         variant: 'destructive'
       });
     }
@@ -2221,8 +2220,13 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 {belief.category === 'Health' && (
                   <TableCell rowSpan={4} className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10 align-top">
                     {(() => {
-                      const userLessons = unifiedAssignment.filter(l => l.source === 'user' || !l.source);
-                      const adminLessons = unifiedAssignment.filter(l => l.source === 'admin');
+                      // Use persistent assignments for normal view, unifiedAssignment for admin/historical views
+                      const assignmentsToDisplay = (isAdminView || viewingHistory) 
+                        ? unifiedAssignment 
+                        : persistentAssignments;
+                      
+                      const userLessons = assignmentsToDisplay.filter((l: any) => l.source === 'user' || !l.source);
+                      const adminLessons = assignmentsToDisplay.filter((l: any) => l.source === 'admin');
                       const allLessons = [...userLessons, ...adminLessons];
                       const totalCount = allLessons.length;
                       
