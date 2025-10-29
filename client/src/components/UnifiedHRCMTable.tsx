@@ -1702,22 +1702,22 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             </Button>
           </div>
 
-            {/* Center: Heading - Shows Selected Date */}
+            {/* Center: Heading - Shows "Current Week" for today, date for other days */}
             <h3 className="font-bold text-white text-sm sm:text-base md:text-lg lg:text-xl drop-shadow-md flex items-center gap-1 sm:gap-2">
               <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
-              {format(selectedDate, 'MMMM dd, yyyy')}
               {(() => {
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
                 const selected = new Date(selectedDate);
                 selected.setHours(0, 0, 0, 0);
                 
-                // If selected date is today, show "(Today)"
+                // If selected date is today, show "Current Week"
                 if (selected.getTime() === today.getTime()) {
-                  return ' (Today)';
+                  return 'Current Week';
                 }
                 
-                return '';
+                // For other dates, show the actual date
+                return format(selectedDate, 'MMMM dd, yyyy');
               })()}
             </h3>
 
