@@ -2219,13 +2219,13 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 {belief.category === 'Health' && (
                   <TableCell rowSpan={4} className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10 align-top">
                     {(() => {
-                      // CRITICAL: Assignment column is DATE-SPECIFIC
-                      // - Historical dates: Use HRCM week's assignment data (date-specific snapshot)
-                      // - Today: Use persistent assignments (ongoing to-do list)
-                      // - Admin view: Always use unified assignment
-                      const assignmentsToDisplay = viewingHistory
-                        ? unifiedAssignment  // Historical date - show that day's assignments
-                        : (isAdminView ? unifiedAssignment : persistentAssignments);  // Today or admin view
+                      // CRITICAL: Persistent assignments should ALWAYS show across all dates
+                      // - Assignments persist until completed, regardless of date
+                      // - This includes: course tracking additions, recommendations, and user-added assignments
+                      // - Admin view uses unified assignment for viewing historical snapshots
+                      const assignmentsToDisplay = isAdminView 
+                        ? unifiedAssignment  // Admin view - show historical snapshot
+                        : persistentAssignments;  // Always use persistent assignments for all dates
                       
                       // Filter to show only pending (uncompleted) assignments in UI
                       // Database keeps all records for history/analytics, but UI shows only active work
@@ -2264,7 +2264,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                         <Checkbox
                                           checked={lesson.completed}
                                           onCheckedChange={() => handleUnifiedAssignmentToggle(lesson.id)}
-                                          disabled={viewingHistory || isAdminView}
+                                          disabled={isAdminView}
                                           className="h-3 w-3"
                                           data-testid={`checkbox-user-lesson-${lesson.id}`}
                                         />
@@ -2292,7 +2292,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                         <Checkbox
                                           checked={lesson.completed}
                                           onCheckedChange={() => handleUnifiedAssignmentToggle(lesson.id)}
-                                          disabled={viewingHistory || isAdminView}
+                                          disabled={isAdminView}
                                           className="h-3 w-3"
                                           data-testid={`checkbox-admin-lesson-${lesson.id}`}
                                         />
@@ -2332,7 +2332,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                       <Checkbox
                                         checked={lesson.completed}
                                         onCheckedChange={() => handleUnifiedAssignmentToggle(lesson.id)}
-                                        disabled={viewingHistory || isAdminView}
+                                        disabled={isAdminView}
                                         className="h-4 w-4 mt-0.5"
                                         data-testid={`checkbox-popup-user-lesson-${lesson.id}`}
                                       />
@@ -2345,7 +2345,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                       >
                                         {lesson.lessonName}
                                       </a>
-                                      {!viewingHistory && !isAdminView && (
+                                      {!isAdminView && (
                                         <Button
                                           size="sm"
                                           variant="ghost"
@@ -2372,7 +2372,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                       <Checkbox
                                         checked={lesson.completed}
                                         onCheckedChange={() => handleUnifiedAssignmentToggle(lesson.id)}
-                                        disabled={viewingHistory || isAdminView}
+                                        disabled={isAdminView}
                                         className="h-4 w-4 mt-0.5"
                                         data-testid={`checkbox-popup-admin-lesson-${lesson.id}`}
                                       />
@@ -2385,7 +2385,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                       >
                                         {lesson.lessonName}
                                       </a>
-                                      {!viewingHistory && !isAdminView && (
+                                      {!isAdminView && (
                                         <Button
                                           size="sm"
                                           variant="ghost"

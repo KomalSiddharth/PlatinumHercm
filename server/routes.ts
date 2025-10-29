@@ -2397,7 +2397,6 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
             email: userEmail,
             firstName,
             lastName,
-            password: '', // No password - they'll use OIDC login
             isAdmin: false,
           });
           userId = placeholderUser.id;
