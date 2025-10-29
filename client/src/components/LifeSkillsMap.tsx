@@ -51,7 +51,7 @@ const lifeSkillsData: CategoryData[] = [
       {
         problem: "Short Term Life Vision",
         skills: ["Create Your Vision Board", "Create Magic Miracles Diary"],
-        skillUrls: ["https://coaching.miteshkhatri.com/", "https://www.youtube.com/watch?v=uiv3JEZx41Y&t=75s"]
+        skillUrls: ["https://www.youtube.com/watch?v=uiv3JEZx41Y&t=75s", "https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2733974/posts/2153839463"]
       }
     ]
   },
