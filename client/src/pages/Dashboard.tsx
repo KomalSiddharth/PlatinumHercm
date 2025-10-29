@@ -1335,6 +1335,29 @@ export default function Dashboard() {
       ]
     },
     {
+      id: 'ai-course',
+      title: 'AI Course',
+      url: 'https://coaching.miteshkhatri.com/products/ai-course-by-mitesh-khatri',
+      tags: ['AI', 'Technology', 'Career'],
+      source: 'Mitesh Khatri',
+      estimatedHours: 10,
+      status: 'not_started',
+      progressPercent: 0,
+      category: 'Career',
+      lessons: [
+        { id: 'ai-intro', title: 'Introduction To AI Course', url: 'https://coaching.miteshkhatri.com/products/ai-course-by-mitesh-khatri/categories/2158460359/posts/2190952526', completed: false },
+        { id: 'ai-1', title: 'Lesson 1 - How to Start Learning AI', url: 'https://coaching.miteshkhatri.com/products/ai-course-by-mitesh-khatri/categories/2158460359/posts/2190952527', completed: false },
+        { id: 'ai-2', title: 'Lesson 2 - What is AI and How to Talk to It', url: 'https://coaching.miteshkhatri.com/products/ai-course-by-mitesh-khatri/categories/2158460359/posts/2190952521', completed: false },
+        { id: 'ai-result-1', title: 'Result Sharing 1', url: 'https://coaching.miteshkhatri.com/products/ai-course-by-mitesh-khatri/categories/2158460359/posts/2190952525', completed: false },
+        { id: 'ai-3', title: 'Lesson 3 - Choosing the Right AI Tools for Your Needs', url: 'https://coaching.miteshkhatri.com/products/ai-course-by-mitesh-khatri/categories/2158460359/posts/2190952524', completed: false },
+        { id: 'ai-4', title: 'Lesson 4 - Where You Can Apply AI in Real Life', url: 'https://coaching.miteshkhatri.com/products/ai-course-by-mitesh-khatri/categories/2158460359/posts/2190952523', completed: false },
+        { id: 'ai-5', title: 'Lesson 5 - How to Use Genspark.AI Effectively', url: 'https://coaching.miteshkhatri.com/products/ai-course-by-mitesh-khatri/categories/2158460359/posts/2190952522', completed: false },
+        { id: 'ai-6', title: 'Lesson 6 - What People Have Built with Genspark.AI', url: 'https://coaching.miteshkhatri.com/products/ai-course-by-mitesh-khatri/categories/2158460359/posts/2190952528', completed: false },
+        { id: 'ai-7', title: 'Lesson 7 - Smart Ways to Use ChatGPT', url: 'https://coaching.miteshkhatri.com/products/ai-course-by-mitesh-khatri/categories/2158460359/posts/2190952529', completed: false },
+        { id: 'ai-8', title: 'Lesson 8 - Create Your Own AI Employee', url: 'https://coaching.miteshkhatri.com/products/ai-course-by-mitesh-khatri/categories/2158460359/posts/2190952520', completed: false },
+      ]
+    },
+    {
       id: 'platinum-membership-challenge',
       title: 'Platinum Membership 5 Days Challenge',
       url: 'https://www.miteshkhatri.com/5DC',
