@@ -26,7 +26,9 @@ import {
   BarChart3,
   Pencil,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Check,
+  ChevronsUpDown
 } from 'lucide-react';
 import type { ApprovedEmail, AdminUser, AccessLog } from '@shared/schema';
 import {
@@ -38,6 +40,19 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import UserDetailView from '@/components/UserDetailView';
 import UserActivitySearch from '@/components/UserActivitySearch';
@@ -76,6 +91,7 @@ export default function AdminPanel() {
   const [recHrcmArea, setRecHrcmArea] = useState('health');
   const [recCourseName, setRecCourseName] = useState('');
   const [recReason, setRecReason] = useState('');
+  const [recUserPopoverOpen, setRecUserPopoverOpen] = useState(false);
   
   // Team analytics period state
   const [teamAnalyticsPeriod, setTeamAnalyticsPeriod] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
@@ -1821,13 +1837,61 @@ export default function AdminPanel() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      <label className="text-sm font-medium mb-2 block">User Email</label>
-                      <Input
-                        placeholder="user@example.com"
-                        value={recUserEmail}
-                        onChange={(e) => setRecUserEmail(e.target.value)}
-                        data-testid="input-recommendation-email"
-                      />
+                      <label className="text-sm font-medium mb-2 block">Select User</label>
+                      <Popover open={recUserPopoverOpen} onOpenChange={setRecUserPopoverOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={recUserPopoverOpen}
+                            className="w-full justify-between"
+                            data-testid="button-select-user"
+                          >
+                            {recUserEmail ? (
+                              <span className="truncate">
+                                {(() => {
+                                  const user = approvedEmails.find(e => e.email === recUserEmail);
+                                  return user ? `${user.name || 'No Name'} (${user.email})` : recUserEmail;
+                                })()}
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground">Search and select user...</span>
+                            )}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0" align="start">
+                          <Command>
+                            <CommandInput placeholder="Search by name or email..." data-testid="input-search-user" />
+                            <CommandList>
+                              <CommandEmpty>No user found.</CommandEmpty>
+                              <CommandGroup>
+                                {approvedEmails.map((user) => (
+                                  <CommandItem
+                                    key={user.email}
+                                    value={`${user.name || ''} ${user.email}`}
+                                    onSelect={() => {
+                                      setRecUserEmail(user.email);
+                                      setRecUserPopoverOpen(false);
+                                    }}
+                                    data-testid={`option-user-${user.email}`}
+                                  >
+                                    <Check
+                                      className={`mr-2 h-4 w-4 ${
+                                        recUserEmail === user.email ? 'opacity-100' : 'opacity-0'
+                                      }`}
+                                    />
+                                    <div className="flex flex-col">
+                                      <span className="font-medium">{user.name || 'No Name'}</span>
+                                      <span className="text-xs text-muted-foreground">{user.email}</span>
+                                    </div>
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
                     </div>
                     <div>
                       <label className="text-sm font-medium mb-2 block">HRCM Area</label>
