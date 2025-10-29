@@ -2084,22 +2084,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
                 {/* Next Week - Problems */}
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top">
-                  {isEditing(belief.category, 'result') ? (
-                    <Textarea
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      onBlur={saveEdit}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Escape') {
-                          cancelEdit();
-                        }
-                      }}
-                      placeholder="Enter each item on a new line..."
-                      className="min-h-[60px] text-xs border-0"
-                      autoFocus
-                      data-testid={`textarea-next-problems-${belief.category.toLowerCase()}`}
-                    />
-                  ) : belief.resultChecklist && belief.resultChecklist.length > 0 ? (
+                  {belief.resultChecklist && belief.resultChecklist.length > 0 ? (
                     <CompactChecklistView
                       items={belief.resultChecklist}
                       onToggle={(itemId) => handleResultChecklistToggle(belief.category, itemId)}
@@ -2128,22 +2113,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
                 {/* Next Week - Feelings */}
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top">
-                  {isEditing(belief.category, 'nextFeelings') ? (
-                    <Textarea
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      onBlur={saveEdit}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Escape') {
-                          cancelEdit();
-                        }
-                      }}
-                      placeholder="Enter each item on a new line..."
-                      className="min-h-[60px] text-xs border-0"
-                      autoFocus
-                      data-testid={`textarea-next-feelings-${belief.category.toLowerCase()}`}
-                    />
-                  ) : belief.feelingsChecklist && belief.feelingsChecklist.length > 0 ? (
+                  {belief.feelingsChecklist && belief.feelingsChecklist.length > 0 ? (
                     <CompactChecklistView
                       items={belief.feelingsChecklist}
                       onToggle={(itemId) => handleFeelingsChecklistToggle(belief.category, itemId)}
@@ -2172,22 +2142,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
                 {/* Next Week - Beliefs/Reasons */}
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top">
-                  {isEditing(belief.category, 'nextWeekTarget') ? (
-                    <Textarea
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      onBlur={saveEdit}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Escape') {
-                          cancelEdit();
-                        }
-                      }}
-                      placeholder="Enter each item on a new line..."
-                      className="min-h-[60px] text-xs border-0"
-                      autoFocus
-                      data-testid={`textarea-next-beliefs-${belief.category.toLowerCase()}`}
-                    />
-                  ) : belief.beliefsChecklist && belief.beliefsChecklist.length > 0 ? (
+                  {belief.beliefsChecklist && belief.beliefsChecklist.length > 0 ? (
                     <CompactChecklistView
                       items={belief.beliefsChecklist}
                       onToggle={(itemId) => handleBeliefsChecklistToggle(belief.category, itemId)}
@@ -2216,22 +2171,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
                 {/* Next Week - Actions */}
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 border-r align-top">
-                  {isEditing(belief.category, 'nextActions') ? (
-                    <Textarea
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      onBlur={saveEdit}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Escape') {
-                          cancelEdit();
-                        }
-                      }}
-                      placeholder="Enter each item on a new line..."
-                      className="min-h-[60px] text-xs border-0"
-                      autoFocus
-                      data-testid={`textarea-next-actions-${belief.category.toLowerCase()}`}
-                    />
-                  ) : belief.actionsChecklist && belief.actionsChecklist.length > 0 ? (
+                  {belief.actionsChecklist && belief.actionsChecklist.length > 0 ? (
                     <CompactChecklistView
                       items={belief.actionsChecklist}
                       onToggle={(itemId) => handleActionsChecklistToggle(belief.category, itemId)}
