@@ -111,8 +111,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
       
-      const requestedDate = new Date(req.params.date);
-      requestedDate.setHours(0, 0, 0, 0);
+      const requestedDate = req.params.date;
       
       // Get all weeks for user
       const allWeeks = await storage.getHercmWeeksByUser(user.id);
@@ -121,34 +120,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json(null);
       }
       
-      // Helper: Get Monday of the week for a given date
-      const getWeekStart = (date: Date) => {
-        const d = new Date(date);
-        const day = d.getDay();
-        const diff = day === 0 ? -6 : 1 - day; // If Sunday, go back 6 days, else go to Monday
-        d.setDate(d.getDate() + diff);
-        d.setHours(0, 0, 0, 0);
-        return d;
-      };
-      
-      // Helper: Get Sunday of the week for a given date
-      const getWeekEnd = (date: Date) => {
-        const d = new Date(date);
-        const day = d.getDay();
-        const diff = day === 0 ? 0 : 7 - day; // If Sunday, stay same, else go to Sunday
-        d.setDate(d.getDate() + diff);
-        d.setHours(23, 59, 59, 999);
-        return d;
-      };
-      
-      // Find week(s) where requested date falls within the week range
+      // Find week(s) that match the requested date EXACTLY (like Emotional Tracker)
       const matchingWeeks = allWeeks.filter((week: any) => {
-        const weekCreatedDate = new Date(week.createdAt);
-        const weekStart = getWeekStart(weekCreatedDate);
-        const weekEnd = getWeekEnd(weekCreatedDate);
+        const weekDate = new Date(week.createdAt);
+        const weekDateStr = weekDate.toISOString().split('T')[0];
         
-        // Check if requested date falls within this week's range
-        return requestedDate >= weekStart && requestedDate <= weekEnd;
+        // Exact date match - just like Emotional Tracker
+        return weekDateStr === requestedDate;
       });
       
       if (matchingWeeks.length === 0) {
