@@ -68,6 +68,7 @@ interface AssignmentLesson {
   completed: boolean;
   source?: 'user' | 'admin';  // Track if user-selected or admin-recommended
   recommendationId?: string;   // Original recommendation ID if admin-recommended
+  hrcmArea?: string;  // 'health', 'relationship', 'career', 'money' - for extracting from beliefs
 }
 
 interface AssignmentCourse {
@@ -2345,7 +2346,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                         <Checkbox
                                           checked={lesson.completed}
                                           onCheckedChange={() => handleUnifiedAssignmentToggle(lesson.id)}
-                                          disabled={isAdminView}
+                                          disabled={viewingHistory || isAdminView}
                                           className="h-3 w-3"
                                           data-testid={`checkbox-user-lesson-${lesson.id}`}
                                         />
@@ -2373,7 +2374,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                         <Checkbox
                                           checked={lesson.completed}
                                           onCheckedChange={() => handleUnifiedAssignmentToggle(lesson.id)}
-                                          disabled={isAdminView}
+                                          disabled={viewingHistory || isAdminView}
                                           className="h-3 w-3"
                                           data-testid={`checkbox-admin-lesson-${lesson.id}`}
                                         />
@@ -2413,7 +2414,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                       <Checkbox
                                         checked={lesson.completed}
                                         onCheckedChange={() => handleUnifiedAssignmentToggle(lesson.id)}
-                                        disabled={isAdminView}
+                                        disabled={viewingHistory || isAdminView}
                                         className="h-4 w-4 mt-0.5"
                                         data-testid={`checkbox-popup-user-lesson-${lesson.id}`}
                                       />
@@ -2426,7 +2427,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                       >
                                         {lesson.lessonName}
                                       </a>
-                                      {!isAdminView && (
+                                      {!viewingHistory && !isAdminView && (
                                         <Button
                                           size="sm"
                                           variant="ghost"
@@ -2453,7 +2454,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                       <Checkbox
                                         checked={lesson.completed}
                                         onCheckedChange={() => handleUnifiedAssignmentToggle(lesson.id)}
-                                        disabled={isAdminView}
+                                        disabled={viewingHistory || isAdminView}
                                         className="h-4 w-4 mt-0.5"
                                         data-testid={`checkbox-popup-admin-lesson-${lesson.id}`}
                                       />
@@ -2466,7 +2467,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                       >
                                         {lesson.lessonName}
                                       </a>
-                                      {!isAdminView && (
+                                      {!viewingHistory && !isAdminView && (
                                         <Button
                                           size="sm"
                                           variant="ghost"
