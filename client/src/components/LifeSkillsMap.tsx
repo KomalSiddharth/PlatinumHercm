@@ -91,127 +91,127 @@ const lifeSkillsData: CategoryData[] = [
       {
         problem: "Not sure what's my Ultimate Financial Goal",
         skills: ["1. Create Wealth Frequency"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2733974/posts/9112351"]
       },
       {
         problem: "What exactly is my current Money Frequency?",
         skills: ["2. Recognise your Current Money Frequency"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2733974/posts/9129183"]
       },
       {
         problem: "What Exactly is Blocking my Money Frequency?",
         skills: ["3. Recognise the Negativity in your Money FTBA"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2733974/posts/9168043"]
       },
       {
         problem: "How can I Create New Money Attraction Frequency?",
         skills: ["4. Create New Money FTBA"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2733974/posts/9214682"]
       },
       {
         problem: "How do I Release my Negative Money Blocks?",
         skills: ["5. Release Money Blocks with EFT"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2152010050/posts/2164314846"]
       },
       {
         problem: "How should be my New Emotional Frequency to Attract More Money?",
         skills: ["6. Create New Emotional Frequency for Money"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2733974/posts/9266828"]
       },
       {
         problem: "Why am I not Able to Make More Money? Why is my Income Stuck?",
         skills: ["7. Create New Wealth Beliefs"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2733974/posts/9304427"]
       },
       {
         problem: "My Income is Limited",
         skills: ["8. Create Multiple Sources of Income (MSI)"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2733974/posts/9335035"]
       },
       {
         problem: "I am not able to Grow my Business",
         skills: ["9. Increase your Working Income"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2733974/posts/9358724"]
       },
       {
         problem: "I am not able to Manifest Beyond a Certain Point",
         skills: ["10. Increase your Comfort Zone to Increase your Income"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2733974/posts/9388280"]
       },
       {
         problem: "I am Making Money but Still Stressed",
         skills: ["11. Manage Money with PMDSPM"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2733974/posts/9415949"]
       },
       {
         problem: "I don't have the motivation to invest",
         skills: ["12. Understand The Power of Compound Interest"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2733974/posts/9460524"]
       },
       {
         problem: "I am Feeling Confused & Stuck for a very long time, should I do it or not.",
         skills: ["13. Fail Fast to Succeed Fast"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2733974/posts/9491279"]
       },
       {
         problem: "I am planning a lot but still unable to take action.",
         skills: ["14. Sell First Make Later"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2733974/posts/9525617"]
       },
       {
         problem: "I feel like a Failure, Frustrated, Sad when I am not able to make money.",
         skills: ["15. Create a High Self Esteem to Attract More Money"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2733974/posts/9545753"]
       },
       {
         problem: "I lack the drive to make money, I keep postponing my actions",
         skills: ["16. Align Your 6 Needs with your Money Goals"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2733974/posts/9603456"]
       },
       {
         problem: "I am feeling poor, feeling small, not good enough.",
         skills: ["17. Live Life Like a Millionaire for 24 Hrs"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2733974/posts/9653682"]
       },
       {
         problem: "I am not able to convince, influence, get a promotion.",
         skills: ["18. Perception Management"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2733974/posts/9708856"]
       },
       {
         problem: "I am not able to start a business, I am not able to grow my business.",
         skills: ["19. Invest More Money To Make More Money"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2733974/posts/9733924"]
       },
       {
         problem: "I am not able to make a decision, I am confused, what should I do?",
         skills: ["20. Making Decisions Like a Millionaire"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2733974/posts/9813485"]
       },
       {
         problem: "How do I make Investments to Make Passive Income?",
         skills: ["21. Make Investments Like a Millionaire"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2152298303/posts/2165418565"]
       },
       {
         problem: "How do I do Affiliate Marketing?",
         skills: ["22. Making Millions with Affiliate Marketing"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2733974/posts/10084165"]
       },
       {
         problem: "I am not able to Attract the Work I Love, I want to change my Job but I am not able to.",
         skills: ["23. Love Your Work More Than Money"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2733974/posts/10267235"]
       },
       {
         problem: "I feel like I don't have enough, I feel I have lack of money all the time, I feel helpless and poor.",
         skills: ["24. Unconditional Giving"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2733974/posts/10631387"]
       },
       {
         problem: "Importance of Vastu",
         skills: ["25. Importance of Vastu"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2733974/posts/15812948"]
       }
     ]
   },
