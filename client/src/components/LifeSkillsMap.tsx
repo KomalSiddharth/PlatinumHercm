@@ -561,42 +561,42 @@ const lifeSkillsData: CategoryData[] = [
       {
         problem: "How do I become a really Rich & Powerful Trainer?",
         skills: ["1. 5 Principles of Being a Rich & Powerful Trainer"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/train-the-trainer-by-mitesh-khatri/categories/4762351/posts/16012043"]
       },
       {
         problem: "How do I start a Training in a very Impressive way?",
         skills: ["2. How to Start a Training Session with a WOW Impact"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/train-the-trainer-by-mitesh-khatri/categories/4815829/posts/16012041"]
       },
       {
         problem: "How do I control the flow of my Training? How do I handle Objections?",
         skills: ["3. Power of Pre-Framing, Re-Framing & Post-Framing"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/train-the-trainer-by-mitesh-khatri/categories/4815829/posts/16205151"]
       },
       {
         problem: "How do I Engage my Students?",
         skills: ["4. How to Reframe to Engage your Audience", "5. Multiple Methods to Keep your Audience Engaged"],
-        skillUrls: ["https://coaching.miteshkhatri.com/", "https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/train-the-trainer-by-mitesh-khatri/categories/4815829/posts/16205152", "https://coaching.miteshkhatri.com/products/train-the-trainer-by-mitesh-khatri/categories/4815829/posts/16394580"]
       },
       {
         problem: "How can I become more Confident with Public Speaking?",
         skills: ["6. How to Create Extraordinary Comfort for Public Speaking"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/train-the-trainer-by-mitesh-khatri/categories/4923895/posts/16579062"]
       },
       {
         problem: "How do I handle difficult people and difficult questions?",
         skills: ["7. How to Handle Difficult People Questions"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/train-the-trainer-by-mitesh-khatri/categories/4923895/posts/16579061"]
       },
       {
         problem: "How can I design my courses for creating amazing results?",
         skills: ["8. 4 Steps to Design Trainings Like a Master"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/train-the-trainer-by-mitesh-khatri/categories/2147587555/posts/2147841603"]
       },
       {
         problem: "How do I sell & market my trainings and courses?",
         skills: ["9. Selling & Marketing your Courses"],
-        skillUrls: ["https://coaching.miteshkhatri.com/"]
+        skillUrls: ["https://coaching.miteshkhatri.com/products/train-the-trainer-by-mitesh-khatri/categories/2147642792/posts/2148039372"]
       }
     ]
   },
