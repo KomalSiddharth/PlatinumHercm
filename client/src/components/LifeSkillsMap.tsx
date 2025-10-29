@@ -56,6 +56,76 @@ const lifeSkillsData: CategoryData[] = [
     ]
   },
   {
+    category: "Advance LOA",
+    mappings: [
+      {
+        problem: "Any Emotional Problems",
+        skills: ["1. Master Your Emotional Frequency"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Fast LOA Attraction",
+        skills: ["1. Steps of LOA Lifestyle"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Fast LOA Attraction",
+        skills: ["1. Walking Talking Affirmations"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Unable to Take Action, Lack of Motivation",
+        skills: ["2. Clear your Values & Priorities"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Internal Conflicts, Creating Perfectly Tuned Frequency",
+        skills: ["3. Aligning your FTBA Frequency"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Feeling Negative Emotions Easily, Feeling Positive Emotions with Difficulty. I easily feel Frustrated, Angry, Sad with People. I am unable to Experience Love, Happiness in my Relationships or Satisfaction at Work.",
+        skills: ["4. Master Rules of Emotions"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Don't feel like Living, Feeling Lack of Purpose, Lack of Drive to Work, Relationship not working, Working Hard but Feeling Lack of Satisfaction. I Don't feel Confident while working, I am feeling very Unstable in my Life. I am a Perfectionist",
+        skills: ["5. Align your 6 Needs with Your Goals"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Unable to Attract Success in Personal or Professional Life as a Pattern. Constantly repeating similar Failure Patterns.",
+        skills: ["6. Balance your Yin Yang Energy"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Unable to Attract results inspite of Working Hard, Unable to Work with Confidence, I Don't feel like I Deserve Love, Money, Success, etc. Whats the point of working more!",
+        skills: ["7. Break Limiting Beliefs & Creating Empowering Beliefs"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Feeling Bad or Worried about others, Angry with people, Sad about something, any negative emotion you are feeling.",
+        skills: ["8. Master Advance Ho Opono Opono"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Constantly Thinking Negative and stuck in a particular Pattern of Negativity.",
+        skills: ["9. Use Primary Questions to Change your Focus"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Resolving any Fears",
+        skills: ["10. Remove Fear of Death"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      },
+      {
+        problem: "Lack of Motivation, Lazyness",
+        skills: ["11. Motivation Mastery"],
+        skillUrls: ["https://coaching.miteshkhatri.com/"]
+      }
+    ]
+  },
+  {
     category: "Health Mastery",
     mappings: [
       {
