@@ -121,13 +121,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json(null);
       }
       
-      // Find week(s) that match the requested date
+      // Helper: Get Monday of the week for a given date
+      const getWeekStart = (date: Date) => {
+        const d = new Date(date);
+        const day = d.getDay();
+        const diff = day === 0 ? -6 : 1 - day; // If Sunday, go back 6 days, else go to Monday
+        d.setDate(d.getDate() + diff);
+        d.setHours(0, 0, 0, 0);
+        return d;
+      };
+      
+      // Helper: Get Sunday of the week for a given date
+      const getWeekEnd = (date: Date) => {
+        const d = new Date(date);
+        const day = d.getDay();
+        const diff = day === 0 ? 0 : 7 - day; // If Sunday, stay same, else go to Sunday
+        d.setDate(d.getDate() + diff);
+        d.setHours(23, 59, 59, 999);
+        return d;
+      };
+      
+      // Find week(s) where requested date falls within the week range
       const matchingWeeks = allWeeks.filter((week: any) => {
-        const weekDate = new Date(week.createdAt);
-        weekDate.setHours(0, 0, 0, 0);
+        const weekCreatedDate = new Date(week.createdAt);
+        const weekStart = getWeekStart(weekCreatedDate);
+        const weekEnd = getWeekEnd(weekCreatedDate);
         
-        // Check if the date is the same as week creation date
-        return weekDate.getTime() === requestedDate.getTime();
+        // Check if requested date falls within this week's range
+        return requestedDate >= weekStart && requestedDate <= weekEnd;
       });
       
       if (matchingWeeks.length === 0) {
