@@ -411,18 +411,20 @@ export class DatabaseStorage implements IStorage {
     return progress;
   }
 
-  // User by email
+  // User by email (case-insensitive)
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
+    const normalizedEmail = email.toLowerCase().trim();
+    const [user] = await db.select().from(users).where(sql`LOWER(${users.email}) = ${normalizedEmail}`);
     return user;
   }
 
-  // Approved Emails operations
+  // Approved Emails operations (case-insensitive)
   async getApprovedEmail(email: string): Promise<ApprovedEmail | undefined> {
+    const normalizedEmail = email.toLowerCase().trim();
     const [approvedEmail] = await db
       .select()
       .from(approvedEmails)
-      .where(eq(approvedEmails.email, email));
+      .where(sql`LOWER(${approvedEmails.email}) = ${normalizedEmail}`);
     return approvedEmail;
   }
 
@@ -548,6 +550,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async incrementAccessCount(email: string): Promise<void> {
+    const normalizedEmail = email.toLowerCase().trim();
     await db
       .update(approvedEmails)
       .set({ 
@@ -555,7 +558,7 @@ export class DatabaseStorage implements IStorage {
         lastAccessAt: new Date(),
         updatedAt: new Date()
       } as any)
-      .where(eq(approvedEmails.email, email));
+      .where(sql`LOWER(${approvedEmails.email}) = ${normalizedEmail}`);
   }
 
   async getAdminStats(): Promise<{
@@ -602,10 +605,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAdminUser(email: string): Promise<AdminUser | undefined> {
+    const normalizedEmail = email.toLowerCase().trim();
     const [admin] = await db
       .select()
       .from(adminUsers)
-      .where(eq(adminUsers.email, email));
+      .where(sql`LOWER(${adminUsers.email}) = ${normalizedEmail}`);
     return admin;
   }
 

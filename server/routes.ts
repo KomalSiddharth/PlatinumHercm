@@ -1768,11 +1768,14 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   // Email-based authentication routes
   app.post('/api/auth/login', async (req, res) => {
     try {
-      const { email } = req.body;
+      const { email: rawEmail } = req.body;
       
-      if (!email) {
+      if (!rawEmail) {
         return res.status(400).json({ message: "Email is required" });
       }
+
+      // Normalize email to lowercase for case-insensitive matching
+      const email = rawEmail.toLowerCase().trim();
 
       // Check if user is an admin first
       const adminUser = await storage.getAdminUser(email);
