@@ -4450,6 +4450,100 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
     }
   });
 
+  // ========== User Persistent Assignments Routes ==========
+  // Get user's persistent assignments (date-independent)
+  app.get('/api/persistent-assignments', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const assignments = await storage.getUserPersistentAssignments(userId);
+      res.json(assignments);
+    } catch (error) {
+      console.error("Error fetching persistent assignments:", error);
+      res.status(500).json({ message: "Failed to fetch persistent assignments" });
+    }
+  });
+
+  // Add new persistent assignment
+  app.post('/api/persistent-assignments', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const assignmentData = {
+        ...req.body,
+        userId,
+        completed: false
+      };
+
+      const newAssignment = await storage.addPersistentAssignment(assignmentData);
+      res.json(newAssignment);
+    } catch (error) {
+      console.error("Error adding persistent assignment:", error);
+      res.status(500).json({ message: "Failed to add persistent assignment" });
+    }
+  });
+
+  // Toggle assignment completion
+  app.put('/api/persistent-assignments/:id/toggle', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      const { id } = req.params;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const updated = await storage.togglePersistentAssignmentCompletion(id, userId);
+      res.json(updated);
+    } catch (error) {
+      console.error("Error toggling assignment completion:", error);
+      res.status(500).json({ message: "Failed to toggle assignment completion" });
+    }
+  });
+
+  // Delete single assignment
+  app.delete('/api/persistent-assignments/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      const { id } = req.params;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      await storage.deletePersistentAssignment(id, userId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting persistent assignment:", error);
+      res.status(500).json({ message: "Failed to delete persistent assignment" });
+    }
+  });
+
+  // Delete all completed assignments
+  app.delete('/api/persistent-assignments/completed', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      await storage.deleteCompletedAssignments(userId);
+      res.json({ success: true, message: "All completed assignments deleted" });
+    } catch (error) {
+      console.error("Error deleting completed assignments:", error);
+      res.status(500).json({ message: "Failed to delete completed assignments" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
