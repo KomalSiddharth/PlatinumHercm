@@ -2175,51 +2175,51 @@ export default function Dashboard() {
                                         
                                         console.log('[Lesson Toggle] Successfully saved to database');
                                         
-                                        // If checked, add to category assignment; if unchecked, remove from assignment
+                                        // If checked, add to persistent assignment; if unchecked, remove from assignment
                                         if (checked) {
-                                          const assignmentResponse = await apiRequest('POST', '/api/unified-assignment/add-lesson', {
-                                            weekNumber: currentWeek,
-                                            category: course.category, // Pass course category (Health, Money, etc.)
-                                            lesson: {
-                                              id: `${course.id}-${lesson.id}`,
-                                              courseId: course.id,
-                                              courseName: course.title,
-                                              lessonName: lesson.title,
-                                              url: lesson.url || '',
-                                              completed: false
-                                            }
+                                          const assignmentResponse = await apiRequest('POST', '/api/persistent-assignments', {
+                                            hrcmArea: course.category.toLowerCase(), // health, relationship, career, money
+                                            courseId: course.id,
+                                            courseName: course.title,
+                                            lessonName: lesson.title,
+                                            lessonUrl: lesson.url || '',
+                                            source: 'user',
+                                            completed: false
                                           });
                                           
                                           if (assignmentResponse.ok) {
                                             // Invalidate queries to refresh assignment data
-                                            queryClient.invalidateQueries({ queryKey: ['/api/hercm/week', currentWeek] });
+                                            queryClient.invalidateQueries({ queryKey: ['/api/persistent-assignments'] });
+                                            queryClient.invalidateQueries({ queryKey: ['/api/hercm'] });
                                             
                                             toast({
                                               title: 'Lesson Completed!',
-                                              description: `${lesson.title} added to ${course.category} Assignment`,
+                                              description: `${lesson.title} added to Assignment column`,
                                             });
                                           }
                                         } else {
-                                          // Remove from assignment when unchecked
-                                          const removeResponse = await apiRequest('POST', '/api/unified-assignment/remove-lesson', {
-                                            weekNumber: currentWeek,
-                                            category: course.category, // Pass course category
-                                            lessonId: `${course.id}-${lesson.id}`
-                                          });
-                                          
-                                          if (removeResponse.ok) {
-                                            // Invalidate queries to refresh assignment data
-                                            queryClient.invalidateQueries({ queryKey: ['/api/hercm/week', currentWeek] });
+                                          // When unchecking, we need to find and delete the assignment
+                                          // This requires fetching current assignments first
+                                          const assignmentsResponse = await apiRequest('GET', '/api/persistent-assignments');
+                                          if (assignmentsResponse.ok) {
+                                            const assignments = await assignmentsResponse.json();
+                                            const matchingAssignment = assignments.find((a: any) => 
+                                              a.courseId === course.id && a.lessonName === lesson.title
+                                            );
                                             
-                                            toast({
-                                              title: 'Lesson Unchecked',
-                                              description: `${lesson.title} removed from Assignment column`,
-                                            });
-                                          } else {
-                                            toast({
-                                              title: 'Lesson Unchecked',
-                                              description: 'Marked as incomplete',
-                                            });
+                                            if (matchingAssignment) {
+                                              const deleteResponse = await apiRequest('DELETE', `/api/persistent-assignments/${matchingAssignment.id}`);
+                                              if (deleteResponse.ok) {
+                                                // Invalidate queries to refresh assignment data
+                                                queryClient.invalidateQueries({ queryKey: ['/api/persistent-assignments'] });
+                                                queryClient.invalidateQueries({ queryKey: ['/api/hercm'] });
+                                                
+                                                toast({
+                                                  title: 'Lesson Unchecked',
+                                                  description: `${lesson.title} removed from Assignment column`,
+                                                });
+                                              }
+                                            }
                                           }
                                         }
                                       } catch (error) {
