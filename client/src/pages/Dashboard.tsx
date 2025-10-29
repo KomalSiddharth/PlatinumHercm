@@ -2308,11 +2308,11 @@ export default function Dashboard() {
           />
         </section>
 
-        {/* Team Dashboard Search Section */}
+        {/* Platinum User Progress Section */}
         <section className="scroll-mt-20 bg-purple-50 dark:bg-purple-950/40 p-6 rounded-lg border-2 border-purple-200 dark:border-purple-800">
           <div className="space-y-6">
             <div>
-              <h2 className="text-3xl font-bold">Team Dashboard Search</h2>
+              <h2 className="text-3xl font-bold">Platinum User Progress</h2>
               <p className="text-muted-foreground mt-1">Search and view team members' complete dashboards</p>
             </div>
 
