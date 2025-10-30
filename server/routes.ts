@@ -5,7 +5,7 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated, isAdmin } from "./replitAuth";
 import { fetchCourseData, findMatchingCourse, recommendCourses, fetchEnhancedCourseData } from "./googleSheets";
 import { parseCourseCSV } from "./csvCourseParser";
-import { recommendCoursesRequestSchema, insertCourseVideoSchema } from "@shared/schema";
+import { recommendCoursesRequestSchema, insertCourseVideoSchema, type RitualCompletion } from "@shared/schema";
 import { getAIRecommendations, generateAffirmation } from "./aiRecommendations";
 import { generateHRCMWeeklyPDF, generateMonthlyProgressPDF } from "./pdfExport";
 import { emailService } from "./emailService";
@@ -1486,7 +1486,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Google Sheets course tracking - fetch all courses and lessons
   app.get('/api/courses/tracking', isAuthenticated, async (req, res) => {
     try {
-      const sheetUrl = "https://docs.google.com/spreadsheets/d/1na9ioh9uT8wxSkjTMxG61hUF75JxuSTF/edit";
+      const sheetUrl = "https://docs.google.com/spreadsheets/d/1na9ioh9uT8wxSkjTMxG61hUF75JxuSTF/edit?usp=sharing&ouid=113438922793798172588&rtpof=true&sd=true";
       const { fetchCourseTrackingData } = await import('./googleSheets');
       const courses = await fetchCourseTrackingData(sheetUrl);
       res.json(courses);
