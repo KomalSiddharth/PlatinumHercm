@@ -105,10 +105,10 @@ export default function LifeSkillsMap() {
                     data-testid={`button-toggle-${category.category.toLowerCase().replace(/\s+/g, '-')}`}
                   >
                     <div className="flex items-center justify-center gap-1.5 p-1.5 sm:p-2">
-                      <h3 className="font-bold text-xs sm:text-sm bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent text-center">
+                      <h3 className="font-bold text-xs sm:text-sm text-center text-primary dark:text-accent">
                         {category.category}
                       </h3>
-                      <ChevronDown className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-accent transition-transform duration-200 ${openCategories[category.category] ? 'transform rotate-180' : ''}`} />
+                      <ChevronDown className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary dark:text-accent transition-transform duration-200 ${openCategories[category.category] ? 'transform rotate-180' : ''}`} />
                     </div>
                   </CollapsibleTrigger>
 
