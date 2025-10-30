@@ -331,16 +331,14 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
     return cachedCourseTracking;
   }
 
-  console.log('🔄 Fetching fresh course data from Google Sheets...');
-  
   try {
     const sheets = await getUncachableGoogleSheetClient();
     const spreadsheetId = extractSpreadsheetId(sheetUrl);
     
-    // Fetch data from sheet (Question & Answer columns) - increased range to capture all DMP lessons
+    // Fetch data from sheet (Question & Answer columns)
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: 'Sheet1!A1:B1500',  // Increased to 1500 to capture lessons up to row 1383
+      range: 'Sheet1!A1:B1000',
     });
 
     const rows = response.data.values || [];
@@ -363,70 +361,44 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
         return;
       }
 
-      // Skip completely empty rows
-      if (!question && !answer) {
+      // Skip empty rows
+      if (!question) {
         return;
       }
 
-      // Check if this is a COURSE HEADING (not just a subheading)
-      // Course heading = has text in Question column AND either:
-      //   1. No Answer (empty), OR
-      //   2. Answer doesn't start with 'http'
-      // BUT we need to distinguish between:
-      //   - COURSE headings (major sections like "DMP", "June'25 DMP Recordings")
-      //   - SUBHEADINGS (minor sections within a course - these should be skipped)
-      
-      const isLikelyCourseHeading = !answer && currentCourse !== null && question.length > 5;
-      const isProbablySubheading = !answer && question.length < 100 && currentCourse !== null;
-      
-      // If Answer is empty but Question exists, check if it's a course heading or subheading
-      if (!answer && question) {
-        // If this looks like a major course heading, save previous course and create new one
-        // Major course headings have specific patterns:
-        // 1. First course (currentCourse is null)
-        // 2. Month-based DMP recordings (June'25 DMP, May'25 DMP, etc.)
-        // 3. Major certification courses
-        // 4. Row length suggests it's a major heading (short, bold-looking titles)
-        const isMajorCourseHeading = currentCourse === null || 
-          question.toLowerCase().match(/(june|may|july|august|september|oct|nov|dec|january|february|march|april).*'?\d{2}.*dmp.*record/i) ||
-          (question.toLowerCase().includes('certification') && question.length < 80) ||
-          (question.toLowerCase() === question && question.length < 50); // ALL CAPS or short titles
-        
-        if (isMajorCourseHeading) {
-          // Save previous course if exists
-          if (currentCourse !== null) {
-            if (currentCourse.title.toLowerCase().includes('dmp') && currentCourse.title.toLowerCase().includes('recording')) {
-              console.log(`📝 Saving "${currentCourse.title}" course with ${currentCourse.lessons.length} lessons`);
-            }
-            courses.push(currentCourse);
+      // If Answer is empty or row looks like a course heading, it's a new course
+      if (!answer || (!answer.startsWith('http') && currentCourse !== null)) {
+        // Save previous course if exists
+        if (currentCourse !== null) {
+          // Log course details before saving
+          if (currentCourse.title.toLowerCase().includes('june') && currentCourse.title.toLowerCase().includes('dmp')) {
+            console.log(`📝 Saving "June'25 DMP Recordings" course with ${currentCourse.lessons.length} lessons`);
           }
-
-          // Create new course
-          const courseId = question.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-          currentCourse = {
-            id: courseId,
-            title: question,
-            url: answer || '#',
-            tags: [],
-            source: 'Mitesh Khatri',
-            estimatedHours: 10,
-            status: 'not_started',
-            progressPercent: 0,
-            category: 'default',
-            lessons: [],
-          };
-          lessonCounter = 0;
-          
-          if (question.toLowerCase().includes('dmp') && question.toLowerCase().includes('recording')) {
-            console.log(`🆕 Creating course: "${question}" at row ${index + 1}`);
-          }
-        } else {
-          // This is a subheading within current course - skip it (don't create new course)
-          console.log(`  ⏭️  Skipping subheading at row ${index + 1}: "${question.substring(0, 40)}..."`);
-          return;
+          courses.push(currentCourse);
         }
-      } else if (currentCourse !== null && answer && answer.startsWith('http')) {
-        // Add lesson to current course (only if it has a valid URL)
+
+        // Create new course
+        const courseId = question.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        currentCourse = {
+          id: courseId,
+          title: question,
+          url: answer || '#',
+          tags: [],
+          source: 'Mitesh Khatri',
+          estimatedHours: 10,
+          status: 'not_started',
+          progressPercent: 0,
+          category: 'default',
+          lessons: [],
+        };
+        lessonCounter = 0;
+        
+        // Log when creating June DMP course
+        if (question.toLowerCase().includes('june') && question.toLowerCase().includes('dmp')) {
+          console.log(`🆕 Creating course: "${question}" at row ${index + 1}`);
+        }
+      } else if (currentCourse !== null && answer) {
+        // Add lesson to current course
         lessonCounter++;
         const lessonId = `${currentCourse.id}-${lessonCounter}`;
         currentCourse.lessons.push({
@@ -436,8 +408,9 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
           completed: false,
         });
         
-        if (currentCourse.title.toLowerCase().includes('dmp') && currentCourse.title.toLowerCase().includes('recording')) {
-          console.log(`  📌 Adding lesson ${lessonCounter} to "${currentCourse.title}": "${question.substring(0, 40)}..."`);
+        // Log lessons being added to June DMP
+        if (currentCourse.title.toLowerCase().includes('june') && currentCourse.title.toLowerCase().includes('dmp')) {
+          console.log(`  📌 Adding lesson ${lessonCounter} to June DMP: "${question.substring(0, 50)}..."`);
         }
       }
     });
@@ -447,53 +420,35 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
       courses.push(currentCourse);
     }
 
-    // Merge ALL DMP Recordings (June'25, May'25, etc.) into main "DMP" course
+    // Merge "June'25 DMP Recordings" into "DMP" course
     const dmpCourseIndex = courses.findIndex(c => 
       c.title.toLowerCase().includes('dmp') && 
-      !c.title.toLowerCase().includes('recording') &&
-      !c.title.toLowerCase().match(/^(june|may|july|august|september|oct|nov|dec)/i)
+      !c.title.toLowerCase().includes('june') &&
+      !c.title.toLowerCase().includes('recording')
     );
-    
-    if (dmpCourseIndex !== -1) {
+    const juneDmpIndex = courses.findIndex(c => 
+      c.title.toLowerCase().includes("june") && 
+      c.title.toLowerCase().includes("dmp") &&
+      c.title.toLowerCase().includes("recording")
+    );
+
+    if (dmpCourseIndex !== -1 && juneDmpIndex !== -1) {
       const dmpCourse = courses[dmpCourseIndex];
-      const recordingCourses: number[] = [];
-      let totalMergedLessons = 0;
+      const juneDmpCourse = courses[juneDmpIndex];
       
-      // Find ALL DMP Recording courses (June'25, May'25, etc.)
-      courses.forEach((course, index) => {
-        if (course.title.toLowerCase().includes('dmp') && 
-            course.title.toLowerCase().includes('recording')) {
-          recordingCourses.push(index);
-          console.log(`🔍 Found DMP Recording course: "${course.title}" with ${course.lessons.length} lessons`);
-        }
-      });
+      // Merge all lessons from June'25 DMP Recordings into DMP course
+      dmpCourse.lessons = dmpCourse.lessons.concat(juneDmpCourse.lessons);
       
-      // Merge all recording courses into main DMP course (in reverse order to maintain indices)
-      recordingCourses.reverse().forEach(index => {
-        const recordingCourse = courses[index];
-        dmpCourse.lessons = dmpCourse.lessons.concat(recordingCourse.lessons);
-        totalMergedLessons += recordingCourse.lessons.length;
-        console.log(`✅ Merged ${recordingCourse.lessons.length} lessons from "${recordingCourse.title}"`);
-        courses.splice(index, 1);
-      });
+      // Remove June'25 DMP Recordings as standalone course
+      courses.splice(juneDmpIndex, 1);
       
-      if (totalMergedLessons > 0) {
-        console.log(`📚 Total DMP course lessons after merge: ${dmpCourse.lessons.length}`);
-        console.log(`🎯 Merged ${totalMergedLessons} lessons from ${recordingCourses.length} recording courses`);
-      }
+      console.log(`✅ Merged ${juneDmpCourse.lessons.length} lessons from "June'25 DMP Recordings" into "DMP" course`);
+      console.log(`📚 Total DMP course lessons: ${dmpCourse.lessons.length}`);
     }
 
     cachedCourseTracking = courses;
     courseTrackingCacheTimestamp = Date.now();
-    
-    const totalLessons = courses.reduce((sum, c) => sum + c.lessons.length, 0);
-    console.log(`✅ Successfully loaded ${courses.length} courses from Google Sheets with ${totalLessons} total lessons`);
-    
-    // Log DMP course details for verification
-    const dmpCourse = courses.find(c => c.title.toLowerCase().includes('dmp') && !c.title.toLowerCase().includes('recording'));
-    if (dmpCourse) {
-      console.log(`📊 Main DMP course: "${dmpCourse.title}" has ${dmpCourse.lessons.length} lessons`);
-    }
+    console.log(`Loaded ${courses.length} courses from Google Sheets with ${courses.reduce((sum, c) => sum + c.lessons.length, 0)} total lessons`);
     
     return courses;
   } catch (error) {
