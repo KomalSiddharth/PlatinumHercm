@@ -83,10 +83,10 @@ export default function LifeSkillsMap() {
             <div className="min-w-full border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden">
               {/* Table Headers */}
               <div className="grid grid-cols-2 border-b border-gray-300 dark:border-gray-700">
-                <div className="p-1.5 sm:p-2 font-bold text-xs sm:text-sm text-center border-r border-gray-300 dark:border-gray-700 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">
+                <div className="p-1.5 sm:p-2 font-bold text-xs sm:text-sm text-center border-r border-gray-300 dark:border-gray-700 bg-rose-100 dark:bg-rose-900/40">
                   Life Problem
                 </div>
-                <div className="p-1.5 sm:p-2 font-bold text-xs sm:text-sm text-center bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
+                <div className="p-1.5 sm:p-2 font-bold text-xs sm:text-sm text-center bg-blue-100 dark:bg-blue-900/40">
                   Life Skills
                 </div>
               </div>
