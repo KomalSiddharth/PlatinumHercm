@@ -83,10 +83,10 @@ export default function LifeSkillsMap() {
             <div className="min-w-full border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden">
               {/* Table Headers */}
               <div className="grid grid-cols-2 border-b border-gray-300 dark:border-gray-700">
-                <div className="p-1.5 sm:p-2 font-bold text-xs sm:text-sm text-center border-r border-gray-300 dark:border-gray-700 bg-rose-100 dark:bg-rose-900/40">
+                <div className="p-1.5 sm:p-2 font-bold text-xs sm:text-sm text-center border-r border-gray-300 dark:border-gray-700 text-white" style={{ backgroundColor: '#bc0000' }}>
                   Life Problem
                 </div>
-                <div className="p-1.5 sm:p-2 font-bold text-xs sm:text-sm text-center bg-blue-100 dark:bg-blue-900/40">
+                <div className="p-1.5 sm:p-2 font-bold text-xs sm:text-sm text-center bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40">
                   Life Skills
                 </div>
               </div>
@@ -113,38 +113,40 @@ export default function LifeSkillsMap() {
                   </CollapsibleTrigger>
 
                   <CollapsibleContent>
-                    {/* Category Content Table */}
-                    <table className="w-full border-collapse">
-                      <tbody>
-                        {category.mappings.map((mapping, mappingIdx) => (
-                          <tr 
-                            key={`mapping-${categoryIdx}-${mappingIdx}`}
-                            className={mappingIdx % 2 === 0 ? 'bg-white dark:bg-gray-900/50' : 'bg-gray-50 dark:bg-gray-800/50'}
-                            data-testid={`row-skill-mapping-${categoryIdx}-${mappingIdx}`}
-                          >
-                            <td className="w-1/2 p-1 sm:p-1.5 border-b border-gray-200 dark:border-gray-700 align-top">
-                              <span className="text-xs">{mapping.problem}</span>
-                            </td>
-                            <td className="w-1/2 p-1 sm:p-1.5 border-b border-gray-200 dark:border-gray-700 align-top">
-                              <div className="flex flex-col gap-0.5">
-                                {mapping.skills.map((skill, skillIdx) => (
-                                  <a
-                                    key={`skill-${categoryIdx}-${mappingIdx}-${skillIdx}`}
-                                    href={mapping.skillUrls?.[skillIdx] || '#'}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-blue-600 dark:text-blue-400 hover:underline text-xs break-all"
-                                    data-testid={`link-skill-${categoryIdx}-${mappingIdx}-${skillIdx}`}
-                                  >
-                                    {skill}
-                                  </a>
-                                ))}
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                    {/* Category Content Table - Scrollable */}
+                    <div className="max-h-[400px] overflow-y-auto">
+                      <table className="w-full border-collapse">
+                        <tbody>
+                          {category.mappings.map((mapping, mappingIdx) => (
+                            <tr 
+                              key={`mapping-${categoryIdx}-${mappingIdx}`}
+                              className={mappingIdx % 2 === 0 ? 'bg-white dark:bg-gray-900/50' : 'bg-gray-50 dark:bg-gray-800/50'}
+                              data-testid={`row-skill-mapping-${categoryIdx}-${mappingIdx}`}
+                            >
+                              <td className="w-1/2 p-1 sm:p-1.5 border-b border-gray-200 dark:border-gray-700 align-top">
+                                <span className="text-xs">{mapping.problem}</span>
+                              </td>
+                              <td className="w-1/2 p-1 sm:p-1.5 border-b border-gray-200 dark:border-gray-700 align-top">
+                                <div className="flex flex-col gap-0.5">
+                                  {mapping.skills.map((skill, skillIdx) => (
+                                    <a
+                                      key={`skill-${categoryIdx}-${mappingIdx}-${skillIdx}`}
+                                      href={mapping.skillUrls?.[skillIdx] || '#'}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-blue-600 dark:text-blue-400 hover:underline text-xs break-all"
+                                      data-testid={`link-skill-${categoryIdx}-${mappingIdx}-${skillIdx}`}
+                                    >
+                                      {skill}
+                                    </a>
+                                  ))}
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </CollapsibleContent>
                 </Collapsible>
               ))}
