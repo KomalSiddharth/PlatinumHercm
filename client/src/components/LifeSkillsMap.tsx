@@ -62,11 +62,11 @@ export default function LifeSkillsMap() {
 
   return (
     <Card className="w-full" data-testid="card-life-skills-map">
-      <CardHeader>
-        <CardTitle className="text-2xl sm:text-3xl font-bold text-primary dark:text-primary/90">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-xl sm:text-2xl font-bold text-primary dark:text-primary/90">
           Life Problems & Life Skill Map
         </CardTitle>
-        <p className="text-sm text-muted-foreground mt-2">
+        <p className="text-xs text-muted-foreground mt-1">
           Map your problems to actionable skills and resources from our course library
         </p>
       </CardHeader>
@@ -82,11 +82,11 @@ export default function LifeSkillsMap() {
           <div className="w-full overflow-x-auto">
             <div className="min-w-full border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden">
               {/* Table Headers */}
-              <div className="grid grid-cols-2 bg-gradient-to-r from-primary/20 to-accent/20 dark:from-primary/30 dark:to-accent/30 border-b border-gray-300 dark:border-gray-700">
-                <div className="p-2 sm:p-3 font-bold text-sm sm:text-base text-center border-r border-gray-300 dark:border-gray-700">
+              <div className="grid grid-cols-2 border-b border-gray-300 dark:border-gray-700">
+                <div className="p-1.5 sm:p-2 font-bold text-xs sm:text-sm text-center border-r border-gray-300 dark:border-gray-700 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">
                   Life Problem
                 </div>
-                <div className="p-2 sm:p-3 font-bold text-sm sm:text-base text-center">
+                <div className="p-1.5 sm:p-2 font-bold text-xs sm:text-sm text-center bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
                   Life Skills
                 </div>
               </div>
@@ -104,11 +104,11 @@ export default function LifeSkillsMap() {
                     className="w-full bg-primary/10 dark:bg-primary/20 hover:bg-primary/15 dark:hover:bg-primary/25 transition-colors border-b border-primary/10" 
                     data-testid={`button-toggle-${category.category.toLowerCase().replace(/\s+/g, '-')}`}
                   >
-                    <div className="flex items-center justify-center gap-2 p-2 sm:p-2.5">
-                      <h3 className="font-bold text-sm sm:text-base text-primary dark:text-primary/90 text-center">
+                    <div className="flex items-center justify-center gap-1.5 p-1.5 sm:p-2">
+                      <h3 className="font-bold text-xs sm:text-sm text-primary dark:text-primary/90 text-center">
                         {category.category}
                       </h3>
-                      <ChevronDown className={`h-4 w-4 sm:h-5 sm:w-5 text-primary transition-transform duration-200 ${openCategories[category.category] ? 'transform rotate-180' : ''}`} />
+                      <ChevronDown className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary transition-transform duration-200 ${openCategories[category.category] ? 'transform rotate-180' : ''}`} />
                     </div>
                   </CollapsibleTrigger>
 
@@ -122,18 +122,18 @@ export default function LifeSkillsMap() {
                             className={mappingIdx % 2 === 0 ? 'bg-white dark:bg-gray-900/50' : 'bg-gray-50 dark:bg-gray-800/50'}
                             data-testid={`row-skill-mapping-${categoryIdx}-${mappingIdx}`}
                           >
-                            <td className="w-1/2 p-2 sm:p-2.5 border-b border-gray-200 dark:border-gray-700 align-top">
-                              <span className="text-xs sm:text-sm">{mapping.problem}</span>
+                            <td className="w-1/2 p-1 sm:p-1.5 border-b border-gray-200 dark:border-gray-700 align-top">
+                              <span className="text-xs">{mapping.problem}</span>
                             </td>
-                            <td className="w-1/2 p-2 sm:p-2.5 border-b border-gray-200 dark:border-gray-700 align-top">
-                              <div className="flex flex-col gap-1">
+                            <td className="w-1/2 p-1 sm:p-1.5 border-b border-gray-200 dark:border-gray-700 align-top">
+                              <div className="flex flex-col gap-0.5">
                                 {mapping.skills.map((skill, skillIdx) => (
                                   <a
                                     key={`skill-${categoryIdx}-${mappingIdx}-${skillIdx}`}
                                     href={mapping.skillUrls?.[skillIdx] || '#'}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-blue-600 dark:text-blue-400 hover:underline text-xs sm:text-sm break-all"
+                                    className="text-blue-600 dark:text-blue-400 hover:underline text-xs break-all"
                                     data-testid={`link-skill-${categoryIdx}-${mappingIdx}-${skillIdx}`}
                                   >
                                     {skill}
