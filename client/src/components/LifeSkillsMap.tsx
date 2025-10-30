@@ -63,7 +63,7 @@ export default function LifeSkillsMap() {
   return (
     <Card className="w-full border-2 border-primary/30 dark:border-primary/50 bg-gradient-to-br from-primary/5 to-accent/5 dark:from-primary/10 dark:to-accent/10" data-testid="card-life-skills-map">
       <CardHeader className="pb-3">
-        <CardTitle className="text-xl sm:text-2xl font-bold text-primary dark:text-primary/90">
+        <CardTitle className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
           Life Problems & Life Skill Map
         </CardTitle>
         <p className="text-xs text-muted-foreground mt-1">
