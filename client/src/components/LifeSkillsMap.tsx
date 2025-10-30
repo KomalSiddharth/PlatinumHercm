@@ -86,7 +86,7 @@ export default function LifeSkillsMap() {
                 <div className="p-1.5 sm:p-2 font-bold text-xs sm:text-sm text-center border-r border-gray-300 dark:border-gray-700 text-white" style={{ backgroundColor: '#bc0000' }}>
                   Life Problem
                 </div>
-                <div className="p-1.5 sm:p-2 font-bold text-xs sm:text-sm text-center bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40">
+                <div className="p-1.5 sm:p-2 font-bold text-xs sm:text-sm text-center bg-green-100 dark:bg-green-900/40">
                   Life Skills
                 </div>
               </div>
