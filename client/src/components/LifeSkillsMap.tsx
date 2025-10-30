@@ -48,7 +48,7 @@ export default function LifeSkillsMap() {
     category: course.title,
     mappings: course.lessons.map(lesson => ({
       problem: lesson.title,
-      skills: [lesson.url],
+      skills: [lesson.title],
       skillUrls: [lesson.url]
     }))
   }));
@@ -84,10 +84,10 @@ export default function LifeSkillsMap() {
               {/* Table Headers */}
               <div className="grid grid-cols-2 bg-gradient-to-r from-primary/20 to-accent/20 dark:from-primary/30 dark:to-accent/30 border-b border-gray-300 dark:border-gray-700">
                 <div className="p-2 sm:p-3 font-bold text-sm sm:text-base text-center border-r border-gray-300 dark:border-gray-700">
-                  Lesson Name
+                  Life Problem
                 </div>
                 <div className="p-2 sm:p-3 font-bold text-sm sm:text-base text-center">
-                  Lesson Link
+                  Life Skills
                 </div>
               </div>
 
