@@ -345,9 +345,10 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
     const spreadsheetId = extractSpreadsheetId(sheetUrl);
     
     // Fetch data from sheet (Question & Answer columns)
+    // Using A1:B2000 to capture all rows (currently ~1383 rows)
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: 'Sheet1!A1:B1000',
+      range: 'Sheet1!A1:B2000',
     });
 
     const rows = response.data.values || [];
