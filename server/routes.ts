@@ -1486,7 +1486,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Google Sheets course tracking - fetch all courses and lessons
   app.get('/api/courses/tracking', isAuthenticated, async (req, res) => {
     try {
-      const sheetUrl = "https://docs.google.com/spreadsheets/d/1na9ioh9uT8wxSkjTMxG61hUF75JxuSTF/edit?usp=sharing&ouid=113438922793798172588&rtpof=true&sd=true";
+      const sheetUrl = "https://docs.google.com/spreadsheets/d/1s3pCuwFC303v2P4PVfZ8V2SizjvUZRVKnpNmUXkShtA/edit?usp=sharing";
       const { fetchCourseTrackingData } = await import('./googleSheets');
       const courses = await fetchCourseTrackingData(sheetUrl);
       res.json(courses);
