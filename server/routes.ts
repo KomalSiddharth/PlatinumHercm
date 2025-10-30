@@ -2701,6 +2701,21 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
+  // Database health check endpoint (admin only)
+  app.get('/api/admin/database/health', isAdmin, async (req: any, res) => {
+    try {
+      const { dbHealthMonitor } = await import('./databaseHealthCheck.js');
+      const healthStatus = dbHealthMonitor.getHealthStatus();
+      res.json(healthStatus);
+    } catch (error: any) {
+      console.error("Error getting database health status:", error);
+      res.status(500).json({ 
+        message: "Failed to get health status",
+        error: error.message 
+      });
+    }
+  });
+
   // User-facing: Get current user's pending recommendations
   app.get('/api/user/recommendations', isAuthenticated, async (req: any, res) => {
     try {
