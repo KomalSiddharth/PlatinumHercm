@@ -369,7 +369,7 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
       // If Answer is empty or row looks like a course heading, it's a new course
       if (!answer || (!answer.startsWith('http') && currentCourse !== null)) {
         // Save previous course if exists
-        if (currentCourse !== null && currentCourse.lessons.length > 0) {
+        if (currentCourse !== null) {
           courses.push(currentCourse);
         }
 
@@ -402,8 +402,34 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
     });
 
     // Add last course
-    if (currentCourse && currentCourse.lessons && currentCourse.lessons.length > 0) {
+    if (currentCourse !== null) {
       courses.push(currentCourse);
+    }
+
+    // Merge "June'25 DMP Recordings" into "DMP" course
+    const dmpCourseIndex = courses.findIndex(c => 
+      c.title.toLowerCase().includes('dmp') && 
+      !c.title.toLowerCase().includes('june') &&
+      !c.title.toLowerCase().includes('recording')
+    );
+    const juneDmpIndex = courses.findIndex(c => 
+      c.title.toLowerCase().includes("june") && 
+      c.title.toLowerCase().includes("dmp") &&
+      c.title.toLowerCase().includes("recording")
+    );
+
+    if (dmpCourseIndex !== -1 && juneDmpIndex !== -1) {
+      const dmpCourse = courses[dmpCourseIndex];
+      const juneDmpCourse = courses[juneDmpIndex];
+      
+      // Merge all lessons from June'25 DMP Recordings into DMP course
+      dmpCourse.lessons = dmpCourse.lessons.concat(juneDmpCourse.lessons);
+      
+      // Remove June'25 DMP Recordings as standalone course
+      courses.splice(juneDmpIndex, 1);
+      
+      console.log(`✅ Merged ${juneDmpCourse.lessons.length} lessons from "June'25 DMP Recordings" into "DMP" course`);
+      console.log(`📚 Total DMP course lessons: ${dmpCourse.lessons.length}`);
     }
 
     cachedCourseTracking = courses;
