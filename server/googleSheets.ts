@@ -370,6 +370,10 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
       if (!answer || (!answer.startsWith('http') && currentCourse !== null)) {
         // Save previous course if exists
         if (currentCourse !== null) {
+          // Log course details before saving
+          if (currentCourse.title.toLowerCase().includes('june') && currentCourse.title.toLowerCase().includes('dmp')) {
+            console.log(`📝 Saving "June'25 DMP Recordings" course with ${currentCourse.lessons.length} lessons`);
+          }
           courses.push(currentCourse);
         }
 
@@ -388,6 +392,11 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
           lessons: [],
         };
         lessonCounter = 0;
+        
+        // Log when creating June DMP course
+        if (question.toLowerCase().includes('june') && question.toLowerCase().includes('dmp')) {
+          console.log(`🆕 Creating course: "${question}" at row ${index + 1}`);
+        }
       } else if (currentCourse !== null && answer) {
         // Add lesson to current course
         lessonCounter++;
@@ -398,6 +407,11 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
           url: answer,
           completed: false,
         });
+        
+        // Log lessons being added to June DMP
+        if (currentCourse.title.toLowerCase().includes('june') && currentCourse.title.toLowerCase().includes('dmp')) {
+          console.log(`  📌 Adding lesson ${lessonCounter} to June DMP: "${question.substring(0, 50)}..."`);
+        }
       }
     });
 
