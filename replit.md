@@ -17,14 +17,15 @@ The frontend is built with React, Vite, Tailwind CSS, TanStack Query, and Wouter
 **Disaster Recovery & Backup System (Updated: Oct 30, 2025):**
 - **Primary Database**: Replit PostgreSQL (production data)
 - **External Backup**: Supabase PostgreSQL (automated backups)
-- **Backup Frequency**: Every 10 minutes + daily full backup at 2 AM
+- **Backup Frequency**: Every 1 MINUTE + daily full backup at 2 AM (1441 backups/day!)
 - **Health Monitoring**: Automatic database health checks every 30 seconds
 - **Failover Detection**: Alert triggered after 3 consecutive failures
-- **Maximum Data Loss**: 10 minutes
+- **Maximum Data Loss**: Only 1 MINUTE!
 - **Recovery Time**: 5-60 minutes (depending on method)
 - **Production Data**: Cleaned and optimized (test users removed, 12 real users)
 - **Coverage**: 14 critical tables backed up automatically
 - **Manual Control**: Admin can trigger backups and monitor health via API endpoints
+- **Supabase Tier**: FREE (suitable for <500 users), upgrade to PRO ($25-35/month) for 30K users
 
 ### Feature Specifications
 - **Core Tracking**: Weekly HRCM scoring, daily ritual tracking, comprehensive course progress monitoring with persistent lesson checkboxes, and a Daily Emotional Tracker across 9 time slots. Includes calendar date navigation with exact date matching for historical data viewing in a read-only mode.
@@ -51,4 +52,4 @@ The frontend is built with React, Vite, Tailwind CSS, TanStack Query, and Wouter
 - **External Backup**: `@supabase/supabase-js` for Supabase integration, providing automated 10-minute interval backups plus daily full backups for disaster recovery and redundancy.
 
 ## Disaster Recovery
-Complete disaster recovery system implemented with automatic health monitoring and external backup redundancy. See `DISASTER_RECOVERY_GUIDE.md` for detailed recovery procedures, monitoring endpoints, and failover instructions. System supports 30K users with maximum 10-minute data loss and 5-60 minute recovery time.
+Complete disaster recovery system implemented with automatic health monitoring and external backup redundancy. See `DISASTER_RECOVERY_GUIDE.md` for detailed recovery procedures, `DATABASE_URL_CHANGE_GUIDE.md` for failover instructions, `SUPABASE_PRICING_ANALYSIS.md` for cost analysis, and `PUBLISHING_GUIDE.md` for deployment details. System supports 30K users with maximum 1-minute data loss and 5-60 minute recovery time.
