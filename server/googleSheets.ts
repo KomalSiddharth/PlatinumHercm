@@ -294,3 +294,125 @@ export async function recommendCourses(
     .sort((a, b) => b.score - a.score)
     .slice(0, topN);
 }
+
+// Course Tracking Data Structures
+export interface CourseLesson {
+  id: string;
+  title: string;
+  url: string;
+  completed: boolean;
+}
+
+export interface CourseTrackingData {
+  id: string;
+  title: string;
+  url: string;
+  tags: string[];
+  source: string;
+  estimatedHours: number;
+  status: string;
+  progressPercent: number;
+  category: string;
+  lessons: CourseLesson[];
+}
+
+// Cache for course tracking data
+let cachedCourseTracking: CourseTrackingData[] = [];
+let courseTrackingCacheTimestamp = 0;
+const COURSE_TRACKING_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+
+// Fetch course tracking data from Google Sheet
+// Format: Question column = Lesson name, Answer column = Lesson URL
+// Bold rows or rows with empty Answer = Course headings
+export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseTrackingData[]> {
+  // Check cache
+  if (cachedCourseTracking.length > 0 && Date.now() - courseTrackingCacheTimestamp < COURSE_TRACKING_CACHE_TTL) {
+    console.log(`Returning ${cachedCourseTracking.length} cached courses`);
+    return cachedCourseTracking;
+  }
+
+  try {
+    const sheets = await getUncachableGoogleSheetClient();
+    const spreadsheetId = extractSpreadsheetId(sheetUrl);
+    
+    // Fetch data from sheet (Question & Answer columns)
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: 'Sheet1!A1:B1000',
+    });
+
+    const rows = response.data.values || [];
+    
+    if (rows.length === 0) {
+      console.warn('No data found in course tracking sheet');
+      return [];
+    }
+
+    const courses: CourseTrackingData[] = [];
+    let currentCourse: CourseTrackingData | null = null;
+    let lessonCounter = 0;
+
+    rows.forEach((row, index) => {
+      const question = (row[0] || '').trim();
+      const answer = (row[1] || '').trim();
+
+      // Skip header row
+      if (index === 0 && question.toLowerCase().includes('question')) {
+        return;
+      }
+
+      // Skip empty rows
+      if (!question) {
+        return;
+      }
+
+      // If Answer is empty or row looks like a course heading, it's a new course
+      if (!answer || (!answer.startsWith('http') && currentCourse !== null)) {
+        // Save previous course if exists
+        if (currentCourse !== null && currentCourse.lessons.length > 0) {
+          courses.push(currentCourse);
+        }
+
+        // Create new course
+        const courseId = question.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        currentCourse = {
+          id: courseId,
+          title: question,
+          url: answer || '#',
+          tags: [],
+          source: 'Mitesh Khatri',
+          estimatedHours: 10,
+          status: 'not_started',
+          progressPercent: 0,
+          category: 'default',
+          lessons: [],
+        };
+        lessonCounter = 0;
+      } else if (currentCourse !== null && answer) {
+        // Add lesson to current course
+        lessonCounter++;
+        const lessonId = `${currentCourse.id}-${lessonCounter}`;
+        currentCourse.lessons.push({
+          id: lessonId,
+          title: question,
+          url: answer,
+          completed: false,
+        });
+      }
+    });
+
+    // Add last course
+    if (currentCourse !== null && currentCourse.lessons.length > 0) {
+      courses.push(currentCourse);
+    }
+
+    cachedCourseTracking = courses;
+    courseTrackingCacheTimestamp = Date.now();
+    console.log(`Loaded ${courses.length} courses from Google Sheets with ${courses.reduce((sum, c) => sum + c.lessons.length, 0)} total lessons`);
+    
+    return courses;
+  } catch (error) {
+    console.error('Error fetching course tracking data:', error);
+    throw new Error(`Failed to fetch course tracking data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}

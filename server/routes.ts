@@ -1483,6 +1483,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Google Sheets course tracking - fetch all courses and lessons
+  app.get('/api/courses/tracking', isAuthenticated, async (req, res) => {
+    try {
+      const sheetUrl = "https://docs.google.com/spreadsheets/d/1na9ioh9uT8wxSkjTMxG61hUF75JxuSTF/edit";
+      const { fetchCourseTrackingData } = await import('./googleSheets');
+      const courses = await fetchCourseTrackingData(sheetUrl);
+      res.json(courses);
+    } catch (error) {
+      console.error("Error fetching course tracking data:", error);
+      res.status(500).json({ message: "Failed to fetch courses", error: error instanceof Error ? error.message : 'Unknown error' });
+    }
+  });
+
   // Google Sheets course suggestions
   app.get('/api/courses/suggestions', isAuthenticated, async (req, res) => {
     try {
