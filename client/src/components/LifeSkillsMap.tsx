@@ -83,10 +83,10 @@ export default function LifeSkillsMap() {
             <div className="min-w-full border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden">
               {/* Table Headers */}
               <div className="grid grid-cols-2 border-b border-gray-300 dark:border-gray-700">
-                <div className="p-1.5 sm:p-2 font-bold text-xs sm:text-sm text-center border-r border-gray-300 dark:border-gray-700 text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20">
+                <div className="p-1.5 sm:p-2 font-bold text-xs sm:text-sm text-center border-r border-gray-300 dark:border-gray-700 text-white" style={{ backgroundColor: '#bc0000' }}>
                   Life Problem
                 </div>
-                <div className="p-1.5 sm:p-2 font-bold text-xs sm:text-sm text-center text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/20">
+                <div className="p-1.5 sm:p-2 font-bold text-xs sm:text-sm text-center text-white" style={{ backgroundColor: '#006400' }}>
                   Life Skills
                 </div>
               </div>
