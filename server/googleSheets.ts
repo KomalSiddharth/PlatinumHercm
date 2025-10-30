@@ -402,7 +402,7 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
     });
 
     // Add last course
-    if (currentCourse !== null && currentCourse.lessons.length > 0) {
+    if (currentCourse && currentCourse.lessons && currentCourse.lessons.length > 0) {
       courses.push(currentCourse);
     }
 
