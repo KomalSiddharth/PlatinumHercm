@@ -446,27 +446,57 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
       let totalMergedLessons = 0;
       const coursesToRemove: number[] = [];
       
-      console.log(`🔍 Found ${courses.length - juneDmpIndex} courses starting from June'25 DMP position`);
+      console.log(`🔍 Found ${courses.length - juneDmpIndex} courses starting from June'25 DMP position (index ${juneDmpIndex})`);
       
-      // Merge June'25 DMP Recordings and ALL courses after it (assuming they're all DMP-related)
+      // Known non-DMP courses to skip (these are real courses, not recordings)
+      const knownCourses = [
+        'platinum fast track',
+        'basic law of attraction',
+        'advance law of attraction',
+        'relationship mastery',
+        'money master',
+        'health master',
+        'career master',
+        'life problems',
+        'life skill'
+      ];
+      
+      // Merge June'25 DMP and ALL courses after it that look like recordings
       for (let i = juneDmpIndex; i < courses.length; i++) {
         const currentCourse = courses[i];
         const title = currentCourse.title.toLowerCase();
         
-        // Merge if it's June'25 DMP OR any course that contains date patterns (indicating recordings)
-        // OR any course that has "recording" or month names in title after June'25 position
-        const hasDatePattern = /\d{1,2}(st|nd|rd|th)?\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i.test(currentCourse.title);
-        const isRecordingCourse = title.includes('recording') || hasDatePattern;
-        const isJuneDmp = title.includes('june') && title.includes('dmp');
+        // Check if this is a known non-DMP course
+        const isKnownCourse = knownCourses.some(known => title.includes(known));
         
-        if (isJuneDmp || isRecordingCourse) {
-          // Merge these lessons into main DMP course
+        if (isKnownCourse) {
+          console.log(`⏭️  Skipping "${currentCourse.title}" (known non-recording course)`);
+          continue;
+        }
+        
+        // Check course title for recording indicators
+        const titleHasDatePattern = /\d{1,2}(st|nd|rd|th)?\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i.test(currentCourse.title);
+        const titleHasRecording = title.includes('recording') || title.includes('dmp');
+        
+        // Check if ANY lesson has date pattern (7th June, 8th June, etc.)
+        const hasLessonsWithDates = currentCourse.lessons.some(lesson => 
+          /\d{1,2}(st|nd|rd|th)?\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i.test(lesson.title)
+        );
+        
+        // Merge if it looks like a recording course
+        if (titleHasDatePattern || titleHasRecording || hasLessonsWithDates) {
           console.log(`📦 Merging ${currentCourse.lessons.length} lessons from "${currentCourse.title}"`);
+          if (currentCourse.lessons.length > 0) {
+            console.log(`   First lesson: "${currentCourse.lessons[0].title.substring(0, 60)}..."`);
+            if (currentCourse.lessons.length > 1) {
+              console.log(`   Last lesson: "${currentCourse.lessons[currentCourse.lessons.length - 1].title.substring(0, 60)}..."`);
+            }
+          }
           dmpCourse.lessons = dmpCourse.lessons.concat(currentCourse.lessons);
           totalMergedLessons += currentCourse.lessons.length;
           coursesToRemove.push(i);
         } else {
-          console.log(`⏭️  Skipping "${currentCourse.title}" (not a recording course)`);
+          console.log(`⏭️  Skipping "${currentCourse.title}" (doesn't match recording pattern)`);
         }
       }
       
