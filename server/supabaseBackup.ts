@@ -69,7 +69,7 @@ export class SupabaseBackupService {
       // Upsert data to Supabase (insert or update based on primary key)
       const { data, error } = await supabase
         .from(tableName)
-        .upsert(localData, { 
+        .upsert(localData as any, { 
           onConflict: 'id',
           ignoreDuplicates: false 
         });
