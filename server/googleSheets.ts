@@ -324,12 +324,21 @@ const COURSE_TRACKING_CACHE_TTL = 1 * 60 * 1000; // 1 minute (temporary for test
 // Fetch course tracking data from Google Sheet
 // Format: Question column = Lesson name, Answer column = Lesson URL
 // Bold rows or rows with empty Answer = Course headings
+// Helper function to clear course tracking cache
+export function clearCourseTrackingCache() {
+  cachedCourseTracking = [];
+  courseTrackingCacheTimestamp = 0;
+  console.log('🧹 Course tracking cache cleared');
+}
+
 export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseTrackingData[]> {
   // Check cache
   if (cachedCourseTracking.length > 0 && Date.now() - courseTrackingCacheTimestamp < COURSE_TRACKING_CACHE_TTL) {
     console.log(`Returning ${cachedCourseTracking.length} cached courses`);
     return cachedCourseTracking;
   }
+  
+  console.log('🔄 Fetching fresh course data from Google Sheets...');
 
   try {
     const sheets = await getUncachableGoogleSheetClient();
@@ -420,11 +429,11 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
       courses.push(currentCourse);
     }
 
-    // Merge "June'25 DMP Recordings" into "DMP" course
+    // Merge "June'25 DMP Recordings" and all subsequent lessons into "DMP - Daily Magic Practice Recordings" course
     const dmpCourseIndex = courses.findIndex(c => 
       c.title.toLowerCase().includes('dmp') && 
-      !c.title.toLowerCase().includes('june') &&
-      !c.title.toLowerCase().includes('recording')
+      c.title.toLowerCase().includes('daily') &&
+      c.title.toLowerCase().includes('magic')
     );
     const juneDmpIndex = courses.findIndex(c => 
       c.title.toLowerCase().includes("june") && 
@@ -434,15 +443,33 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
 
     if (dmpCourseIndex !== -1 && juneDmpIndex !== -1) {
       const dmpCourse = courses[dmpCourseIndex];
-      const juneDmpCourse = courses[juneDmpIndex];
+      let totalMergedLessons = 0;
+      const coursesToRemove: number[] = [];
       
-      // Merge all lessons from June'25 DMP Recordings into DMP course
-      dmpCourse.lessons = dmpCourse.lessons.concat(juneDmpCourse.lessons);
+      // Collect June'25 DMP Recordings and all courses after it until we hit a non-DMP course
+      for (let i = juneDmpIndex; i < courses.length; i++) {
+        const currentCourse = courses[i];
+        const title = currentCourse.title.toLowerCase();
+        
+        // Check if this is June'25 DMP or any DMP-related recording course
+        if (
+          (title.includes('june') && title.includes('dmp')) ||
+          (title.includes('dmp') && title.includes('recording') && !title.includes('daily') && !title.includes('magic'))
+        ) {
+          // Merge these lessons into main DMP course
+          console.log(`📦 Merging ${currentCourse.lessons.length} lessons from "${currentCourse.title}"`);
+          dmpCourse.lessons = dmpCourse.lessons.concat(currentCourse.lessons);
+          totalMergedLessons += currentCourse.lessons.length;
+          coursesToRemove.push(i);
+        }
+      }
       
-      // Remove June'25 DMP Recordings as standalone course
-      courses.splice(juneDmpIndex, 1);
+      // Remove merged courses in reverse order to maintain indices
+      for (let i = coursesToRemove.length - 1; i >= 0; i--) {
+        courses.splice(coursesToRemove[i], 1);
+      }
       
-      console.log(`✅ Merged ${juneDmpCourse.lessons.length} lessons from "June'25 DMP Recordings" into "DMP" course`);
+      console.log(`✅ Merged ${totalMergedLessons} total lessons from ${coursesToRemove.length} recording courses into "DMP - Daily Magic Practice Recordings"`);
       console.log(`📚 Total DMP course lessons: ${dmpCourse.lessons.length}`);
     }
 
