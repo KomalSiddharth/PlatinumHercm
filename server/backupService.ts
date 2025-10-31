@@ -11,6 +11,7 @@ import { eq } from 'drizzle-orm';
 /**
  * Universal transformer: camelCase → snake_case for Supabase
  * Handles all tables and columns automatically
+ * Filters out null/undefined values to prevent Supabase schema errors
  */
 function toSnakeCase(str: string): string {
   return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
@@ -27,8 +28,12 @@ function transformToSnakeCase(obj: any): any {
     const transformed: any = {};
     for (const key in obj) {
       if (obj.hasOwnProperty(key)) {
-        const snakeKey = toSnakeCase(key);
-        transformed[snakeKey] = transformToSnakeCase(obj[key]);
+        const value = obj[key];
+        // Skip null/undefined to avoid Supabase schema cache issues
+        if (value !== null && value !== undefined) {
+          const snakeKey = toSnakeCase(key);
+          transformed[snakeKey] = transformToSnakeCase(value);
+        }
       }
     }
     return transformed;
