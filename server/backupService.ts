@@ -5,8 +5,37 @@ import { eq } from 'drizzle-orm';
 
 /**
  * Backup Service for syncing Replit PostgreSQL data to Supabase
- * Preserves historical data for 30K users
+ * Preserves historical data for 3K users
  */
+
+/**
+ * Universal transformer: camelCase → snake_case for Supabase
+ * Handles all tables and columns automatically
+ */
+function toSnakeCase(str: string): string {
+  return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+}
+
+function transformToSnakeCase(obj: any): any {
+  if (obj === null || obj === undefined) return obj;
+  
+  if (Array.isArray(obj)) {
+    return obj.map(transformToSnakeCase);
+  }
+  
+  if (typeof obj === 'object' && obj.constructor === Object) {
+    const transformed: any = {};
+    for (const key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        const snakeKey = toSnakeCase(key);
+        transformed[snakeKey] = transformToSnakeCase(obj[key]);
+      }
+    }
+    return transformed;
+  }
+  
+  return obj;
+}
 
 export interface BackupResult {
   success: boolean;
@@ -45,21 +74,10 @@ export async function backupAllData(): Promise<BackupResult> {
       platinumStandards: 0,
     };
 
-    // 1. Backup Users (transform to snake_case for Supabase)
+    // 1. Backup Users (auto-transform to snake_case)
     const allUsers = await db.select().from(users);
     if (allUsers.length > 0) {
-      const transformedUsers = allUsers.map(user => ({
-        id: user.id,
-        email: user.email,
-        first_name: user.firstName,
-        last_name: user.lastName,
-        profile_image_url: user.profileImageUrl,
-        is_admin: user.isAdmin,
-        course_sheet_url: user.courseSheetUrl,
-        created_at: user.createdAt,
-        updated_at: user.updatedAt,
-      }));
-      
+      const transformedUsers = allUsers.map(transformToSnakeCase);
       const { error: usersError } = await supabase!
         .from('users')
         .upsert(transformedUsers, { onConflict: 'id' });
@@ -68,67 +86,73 @@ export async function backupAllData(): Promise<BackupResult> {
       stats.users = allUsers.length;
     }
 
-    // 2. Backup HRCM Weeks
+    // 2. Backup HRCM Weeks (auto-transform to snake_case)
     const allHercmWeeks = await db.select().from(hercmWeeks);
     if (allHercmWeeks.length > 0) {
+      const transformedHercm = allHercmWeeks.map(transformToSnakeCase);
       const { error: hercmError } = await supabase!
         .from('hercm_weeks')
-        .upsert(allHercmWeeks, { onConflict: 'id' });
+        .upsert(transformedHercm, { onConflict: 'id' });
       
       if (hercmError) throw new Error(`HRCM weeks backup failed: ${hercmError.message}`);
       stats.hercmWeeks = allHercmWeeks.length;
     }
 
-    // 3. Backup Ritual Completions
+    // 3. Backup Ritual Completions (auto-transform to snake_case)
     const allRitualCompletions = await db.select().from(ritualCompletions);
     if (allRitualCompletions.length > 0) {
+      const transformedRituals = allRitualCompletions.map(transformToSnakeCase);
       const { error: ritualsError } = await supabase!
         .from('ritual_completions')
-        .upsert(allRitualCompletions, { onConflict: 'id' });
+        .upsert(transformedRituals, { onConflict: 'id' });
       
       if (ritualsError) throw new Error(`Ritual completions backup failed: ${ritualsError.message}`);
       stats.ritualCompletions = allRitualCompletions.length;
     }
 
-    // 4. Backup Emotional Trackers
+    // 4. Backup Emotional Trackers (auto-transform to snake_case)
     const allEmotionalTrackers = await db.select().from(emotionalTrackers);
     if (allEmotionalTrackers.length > 0) {
+      const transformedTrackers = allEmotionalTrackers.map(transformToSnakeCase);
       const { error: trackersError } = await supabase!
         .from('emotional_trackers')
-        .upsert(allEmotionalTrackers, { onConflict: 'id' });
+        .upsert(transformedTrackers, { onConflict: 'id' });
       
       if (trackersError) throw new Error(`Emotional trackers backup failed: ${trackersError.message}`);
       stats.emotionalTrackers = allEmotionalTrackers.length;
     }
 
-    // 5. Backup Course Video Completions
+    // 5. Backup Course Video Completions (auto-transform to snake_case)
     const allCourseVideoCompletions = await db.select().from(courseVideoCompletions);
     if (allCourseVideoCompletions.length > 0) {
+      const transformedProgress = allCourseVideoCompletions.map(transformToSnakeCase);
       const { error: progressError } = await supabase!
         .from('course_video_completions')
-        .upsert(allCourseVideoCompletions, { onConflict: 'id' });
+        .upsert(transformedProgress, { onConflict: 'id' });
       
       if (progressError) throw new Error(`Course video completions backup failed: ${progressError.message}`);
       stats.courseVideoCompletions = allCourseVideoCompletions.length;
     }
 
-    // 6. Backup User Assignments
+    // 6. Backup User Assignments (auto-transform to snake_case)
     const allAssignments = await db.select().from(userPersistentAssignments);
     if (allAssignments.length > 0) {
+      const transformedAssignments = allAssignments.map(transformToSnakeCase);
       const { error: assignmentsError } = await supabase!
         .from('user_persistent_assignments')
-        .upsert(allAssignments, { onConflict: 'id' });
+        .upsert(transformedAssignments, { onConflict: 'id' });
       
       if (assignmentsError) throw new Error(`Assignments backup failed: ${assignmentsError.message}`);
       stats.assignments = allAssignments.length;
     }
 
-    // 7. Backup Platinum Standards
+    // 7. Backup Platinum Standards (auto-transform to snake_case)
     const allStandards = await db.select().from(platinumStandards);
     if (allStandards.length > 0) {
+      const transformedStandards = allStandards.map(transformToSnakeCase);
       const { error: standardsError } = await supabase!
         .from('platinum_standards')
-        .upsert(allStandards, { onConflict: 'id' });
+        .upsert(transformedStandards, { onConflict: 'id' });
       
       if (standardsError) throw new Error(`Platinum standards backup failed: ${standardsError.message}`);
       stats.platinumStandards = allStandards.length;
@@ -170,45 +194,51 @@ export async function backupUserData(userId: string): Promise<BackupResult> {
       assignments: 0,
     };
 
-    // 1. User data
+    // 1. User data (auto-transform to snake_case)
     const userData = await db.select().from(users).where(eq(users.id, userId));
     if (userData.length > 0) {
-      await supabase!.from('users').upsert(userData, { onConflict: 'id' });
+      const transformedUser = userData.map(transformToSnakeCase);
+      await supabase!.from('users').upsert(transformedUser, { onConflict: 'id' });
       stats.users = 1;
     }
 
-    // 2. HRCM weeks
+    // 2. HRCM weeks (auto-transform to snake_case)
     const userHercm = await db.select().from(hercmWeeks).where(eq(hercmWeeks.userId, userId));
     if (userHercm.length > 0) {
-      await supabase!.from('hercm_weeks').upsert(userHercm, { onConflict: 'id' });
+      const transformedHercm = userHercm.map(transformToSnakeCase);
+      await supabase!.from('hercm_weeks').upsert(transformedHercm, { onConflict: 'id' });
       stats.hercmWeeks = userHercm.length;
     }
 
-    // 3. Ritual completions
+    // 3. Ritual completions (auto-transform to snake_case)
     const userRituals = await db.select().from(ritualCompletions).where(eq(ritualCompletions.userId, userId));
     if (userRituals.length > 0) {
-      await supabase!.from('ritual_completions').upsert(userRituals, { onConflict: 'id' });
+      const transformedRituals = userRituals.map(transformToSnakeCase);
+      await supabase!.from('ritual_completions').upsert(transformedRituals, { onConflict: 'id' });
       stats.ritualCompletions = userRituals.length;
     }
 
-    // 4. Emotional trackers
+    // 4. Emotional trackers (auto-transform to snake_case)
     const userTrackers = await db.select().from(emotionalTrackers).where(eq(emotionalTrackers.userId, userId));
     if (userTrackers.length > 0) {
-      await supabase!.from('emotional_trackers').upsert(userTrackers, { onConflict: 'id' });
+      const transformedTrackers = userTrackers.map(transformToSnakeCase);
+      await supabase!.from('emotional_trackers').upsert(transformedTrackers, { onConflict: 'id' });
       stats.emotionalTrackers = userTrackers.length;
     }
 
-    // 5. Course video completions
+    // 5. Course video completions (auto-transform to snake_case)
     const userProgress = await db.select().from(courseVideoCompletions).where(eq(courseVideoCompletions.userId, userId));
     if (userProgress.length > 0) {
-      await supabase!.from('course_video_completions').upsert(userProgress, { onConflict: 'id' });
+      const transformedProgress = userProgress.map(transformToSnakeCase);
+      await supabase!.from('course_video_completions').upsert(transformedProgress, { onConflict: 'id' });
       stats.courseVideoCompletions = userProgress.length;
     }
 
-    // 6. Assignments
+    // 6. Assignments (auto-transform to snake_case)
     const userAssignments = await db.select().from(userPersistentAssignments).where(eq(userPersistentAssignments.userId, userId));
     if (userAssignments.length > 0) {
-      await supabase!.from('user_persistent_assignments').upsert(userAssignments, { onConflict: 'id' });
+      const transformedAssignments = userAssignments.map(transformToSnakeCase);
+      await supabase!.from('user_persistent_assignments').upsert(transformedAssignments, { onConflict: 'id' });
       stats.assignments = userAssignments.length;
     }
 
