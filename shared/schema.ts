@@ -520,3 +520,29 @@ export const insertUserPersistentAssignmentSchema = createInsertSchema(userPersi
 
 export type InsertUserPersistentAssignment = z.infer<typeof insertUserPersistentAssignmentSchema>;
 export type UserPersistentAssignment = typeof userPersistentAssignments.$inferSelect;
+
+// User Feedback - Collect user feedback, bug reports, and feature requests
+export const userFeedback = pgTable("user_feedback", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  feedbackType: varchar("feedback_type").notNull(), // 'bug', 'feature', 'course', 'ui', 'general', 'support'
+  relatedFeature: varchar("related_feature"), // 'hrcm', 'emotional_tracker', 'courses', 'standards', 'other'
+  title: varchar("title", { length: 200 }).notNull(),
+  description: varchar("description", { length: 2000 }).notNull(),
+  priority: varchar("priority").default('medium').notNull(), // 'low', 'medium', 'high'
+  status: varchar("status").default('pending').notNull(), // 'pending', 'in-progress', 'resolved', 'rejected'
+  adminResponse: varchar("admin_response", { length: 1000 }), // Admin's reply
+  resolvedAt: timestamp("resolved_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertUserFeedbackSchema = createInsertSchema(userFeedback).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  resolvedAt: true,
+});
+
+export type InsertUserFeedback = z.infer<typeof insertUserFeedbackSchema>;
+export type UserFeedback = typeof userFeedback.$inferSelect;
