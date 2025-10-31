@@ -590,6 +590,95 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
       if (juneDmpIndex === -1) console.log('⚠️  June\'25 DMP Recordings course not found');
     }
 
+    // Merge mastery courses into Platinum Fast Track as subcategories
+    const platinumCourseIndex = courses.findIndex(c => 
+      c.title.toLowerCase().includes('platinum') && 
+      c.title.toLowerCase().includes('fast')
+    );
+    
+    if (platinumCourseIndex !== -1) {
+      const platinumCourse = courses[platinumCourseIndex];
+      console.log(`🔍 Found Platinum Fast Track course at index ${platinumCourseIndex}`);
+      
+      // Mastery courses to merge as subcategories
+      const masteryCourseMappings = [
+        { 
+          matcher: (title: string) => title.includes('career') && (title.includes('mastery') || title.includes('master')),
+          subcategoryName: 'Career Mastery' 
+        },
+        { 
+          matcher: (title: string) => title.includes('relationship') && title.includes('mastery'),
+          subcategoryName: 'Relationship Mastery' 
+        },
+        { 
+          matcher: (title: string) => (title.includes('wealth') || title.includes('money')) && (title.includes('mastery') || title.includes('master')),
+          subcategoryName: 'Wealth Mastery' 
+        },
+        { 
+          matcher: (title: string) => title.includes('health') && (title.includes('mastery') || title.includes('master')),
+          subcategoryName: 'Health Mastery' 
+        }
+      ];
+      
+      const coursesToMergeAsSubcategories: number[] = [];
+      
+      // Find and merge each mastery course
+      for (const mapping of masteryCourseMappings) {
+        const courseIndex = courses.findIndex((c, idx) => {
+          if (idx === platinumCourseIndex) return false; // Skip platinum itself
+          const title = c.title.toLowerCase();
+          return mapping.matcher(title);
+        });
+        
+        if (courseIndex !== -1) {
+          const masteryCourse = courses[courseIndex];
+          console.log(`📦 Merging "${masteryCourse.title}" into Platinum Fast Track as "${mapping.subcategoryName}" subcategory (${masteryCourse.lessons.length} lessons)`);
+          
+          // Create or update subcategory
+          if (!platinumCourse.subcategories) {
+            platinumCourse.subcategories = [];
+          }
+          
+          // Check if subcategory already exists
+          const existingSubcatIdx = platinumCourse.subcategories.findIndex(s => 
+            s.title.toLowerCase() === mapping.subcategoryName.toLowerCase()
+          );
+          
+          if (existingSubcatIdx !== -1) {
+            // Append lessons to existing subcategory
+            platinumCourse.subcategories[existingSubcatIdx].lessons = 
+              platinumCourse.subcategories[existingSubcatIdx].lessons.concat(masteryCourse.lessons);
+            console.log(`   ✅ Added ${masteryCourse.lessons.length} lessons to existing "${mapping.subcategoryName}" subcategory`);
+          } else {
+            // Create new subcategory
+            const subcategoryId = mapping.subcategoryName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            platinumCourse.subcategories.push({
+              id: subcategoryId,
+              title: mapping.subcategoryName,
+              lessons: masteryCourse.lessons
+            });
+            console.log(`   ✅ Created new "${mapping.subcategoryName}" subcategory with ${masteryCourse.lessons.length} lessons`);
+          }
+          
+          coursesToMergeAsSubcategories.push(courseIndex);
+        } else {
+          console.log(`⚠️  No course found for "${mapping.subcategoryName}"`);
+        }
+      }
+      
+      // Remove merged courses in reverse order
+      for (let i = coursesToMergeAsSubcategories.length - 1; i >= 0; i--) {
+        courses.splice(coursesToMergeAsSubcategories[i], 1);
+      }
+      
+      if (coursesToMergeAsSubcategories.length > 0) {
+        console.log(`✅ Merged ${coursesToMergeAsSubcategories.length} mastery courses into Platinum Fast Track`);
+        console.log(`📚 Platinum Fast Track now has ${platinumCourse.subcategories?.length || 0} subcategories`);
+      }
+    } else {
+      console.log('⚠️  Platinum Fast Track course not found');
+    }
+
     cachedCourseTracking = courses;
     courseTrackingCacheTimestamp = Date.now();
     console.log(`Loaded ${courses.length} courses from Google Sheets with ${courses.reduce((sum, c) => sum + c.lessons.length, 0)} total lessons`);
