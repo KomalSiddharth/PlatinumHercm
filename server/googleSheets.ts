@@ -303,6 +303,12 @@ export interface CourseLesson {
   completed: boolean;
 }
 
+export interface CourseSubcategory {
+  id: string;
+  title: string;
+  lessons: CourseLesson[];
+}
+
 export interface CourseTrackingData {
   id: string;
   title: string;
@@ -314,6 +320,7 @@ export interface CourseTrackingData {
   progressPercent: number;
   category: string;
   lessons: CourseLesson[];
+  subcategories?: CourseSubcategory[];
 }
 
 // Cache for course tracking data
@@ -361,6 +368,16 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
     const courses: CourseTrackingData[] = [];
     let currentCourse: CourseTrackingData | null = null;
     let lessonCounter = 0;
+    let currentSubcategory: CourseSubcategory | null = null;
+    let subcategoryLessonCounter = 0;
+
+    // Known subcategory names for Platinum Fast Track
+    const platinumSubcategoryNames = [
+      'career mastery',
+      'relationship mastery',
+      'wealth mastery',
+      'health mastery'
+    ];
 
     rows.forEach((row, index) => {
       const question = (row[0] || '').trim();
@@ -376,8 +393,44 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
         return;
       }
 
+      // Check if this is a Platinum Fast Track subcategory header
+      const isPlatinumCourse = currentCourse && currentCourse.title.toLowerCase().includes('platinum') && currentCourse.title.toLowerCase().includes('fast');
+      const isSubcategoryHeader = isPlatinumCourse && !answer && platinumSubcategoryNames.some(name => question.toLowerCase().includes(name));
+
+      if (isSubcategoryHeader) {
+        // Save previous subcategory if exists
+        if (currentSubcategory !== null && currentCourse) {
+          if (!currentCourse.subcategories) {
+            currentCourse.subcategories = [];
+          }
+          currentCourse.subcategories.push(currentSubcategory);
+          console.log(`📂 Saved subcategory "${currentSubcategory.title}" with ${currentSubcategory.lessons.length} lessons`);
+        }
+
+        // Create new subcategory
+        const subcategoryId = question.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        currentSubcategory = {
+          id: subcategoryId,
+          title: question,
+          lessons: [],
+        };
+        subcategoryLessonCounter = 0;
+        console.log(`🆕 Creating subcategory: "${question}" for Platinum Fast Track`);
+        return;
+      }
+
       // If Answer is empty or row looks like a course heading, it's a new course
-      if (!answer || (!answer.startsWith('http') && currentCourse !== null)) {
+      if (!answer || (!answer.startsWith('http') && currentCourse !== null && !isSubcategoryHeader)) {
+        // Save last subcategory of previous course if exists
+        if (currentSubcategory !== null && currentCourse) {
+          if (!currentCourse.subcategories) {
+            currentCourse.subcategories = [];
+          }
+          currentCourse.subcategories.push(currentSubcategory);
+          console.log(`📂 Saved final subcategory "${currentSubcategory.title}" with ${currentSubcategory.lessons.length} lessons`);
+          currentSubcategory = null;
+        }
+
         // Save previous course if exists
         if (currentCourse !== null) {
           // Log course details before saving
@@ -403,27 +456,51 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
         };
         lessonCounter = 0;
         
-        // Log when creating June DMP course
-        if (question.toLowerCase().includes('june') && question.toLowerCase().includes('dmp')) {
+        // Log when creating Platinum Fast Track or June DMP course
+        if (question.toLowerCase().includes('platinum') && question.toLowerCase().includes('fast')) {
+          console.log(`🆕 Creating Platinum Fast Track course: "${question}" at row ${index + 1}`);
+        } else if (question.toLowerCase().includes('june') && question.toLowerCase().includes('dmp')) {
           console.log(`🆕 Creating course: "${question}" at row ${index + 1}`);
         }
       } else if (currentCourse !== null && answer) {
-        // Add lesson to current course
-        lessonCounter++;
-        const lessonId = `${currentCourse.id}-${lessonCounter}`;
-        currentCourse.lessons.push({
-          id: lessonId,
-          title: question,
-          url: answer,
-          completed: false,
-        });
-        
-        // Log lessons being added to June DMP
-        if (currentCourse.title.toLowerCase().includes('june') && currentCourse.title.toLowerCase().includes('dmp')) {
-          console.log(`  📌 Adding lesson ${lessonCounter} to June DMP: "${question.substring(0, 50)}..."`);
+        // Add lesson to current subcategory (if Platinum Fast Track) or to course
+        if (currentSubcategory !== null && isPlatinumCourse) {
+          // Add to subcategory
+          subcategoryLessonCounter++;
+          const lessonId = `${currentCourse.id}-${currentSubcategory.id}-${subcategoryLessonCounter}`;
+          currentSubcategory.lessons.push({
+            id: lessonId,
+            title: question,
+            url: answer,
+            completed: false,
+          });
+        } else {
+          // Add to course lessons directly
+          lessonCounter++;
+          const lessonId = `${currentCourse.id}-${lessonCounter}`;
+          currentCourse.lessons.push({
+            id: lessonId,
+            title: question,
+            url: answer,
+            completed: false,
+          });
+          
+          // Log lessons being added to June DMP
+          if (currentCourse.title.toLowerCase().includes('june') && currentCourse.title.toLowerCase().includes('dmp')) {
+            console.log(`  📌 Adding lesson ${lessonCounter} to June DMP: "${question.substring(0, 50)}..."`);
+          }
         }
       }
     });
+
+    // Add last subcategory if exists
+    if (currentSubcategory !== null && currentCourse) {
+      if (!currentCourse.subcategories) {
+        currentCourse.subcategories = [];
+      }
+      currentCourse.subcategories.push(currentSubcategory);
+      console.log(`📂 Saved final subcategory "${currentSubcategory.title}" with ${currentSubcategory.lessons.length} lessons (end of file)`);
+    }
 
     // Add last course
     if (currentCourse !== null) {
