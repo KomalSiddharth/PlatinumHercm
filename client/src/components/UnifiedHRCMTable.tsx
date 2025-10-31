@@ -255,6 +255,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   const [editValue, setEditValue] = useState('');
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editDialogData, setEditDialogData] = useState<{ category: string; field: string; value: string; label: string; color: string } | null>(null);
+  
+  // State for hover editing
+  const [hoverEditingField, setHoverEditingField] = useState<{ category: string; field: string } | null>(null);
+  const [hoverEditValue, setHoverEditValue] = useState<string>('');
   const [loadingAssignments, setLoadingAssignments] = useState<Set<string>>(new Set());
   const [showStandardsDialog, setShowStandardsDialog] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -1518,6 +1522,38 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     setEditDialogData(null);
   };
 
+  // Handle hover card close and auto-save
+  const handleHoverClose = (isOpen: boolean, category: string, field: string) => {
+    if (!isOpen && hoverEditingField?.category === category && hoverEditingField?.field === field) {
+      // HoverCard is closing - auto-save if there's a change
+      const currentBelief = beliefs.find(b => b.category === category);
+      const currentValue = currentBelief?.[field as keyof HRCMBelief] as string || '';
+      
+      if (hoverEditValue !== currentValue) {
+        // Value changed - save it
+        const updatedBeliefs = beliefs.map(belief => {
+          if (belief.category === category) {
+            return { ...belief, [field]: hoverEditValue };
+          }
+          return belief;
+        });
+        
+        setBeliefs(updatedBeliefs);
+        saveWeekMutation.mutate({ weekNumber, year: new Date().getFullYear(), beliefs: updatedBeliefs });
+      }
+      
+      // Clear hover editing state
+      setHoverEditingField(null);
+      setHoverEditValue('');
+    }
+  };
+
+  // Start editing in hover card
+  const startHoverEdit = (category: string, field: string, currentValue: string) => {
+    setHoverEditingField({ category, field });
+    setHoverEditValue(currentValue);
+  };
+
   const saveEdit = async () => {
     if (!editingField) return;
     
@@ -1845,13 +1881,15 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 {/* Current Week - Problems */}
                 <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top">
                   {belief.problems && belief.problems.length > 0 ? (
-                    <HoverCard openDelay={200}>
+                    <HoverCard 
+                      openDelay={200}
+                      onOpenChange={(isOpen) => handleHoverClose(isOpen, belief.category, 'problems')}
+                    >
                       <HoverCardTrigger asChild>
                         <div className="cursor-pointer">
                           <Input
                             type="text"
                             value={belief.problems}
-                            onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'problems', belief.problems, 'Results', 'coral-red')}
                             readOnly
                             className="text-xs cursor-pointer bg-white dark:bg-gray-950"
                             data-testid={`text-problems-${belief.category.toLowerCase()}`}
@@ -1865,7 +1903,22 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       >
                         <div className="space-y-2">
                           <h4 className="text-sm font-semibold text-coral-red">Results</h4>
-                          <p className="text-sm text-foreground whitespace-pre-wrap break-words">{belief.problems}</p>
+                          {viewingHistory || isAdminView ? (
+                            <p className="text-sm text-foreground whitespace-pre-wrap break-words">{belief.problems}</p>
+                          ) : (
+                            <Textarea
+                              value={hoverEditingField?.category === belief.category && hoverEditingField?.field === 'problems' ? hoverEditValue : belief.problems}
+                              onChange={(e) => {
+                                if (!hoverEditingField || hoverEditingField.category !== belief.category || hoverEditingField.field !== 'problems') {
+                                  startHoverEdit(belief.category, 'problems', belief.problems);
+                                }
+                                setHoverEditValue(e.target.value);
+                              }}
+                              className="text-sm min-h-[100px] resize-none"
+                              placeholder="Click to edit..."
+                              data-testid={`textarea-hover-problems-${belief.category.toLowerCase()}`}
+                            />
+                          )}
                         </div>
                       </HoverCardContent>
                     </HoverCard>
@@ -1885,13 +1938,15 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 {/* Current Week - Feelings */}
                 <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top">
                   {belief.currentFeelings && belief.currentFeelings.length > 0 ? (
-                    <HoverCard openDelay={200}>
+                    <HoverCard 
+                      openDelay={200}
+                      onOpenChange={(isOpen) => handleHoverClose(isOpen, belief.category, 'currentFeelings')}
+                    >
                       <HoverCardTrigger asChild>
                         <div className="cursor-pointer">
                           <Input
                             type="text"
                             value={belief.currentFeelings}
-                            onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'currentFeelings', belief.currentFeelings, 'Feelings', 'emerald-green')}
                             readOnly
                             className="text-xs cursor-pointer bg-white dark:bg-gray-950"
                             data-testid={`text-feelings-${belief.category.toLowerCase()}`}
@@ -1905,7 +1960,22 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       >
                         <div className="space-y-2">
                           <h4 className="text-sm font-semibold text-emerald-green">Feelings</h4>
-                          <p className="text-sm text-foreground whitespace-pre-wrap break-words">{belief.currentFeelings}</p>
+                          {viewingHistory || isAdminView ? (
+                            <p className="text-sm text-foreground whitespace-pre-wrap break-words">{belief.currentFeelings}</p>
+                          ) : (
+                            <Textarea
+                              value={hoverEditingField?.category === belief.category && hoverEditingField?.field === 'currentFeelings' ? hoverEditValue : belief.currentFeelings}
+                              onChange={(e) => {
+                                if (!hoverEditingField || hoverEditingField.category !== belief.category || hoverEditingField.field !== 'currentFeelings') {
+                                  startHoverEdit(belief.category, 'currentFeelings', belief.currentFeelings);
+                                }
+                                setHoverEditValue(e.target.value);
+                              }}
+                              className="text-sm min-h-[100px] resize-none"
+                              placeholder="Click to edit..."
+                              data-testid={`textarea-hover-feelings-${belief.category.toLowerCase()}`}
+                            />
+                          )}
                         </div>
                       </HoverCardContent>
                     </HoverCard>
@@ -1925,13 +1995,15 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 {/* Current Week - Beliefs */}
                 <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top">
                   {belief.currentBelief && belief.currentBelief.length > 0 ? (
-                    <HoverCard openDelay={200}>
+                    <HoverCard 
+                      openDelay={200}
+                      onOpenChange={(isOpen) => handleHoverClose(isOpen, belief.category, 'currentBelief')}
+                    >
                       <HoverCardTrigger asChild>
                         <div className="cursor-pointer">
                           <Input
                             type="text"
                             value={belief.currentBelief}
-                            onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'currentBelief', belief.currentBelief, 'Beliefs/Reasons', 'golden-yellow')}
                             readOnly
                             className="text-xs cursor-pointer bg-white dark:bg-gray-950"
                             data-testid={`text-beliefs-${belief.category.toLowerCase()}`}
@@ -1945,7 +2017,22 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       >
                         <div className="space-y-2">
                           <h4 className="text-sm font-semibold text-golden-yellow">Beliefs/Reasons</h4>
-                          <p className="text-sm text-foreground whitespace-pre-wrap break-words">{belief.currentBelief}</p>
+                          {viewingHistory || isAdminView ? (
+                            <p className="text-sm text-foreground whitespace-pre-wrap break-words">{belief.currentBelief}</p>
+                          ) : (
+                            <Textarea
+                              value={hoverEditingField?.category === belief.category && hoverEditingField?.field === 'currentBelief' ? hoverEditValue : belief.currentBelief}
+                              onChange={(e) => {
+                                if (!hoverEditingField || hoverEditingField.category !== belief.category || hoverEditingField.field !== 'currentBelief') {
+                                  startHoverEdit(belief.category, 'currentBelief', belief.currentBelief);
+                                }
+                                setHoverEditValue(e.target.value);
+                              }}
+                              className="text-sm min-h-[100px] resize-none"
+                              placeholder="Click to edit..."
+                              data-testid={`textarea-hover-beliefs-${belief.category.toLowerCase()}`}
+                            />
+                          )}
                         </div>
                       </HoverCardContent>
                     </HoverCard>
@@ -1965,13 +2052,15 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 {/* Current Week - Actions */}
                 <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 border-r align-top">
                   {belief.currentActions && belief.currentActions.length > 0 ? (
-                    <HoverCard openDelay={200}>
+                    <HoverCard 
+                      openDelay={200}
+                      onOpenChange={(isOpen) => handleHoverClose(isOpen, belief.category, 'currentActions')}
+                    >
                       <HoverCardTrigger asChild>
                         <div className="cursor-pointer">
                           <Input
                             type="text"
                             value={belief.currentActions}
-                            onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'currentActions', belief.currentActions, 'Actions', 'soft-lavender')}
                             readOnly
                             className="text-xs cursor-pointer bg-white dark:bg-gray-950"
                             data-testid={`text-actions-${belief.category.toLowerCase()}`}
@@ -1985,7 +2074,22 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       >
                         <div className="space-y-2">
                           <h4 className="text-sm font-semibold text-soft-lavender">Actions</h4>
-                          <p className="text-sm text-foreground whitespace-pre-wrap break-words">{belief.currentActions}</p>
+                          {viewingHistory || isAdminView ? (
+                            <p className="text-sm text-foreground whitespace-pre-wrap break-words">{belief.currentActions}</p>
+                          ) : (
+                            <Textarea
+                              value={hoverEditingField?.category === belief.category && hoverEditingField?.field === 'currentActions' ? hoverEditValue : belief.currentActions}
+                              onChange={(e) => {
+                                if (!hoverEditingField || hoverEditingField.category !== belief.category || hoverEditingField.field !== 'currentActions') {
+                                  startHoverEdit(belief.category, 'currentActions', belief.currentActions);
+                                }
+                                setHoverEditValue(e.target.value);
+                              }}
+                              className="text-sm min-h-[100px] resize-none"
+                              placeholder="Click to edit..."
+                              data-testid={`textarea-hover-actions-${belief.category.toLowerCase()}`}
+                            />
+                          )}
                         </div>
                       </HoverCardContent>
                     </HoverCard>
