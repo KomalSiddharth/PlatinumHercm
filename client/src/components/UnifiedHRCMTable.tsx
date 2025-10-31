@@ -1906,277 +1906,133 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
                 {/* Current Week - Problems */}
                 <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top">
-                  {belief.problems && belief.problems.length > 0 ? (
-                    <HoverCard 
-                      openDelay={200}
-                      onOpenChange={(isOpen) => handleHoverClose(isOpen, belief.category, 'problems')}
-                    >
-                      <HoverCardTrigger asChild>
-                        <div className="cursor-pointer">
-                          <Input
-                            type="text"
-                            value={belief.problems}
-                            readOnly
-                            className="text-xs cursor-pointer bg-white dark:bg-gray-950"
-                            data-testid={`text-problems-${belief.category.toLowerCase()}`}
-                          />
-                        </div>
-                      </HoverCardTrigger>
-                      <HoverCardContent 
-                        side="top" 
-                        align="center" 
-                        className="w-96 bg-gradient-to-br from-coral-red/10 via-white to-coral-red/5 dark:from-coral-red/20 dark:via-gray-900 dark:to-coral-red/10 border-2 border-coral-red/30 z-[100]"
-                      >
-                        <div className="space-y-2">
-                          <h4 className="text-sm font-semibold text-coral-red">Results</h4>
-                          {viewingHistory || isAdminView ? (
-                            <p className="text-sm text-foreground whitespace-pre-wrap break-words">{belief.problems}</p>
-                          ) : (
-                            hoverEditingField?.category === belief.category && hoverEditingField?.field === 'problems' ? (
-                              <Textarea
-                                value={hoverEditValue}
-                                onChange={(e) => setHoverEditValue(e.target.value)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter' && !e.shiftKey) {
-                                    e.preventDefault();
-                                    saveHoverEdit();
-                                  }
-                                }}
-                                className="text-sm min-h-[100px] resize-none"
-                                placeholder="Click to edit..."
-                                autoFocus
-                                data-testid={`textarea-hover-problems-${belief.category.toLowerCase()}`}
-                              />
-                            ) : (
-                              <p 
-                                className="text-sm text-foreground whitespace-pre-wrap break-words cursor-text hover:bg-accent/5 p-2 rounded"
-                                onClick={() => startHoverEdit(belief.category, 'problems', belief.problems)}
-                                data-testid={`text-hover-problems-${belief.category.toLowerCase()}`}
-                              >
-                                {belief.problems}
-                              </p>
-                            )
-                          )}
-                        </div>
-                      </HoverCardContent>
-                    </HoverCard>
-                  ) : (
-                    <Input
-                      type="text"
-                      value={belief.problems || ''}
-                      onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'problems', belief.problems || '', 'Results', 'coral-red')}
-                      readOnly
-                      className="text-xs cursor-pointer bg-white dark:bg-gray-950"
-                      placeholder="Click to add..."
-                      data-testid={`text-problems-${belief.category.toLowerCase()}`}
+                  {hoverEditingField?.category === belief.category && hoverEditingField?.field === 'problems' ? (
+                    <Textarea
+                      value={hoverEditValue}
+                      onChange={(e) => setHoverEditValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          saveHoverEdit();
+                        }
+                        if (e.key === 'Escape') {
+                          setHoverEditingField(null);
+                          setHoverEditValue('');
+                        }
+                      }}
+                      onBlur={saveHoverEdit}
+                      className="text-xs min-h-[70px] resize-none bg-gradient-to-br from-coral-red/20 to-coral-red/10 dark:from-coral-red/30 dark:to-coral-red/20 border-2 border-coral-red/50 focus:border-coral-red"
+                      placeholder="Enter problems..."
+                      autoFocus
+                      data-testid={`textarea-problems-${belief.category.toLowerCase()}`}
                     />
+                  ) : (
+                    <div
+                      onClick={() => !viewingHistory && !isAdminView && startHoverEdit(belief.category, 'problems', belief.problems || '')}
+                      className="text-xs min-h-[70px] p-2 rounded cursor-text bg-gradient-to-br from-coral-red/20 to-coral-red/10 dark:from-coral-red/30 dark:to-coral-red/20 border-2 border-coral-red/50 hover:border-coral-red transition-colors whitespace-pre-wrap break-words overflow-hidden"
+                      data-testid={`text-problems-${belief.category.toLowerCase()}`}
+                    >
+                      {belief.problems || <span className="text-muted-foreground">Click to add...</span>}
+                    </div>
                   )}
                 </TableCell>
 
                 {/* Current Week - Feelings */}
                 <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top">
-                  {belief.currentFeelings && belief.currentFeelings.length > 0 ? (
-                    <HoverCard 
-                      openDelay={200}
-                      onOpenChange={(isOpen) => handleHoverClose(isOpen, belief.category, 'currentFeelings')}
-                    >
-                      <HoverCardTrigger asChild>
-                        <div className="cursor-pointer">
-                          <Input
-                            type="text"
-                            value={belief.currentFeelings}
-                            readOnly
-                            className="text-xs cursor-pointer bg-white dark:bg-gray-950"
-                            data-testid={`text-feelings-${belief.category.toLowerCase()}`}
-                          />
-                        </div>
-                      </HoverCardTrigger>
-                      <HoverCardContent 
-                        side="top" 
-                        align="center" 
-                        className="w-96 bg-gradient-to-br from-emerald-green/10 via-white to-emerald-green/5 dark:from-emerald-green/20 dark:via-gray-900 dark:to-emerald-green/10 border-2 border-emerald-green/30 z-[100]"
-                      >
-                        <div className="space-y-2">
-                          <h4 className="text-sm font-semibold text-emerald-green">Feelings</h4>
-                          {viewingHistory || isAdminView ? (
-                            <p className="text-sm text-foreground whitespace-pre-wrap break-words">{belief.currentFeelings}</p>
-                          ) : (
-                            hoverEditingField?.category === belief.category && hoverEditingField?.field === 'currentFeelings' ? (
-                              <Textarea
-                                value={hoverEditValue}
-                                onChange={(e) => setHoverEditValue(e.target.value)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter' && !e.shiftKey) {
-                                    e.preventDefault();
-                                    saveHoverEdit();
-                                  }
-                                }}
-                                className="text-sm min-h-[100px] resize-none"
-                                placeholder="Click to edit..."
-                                autoFocus
-                                data-testid={`textarea-hover-feelings-${belief.category.toLowerCase()}`}
-                              />
-                            ) : (
-                              <p 
-                                className="text-sm text-foreground whitespace-pre-wrap break-words cursor-text hover:bg-accent/5 p-2 rounded"
-                                onClick={() => startHoverEdit(belief.category, 'currentFeelings', belief.currentFeelings)}
-                                data-testid={`text-hover-feelings-${belief.category.toLowerCase()}`}
-                              >
-                                {belief.currentFeelings}
-                              </p>
-                            )
-                          )}
-                        </div>
-                      </HoverCardContent>
-                    </HoverCard>
-                  ) : (
-                    <Input
-                      type="text"
-                      value={belief.currentFeelings || ''}
-                      onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'currentFeelings', belief.currentFeelings || '', 'Feelings', 'emerald-green')}
-                      readOnly
-                      className="text-xs cursor-pointer bg-white dark:bg-gray-950"
-                      placeholder="Click to add..."
-                      data-testid={`text-feelings-${belief.category.toLowerCase()}`}
+                  {hoverEditingField?.category === belief.category && hoverEditingField?.field === 'currentFeelings' ? (
+                    <Textarea
+                      value={hoverEditValue}
+                      onChange={(e) => setHoverEditValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          saveHoverEdit();
+                        }
+                        if (e.key === 'Escape') {
+                          setHoverEditingField(null);
+                          setHoverEditValue('');
+                        }
+                      }}
+                      onBlur={saveHoverEdit}
+                      className="text-xs min-h-[70px] resize-none bg-gradient-to-br from-emerald-green/20 to-emerald-green/10 dark:from-emerald-green/30 dark:to-emerald-green/20 border-2 border-emerald-green/50 focus:border-emerald-green"
+                      placeholder="Enter feelings..."
+                      autoFocus
+                      data-testid={`textarea-feelings-${belief.category.toLowerCase()}`}
                     />
+                  ) : (
+                    <div
+                      onClick={() => !viewingHistory && !isAdminView && startHoverEdit(belief.category, 'currentFeelings', belief.currentFeelings || '')}
+                      className="text-xs min-h-[70px] p-2 rounded cursor-text bg-gradient-to-br from-emerald-green/20 to-emerald-green/10 dark:from-emerald-green/30 dark:to-emerald-green/20 border-2 border-emerald-green/50 hover:border-emerald-green transition-colors whitespace-pre-wrap break-words overflow-hidden"
+                      data-testid={`text-feelings-${belief.category.toLowerCase()}`}
+                    >
+                      {belief.currentFeelings || <span className="text-muted-foreground">Click to add...</span>}
+                    </div>
                   )}
                 </TableCell>
 
                 {/* Current Week - Beliefs */}
                 <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top">
-                  {belief.currentBelief && belief.currentBelief.length > 0 ? (
-                    <HoverCard 
-                      openDelay={200}
-                      onOpenChange={(isOpen) => handleHoverClose(isOpen, belief.category, 'currentBelief')}
-                    >
-                      <HoverCardTrigger asChild>
-                        <div className="cursor-pointer">
-                          <Input
-                            type="text"
-                            value={belief.currentBelief}
-                            readOnly
-                            className="text-xs cursor-pointer bg-white dark:bg-gray-950"
-                            data-testid={`text-beliefs-${belief.category.toLowerCase()}`}
-                          />
-                        </div>
-                      </HoverCardTrigger>
-                      <HoverCardContent 
-                        side="top" 
-                        align="center" 
-                        className="w-96 bg-gradient-to-br from-golden-yellow/10 via-white to-golden-yellow/5 dark:from-golden-yellow/20 dark:via-gray-900 dark:to-golden-yellow/10 border-2 border-golden-yellow/30 z-[100]"
-                      >
-                        <div className="space-y-2">
-                          <h4 className="text-sm font-semibold text-golden-yellow">Beliefs/Reasons</h4>
-                          {viewingHistory || isAdminView ? (
-                            <p className="text-sm text-foreground whitespace-pre-wrap break-words">{belief.currentBelief}</p>
-                          ) : (
-                            hoverEditingField?.category === belief.category && hoverEditingField?.field === 'currentBelief' ? (
-                              <Textarea
-                                value={hoverEditValue}
-                                onChange={(e) => setHoverEditValue(e.target.value)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter' && !e.shiftKey) {
-                                    e.preventDefault();
-                                    saveHoverEdit();
-                                  }
-                                }}
-                                className="text-sm min-h-[100px] resize-none"
-                                placeholder="Click to edit..."
-                                autoFocus
-                                data-testid={`textarea-hover-beliefs-${belief.category.toLowerCase()}`}
-                              />
-                            ) : (
-                              <p 
-                                className="text-sm text-foreground whitespace-pre-wrap break-words cursor-text hover:bg-accent/5 p-2 rounded"
-                                onClick={() => startHoverEdit(belief.category, 'currentBelief', belief.currentBelief)}
-                                data-testid={`text-hover-beliefs-${belief.category.toLowerCase()}`}
-                              >
-                                {belief.currentBelief}
-                              </p>
-                            )
-                          )}
-                        </div>
-                      </HoverCardContent>
-                    </HoverCard>
-                  ) : (
-                    <Input
-                      type="text"
-                      value={belief.currentBelief || ''}
-                      onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'currentBelief', belief.currentBelief || '', 'Beliefs/Reasons', 'golden-yellow')}
-                      readOnly
-                      className="text-xs cursor-pointer bg-white dark:bg-gray-950"
-                      placeholder="Click to add..."
-                      data-testid={`text-beliefs-${belief.category.toLowerCase()}`}
+                  {hoverEditingField?.category === belief.category && hoverEditingField?.field === 'currentBelief' ? (
+                    <Textarea
+                      value={hoverEditValue}
+                      onChange={(e) => setHoverEditValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          saveHoverEdit();
+                        }
+                        if (e.key === 'Escape') {
+                          setHoverEditingField(null);
+                          setHoverEditValue('');
+                        }
+                      }}
+                      onBlur={saveHoverEdit}
+                      className="text-xs min-h-[70px] resize-none bg-gradient-to-br from-golden-yellow/20 to-golden-yellow/10 dark:from-golden-yellow/30 dark:to-golden-yellow/20 border-2 border-golden-yellow/50 focus:border-golden-yellow"
+                      placeholder="Enter beliefs..."
+                      autoFocus
+                      data-testid={`textarea-beliefs-${belief.category.toLowerCase()}`}
                     />
+                  ) : (
+                    <div
+                      onClick={() => !viewingHistory && !isAdminView && startHoverEdit(belief.category, 'currentBelief', belief.currentBelief || '')}
+                      className="text-xs min-h-[70px] p-2 rounded cursor-text bg-gradient-to-br from-golden-yellow/20 to-golden-yellow/10 dark:from-golden-yellow/30 dark:to-golden-yellow/20 border-2 border-golden-yellow/50 hover:border-golden-yellow transition-colors whitespace-pre-wrap break-words overflow-hidden"
+                      data-testid={`text-beliefs-${belief.category.toLowerCase()}`}
+                    >
+                      {belief.currentBelief || <span className="text-muted-foreground">Click to add...</span>}
+                    </div>
                   )}
                 </TableCell>
 
                 {/* Current Week - Actions */}
                 <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 border-r align-top">
-                  {belief.currentActions && belief.currentActions.length > 0 ? (
-                    <HoverCard 
-                      openDelay={200}
-                      onOpenChange={(isOpen) => handleHoverClose(isOpen, belief.category, 'currentActions')}
-                    >
-                      <HoverCardTrigger asChild>
-                        <div className="cursor-pointer">
-                          <Input
-                            type="text"
-                            value={belief.currentActions}
-                            readOnly
-                            className="text-xs cursor-pointer bg-white dark:bg-gray-950"
-                            data-testid={`text-actions-${belief.category.toLowerCase()}`}
-                          />
-                        </div>
-                      </HoverCardTrigger>
-                      <HoverCardContent 
-                        side="top" 
-                        align="center" 
-                        className="w-96 bg-gradient-to-br from-soft-lavender/20 via-white to-soft-lavender/10 dark:from-soft-lavender/30 dark:via-gray-900 dark:to-soft-lavender/15 border-2 border-soft-lavender/40 z-[100]"
-                      >
-                        <div className="space-y-2">
-                          <h4 className="text-sm font-semibold text-soft-lavender">Actions</h4>
-                          {viewingHistory || isAdminView ? (
-                            <p className="text-sm text-foreground whitespace-pre-wrap break-words">{belief.currentActions}</p>
-                          ) : (
-                            hoverEditingField?.category === belief.category && hoverEditingField?.field === 'currentActions' ? (
-                              <Textarea
-                                value={hoverEditValue}
-                                onChange={(e) => setHoverEditValue(e.target.value)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter' && !e.shiftKey) {
-                                    e.preventDefault();
-                                    saveHoverEdit();
-                                  }
-                                }}
-                                className="text-sm min-h-[100px] resize-none"
-                                placeholder="Click to edit..."
-                                autoFocus
-                                data-testid={`textarea-hover-actions-${belief.category.toLowerCase()}`}
-                              />
-                            ) : (
-                              <p 
-                                className="text-sm text-foreground whitespace-pre-wrap break-words cursor-text hover:bg-accent/5 p-2 rounded"
-                                onClick={() => startHoverEdit(belief.category, 'currentActions', belief.currentActions)}
-                                data-testid={`text-hover-actions-${belief.category.toLowerCase()}`}
-                              >
-                                {belief.currentActions}
-                              </p>
-                            )
-                          )}
-                        </div>
-                      </HoverCardContent>
-                    </HoverCard>
-                  ) : (
-                    <Input
-                      type="text"
-                      value={belief.currentActions || ''}
-                      onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'currentActions', belief.currentActions || '', 'Actions', 'soft-lavender')}
-                      readOnly
-                      className="text-xs cursor-pointer bg-white dark:bg-gray-950"
-                      placeholder="Click to add..."
-                      data-testid={`text-actions-${belief.category.toLowerCase()}`}
+                  {hoverEditingField?.category === belief.category && hoverEditingField?.field === 'currentActions' ? (
+                    <Textarea
+                      value={hoverEditValue}
+                      onChange={(e) => setHoverEditValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          saveHoverEdit();
+                        }
+                        if (e.key === 'Escape') {
+                          setHoverEditingField(null);
+                          setHoverEditValue('');
+                        }
+                      }}
+                      onBlur={saveHoverEdit}
+                      className="text-xs min-h-[70px] resize-none bg-gradient-to-br from-soft-lavender/30 to-soft-lavender/15 dark:from-soft-lavender/40 dark:to-soft-lavender/25 border-2 border-soft-lavender/50 focus:border-soft-lavender"
+                      placeholder="Enter actions..."
+                      autoFocus
+                      data-testid={`textarea-actions-${belief.category.toLowerCase()}`}
                     />
+                  ) : (
+                    <div
+                      onClick={() => !viewingHistory && !isAdminView && startHoverEdit(belief.category, 'currentActions', belief.currentActions || '')}
+                      className="text-xs min-h-[70px] p-2 rounded cursor-text bg-gradient-to-br from-soft-lavender/30 to-soft-lavender/15 dark:from-soft-lavender/40 dark:to-soft-lavender/25 border-2 border-soft-lavender/50 hover:border-soft-lavender transition-colors whitespace-pre-wrap break-words overflow-hidden"
+                      data-testid={`text-actions-${belief.category.toLowerCase()}`}
+                    >
+                      {belief.currentActions || <span className="text-muted-foreground">Click to add...</span>}
+                    </div>
                   )}
                 </TableCell>
 
