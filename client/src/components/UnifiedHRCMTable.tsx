@@ -1906,18 +1906,24 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                           {viewingHistory || isAdminView ? (
                             <p className="text-sm text-foreground whitespace-pre-wrap break-words">{belief.problems}</p>
                           ) : (
-                            <Textarea
-                              value={hoverEditingField?.category === belief.category && hoverEditingField?.field === 'problems' ? hoverEditValue : belief.problems}
-                              onChange={(e) => {
-                                if (!hoverEditingField || hoverEditingField.category !== belief.category || hoverEditingField.field !== 'problems') {
-                                  startHoverEdit(belief.category, 'problems', belief.problems);
-                                }
-                                setHoverEditValue(e.target.value);
-                              }}
-                              className="text-sm min-h-[100px] resize-none"
-                              placeholder="Click to edit..."
-                              data-testid={`textarea-hover-problems-${belief.category.toLowerCase()}`}
-                            />
+                            hoverEditingField?.category === belief.category && hoverEditingField?.field === 'problems' ? (
+                              <Textarea
+                                value={hoverEditValue}
+                                onChange={(e) => setHoverEditValue(e.target.value)}
+                                className="text-sm min-h-[100px] resize-none"
+                                placeholder="Click to edit..."
+                                autoFocus
+                                data-testid={`textarea-hover-problems-${belief.category.toLowerCase()}`}
+                              />
+                            ) : (
+                              <p 
+                                className="text-sm text-foreground whitespace-pre-wrap break-words cursor-text hover:bg-accent/5 p-2 rounded"
+                                onClick={() => startHoverEdit(belief.category, 'problems', belief.problems)}
+                                data-testid={`text-hover-problems-${belief.category.toLowerCase()}`}
+                              >
+                                {belief.problems}
+                              </p>
+                            )
                           )}
                         </div>
                       </HoverCardContent>
@@ -1963,18 +1969,24 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                           {viewingHistory || isAdminView ? (
                             <p className="text-sm text-foreground whitespace-pre-wrap break-words">{belief.currentFeelings}</p>
                           ) : (
-                            <Textarea
-                              value={hoverEditingField?.category === belief.category && hoverEditingField?.field === 'currentFeelings' ? hoverEditValue : belief.currentFeelings}
-                              onChange={(e) => {
-                                if (!hoverEditingField || hoverEditingField.category !== belief.category || hoverEditingField.field !== 'currentFeelings') {
-                                  startHoverEdit(belief.category, 'currentFeelings', belief.currentFeelings);
-                                }
-                                setHoverEditValue(e.target.value);
-                              }}
-                              className="text-sm min-h-[100px] resize-none"
-                              placeholder="Click to edit..."
-                              data-testid={`textarea-hover-feelings-${belief.category.toLowerCase()}`}
-                            />
+                            hoverEditingField?.category === belief.category && hoverEditingField?.field === 'currentFeelings' ? (
+                              <Textarea
+                                value={hoverEditValue}
+                                onChange={(e) => setHoverEditValue(e.target.value)}
+                                className="text-sm min-h-[100px] resize-none"
+                                placeholder="Click to edit..."
+                                autoFocus
+                                data-testid={`textarea-hover-feelings-${belief.category.toLowerCase()}`}
+                              />
+                            ) : (
+                              <p 
+                                className="text-sm text-foreground whitespace-pre-wrap break-words cursor-text hover:bg-accent/5 p-2 rounded"
+                                onClick={() => startHoverEdit(belief.category, 'currentFeelings', belief.currentFeelings)}
+                                data-testid={`text-hover-feelings-${belief.category.toLowerCase()}`}
+                              >
+                                {belief.currentFeelings}
+                              </p>
+                            )
                           )}
                         </div>
                       </HoverCardContent>
@@ -2020,18 +2032,24 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                           {viewingHistory || isAdminView ? (
                             <p className="text-sm text-foreground whitespace-pre-wrap break-words">{belief.currentBelief}</p>
                           ) : (
-                            <Textarea
-                              value={hoverEditingField?.category === belief.category && hoverEditingField?.field === 'currentBelief' ? hoverEditValue : belief.currentBelief}
-                              onChange={(e) => {
-                                if (!hoverEditingField || hoverEditingField.category !== belief.category || hoverEditingField.field !== 'currentBelief') {
-                                  startHoverEdit(belief.category, 'currentBelief', belief.currentBelief);
-                                }
-                                setHoverEditValue(e.target.value);
-                              }}
-                              className="text-sm min-h-[100px] resize-none"
-                              placeholder="Click to edit..."
-                              data-testid={`textarea-hover-beliefs-${belief.category.toLowerCase()}`}
-                            />
+                            hoverEditingField?.category === belief.category && hoverEditingField?.field === 'currentBelief' ? (
+                              <Textarea
+                                value={hoverEditValue}
+                                onChange={(e) => setHoverEditValue(e.target.value)}
+                                className="text-sm min-h-[100px] resize-none"
+                                placeholder="Click to edit..."
+                                autoFocus
+                                data-testid={`textarea-hover-beliefs-${belief.category.toLowerCase()}`}
+                              />
+                            ) : (
+                              <p 
+                                className="text-sm text-foreground whitespace-pre-wrap break-words cursor-text hover:bg-accent/5 p-2 rounded"
+                                onClick={() => startHoverEdit(belief.category, 'currentBelief', belief.currentBelief)}
+                                data-testid={`text-hover-beliefs-${belief.category.toLowerCase()}`}
+                              >
+                                {belief.currentBelief}
+                              </p>
+                            )
                           )}
                         </div>
                       </HoverCardContent>
@@ -2077,18 +2095,24 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                           {viewingHistory || isAdminView ? (
                             <p className="text-sm text-foreground whitespace-pre-wrap break-words">{belief.currentActions}</p>
                           ) : (
-                            <Textarea
-                              value={hoverEditingField?.category === belief.category && hoverEditingField?.field === 'currentActions' ? hoverEditValue : belief.currentActions}
-                              onChange={(e) => {
-                                if (!hoverEditingField || hoverEditingField.category !== belief.category || hoverEditingField.field !== 'currentActions') {
-                                  startHoverEdit(belief.category, 'currentActions', belief.currentActions);
-                                }
-                                setHoverEditValue(e.target.value);
-                              }}
-                              className="text-sm min-h-[100px] resize-none"
-                              placeholder="Click to edit..."
-                              data-testid={`textarea-hover-actions-${belief.category.toLowerCase()}`}
-                            />
+                            hoverEditingField?.category === belief.category && hoverEditingField?.field === 'currentActions' ? (
+                              <Textarea
+                                value={hoverEditValue}
+                                onChange={(e) => setHoverEditValue(e.target.value)}
+                                className="text-sm min-h-[100px] resize-none"
+                                placeholder="Click to edit..."
+                                autoFocus
+                                data-testid={`textarea-hover-actions-${belief.category.toLowerCase()}`}
+                              />
+                            ) : (
+                              <p 
+                                className="text-sm text-foreground whitespace-pre-wrap break-words cursor-text hover:bg-accent/5 p-2 rounded"
+                                onClick={() => startHoverEdit(belief.category, 'currentActions', belief.currentActions)}
+                                data-testid={`text-hover-actions-${belief.category.toLowerCase()}`}
+                              >
+                                {belief.currentActions}
+                              </p>
+                            )
                           )}
                         </div>
                       </HoverCardContent>
