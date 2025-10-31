@@ -1851,54 +1851,162 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
                 {/* Current Week - Problems */}
                 <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top">
-                  <Input
-                    type="text"
-                    value={belief.problems || ''}
-                    onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'problems', belief.problems || '', 'Results', 'coral-red')}
-                    readOnly
-                    className="text-xs cursor-pointer border-2 border-coral-red/40 focus:border-coral-red dark:border-coral-red/60 dark:focus:border-coral-red bg-white dark:bg-gray-950 hover:bg-coral-red/5 dark:hover:bg-coral-red/10"
-                    placeholder="Click to add..."
-                    data-testid={`text-problems-${belief.category.toLowerCase()}`}
-                  />
+                  {belief.problems && belief.problems.length > 0 ? (
+                    <HoverCard openDelay={200}>
+                      <HoverCardTrigger asChild>
+                        <div className="cursor-pointer">
+                          <Input
+                            type="text"
+                            value={belief.problems}
+                            onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'problems', belief.problems, 'Results', 'coral-red')}
+                            readOnly
+                            className="text-xs cursor-pointer border-2 border-coral-red/40 focus:border-coral-red dark:border-coral-red/60 dark:focus:border-coral-red bg-white dark:bg-gray-950 hover:bg-coral-red/5 dark:hover:bg-coral-red/10"
+                            data-testid={`text-problems-${belief.category.toLowerCase()}`}
+                          />
+                        </div>
+                      </HoverCardTrigger>
+                      <HoverCardContent 
+                        side="top" 
+                        align="center" 
+                        className="w-96 bg-gradient-to-br from-coral-red/10 via-white to-coral-red/5 dark:from-coral-red/20 dark:via-gray-900 dark:to-coral-red/10 border-2 border-coral-red/30 z-[100]"
+                      >
+                        <div className="space-y-2">
+                          <h4 className="text-sm font-semibold text-coral-red">Results</h4>
+                          <p className="text-sm text-foreground whitespace-pre-wrap break-words">{belief.problems}</p>
+                        </div>
+                      </HoverCardContent>
+                    </HoverCard>
+                  ) : (
+                    <Input
+                      type="text"
+                      value={belief.problems || ''}
+                      onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'problems', belief.problems || '', 'Results', 'coral-red')}
+                      readOnly
+                      className="text-xs cursor-pointer border-2 border-coral-red/40 focus:border-coral-red dark:border-coral-red/60 dark:focus:border-coral-red bg-white dark:bg-gray-950 hover:bg-coral-red/5 dark:hover:bg-coral-red/10"
+                      placeholder="Click to add..."
+                      data-testid={`text-problems-${belief.category.toLowerCase()}`}
+                    />
+                  )}
                 </TableCell>
 
                 {/* Current Week - Feelings */}
                 <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top">
-                  <Input
-                    type="text"
-                    value={belief.currentFeelings || ''}
-                    onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'currentFeelings', belief.currentFeelings || '', 'Feelings', 'emerald-green')}
-                    readOnly
-                    className="text-xs cursor-pointer border-2 border-emerald-green/40 focus:border-emerald-green dark:border-emerald-green/60 dark:focus:border-emerald-green bg-white dark:bg-gray-950 hover:bg-emerald-green/5 dark:hover:bg-emerald-green/10"
-                    placeholder="Click to add..."
-                    data-testid={`text-feelings-${belief.category.toLowerCase()}`}
-                  />
+                  {belief.currentFeelings && belief.currentFeelings.length > 0 ? (
+                    <HoverCard openDelay={200}>
+                      <HoverCardTrigger asChild>
+                        <div className="cursor-pointer">
+                          <Input
+                            type="text"
+                            value={belief.currentFeelings}
+                            onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'currentFeelings', belief.currentFeelings, 'Feelings', 'emerald-green')}
+                            readOnly
+                            className="text-xs cursor-pointer border-2 border-emerald-green/40 focus:border-emerald-green dark:border-emerald-green/60 dark:focus:border-emerald-green bg-white dark:bg-gray-950 hover:bg-emerald-green/5 dark:hover:bg-emerald-green/10"
+                            data-testid={`text-feelings-${belief.category.toLowerCase()}`}
+                          />
+                        </div>
+                      </HoverCardTrigger>
+                      <HoverCardContent 
+                        side="top" 
+                        align="center" 
+                        className="w-96 bg-gradient-to-br from-emerald-green/10 via-white to-emerald-green/5 dark:from-emerald-green/20 dark:via-gray-900 dark:to-emerald-green/10 border-2 border-emerald-green/30 z-[100]"
+                      >
+                        <div className="space-y-2">
+                          <h4 className="text-sm font-semibold text-emerald-green">Feelings</h4>
+                          <p className="text-sm text-foreground whitespace-pre-wrap break-words">{belief.currentFeelings}</p>
+                        </div>
+                      </HoverCardContent>
+                    </HoverCard>
+                  ) : (
+                    <Input
+                      type="text"
+                      value={belief.currentFeelings || ''}
+                      onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'currentFeelings', belief.currentFeelings || '', 'Feelings', 'emerald-green')}
+                      readOnly
+                      className="text-xs cursor-pointer border-2 border-emerald-green/40 focus:border-emerald-green dark:border-emerald-green/60 dark:focus:border-emerald-green bg-white dark:bg-gray-950 hover:bg-emerald-green/5 dark:hover:bg-emerald-green/10"
+                      placeholder="Click to add..."
+                      data-testid={`text-feelings-${belief.category.toLowerCase()}`}
+                    />
+                  )}
                 </TableCell>
 
                 {/* Current Week - Beliefs */}
                 <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top">
-                  <Input
-                    type="text"
-                    value={belief.currentBelief || ''}
-                    onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'currentBelief', belief.currentBelief || '', 'Beliefs/Reasons', 'golden-yellow')}
-                    readOnly
-                    className="text-xs cursor-pointer border-2 border-golden-yellow/40 focus:border-golden-yellow dark:border-golden-yellow/60 dark:focus:border-golden-yellow bg-white dark:bg-gray-950 hover:bg-golden-yellow/5 dark:hover:bg-golden-yellow/10"
-                    placeholder="Click to add..."
-                    data-testid={`text-beliefs-${belief.category.toLowerCase()}`}
-                  />
+                  {belief.currentBelief && belief.currentBelief.length > 0 ? (
+                    <HoverCard openDelay={200}>
+                      <HoverCardTrigger asChild>
+                        <div className="cursor-pointer">
+                          <Input
+                            type="text"
+                            value={belief.currentBelief}
+                            onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'currentBelief', belief.currentBelief, 'Beliefs/Reasons', 'golden-yellow')}
+                            readOnly
+                            className="text-xs cursor-pointer border-2 border-golden-yellow/40 focus:border-golden-yellow dark:border-golden-yellow/60 dark:focus:border-golden-yellow bg-white dark:bg-gray-950 hover:bg-golden-yellow/5 dark:hover:bg-golden-yellow/10"
+                            data-testid={`text-beliefs-${belief.category.toLowerCase()}`}
+                          />
+                        </div>
+                      </HoverCardTrigger>
+                      <HoverCardContent 
+                        side="top" 
+                        align="center" 
+                        className="w-96 bg-gradient-to-br from-golden-yellow/10 via-white to-golden-yellow/5 dark:from-golden-yellow/20 dark:via-gray-900 dark:to-golden-yellow/10 border-2 border-golden-yellow/30 z-[100]"
+                      >
+                        <div className="space-y-2">
+                          <h4 className="text-sm font-semibold text-golden-yellow">Beliefs/Reasons</h4>
+                          <p className="text-sm text-foreground whitespace-pre-wrap break-words">{belief.currentBelief}</p>
+                        </div>
+                      </HoverCardContent>
+                    </HoverCard>
+                  ) : (
+                    <Input
+                      type="text"
+                      value={belief.currentBelief || ''}
+                      onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'currentBelief', belief.currentBelief || '', 'Beliefs/Reasons', 'golden-yellow')}
+                      readOnly
+                      className="text-xs cursor-pointer border-2 border-golden-yellow/40 focus:border-golden-yellow dark:border-golden-yellow/60 dark:focus:border-golden-yellow bg-white dark:bg-gray-950 hover:bg-golden-yellow/5 dark:hover:bg-golden-yellow/10"
+                      placeholder="Click to add..."
+                      data-testid={`text-beliefs-${belief.category.toLowerCase()}`}
+                    />
+                  )}
                 </TableCell>
 
                 {/* Current Week - Actions */}
                 <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 border-r align-top">
-                  <Input
-                    type="text"
-                    value={belief.currentActions || ''}
-                    onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'currentActions', belief.currentActions || '', 'Actions', 'soft-lavender')}
-                    readOnly
-                    className="text-xs cursor-pointer border-2 border-soft-lavender/40 focus:border-soft-lavender dark:border-soft-lavender/60 dark:focus:border-soft-lavender bg-white dark:bg-gray-950 hover:bg-soft-lavender/5 dark:hover:bg-soft-lavender/10"
-                    placeholder="Click to add..."
-                    data-testid={`text-actions-${belief.category.toLowerCase()}`}
-                  />
+                  {belief.currentActions && belief.currentActions.length > 0 ? (
+                    <HoverCard openDelay={200}>
+                      <HoverCardTrigger asChild>
+                        <div className="cursor-pointer">
+                          <Input
+                            type="text"
+                            value={belief.currentActions}
+                            onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'currentActions', belief.currentActions, 'Actions', 'soft-lavender')}
+                            readOnly
+                            className="text-xs cursor-pointer border-2 border-soft-lavender/40 focus:border-soft-lavender dark:border-soft-lavender/60 dark:focus:border-soft-lavender bg-white dark:bg-gray-950 hover:bg-soft-lavender/5 dark:hover:bg-soft-lavender/10"
+                            data-testid={`text-actions-${belief.category.toLowerCase()}`}
+                          />
+                        </div>
+                      </HoverCardTrigger>
+                      <HoverCardContent 
+                        side="top" 
+                        align="center" 
+                        className="w-96 bg-gradient-to-br from-soft-lavender/20 via-white to-soft-lavender/10 dark:from-soft-lavender/30 dark:via-gray-900 dark:to-soft-lavender/15 border-2 border-soft-lavender/40 z-[100]"
+                      >
+                        <div className="space-y-2">
+                          <h4 className="text-sm font-semibold text-soft-lavender">Actions</h4>
+                          <p className="text-sm text-foreground whitespace-pre-wrap break-words">{belief.currentActions}</p>
+                        </div>
+                      </HoverCardContent>
+                    </HoverCard>
+                  ) : (
+                    <Input
+                      type="text"
+                      value={belief.currentActions || ''}
+                      onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'currentActions', belief.currentActions || '', 'Actions', 'soft-lavender')}
+                      readOnly
+                      className="text-xs cursor-pointer border-2 border-soft-lavender/40 focus:border-soft-lavender dark:border-soft-lavender/60 dark:focus:border-soft-lavender bg-white dark:bg-gray-950 hover:bg-soft-lavender/5 dark:hover:bg-soft-lavender/10"
+                      placeholder="Click to add..."
+                      data-testid={`text-actions-${belief.category.toLowerCase()}`}
+                    />
+                  )}
                 </TableCell>
 
                 {/* Platinum Standards - Compact with Hover Popup */}
