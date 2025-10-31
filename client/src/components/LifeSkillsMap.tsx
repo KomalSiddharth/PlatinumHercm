@@ -22,6 +22,12 @@ interface CourseLesson {
   completed: boolean;
 }
 
+interface CourseSubcategory {
+  id: string;
+  title: string;
+  lessons: CourseLesson[];
+}
+
 interface CourseTrackingData {
   id: string;
   title: string;
@@ -33,30 +39,29 @@ interface CourseTrackingData {
   progressPercent: number;
   category: string;
   lessons: CourseLesson[];
+  subcategories?: CourseSubcategory[];
 }
 
 export default function LifeSkillsMap() {
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
+  const [openSubcategories, setOpenSubcategories] = useState<Record<string, boolean>>({});
 
   // Fetch course tracking data
   const { data: coursesData, isLoading } = useQuery<CourseTrackingData[]>({
     queryKey: ['/api/courses/tracking'],
   });
 
-  // Transform course tracking data to life skills format
-  const lifeSkillsData: CategoryData[] = (coursesData || []).map(course => ({
-    category: course.title,
-    mappings: course.lessons.map(lesson => ({
-      problem: lesson.title,
-      skills: [lesson.title],
-      skillUrls: [lesson.url]
-    }))
-  }));
-
   const toggleCategory = (category: string) => {
     setOpenCategories(prev => ({
       ...prev,
       [category]: !prev[category]
+    }));
+  };
+
+  const toggleSubcategory = (subcategoryKey: string) => {
+    setOpenSubcategories(prev => ({
+      ...prev,
+      [subcategoryKey]: !prev[subcategoryKey]
     }));
   };
 
@@ -91,62 +96,123 @@ export default function LifeSkillsMap() {
                 </div>
               </div>
 
-              {/* Categories */}
-              {lifeSkillsData.map((category, categoryIdx) => (
+              {/* Courses */}
+              {(coursesData || []).map((course, courseIdx) => (
                 <Collapsible
-                  key={`category-${categoryIdx}`}
-                  open={openCategories[category.category]}
-                  onOpenChange={() => toggleCategory(category.category)}
-                  data-testid={`collapsible-category-${categoryIdx}`}
+                  key={`course-${courseIdx}`}
+                  open={openCategories[course.title]}
+                  onOpenChange={() => toggleCategory(course.title)}
+                  data-testid={`collapsible-category-${courseIdx}`}
                 >
-                  {/* Category Header */}
+                  {/* Course Header */}
                   <CollapsibleTrigger 
                     className="w-full bg-primary/10 dark:bg-primary/20 hover:bg-primary/15 dark:hover:bg-primary/25 transition-colors border-b border-primary/10" 
-                    data-testid={`button-toggle-${category.category.toLowerCase().replace(/\s+/g, '-')}`}
+                    data-testid={`button-toggle-${course.title.toLowerCase().replace(/\s+/g, '-')}`}
                   >
                     <div className="flex items-center justify-center gap-1.5 p-1.5 sm:p-2">
                       <h3 className="font-bold text-xs sm:text-sm text-center text-primary dark:text-accent">
-                        {category.category}
+                        {course.title}
                       </h3>
-                      <ChevronDown className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary dark:text-accent transition-transform duration-200 ${openCategories[category.category] ? 'transform rotate-180' : ''}`} />
+                      <ChevronDown className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary dark:text-accent transition-transform duration-200 ${openCategories[course.title] ? 'transform rotate-180' : ''}`} />
                     </div>
                   </CollapsibleTrigger>
 
                   <CollapsibleContent>
-                    {/* Category Content Table - Scrollable */}
-                    <div className="max-h-[400px] overflow-y-auto">
-                      <table className="w-full border-collapse">
-                        <tbody>
-                          {category.mappings.map((mapping, mappingIdx) => (
-                            <tr 
-                              key={`mapping-${categoryIdx}-${mappingIdx}`}
-                              className={mappingIdx % 2 === 0 ? 'bg-white dark:bg-gray-900/50' : 'bg-gray-50 dark:bg-gray-800/50'}
-                              data-testid={`row-skill-mapping-${categoryIdx}-${mappingIdx}`}
+                    {/* If course has subcategories, show them as nested collapsibles */}
+                    {course.subcategories && course.subcategories.length > 0 ? (
+                      <div>
+                        {course.subcategories.map((subcategory, subcatIdx) => {
+                          const subcatKey = `${course.id}-${subcategory.id}`;
+                          return (
+                            <Collapsible
+                              key={`subcategory-${subcatIdx}`}
+                              open={openSubcategories[subcatKey]}
+                              onOpenChange={() => toggleSubcategory(subcatKey)}
+                              data-testid={`collapsible-subcategory-${courseIdx}-${subcatIdx}`}
                             >
-                              <td className="w-1/2 p-1 sm:p-1.5 border-b border-gray-200 dark:border-gray-700 align-top">
-                                <span className="text-xs">{mapping.problem}</span>
-                              </td>
-                              <td className="w-1/2 p-1 sm:p-1.5 border-b border-gray-200 dark:border-gray-700 align-top">
-                                <div className="flex flex-col gap-0.5">
-                                  {mapping.skills.map((skill, skillIdx) => (
+                              {/* Subcategory Header */}
+                              <CollapsibleTrigger 
+                                className="w-full bg-accent/10 dark:bg-accent/20 hover:bg-accent/15 dark:hover:bg-accent/25 transition-colors border-b border-accent/10" 
+                                data-testid={`button-toggle-${subcategory.title.toLowerCase().replace(/\s+/g, '-')}`}
+                              >
+                                <div className="flex items-center justify-center gap-1.5 p-1.5 sm:p-2 pl-6">
+                                  <h4 className="font-semibold text-xs sm:text-sm text-center text-accent dark:text-accent/90">
+                                    {subcategory.title}
+                                  </h4>
+                                  <ChevronDown className={`h-3 w-3 sm:h-3.5 sm:w-3.5 text-accent dark:text-accent/90 transition-transform duration-200 ${openSubcategories[subcatKey] ? 'transform rotate-180' : ''}`} />
+                                </div>
+                              </CollapsibleTrigger>
+
+                              <CollapsibleContent>
+                                {/* Subcategory Lessons Table */}
+                                <div className="max-h-[400px] overflow-y-auto">
+                                  <table className="w-full border-collapse">
+                                    <tbody>
+                                      {subcategory.lessons.map((lesson, lessonIdx) => (
+                                        <tr 
+                                          key={`lesson-${courseIdx}-${subcatIdx}-${lessonIdx}`}
+                                          className={lessonIdx % 2 === 0 ? 'bg-white dark:bg-gray-900/50' : 'bg-gray-50 dark:bg-gray-800/50'}
+                                          data-testid={`row-skill-mapping-${courseIdx}-${subcatIdx}-${lessonIdx}`}
+                                        >
+                                          <td className="w-1/2 p-1 sm:p-1.5 border-b border-gray-200 dark:border-gray-700 align-top">
+                                            <span className="text-xs">{lesson.title}</span>
+                                          </td>
+                                          <td className="w-1/2 p-1 sm:p-1.5 border-b border-gray-200 dark:border-gray-700 align-top">
+                                            <div className="flex flex-col gap-0.5">
+                                              <a
+                                                href={lesson.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-600 dark:text-blue-400 hover:underline text-xs break-all"
+                                                data-testid={`link-skill-${courseIdx}-${subcatIdx}-${lessonIdx}`}
+                                              >
+                                                {lesson.title}
+                                              </a>
+                                            </div>
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </CollapsibleContent>
+                            </Collapsible>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      /* If no subcategories, show flat lessons */
+                      <div className="max-h-[400px] overflow-y-auto">
+                        <table className="w-full border-collapse">
+                          <tbody>
+                            {course.lessons.map((lesson, lessonIdx) => (
+                              <tr 
+                                key={`lesson-${courseIdx}-${lessonIdx}`}
+                                className={lessonIdx % 2 === 0 ? 'bg-white dark:bg-gray-900/50' : 'bg-gray-50 dark:bg-gray-800/50'}
+                                data-testid={`row-skill-mapping-${courseIdx}-${lessonIdx}`}
+                              >
+                                <td className="w-1/2 p-1 sm:p-1.5 border-b border-gray-200 dark:border-gray-700 align-top">
+                                  <span className="text-xs">{lesson.title}</span>
+                                </td>
+                                <td className="w-1/2 p-1 sm:p-1.5 border-b border-gray-200 dark:border-gray-700 align-top">
+                                  <div className="flex flex-col gap-0.5">
                                     <a
-                                      key={`skill-${categoryIdx}-${mappingIdx}-${skillIdx}`}
-                                      href={mapping.skillUrls?.[skillIdx] || '#'}
+                                      href={lesson.url}
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       className="text-blue-600 dark:text-blue-400 hover:underline text-xs break-all"
-                                      data-testid={`link-skill-${categoryIdx}-${mappingIdx}-${skillIdx}`}
+                                      data-testid={`link-skill-${courseIdx}-${lessonIdx}`}
                                     >
-                                      {skill}
+                                      {lesson.title}
                                     </a>
-                                  ))}
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
                   </CollapsibleContent>
                 </Collapsible>
               ))}
