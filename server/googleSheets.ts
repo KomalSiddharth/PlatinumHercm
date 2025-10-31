@@ -607,10 +607,6 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
           subcategoryName: 'Career Mastery' 
         },
         { 
-          matcher: (title: string) => title.includes('relationship') && title.includes('mastery'),
-          subcategoryName: 'Relationship Mastery' 
-        },
-        { 
           matcher: (title: string) => (title.includes('wealth') || title.includes('money')) && (title.includes('mastery') || title.includes('master')),
           subcategoryName: 'Wealth Mastery' 
         },
@@ -677,6 +673,15 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
       }
     } else {
       console.log('⚠️  Platinum Fast Track course not found');
+    }
+
+    // Filter out "Relationship Mastery" course completely from the list
+    const relationshipMasteryIndex = courses.findIndex(c => 
+      c.title.toLowerCase().includes('relationship') && c.title.toLowerCase().includes('mastery')
+    );
+    if (relationshipMasteryIndex !== -1) {
+      console.log(`🗑️  Removing "Relationship Mastery with Mitesh Khatri" from course list`);
+      courses.splice(relationshipMasteryIndex, 1);
     }
 
     cachedCourseTracking = courses;
