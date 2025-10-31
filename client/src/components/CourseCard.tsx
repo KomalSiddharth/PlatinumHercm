@@ -13,6 +13,13 @@ interface CourseModule {
   id: string;
   title: string;
   url?: string;
+  completed?: boolean;
+}
+
+interface CourseSubcategory {
+  id: string;
+  title: string;
+  lessons: CourseModule[];
 }
 
 interface CourseCardProps {
@@ -25,6 +32,7 @@ interface CourseCardProps {
   status: 'not_started' | 'in_progress' | 'completed';
   progressPercent: number;
   modules?: CourseModule[];
+  subcategories?: CourseSubcategory[];
   completedModules?: string[];
   onUpdateProgress?: (id: string) => void;
   onVisit?: (id: string) => void;
@@ -57,6 +65,7 @@ export default function CourseCard({
   status: initialStatus,
   progressPercent: initialProgress,
   modules = [],
+  subcategories = [],
   completedModules = [],
   onUpdateProgress = () => {},
   onVisit = () => {},
@@ -64,10 +73,14 @@ export default function CourseCard({
   category = 'default'
 }: CourseCardProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [openSubcategories, setOpenSubcategories] = useState<Record<string, boolean>>({});
   const [localCompletedModules, setLocalCompletedModules] = useState<string[]>(completedModules);
   
-  // Calculate progress and status based on module completion
-  const totalModules = modules.length || 1;
+  // Calculate total lessons including subcategories
+  const directModules = modules.length;
+  const subcategoryLessons = subcategories.reduce((sum, sub) => sum + sub.lessons.length, 0);
+  const totalModules = directModules + subcategoryLessons || 1;
+  
   const completedCount = localCompletedModules.length;
   const calculatedProgress = Math.round((completedCount / totalModules) * 100);
   
@@ -89,8 +102,15 @@ export default function CourseCard({
     onModuleToggle(id, moduleId, completed);
   };
 
-  // Show dropdown only if modules exist
-  const showDropdown = modules.length > 0;
+  const toggleSubcategory = (subcategoryId: string) => {
+    setOpenSubcategories(prev => ({
+      ...prev,
+      [subcategoryId]: !prev[subcategoryId]
+    }));
+  };
+
+  // Show dropdown if modules or subcategories exist
+  const showDropdown = modules.length > 0 || subcategories.length > 0;
 
   return (
     <div className={`${gradientClass} rounded-lg p-6 hover-elevate shadow-lg`}>
@@ -157,14 +177,16 @@ export default function CourseCard({
         )}
       </div>
 
-      {/* Collapsible Module List */}
+      {/* Collapsible Module/Subcategory List */}
       {showDropdown && (
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
           <CollapsibleContent className="mt-4">
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 space-y-2">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 space-y-3">
               <p className="text-sm text-white/80 font-medium mb-3">
-                {completedCount}/{totalModules} modules completed
+                {completedCount}/{totalModules} lessons completed
               </p>
+              
+              {/* Direct modules (if any) */}
               {modules.map((module) => (
                 <div 
                   key={module.id} 
@@ -196,6 +218,66 @@ export default function CourseCard({
                       </svg>
                     </Button>
                   )}
+                </div>
+              ))}
+
+              {/* Subcategories (nested collapsibles) */}
+              {subcategories.map((subcategory) => (
+                <div key={subcategory.id} className="border-l-2 border-white/30 pl-3">
+                  <Collapsible 
+                    open={openSubcategories[subcategory.id]} 
+                    onOpenChange={() => toggleSubcategory(subcategory.id)}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full justify-between text-white hover:bg-white/20 mb-2"
+                        data-testid={`button-subcategory-${subcategory.id}`}
+                      >
+                        <span className="font-medium">{subcategory.title}</span>
+                        {openSubcategories[subcategory.id] ? 
+                          <ChevronUp className="w-4 h-4" /> : 
+                          <ChevronDown className="w-4 h-4" />
+                        }
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="space-y-2 mt-2">
+                      {subcategory.lessons.map((lesson) => (
+                        <div 
+                          key={lesson.id} 
+                          className="flex items-center gap-3 p-2 rounded hover:bg-white/10 transition-colors"
+                          data-testid={`lesson-item-${lesson.id}`}
+                        >
+                          <Checkbox
+                            checked={localCompletedModules.includes(lesson.id)}
+                            onCheckedChange={(checked) => handleModuleToggle(lesson.id, checked as boolean)}
+                            className="border-white/40 data-[state=checked]:bg-white data-[state=checked]:text-primary"
+                            data-testid={`checkbox-lesson-${lesson.id}`}
+                          />
+                          <label className="text-sm text-white cursor-pointer flex-1" onClick={() => {
+                            const isChecked = localCompletedModules.includes(lesson.id);
+                            handleModuleToggle(lesson.id, !isChecked);
+                          }}>
+                            {lesson.title}
+                          </label>
+                          {lesson.url && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 text-white/60 hover:text-white hover:bg-white/20"
+                              onClick={() => window.open(lesson.url, '_blank')}
+                              data-testid={`button-lesson-link-${lesson.id}`}
+                            >
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </CollapsibleContent>
+                  </Collapsible>
                 </div>
               ))}
             </div>
