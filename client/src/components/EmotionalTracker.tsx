@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -40,6 +41,8 @@ export default function EmotionalTracker() {
   const [currentDateStr, setCurrentDateStr] = useState<string>(today);
   const [trackerData, setTrackerData] = useState<Record<string, EmotionalTrackerData>>({});
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
+  const [hoverEditingField, setHoverEditingField] = useState<{ timeSlot: string; field: string } | null>(null);
+  const [hoverEditValue, setHoverEditValue] = useState<string>('');
 
   // Update currentDateStr when selectedDate changes
   useEffect(() => {
@@ -121,6 +124,56 @@ export default function EmotionalTracker() {
       newDate.setDate(newDate.getDate() + 1);
     }
     setSelectedDate(newDate);
+  };
+
+  // Start editing in hover card
+  const startHoverEdit = (timeSlot: string, field: string, currentValue: string) => {
+    setHoverEditingField({ timeSlot, field });
+    setHoverEditValue(currentValue);
+  };
+
+  // Save hover edit (called from Enter key or hover close)
+  const saveHoverEdit = () => {
+    if (!hoverEditingField) return;
+    
+    const { timeSlot, field } = hoverEditingField;
+    const data = trackerData[timeSlot];
+    const currentValue = data?.[field as keyof EmotionalTrackerData] as string || '';
+    
+    if (hoverEditValue !== currentValue) {
+      // Value changed - save it
+      const updatedData = {
+        ...data,
+        [field]: hoverEditValue,
+        timeSlot,
+        date: currentDateStr,
+      };
+      
+      setTrackerData((prev) => ({
+        ...prev,
+        [timeSlot]: updatedData as EmotionalTrackerData,
+      }));
+      
+      saveMutation.mutate({
+        date: currentDateStr,
+        timeSlot,
+        positiveEmotions: field === 'positiveEmotions' ? hoverEditValue : (data?.positiveEmotions || ''),
+        negativeEmotions: field === 'negativeEmotions' ? hoverEditValue : (data?.negativeEmotions || ''),
+        repeatingEmotions: field === 'repeatingEmotions' ? hoverEditValue : (data?.repeatingEmotions || ''),
+        missingEmotions: field === 'missingEmotions' ? hoverEditValue : (data?.missingEmotions || ''),
+      });
+    }
+    
+    // Clear hover editing state
+    setHoverEditingField(null);
+    setHoverEditValue('');
+  };
+
+  // Handle hover card close and auto-save
+  const handleHoverClose = (isOpen: boolean, timeSlot: string, field: string) => {
+    if (!isOpen && hoverEditingField?.timeSlot === timeSlot && hoverEditingField?.field === field) {
+      saveHoverEdit();
+    }
   };
 
   if (isLoading) {
@@ -267,7 +320,7 @@ export default function EmotionalTracker() {
                     {/* Positive Emotions */}
                     <td className="p-1 sm:p-1.5 md:p-2">
                       {data.positiveEmotions && focusedInput !== `${timeSlot}-positiveEmotions` ? (
-                        <HoverCard openDelay={200}>
+                        <HoverCard openDelay={200} onOpenChange={(isOpen) => handleHoverClose(isOpen, timeSlot, 'positiveEmotions')}>
                           <HoverCardTrigger asChild>
                             <div className="cursor-pointer">
                               <Input
@@ -288,7 +341,30 @@ export default function EmotionalTracker() {
                           >
                             <div className="space-y-2">
                               <h4 className="text-sm font-semibold text-green-700 dark:text-green-200">Positive Emotions</h4>
-                              <p className="text-sm text-gray-700 dark:text-gray-100 whitespace-pre-wrap">{data.positiveEmotions}</p>
+                              {hoverEditingField?.timeSlot === timeSlot && hoverEditingField?.field === 'positiveEmotions' ? (
+                                <Textarea
+                                  value={hoverEditValue}
+                                  onChange={(e) => setHoverEditValue(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                      e.preventDefault();
+                                      saveHoverEdit();
+                                    }
+                                  }}
+                                  className="text-sm min-h-[100px] resize-none"
+                                  placeholder="Click to edit..."
+                                  autoFocus
+                                  data-testid={`textarea-hover-positive-${index}`}
+                                />
+                              ) : (
+                                <p 
+                                  className="text-sm text-gray-700 dark:text-gray-100 whitespace-pre-wrap cursor-text hover:bg-green-100/50 dark:hover:bg-green-800/30 p-2 rounded"
+                                  onClick={() => startHoverEdit(timeSlot, 'positiveEmotions', data.positiveEmotions)}
+                                  data-testid={`text-hover-positive-${index}`}
+                                >
+                                  {data.positiveEmotions}
+                                </p>
+                              )}
                             </div>
                           </HoverCardContent>
                         </HoverCard>
@@ -308,7 +384,7 @@ export default function EmotionalTracker() {
                     {/* Negative Emotions */}
                     <td className="p-1 sm:p-1.5 md:p-2">
                       {data.negativeEmotions && focusedInput !== `${timeSlot}-negativeEmotions` ? (
-                        <HoverCard openDelay={200}>
+                        <HoverCard openDelay={200} onOpenChange={(isOpen) => handleHoverClose(isOpen, timeSlot, 'negativeEmotions')}>
                           <HoverCardTrigger asChild>
                             <div className="cursor-pointer">
                               <Input
@@ -329,7 +405,30 @@ export default function EmotionalTracker() {
                           >
                             <div className="space-y-2">
                               <h4 className="text-sm font-semibold text-red-700 dark:text-red-200">Negative Emotions</h4>
-                              <p className="text-sm text-gray-700 dark:text-gray-100 whitespace-pre-wrap">{data.negativeEmotions}</p>
+                              {hoverEditingField?.timeSlot === timeSlot && hoverEditingField?.field === 'negativeEmotions' ? (
+                                <Textarea
+                                  value={hoverEditValue}
+                                  onChange={(e) => setHoverEditValue(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                      e.preventDefault();
+                                      saveHoverEdit();
+                                    }
+                                  }}
+                                  className="text-sm min-h-[100px] resize-none"
+                                  placeholder="Click to edit..."
+                                  autoFocus
+                                  data-testid={`textarea-hover-negative-${index}`}
+                                />
+                              ) : (
+                                <p 
+                                  className="text-sm text-gray-700 dark:text-gray-100 whitespace-pre-wrap cursor-text hover:bg-red-100/50 dark:hover:bg-red-800/30 p-2 rounded"
+                                  onClick={() => startHoverEdit(timeSlot, 'negativeEmotions', data.negativeEmotions)}
+                                  data-testid={`text-hover-negative-${index}`}
+                                >
+                                  {data.negativeEmotions}
+                                </p>
+                              )}
                             </div>
                           </HoverCardContent>
                         </HoverCard>
@@ -349,7 +448,7 @@ export default function EmotionalTracker() {
                     {/* Repeating Emotions */}
                     <td className="p-1 sm:p-1.5 md:p-2">
                       {data.repeatingEmotions && focusedInput !== `${timeSlot}-repeatingEmotions` ? (
-                        <HoverCard openDelay={200}>
+                        <HoverCard openDelay={200} onOpenChange={(isOpen) => handleHoverClose(isOpen, timeSlot, 'repeatingEmotions')}>
                           <HoverCardTrigger asChild>
                             <div className="cursor-pointer">
                               <Input
@@ -370,7 +469,30 @@ export default function EmotionalTracker() {
                           >
                             <div className="space-y-2">
                               <h4 className="text-sm font-semibold text-blue-700 dark:text-blue-200">Repeating Emotions</h4>
-                              <p className="text-sm text-gray-700 dark:text-gray-100 whitespace-pre-wrap">{data.repeatingEmotions}</p>
+                              {hoverEditingField?.timeSlot === timeSlot && hoverEditingField?.field === 'repeatingEmotions' ? (
+                                <Textarea
+                                  value={hoverEditValue}
+                                  onChange={(e) => setHoverEditValue(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                      e.preventDefault();
+                                      saveHoverEdit();
+                                    }
+                                  }}
+                                  className="text-sm min-h-[100px] resize-none"
+                                  placeholder="Click to edit..."
+                                  autoFocus
+                                  data-testid={`textarea-hover-repeating-${index}`}
+                                />
+                              ) : (
+                                <p 
+                                  className="text-sm text-gray-700 dark:text-gray-100 whitespace-pre-wrap cursor-text hover:bg-blue-100/50 dark:hover:bg-blue-800/30 p-2 rounded"
+                                  onClick={() => startHoverEdit(timeSlot, 'repeatingEmotions', data.repeatingEmotions)}
+                                  data-testid={`text-hover-repeating-${index}`}
+                                >
+                                  {data.repeatingEmotions}
+                                </p>
+                              )}
                             </div>
                           </HoverCardContent>
                         </HoverCard>
@@ -390,7 +512,7 @@ export default function EmotionalTracker() {
                     {/* Missing Emotions */}
                     <td className="p-1 sm:p-1.5 md:p-2">
                       {data.missingEmotions && focusedInput !== `${timeSlot}-missingEmotions` ? (
-                        <HoverCard openDelay={200}>
+                        <HoverCard openDelay={200} onOpenChange={(isOpen) => handleHoverClose(isOpen, timeSlot, 'missingEmotions')}>
                           <HoverCardTrigger asChild>
                             <div className="cursor-pointer">
                               <Input
@@ -411,7 +533,30 @@ export default function EmotionalTracker() {
                           >
                             <div className="space-y-2">
                               <h4 className="text-sm font-semibold text-orange-700 dark:text-orange-200">Missing Emotions</h4>
-                              <p className="text-sm text-gray-700 dark:text-gray-100 whitespace-pre-wrap">{data.missingEmotions}</p>
+                              {hoverEditingField?.timeSlot === timeSlot && hoverEditingField?.field === 'missingEmotions' ? (
+                                <Textarea
+                                  value={hoverEditValue}
+                                  onChange={(e) => setHoverEditValue(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                      e.preventDefault();
+                                      saveHoverEdit();
+                                    }
+                                  }}
+                                  className="text-sm min-h-[100px] resize-none"
+                                  placeholder="Click to edit..."
+                                  autoFocus
+                                  data-testid={`textarea-hover-missing-${index}`}
+                                />
+                              ) : (
+                                <p 
+                                  className="text-sm text-gray-700 dark:text-gray-100 whitespace-pre-wrap cursor-text hover:bg-orange-100/50 dark:hover:bg-orange-800/30 p-2 rounded"
+                                  onClick={() => startHoverEdit(timeSlot, 'missingEmotions', data.missingEmotions)}
+                                  data-testid={`text-hover-missing-${index}`}
+                                >
+                                  {data.missingEmotions}
+                                </p>
+                              )}
                             </div>
                           </HoverCardContent>
                         </HoverCard>
