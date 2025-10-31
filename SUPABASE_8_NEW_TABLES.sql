@@ -107,6 +107,14 @@ CREATE TABLE rating_progression (
   relationship_weeks_at_max INTEGER DEFAULT 0 NOT NULL,
   career_weeks_at_max INTEGER DEFAULT 0 NOT NULL,
   money_weeks_at_max INTEGER DEFAULT 0 NOT NULL,
+  health_last_rating INTEGER DEFAULT 0 NOT NULL,
+  relationship_last_rating INTEGER DEFAULT 0 NOT NULL,
+  career_last_rating INTEGER DEFAULT 0 NOT NULL,
+  money_last_rating INTEGER DEFAULT 0 NOT NULL,
+  health_last_counted_week INTEGER DEFAULT 0 NOT NULL,
+  relationship_last_counted_week INTEGER DEFAULT 0 NOT NULL,
+  career_last_counted_week INTEGER DEFAULT 0 NOT NULL,
+  money_last_counted_week INTEGER DEFAULT 0 NOT NULL,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
