@@ -10,7 +10,8 @@ import { getAIRecommendations, generateAffirmation } from "./aiRecommendations";
 import { generateHRCMWeeklyPDF, generateMonthlyProgressPDF } from "./pdfExport";
 import { emailService } from "./emailService";
 import { validateAndCapRating, updateRatingProgression, getRatingCaps, getRatingProgressionStatus } from "./ratingProgression";
-import { backupAllData, backupUserData, getBackupStats, isSupabaseConfigured } from "./backupService";
+import { backupAllData, backupUserData, getBackupStats } from "./backupService";
+import { isSupabaseConfigured } from "./supabase";
 import OpenAI from "openai";
 
 const openai = new OpenAI({

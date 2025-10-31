@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { setupScheduledTasks } from "./scheduler";
+import { startBackupScheduler } from "./backupScheduler";
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
@@ -59,6 +60,9 @@ app.use((req, res, next) => {
 
   // Setup scheduled tasks (email reminders, badge checks)
   setupScheduledTasks();
+  
+  // Setup automated Supabase backups (daily at 2 AM IST)
+  startBackupScheduler();
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
   // Other ports are firewalled. Default to 5000 if not specified.
