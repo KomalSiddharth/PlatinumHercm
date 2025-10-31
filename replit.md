@@ -32,7 +32,10 @@ The frontend is built with React, Vite, Tailwind CSS, TanStack Query, and Wouter
 ## External Dependencies
 - **UI Component Libraries**: Radix UI, `cmdk`, `embla-carousel-react`, `class-variance-authority`, `clsx`, `lucide-react`, `recharts`.
 - **Date/Time Handling**: `date-fns`.
-- **Third-Party Services**: OpenAI (gpt-5 model), Google Sheets, Email Service (Resend/SendGrid).
+- **Third-Party Services**: OpenAI (gpt-5 model), Google Sheets, Email Service (Resend/SendGrid), Supabase (external database backup).
 - **PDF Generation**: `pdfkit`.
 - **Scheduled Tasks**: `node-cron`.
 - **Database Driver**: `@neondatabase/serverless` for PostgreSQL.
+
+## Supabase External Backup System (Oct 31, 2025)
+The application now includes automated external database backup to Supabase for disaster recovery and historical data preservation across 30K+ users. **Architecture**: Supabase client configured in `server/supabase.ts` with URL validation and graceful fallback when credentials not provided. **Backup Service** (`server/backupService.ts`): Implements `backupAllData()` for full system backup, `backupUserData(userId)` for individual user backup, and `getBackupStats()` for monitoring. Uses UPSERT operations to prevent duplicates and maintain data integrity. **Automated Scheduler** (`server/backupScheduler.ts`): Daily backups scheduled at 2:00 AM IST using `node-cron` with Asia/Kolkata timezone. Automatically started on server boot. **Admin API Endpoints**: `GET /api/backup/status` (check configuration), `GET /api/backup/stats` (view backup statistics), `POST /api/backup/full` (trigger full backup), `POST /api/backup/user/:userId` (backup specific user). All backup endpoints are admin-only protected routes. **Data Coverage**: Backs up all critical tables - users, hercm_weeks, ritual_completions, emotional_trackers, course_video_completions, user_persistent_assignments, and platinum_standards. **Setup Requirements**: Requires `SUPABASE_URL` and `SUPABASE_ANON_KEY` environment variables. System validates URL format and gracefully disables backup functionality if credentials invalid/missing. See `SUPABASE_BACKUP_GUIDE.md` for complete setup instructions including SQL table creation scripts.
