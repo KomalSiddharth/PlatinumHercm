@@ -1298,11 +1298,18 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </div>
               )}
               
-              {/* Hint to hover for more options when items exist */}
+              {/* Add Checkpoint button when items exist */}
               {items.length > 0 && !disabled && (
-                <div className="text-xs text-muted-foreground/60 italic pl-5 pt-0.5">
-                  Hover to add/edit
-                </div>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={handleAddCheckpointClick}
+                  className="h-6 w-full text-xs text-muted-foreground hover:text-foreground gap-1 mt-1"
+                  data-testid={`button-add-checkpoint-inline-${checklistType}-${category.toLowerCase()}`}
+                >
+                  <Plus className="w-3 h-3" />
+                  Add Checkpoint
+                </Button>
               )}
             </div>
           </HoverCardTrigger>
