@@ -11,7 +11,7 @@ import { generateHRCMWeeklyPDF, generateMonthlyProgressPDF } from "./pdfExport";
 import { emailService } from "./emailService";
 import { validateAndCapRating, updateRatingProgression, getRatingCaps, getRatingProgressionStatus } from "./ratingProgression";
 import { backupAllData, backupUserData, getBackupStats } from "./backupService";
-import { isSupabaseConfigured } from "./supabase";
+import { isSupabaseConfigured, checkSupabaseHealth } from "./supabase";
 import OpenAI from "openai";
 
 const openai = new OpenAI({
@@ -4674,6 +4674,28 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
         error: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date().toISOString(),
         message: '🚨 DATABASE CRASH DETECTED! Consider switching to Supabase backup.'
+      });
+    }
+  });
+
+  // Supabase backup database health check endpoint
+  app.get('/api/health/supabase', async (req, res) => {
+    try {
+      const healthStatus = await checkSupabaseHealth();
+      
+      if (healthStatus.status === 'healthy') {
+        res.json(healthStatus);
+      } else if (healthStatus.status === 'unconfigured') {
+        res.status(503).json(healthStatus);
+      } else {
+        res.status(503).json(healthStatus);
+      }
+    } catch (error) {
+      console.error("[SUPABASE HEALTH] Error:", error);
+      res.status(500).json({
+        status: 'error',
+        message: 'Failed to check Supabase health',
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });
