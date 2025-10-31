@@ -1297,6 +1297,13 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   + {hiddenCount} more item{hiddenCount > 1 ? 's' : ''}...
                 </div>
               )}
+              
+              {/* Hint to hover for more options when items exist */}
+              {items.length > 0 && !disabled && (
+                <div className="text-xs text-muted-foreground/60 italic pl-5 pt-0.5">
+                  Hover to add/edit
+                </div>
+              )}
             </div>
           </HoverCardTrigger>
           
