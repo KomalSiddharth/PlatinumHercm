@@ -60,7 +60,7 @@ import AdminUserDashboardViewer from '@/components/AdminUserDashboardViewer';
 
 export default function AdminPanel() {
   const [, setLocation] = useLocation();
-  const [activeTab, setActiveTab] = useState<'approved' | 'team' | 'logs' | 'analytics' | 'dashboard-viewer' | 'team-analytics' | 'recommendations' | 'platinum-standards'>('analytics');
+  const [activeTab, setActiveTab] = useState<'approved' | 'team' | 'logs' | 'analytics' | 'dashboard-viewer' | 'team-analytics' | 'recommendations' | 'platinum-standards' | 'feedback'>('analytics');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -399,6 +399,12 @@ export default function AdminPanel() {
     enabled: activeTab === 'platinum-standards',
   });
 
+  // User Feedback query
+  const { data: allFeedback = [] } = useQuery<any[]>({
+    queryKey: ['/api/admin/feedback'],
+    enabled: activeTab === 'feedback',
+  });
+
   const addRecommendationMutation = useMutation({
     mutationFn: async (data: { userEmail: string; hrcmArea: string; courseName: string; reason?: string }) => {
       return apiRequest('POST', '/api/admin/recommendations', data);
@@ -505,6 +511,41 @@ export default function AdminPanel() {
     },
     onError: (error: any) => {
       toast({ title: "Error", description: error.message || "Failed to delete platinum standard", variant: "destructive" });
+    }
+  });
+
+  // User Feedback mutations
+  const updateFeedbackMutation = useMutation({
+    mutationFn: async ({ id, status, adminResponse }: { id: string; status: string; adminResponse?: string }) => {
+      return apiRequest('PATCH', `/api/admin/feedback/${id}`, { status, adminResponse });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/feedback'] });
+      toast({ title: "Feedback Updated", description: "Feedback status has been updated successfully" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Error", 
+        description: error.message || "Failed to update feedback",
+        variant: "destructive" 
+      });
+    }
+  });
+
+  const deleteFeedbackMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return apiRequest('DELETE', `/api/admin/feedback/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/feedback'] });
+      toast({ title: "Feedback Deleted", description: "Feedback has been removed successfully" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Error", 
+        description: error.message || "Failed to delete feedback",
+        variant: "destructive" 
+      });
     }
   });
 
@@ -889,6 +930,17 @@ export default function AdminPanel() {
               >
                 Access Logs
               </button>
+              <button 
+                onClick={() => setActiveTab('feedback')}
+                className={`px-4 py-3 rounded-md text-left transition-colors ${
+                  activeTab === 'feedback' 
+                    ? 'bg-blue-600 text-white font-medium' 
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'
+                }`}
+                data-testid="tab-feedback"
+              >
+                User Feedback
+              </button>
             </div>
           </div>
 
@@ -1197,6 +1249,169 @@ export default function AdminPanel() {
                     )}
                   </tbody>
                 </table>
+              </div>
+            </>
+          )}
+
+          {/* User Feedback Tab Content */}
+          {activeTab === 'feedback' && (
+            <>
+              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">User Feedback</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    Manage and respond to user feedback
+                  </p>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 dark:bg-gray-900/50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Type</th>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Title</th>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">User</th>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Feature</th>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Status</th>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Priority</th>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Date</th>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                    {allFeedback.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="px-6 py-8 text-center text-gray-500">No feedback submitted yet</td>
+                      </tr>
+                    ) : (
+                      allFeedback.map((feedback: any) => (
+                        <tr key={feedback.id} className="hover:bg-gray-50 dark:hover:bg-gray-900/30" data-testid={`row-feedback-${feedback.id}`}>
+                          <td className="px-6 py-4">
+                            <Badge variant="outline" className="capitalize">
+                              {feedback.feedbackType === 'bug' && '🐛'}
+                              {feedback.feedbackType === 'feature' && '💡'}
+                              {feedback.feedbackType === 'course' && '📚'}
+                              {feedback.feedbackType === 'ui' && '🎨'}
+                              {feedback.feedbackType === 'general' && '⭐'}
+                              {feedback.feedbackType === 'support' && '❓'}
+                              {' '}{feedback.feedbackType}
+                            </Badge>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-900 dark:text-white max-w-xs truncate" title={feedback.title}>
+                            {feedback.title}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{feedback.userId}</td>
+                          <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{feedback.relatedFeature || 'N/A'}</td>
+                          <td className="px-6 py-4">
+                            <select
+                              value={feedback.status}
+                              onChange={(e) => updateFeedbackMutation.mutate({ id: feedback.id, status: e.target.value })}
+                              className="text-sm border rounded px-2 py-1 bg-background"
+                              data-testid={`select-status-${feedback.id}`}
+                            >
+                              <option value="pending">⏳ Pending</option>
+                              <option value="in_progress">🔄 In Progress</option>
+                              <option value="resolved">✅ Resolved</option>
+                              <option value="closed">🚫 Closed</option>
+                            </select>
+                          </td>
+                          <td className="px-6 py-4">
+                            <select
+                              value={feedback.priority}
+                              onChange={(e) => updateFeedbackMutation.mutate({ id: feedback.id, status: feedback.status, adminResponse: feedback.adminResponse })}
+                              className="text-sm border rounded px-2 py-1 bg-background"
+                              data-testid={`select-priority-${feedback.id}`}
+                              disabled
+                            >
+                              <option value="low">Low</option>
+                              <option value="medium">Medium</option>
+                              <option value="high">High</option>
+                              <option value="critical">Critical</option>
+                            </select>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
+                            {feedback.createdAt ? new Date(feedback.createdAt).toLocaleDateString() : 'N/A'}
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex gap-2">
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button variant="ghost" size="icon" data-testid={`button-view-${feedback.id}`}>
+                                    <Eye className="w-4 h-4 text-blue-600" />
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                                  <DialogHeader>
+                                    <DialogTitle className="flex items-center gap-2">
+                                      {feedback.feedbackType === 'bug' && '🐛'}
+                                      {feedback.feedbackType === 'feature' && '💡'}
+                                      {feedback.feedbackType === 'course' && '📚'}
+                                      {feedback.feedbackType === 'ui' && '🎨'}
+                                      {feedback.feedbackType === 'general' && '⭐'}
+                                      {feedback.feedbackType === 'support' && '❓'}
+                                      {feedback.title}
+                                    </DialogTitle>
+                                  </DialogHeader>
+                                  <div className="space-y-4 mt-4">
+                                    <div>
+                                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Description:</p>
+                                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 whitespace-pre-wrap">{feedback.description}</p>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                      <div>
+                                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">User:</p>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">{feedback.userId}</p>
+                                      </div>
+                                      <div>
+                                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Feature:</p>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">{feedback.relatedFeature || 'N/A'}</p>
+                                      </div>
+                                      <div>
+                                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Status:</p>
+                                        <Badge variant="outline" className="capitalize">{feedback.status}</Badge>
+                                      </div>
+                                      <div>
+                                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Priority:</p>
+                                        <Badge variant="outline" className="capitalize">{feedback.priority}</Badge>
+                                      </div>
+                                    </div>
+                                    {feedback.adminResponse && (
+                                      <div>
+                                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Admin Response:</p>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 whitespace-pre-wrap">{feedback.adminResponse}</p>
+                                      </div>
+                                    )}
+                                    <div className="pt-4 border-t">
+                                      <p className="text-xs text-gray-500">
+                                        Submitted: {feedback.createdAt ? new Date(feedback.createdAt).toLocaleString() : 'N/A'}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </DialogContent>
+                              </Dialog>
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={() => deleteFeedbackMutation.mutate(feedback.id)}
+                                disabled={deleteFeedbackMutation.isPending}
+                                data-testid={`button-delete-${feedback.id}`}
+                              >
+                                <Trash2 className="w-4 h-4 text-red-600" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Total: {allFeedback.length} feedback submissions
+                </p>
               </div>
             </>
           )}
