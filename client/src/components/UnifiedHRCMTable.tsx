@@ -1860,7 +1860,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                             value={belief.problems}
                             onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'problems', belief.problems, 'Results', 'coral-red')}
                             readOnly
-                            className="text-xs cursor-pointer border-2 border-coral-red/40 focus:border-coral-red dark:border-coral-red/60 dark:focus:border-coral-red bg-white dark:bg-gray-950 hover:bg-coral-red/5 dark:hover:bg-coral-red/10"
+                            className="text-xs cursor-pointer bg-white dark:bg-gray-950"
                             data-testid={`text-problems-${belief.category.toLowerCase()}`}
                           />
                         </div>
@@ -1882,7 +1882,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       value={belief.problems || ''}
                       onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'problems', belief.problems || '', 'Results', 'coral-red')}
                       readOnly
-                      className="text-xs cursor-pointer border-2 border-coral-red/40 focus:border-coral-red dark:border-coral-red/60 dark:focus:border-coral-red bg-white dark:bg-gray-950 hover:bg-coral-red/5 dark:hover:bg-coral-red/10"
+                      className="text-xs cursor-pointer bg-white dark:bg-gray-950"
                       placeholder="Click to add..."
                       data-testid={`text-problems-${belief.category.toLowerCase()}`}
                     />
@@ -1900,7 +1900,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                             value={belief.currentFeelings}
                             onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'currentFeelings', belief.currentFeelings, 'Feelings', 'emerald-green')}
                             readOnly
-                            className="text-xs cursor-pointer border-2 border-emerald-green/40 focus:border-emerald-green dark:border-emerald-green/60 dark:focus:border-emerald-green bg-white dark:bg-gray-950 hover:bg-emerald-green/5 dark:hover:bg-emerald-green/10"
+                            className="text-xs cursor-pointer bg-white dark:bg-gray-950"
                             data-testid={`text-feelings-${belief.category.toLowerCase()}`}
                           />
                         </div>
@@ -1922,7 +1922,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       value={belief.currentFeelings || ''}
                       onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'currentFeelings', belief.currentFeelings || '', 'Feelings', 'emerald-green')}
                       readOnly
-                      className="text-xs cursor-pointer border-2 border-emerald-green/40 focus:border-emerald-green dark:border-emerald-green/60 dark:focus:border-emerald-green bg-white dark:bg-gray-950 hover:bg-emerald-green/5 dark:hover:bg-emerald-green/10"
+                      className="text-xs cursor-pointer bg-white dark:bg-gray-950"
                       placeholder="Click to add..."
                       data-testid={`text-feelings-${belief.category.toLowerCase()}`}
                     />
@@ -1940,7 +1940,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                             value={belief.currentBelief}
                             onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'currentBelief', belief.currentBelief, 'Beliefs/Reasons', 'golden-yellow')}
                             readOnly
-                            className="text-xs cursor-pointer border-2 border-golden-yellow/40 focus:border-golden-yellow dark:border-golden-yellow/60 dark:focus:border-golden-yellow bg-white dark:bg-gray-950 hover:bg-golden-yellow/5 dark:hover:bg-golden-yellow/10"
+                            className="text-xs cursor-pointer bg-white dark:bg-gray-950"
                             data-testid={`text-beliefs-${belief.category.toLowerCase()}`}
                           />
                         </div>
@@ -1962,7 +1962,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       value={belief.currentBelief || ''}
                       onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'currentBelief', belief.currentBelief || '', 'Beliefs/Reasons', 'golden-yellow')}
                       readOnly
-                      className="text-xs cursor-pointer border-2 border-golden-yellow/40 focus:border-golden-yellow dark:border-golden-yellow/60 dark:focus:border-golden-yellow bg-white dark:bg-gray-950 hover:bg-golden-yellow/5 dark:hover:bg-golden-yellow/10"
+                      className="text-xs cursor-pointer bg-white dark:bg-gray-950"
                       placeholder="Click to add..."
                       data-testid={`text-beliefs-${belief.category.toLowerCase()}`}
                     />
@@ -1980,7 +1980,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                             value={belief.currentActions}
                             onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'currentActions', belief.currentActions, 'Actions', 'soft-lavender')}
                             readOnly
-                            className="text-xs cursor-pointer border-2 border-soft-lavender/40 focus:border-soft-lavender dark:border-soft-lavender/60 dark:focus:border-soft-lavender bg-white dark:bg-gray-950 hover:bg-soft-lavender/5 dark:hover:bg-soft-lavender/10"
+                            className="text-xs cursor-pointer bg-white dark:bg-gray-950"
                             data-testid={`text-actions-${belief.category.toLowerCase()}`}
                           />
                         </div>
@@ -2002,7 +2002,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       value={belief.currentActions || ''}
                       onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'currentActions', belief.currentActions || '', 'Actions', 'soft-lavender')}
                       readOnly
-                      className="text-xs cursor-pointer border-2 border-soft-lavender/40 focus:border-soft-lavender dark:border-soft-lavender/60 dark:focus:border-soft-lavender bg-white dark:bg-gray-950 hover:bg-soft-lavender/5 dark:hover:bg-soft-lavender/10"
+                      className="text-xs cursor-pointer bg-white dark:bg-gray-950"
                       placeholder="Click to add..."
                       data-testid={`text-actions-${belief.category.toLowerCase()}`}
                     />
