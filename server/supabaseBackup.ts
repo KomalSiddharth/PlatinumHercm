@@ -119,15 +119,15 @@ export class SupabaseBackupService {
 
       // 2. Backup Approved Emails
       const approvedEmailsData = await db.select().from(approvedEmails);
-      results.push(await this.backupTable('approved_emails', approvedEmailsData));
+      results.push(await this.backupTable('approvedEmails', approvedEmailsData));
 
       // 3. Backup HRCM Weeks (CRITICAL - All dashboard data)
       const hercmWeeksData = await db.select().from(hercmWeeks);
-      results.push(await this.backupTable('hercm_weeks', hercmWeeksData));
+      results.push(await this.backupTable('hrcmWeeks', hercmWeeksData));
 
       // 4. Backup Platinum Progress
       const platinumProgressData = await db.select().from(platinumProgress);
-      results.push(await this.backupTable('platinum_progress', platinumProgressData));
+      results.push(await this.backupTable('platinumProgress', platinumProgressData));
 
       // 5. Backup Rituals
       const ritualsData = await db.select().from(rituals);
@@ -135,7 +135,7 @@ export class SupabaseBackupService {
 
       // 6. Backup Ritual Completions
       const ritualCompletionsData = await db.select().from(ritualCompletions);
-      results.push(await this.backupTable('ritual_completions', ritualCompletionsData));
+      results.push(await this.backupTable('ritualCompletions', ritualCompletionsData));
 
       // 7. Backup Courses
       const coursesData = await db.select().from(courses);
@@ -143,36 +143,36 @@ export class SupabaseBackupService {
 
       // 8. Backup Rating Progression
       const ratingProgressionData = await db.select().from(ratingProgression);
-      results.push(await this.backupTable('rating_progression', ratingProgressionData));
+      results.push(await this.backupTable('ratingProgression', ratingProgressionData));
 
       // 9. Backup Course Videos
       const courseVideosData = await db.select().from(courseVideos);
-      results.push(await this.backupTable('course_videos', courseVideosData));
+      results.push(await this.backupTable('courseVideos', courseVideosData));
 
       // 10. Backup Course Video Completions
       const courseVideoCompletionsData = await db.select().from(courseVideoCompletions);
-      results.push(await this.backupTable('course_video_completions', courseVideoCompletionsData));
+      results.push(await this.backupTable('courseVideoCompletions', courseVideoCompletionsData));
 
       // 11. Backup Admin Course Recommendations
       const adminCourseRecommendationsData = await db.select().from(adminCourseRecommendations);
-      results.push(await this.backupTable('admin_course_recommendations', adminCourseRecommendationsData));
+      results.push(await this.backupTable('adminCourseRecommendations', adminCourseRecommendationsData));
 
       // 12. Backup Platinum Standards
       const platinumStandardsData = await db.select().from(platinumStandards);
-      results.push(await this.backupTable('platinum_standards', platinumStandardsData));
+      results.push(await this.backupTable('platinumStandards', platinumStandardsData));
 
       // 13. Backup Emotional Trackers
       const emotionalTrackersData = await db.select().from(emotionalTrackers);
-      results.push(await this.backupTable('emotional_trackers', emotionalTrackersData));
+      results.push(await this.backupTable('emotionalTrackers', emotionalTrackersData));
 
       // 14. Backup User Persistent Assignments
       const userPersistentAssignmentsData = await db.select().from(userPersistentAssignments);
-      results.push(await this.backupTable('user_persistent_assignments', userPersistentAssignmentsData));
+      results.push(await this.backupTable('userPersistentAssignments', userPersistentAssignmentsData));
 
       // 15. Backup Access Logs (optional)
       if (options.includeAccessLogs) {
         const accessLogsData = await db.select().from(accessLogs);
-        results.push(await this.backupTable('access_logs', accessLogsData));
+        results.push(await this.backupTable('accessLogs', accessLogsData));
       }
 
       const duration = ((Date.now() - startTime) / 1000).toFixed(2);
