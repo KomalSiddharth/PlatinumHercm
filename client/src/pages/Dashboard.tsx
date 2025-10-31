@@ -15,6 +15,7 @@ import UserActivitySearch from '@/components/UserActivitySearch';
 import UserDashboardSearch from '@/components/UserDashboardSearch';
 import EmotionalTracker from '@/components/EmotionalTracker';
 import { CourseRecommendations } from '@/components/CourseRecommendations';
+import FeedbackButton from '@/components/FeedbackButton';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
@@ -1196,6 +1197,8 @@ export default function Dashboard() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <FeedbackButton />
     </div>
   );
 }
