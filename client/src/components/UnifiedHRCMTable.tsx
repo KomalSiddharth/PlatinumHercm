@@ -1341,6 +1341,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       value={item.text}
                       onChange={(e) => onUpdateText(item.id, e.target.value)}
                       onBlur={() => setEditingId(null)}
+                      onFocus={(e) => {
+                        const length = e.target.value.length;
+                        e.target.setSelectionRange(length, length);
+                      }}
                       placeholder="Type checkpoint..."
                       className="min-h-[60px] text-xs flex-1 border bg-background/50 focus-visible:ring-1 p-2 resize-none"
                       autoFocus
@@ -1942,6 +1946,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                     saveHoverEdit();
                                   }
                                 }}
+                                onFocus={(e) => {
+                                  const length = e.target.value.length;
+                                  e.target.setSelectionRange(length, length);
+                                }}
                                 className="text-sm min-h-[100px] resize-none"
                                 placeholder="Click to edit..."
                                 autoFocus
@@ -2010,6 +2018,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                     e.preventDefault();
                                     saveHoverEdit();
                                   }
+                                }}
+                                onFocus={(e) => {
+                                  const length = e.target.value.length;
+                                  e.target.setSelectionRange(length, length);
                                 }}
                                 className="text-sm min-h-[100px] resize-none"
                                 placeholder="Click to edit..."
@@ -2080,6 +2092,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                     saveHoverEdit();
                                   }
                                 }}
+                                onFocus={(e) => {
+                                  const length = e.target.value.length;
+                                  e.target.setSelectionRange(length, length);
+                                }}
                                 className="text-sm min-h-[100px] resize-none"
                                 placeholder="Click to edit..."
                                 autoFocus
@@ -2148,6 +2164,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                     e.preventDefault();
                                     saveHoverEdit();
                                   }
+                                }}
+                                onFocus={(e) => {
+                                  const length = e.target.value.length;
+                                  e.target.setSelectionRange(length, length);
                                 }}
                                 className="text-sm min-h-[100px] resize-none"
                                 placeholder="Click to edit..."
