@@ -1801,7 +1801,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           </TableHeader>
           <TableBody>
             {beliefs.map((belief) => (
-              <TableRow key={belief.category} className="border-b" data-testid={`row-${belief.category.toLowerCase()}`}>
+              <TableRow key={belief.category} className="border-b h-[85px]" data-testid={`row-${belief.category.toLowerCase()}`}>
                 {/* Category Column */}
                 <TableCell className="text-xs sm:text-sm font-semibold border-r bg-muted/20 align-top px-1.5 sm:px-2 py-1.5 sm:py-2" data-testid={`cell-category-${belief.category.toLowerCase()}`}>
                   <Badge variant="outline" className="font-semibold text-[10px] sm:text-xs px-1 sm:px-2">
@@ -2065,16 +2065,16 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           </TableHeader>
           <TableBody>
             {beliefs.map((belief) => (
-              <TableRow key={belief.category} className="border-b" data-testid={`row-next-${belief.category.toLowerCase()}`}>
+              <TableRow key={belief.category} className="border-b h-[85px]" data-testid={`row-next-${belief.category.toLowerCase()}`}>
                 {/* Category Column */}
-                <TableCell className="font-semibold border-r bg-muted/20 align-top">
+                <TableCell className="font-semibold border-r bg-muted/20 align-top max-h-[85px] overflow-hidden">
                   <Badge variant="outline" className="font-semibold">
                     {belief.category}
                   </Badge>
                 </TableCell>
 
                 {/* Next Week - Rating (Auto-calculated: Current + 1, Locked) */}
-                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top">
+                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top max-h-[85px] overflow-hidden">
                   <div className="flex flex-col items-center gap-1">
                     <div
                       className="w-16 h-9 flex items-center justify-center text-center font-semibold border-2 border-muted bg-muted/20 rounded-md text-muted-foreground cursor-not-allowed"
@@ -2102,7 +2102,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </TableCell>
 
                 {/* Next Week - Problems */}
-                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top">
+                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top max-h-[85px] overflow-hidden">
                   {belief.resultChecklist && belief.resultChecklist.length > 0 ? (
                     <CompactChecklistView
                       items={belief.resultChecklist}
@@ -2131,7 +2131,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </TableCell>
 
                 {/* Next Week - Feelings */}
-                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top">
+                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top max-h-[85px] overflow-hidden">
                   {belief.feelingsChecklist && belief.feelingsChecklist.length > 0 ? (
                     <CompactChecklistView
                       items={belief.feelingsChecklist}
@@ -2160,7 +2160,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </TableCell>
 
                 {/* Next Week - Beliefs/Reasons */}
-                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top">
+                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top max-h-[85px] overflow-hidden">
                   {belief.beliefsChecklist && belief.beliefsChecklist.length > 0 ? (
                     <CompactChecklistView
                       items={belief.beliefsChecklist}
@@ -2189,7 +2189,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </TableCell>
 
                 {/* Next Week - Actions */}
-                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 border-r align-top">
+                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 border-r align-top max-h-[85px] overflow-hidden">
                   {belief.actionsChecklist && belief.actionsChecklist.length > 0 ? (
                     <CompactChecklistView
                       items={belief.actionsChecklist}
@@ -2219,7 +2219,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
                 {/* Unified Assignment Column - Compact with Hover Popup (Show only for first row with rowspan) */}
                 {belief.category === 'Health' && (
-                  <TableCell rowSpan={4} className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10 align-top">
+                  <TableCell rowSpan={4} className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10 align-top max-h-[340px] overflow-hidden">
                     {(() => {
                       // CRITICAL: Persistent assignments should ALWAYS show across all dates
                       // - Assignments persist until completed, regardless of date
@@ -2411,7 +2411,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 )}
 
                 {/* Platinum Standards - Compact with Hover Popup */}
-                <TableCell className="p-2 bg-soft-lavender/20 dark:bg-soft-lavender/10 align-top">
+                <TableCell className="p-2 bg-soft-lavender/20 dark:bg-soft-lavender/10 align-top max-h-[85px] overflow-hidden">
                   <HoverCard openDelay={200}>
                     <HoverCardTrigger asChild>
                       <div className="cursor-pointer">
@@ -2469,7 +2469,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </TableCell>
 
                 {/* Progress */}
-                <TableCell className="p-2 text-center bg-emerald-50/30 dark:bg-emerald-950/10 align-top">
+                <TableCell className="p-2 text-center bg-emerald-50/30 dark:bg-emerald-950/10 align-top max-h-[85px] overflow-hidden">
                   <Badge className={getProgressColor(calculateProgress(belief.checklist))} data-testid={`badge-next-progress-${belief.category.toLowerCase()}`}>
                     {calculateProgress(belief.checklist)}%
                   </Badge>
