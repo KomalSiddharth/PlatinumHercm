@@ -4765,6 +4765,83 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
     }
   });
 
+  // ========== User Feedback Routes ==========
+  // Submit user feedback
+  app.post('/api/feedback', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const feedbackData = {
+        ...req.body,
+        userId,
+      };
+
+      const newFeedback = await storage.createFeedback(feedbackData);
+      res.json(newFeedback);
+    } catch (error) {
+      console.error("Error creating feedback:", error);
+      res.status(500).json({ message: "Failed to submit feedback" });
+    }
+  });
+
+  // Get user's own feedback
+  app.get('/api/feedback', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const feedback = await storage.getUserFeedback(userId);
+      res.json(feedback);
+    } catch (error) {
+      console.error("Error fetching user feedback:", error);
+      res.status(500).json({ message: "Failed to fetch feedback" });
+    }
+  });
+
+  // Admin: Get all feedback
+  app.get('/api/admin/feedback', isAdmin, async (req: any, res) => {
+    try {
+      const feedback = await storage.getAllFeedback();
+      res.json(feedback);
+    } catch (error) {
+      console.error("Error fetching all feedback:", error);
+      res.status(500).json({ message: "Failed to fetch feedback" });
+    }
+  });
+
+  // Admin: Update feedback status
+  app.patch('/api/admin/feedback/:id', isAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { status, adminResponse } = req.body;
+
+      const updated = await storage.updateFeedbackStatus(id, status, adminResponse);
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating feedback status:", error);
+      res.status(500).json({ message: "Failed to update feedback" });
+    }
+  });
+
+  // Admin: Delete feedback
+  app.delete('/api/admin/feedback/:id', isAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteFeedback(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting feedback:", error);
+      res.status(500).json({ message: "Failed to delete feedback" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
