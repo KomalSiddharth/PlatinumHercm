@@ -2048,10 +2048,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             <TableRow className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30">
               <TableHead className="font-bold border-r min-w-[100px]">HRCM Area</TableHead>
               <TableHead className="min-w-[60px] bg-blue-100 dark:bg-blue-900/40 font-semibold border border-soft-gray dark:border-soft-gray/30">Rating</TableHead>
-              <TableHead className="min-w-[140px] bg-blue-100 dark:bg-blue-900/40 font-semibold border border-soft-gray dark:border-soft-gray/30">Results</TableHead>
-              <TableHead className="min-w-[140px] bg-blue-100 dark:bg-blue-900/40 font-semibold border border-soft-gray dark:border-soft-gray/30">Feelings</TableHead>
-              <TableHead className="min-w-[140px] bg-blue-100 dark:bg-blue-900/40 font-semibold border border-soft-gray dark:border-soft-gray/30">Beliefs/Reasons</TableHead>
-              <TableHead className="min-w-[140px] bg-blue-100 dark:bg-blue-900/40 font-semibold border-r border border-soft-gray dark:border-soft-gray/30">Actions</TableHead>
+              <TableHead className="w-[180px] bg-blue-100 dark:bg-blue-900/40 font-semibold border border-soft-gray dark:border-soft-gray/30">Results</TableHead>
+              <TableHead className="w-[180px] bg-blue-100 dark:bg-blue-900/40 font-semibold border border-soft-gray dark:border-soft-gray/30">Feelings</TableHead>
+              <TableHead className="w-[180px] bg-blue-100 dark:bg-blue-900/40 font-semibold border border-soft-gray dark:border-soft-gray/30">Beliefs/Reasons</TableHead>
+              <TableHead className="w-[180px] bg-blue-100 dark:bg-blue-900/40 font-semibold border-r border border-soft-gray dark:border-soft-gray/30">Actions</TableHead>
               
               <TableHead className="min-w-[130px] bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/40 dark:to-blue-900/40 font-semibold">
                 <div className="flex items-center gap-1">
@@ -2102,7 +2102,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </TableCell>
 
                 {/* Next Week - Problems */}
-                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top max-h-[85px] overflow-hidden">
+                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top max-h-[85px] w-[180px] overflow-hidden">
                   {belief.resultChecklist && belief.resultChecklist.length > 0 ? (
                     <CompactChecklistView
                       items={belief.resultChecklist}
@@ -2131,7 +2131,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </TableCell>
 
                 {/* Next Week - Feelings */}
-                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top max-h-[85px] overflow-hidden">
+                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top max-h-[85px] w-[180px] overflow-hidden">
                   {belief.feelingsChecklist && belief.feelingsChecklist.length > 0 ? (
                     <CompactChecklistView
                       items={belief.feelingsChecklist}
@@ -2160,7 +2160,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </TableCell>
 
                 {/* Next Week - Beliefs/Reasons */}
-                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top max-h-[85px] overflow-hidden">
+                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top max-h-[85px] w-[180px] overflow-hidden">
                   {belief.beliefsChecklist && belief.beliefsChecklist.length > 0 ? (
                     <CompactChecklistView
                       items={belief.beliefsChecklist}
@@ -2189,7 +2189,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </TableCell>
 
                 {/* Next Week - Actions */}
-                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 border-r align-top max-h-[85px] overflow-hidden">
+                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 border-r align-top max-h-[85px] w-[180px] overflow-hidden">
                   {belief.actionsChecklist && belief.actionsChecklist.length > 0 ? (
                     <CompactChecklistView
                       items={belief.actionsChecklist}
