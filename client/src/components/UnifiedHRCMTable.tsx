@@ -1274,7 +1274,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       <>
         <HoverCard openDelay={200}>
           <HoverCardTrigger asChild>
-            <div className="space-y-1 cursor-pointer max-w-full">
+            <div className="space-y-1 cursor-pointer max-w-full max-h-full overflow-hidden">
               {/* Compact View - Fixed Height, No Inline Editing (Exactly like Platinum Standards) */}
               {visibleItems.map((item) => (
                 <div key={item.id} className="flex items-center gap-2 min-w-0">
