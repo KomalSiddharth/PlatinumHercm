@@ -4646,6 +4646,39 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
   });
 
   // ==========================================
+  // DATABASE HEALTH CHECK (Public)
+  // ==========================================
+
+  // Database health check endpoint - helps detect crashes
+  app.get('/api/health/database', async (req, res) => {
+    try {
+      const startTime = Date.now();
+      
+      // Try a simple query to verify database connectivity
+      await storage.getAllApprovedEmails();
+      
+      const responseTime = Date.now() - startTime;
+      
+      res.json({
+        status: 'healthy',
+        database: 'connected',
+        responseTime: `${responseTime}ms`,
+        timestamp: new Date().toISOString(),
+        message: 'Replit database is operational'
+      });
+    } catch (error) {
+      console.error("[HEALTH CHECK] Database error:", error);
+      res.status(503).json({
+        status: 'unhealthy',
+        database: 'disconnected',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+        message: '🚨 DATABASE CRASH DETECTED! Consider switching to Supabase backup.'
+      });
+    }
+  });
+
+  // ==========================================
   // SUPABASE BACKUP ROUTES (Admin Only)
   // ==========================================
 
