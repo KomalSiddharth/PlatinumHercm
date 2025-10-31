@@ -1367,20 +1367,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   )}
                 </div>
               ))}
-              
-              {/* Add Checkpoint button in popup - doesn't affect table cell height */}
-              {!disabled && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={handleAddCheckpointClick}
-                  className="h-7 w-full text-xs text-muted-foreground hover:text-foreground gap-1 mt-2 border-t pt-2"
-                  data-testid={`button-add-checkpoint-hover-${checklistType}-${category.toLowerCase()}`}
-                >
-                  <Plus className="w-3 h-3" />
-                  Add Checkpoint
-                </Button>
-              )}
             </div>
           </HoverCardContent>
         </HoverCard>
