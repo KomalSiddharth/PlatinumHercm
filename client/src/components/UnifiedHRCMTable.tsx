@@ -1177,7 +1177,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     });
   };
 
-  // Compact Checklist View Component
+  // Compact Checklist View Component - Matches Platinum Standards Style
   const CompactChecklistView = ({ 
     items, 
     onToggle, 
@@ -1202,6 +1202,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     const [newCheckpointText, setNewCheckpointText] = useState('');
     const visibleItems = items.slice(0, 2);
     const hiddenCount = items.length - 2;
+    const hasMoreItems = items.length > 2;
     
     // Get color scheme based on checklistType
     const getColorScheme = (type: string) => {
@@ -1271,124 +1272,116 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     
     return (
       <>
-        <div className="space-y-1.5">
-          {visibleItems.map((item) => (
-            <div key={item.id} className="flex items-start gap-2 group">
-              <Checkbox
-                checked={item.checked}
-                onCheckedChange={() => !disabled && onToggle(item.id)}
-                disabled={disabled}
-                className="h-3 w-3 mt-0.5 shrink-0"
-                data-testid={`checkbox-${checklistType}-${category.toLowerCase()}-${item.id}`}
-              />
-              {editingId === item.id && !disabled ? (
-                <Textarea
-                  value={item.text}
-                  onChange={(e) => onUpdateText(item.id, e.target.value)}
-                  onBlur={() => setEditingId(null)}
-                  placeholder="Type checkpoint..."
-                  className="min-h-[60px] text-xs flex-1 border bg-background/50 focus-visible:ring-1 p-2 resize-none"
-                  autoFocus
-                  data-testid={`textarea-${checklistType}-${category.toLowerCase()}-${item.id}`}
-                />
-              ) : (
-                <>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
+        <HoverCard openDelay={200}>
+          <HoverCardTrigger asChild>
+            <div className="space-y-1.5 cursor-pointer">
+              {visibleItems.map((item) => (
+                <div key={item.id} className="flex items-start gap-2 group">
+                  <Checkbox
+                    checked={item.checked}
+                    onCheckedChange={() => !disabled && onToggle(item.id)}
+                    disabled={disabled}
+                    className="h-3 w-3 mt-0.5 shrink-0"
+                    data-testid={`checkbox-${checklistType}-${category.toLowerCase()}-${item.id}`}
+                  />
+                  {editingId === item.id && !disabled ? (
+                    <Textarea
+                      value={item.text}
+                      onChange={(e) => onUpdateText(item.id, e.target.value)}
+                      onBlur={() => setEditingId(null)}
+                      placeholder="Type checkpoint..."
+                      className="min-h-[60px] text-xs flex-1 border bg-background/50 focus-visible:ring-1 p-2 resize-none"
+                      autoFocus
+                      data-testid={`textarea-${checklistType}-${category.toLowerCase()}-${item.id}`}
+                    />
+                  ) : (
+                    <>
                       <button
                         onClick={() => !disabled && setEditingId(item.id)}
                         disabled={disabled}
                         className="flex-1 text-left text-xs py-0.5 px-1 rounded hover:bg-muted/30 transition-colors min-h-[20px] break-words disabled:cursor-not-allowed"
                         data-testid={`text-${checklistType}-${category.toLowerCase()}-${item.id}`}
                       >
-                        <span className="line-clamp-2">
+                        <span className="line-clamp-1">
                           {item.text || <span className="text-muted-foreground italic">Click to add text...</span>}
                         </span>
                       </button>
-                    </TooltipTrigger>
-                    {item.text && item.text.length > 50 && (
-                      <TooltipContent side="top" align="start" className={`max-w-md bg-gradient-to-br ${colorScheme.gradient} border-2 ${colorScheme.border} shadow-xl p-4 ${colorScheme.glow}`}>
-                        <div className="flex items-start gap-2 mb-2">
-                          <div className={`w-1 h-full ${colorScheme.bar} rounded-full`}></div>
-                          <p className={`text-xs font-semibold ${colorScheme.text}`}>{colorScheme.label}</p>
-                        </div>
-                        <p className="text-xs whitespace-pre-wrap break-words leading-relaxed text-foreground">{item.text}</p>
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
-                  {!disabled && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => onDeleteCheckpoint(item.id)}
-                      className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
-                      data-testid={`button-delete-checkpoint-${checklistType}-${category.toLowerCase()}-${item.id}`}
-                    >
-                      <Trash2 className="w-3 h-3 text-destructive" />
-                    </Button>
-                  )}
-                </>
-              )}
-            </div>
-          ))}
-          
-          {hiddenCount > 0 && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button 
-                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors w-full py-1 px-1"
-                  data-testid={`button-show-more-${checklistType}-${category.toLowerCase()}`}
-                >
-                  <MoreHorizontal className="w-3 h-3" />
-                  <span>{hiddenCount} more item{hiddenCount > 1 ? 's' : ''}...</span>
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="top" align="start" className={`max-w-md bg-gradient-to-br ${colorScheme.gradient} border-2 ${colorScheme.border} shadow-xl p-4 ${colorScheme.glow}`}>
-                <div className="flex items-start gap-2 mb-3">
-                  <div className={`w-1 h-full ${colorScheme.bar} rounded-full`}></div>
-                  <p className={`text-xs font-semibold ${colorScheme.text}`}>All {colorScheme.label}</p>
-                </div>
-                <div className="space-y-2">
-                  {items.map((item) => (
-                    <div key={item.id} className="flex items-start gap-2 text-xs group/tooltip-item">
-                      <Checkbox 
-                        checked={item.checked} 
-                        onCheckedChange={() => !disabled && onToggle(item.id)}
-                        disabled={disabled}
-                        className="h-3 w-3 mt-0.5 shrink-0" 
-                      />
-                      <span className="break-words whitespace-pre-wrap leading-relaxed text-foreground flex-1">{item.text || '(empty)'}</span>
                       {!disabled && (
                         <Button
                           size="sm"
                           variant="ghost"
                           onClick={() => onDeleteCheckpoint(item.id)}
-                          className="h-4 w-4 p-0 opacity-0 group-hover/tooltip-item:opacity-100 transition-opacity shrink-0"
-                          data-testid={`button-delete-tooltip-${checklistType}-${category.toLowerCase()}-${item.id}`}
+                          className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                          data-testid={`button-delete-checkpoint-${checklistType}-${category.toLowerCase()}-${item.id}`}
                         >
                           <Trash2 className="w-3 h-3 text-destructive" />
                         </Button>
                       )}
-                    </div>
-                  ))}
+                    </>
+                  )}
                 </div>
-              </TooltipContent>
-            </Tooltip>
-          )}
+              ))}
+              
+              {hasMoreItems && (
+                <div className="text-xs text-muted-foreground italic pl-5">
+                  + {hiddenCount} more item{hiddenCount > 1 ? 's' : ''}...
+                </div>
+              )}
+            </div>
+          </HoverCardTrigger>
           
-          {!disabled && (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={handleAddCheckpointClick}
-              className="h-7 w-full text-xs text-muted-foreground hover:text-foreground gap-1 mt-1"
-              data-testid={`button-add-checkpoint-${checklistType}-${category.toLowerCase()}`}
+          {hasMoreItems && (
+            <HoverCardContent 
+              side="left" 
+              align="start" 
+              className="w-96 max-h-[400px] overflow-y-auto"
             >
-              <Plus className="w-3 h-3" />
-              Add Checkpoint
-            </Button>
+              <div className="space-y-2">
+                <h4 className="font-semibold text-sm mb-3">
+                  {category} - {colorScheme.label} ({items.length} items)
+                </h4>
+                {items.map((item) => (
+                  <div key={item.id} className="flex items-start gap-2 py-1 group/hover-item">
+                    <Checkbox
+                      checked={item.checked}
+                      onCheckedChange={() => !disabled && onToggle(item.id)}
+                      disabled={disabled}
+                      className="h-4 w-4 mt-0.5 shrink-0"
+                      data-testid={`checkbox-hover-${checklistType}-${category.toLowerCase()}-${item.id}`}
+                    />
+                    <span className="text-xs leading-relaxed break-words flex-1">
+                      {item.text || <span className="text-muted-foreground italic">(empty)</span>}
+                    </span>
+                    {!disabled && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => onDeleteCheckpoint(item.id)}
+                        className="h-5 w-5 p-0 opacity-0 group-hover/hover-item:opacity-100 transition-opacity shrink-0"
+                        data-testid={`button-delete-hover-${checklistType}-${category.toLowerCase()}-${item.id}`}
+                      >
+                        <Trash2 className="w-3 h-3 text-destructive" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </HoverCardContent>
           )}
-        </div>
+        </HoverCard>
+        
+        {!disabled && (
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={handleAddCheckpointClick}
+            className="h-7 w-full text-xs text-muted-foreground hover:text-foreground gap-1 mt-1"
+            data-testid={`button-add-checkpoint-${checklistType}-${category.toLowerCase()}`}
+          >
+            <Plus className="w-3 h-3" />
+            Add Checkpoint
+          </Button>
+        )}
 
         {/* Add Checkpoint Dialog */}
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
