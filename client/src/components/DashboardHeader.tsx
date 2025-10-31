@@ -62,7 +62,6 @@ export default function DashboardHeader({
 
   const navItems = [
     { id: 'hrcm', label: 'HRCM' },
-    { id: 'skillmap', label: 'Skill Map' },
     { id: 'rituals', label: 'Daily Rituals' },
     { id: 'emotional', label: 'Emotional Tracker' },
     { id: 'courses', label: 'Courses' },
