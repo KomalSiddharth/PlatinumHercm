@@ -1274,10 +1274,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       <>
         <HoverCard openDelay={200}>
           <HoverCardTrigger asChild>
-            <div className="space-y-1 cursor-pointer">
+            <div className="space-y-1 cursor-pointer max-w-full">
               {/* Compact View - Fixed Height, No Inline Editing (Exactly like Platinum Standards) */}
               {visibleItems.map((item) => (
-                <div key={item.id} className="flex items-center gap-2">
+                <div key={item.id} className="flex items-center gap-2 min-w-0">
                   <Checkbox
                     checked={item.checked}
                     onCheckedChange={() => !disabled && onToggle(item.id)}
@@ -1285,7 +1285,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     className="h-3 w-3 shrink-0"
                     data-testid={`checkbox-${checklistType}-${category.toLowerCase()}-${item.id}`}
                   />
-                  <span className="text-xs line-clamp-1">
+                  <span className="text-xs line-clamp-1 break-all min-w-0">
                     {item.text}
                   </span>
                 </div>
