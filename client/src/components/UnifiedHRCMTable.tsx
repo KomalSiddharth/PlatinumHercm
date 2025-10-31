@@ -1554,6 +1554,32 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     setHoverEditValue(currentValue);
   };
 
+  // Save hover edit (called from Enter key or hover close)
+  const saveHoverEdit = () => {
+    if (!hoverEditingField) return;
+    
+    const { category, field } = hoverEditingField;
+    const currentBelief = beliefs.find(b => b.category === category);
+    const currentValue = currentBelief?.[field as keyof HRCMBelief] as string || '';
+    
+    if (hoverEditValue !== currentValue) {
+      // Value changed - save it
+      const updatedBeliefs = beliefs.map(belief => {
+        if (belief.category === category) {
+          return { ...belief, [field]: hoverEditValue };
+        }
+        return belief;
+      });
+      
+      setBeliefs(updatedBeliefs);
+      saveWeekMutation.mutate({ weekNumber, year: new Date().getFullYear(), beliefs: updatedBeliefs });
+    }
+    
+    // Clear hover editing state
+    setHoverEditingField(null);
+    setHoverEditValue('');
+  };
+
   const saveEdit = async () => {
     if (!editingField) return;
     
@@ -1910,6 +1936,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                               <Textarea
                                 value={hoverEditValue}
                                 onChange={(e) => setHoverEditValue(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    saveHoverEdit();
+                                  }
+                                }}
                                 className="text-sm min-h-[100px] resize-none"
                                 placeholder="Click to edit..."
                                 autoFocus
@@ -1973,6 +2005,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                               <Textarea
                                 value={hoverEditValue}
                                 onChange={(e) => setHoverEditValue(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    saveHoverEdit();
+                                  }
+                                }}
                                 className="text-sm min-h-[100px] resize-none"
                                 placeholder="Click to edit..."
                                 autoFocus
@@ -2036,6 +2074,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                               <Textarea
                                 value={hoverEditValue}
                                 onChange={(e) => setHoverEditValue(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    saveHoverEdit();
+                                  }
+                                }}
                                 className="text-sm min-h-[100px] resize-none"
                                 placeholder="Click to edit..."
                                 autoFocus
@@ -2099,6 +2143,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                               <Textarea
                                 value={hoverEditValue}
                                 onChange={(e) => setHoverEditValue(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    saveHoverEdit();
+                                  }
+                                }}
                                 className="text-sm min-h-[100px] resize-none"
                                 placeholder="Click to edit..."
                                 autoFocus
