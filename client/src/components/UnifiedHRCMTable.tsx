@@ -1851,118 +1851,54 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
                 {/* Current Week - Problems */}
                 <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
-                        onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'problems', belief.problems || '', 'Results', 'coral-red')}
-                        disabled={viewingHistory || isAdminView}
-                        type="button"
-                        aria-label="Edit problems"
-                        data-testid={`text-problems-${belief.category.toLowerCase()}`}
-                      >
-                        <span className="line-clamp-2 break-words">
-                          {belief.problems || <span className="text-muted-foreground italic">Click to add...</span>}
-                        </span>
-                      </button>
-                    </TooltipTrigger>
-                    {belief.problems && belief.problems.length > 20 && (
-                      <TooltipContent side="top" align="start" className="max-w-md bg-gradient-to-br from-coral-red/10 via-white to-coral-red/5 dark:from-coral-red/20 dark:via-gray-900 dark:to-coral-red/10 border-2 border-coral-red/30 shadow-xl p-4 coral-glow">
-                        <div className="flex items-start gap-2 mb-2">
-                          <div className="w-1 h-full bg-coral-red rounded-full"></div>
-                          <p className="text-xs font-semibold text-coral-red">Results</p>
-                        </div>
-                        <p className="text-xs whitespace-pre-wrap break-words leading-relaxed text-foreground">{belief.problems}</p>
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
+                  <Input
+                    type="text"
+                    value={belief.problems || ''}
+                    onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'problems', belief.problems || '', 'Results', 'coral-red')}
+                    readOnly
+                    className="text-xs cursor-pointer border-2 border-coral-red/40 focus:border-coral-red dark:border-coral-red/60 dark:focus:border-coral-red bg-white dark:bg-gray-950 hover:bg-coral-red/5 dark:hover:bg-coral-red/10"
+                    placeholder="Click to add..."
+                    data-testid={`text-problems-${belief.category.toLowerCase()}`}
+                  />
                 </TableCell>
 
                 {/* Current Week - Feelings */}
                 <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
-                        onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'currentFeelings', belief.currentFeelings || '', 'Feelings', 'emerald-green')}
-                        disabled={viewingHistory || isAdminView}
-                        type="button"
-                        aria-label="Edit feelings"
-                        data-testid={`text-feelings-${belief.category.toLowerCase()}`}
-                      >
-                        <span className="line-clamp-2 break-words">
-                          {belief.currentFeelings || <span className="text-muted-foreground italic">Click to add...</span>}
-                        </span>
-                      </button>
-                    </TooltipTrigger>
-                    {belief.currentFeelings && belief.currentFeelings.length > 20 && (
-                      <TooltipContent side="top" align="start" className="max-w-md bg-gradient-to-br from-emerald-green/10 via-white to-emerald-green/5 dark:from-emerald-green/20 dark:via-gray-900 dark:to-emerald-green/10 border-2 border-emerald-green/30 shadow-xl p-4 emerald-glow">
-                        <div className="flex items-start gap-2 mb-2">
-                          <div className="w-1 h-full bg-emerald-green rounded-full"></div>
-                          <p className="text-xs font-semibold text-emerald-green">Feelings</p>
-                        </div>
-                        <p className="text-xs whitespace-pre-wrap break-words leading-relaxed text-foreground">{belief.currentFeelings}</p>
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
+                  <Input
+                    type="text"
+                    value={belief.currentFeelings || ''}
+                    onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'currentFeelings', belief.currentFeelings || '', 'Feelings', 'emerald-green')}
+                    readOnly
+                    className="text-xs cursor-pointer border-2 border-emerald-green/40 focus:border-emerald-green dark:border-emerald-green/60 dark:focus:border-emerald-green bg-white dark:bg-gray-950 hover:bg-emerald-green/5 dark:hover:bg-emerald-green/10"
+                    placeholder="Click to add..."
+                    data-testid={`text-feelings-${belief.category.toLowerCase()}`}
+                  />
                 </TableCell>
 
                 {/* Current Week - Beliefs */}
                 <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
-                        onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'currentBelief', belief.currentBelief || '', 'Beliefs/Reasons', 'golden-yellow')}
-                        disabled={viewingHistory || isAdminView}
-                        type="button"
-                        aria-label="Edit beliefs"
-                        data-testid={`text-beliefs-${belief.category.toLowerCase()}`}
-                      >
-                        <span className="line-clamp-2 break-words">
-                          {belief.currentBelief || <span className="text-muted-foreground italic">Click to add...</span>}
-                        </span>
-                      </button>
-                    </TooltipTrigger>
-                    {belief.currentBelief && belief.currentBelief.length > 20 && (
-                      <TooltipContent side="top" align="start" className="max-w-md bg-gradient-to-br from-golden-yellow/10 via-white to-golden-yellow/5 dark:from-golden-yellow/20 dark:via-gray-900 dark:to-golden-yellow/10 border-2 border-golden-yellow/30 shadow-xl p-4 golden-glow">
-                        <div className="flex items-start gap-2 mb-2">
-                          <div className="w-1 h-full bg-golden-yellow rounded-full"></div>
-                          <p className="text-xs font-semibold text-golden-yellow">Beliefs/Reasons</p>
-                        </div>
-                        <p className="text-xs whitespace-pre-wrap break-words leading-relaxed text-foreground">{belief.currentBelief}</p>
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
+                  <Input
+                    type="text"
+                    value={belief.currentBelief || ''}
+                    onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'currentBelief', belief.currentBelief || '', 'Beliefs/Reasons', 'golden-yellow')}
+                    readOnly
+                    className="text-xs cursor-pointer border-2 border-golden-yellow/40 focus:border-golden-yellow dark:border-golden-yellow/60 dark:focus:border-golden-yellow bg-white dark:bg-gray-950 hover:bg-golden-yellow/5 dark:hover:bg-golden-yellow/10"
+                    placeholder="Click to add..."
+                    data-testid={`text-beliefs-${belief.category.toLowerCase()}`}
+                  />
                 </TableCell>
 
                 {/* Current Week - Actions */}
                 <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 border-r align-top">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        className="w-full text-left text-xs p-2 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
-                        onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'currentActions', belief.currentActions || '', 'Actions', 'soft-lavender')}
-                        disabled={viewingHistory || isAdminView}
-                        type="button"
-                        aria-label="Edit actions"
-                        data-testid={`text-actions-${belief.category.toLowerCase()}`}
-                      >
-                        <span className="line-clamp-2 break-words">
-                          {belief.currentActions || <span className="text-muted-foreground italic">Click to add...</span>}
-                        </span>
-                      </button>
-                    </TooltipTrigger>
-                    {belief.currentActions && belief.currentActions.length > 20 && (
-                      <TooltipContent side="top" align="start" className="max-w-md bg-gradient-to-br from-soft-lavender/20 via-white to-soft-lavender/10 dark:from-soft-lavender/30 dark:via-gray-900 dark:to-soft-lavender/15 border-2 border-soft-lavender/40 shadow-xl p-4 lavender-glow">
-                        <div className="flex items-start gap-2 mb-2">
-                          <div className="w-1 h-full bg-soft-lavender rounded-full"></div>
-                          <p className="text-xs font-semibold text-soft-lavender">Actions</p>
-                        </div>
-                        <p className="text-xs whitespace-pre-wrap break-words leading-relaxed text-foreground">{belief.currentActions}</p>
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
+                  <Input
+                    type="text"
+                    value={belief.currentActions || ''}
+                    onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'currentActions', belief.currentActions || '', 'Actions', 'soft-lavender')}
+                    readOnly
+                    className="text-xs cursor-pointer border-2 border-soft-lavender/40 focus:border-soft-lavender dark:border-soft-lavender/60 dark:focus:border-soft-lavender bg-white dark:bg-gray-950 hover:bg-soft-lavender/5 dark:hover:bg-soft-lavender/10"
+                    placeholder="Click to add..."
+                    data-testid={`text-actions-${belief.category.toLowerCase()}`}
+                  />
                 </TableCell>
 
                 {/* Platinum Standards - Compact with Hover Popup */}
