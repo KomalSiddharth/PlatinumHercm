@@ -2,8 +2,6 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { setupScheduledTasks } from "./scheduler";
-import { initializeScheduledBackups } from "./scheduledBackups";
-import { dbHealthMonitor } from "./databaseHealthCheck";
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
@@ -61,12 +59,6 @@ app.use((req, res, next) => {
 
   // Setup scheduled tasks (email reminders, badge checks)
   setupScheduledTasks();
-  
-  // Setup scheduled Supabase backups (every 10 minutes + daily full)
-  initializeScheduledBackups();
-  
-  // Start database health monitoring & automatic failover detection
-  dbHealthMonitor.startMonitoring();
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
   // Other ports are firewalled. Default to 5000 if not specified.
