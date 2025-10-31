@@ -26,6 +26,7 @@ The frontend is built with React, Vite, Tailwind CSS, TanStack Query, and Wouter
 - **Platinum User Progress**: A team member dashboard viewer allowing users and admins to view selected week's HRCM data, daily rituals, emotional tracker, and earned badges of other team members, with search functionality.
 - **Admin Functionality**: Enhanced admin panel with user analytics, course recommendation management, approved email filtering, and a comprehensive user dashboard viewer with protected routes.
 - **Assignment Column**: Persistent assignments from course tracking, admin recommendations, and user additions, visible and editable by regular users across all dates until completed or deleted. Stores data in `userPersistentAssignments` table and displays only uncompleted tasks.
+- **User Feedback System**: A comprehensive feedback collection system with a floating feedback button (PenSquare icon) visible on all pages. Users can submit bug reports, feature requests, course feedback, UI/UX suggestions, general feedback, and support requests. Features include categorized feedback types, related feature tagging, priority levels, status tracking (pending, in progress, resolved, closed), and admin management panel with detailed view, status updates, and deletion capabilities.
 - **Notifications**: Optional email reminders and Platinum badge notifications.
 - **Authentication**: Strict authentication with role-based access for both dashboard and admin panel.
 
