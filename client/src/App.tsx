@@ -8,6 +8,7 @@ import Login from "@/pages/Login";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminPanel from "@/pages/AdminPanel";
 import NotFound from "@/pages/not-found";
+import FeedbackButton from "@/components/FeedbackButton";
 
 function Router() {
   return (
@@ -31,6 +32,7 @@ function App() {
       <TooltipProvider>
         <Toaster />
         <Router />
+        <FeedbackButton />
       </TooltipProvider>
     </QueryClientProvider>
   );
