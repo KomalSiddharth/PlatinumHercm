@@ -74,8 +74,12 @@ export default function FeedbackButton() {
     <>
       <Button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-50 hover-elevate active-elevate-2"
+        className="h-14 w-14 rounded-full shadow-lg hover-elevate active-elevate-2"
         style={{ 
+          position: 'fixed',
+          bottom: '24px',
+          right: '24px',
+          zIndex: 9999,
           background: 'hsl(var(--primary))',
           color: 'white',
         }}
