@@ -4,7 +4,7 @@ import { isSupabaseConfigured } from './supabase.js';
 
 /**
  * Automated Backup Scheduler
- * Runs daily backups at 2 AM IST (Indian Standard Time)
+ * Runs backups every 1 minute for maximum data protection
  */
 
 let backupTask: ScheduledTask | null = null;
@@ -15,11 +15,11 @@ export function startBackupScheduler() {
     return;
   }
 
-  // Schedule daily backup at 2:00 AM IST
+  // Schedule backup every 1 minute
   // Cron format: minute hour day month weekday
-  // 30 20 * * * = 8:30 PM UTC = 2:00 AM IST (IST is UTC+5:30)
-  backupTask = cron.schedule('30 20 * * *', async () => {
-    console.log('[BACKUP SCHEDULER] Starting scheduled backup at 2:00 AM IST...');
+  // * * * * * = every minute
+  backupTask = cron.schedule('* * * * *', async () => {
+    console.log('[BACKUP SCHEDULER] Starting scheduled backup (every 1 minute)...');
     try {
       const result = await backupAllData();
       if (result.success) {
@@ -34,7 +34,7 @@ export function startBackupScheduler() {
     timezone: 'Asia/Kolkata' // IST timezone
   });
 
-  console.log('[BACKUP SCHEDULER] ✓ Daily backup scheduled at 2:00 AM IST');
+  console.log('[BACKUP SCHEDULER] ✓ Backup scheduled every 1 minute (max 1 min data loss)');
 }
 
 export function stopBackupScheduler() {
@@ -49,6 +49,6 @@ export function getSchedulerStatus() {
   return {
     running: backupTask !== null,
     configured: isSupabaseConfigured,
-    schedule: '2:00 AM IST daily',
+    schedule: 'Every 1 minute (max 1 min data loss)',
   };
 }

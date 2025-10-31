@@ -45,12 +45,24 @@ export async function backupAllData(): Promise<BackupResult> {
       platinumStandards: 0,
     };
 
-    // 1. Backup Users
+    // 1. Backup Users (transform to snake_case for Supabase)
     const allUsers = await db.select().from(users);
     if (allUsers.length > 0) {
+      const transformedUsers = allUsers.map(user => ({
+        id: user.id,
+        email: user.email,
+        first_name: user.firstName,
+        last_name: user.lastName,
+        profile_image_url: user.profileImageUrl,
+        is_admin: user.isAdmin,
+        course_sheet_url: user.courseSheetUrl,
+        created_at: user.createdAt,
+        updated_at: user.updatedAt,
+      }));
+      
       const { error: usersError } = await supabase!
         .from('users')
-        .upsert(allUsers, { onConflict: 'id' });
+        .upsert(transformedUsers, { onConflict: 'id' });
       
       if (usersError) throw new Error(`Users backup failed: ${usersError.message}`);
       stats.users = allUsers.length;
