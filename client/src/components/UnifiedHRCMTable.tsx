@@ -1274,15 +1274,49 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       <>
         <HoverCard openDelay={200}>
           <HoverCardTrigger asChild>
-            <div className="space-y-1.5 cursor-pointer">
+            <div className="space-y-1 cursor-pointer">
+              {/* Compact View - Fixed Height, No Inline Editing (Exactly like Platinum Standards) */}
               {visibleItems.map((item) => (
-                <div key={item.id} className="flex items-start gap-2 group">
+                <div key={item.id} className="flex items-center gap-2">
                   <Checkbox
                     checked={item.checked}
                     onCheckedChange={() => !disabled && onToggle(item.id)}
                     disabled={disabled}
-                    className="h-3 w-3 mt-0.5 shrink-0"
+                    className="h-3 w-3 shrink-0"
                     data-testid={`checkbox-${checklistType}-${category.toLowerCase()}-${item.id}`}
+                  />
+                  <span className="text-xs line-clamp-1">
+                    {item.text}
+                  </span>
+                </div>
+              ))}
+              
+              {/* Show "X more items" if more than 2 */}
+              {hasMoreItems && (
+                <div className="text-xs text-muted-foreground italic pl-5">
+                  + {hiddenCount} more item{hiddenCount > 1 ? 's' : ''}...
+                </div>
+              )}
+            </div>
+          </HoverCardTrigger>
+          
+          <HoverCardContent 
+            side="left" 
+            align="start" 
+            className="w-96 max-h-[400px] overflow-y-auto"
+          >
+            <div className="space-y-2">
+              <h4 className="font-semibold text-sm mb-3">
+                {category} - {colorScheme.label} ({items.length} items)
+              </h4>
+              {items.map((item) => (
+                <div key={item.id} className="flex items-start gap-2 py-1 group/hover-item">
+                  <Checkbox
+                    checked={item.checked}
+                    onCheckedChange={() => !disabled && onToggle(item.id)}
+                    disabled={disabled}
+                    className="h-4 w-4 mt-0.5 shrink-0"
+                    data-testid={`checkbox-hover-${checklistType}-${category.toLowerCase()}-${item.id}`}
                   />
                   {editingId === item.id && !disabled ? (
                     <Textarea
@@ -1292,7 +1326,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       placeholder="Type checkpoint..."
                       className="min-h-[60px] text-xs flex-1 border bg-background/50 focus-visible:ring-1 p-2 resize-none"
                       autoFocus
-                      data-testid={`textarea-${checklistType}-${category.toLowerCase()}-${item.id}`}
+                      data-testid={`textarea-hover-${checklistType}-${category.toLowerCase()}-${item.id}`}
                     />
                   ) : (
                     <>
@@ -1300,19 +1334,17 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         onClick={() => !disabled && setEditingId(item.id)}
                         disabled={disabled}
                         className="flex-1 text-left text-xs py-0.5 px-1 rounded hover:bg-muted/30 transition-colors min-h-[20px] break-words disabled:cursor-not-allowed"
-                        data-testid={`text-${checklistType}-${category.toLowerCase()}-${item.id}`}
+                        data-testid={`text-hover-${checklistType}-${category.toLowerCase()}-${item.id}`}
                       >
-                        <span className="line-clamp-1">
-                          {item.text || <span className="text-muted-foreground italic">Click to add text...</span>}
-                        </span>
+                        {item.text || <span className="text-muted-foreground italic">Click to edit...</span>}
                       </button>
                       {!disabled && (
                         <Button
                           size="sm"
                           variant="ghost"
                           onClick={() => onDeleteCheckpoint(item.id)}
-                          className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
-                          data-testid={`button-delete-checkpoint-${checklistType}-${category.toLowerCase()}-${item.id}`}
+                          className="h-5 w-5 p-0 opacity-0 group-hover/hover-item:opacity-100 transition-opacity shrink-0"
+                          data-testid={`button-delete-hover-${checklistType}-${category.toLowerCase()}-${item.id}`}
                         >
                           <Trash2 className="w-3 h-3 text-destructive" />
                         </Button>
@@ -1322,60 +1354,30 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </div>
               ))}
               
-              {hasMoreItems && (
-                <div className="text-xs text-muted-foreground italic pl-5">
-                  + {hiddenCount} more item{hiddenCount > 1 ? 's' : ''}...
-                </div>
+              {/* Add Checkpoint button in popup - doesn't affect table cell height */}
+              {!disabled && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={handleAddCheckpointClick}
+                  className="h-7 w-full text-xs text-muted-foreground hover:text-foreground gap-1 mt-2 border-t pt-2"
+                  data-testid={`button-add-checkpoint-hover-${checklistType}-${category.toLowerCase()}`}
+                >
+                  <Plus className="w-3 h-3" />
+                  Add Checkpoint
+                </Button>
               )}
             </div>
-          </HoverCardTrigger>
-          
-          {hasMoreItems && (
-            <HoverCardContent 
-              side="left" 
-              align="start" 
-              className="w-96 max-h-[400px] overflow-y-auto"
-            >
-              <div className="space-y-2">
-                <h4 className="font-semibold text-sm mb-3">
-                  {category} - {colorScheme.label} ({items.length} items)
-                </h4>
-                {items.map((item) => (
-                  <div key={item.id} className="flex items-start gap-2 py-1 group/hover-item">
-                    <Checkbox
-                      checked={item.checked}
-                      onCheckedChange={() => !disabled && onToggle(item.id)}
-                      disabled={disabled}
-                      className="h-4 w-4 mt-0.5 shrink-0"
-                      data-testid={`checkbox-hover-${checklistType}-${category.toLowerCase()}-${item.id}`}
-                    />
-                    <span className="text-xs leading-relaxed break-words flex-1">
-                      {item.text || <span className="text-muted-foreground italic">(empty)</span>}
-                    </span>
-                    {!disabled && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => onDeleteCheckpoint(item.id)}
-                        className="h-5 w-5 p-0 opacity-0 group-hover/hover-item:opacity-100 transition-opacity shrink-0"
-                        data-testid={`button-delete-hover-${checklistType}-${category.toLowerCase()}-${item.id}`}
-                      >
-                        <Trash2 className="w-3 h-3 text-destructive" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </HoverCardContent>
-          )}
+          </HoverCardContent>
         </HoverCard>
         
-        {!disabled && (
+        {/* Add Checkpoint Button - Outside HoverCard to prevent layout shift */}
+        {!disabled && items.length === 0 && (
           <Button
             size="sm"
             variant="ghost"
             onClick={handleAddCheckpointClick}
-            className="h-7 w-full text-xs text-muted-foreground hover:text-foreground gap-1 mt-1"
+            className="h-6 w-full text-xs text-muted-foreground hover:text-foreground gap-1"
             data-testid={`button-add-checkpoint-${checklistType}-${category.toLowerCase()}`}
           >
             <Plus className="w-3 h-3" />
