@@ -494,7 +494,7 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
     });
 
     // Add last subcategory if exists
-    if (currentSubcategory !== null && currentCourse) {
+    if (currentSubcategory !== null && currentCourse !== null) {
       if (!currentCourse.subcategories) {
         currentCourse.subcategories = [];
       }
