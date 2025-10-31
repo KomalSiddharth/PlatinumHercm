@@ -1,6 +1,22 @@
 import { supabase, isSupabaseConfigured } from './supabase.js';
 import { db } from './db.js';
-import { users, hercmWeeks, ritualCompletions, emotionalTrackers, courseVideoCompletions, userPersistentAssignments, platinumStandards } from '@shared/schema.js';
+import { 
+  users, 
+  hercmWeeks, 
+  ritualCompletions, 
+  emotionalTrackers, 
+  courseVideoCompletions, 
+  userPersistentAssignments, 
+  platinumStandards,
+  approvedEmails,
+  platinumProgress,
+  accessLogs,
+  rituals,
+  courses,
+  ratingProgression,
+  courseVideos,
+  adminCourseRecommendations
+} from '@shared/schema.js';
 import { eq } from 'drizzle-orm';
 
 /**
@@ -53,6 +69,14 @@ export interface BackupResult {
     courseVideoCompletions?: number;
     assignments?: number;
     platinumStandards?: number;
+    approvedEmails?: number;
+    platinumProgress?: number;
+    accessLogs?: number;
+    rituals?: number;
+    courses?: number;
+    ratingProgression?: number;
+    courseVideos?: number;
+    adminCourseRecommendations?: number;
   };
   error?: string;
 }
@@ -77,6 +101,14 @@ export async function backupAllData(): Promise<BackupResult> {
       courseVideoCompletions: 0,
       assignments: 0,
       platinumStandards: 0,
+      approvedEmails: 0,
+      platinumProgress: 0,
+      accessLogs: 0,
+      rituals: 0,
+      courses: 0,
+      ratingProgression: 0,
+      courseVideos: 0,
+      adminCourseRecommendations: 0,
     };
 
     // 1. Backup Users (auto-transform to snake_case)
@@ -163,6 +195,102 @@ export async function backupAllData(): Promise<BackupResult> {
       stats.platinumStandards = allStandards.length;
     }
 
+    // 8. Backup Approved Emails (auto-transform to snake_case)
+    const allApprovedEmails = await db.select().from(approvedEmails);
+    if (allApprovedEmails.length > 0) {
+      const transformedEmails = allApprovedEmails.map(transformToSnakeCase);
+      const { error: emailsError } = await supabase!
+        .from('approved_emails')
+        .upsert(transformedEmails, { onConflict: 'id' });
+      
+      if (emailsError) throw new Error(`Approved emails backup failed: ${emailsError.message}`);
+      stats.approvedEmails = allApprovedEmails.length;
+    }
+
+    // 9. Backup Platinum Progress (auto-transform to snake_case)
+    const allPlatinumProgress = await db.select().from(platinumProgress);
+    if (allPlatinumProgress.length > 0) {
+      const transformedProgress = allPlatinumProgress.map(transformToSnakeCase);
+      const { error: progressError } = await supabase!
+        .from('platinum_progress')
+        .upsert(transformedProgress, { onConflict: 'id' });
+      
+      if (progressError) throw new Error(`Platinum progress backup failed: ${progressError.message}`);
+      stats.platinumProgress = allPlatinumProgress.length;
+    }
+
+    // 10. Backup Access Logs (auto-transform to snake_case)
+    const allAccessLogs = await db.select().from(accessLogs);
+    if (allAccessLogs.length > 0) {
+      const transformedLogs = allAccessLogs.map(transformToSnakeCase);
+      const { error: logsError } = await supabase!
+        .from('access_logs')
+        .upsert(transformedLogs, { onConflict: 'id' });
+      
+      if (logsError) throw new Error(`Access logs backup failed: ${logsError.message}`);
+      stats.accessLogs = allAccessLogs.length;
+    }
+
+    // 11. Backup Rituals (auto-transform to snake_case)
+    const allRituals = await db.select().from(rituals);
+    if (allRituals.length > 0) {
+      const transformedRituals = allRituals.map(transformToSnakeCase);
+      const { error: ritualsError } = await supabase!
+        .from('rituals')
+        .upsert(transformedRituals, { onConflict: 'id' });
+      
+      if (ritualsError) throw new Error(`Rituals backup failed: ${ritualsError.message}`);
+      stats.rituals = allRituals.length;
+    }
+
+    // 12. Backup Courses (auto-transform to snake_case)
+    const allCourses = await db.select().from(courses);
+    if (allCourses.length > 0) {
+      const transformedCourses = allCourses.map(transformToSnakeCase);
+      const { error: coursesError } = await supabase!
+        .from('courses')
+        .upsert(transformedCourses, { onConflict: 'id' });
+      
+      if (coursesError) throw new Error(`Courses backup failed: ${coursesError.message}`);
+      stats.courses = allCourses.length;
+    }
+
+    // 13. Backup Rating Progression (auto-transform to snake_case)
+    const allRatingProgression = await db.select().from(ratingProgression);
+    if (allRatingProgression.length > 0) {
+      const transformedRating = allRatingProgression.map(transformToSnakeCase);
+      const { error: ratingError } = await supabase!
+        .from('rating_progression')
+        .upsert(transformedRating, { onConflict: 'id' });
+      
+      if (ratingError) throw new Error(`Rating progression backup failed: ${ratingError.message}`);
+      stats.ratingProgression = allRatingProgression.length;
+    }
+
+    // 14. Backup Course Videos (auto-transform to snake_case)
+    const allCourseVideos = await db.select().from(courseVideos);
+    if (allCourseVideos.length > 0) {
+      const transformedVideos = allCourseVideos.map(transformToSnakeCase);
+      const { error: videosError } = await supabase!
+        .from('course_videos')
+        .upsert(transformedVideos, { onConflict: 'id' });
+      
+      if (videosError) throw new Error(`Course videos backup failed: ${videosError.message}`);
+      stats.courseVideos = allCourseVideos.length;
+    }
+
+    // 15. Backup Admin Course Recommendations (auto-transform to snake_case)
+    const allAdminRecs = await db.select().from(adminCourseRecommendations);
+    if (allAdminRecs.length > 0) {
+      const transformedRecs = allAdminRecs.map(transformToSnakeCase);
+      const { error: recsError } = await supabase!
+        .from('admin_course_recommendations')
+        .upsert(transformedRecs, { onConflict: 'id' });
+      
+      if (recsError) throw new Error(`Admin course recommendations backup failed: ${recsError.message}`);
+      stats.adminCourseRecommendations = allAdminRecs.length;
+    }
+
     return {
       success: true,
       message: 'Full backup completed successfully',
@@ -197,6 +325,11 @@ export async function backupUserData(userId: string): Promise<BackupResult> {
       emotionalTrackers: 0,
       courseVideoCompletions: 0,
       assignments: 0,
+      platinumProgress: 0,
+      rituals: 0,
+      courses: 0,
+      ratingProgression: 0,
+      adminCourseRecommendations: 0,
     };
 
     // 1. User data (auto-transform to snake_case)
@@ -247,6 +380,46 @@ export async function backupUserData(userId: string): Promise<BackupResult> {
       stats.assignments = userAssignments.length;
     }
 
+    // 7. Platinum Progress (auto-transform to snake_case)
+    const userPlatProgress = await db.select().from(platinumProgress).where(eq(platinumProgress.userId, userId));
+    if (userPlatProgress.length > 0) {
+      const transformedPlatProgress = userPlatProgress.map(transformToSnakeCase);
+      await supabase!.from('platinum_progress').upsert(transformedPlatProgress, { onConflict: 'id' });
+      stats.platinumProgress = userPlatProgress.length;
+    }
+
+    // 8. Rituals (auto-transform to snake_case)
+    const userRitualsData = await db.select().from(rituals).where(eq(rituals.userId, userId));
+    if (userRitualsData.length > 0) {
+      const transformedRitualsData = userRitualsData.map(transformToSnakeCase);
+      await supabase!.from('rituals').upsert(transformedRitualsData, { onConflict: 'id' });
+      stats.rituals = userRitualsData.length;
+    }
+
+    // 9. Courses (auto-transform to snake_case)
+    const userCoursesData = await db.select().from(courses).where(eq(courses.userId, userId));
+    if (userCoursesData.length > 0) {
+      const transformedCoursesData = userCoursesData.map(transformToSnakeCase);
+      await supabase!.from('courses').upsert(transformedCoursesData, { onConflict: 'id' });
+      stats.courses = userCoursesData.length;
+    }
+
+    // 10. Rating Progression (auto-transform to snake_case)
+    const userRatingProg = await db.select().from(ratingProgression).where(eq(ratingProgression.userId, userId));
+    if (userRatingProg.length > 0) {
+      const transformedRatingProg = userRatingProg.map(transformToSnakeCase);
+      await supabase!.from('rating_progression').upsert(transformedRatingProg, { onConflict: 'id' });
+      stats.ratingProgression = userRatingProg.length;
+    }
+
+    // 11. Admin Course Recommendations (auto-transform to snake_case)
+    const userAdminRecs = await db.select().from(adminCourseRecommendations).where(eq(adminCourseRecommendations.userId, userId));
+    if (userAdminRecs.length > 0) {
+      const transformedAdminRecs = userAdminRecs.map(transformToSnakeCase);
+      await supabase!.from('admin_course_recommendations').upsert(transformedAdminRecs, { onConflict: 'id' });
+      stats.adminCourseRecommendations = userAdminRecs.length;
+    }
+
     return {
       success: true,
       message: `User ${userId} data backed up successfully`,
@@ -274,7 +447,23 @@ export async function getBackupStats(): Promise<BackupResult> {
   }
 
   try {
-    const [usersCount, hercmCount, ritualsCount, trackersCount, progressCount, assignmentsCount, standardsCount] = await Promise.all([
+    const [
+      usersCount, 
+      hercmCount, 
+      ritualsCount, 
+      trackersCount, 
+      progressCount, 
+      assignmentsCount, 
+      standardsCount,
+      emailsCount,
+      platProgressCount,
+      logsCount,
+      ritualsTableCount,
+      coursesCount,
+      ratingCount,
+      videosCount,
+      adminRecsCount
+    ] = await Promise.all([
       supabase!.from('users').select('*', { count: 'exact', head: true }),
       supabase!.from('hercm_weeks').select('*', { count: 'exact', head: true }),
       supabase!.from('ritual_completions').select('*', { count: 'exact', head: true }),
@@ -282,6 +471,14 @@ export async function getBackupStats(): Promise<BackupResult> {
       supabase!.from('course_video_completions').select('*', { count: 'exact', head: true }),
       supabase!.from('user_persistent_assignments').select('*', { count: 'exact', head: true }),
       supabase!.from('platinum_standards').select('*', { count: 'exact', head: true }),
+      supabase!.from('approved_emails').select('*', { count: 'exact', head: true }),
+      supabase!.from('platinum_progress').select('*', { count: 'exact', head: true }),
+      supabase!.from('access_logs').select('*', { count: 'exact', head: true }),
+      supabase!.from('rituals').select('*', { count: 'exact', head: true }),
+      supabase!.from('courses').select('*', { count: 'exact', head: true }),
+      supabase!.from('rating_progression').select('*', { count: 'exact', head: true }),
+      supabase!.from('course_videos').select('*', { count: 'exact', head: true }),
+      supabase!.from('admin_course_recommendations').select('*', { count: 'exact', head: true }),
     ]);
 
     return {
@@ -295,6 +492,14 @@ export async function getBackupStats(): Promise<BackupResult> {
         courseVideoCompletions: progressCount.count || 0,
         assignments: assignmentsCount.count || 0,
         platinumStandards: standardsCount.count || 0,
+        approvedEmails: emailsCount.count || 0,
+        platinumProgress: platProgressCount.count || 0,
+        accessLogs: logsCount.count || 0,
+        rituals: ritualsTableCount.count || 0,
+        courses: coursesCount.count || 0,
+        ratingProgression: ratingCount.count || 0,
+        courseVideos: videosCount.count || 0,
+        adminCourseRecommendations: adminRecsCount.count || 0,
       },
     };
   } catch (error) {
