@@ -1,6 +1,6 @@
 import { supabase, isSupabaseConfigured } from './supabase.js';
 import { db } from './db.js';
-import { users, hercmWeeks, dailyRituals, emotionalTrackers, courseProgress, userPersistentAssignments, platinumStandards } from '@shared/schema.js';
+import { users, hercmWeeks, ritualCompletions, emotionalTrackers, courseVideoCompletions, userPersistentAssignments, platinumStandards } from '@shared/schema.js';
 import { eq } from 'drizzle-orm';
 
 /**
@@ -14,9 +14,9 @@ export interface BackupResult {
   stats?: {
     users?: number;
     hercmWeeks?: number;
-    dailyRituals?: number;
+    ritualCompletions?: number;
     emotionalTrackers?: number;
-    courseProgress?: number;
+    courseVideoCompletions?: number;
     assignments?: number;
     platinumStandards?: number;
   };
@@ -38,9 +38,9 @@ export async function backupAllData(): Promise<BackupResult> {
     const stats = {
       users: 0,
       hercmWeeks: 0,
-      dailyRituals: 0,
+      ritualCompletions: 0,
       emotionalTrackers: 0,
-      courseProgress: 0,
+      courseVideoCompletions: 0,
       assignments: 0,
       platinumStandards: 0,
     };
@@ -67,15 +67,15 @@ export async function backupAllData(): Promise<BackupResult> {
       stats.hercmWeeks = allHercmWeeks.length;
     }
 
-    // 3. Backup Daily Rituals
-    const allDailyRituals = await db.select().from(dailyRituals);
-    if (allDailyRituals.length > 0) {
+    // 3. Backup Ritual Completions
+    const allRitualCompletions = await db.select().from(ritualCompletions);
+    if (allRitualCompletions.length > 0) {
       const { error: ritualsError } = await supabase!
-        .from('daily_rituals')
-        .upsert(allDailyRituals, { onConflict: 'id' });
+        .from('ritual_completions')
+        .upsert(allRitualCompletions, { onConflict: 'id' });
       
-      if (ritualsError) throw new Error(`Daily rituals backup failed: ${ritualsError.message}`);
-      stats.dailyRituals = allDailyRituals.length;
+      if (ritualsError) throw new Error(`Ritual completions backup failed: ${ritualsError.message}`);
+      stats.ritualCompletions = allRitualCompletions.length;
     }
 
     // 4. Backup Emotional Trackers
@@ -89,15 +89,15 @@ export async function backupAllData(): Promise<BackupResult> {
       stats.emotionalTrackers = allEmotionalTrackers.length;
     }
 
-    // 5. Backup Course Progress
-    const allCourseProgress = await db.select().from(courseProgress);
-    if (allCourseProgress.length > 0) {
+    // 5. Backup Course Video Completions
+    const allCourseVideoCompletions = await db.select().from(courseVideoCompletions);
+    if (allCourseVideoCompletions.length > 0) {
       const { error: progressError } = await supabase!
-        .from('course_progress')
-        .upsert(allCourseProgress, { onConflict: 'id' });
+        .from('course_video_completions')
+        .upsert(allCourseVideoCompletions, { onConflict: 'id' });
       
-      if (progressError) throw new Error(`Course progress backup failed: ${progressError.message}`);
-      stats.courseProgress = allCourseProgress.length;
+      if (progressError) throw new Error(`Course video completions backup failed: ${progressError.message}`);
+      stats.courseVideoCompletions = allCourseVideoCompletions.length;
     }
 
     // 6. Backup User Assignments
@@ -152,9 +152,9 @@ export async function backupUserData(userId: string): Promise<BackupResult> {
     const stats = {
       users: 0,
       hercmWeeks: 0,
-      dailyRituals: 0,
+      ritualCompletions: 0,
       emotionalTrackers: 0,
-      courseProgress: 0,
+      courseVideoCompletions: 0,
       assignments: 0,
     };
 
@@ -172,11 +172,11 @@ export async function backupUserData(userId: string): Promise<BackupResult> {
       stats.hercmWeeks = userHercm.length;
     }
 
-    // 3. Daily rituals
-    const userRituals = await db.select().from(dailyRituals).where(eq(dailyRituals.userId, userId));
+    // 3. Ritual completions
+    const userRituals = await db.select().from(ritualCompletions).where(eq(ritualCompletions.userId, userId));
     if (userRituals.length > 0) {
-      await supabase!.from('daily_rituals').upsert(userRituals, { onConflict: 'id' });
-      stats.dailyRituals = userRituals.length;
+      await supabase!.from('ritual_completions').upsert(userRituals, { onConflict: 'id' });
+      stats.ritualCompletions = userRituals.length;
     }
 
     // 4. Emotional trackers
@@ -186,11 +186,11 @@ export async function backupUserData(userId: string): Promise<BackupResult> {
       stats.emotionalTrackers = userTrackers.length;
     }
 
-    // 5. Course progress
-    const userProgress = await db.select().from(courseProgress).where(eq(courseProgress.userId, userId));
+    // 5. Course video completions
+    const userProgress = await db.select().from(courseVideoCompletions).where(eq(courseVideoCompletions.userId, userId));
     if (userProgress.length > 0) {
-      await supabase!.from('course_progress').upsert(userProgress, { onConflict: 'id' });
-      stats.courseProgress = userProgress.length;
+      await supabase!.from('course_video_completions').upsert(userProgress, { onConflict: 'id' });
+      stats.courseVideoCompletions = userProgress.length;
     }
 
     // 6. Assignments
@@ -230,9 +230,9 @@ export async function getBackupStats(): Promise<BackupResult> {
     const [usersCount, hercmCount, ritualsCount, trackersCount, progressCount, assignmentsCount, standardsCount] = await Promise.all([
       supabase!.from('users').select('*', { count: 'exact', head: true }),
       supabase!.from('hercm_weeks').select('*', { count: 'exact', head: true }),
-      supabase!.from('daily_rituals').select('*', { count: 'exact', head: true }),
+      supabase!.from('ritual_completions').select('*', { count: 'exact', head: true }),
       supabase!.from('emotional_trackers').select('*', { count: 'exact', head: true }),
-      supabase!.from('course_progress').select('*', { count: 'exact', head: true }),
+      supabase!.from('course_video_completions').select('*', { count: 'exact', head: true }),
       supabase!.from('user_persistent_assignments').select('*', { count: 'exact', head: true }),
       supabase!.from('platinum_standards').select('*', { count: 'exact', head: true }),
     ]);
@@ -243,9 +243,9 @@ export async function getBackupStats(): Promise<BackupResult> {
       stats: {
         users: usersCount.count || 0,
         hercmWeeks: hercmCount.count || 0,
-        dailyRituals: ritualsCount.count || 0,
+        ritualCompletions: ritualsCount.count || 0,
         emotionalTrackers: trackersCount.count || 0,
-        courseProgress: progressCount.count || 0,
+        courseVideoCompletions: progressCount.count || 0,
         assignments: assignmentsCount.count || 0,
         platinumStandards: standardsCount.count || 0,
       },

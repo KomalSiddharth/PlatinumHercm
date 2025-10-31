@@ -10,6 +10,7 @@ import { getAIRecommendations, generateAffirmation } from "./aiRecommendations";
 import { generateHRCMWeeklyPDF, generateMonthlyProgressPDF } from "./pdfExport";
 import { emailService } from "./emailService";
 import { validateAndCapRating, updateRatingProgression, getRatingCaps, getRatingProgressionStatus } from "./ratingProgression";
+import { backupAllData, backupUserData, getBackupStats, isSupabaseConfigured } from "./backupService";
 import OpenAI from "openai";
 
 const openai = new OpenAI({
@@ -4640,6 +4641,71 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
     } catch (error) {
       console.error("Error migrating assignments:", error);
       res.status(500).json({ message: "Failed to migrate assignments" });
+    }
+  });
+
+  // ==========================================
+  // SUPABASE BACKUP ROUTES (Admin Only)
+  // ==========================================
+
+  // Get backup configuration status
+  app.get('/api/backup/status', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      res.json({
+        configured: isSupabaseConfigured,
+        message: isSupabaseConfigured 
+          ? 'Supabase backup is configured and ready' 
+          : 'Supabase credentials not found. Add SUPABASE_URL and SUPABASE_ANON_KEY to enable backup.'
+      });
+    } catch (error) {
+      console.error("Error checking backup status:", error);
+      res.status(500).json({ message: "Failed to check backup status" });
+    }
+  });
+
+  // Get backup statistics
+  app.get('/api/backup/stats', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const result = await getBackupStats();
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching backup stats:", error);
+      res.status(500).json({ message: "Failed to fetch backup stats" });
+    }
+  });
+
+  // Manual full backup - all users and data
+  app.post('/api/backup/full', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      console.log('[BACKUP] Starting full backup to Supabase...');
+      const result = await backupAllData();
+      console.log('[BACKUP] Full backup completed:', result);
+      res.json(result);
+    } catch (error) {
+      console.error("Error during full backup:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to complete backup",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Backup specific user data
+  app.post('/api/backup/user/:userId', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      console.log(`[BACKUP] Starting backup for user ${userId}...`);
+      const result = await backupUserData(userId);
+      console.log(`[BACKUP] User backup completed:`, result);
+      res.json(result);
+    } catch (error) {
+      console.error("Error during user backup:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to backup user data",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 
