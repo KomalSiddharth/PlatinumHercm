@@ -48,6 +48,9 @@ import {
   type InsertEmotionalTracker,
   type UserPersistentAssignment,
   type InsertUserPersistentAssignment,
+  userFeedback,
+  type UserFeedback,
+  type InsertUserFeedback,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, count, sql, gte, lte } from "drizzle-orm";
@@ -194,6 +197,13 @@ export interface IStorage {
   togglePersistentAssignmentCompletion(id: string, userId: string): Promise<UserPersistentAssignment>;
   deletePersistentAssignment(id: string, userId: string): Promise<void>;
   deleteCompletedAssignments(userId: string): Promise<void>;
+  
+  // User Feedback operations
+  getAllFeedback(): Promise<UserFeedback[]>;
+  getUserFeedback(userId: string): Promise<UserFeedback[]>;
+  createFeedback(feedback: InsertUserFeedback): Promise<UserFeedback>;
+  updateFeedbackStatus(id: string, status: string, adminResponse?: string): Promise<UserFeedback>;
+  deleteFeedback(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1432,6 +1442,59 @@ export class DatabaseStorage implements IStorage {
         eq(userPersistentAssignments.userId, userId),
         eq(userPersistentAssignments.completed, true)
       ));
+  }
+
+  // User Feedback operations
+  async getAllFeedback(): Promise<UserFeedback[]> {
+    return await db
+      .select()
+      .from(userFeedback)
+      .orderBy(desc(userFeedback.createdAt));
+  }
+
+  async getUserFeedback(userId: string): Promise<UserFeedback[]> {
+    return await db
+      .select()
+      .from(userFeedback)
+      .where(eq(userFeedback.userId, userId))
+      .orderBy(desc(userFeedback.createdAt));
+  }
+
+  async createFeedback(feedback: InsertUserFeedback): Promise<UserFeedback> {
+    const [newFeedback] = await db
+      .insert(userFeedback)
+      .values(feedback)
+      .returning();
+    return newFeedback;
+  }
+
+  async updateFeedbackStatus(id: string, status: string, adminResponse?: string): Promise<UserFeedback> {
+    const updateData: any = { 
+      status, 
+      updatedAt: new Date() 
+    };
+    
+    if (adminResponse !== undefined) {
+      updateData.adminResponse = adminResponse;
+    }
+    
+    if (status === 'resolved') {
+      updateData.resolvedAt = new Date();
+    }
+
+    const [updated] = await db
+      .update(userFeedback)
+      .set(updateData)
+      .where(eq(userFeedback.id, id))
+      .returning();
+    
+    return updated;
+  }
+
+  async deleteFeedback(id: string): Promise<void> {
+    await db
+      .delete(userFeedback)
+      .where(eq(userFeedback.id, id));
   }
 }
 
