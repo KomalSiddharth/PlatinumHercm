@@ -321,6 +321,26 @@ export default function AdminPanel() {
     }
   });
 
+  const fixSwappedEmailsMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest('POST', '/api/admin/fix-swapped-emails');
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/approved-emails'] });
+      toast({ 
+        title: "Data Fixed!", 
+        description: `Successfully fixed ${data.fixedCount} swapped entries` 
+      });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Fix Failed", 
+        description: error.message || "Failed to fix swapped data",
+        variant: "destructive" 
+      });
+    }
+  });
+
   const deleteAllMutation = useMutation({
     mutationFn: async () => {
       return apiRequest('DELETE', '/api/admin/approved-emails/all');
@@ -1020,6 +1040,16 @@ export default function AdminPanel() {
                   >
                     <Download className="w-4 h-4 mr-2" />
                     Export
+                  </Button>
+                  <Button 
+                    variant="default"
+                    className="bg-blue-600 hover:bg-blue-700"
+                    onClick={() => fixSwappedEmailsMutation.mutate()}
+                    disabled={fixSwappedEmailsMutation.isPending}
+                    data-testid="button-fix-swapped"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    {fixSwappedEmailsMutation.isPending ? 'Fixing...' : 'Fix Swapped Data'}
                   </Button>
                   <Button 
                     variant="destructive" 
