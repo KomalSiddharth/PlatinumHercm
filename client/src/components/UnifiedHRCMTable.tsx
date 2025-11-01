@@ -297,11 +297,18 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     setSelectedDate(newDate);
   };
 
-  // Fetch HRCM data for the selected date (like Emotional Tracker)
+  // Fetch HRCM data for the selected date (admin-aware)
+  const dateDataQueryKey = isAdminView && viewAsUserId
+    ? [`/api/admin/user/${viewAsUserId}/hercm/by-date`, currentDateStr]
+    : ['/api/hercm/by-date', currentDateStr];
+  
   const { data: dateData, isLoading } = useQuery<{ beliefs?: HRCMBelief[]; createdAt?: string; weekNumber?: number }>({
-    queryKey: ['/api/hercm/by-date', currentDateStr],
+    queryKey: dateDataQueryKey,
     queryFn: async () => {
-      const response = await fetch(`/api/hercm/by-date/${currentDateStr}`);
+      const endpoint = isAdminView && viewAsUserId
+        ? `/api/admin/user/${viewAsUserId}/hercm/by-date/${currentDateStr}`
+        : `/api/hercm/by-date/${currentDateStr}`;
+      const response = await fetch(endpoint);
       if (!response.ok) throw new Error('Failed to fetch HRCM data');
       return response.json();
     },
