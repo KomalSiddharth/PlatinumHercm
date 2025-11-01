@@ -25,7 +25,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Trophy, Pause, History as HistoryIcon, Trash2, ChevronDown, Book, RefreshCw } from 'lucide-react';
+import { Trophy, Pause, History as HistoryIcon, Trash2, ChevronDown, Book, RefreshCw, Map } from 'lucide-react';
 import type { Ritual as DbRitual, RitualCompletion } from '@shared/schema';
 
 interface Ritual {
@@ -827,17 +827,17 @@ export default function Dashboard() {
                 onClick={() => {
                   queryClient.invalidateQueries({ queryKey: ['/api/course-tracking'] });
                   toast({
-                    title: 'Refreshing Courses',
+                    title: 'Refreshing Skill Map',
                     description: 'Loading latest course data from Google Sheets...',
                   });
                 }}
-                variant="outline"
+                variant="default"
                 size="sm"
-                className="gap-2 shrink-0"
-                data-testid="button-refresh-courses"
+                className="gap-2 shrink-0 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white border-0"
+                data-testid="button-skill-map"
               >
-                <RefreshCw className="w-4 h-4" />
-                Refresh
+                <Map className="w-4 h-4" />
+                Skill Map
               </Button>
             </div>
 
