@@ -112,7 +112,7 @@ export default function AdminPanel() {
 
   const { data: approvedEmails = [], isLoading } = useQuery<ApprovedEmail[]>({
     queryKey: ['/api/admin/approved-emails'],
-    enabled: activeTab === 'approved' || activeTab === 'recommendations', // Enable on both tabs
+    enabled: activeTab === 'approved' || activeTab === 'recommendations' || activeTab === 'dashboard-viewer', // Enable on all 3 tabs
     staleTime: 30000, // Cache for 30 seconds to improve performance
   });
 
@@ -2165,7 +2165,7 @@ export default function AdminPanel() {
           {/* User Dashboard Viewer Tab */}
           {activeTab === 'dashboard-viewer' && (
             <div className="p-6">
-              <AdminUserDashboardViewer />
+              <AdminUserDashboardViewer approvedEmails={approvedEmails} />
             </div>
           )}
 

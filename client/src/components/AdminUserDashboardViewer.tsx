@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, User, ArrowLeft, TrendingUp, AlertCircle, Loader2, Trophy, History as HistoryIcon, Trash2, Pause, ChevronDown } from 'lucide-react';
+import { Search, User, ArrowLeft, TrendingUp, AlertCircle, Loader2, Trophy, History as HistoryIcon, Trash2, Pause, ChevronDown, Check, ChevronsUpDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -14,6 +14,19 @@ import UnifiedHRCMTable from './UnifiedHRCMTable';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import AdminEmotionalTrackerView from './AdminEmotionalTrackerView';
 import RitualHistoryModal from './RitualHistoryModal';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 
 interface UserSearchResult {
   id: string;
@@ -48,24 +61,32 @@ interface UserDashboardData {
   platinumBadges: any[];
 }
 
-export default function AdminUserDashboardViewer() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
+interface ApprovedEmail {
+  id: string;
+  name: string | null;
+  email: string;
+}
+
+interface AdminUserDashboardViewerProps {
+  approvedEmails: ApprovedEmail[];
+}
+
+export default function AdminUserDashboardViewer({ approvedEmails }: AdminUserDashboardViewerProps) {
+  const [selectedUserEmail, setSelectedUserEmail] = useState('');
+  const [userPopoverOpen, setUserPopoverOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [selectedWeekNumber, setSelectedWeekNumber] = useState<number>(1);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [selectedRitual, setSelectedRitual] = useState<any | null>(null);
   const { toast } = useToast();
 
-  // Search users by name or email
-  const { data: searchResults, isLoading: isSearching, error: searchError } = useQuery<UserSearchResult[]>({
-    queryKey: [`/api/admin/search-user-by-name?name=${searchTerm}`],
-    enabled: !!searchTerm,
-  });
+  // Get user ID from selected email
+  const selectedUser = approvedEmails.find(u => u.email === selectedUserEmail);
+  const userId = selectedUser?.email; // Use email as userId for API call
 
   // Get selected user's dashboard data
   const { data: dashboardData, isLoading: isDashboardLoading } = useQuery<UserDashboardData>({
-    queryKey: [`/api/admin/user/${selectedUserId}/dashboard`],
+    queryKey: [`/api/admin/user/${userId}/dashboard`],
     enabled: !!selectedUserId,
   });
 
@@ -77,25 +98,25 @@ export default function AdminUserDashboardViewer() {
     }
   }, [dashboardData]);
 
-  const handleSearch = () => {
-    if (!searchQuery.trim()) {
+  const handleViewDashboard = () => {
+    if (!selectedUserEmail) {
       toast({
-        title: "Search Required",
-        description: "Please enter a name or email to search",
+        title: "Select User",
+        description: "Please select a user to view their dashboard",
         variant: "destructive",
       });
       return;
     }
-    setSearchTerm(searchQuery.trim());
-    setSelectedUserId(null); // Reset selection when searching
-  };
-
-  const handleSelectUser = (userId: string) => {
-    setSelectedUserId(userId);
+    // Find user from approvedEmails and get their ID
+    const user = approvedEmails.find(u => u.email === selectedUserEmail);
+    if (user) {
+      setSelectedUserId(user.id);
+    }
   };
 
   const handleBackToSearch = () => {
     setSelectedUserId(null);
+    setSelectedUserEmail('');
   };
 
   const handleViewHistory = (ritual: any) => {
