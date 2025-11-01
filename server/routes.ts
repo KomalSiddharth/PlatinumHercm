@@ -2683,6 +2683,13 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       const pendingRecommendations = recommendations.filter((r: any) => r.status === 'pending');
       console.log('[DEBUG] /api/user/recommendations - pending recommendations:', pendingRecommendations);
       
+      // INSTANT UPDATE FIX: Disable HTTP caching to ensure admin recommendations appear immediately
+      res.set({
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
+      
       res.json(pendingRecommendations);
     } catch (error) {
       console.error("Error fetching user recommendations:", error);

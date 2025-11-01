@@ -31,6 +31,8 @@ export function CourseRecommendations({ currentWeek = 1 }: CourseRecommendations
 
   const { data: recommendations = [], isLoading } = useQuery<Recommendation[]>({
     queryKey: ['/api/user/recommendations'],
+    refetchInterval: 5000, // Poll every 5 seconds for instant admin recommendations
+    refetchIntervalInBackground: true, // Continue polling even when tab not focused
   });
 
   const acceptMutation = useMutation({
