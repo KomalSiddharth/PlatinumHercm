@@ -825,11 +825,7 @@ export default function Dashboard() {
               </div>
               <Button
                 onClick={() => {
-                  queryClient.invalidateQueries({ queryKey: ['/api/course-tracking'] });
-                  toast({
-                    title: 'Refreshing Skill Map',
-                    description: 'Loading latest course data from Google Sheets...',
-                  });
+                  window.open('https://docs.google.com/spreadsheets/d/1BDeCzNYBU1HybnaOtytH7aeKZDj-f6nQJxHwgVKqxQ0/edit?usp=sharing', '_blank');
                 }}
                 variant="default"
                 size="sm"
