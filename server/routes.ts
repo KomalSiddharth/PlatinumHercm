@@ -2591,10 +2591,11 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       
       // Also create a persistent assignment so user can see it immediately in their dashboard
       try {
-        const persistentAssignment = await storage.createPersistentAssignment({
+        const persistentAssignment = await storage.addPersistentAssignment({
           userId: userId,
           courseId: courseName.toLowerCase().replace(/\s+/g, '-'),
           courseName,
+          hrcmArea: hrcmArea, // Include HRCM area from recommendation
           lessonName: null, // Course-level assignment, not lesson-specific
           url: null,
           completed: false,

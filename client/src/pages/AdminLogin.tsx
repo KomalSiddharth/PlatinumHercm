@@ -3,7 +3,7 @@ import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Loader2, Shield, ArrowLeft, Lock } from 'lucide-react';
 import mkLogo from '@assets/Screenshot 2025-10-11 130038_1760168623219.png';
 
@@ -29,6 +29,9 @@ export default function AdminLogin() {
     
     try {
       await apiRequest('POST', '/api/auth/admin-login', { email });
+      
+      // Invalidate cached admin info to fetch fresh data for newly logged-in admin
+      await queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       
       toast({
         title: "Admin Login Successful",
