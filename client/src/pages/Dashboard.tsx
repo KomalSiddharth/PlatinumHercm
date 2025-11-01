@@ -25,7 +25,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Trophy, Pause, History as HistoryIcon, Trash2, ChevronDown, Book, RefreshCw, Map } from 'lucide-react';
+import { Trophy, Pause, History as HistoryIcon, Trash2, ChevronDown, Book, RefreshCw, Map, ChevronRight, Folder, FolderOpen, FileText, CheckCircle2 } from 'lucide-react';
 import type { Ritual as DbRitual, RitualCompletion } from '@shared/schema';
 
 interface Ritual {
@@ -112,6 +112,8 @@ export default function Dashboard() {
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const [assignmentDialogOpen, setAssignmentDialogOpen] = useState(false);
   const [pendingAssignmentLessons, setPendingAssignmentLessons] = useState<AssignmentLesson[]>([]);
+  const [openCourses, setOpenCourses] = useState<Record<string, boolean>>({});
+  const [openCourseSubcategories, setOpenCourseSubcategories] = useState<Record<string, boolean>>({});
   
   const [userName, setUserName] = useState('User');
   const [userEmail, setUserEmail] = useState('');
@@ -900,10 +902,10 @@ export default function Dashboard() {
                   </div>
                 )}
 
-                {/* Courses List */}
+                {/* Courses List - Tree View */}
                 {!coursesLoading && !coursesError && courses.length > 0 && (
-                  <div className="space-y-3">
-                    {courses.map((course, index) => {
+                  <div className="space-y-1">
+                    {courses.map((course, courseIdx) => {
                     // Calculate total lessons including subcategories
                     const directLessons = course.lessons || [];
                     const subcategoryLessons = (course.subcategories || []).flatMap(sub => sub.lessons || []);
@@ -912,50 +914,63 @@ export default function Dashboard() {
                     const completedLessons = allLessons.filter(l => l.completed).length;
                     const totalLessons = allLessons.length;
                     const progress = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+                    const isOpen = openCourses[course.id] || false;
 
                     return (
-                      <Collapsible key={course.id}>
-                        <div className={`flex items-center gap-3 p-3 rounded-lg hover-elevate ${index !== courses.length - 1 ? 'border-b' : ''}`}>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-semibold text-sm">{course.title}</h3>
+                      <div key={course.id} className="space-y-0.5">
+                        {/* Course (Level 0) - Tree View Header */}
+                        <Collapsible
+                          open={isOpen}
+                          onOpenChange={() => setOpenCourses(prev => ({ ...prev, [course.id]: !prev[course.id] }))}
+                          data-testid={`collapsible-course-${courseIdx}`}
+                        >
+                          <CollapsibleTrigger 
+                            className="flex items-center gap-2 w-full hover-elevate active-elevate-2 rounded-md px-2 py-1.5 text-left transition-all" 
+                            data-testid={`button-toggle-${course.id}`}
+                          >
+                            <ChevronRight className={`h-4 w-4 text-primary transition-transform duration-200 flex-shrink-0 ${isOpen ? 'transform rotate-90' : ''}`} />
+                            {isOpen ? (
+                              <FolderOpen className="h-5 w-5 text-primary flex-shrink-0" />
+                            ) : (
+                              <Folder className="h-5 w-5 text-primary flex-shrink-0" />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-sm text-primary dark:text-accent truncate">
+                                  {course.title}
+                                </span>
+                                {totalLessons > 0 && (
+                                  <Badge className="text-[10px] px-1.5 py-0 h-4 bg-gradient-to-r from-primary to-accent text-white border-0 flex-shrink-0">
+                                    {completedLessons}/{totalLessons}
+                                  </Badge>
+                                )}
+                              </div>
                               {totalLessons > 0 && (
-                                <Badge className="text-[10px] px-1.5 py-0 h-4 bg-gradient-to-r from-primary to-accent text-white border-0">
-                                  {completedLessons}/{totalLessons}
-                                </Badge>
+                                <div className="mt-1 flex items-center gap-2">
+                                  <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden max-w-[200px]">
+                                    <div 
+                                      className="h-full bg-primary transition-all duration-300"
+                                      style={{ width: `${progress}%` }}
+                                    />
+                                  </div>
+                                  <span className="text-[10px] text-muted-foreground font-medium flex-shrink-0">{progress}%</span>
+                                </div>
                               )}
                             </div>
-                            <p className="text-xs text-muted-foreground">{course.source}</p>
-                            {totalLessons > 0 && (
-                              <div className="mt-1.5 flex items-center gap-2">
-                                <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
-                                  <div 
-                                    className="h-full bg-teal-400 transition-all duration-300"
-                                    style={{ width: `${progress}%` }}
-                                  />
-                                </div>
-                                <span className="text-[10px] text-muted-foreground font-medium">{progress}%</span>
-                              </div>
-                            )}
-                          </div>
-                          {totalLessons > 0 && (
-                            <CollapsibleTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="gap-1"
-                                data-testid={`button-expand-${course.id}`}
-                              >
-                                <ChevronDown className="w-4 h-4" />
-                              </Button>
-                            </CollapsibleTrigger>
-                          )}
-                        </div>
-                        <CollapsibleContent className="px-3 pb-3">
+                          </CollapsibleTrigger>
+
+                          <CollapsibleContent>
+                            <div className="ml-6 border-l-2 border-muted-foreground/20 pl-1 space-y-0.5 mt-0.5">
                           {totalLessons > 0 ? (
-                            <div className="bg-muted/30 rounded-lg p-3 mt-2 space-y-2">
-                              {course.lessons.map((lesson) => (
-                                <div key={lesson.id} className="flex items-start gap-2">
+                            <>
+                              {/* Direct lessons (if no subcategories) */}
+                              {course.lessons.map((lesson, lessonIdx) => (
+                                <div 
+                                  key={lesson.id} 
+                                  className="flex items-center gap-2 px-2 py-1 hover-elevate active-elevate-2 rounded-md transition-all"
+                                  data-testid={`row-lesson-${courseIdx}-${lessonIdx}`}
+                                >
+                                  <FileText className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                                   <Checkbox
                                     checked={lesson.completed}
                                     onCheckedChange={async (checked) => {
@@ -1091,24 +1106,43 @@ export default function Dashboard() {
                               ))}
                               
                               {/* Render subcategories if they exist */}
-                              {course.subcategories && course.subcategories.length > 0 && course.subcategories.map((subcategory: any) => (
-                                <Collapsible key={subcategory.id} className="mt-3">
-                                  <div className="border-l-2 border-primary/30 pl-3">
-                                    <CollapsibleTrigger asChild>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="w-full justify-between hover:bg-muted/50 mb-2"
-                                        data-testid={`button-subcategory-${subcategory.id}`}
-                                      >
-                                        <span className="font-medium text-xs">{subcategory.title}</span>
-                                        <ChevronDown className="w-3 h-3" />
-                                      </Button>
+                              {course.subcategories && course.subcategories.length > 0 && course.subcategories.map((subcategory: any, subcatIdx: number) => {
+                                const subcatKey = `${course.id}-${subcategory.id}`;
+                                const isSubcatOpen = openCourseSubcategories[subcatKey] || false;
+                                return (
+                                <div key={subcategory.id} className="space-y-0.5 mt-1">
+                                  {/* Subcategory (Level 1) - Tree View */}
+                                  <Collapsible 
+                                    open={isSubcatOpen}
+                                    onOpenChange={() => setOpenCourseSubcategories(prev => ({ ...prev, [subcatKey]: !prev[subcatKey] }))}
+                                    data-testid={`collapsible-subcategory-${courseIdx}-${subcatIdx}`}
+                                  >
+                                    <CollapsibleTrigger 
+                                      className="flex items-center gap-2 w-full hover-elevate active-elevate-2 rounded-md px-2 py-1 text-left transition-all" 
+                                      data-testid={`button-toggle-${subcategory.id}`}
+                                    >
+                                      <ChevronRight className={`h-3.5 w-3.5 text-accent transition-transform duration-200 flex-shrink-0 ${isSubcatOpen ? 'transform rotate-90' : ''}`} />
+                                      {isSubcatOpen ? (
+                                        <FolderOpen className="h-4 w-4 text-accent flex-shrink-0" />
+                                      ) : (
+                                        <Folder className="h-4 w-4 text-accent flex-shrink-0" />
+                                      )}
+                                      <span className="font-medium text-sm text-accent dark:text-accent/90">
+                                        {subcategory.title}
+                                      </span>
                                     </CollapsibleTrigger>
-                                    <CollapsibleContent className="space-y-2 mt-2">
-                                      {subcategory.lessons && subcategory.lessons.map((lesson: any) => (
-                                        <div key={lesson.id} className="flex items-start gap-2">
-                                          <Checkbox
+
+                                    <CollapsibleContent>
+                                      <div className="ml-6 border-l-2 border-muted-foreground/15 pl-1 space-y-0.5 mt-0.5">
+                                        {/* Subcategory Lessons (Level 2) */}
+                                        {subcategory.lessons && subcategory.lessons.map((lesson: any, lessonIdx: number) => (
+                                          <div 
+                                            key={lesson.id} 
+                                            className="flex items-center gap-2 px-2 py-1 hover-elevate active-elevate-2 rounded-md transition-all"
+                                            data-testid={`row-subcategory-lesson-${courseIdx}-${subcatIdx}-${lessonIdx}`}
+                                          >
+                                            <FileText className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                                            <Checkbox
                                             checked={lesson.completed}
                                             onCheckedChange={async (checked) => {
                                               // Update local state for subcategory lesson
@@ -1211,18 +1245,20 @@ export default function Dashboard() {
                                           </div>
                                         </div>
                                       ))}
+                                      </div>
                                     </CollapsibleContent>
-                                  </div>
-                                </Collapsible>
-                              ))}
-                            </div>
+                                  </Collapsible>
+                                </div>
+                              );
+                            })}
+                            </>
                           ) : (
-                            <div className="bg-white/5 rounded-lg p-3 mt-2">
-                              <p className="text-xs text-white/60">No lessons available yet</p>
-                            </div>
+                            <div className="p-2 text-xs text-muted-foreground">No lessons available yet</div>
                           )}
-                        </CollapsibleContent>
-                      </Collapsible>
+                            </div>
+                          </CollapsibleContent>
+                        </Collapsible>
+                      </div>
                     );
                   })}
                   </div>
