@@ -2431,6 +2431,21 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
+  // Admin: Get persistent assignments for a specific user
+  app.get('/api/admin/user/:userId/persistent-assignments', isAdmin, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      // Get all uncompleted persistent assignments for the specified user
+      const assignments = await storage.getUserPersistentAssignments(userId);
+      
+      res.json(assignments);
+    } catch (error) {
+      console.error("Error fetching admin user persistent assignments:", error);
+      res.status(500).json({ message: "Failed to fetch persistent assignments" });
+    }
+  });
+
   // Get user analytics with period filter (weekly/monthly/yearly)
   app.get('/api/admin/user/:userId/analytics-period', isAdmin, async (req, res) => {
     try {
@@ -2573,6 +2588,24 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       });
 
       console.log('[DEBUG] POST /api/admin/recommendations - Created recommendation:', recommendation);
+      
+      // Also create a persistent assignment so user can see it immediately in their dashboard
+      try {
+        const persistentAssignment = await storage.createPersistentAssignment({
+          userId: userId,
+          courseId: courseName.toLowerCase().replace(/\s+/g, '-'),
+          courseName,
+          lessonName: null, // Course-level assignment, not lesson-specific
+          url: null,
+          completed: false,
+          source: 'admin_recommendation',
+        });
+        console.log('[DEBUG] POST /api/admin/recommendations - Created persistent assignment:', persistentAssignment);
+      } catch (assignmentError) {
+        console.error('[DEBUG] POST /api/admin/recommendations - Failed to create persistent assignment:', assignmentError);
+        // Don't fail the whole request if assignment creation fails
+      }
+      
       res.json(recommendation);
     } catch (error) {
       console.error("Error adding course recommendation:", error);

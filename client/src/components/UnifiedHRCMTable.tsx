@@ -367,9 +367,24 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   });
 
   // Fetch persistent assignments (user-level, date-independent)
+  // In admin view, fetch for the specific user being viewed
+  const persistentAssignmentsQueryKey = isAdminView && viewAsUserId
+    ? [`/api/admin/user/${viewAsUserId}/persistent-assignments`]
+    : ['/api/persistent-assignments'];
+  
   const { data: persistentAssignments = [], refetch: refetchAssignments } = useQuery<any[]>({
-    queryKey: ['/api/persistent-assignments'],
-    enabled: !isAdminView, // Only fetch for non-admin views
+    queryKey: persistentAssignmentsQueryKey,
+    queryFn: async () => {
+      const endpoint = isAdminView && viewAsUserId
+        ? `/api/admin/user/${viewAsUserId}/persistent-assignments`
+        : `/api/persistent-assignments`;
+      const response = await fetch(endpoint, {
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to fetch persistent assignments');
+      return response.json();
+    },
+    enabled: isAdminView ? !!viewAsUserId : true, // Enable when we have a user ID in admin view, or always in normal view
     refetchInterval: 5000, // Poll every 5 seconds for instant admin updates
     refetchIntervalInBackground: true, // Continue polling in background
   });
