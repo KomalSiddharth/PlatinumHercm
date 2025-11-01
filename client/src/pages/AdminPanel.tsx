@@ -564,11 +564,32 @@ export default function AdminPanel() {
     mutationFn: async () => {
       return apiRequest('DELETE', '/api/admin/feedback/clear-all');
     },
+    // Optimistic update - instantly clear from UI
+    onMutate: async () => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['/api/admin/feedback'] });
+      
+      // Snapshot the previous value
+      const previousFeedback = queryClient.getQueryData(['/api/admin/feedback']);
+      
+      // Optimistically update by clearing all feedback
+      queryClient.setQueryData(['/api/admin/feedback'], []);
+      
+      // Show instant feedback
+      toast({ title: "Clearing...", description: "Removing all feedback" });
+      
+      // Return context with previous data for rollback
+      return { previousFeedback };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/feedback'] });
       toast({ title: "All Feedback Cleared", description: "All user feedback has been deleted successfully" });
     },
-    onError: (error: any) => {
+    onError: (error: any, variables, context: any) => {
+      // Rollback on error
+      if (context?.previousFeedback) {
+        queryClient.setQueryData(['/api/admin/feedback'], context.previousFeedback);
+      }
       toast({ 
         title: "Error", 
         description: error.message || "Failed to clear all feedback",
