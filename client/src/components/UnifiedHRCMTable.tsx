@@ -1791,6 +1791,31 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
   const comparisonData = calculateComparison();
 
+  // Show loading state while data is being fetched
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              Week {weekNumber} - HRCM Tracker
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Loading your data...
+            </p>
+          </div>
+        </div>
+        <div className="border-2 border-primary/30 rounded-lg p-8">
+          <div className="flex flex-col items-center justify-center gap-4 text-center">
+            <Loader2 className="w-12 h-12 animate-spin text-primary" />
+            <p className="text-lg font-semibold text-foreground">Loading HRCM Data</p>
+            <p className="text-sm text-muted-foreground">Please wait while we fetch your saved progress...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {/* Header */}
