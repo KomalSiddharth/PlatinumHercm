@@ -91,6 +91,14 @@ export default function AdminPanel() {
   const [approvedEmailsCurrentPage, setApprovedEmailsCurrentPage] = useState(1);
   const [approvedEmailsItemsPerPage, setApprovedEmailsItemsPerPage] = useState(50);
   
+  // Team Management pagination states
+  const [teamCurrentPage, setTeamCurrentPage] = useState(1);
+  const [teamItemsPerPage, setTeamItemsPerPage] = useState(50);
+  
+  // Access Logs pagination states
+  const [logsCurrentPage, setLogsCurrentPage] = useState(1);
+  const [logsItemsPerPage, setLogsItemsPerPage] = useState(50);
+  
   // Course recommendation states
   const [recUserEmail, setRecUserEmail] = useState('');
   const [recHrcmArea, setRecHrcmArea] = useState('health');
@@ -1306,7 +1314,14 @@ export default function AdminPanel() {
           )}
 
           {/* Team Management Tab Content */}
-          {activeTab === 'team' && (
+          {activeTab === 'team' && (() => {
+            // Pagination for Team Management
+            const totalTeamPages = Math.ceil(adminUsers.length / teamItemsPerPage);
+            const startTeamIndex = (teamCurrentPage - 1) * teamItemsPerPage;
+            const endTeamIndex = startTeamIndex + teamItemsPerPage;
+            const paginatedAdmins = adminUsers.slice(startTeamIndex, endTeamIndex);
+
+            return (
             <>
               {/* Actions Bar */}
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
@@ -1345,7 +1360,7 @@ export default function AdminPanel() {
                         <td colSpan={5} className="px-6 py-8 text-center text-gray-500">No admin users found</td>
                       </tr>
                     ) : (
-                      adminUsers.map((admin: AdminUser) => (
+                      paginatedAdmins.map((admin: AdminUser) => (
                         <tr key={admin.id} className="hover:bg-gray-50 dark:hover:bg-gray-900/30" data-testid={`row-admin-${admin.id}`}>
                           <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">{admin.name}</td>
                           <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{admin.email}</td>
@@ -1385,24 +1400,109 @@ export default function AdminPanel() {
                 </table>
               </div>
 
-              {/* Footer */}
+              {/* Footer with Pagination */}
               <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Total: {adminUsers.length} admin users
-                </p>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Showing {startTeamIndex + 1} to {Math.min(endTeamIndex, adminUsers.length)} of {adminUsers.length} admin users
+                  </p>
+
+                  {totalTeamPages > 1 && (
+                    <div className="flex items-center gap-4">
+                      {/* Items Per Page Selector */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Show</span>
+                        <select
+                          value={teamItemsPerPage}
+                          onChange={(e) => {
+                            setTeamItemsPerPage(Number(e.target.value));
+                            setTeamCurrentPage(1);
+                          }}
+                          className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-sm"
+                          data-testid="select-team-items-per-page"
+                        >
+                          <option value={10}>10</option>
+                          <option value={25}>25</option>
+                          <option value={50}>50</option>
+                          <option value={100}>100</option>
+                        </select>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">per page</span>
+                      </div>
+
+                      {/* Page Navigation */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setTeamCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={teamCurrentPage === 1}
+                        data-testid="button-team-prev-page"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        Previous
+                      </Button>
+
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: Math.min(5, totalTeamPages) }, (_, i) => {
+                          let pageNum;
+                          if (totalTeamPages <= 5) {
+                            pageNum = i + 1;
+                          } else if (teamCurrentPage <= 3) {
+                            pageNum = i + 1;
+                          } else if (teamCurrentPage >= totalTeamPages - 2) {
+                            pageNum = totalTeamPages - 4 + i;
+                          } else {
+                            pageNum = teamCurrentPage - 2 + i;
+                          }
+
+                          return (
+                            <Button
+                              key={pageNum}
+                              variant={teamCurrentPage === pageNum ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => setTeamCurrentPage(pageNum)}
+                              className="min-w-[2.5rem]"
+                              data-testid={`button-team-page-${pageNum}`}
+                            >
+                              {pageNum}
+                            </Button>
+                          );
+                        })}
+                      </div>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setTeamCurrentPage(prev => Math.min(totalTeamPages, prev + 1))}
+                        disabled={teamCurrentPage === totalTeamPages}
+                        data-testid="button-team-next-page"
+                      >
+                        Next
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
             </>
-          )}
+            );
+          })()}
 
           {/* Access Logs Tab Content */}
-          {activeTab === 'logs' && (
+          {activeTab === 'logs' && (() => {
+            // Pagination for Access Logs
+            const totalLogsPages = Math.ceil(accessLogs.length / logsItemsPerPage);
+            const startLogsIndex = (logsCurrentPage - 1) * logsItemsPerPage;
+            const endLogsIndex = startLogsIndex + logsItemsPerPage;
+            const paginatedLogs = accessLogs.slice(startLogsIndex, endLogsIndex);
+
+            return (
             <>
               {/* Header with Clear All Button */}
               <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Access Logs</h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    Showing last {accessLogs.length} login attempts
+                    Total {accessLogs.length} login attempts
                   </p>
                 </div>
                 {accessLogs.length > 0 && (
@@ -1444,7 +1544,7 @@ export default function AdminPanel() {
                         <td colSpan={4} className="px-6 py-8 text-center text-gray-500">No access logs found</td>
                       </tr>
                     ) : (
-                      accessLogs.map((log: AccessLog) => (
+                      paginatedLogs.map((log: AccessLog) => (
                         <tr key={log.id} className="hover:bg-gray-50 dark:hover:bg-gray-900/30" data-testid={`row-log-${log.id}`}>
                           <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">{log.email}</td>
                           <td className="px-6 py-4">
@@ -1462,8 +1562,93 @@ export default function AdminPanel() {
                   </tbody>
                 </table>
               </div>
+
+              {/* Footer with Pagination */}
+              <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Showing {startLogsIndex + 1} to {Math.min(endLogsIndex, accessLogs.length)} of {accessLogs.length} access logs
+                  </p>
+
+                  {totalLogsPages > 1 && (
+                    <div className="flex items-center gap-4">
+                      {/* Items Per Page Selector */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Show</span>
+                        <select
+                          value={logsItemsPerPage}
+                          onChange={(e) => {
+                            setLogsItemsPerPage(Number(e.target.value));
+                            setLogsCurrentPage(1);
+                          }}
+                          className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-sm"
+                          data-testid="select-logs-items-per-page"
+                        >
+                          <option value={10}>10</option>
+                          <option value={25}>25</option>
+                          <option value={50}>50</option>
+                          <option value={100}>100</option>
+                        </select>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">per page</span>
+                      </div>
+
+                      {/* Page Navigation */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setLogsCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={logsCurrentPage === 1}
+                        data-testid="button-logs-prev-page"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        Previous
+                      </Button>
+
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: Math.min(5, totalLogsPages) }, (_, i) => {
+                          let pageNum;
+                          if (totalLogsPages <= 5) {
+                            pageNum = i + 1;
+                          } else if (logsCurrentPage <= 3) {
+                            pageNum = i + 1;
+                          } else if (logsCurrentPage >= totalLogsPages - 2) {
+                            pageNum = totalLogsPages - 4 + i;
+                          } else {
+                            pageNum = logsCurrentPage - 2 + i;
+                          }
+
+                          return (
+                            <Button
+                              key={pageNum}
+                              variant={logsCurrentPage === pageNum ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => setLogsCurrentPage(pageNum)}
+                              className="min-w-[2.5rem]"
+                              data-testid={`button-logs-page-${pageNum}`}
+                            >
+                              {pageNum}
+                            </Button>
+                          );
+                        })}
+                      </div>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setLogsCurrentPage(prev => Math.min(totalLogsPages, prev + 1))}
+                        disabled={logsCurrentPage === totalLogsPages}
+                        data-testid="button-logs-next-page"
+                      >
+                        Next
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
             </>
-          )}
+            );
+          })()}
 
           {/* User Feedback Tab Content */}
           {activeTab === 'feedback' && (
