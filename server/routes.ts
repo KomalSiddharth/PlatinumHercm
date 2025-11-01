@@ -4490,6 +4490,13 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
         return res.status(401).json({ message: "User not authenticated" });
       }
 
+      // INSTANT UPDATE FIX: Disable HTTP caching to ensure admin changes appear immediately
+      res.set({
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
+
       const assignments = await storage.getUserPersistentAssignments(userId);
       res.json(assignments);
     } catch (error) {

@@ -363,6 +363,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   const { data: persistentAssignments = [], refetch: refetchAssignments } = useQuery<any[]>({
     queryKey: ['/api/persistent-assignments'],
     enabled: !isAdminView, // Only fetch for non-admin views
+    refetchInterval: 5000, // Poll every 5 seconds for instant admin updates
+    refetchIntervalInBackground: true, // Continue polling in background
   });
 
   // Transform platinum standards into ChecklistItem format
