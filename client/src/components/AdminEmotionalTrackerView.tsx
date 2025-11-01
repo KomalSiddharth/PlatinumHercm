@@ -217,8 +217,8 @@ export default function AdminEmotionalTrackerView({ userId }: AdminEmotionalTrac
                       {data.positiveEmotions ? (
                         <HoverCard openDelay={200}>
                           <HoverCardTrigger asChild>
-                            <div className="p-2 rounded border border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-900/20 min-h-[40px] cursor-pointer">
-                              <p className="text-sm text-gray-700 dark:text-gray-300 truncate">
+                            <div className="px-2 py-1.5 rounded border border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-900/20 cursor-pointer">
+                              <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 truncate">
                                 {data.positiveEmotions}
                               </p>
                             </div>
@@ -235,8 +235,8 @@ export default function AdminEmotionalTrackerView({ userId }: AdminEmotionalTrac
                           </HoverCardContent>
                         </HoverCard>
                       ) : (
-                        <div className="p-2 rounded border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20 min-h-[40px]">
-                          <p className="text-sm text-gray-400 dark:text-gray-600 italic">No data</p>
+                        <div className="px-2 py-1.5 rounded border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20">
+                          <p className="text-xs sm:text-sm text-gray-400 dark:text-gray-600 italic">No data</p>
                         </div>
                       )}
                     </td>
@@ -246,8 +246,8 @@ export default function AdminEmotionalTrackerView({ userId }: AdminEmotionalTrac
                       {data.negativeEmotions ? (
                         <HoverCard openDelay={200}>
                           <HoverCardTrigger asChild>
-                            <div className="p-2 rounded border border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-900/20 min-h-[40px] cursor-pointer">
-                              <p className="text-sm text-gray-700 dark:text-gray-300 truncate">
+                            <div className="px-2 py-1.5 rounded border border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-900/20 cursor-pointer">
+                              <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 truncate">
                                 {data.negativeEmotions}
                               </p>
                             </div>
@@ -264,8 +264,8 @@ export default function AdminEmotionalTrackerView({ userId }: AdminEmotionalTrac
                           </HoverCardContent>
                         </HoverCard>
                       ) : (
-                        <div className="p-2 rounded border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20 min-h-[40px]">
-                          <p className="text-sm text-gray-400 dark:text-gray-600 italic">No data</p>
+                        <div className="px-2 py-1.5 rounded border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20">
+                          <p className="text-xs sm:text-sm text-gray-400 dark:text-gray-600 italic">No data</p>
                         </div>
                       )}
                     </td>
@@ -275,8 +275,8 @@ export default function AdminEmotionalTrackerView({ userId }: AdminEmotionalTrac
                       {data.repeatingEmotions ? (
                         <HoverCard openDelay={200}>
                           <HoverCardTrigger asChild>
-                            <div className="p-2 rounded border border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/20 min-h-[40px] cursor-pointer">
-                              <p className="text-sm text-gray-700 dark:text-gray-300 truncate">
+                            <div className="px-2 py-1.5 rounded border border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/20 cursor-pointer">
+                              <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 truncate">
                                 {data.repeatingEmotions}
                               </p>
                             </div>
@@ -293,8 +293,8 @@ export default function AdminEmotionalTrackerView({ userId }: AdminEmotionalTrac
                           </HoverCardContent>
                         </HoverCard>
                       ) : (
-                        <div className="p-2 rounded border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20 min-h-[40px]">
-                          <p className="text-sm text-gray-400 dark:text-gray-600 italic">No data</p>
+                        <div className="px-2 py-1.5 rounded border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20">
+                          <p className="text-xs sm:text-sm text-gray-400 dark:text-gray-600 italic">No data</p>
                         </div>
                       )}
                     </td>
@@ -304,8 +304,8 @@ export default function AdminEmotionalTrackerView({ userId }: AdminEmotionalTrac
                       {data.missingEmotions ? (
                         <HoverCard openDelay={200}>
                           <HoverCardTrigger asChild>
-                            <div className="p-2 rounded border border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-900/20 min-h-[40px] cursor-pointer">
-                              <p className="text-sm text-gray-700 dark:text-gray-300 truncate">
+                            <div className="px-2 py-1.5 rounded border border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-900/20 cursor-pointer">
+                              <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 truncate">
                                 {data.missingEmotions}
                               </p>
                             </div>
@@ -322,8 +322,8 @@ export default function AdminEmotionalTrackerView({ userId }: AdminEmotionalTrac
                           </HoverCardContent>
                         </HoverCard>
                       ) : (
-                        <div className="p-2 rounded border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20 min-h-[40px]">
-                          <p className="text-sm text-gray-400 dark:text-gray-600 italic">No data</p>
+                        <div className="px-2 py-1.5 rounded border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20">
+                          <p className="text-xs sm:text-sm text-gray-400 dark:text-gray-600 italic">No data</p>
                         </div>
                       )}
                     </td>
