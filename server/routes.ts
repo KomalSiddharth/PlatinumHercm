@@ -2085,39 +2085,6 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
-  // Fix swapped email/name data
-  app.post('/api/admin/fix-swapped-emails', isAdmin, async (req, res) => {
-    try {
-      const allEmails = await storage.getAllApprovedEmails();
-      let fixedCount = 0;
-
-      for (const entry of allEmails) {
-        // Check if email field doesn't contain @ (meaning it has a name instead)
-        if (entry.email && !entry.email.includes('@')) {
-          // Swap email and name
-          const tempEmail = entry.email;
-          const tempName = entry.name;
-          
-          await storage.updateApprovedEmail(entry.id, {
-            email: tempName || tempEmail, // Use name as new email
-            name: tempEmail, // Use old email as new name
-            status: entry.status
-          });
-          fixedCount++;
-        }
-      }
-
-      res.json({ 
-        success: true, 
-        message: `Fixed ${fixedCount} swapped entries`,
-        fixedCount 
-      });
-    } catch (error) {
-      console.error("Error fixing swapped emails:", error);
-      res.status(500).json({ message: "Failed to fix swapped emails" });
-    }
-  });
-
   app.get('/api/admin/stats', isAdmin, async (req, res) => {
     try {
       const stats = await storage.getAdminStats();

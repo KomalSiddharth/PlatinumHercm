@@ -321,26 +321,6 @@ export default function AdminPanel() {
     }
   });
 
-  const fixSwappedEmailsMutation = useMutation({
-    mutationFn: async () => {
-      return apiRequest('POST', '/api/admin/fix-swapped-emails');
-    },
-    onSuccess: (data: any) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/approved-emails'] });
-      toast({ 
-        title: "Data Fixed!", 
-        description: `Successfully fixed ${data.fixedCount} swapped entries` 
-      });
-    },
-    onError: (error: any) => {
-      toast({ 
-        title: "Fix Failed", 
-        description: error.message || "Failed to fix swapped data",
-        variant: "destructive" 
-      });
-    }
-  });
-
   const deleteAllMutation = useMutation({
     mutationFn: async () => {
       return apiRequest('DELETE', '/api/admin/approved-emails/all');
@@ -615,13 +595,18 @@ export default function AdminPanel() {
     if (csvFile) {
       try {
         const text = await csvFile.text();
+        // Helper function to remove quotes from CSV values
+        const removeQuotes = (str: string) => {
+          return str.replace(/^["']|["']$/g, '').trim();
+        };
+        
         // Parse CSV - handle name,email format
         const lines = text.split('\n').map(line => line.trim()).filter(line => line);
         
         for (const line of lines) {
           // If line contains commas, treat as "name,email" format
           if (line.includes(',')) {
-            const parts = line.split(',').map(p => p.trim()).filter(p => p);
+            const parts = line.split(',').map(p => removeQuotes(p.trim())).filter(p => p);
             if (parts.length >= 2) {
               // First part is name, second is email
               emailEntries.push({ email: parts[1], name: parts[0] });
@@ -631,7 +616,7 @@ export default function AdminPanel() {
             }
           } else {
             // Otherwise, treat entire line as email only
-            emailEntries.push({ email: line });
+            emailEntries.push({ email: removeQuotes(line) });
           }
         }
       } catch (error) {
@@ -1040,16 +1025,6 @@ export default function AdminPanel() {
                   >
                     <Download className="w-4 h-4 mr-2" />
                     Export
-                  </Button>
-                  <Button 
-                    variant="default"
-                    className="bg-blue-600 hover:bg-blue-700"
-                    onClick={() => fixSwappedEmailsMutation.mutate()}
-                    disabled={fixSwappedEmailsMutation.isPending}
-                    data-testid="button-fix-swapped"
-                  >
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    {fixSwappedEmailsMutation.isPending ? 'Fixing...' : 'Fix Swapped Data'}
                   </Button>
                   <Button 
                     variant="destructive" 
