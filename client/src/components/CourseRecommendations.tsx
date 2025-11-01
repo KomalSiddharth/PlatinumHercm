@@ -41,6 +41,7 @@ export function CourseRecommendations({ currentWeek = 1 }: CourseRecommendations
       queryClient.invalidateQueries({ queryKey: ['/api/user/recommendations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/hercm/weeks'] });
       queryClient.invalidateQueries({ queryKey: ['/api/hercm/week', currentWeek] });
+      queryClient.invalidateQueries({ queryKey: ['/api/persistent-assignments'] }); // Instant update fix
       toast({ 
         title: "Recommendation Accepted", 
         description: "The course has been added to your Assignment section" 

@@ -112,7 +112,7 @@ export default function AdminPanel() {
 
   const { data: approvedEmails = [], isLoading } = useQuery<ApprovedEmail[]>({
     queryKey: ['/api/admin/approved-emails'],
-    enabled: activeTab === 'approved',
+    enabled: activeTab === 'approved' || activeTab === 'recommendations', // Enable on both tabs
     staleTime: 30000, // Cache for 30 seconds to improve performance
   });
 

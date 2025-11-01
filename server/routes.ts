@@ -2726,68 +2726,25 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       // Update status to accepted
       await storage.updateRecommendationStatus(id, 'accepted');
 
-      // Get user's week by week number
-      let weeks = await storage.getHercmWeeksByUser(user.id);
-      let currentWeek = weeks.find((w: any) => w.weekNumber === weekNumber);
-
-      // If the week doesn't exist, create it
-      if (!currentWeek) {
-        const newWeek = await storage.createHercmWeek({
-          userId: user.id,
-          weekNumber: weekNumber,
-          year: new Date().getFullYear(),
-          weekStatus: 'active',
-        });
-        currentWeek = newWeek;
-      }
-
-      // Map HRCM area to assignment field
-      const categoryFieldMap: Record<string, string> = {
-        'health': 'healthAssignment',
-        'relationship': 'relationshipAssignment',
-        'career': 'careerAssignment',
-        'money': 'moneyAssignment'
-      };
-      
-      const assignmentField = categoryFieldMap[recommendation.hrcmArea.toLowerCase()];
-      
-      if (!assignmentField) {
-        return res.status(400).json({ message: "Invalid HRCM area in recommendation" });
-      }
-      
-      // Get current assignment array for this category
-      const currentAssignment = (currentWeek as any)[assignmentField] || { courses: [], lessons: [] };
-      const currentLessons = currentAssignment.lessons || [];
-      
-      // Create new lesson item for category assignment with source='admin' for recommendations
-      const newLesson = {
-        id: recommendation.lessonId || recommendation.courseId,
+      // INSTANT UPDATE FIX: Add to NEW persistent assignments table instead of old unified assignment
+      // This ensures the recommendation appears immediately in the Assignment column (in red for admin)
+      const newAssignment = await storage.addPersistentAssignment({
+        userId: user.id,
         courseId: recommendation.courseId,
         courseName: recommendation.courseName,
         lessonName: recommendation.lessonName || recommendation.courseName,
         url: recommendation.lessonUrl || '',
+        hrcmArea: recommendation.hrcmArea.toLowerCase(),
         completed: false,
-        source: 'admin' as const,  // Mark as admin-recommended
-        recommendationId: recommendation.id  // Track original recommendation
-      };
-
-      // Add the recommended course to category assignment lessons array
-      const updatedLessons = [...currentLessons, newLesson];
-
-      // ALSO add to unifiedAssignment so it shows in the UI
-      const currentUnifiedAssignment = (currentWeek as any).unifiedAssignment || [];
-      const updatedUnifiedAssignment = [...currentUnifiedAssignment, newLesson];
-
-      // Update the week with BOTH category assignment AND unified assignment
-      await storage.updateHercmWeek(currentWeek.id, {
-        [assignmentField]: {
-          ...currentAssignment,
-          lessons: updatedLessons
-        },
-        unifiedAssignment: updatedUnifiedAssignment
+        source: 'admin', // Admin recommendations show in red
+        recommendationId: recommendation.id
       });
 
-      res.json({ message: "Recommendation accepted and added to Assignment", recommendation });
+      res.json({ 
+        message: "Recommendation accepted and added to Assignment", 
+        recommendation,
+        assignment: newAssignment
+      });
     } catch (error) {
       console.error("Error accepting recommendation:", error);
       res.status(500).json({ message: "Failed to accept recommendation" });
