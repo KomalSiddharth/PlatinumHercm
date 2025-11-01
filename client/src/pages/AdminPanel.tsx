@@ -560,6 +560,23 @@ export default function AdminPanel() {
     }
   });
 
+  const clearAllFeedbackMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest('DELETE', '/api/admin/feedback/clear-all');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/feedback'] });
+      toast({ title: "All Feedback Cleared", description: "All user feedback has been deleted successfully" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Error", 
+        description: error.message || "Failed to clear all feedback",
+        variant: "destructive" 
+      });
+    }
+  });
+
   const clearAllLogsMutation = useMutation({
     mutationFn: async () => {
       return apiRequest('DELETE', '/api/admin/access-logs');
@@ -1332,11 +1349,28 @@ export default function AdminPanel() {
           {activeTab === 'feedback' && (
             <>
               <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">User Feedback</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    Manage and respond to user feedback
-                  </p>
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">User Feedback</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                      Manage and respond to user feedback
+                    </p>
+                  </div>
+                  {allFeedback.length > 0 && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => {
+                        if (window.confirm(`Are you sure you want to delete all ${allFeedback.length} feedback submissions? This action cannot be undone.`)) {
+                          clearAllFeedbackMutation.mutate();
+                        }
+                      }}
+                      disabled={clearAllFeedbackMutation.isPending}
+                      data-testid="button-clear-all-feedback"
+                    >
+                      {clearAllFeedbackMutation.isPending ? 'Clearing...' : 'Clear All'}
+                    </Button>
+                  )}
                 </div>
               </div>
 

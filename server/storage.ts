@@ -204,6 +204,7 @@ export interface IStorage {
   createFeedback(feedback: InsertUserFeedback): Promise<UserFeedback>;
   updateFeedbackStatus(id: string, status: string, adminResponse?: string): Promise<UserFeedback>;
   deleteFeedback(id: string): Promise<void>;
+  clearAllFeedback(): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1504,6 +1505,10 @@ export class DatabaseStorage implements IStorage {
     await db
       .delete(userFeedback)
       .where(eq(userFeedback.id, id));
+  }
+
+  async clearAllFeedback(): Promise<void> {
+    await db.delete(userFeedback);
   }
 }
 

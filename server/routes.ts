@@ -4830,6 +4830,17 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
     }
   });
 
+  // Admin: Clear all feedback (must be before :id route)
+  app.delete('/api/admin/feedback/clear-all', isAdmin, async (req: any, res) => {
+    try {
+      await storage.clearAllFeedback();
+      res.json({ success: true, message: "All feedback cleared successfully" });
+    } catch (error) {
+      console.error("Error clearing all feedback:", error);
+      res.status(500).json({ message: "Failed to clear all feedback" });
+    }
+  });
+
   // Admin: Delete feedback
   app.delete('/api/admin/feedback/:id', isAdmin, async (req: any, res) => {
     try {
