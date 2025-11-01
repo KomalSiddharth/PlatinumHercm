@@ -335,7 +335,7 @@ export default function EmotionalTracker() {
                             </div>
                           </HoverCardTrigger>
                           <HoverCardContent 
-                            side={index === 0 ? "top" : (index < 4 ? "bottom" : "top")} 
+                            side="top" 
                             align="center" 
                             className="w-96 bg-green-50 dark:bg-green-900/90 border-green-300 dark:border-green-500 z-[100]"
                           >
@@ -399,7 +399,7 @@ export default function EmotionalTracker() {
                             </div>
                           </HoverCardTrigger>
                           <HoverCardContent 
-                            side={index === 0 ? "top" : (index < 4 ? "bottom" : "top")} 
+                            side="top" 
                             align="center" 
                             className="w-96 bg-red-50 dark:bg-red-900/90 border-red-300 dark:border-red-500 z-[100]"
                           >
@@ -463,7 +463,7 @@ export default function EmotionalTracker() {
                             </div>
                           </HoverCardTrigger>
                           <HoverCardContent 
-                            side={index === 0 ? "top" : (index < 4 ? "bottom" : "top")} 
+                            side="top" 
                             align="center" 
                             className="w-96 bg-blue-50 dark:bg-blue-900/90 border-blue-300 dark:border-blue-500 z-[100]"
                           >
@@ -527,7 +527,7 @@ export default function EmotionalTracker() {
                             </div>
                           </HoverCardTrigger>
                           <HoverCardContent 
-                            side={index === 0 ? "top" : (index < 4 ? "bottom" : "top")} 
+                            side="top" 
                             align="center" 
                             className="w-96 bg-orange-50 dark:bg-orange-900/90 border-orange-300 dark:border-orange-500 z-[100]"
                           >
