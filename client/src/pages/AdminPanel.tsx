@@ -87,6 +87,10 @@ export default function AdminPanel() {
   const [analyticsItemsPerPage, setAnalyticsItemsPerPage] = useState(10);
   const [showMetricsDialog, setShowMetricsDialog] = useState(false);
   
+  // User Section (Approved Emails) pagination states
+  const [approvedEmailsCurrentPage, setApprovedEmailsCurrentPage] = useState(1);
+  const [approvedEmailsItemsPerPage, setApprovedEmailsItemsPerPage] = useState(50);
+  
   // Course recommendation states
   const [recUserEmail, setRecUserEmail] = useState('');
   const [recHrcmArea, setRecHrcmArea] = useState('health');
@@ -780,6 +784,17 @@ export default function AdminPanel() {
     email.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (email.name && email.name.toLowerCase().includes(searchQuery.toLowerCase()))
   );
+
+  // Pagination for Approved Emails
+  const totalApprovedPages = Math.ceil(filteredEmails.length / approvedEmailsItemsPerPage);
+  const startApprovedIndex = (approvedEmailsCurrentPage - 1) * approvedEmailsItemsPerPage;
+  const endApprovedIndex = startApprovedIndex + approvedEmailsItemsPerPage;
+  const paginatedEmails = filteredEmails.slice(startApprovedIndex, endApprovedIndex);
+
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setApprovedEmailsCurrentPage(1);
+  }, [searchQuery]);
 
   const toggleSelectAll = () => {
     if (selectedEmails.length === filteredEmails.length) {
