@@ -1138,7 +1138,7 @@ export default function AdminPanel() {
                     <td colSpan={6} className="px-6 py-8 text-center text-gray-500">No approved emails found</td>
                   </tr>
                 ) : (
-                  filteredEmails.map((email: ApprovedEmail) => (
+                  paginatedEmails.map((email: ApprovedEmail) => (
                     <tr key={email.id} className="hover:bg-gray-50 dark:hover:bg-gray-900/30" data-testid={`row-email-${email.id}`}>
                       <td className="px-6 py-4">
                         <Checkbox
@@ -1212,11 +1212,95 @@ export default function AdminPanel() {
             </table>
           </div>
 
-              {/* Footer */}
+              {/* Footer with Pagination */}
               <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Total: {filteredEmails.length} emails
-                </p>
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  {/* Left: Pagination Info */}
+                  <div className="flex items-center gap-4">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Showing {filteredEmails.length === 0 ? 0 : startApprovedIndex + 1} to {Math.min(endApprovedIndex, filteredEmails.length)} of {filteredEmails.length} users
+                    </p>
+                    {/* Items per page selector */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-500 dark:text-gray-400">Show:</span>
+                      <select
+                        value={approvedEmailsItemsPerPage}
+                        onChange={(e) => {
+                          setApprovedEmailsItemsPerPage(Number(e.target.value));
+                          setApprovedEmailsCurrentPage(1);
+                        }}
+                        className="px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                        data-testid="select-items-per-page"
+                      >
+                        <option value={10}>10</option>
+                        <option value={25}>25</option>
+                        <option value={50}>50</option>
+                        <option value={100}>100</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Right: Page Navigation */}
+                  {totalApprovedPages > 1 && (
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setApprovedEmailsCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={approvedEmailsCurrentPage === 1}
+                        data-testid="button-prev-page"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        Previous
+                      </Button>
+                      
+                      <div className="flex items-center gap-1">
+                        {[...Array(totalApprovedPages)].map((_, idx) => {
+                          const pageNum = idx + 1;
+                          // Show first 2, last 2, current and adjacent pages
+                          const shouldShow = 
+                            pageNum === 1 || 
+                            pageNum === totalApprovedPages || 
+                            (pageNum >= approvedEmailsCurrentPage - 1 && pageNum <= approvedEmailsCurrentPage + 1);
+                          
+                          // Show ellipsis
+                          const showEllipsisBefore = pageNum === approvedEmailsCurrentPage - 2 && approvedEmailsCurrentPage > 3;
+                          const showEllipsisAfter = pageNum === approvedEmailsCurrentPage + 2 && approvedEmailsCurrentPage < totalApprovedPages - 2;
+                          
+                          if (showEllipsisBefore || showEllipsisAfter) {
+                            return <span key={pageNum} className="px-2 text-gray-500">...</span>;
+                          }
+                          
+                          if (!shouldShow) return null;
+                          
+                          return (
+                            <Button
+                              key={pageNum}
+                              variant={pageNum === approvedEmailsCurrentPage ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setApprovedEmailsCurrentPage(pageNum)}
+                              className="min-w-[2.5rem]"
+                              data-testid={`button-page-${pageNum}`}
+                            >
+                              {pageNum}
+                            </Button>
+                          );
+                        })}
+                      </div>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setApprovedEmailsCurrentPage(prev => Math.min(totalApprovedPages, prev + 1))}
+                        disabled={approvedEmailsCurrentPage === totalApprovedPages}
+                        data-testid="button-next-page"
+                      >
+                        Next
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
             </>
           )}
