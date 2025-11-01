@@ -84,7 +84,7 @@ export interface IStorage {
   bulkAddApprovedEmails(entries: Array<{ email: string; name?: string }>): Promise<ApprovedEmail[]>;
   deleteApprovedEmail(id: string): Promise<void>;
   deleteAllUserData(userEmail: string): Promise<void>;
-  updateApprovedEmail(id: string, data: { email: string; status: string }): Promise<void>;
+  updateApprovedEmail(id: string, data: { email: string; name?: string | null; status: string }): Promise<void>;
   deleteAllApprovedEmails(): Promise<void>;
   incrementAccessCount(email: string): Promise<void>;
   getAdminStats(): Promise<{
@@ -552,11 +552,12 @@ export class DatabaseStorage implements IStorage {
     console.log(`[CASCADE DELETE] Successfully completed deletion for user: ${userEmail}`);
   }
 
-  async updateApprovedEmail(id: string, data: { email: string; status: string }): Promise<void> {
+  async updateApprovedEmail(id: string, data: { email: string; name?: string | null; status: string }): Promise<void> {
     await db
       .update(approvedEmails)
       .set({ 
-        email: data.email, 
+        email: data.email,
+        name: data.name !== undefined ? data.name : undefined,
         status: data.status,
         updatedAt: new Date()
       })

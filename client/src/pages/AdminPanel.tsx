@@ -1014,7 +1014,8 @@ export default function AdminPanel() {
                       data-testid="checkbox-select-all"
                     />
                   </th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">USER</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">EMAIL</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">NAME</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">STATUS</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">ACCESS COUNT</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">ACTIONS</th>
@@ -1023,11 +1024,11 @@ export default function AdminPanel() {
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500">Loading...</td>
+                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">Loading...</td>
                   </tr>
                 ) : filteredEmails.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500">No approved emails found</td>
+                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">No approved emails found</td>
                   </tr>
                 ) : (
                   filteredEmails.map((email: ApprovedEmail) => (
@@ -1056,6 +1057,11 @@ export default function AdminPanel() {
                             {email.email}
                           </span>
                         </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-gray-900 dark:text-white" data-testid={`text-name-${email.id}`}>
+                          {email.name || '-'}
+                        </span>
                       </td>
                       <td className="px-6 py-4">
                         <Badge 
@@ -2761,7 +2767,7 @@ export default function AdminPanel() {
         <DialogContent data-testid="dialog-edit-email">
           <DialogHeader>
             <DialogTitle>Edit Approved Email</DialogTitle>
-            <DialogDescription>Update email address and status</DialogDescription>
+            <DialogDescription>Update email address, name, and status</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
@@ -2772,6 +2778,16 @@ export default function AdminPanel() {
                 value={editingEmail?.email || ''}
                 onChange={(e) => setEditingEmail(editingEmail ? { ...editingEmail, email: e.target.value } : null)}
                 data-testid="input-edit-email-address"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Name (Optional)</label>
+              <Input
+                type="text"
+                placeholder="User Name"
+                value={editingEmail?.name || ''}
+                onChange={(e) => setEditingEmail(editingEmail ? { ...editingEmail, name: e.target.value } : null)}
+                data-testid="input-edit-email-name"
               />
             </div>
             <div>
@@ -2796,7 +2812,7 @@ export default function AdminPanel() {
                 if (editingEmail) {
                   updateEmailMutation.mutate({
                     id: editingEmail.id,
-                    data: { email: editingEmail.email, status: editingEmail.status }
+                    data: { email: editingEmail.email, name: editingEmail.name, status: editingEmail.status }
                   });
                 }
               }}
