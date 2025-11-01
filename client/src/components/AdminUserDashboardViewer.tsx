@@ -80,13 +80,9 @@ export default function AdminUserDashboardViewer({ approvedEmails }: AdminUserDa
   const [selectedRitual, setSelectedRitual] = useState<any | null>(null);
   const { toast } = useToast();
 
-  // Get user ID from selected email
-  const selectedUser = approvedEmails.find(u => u.email === selectedUserEmail);
-  const userId = selectedUser?.email; // Use email as userId for API call
-
   // Get selected user's dashboard data
   const { data: dashboardData, isLoading: isDashboardLoading } = useQuery<UserDashboardData>({
-    queryKey: [`/api/admin/user/${userId}/dashboard`],
+    queryKey: [`/api/admin/user/${selectedUserId}/dashboard`],
     enabled: !!selectedUserId,
   });
 
