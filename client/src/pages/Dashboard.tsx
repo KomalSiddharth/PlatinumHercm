@@ -25,7 +25,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Trophy, Pause, History as HistoryIcon, Trash2, ChevronDown, Book } from 'lucide-react';
+import { Trophy, Pause, History as HistoryIcon, Trash2, ChevronDown, Book, RefreshCw } from 'lucide-react';
 import type { Ritual as DbRitual, RitualCompletion } from '@shared/schema';
 
 interface Ritual {
@@ -818,9 +818,27 @@ export default function Dashboard() {
 
         <section ref={coursesRef} id="courses" className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-3 sm:p-4 md:p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
           <div className="space-y-4 sm:space-y-6">
-            <div>
-              <h2 className="text-2xl sm:text-2xl md:text-3xl font-bold">Course Tracker</h2>
-              <p className="text-sm sm:text-base text-muted-foreground mt-1">Manage your learning journey and skill development</p>
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <h2 className="text-2xl sm:text-2xl md:text-3xl font-bold">Course Tracker</h2>
+                <p className="text-sm sm:text-base text-muted-foreground mt-1">Manage your learning journey and skill development</p>
+              </div>
+              <Button
+                onClick={() => {
+                  queryClient.invalidateQueries({ queryKey: ['/api/course-tracking'] });
+                  toast({
+                    title: 'Refreshing Courses',
+                    description: 'Loading latest course data from Google Sheets...',
+                  });
+                }}
+                variant="outline"
+                size="sm"
+                className="gap-2 shrink-0"
+                data-testid="button-refresh-courses"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Refresh
+              </Button>
             </div>
 
             {/* Overall Progress Bar */}
