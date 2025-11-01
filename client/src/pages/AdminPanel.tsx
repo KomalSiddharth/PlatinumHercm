@@ -724,7 +724,8 @@ export default function AdminPanel() {
   };
 
   const filteredEmails = approvedEmails.filter((email: ApprovedEmail) =>
-    email.email.toLowerCase().includes(searchQuery.toLowerCase())
+    email.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (email.name && email.name.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const toggleSelectAll = () => {
