@@ -354,7 +354,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     queryKey: ['/api/platinum-standards'],
     staleTime: 0, // Always fetch fresh data to catch admin updates instantly
     refetchOnWindowFocus: true, // Refetch when user returns to tab
-    refetchInterval: 30000, // Auto-refresh every 30 seconds for real-time admin updates
+    refetchInterval: 5000, // Auto-refresh every 5 seconds for instant admin updates
+    refetchOnMount: true, // Always refetch when component mounts
+    refetchIntervalInBackground: true, // Keep refetching even when tab is not focused
   });
 
   // Fetch persistent assignments (user-level, date-independent)
