@@ -296,7 +296,7 @@ export default function AdminPanel() {
   });
 
   const updateEmailMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: { email: string; status: string } }) => {
+    mutationFn: async ({ id, data }: { id: string; data: { email: string; name?: string; status: string } }) => {
       return apiRequest('PUT', `/api/admin/approved-emails/${id}`, data);
     },
     onSuccess: () => {
@@ -595,16 +595,16 @@ export default function AdminPanel() {
     if (csvFile) {
       try {
         const text = await csvFile.text();
-        // Parse CSV - handle email,name format
+        // Parse CSV - handle name,email format
         const lines = text.split('\n').map(line => line.trim()).filter(line => line);
         
         for (const line of lines) {
-          // If line contains commas, treat as "email,name" format
+          // If line contains commas, treat as "name,email" format
           if (line.includes(',')) {
             const parts = line.split(',').map(p => p.trim()).filter(p => p);
             if (parts.length >= 2) {
-              // First part is email, second is name
-              emailEntries.push({ email: parts[0], name: parts[1] });
+              // First part is name, second is email
+              emailEntries.push({ email: parts[1], name: parts[0] });
             } else if (parts.length === 1) {
               // Only email
               emailEntries.push({ email: parts[0] });
@@ -2531,7 +2531,7 @@ export default function AdminPanel() {
               <Upload className="w-5 h-5 text-primary" />
               Bulk Upload Emails
             </DialogTitle>
-            <DialogDescription>Upload a CSV file with "email,name" format or paste emails manually (one per line). Same email entries will be merged automatically.</DialogDescription>
+            <DialogDescription>Upload a CSV file with "name,email" format or paste emails manually (one per line). Same email entries will be merged automatically.</DialogDescription>
           </DialogHeader>
           <div className="space-y-6 py-4">
             {/* CSV File Upload Section */}
@@ -2586,7 +2586,7 @@ export default function AdminPanel() {
                       <div className="text-center">
                         <p className="text-sm font-medium">Click to upload CSV file</p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Format: email,name (one per line) or just email
+                          Format: name,email (one per line) or just email
                         </p>
                       </div>
                     </>
@@ -2606,7 +2606,7 @@ export default function AdminPanel() {
             <div className="space-y-3">
               <label className="text-sm font-semibold">✍️ Paste Emails Manually</label>
               <Textarea
-                placeholder="user1@example.com&#10;user2@example.com,John Doe&#10;user3@example.com&#10;&#10;Format: One email per line, optionally with name (email,name)"
+                placeholder="user1@example.com&#10;John Doe,user2@example.com&#10;user3@example.com&#10;&#10;Format: One email per line, optionally with name (name,email)"
                 value={bulkEmails}
                 onChange={(e) => setBulkEmails(e.target.value)}
                 rows={8}
@@ -2614,7 +2614,7 @@ export default function AdminPanel() {
                 data-testid="textarea-bulk-emails"
               />
               <p className="text-xs text-muted-foreground">
-                💡 Tip: You can use CSV format "email,name" or just email. Use both CSV file and manual entry together. Same emails will be merged automatically. Maximum 30,000 emails per upload.
+                💡 Tip: You can use CSV format "name,email" or just email. Use both CSV file and manual entry together. Same emails will be merged automatically. Maximum 30,000 emails per upload.
               </p>
             </div>
 
