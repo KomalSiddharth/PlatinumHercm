@@ -81,7 +81,7 @@ export interface IStorage {
   getApprovedEmailById(id: string): Promise<ApprovedEmail | undefined>;
   getAllApprovedEmails(): Promise<ApprovedEmail[]>;
   addApprovedEmail(email: InsertApprovedEmail): Promise<ApprovedEmail>;
-  bulkAddApprovedEmails(emails: string[]): Promise<ApprovedEmail[]>;
+  bulkAddApprovedEmails(entries: Array<{ email: string; name?: string }>): Promise<ApprovedEmail[]>;
   deleteApprovedEmail(id: string): Promise<void>;
   deleteAllUserData(userEmail: string): Promise<void>;
   updateApprovedEmail(id: string, data: { email: string; status: string }): Promise<void>;
@@ -453,16 +453,24 @@ export class DatabaseStorage implements IStorage {
     return email;
   }
 
-  async bulkAddApprovedEmails(emails: string[]): Promise<ApprovedEmail[]> {
-    const values = emails.map(email => ({
-      email,
+  async bulkAddApprovedEmails(entries: Array<{ email: string; name?: string }>): Promise<ApprovedEmail[]> {
+    const values = entries.map(entry => ({
+      email: entry.email,
+      name: entry.name || null,
       status: 'active' as const,
     }));
 
+    // Use UPSERT to merge duplicates by email
     const results = await db
       .insert(approvedEmails)
       .values(values)
-      .onConflictDoNothing()
+      .onConflictDoUpdate({
+        target: approvedEmails.email,
+        set: {
+          name: sql`COALESCE(EXCLUDED.name, ${approvedEmails.name})`, // Keep new name if provided, else keep old
+          updatedAt: sql`CURRENT_TIMESTAMP`,
+        }
+      })
       .returning();
     
     return results;

@@ -589,23 +589,29 @@ export default function AdminPanel() {
   };
 
   const handleBulkUpload = async () => {
-    let emails: string[] = [];
+    let emailEntries: { email: string; name?: string }[] = [];
 
     // Parse CSV file if uploaded
     if (csvFile) {
       try {
         const text = await csvFile.text();
-        // Parse CSV - handle both comma-separated and newline-separated
+        // Parse CSV - handle email,name format
         const lines = text.split('\n').map(line => line.trim()).filter(line => line);
         
         for (const line of lines) {
-          // If line contains commas, split by comma
+          // If line contains commas, treat as "email,name" format
           if (line.includes(',')) {
             const parts = line.split(',').map(p => p.trim()).filter(p => p);
-            emails.push(...parts);
+            if (parts.length >= 2) {
+              // First part is email, second is name
+              emailEntries.push({ email: parts[0], name: parts[1] });
+            } else if (parts.length === 1) {
+              // Only email
+              emailEntries.push({ email: parts[0] });
+            }
           } else {
-            // Otherwise, treat entire line as one email
-            emails.push(line);
+            // Otherwise, treat entire line as email only
+            emailEntries.push({ email: line });
           }
         }
       } catch (error) {
@@ -618,14 +624,22 @@ export default function AdminPanel() {
       }
     }
 
-    // Add manual textarea emails
+    // Add manual textarea emails (email only)
     const manualEmails = bulkEmails.split('\n').map(e => e.trim()).filter(e => e);
-    emails.push(...manualEmails);
+    emailEntries.push(...manualEmails.map(email => ({ email })));
 
-    // Remove duplicates
-    emails = Array.from(new Set(emails));
+    // Remove duplicates by email (keep first occurrence with name if available)
+    const uniqueMap = new Map<string, { email: string; name?: string }>();
+    for (const entry of emailEntries) {
+      const existing = uniqueMap.get(entry.email.toLowerCase());
+      if (!existing || (!existing.name && entry.name)) {
+        // Keep this entry if no existing, or if existing has no name but this one does
+        uniqueMap.set(entry.email.toLowerCase(), entry);
+      }
+    }
+    emailEntries = Array.from(uniqueMap.values());
 
-    if (emails.length === 0) {
+    if (emailEntries.length === 0) {
       toast({ 
         title: "Error", 
         description: "Please enter emails manually or upload a CSV file", 
@@ -635,31 +649,31 @@ export default function AdminPanel() {
     }
 
     // Check 30k limit
-    if (emails.length > 30000) {
+    if (emailEntries.length > 30000) {
       toast({ 
         title: "Too Many Emails", 
-        description: `You can upload maximum 30,000 emails at once. You have ${emails.length.toLocaleString()} emails.`, 
+        description: `You can upload maximum 30,000 emails at once. You have ${emailEntries.length.toLocaleString()} emails.`, 
         variant: "destructive" 
       });
       return;
     }
 
     // Batch processing for large uploads
-    setUploadProgress({ current: 0, total: emails.length, isUploading: true });
+    setUploadProgress({ current: 0, total: emailEntries.length, isUploading: true });
     
     const BATCH_SIZE = 500; // Process 500 emails at a time
     const batches = [];
-    for (let i = 0; i < emails.length; i += BATCH_SIZE) {
-      batches.push(emails.slice(i, i + BATCH_SIZE));
+    for (let i = 0; i < emailEntries.length; i += BATCH_SIZE) {
+      batches.push(emailEntries.slice(i, i + BATCH_SIZE));
     }
 
     try {
       let uploadedCount = 0;
       
       for (const batch of batches) {
-        await apiRequest('POST', '/api/admin/bulk-upload', { emails: batch });
+        await apiRequest('POST', '/api/admin/bulk-upload', { entries: batch });
         uploadedCount += batch.length;
-        setUploadProgress({ current: uploadedCount, total: emails.length, isUploading: true });
+        setUploadProgress({ current: uploadedCount, total: emailEntries.length, isUploading: true });
       }
 
       // Success - Invalidate all related queries to auto-refresh analytics
@@ -673,7 +687,7 @@ export default function AdminPanel() {
       });
       toast({ 
         title: "Bulk Upload Complete", 
-        description: `Successfully uploaded ${emails.length.toLocaleString()} emails` 
+        description: `Successfully uploaded ${emailEntries.length.toLocaleString()} emails` 
       });
       setShowBulkDialog(false);
       setBulkEmails('');
@@ -2510,7 +2524,7 @@ export default function AdminPanel() {
               <Upload className="w-5 h-5 text-primary" />
               Bulk Upload Emails
             </DialogTitle>
-            <DialogDescription>Upload a CSV file or paste emails manually (one per line)</DialogDescription>
+            <DialogDescription>Upload a CSV file with "email,name" format or paste emails manually (one per line). Same email entries will be merged automatically.</DialogDescription>
           </DialogHeader>
           <div className="space-y-6 py-4">
             {/* CSV File Upload Section */}
@@ -2565,7 +2579,7 @@ export default function AdminPanel() {
                       <div className="text-center">
                         <p className="text-sm font-medium">Click to upload CSV file</p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Supports comma-separated or one email per line
+                          Format: email,name (one per line) or just email
                         </p>
                       </div>
                     </>
@@ -2585,7 +2599,7 @@ export default function AdminPanel() {
             <div className="space-y-3">
               <label className="text-sm font-semibold">✍️ Paste Emails Manually</label>
               <Textarea
-                placeholder="user1@example.com&#10;user2@example.com&#10;user3@example.com&#10;&#10;Or comma-separated: user1@example.com, user2@example.com"
+                placeholder="user1@example.com&#10;user2@example.com,John Doe&#10;user3@example.com&#10;&#10;Format: One email per line, optionally with name (email,name)"
                 value={bulkEmails}
                 onChange={(e) => setBulkEmails(e.target.value)}
                 rows={8}
@@ -2593,7 +2607,7 @@ export default function AdminPanel() {
                 data-testid="textarea-bulk-emails"
               />
               <p className="text-xs text-muted-foreground">
-                💡 Tip: You can use both CSV upload and manual entry together. Duplicates will be removed automatically. Maximum 30,000 emails per upload.
+                💡 Tip: You can use CSV format "email,name" or just email. Use both CSV file and manual entry together. Same emails will be merged automatically. Maximum 30,000 emails per upload.
               </p>
             </div>
 

@@ -2007,13 +2007,13 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
 
   app.post('/api/admin/bulk-upload', isAdmin, async (req, res) => {
     try {
-      const { emails } = req.body;
+      const { entries } = req.body;
       
-      if (!Array.isArray(emails) || emails.length === 0) {
-        return res.status(400).json({ message: "Emails array is required" });
+      if (!Array.isArray(entries) || entries.length === 0) {
+        return res.status(400).json({ message: "Entries array is required" });
       }
 
-      const results = await storage.bulkAddApprovedEmails(emails);
+      const results = await storage.bulkAddApprovedEmails(entries);
       res.json({ success: true, added: results.length, message: "Emails uploaded successfully" });
     } catch (error) {
       console.error("Error bulk uploading emails:", error);
