@@ -122,23 +122,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json(null);
       }
       
-      // Find week(s) that match the requested date EXACTLY (like Emotional Tracker)
-      const matchingWeeks = allWeeks.filter((week: any) => {
+      // NEW LOGIC: Show latest filled data for ANY requested date
+      // Step 1: Try exact date match first
+      const exactMatchWeeks = allWeeks.filter((week: any) => {
         const weekDate = new Date(week.createdAt);
         const weekDateStr = weekDate.toISOString().split('T')[0];
-        
-        // Exact date match - just like Emotional Tracker
         return weekDateStr === requestedDate;
       });
       
-      if (matchingWeeks.length === 0) {
-        return res.json(null); // No data for this date - frontend will show blank
+      let week;
+      
+      if (exactMatchWeeks.length > 0) {
+        // Found exact match - return most recent entry for that date
+        console.log(`[BY-DATE DEBUG] Exact match found for ${requestedDate}`);
+        week = exactMatchWeeks.sort((a: any, b: any) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )[0];
+      } else {
+        // No exact match - return MOST RECENT saved week overall
+        // This shows latest filled data on ANY date (past, present, or future)
+        console.log(`[BY-DATE DEBUG] No exact match for ${requestedDate}, returning most recent week`);
+        week = allWeeks.sort((a: any, b: any) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )[0];
       }
       
-      // Return the most recent entry if multiple exist for same date
-      const week = matchingWeeks.sort((a: any, b: any) => 
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      )[0];
+      console.log(`[BY-DATE DEBUG] Selected week - createdAt: ${week.createdAt}, healthProblems: ${week.healthProblems}, healthCurrentFeelings: ${week.healthCurrentFeelings}`);
       
       // Transform to beliefs format (same as week endpoint)
       const beliefs = [
@@ -2312,21 +2321,28 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         return res.json(null);
       }
       
-      // Find week(s) that match the requested date EXACTLY
-      const matchingWeeks = allWeeks.filter((week: any) => {
+      // NEW LOGIC: Show latest filled data for ANY requested date
+      // Step 1: Try exact date match first
+      const exactMatchWeeks = allWeeks.filter((week: any) => {
         const weekDate = new Date(week.createdAt);
         const weekDateStr = weekDate.toISOString().split('T')[0];
         return weekDateStr === requestedDate;
       });
       
-      if (matchingWeeks.length === 0) {
-        return res.json(null); // No data for this date
-      }
+      let week;
       
-      // Return the most recent entry if multiple exist for same date
-      const week = matchingWeeks.sort((a: any, b: any) => 
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      )[0];
+      if (exactMatchWeeks.length > 0) {
+        // Found exact match - return most recent entry for that date
+        week = exactMatchWeeks.sort((a: any, b: any) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )[0];
+      } else {
+        // No exact match - return MOST RECENT saved week overall
+        // This shows latest filled data on ANY date (past, present, or future)
+        week = allWeeks.sort((a: any, b: any) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )[0];
+      }
       
       // Transform to beliefs format
       const beliefs = [
