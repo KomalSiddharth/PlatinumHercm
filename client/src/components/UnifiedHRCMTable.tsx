@@ -605,9 +605,72 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       });
       setUnifiedAssignment(combinedAssignments);
     } else {
-      console.log('[FRONTEND DEBUG] No weekData - using template');
-      // No database data - use demo/blank template immediately (don't wait for loading)
-      setBeliefs(getWeekBeliefs(weekNumber));
+      console.log('[FRONTEND DEBUG] No weekData - using template with DYNAMIC platinum standards');
+      // No database data - use template with DYNAMIC platinum standards from database
+      const dynamicBeliefs: HRCMBelief[] = [
+        {
+          category: 'Health' as const,
+          currentRating: 0,
+          problems: '',
+          currentFeelings: '',
+          currentBelief: '',
+          currentActions: '',
+          targetRating: 0,
+          result: '',
+          nextFeelings: '',
+          nextWeekTarget: '',
+          nextActions: '',
+          checklist: getPlatinumStandardsForCategory('Health'),
+          assignment: { courses: [], lessons: [] }
+        },
+        {
+          category: 'Relationship' as const,
+          currentRating: 0,
+          problems: '',
+          currentFeelings: '',
+          currentBelief: '',
+          currentActions: '',
+          targetRating: 0,
+          result: '',
+          nextFeelings: '',
+          nextWeekTarget: '',
+          nextActions: '',
+          checklist: getPlatinumStandardsForCategory('Relationship'),
+          assignment: { courses: [], lessons: [] }
+        },
+        {
+          category: 'Career' as const,
+          currentRating: 0,
+          problems: '',
+          currentFeelings: '',
+          currentBelief: '',
+          currentActions: '',
+          targetRating: 0,
+          result: '',
+          nextFeelings: '',
+          nextWeekTarget: '',
+          nextActions: '',
+          checklist: getPlatinumStandardsForCategory('Career'),
+          assignment: { courses: [], lessons: [] }
+        },
+        {
+          category: 'Money' as const,
+          currentRating: 0,
+          problems: '',
+          currentFeelings: '',
+          currentBelief: '',
+          currentActions: '',
+          targetRating: 0,
+          result: '',
+          nextFeelings: '',
+          nextWeekTarget: '',
+          nextActions: '',
+          checklist: getPlatinumStandardsForCategory('Money'),
+          assignment: { courses: [], lessons: [] }
+        }
+      ];
+      
+      setBeliefs(dynamicBeliefs);
       setUnifiedAssignment([]);
     }
   }, [weekNumber, weekData, ratingCaps, platinumStandardsData]);
