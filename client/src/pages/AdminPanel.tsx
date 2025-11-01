@@ -736,6 +736,40 @@ export default function AdminPanel() {
     }
   };
 
+  const handleExportEmails = () => {
+    if (approvedEmails.length === 0) {
+      toast({ title: "No Data", description: "No approved emails to export", variant: "destructive" });
+      return;
+    }
+
+    // Create CSV content with name,email format
+    const csvHeader = "Name,Email,Status,Access Count\n";
+    const csvRows = approvedEmails.map((email: ApprovedEmail) => {
+      const name = email.name || '';
+      const emailAddress = email.email;
+      const status = email.status;
+      const accessCount = email.accessCount;
+      return `"${name}","${emailAddress}","${status}",${accessCount}`;
+    }).join('\n');
+    
+    const csvContent = csvHeader + csvRows;
+    
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    const timestamp = new Date().toISOString().split('T')[0];
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `approved_emails_${timestamp}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({ title: "Export Successful", description: `Exported ${approvedEmails.length} emails to CSV` });
+  };
+
   // Team Management handlers
   const handleAddAdmin = () => {
     if (!newAdminName.trim() || !newAdminEmail.trim()) {
@@ -979,7 +1013,11 @@ export default function AdminPanel() {
                       data-testid="input-search"
                     />
                   </div>
-                  <Button variant="outline" data-testid="button-export">
+                  <Button 
+                    variant="outline" 
+                    onClick={handleExportEmails}
+                    data-testid="button-export"
+                  >
                     <Download className="w-4 h-4 mr-2" />
                     Export
                   </Button>
