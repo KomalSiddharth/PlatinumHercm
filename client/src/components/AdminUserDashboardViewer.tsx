@@ -409,169 +409,97 @@ export default function AdminUserDashboardViewer({ approvedEmails }: AdminUserDa
     );
   }
 
-  // Search interface
+  // User selection interface
   return (
     <div className="space-y-4">
-      {/* Search Bar */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Search className="w-5 h-5" />
-            Search User Dashboard
+            <User className="w-5 h-5" />
+            View User Dashboard
           </CardTitle>
           <CardDescription>
-            Enter a user's name or email to view their complete dashboard
+            Select a user to view their complete HRCM dashboard, rituals, and progress
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="flex gap-2">
-            <Input
-              placeholder="Enter name or email..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              data-testid="input-dashboard-search"
-              className="flex-1"
-            />
-            <Button 
-              onClick={handleSearch}
-              disabled={isSearching}
-              data-testid="button-dashboard-search"
-            >
-              {isSearching ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Searching
-                </>
-              ) : (
-                <>
-                  <Search className="w-4 h-4 mr-2" />
-                  Search
-                </>
-              )}
-            </Button>
+        <CardContent className="space-y-4">
+          <div>
+            <label className="text-sm font-medium mb-2 block">Select User</label>
+            <Popover open={userPopoverOpen} onOpenChange={setUserPopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={userPopoverOpen}
+                  className="w-full justify-between"
+                  data-testid="button-select-dashboard-user"
+                >
+                  {selectedUserEmail ? (
+                    <span className="truncate">
+                      {(() => {
+                        const user = approvedEmails.find(e => e.email === selectedUserEmail);
+                        return user ? `${user.name || 'No Name'} (${user.email})` : selectedUserEmail;
+                      })()}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">Search and select user...</span>
+                  )}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Search by name or email..." data-testid="input-search-dashboard-user" />
+                  <CommandList>
+                    <CommandEmpty>No user found.</CommandEmpty>
+                    <CommandGroup>
+                      {approvedEmails.map((user) => (
+                        <CommandItem
+                          key={user.email}
+                          value={`${user.name || ''} ${user.email}`}
+                          onSelect={() => {
+                            setSelectedUserEmail(user.email);
+                            setUserPopoverOpen(false);
+                          }}
+                          data-testid={`option-dashboard-user-${user.email}`}
+                        >
+                          <Check
+                            className={`mr-2 h-4 w-4 ${
+                              selectedUserEmail === user.email ? 'opacity-100' : 'opacity-0'
+                            }`}
+                          />
+                          <div className="flex flex-col">
+                            <span className="font-medium">{user.name || 'No Name'}</span>
+                            <span className="text-xs text-muted-foreground">{user.email}</span>
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
+          <Button 
+            onClick={handleViewDashboard}
+            disabled={!selectedUserEmail || isDashboardLoading}
+            className="w-full"
+            data-testid="button-view-dashboard"
+          >
+            {isDashboardLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Loading Dashboard...
+              </>
+            ) : (
+              <>
+                <User className="w-4 h-4 mr-2" />
+                View Dashboard
+              </>
+            )}
+          </Button>
         </CardContent>
       </Card>
-
-      {/* Search Results */}
-      {isSearching && (
-        <Card>
-          <CardContent className="p-6 text-center text-muted-foreground">
-            <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
-            Searching for users...
-          </CardContent>
-        </Card>
-      )}
-
-      {searchError && (
-        <Card>
-          <CardContent className="p-6 flex items-center justify-center gap-2 text-destructive">
-            <AlertCircle className="w-5 h-5" />
-            <span>No users found matching "{searchTerm}"</span>
-          </CardContent>
-        </Card>
-      )}
-
-      {searchResults && searchResults.length > 0 && (
-        <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Found {searchResults.length} user{searchResults.length > 1 ? 's' : ''}
-          </p>
-          
-          {searchResults.map((user) => (
-            <Card 
-              key={user.id} 
-              className="hover-elevate cursor-pointer transition-all" 
-              onClick={() => handleSelectUser(user.id)}
-              data-testid={`card-search-result-${user.id}`}
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="w-10 h-10">
-                      <AvatarFallback className="bg-primary/10 text-primary">
-                        {user.firstName?.[0]}{user.lastName?.[0]}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h3 className="font-semibold" data-testid={`text-user-name-${user.id}`}>
-                        {user.firstName} {user.lastName}
-                      </h3>
-                      <p className="text-sm text-muted-foreground" data-testid={`text-user-email-${user.id}`}>
-                        {user.email}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <Badge variant="outline" className="mb-1">
-                      Week {user.latestWeek?.weekNumber || 0}
-                    </Badge>
-                    <p className="text-xs text-muted-foreground">
-                      {user.totalWeeks} total weeks
-                    </p>
-                  </div>
-                </div>
-              </CardHeader>
-              
-              {user.latestWeek && (
-                <CardContent className="pt-0">
-                  <div className="mb-3 p-2 bg-muted/50 rounded-md flex items-center justify-between">
-                    <span className="text-sm font-medium flex items-center gap-1">
-                      <TrendingUp className="w-4 h-4" />
-                      Overall Score
-                    </span>
-                    <Badge className={getRatingColor(user.latestWeek.overallScore)}>
-                      {user.latestWeek.overallScore}/10
-                    </Badge>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    {[
-                      { label: 'Health', value: user.latestWeek.healthRating, icon: '💪' },
-                      { label: 'Relationship', value: user.latestWeek.relationshipRating, icon: '❤️' },
-                      { label: 'Career', value: user.latestWeek.careerRating, icon: '💼' },
-                      { label: 'Money', value: user.latestWeek.moneyRating, icon: '💰' },
-                    ].map(({ label, value, icon }) => (
-                      <div 
-                        key={label} 
-                        className="p-2 border rounded-md"
-                        data-testid={`card-${label.toLowerCase()}-${user.id}`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-medium flex items-center gap-1">
-                            <span>{icon}</span>
-                            {label}
-                          </span>
-                          <Badge className={`${getRatingColor(value)} text-xs h-5`}>
-                            {value}/10
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              )}
-              
-              {!user.latestWeek && (
-                <CardContent className="pt-0">
-                  <p className="text-sm text-muted-foreground text-center">No activity data available</p>
-                </CardContent>
-              )}
-            </Card>
-          ))}
-        </div>
-      )}
-
-      {/* Empty state when no search performed */}
-      {!searchTerm && !isSearching && (
-        <Card className="border-dashed">
-          <CardContent className="p-8 text-center text-muted-foreground">
-            <User className="w-12 h-12 mx-auto mb-3 opacity-50" />
-            <p className="text-sm">Enter a name or email above to search for a user's dashboard</p>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
