@@ -2026,7 +2026,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                   const length = e.target.value.length;
                                   e.target.setSelectionRange(length, length);
                                 }}
-                                className="text-sm min-h-[100px] resize-none"
+                                className="text-sm min-h-[100px] resize-none overflow-hidden"
                                 placeholder="Click to edit..."
                                 autoFocus
                                 data-testid={`textarea-hover-problems-${belief.category.toLowerCase()}`}
@@ -2099,7 +2099,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                   const length = e.target.value.length;
                                   e.target.setSelectionRange(length, length);
                                 }}
-                                className="text-sm min-h-[100px] resize-none"
+                                className="text-sm min-h-[100px] resize-none overflow-hidden"
                                 placeholder="Click to edit..."
                                 autoFocus
                                 data-testid={`textarea-hover-feelings-${belief.category.toLowerCase()}`}
@@ -2172,7 +2172,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                   const length = e.target.value.length;
                                   e.target.setSelectionRange(length, length);
                                 }}
-                                className="text-sm min-h-[100px] resize-none"
+                                className="text-sm min-h-[100px] resize-none overflow-hidden"
                                 placeholder="Click to edit..."
                                 autoFocus
                                 data-testid={`textarea-hover-beliefs-${belief.category.toLowerCase()}`}
@@ -2245,7 +2245,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                   const length = e.target.value.length;
                                   e.target.setSelectionRange(length, length);
                                 }}
-                                className="text-sm min-h-[100px] resize-none"
+                                className="text-sm min-h-[100px] resize-none overflow-hidden"
                                 placeholder="Click to edit..."
                                 autoFocus
                                 data-testid={`textarea-hover-actions-${belief.category.toLowerCase()}`}
