@@ -620,6 +620,11 @@ export default function AdminPanel() {
     }
   });
 
+  // Reset Approved Emails pagination to page 1 when search query changes
+  useEffect(() => {
+    setApprovedEmailsCurrentPage(1);
+  }, [searchQuery]);
+
   // Show loading while checking authentication (after ALL hooks)
   if (userLoading) {
     return (
@@ -790,11 +795,6 @@ export default function AdminPanel() {
   const startApprovedIndex = (approvedEmailsCurrentPage - 1) * approvedEmailsItemsPerPage;
   const endApprovedIndex = startApprovedIndex + approvedEmailsItemsPerPage;
   const paginatedEmails = filteredEmails.slice(startApprovedIndex, endApprovedIndex);
-
-  // Reset to page 1 when search changes
-  useEffect(() => {
-    setApprovedEmailsCurrentPage(1);
-  }, [searchQuery]);
 
   const toggleSelectAll = () => {
     if (selectedEmails.length === filteredEmails.length) {
