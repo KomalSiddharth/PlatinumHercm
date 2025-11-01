@@ -2552,6 +2552,14 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   // Get active platinum standards (public endpoint for users)
   app.get('/api/platinum-standards', isAuthenticated, async (req, res) => {
     try {
+      // PERMANENT FIX: Disable HTTP caching for instant admin updates
+      res.set({
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'Surrogate-Control': 'no-store'
+      });
+      
       const standards = await storage.getActivePlatinumStandards();
       res.json(standards);
     } catch (error) {
