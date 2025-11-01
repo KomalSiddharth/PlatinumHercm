@@ -112,6 +112,8 @@ export default function AdminPanel() {
 
   const { data: approvedEmails = [], isLoading } = useQuery<ApprovedEmail[]>({
     queryKey: ['/api/admin/approved-emails'],
+    enabled: activeTab === 'approved',
+    staleTime: 30000, // Cache for 30 seconds to improve performance
   });
 
   const { data: stats = { totalUsers: 0, activeUsers: 0, totalAccess: 0, failedAttempts: 0 } } = useQuery<{
@@ -130,16 +132,19 @@ export default function AdminPanel() {
   const { data: adminUsers = [], isLoading: isLoadingAdmins } = useQuery<AdminUser[]>({
     queryKey: ['/api/admin/team'],
     enabled: activeTab === 'team',
+    staleTime: 30000, // Cache for 30 seconds to improve performance
   });
 
   const { data: accessLogs = [], isLoading: isLoadingLogs } = useQuery<AccessLog[]>({
     queryKey: ['/api/admin/access-logs'],
     enabled: activeTab === 'logs',
+    staleTime: 30000, // Cache for 30 seconds to improve performance
   });
 
   const { data: userAnalytics = [], isLoading: isLoadingAnalytics } = useQuery<any[]>({
     queryKey: ['/api/admin/users-analytics'],
     enabled: activeTab === 'analytics',
+    staleTime: 30000, // Cache for 30 seconds to improve performance
   });
 
   // Team analytics with period filter
@@ -153,6 +158,7 @@ export default function AdminPanel() {
   }>({
     queryKey: [`/api/admin/team-analytics?period=${teamAnalyticsPeriod}`],
     enabled: activeTab === 'analytics',
+    staleTime: 30000, // Cache for 30 seconds to improve performance
   });
 
   const searchUserMutation = useMutation({
@@ -393,17 +399,21 @@ export default function AdminPanel() {
   const { data: recommendations = [] } = useQuery<any[]>({
     queryKey: ['/api/admin/recommendations'],
     enabled: activeTab === 'recommendations',
+    staleTime: 30000, // Cache for 30 seconds to improve performance
   });
 
   const { data: platinumStandards = [], isLoading: isLoadingPlatinumStandards } = useQuery<any[]>({
     queryKey: ['/api/admin/platinum-standards'],
     enabled: activeTab === 'platinum-standards',
+    staleTime: 30000, // Cache for 30 seconds to improve performance
   });
 
-  // User Feedback query
+  // User Feedback query with real-time polling
   const { data: allFeedback = [] } = useQuery<any[]>({
     queryKey: ['/api/admin/feedback'],
     enabled: activeTab === 'feedback',
+    refetchInterval: activeTab === 'feedback' ? 5000 : false, // Poll every 5 seconds when tab is active
+    staleTime: 0, // Always consider data stale for instant updates
   });
 
   const addRecommendationMutation = useMutation({
@@ -2856,7 +2866,7 @@ export default function AdminPanel() {
                 if (editingEmail) {
                   updateEmailMutation.mutate({
                     id: editingEmail.id,
-                    data: { email: editingEmail.email, name: editingEmail.name, status: editingEmail.status }
+                    data: { email: editingEmail.email, name: editingEmail.name || undefined, status: editingEmail.status }
                   });
                 }
               }}
