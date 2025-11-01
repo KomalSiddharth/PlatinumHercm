@@ -1412,7 +1412,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           <HoverCardContent 
             side="left" 
             align="start" 
-            className="w-96 max-h-[400px] overflow-y-auto"
+            className={`w-96 max-h-[400px] overflow-y-auto bg-gradient-to-br ${colorScheme.gradient} border-2 ${colorScheme.border} z-[100]`}
           >
             <div className="space-y-2">
               <h4 className="font-semibold text-sm mb-3">
