@@ -692,6 +692,7 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
           { name: 'Canva Graphic Design Mastery', matcher: (title: string) => title.toLowerCase().includes('canva') && title.toLowerCase().includes('graphic') },
           { name: 'Lead Business', matcher: (title: string) => title.toLowerCase().includes('lead') && title.toLowerCase().includes('business') },
           { name: 'Digital Coaching System', matcher: (title: string) => title.toLowerCase().includes('digital') && title.toLowerCase().includes('coaching') && title.toLowerCase().includes('system') },
+          { name: 'Lead Self', matcher: (title: string) => title.toLowerCase().includes('lead') && title.toLowerCase().includes('self') },
         ];
 
         const nestedCoursesToRemove: number[] = [];
