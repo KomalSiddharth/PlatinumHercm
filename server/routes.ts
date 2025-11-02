@@ -127,7 +127,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Log all week dates for debugging
       allWeeks.forEach((week: any, index: number) => {
-        const weekDateStr = new Date(week.createdAt).toISOString().split('T')[0];
+        // Extract date string directly from timestamp (avoid UTC conversion issues)
+        const createdAtStr = String(week.createdAt);
+        const weekDateStr = createdAtStr.split('T')[0].split(' ')[0];
         console.log(`[HERCM BY-DATE] Week ${index + 1}: createdAt=${week.createdAt}, dateStr=${weekDateStr}, weekNumber=${week.weekNumber}`);
       });
       
@@ -147,8 +149,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // NOT FUTURE (Past or Today) - Show data
       // Step 1: Try exact date match first
       const exactMatchWeeks = allWeeks.filter((week: any) => {
-        const weekDate = new Date(week.createdAt);
-        const weekDateStr = weekDate.toISOString().split('T')[0];
+        // Extract date string directly from timestamp (avoid UTC conversion issues)
+        const createdAtStr = String(week.createdAt);
+        const weekDateStr = createdAtStr.split('T')[0].split(' ')[0];
         const isMatch = weekDateStr === requestedDate;
         console.log(`[HERCM BY-DATE] Comparing ${weekDateStr} === ${requestedDate}: ${isMatch}`);
         return isMatch;
