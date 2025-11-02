@@ -671,7 +671,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (existingWeek) {
         // Week exists - UPDATE it to preserve data and avoid duplicate rows
         console.log(`[SAVE DEBUG] Week ${weekData.weekNumber} exists (id: ${existingWeek.id}) - updating`);
-        week = await storage.updateHercmWeek(existingWeek.id, weekData);
+        console.log(`[SAVE DEBUG] Existing createdAt: ${existingWeek.createdAt}, preserving it`);
+        
+        // CRITICAL FIX: Exclude createdAt and updatedAt to prevent overwriting original creation date
+        const { createdAt, updatedAt, ...updateData } = weekData;
+        week = await storage.updateHercmWeek(existingWeek.id, updateData);
       } else {
         // Week doesn't exist - CREATE new
         console.log(`[SAVE DEBUG] Week ${weekData.weekNumber} does not exist - creating new`);
