@@ -319,6 +319,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       return data;
     },
     staleTime: 0,  // Always fetch fresh data
+    gcTime: 0,  // Immediately garbage collect old cache (was cacheTime in v4)
     refetchOnMount: true,  // Refetch when component mounts
     refetchOnWindowFocus: false,  // Don't refetch on window focus
   });
