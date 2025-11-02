@@ -308,10 +308,16 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       const endpoint = isAdminView && viewAsUserId
         ? `/api/admin/user/${viewAsUserId}/hercm/by-date/${currentDateStr}`
         : `/api/hercm/by-date/${currentDateStr}`;
+      console.log(`[FRONTEND] Fetching HRCM data for date: ${currentDateStr}, endpoint: ${endpoint}`);
       const response = await fetch(endpoint);
       if (!response.ok) throw new Error('Failed to fetch HRCM data');
-      return response.json();
+      const data = await response.json();
+      console.log(`[FRONTEND] Received HRCM data for ${currentDateStr}:`, data ? 'Data found' : 'No data');
+      return data;
     },
+    staleTime: 0,  // Always fetch fresh data
+    refetchOnMount: true,  // Refetch when component mounts
+    refetchOnWindowFocus: false,  // Don't refetch on window focus
   });
 
   // Use dateData as weekData for consistency with existing code

@@ -118,16 +118,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get all weeks for user
       const allWeeks = await storage.getHercmWeeksByUser(user.id);
       
+      console.log(`[HERCM BY-DATE] Requested date: ${requestedDate}, Total weeks found: ${allWeeks?.length || 0}`);
+      
       if (!allWeeks || allWeeks.length === 0) {
+        console.log(`[HERCM BY-DATE] No weeks found for user ${user.id}`);
         return res.json(null);
       }
+      
+      // Log all week dates for debugging
+      allWeeks.forEach((week: any, index: number) => {
+        const weekDateStr = new Date(week.createdAt).toISOString().split('T')[0];
+        console.log(`[HERCM BY-DATE] Week ${index + 1}: createdAt=${week.createdAt}, dateStr=${weekDateStr}, weekNumber=${week.weekNumber}`);
+      });
       
       // NEW LOGIC: Show latest filled data for ANY requested date
       // Step 1: Try exact date match first
       const exactMatchWeeks = allWeeks.filter((week: any) => {
         const weekDate = new Date(week.createdAt);
         const weekDateStr = weekDate.toISOString().split('T')[0];
-        return weekDateStr === requestedDate;
+        const isMatch = weekDateStr === requestedDate;
+        console.log(`[HERCM BY-DATE] Comparing ${weekDateStr} === ${requestedDate}: ${isMatch}`);
+        return isMatch;
       });
       
       let week;
