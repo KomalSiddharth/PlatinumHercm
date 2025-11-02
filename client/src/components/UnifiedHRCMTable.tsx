@@ -274,19 +274,20 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   const hasAutoProgressed = useRef<Set<number>>(new Set()); // Track which weeks have been auto-progressed
   const { toast} = useToast();
 
-  // Update currentDateStr and viewingHistory when selectedDate changes (like Emotional Tracker)
-  useEffect(() => {
-    if (selectedDate) {
-      const dateStr = selectedDate.toISOString().split('T')[0];
-      setCurrentDateStr(dateStr);
-      
-      // Check if we're viewing a historical date (not today)
-      const todayStr = new Date().toISOString().split('T')[0];
-      setViewingHistory(dateStr !== todayStr);
-    }
-  }, [selectedDate]);
+  // Optimized date change handler - single source of truth, instant UI updates
+  const handleDateChange = (newDate: Date) => {
+    const dateStr = newDate.toISOString().split('T')[0];
+    const todayStr = new Date().toISOString().split('T')[0];
+    
+    // Batch all state updates together for instant, smooth transition
+    setSelectedDate(newDate);
+    setCurrentDateStr(dateStr);
+    setViewingHistory(dateStr !== todayStr);
+    
+    console.log(`[DATE CHANGE] Instantly switched to: ${dateStr}`);
+  };
 
-  // Navigate date (Previous/Next) - exactly like EmotionalTracker
+  // Navigate date (Previous/Next) - using optimized handler
   const navigateDate = (direction: 'prev' | 'next') => {
     const newDate = new Date(selectedDate);
     if (direction === 'prev') {
@@ -294,10 +295,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     } else {
       newDate.setDate(newDate.getDate() + 1);
     }
-    setSelectedDate(newDate);
-    const dateStr = newDate.toISOString().split('T')[0];
-    setCurrentDateStr(dateStr);
-    console.log(`[NAVIGATION] Date navigated to: ${dateStr}`);
+    handleDateChange(newDate);
   };
 
   // Fetch HRCM data for the selected date (admin-aware)
@@ -1915,10 +1913,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   selected={selectedDate}
                   onSelect={(date) => {
                     if (date) {
-                      setSelectedDate(date);
-                      const dateStr = date.toISOString().split('T')[0];
-                      setCurrentDateStr(dateStr);
-                      console.log(`[CALENDAR] Date selected: ${dateStr}`);
+                      handleDateChange(date);
                     }
                   }}
                   initialFocus
@@ -1930,11 +1925,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     size="sm"
                     className="w-full"
                     onClick={() => {
-                      const today = new Date();
-                      setSelectedDate(today);
-                      const dateStr = today.toISOString().split('T')[0];
-                      setCurrentDateStr(dateStr);
-                      console.log(`[CALENDAR] Reset to today: ${dateStr}`);
+                      handleDateChange(new Date());
                     }}
                     data-testid="button-reset-to-today"
                   >
