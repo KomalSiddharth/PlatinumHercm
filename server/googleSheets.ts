@@ -690,6 +690,7 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
           { name: 'LOA With Vastu Frequency', matcher: (title: string) => title.toLowerCase().includes('loa') && title.toLowerCase().includes('vastu') && title.toLowerCase().includes('frequency') },
           { name: 'LOA Remedies For Vastu', matcher: (title: string) => title.toLowerCase().includes('loa') && title.toLowerCase().includes('remedies') && title.toLowerCase().includes('vastu') },
           { name: 'Canva Graphic Design Mastery', matcher: (title: string) => title.toLowerCase().includes('canva') && title.toLowerCase().includes('graphic') },
+          { name: 'Lead Business', matcher: (title: string) => title.toLowerCase().includes('lead') && title.toLowerCase().includes('business') },
         ];
 
         const nestedCoursesToRemove: number[] = [];
