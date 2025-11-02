@@ -36,10 +36,18 @@ const TIME_SLOTS = [
   '11pm to 01am',
 ];
 
+// Helper function to get local date string (NOT UTC)
+const getLocalDateString = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export default function AdminEmotionalTrackerView({ userId }: AdminEmotionalTrackerViewProps) {
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalDateString(new Date());
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const currentDateStr = selectedDate.toISOString().split('T')[0];
+  const currentDateStr = getLocalDateString(selectedDate);
 
   // Fetch emotional tracker data for the selected user and date
   const { data: existingTrackers, isLoading } = useQuery<EmotionalTrackerData[]>({

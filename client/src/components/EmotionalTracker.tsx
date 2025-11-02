@@ -35,8 +35,16 @@ const TIME_SLOTS = [
   '11pm to 01am',
 ];
 
+// Helper function to get local date string (NOT UTC)
+const getLocalDateString = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export default function EmotionalTracker() {
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalDateString(new Date());
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [currentDateStr, setCurrentDateStr] = useState<string>(today);
   const [trackerData, setTrackerData] = useState<Record<string, EmotionalTrackerData>>({});
@@ -44,10 +52,10 @@ export default function EmotionalTracker() {
   const [hoverEditingField, setHoverEditingField] = useState<{ timeSlot: string; field: string } | null>(null);
   const [hoverEditValue, setHoverEditValue] = useState<string>('');
 
-  // Update currentDateStr when selectedDate changes
+  // Update currentDateStr when selectedDate changes (using LOCAL time, not UTC)
   useEffect(() => {
     if (selectedDate) {
-      const dateStr = selectedDate.toISOString().split('T')[0];
+      const dateStr = getLocalDateString(selectedDate);
       setCurrentDateStr(dateStr);
     }
   }, [selectedDate]);
