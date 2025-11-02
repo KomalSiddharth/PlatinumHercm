@@ -103,11 +103,9 @@ export default function AdminUserDashboardViewer({ approvedEmails }: AdminUserDa
       });
       return;
     }
-    // Find user from approvedEmails and get their ID
-    const user = approvedEmails.find(u => u.email === selectedUserEmail);
-    if (user) {
-      setSelectedUserId(user.id);
-    }
+    // CRITICAL FIX: In this system, users.id = email (not UUID from approved_emails.id)
+    // Set the email as the user ID for proper data fetching
+    setSelectedUserId(selectedUserEmail);
   };
 
   const handleBackToSearch = () => {
