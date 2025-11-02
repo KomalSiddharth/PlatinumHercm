@@ -133,15 +133,25 @@ export default function AdminPanel() {
     console.log('[AdminPanel] Received WebSocket message:', lastMessage);
     
     if (lastMessage.type === 'recommendation_status_changed') {
-      console.log('[AdminPanel] Recommendation status changed, refreshing list');
+      console.log('[AdminPanel] Recommendation status changed, updating instantly');
+      
+      // INSTANT UPDATE: Immediately update the cache with new status
+      queryClient.setQueryData(['/api/admin/recommendations'], (old: any) => {
+        if (!old) return old;
+        return old.map((rec: any) =>
+          rec.id === lastMessage.data.recommendationId
+            ? { ...rec, status: lastMessage.data.status }
+            : rec
+        );
+      });
+      
       toast({
         title: "Status Updated",
         description: lastMessage.data.message,
       });
       
-      // Refresh recommendations list immediately
+      // Background refresh to confirm
       queryClient.invalidateQueries({ queryKey: ['/api/admin/recommendations'] });
-      queryClient.refetchQueries({ queryKey: ['/api/admin/recommendations'] });
     }
   }, [lastMessage, toast]);
 
@@ -2643,7 +2653,24 @@ export default function AdminPanel() {
                                 )}
                               </div>
                               <div className="flex items-center gap-2">
-                                <Badge variant="outline">{rec.status || 'pending'}</Badge>
+                                <Badge 
+                                  variant="outline"
+                                  className={
+                                    rec.status === 'accepted' 
+                                      ? 'border-green-600 text-green-600 bg-green-50 dark:bg-green-950' 
+                                      : rec.status === 'rejected' 
+                                      ? 'border-red-600 text-red-600 bg-red-50 dark:bg-red-950'
+                                      : rec.status === 'completed'
+                                      ? 'border-blue-600 text-blue-600 bg-blue-50 dark:bg-blue-950'
+                                      : 'border-yellow-600 text-yellow-600 bg-yellow-50 dark:bg-yellow-950'
+                                  }
+                                  data-testid={`status-${rec.id}`}
+                                >
+                                  {rec.status === 'accepted' ? '✓ Accepted' : 
+                                   rec.status === 'rejected' ? '✗ Rejected' :
+                                   rec.status === 'completed' ? '✓ Completed' : 
+                                   '⏳ Pending'}
+                                </Badge>
                                 <Button
                                   variant="ghost"
                                   size="icon"

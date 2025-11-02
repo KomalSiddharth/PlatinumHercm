@@ -104,6 +104,14 @@ export function CourseRecommendationNotification({ userId }: CourseRecommendatio
     try {
       if (!recommendation) return;
 
+      // OPTIMISTIC UPDATE: Immediately update admin's cache
+      queryClient.setQueryData(['/api/admin/recommendations'], (old: any) => {
+        if (!old) return old;
+        return old.map((rec: any) =>
+          rec.id === recommendation.id ? { ...rec, status: 'accepted' } : rec
+        );
+      });
+
       // Update recommendation status to accepted
       // Note: Assignment is already created by backend when admin recommended
       // We just need to update the status, not create a duplicate assignment
@@ -116,7 +124,7 @@ export function CourseRecommendationNotification({ userId }: CourseRecommendatio
         description: `${recommendation.courseName} added to your assignments.`,
       });
 
-      // Refresh data to show updated status
+      // Refresh data to confirm the update
       queryClient.invalidateQueries({ queryKey: ['/api/persistent-assignments'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/recommendations'] });
 
@@ -128,12 +136,22 @@ export function CourseRecommendationNotification({ userId }: CourseRecommendatio
         description: "Failed to accept recommendation.",
         variant: "destructive",
       });
+      // Revert optimistic update on error
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/recommendations'] });
     }
   };
 
   const handleReject = async () => {
     try {
       if (!recommendation) return;
+
+      // OPTIMISTIC UPDATE: Immediately update admin's cache
+      queryClient.setQueryData(['/api/admin/recommendations'], (old: any) => {
+        if (!old) return old;
+        return old.map((rec: any) =>
+          rec.id === recommendation.id ? { ...rec, status: 'rejected' } : rec
+        );
+      });
 
       // Update recommendation status to rejected (DON'T DELETE - keep permanently)
       await apiRequest('PUT', `/api/admin/recommendation/${recommendation.id}/status`, {
@@ -145,7 +163,7 @@ export function CourseRecommendationNotification({ userId }: CourseRecommendatio
         description: `You rejected ${recommendation.courseName}.`,
       });
 
-      // Refresh recommendations
+      // Refresh recommendations to confirm
       queryClient.invalidateQueries({ queryKey: ['/api/admin/recommendations'] });
 
       setShowDialog(false);
@@ -156,6 +174,8 @@ export function CourseRecommendationNotification({ userId }: CourseRecommendatio
         description: "Failed to reject recommendation.",
         variant: "destructive",
       });
+      // Revert optimistic update on error
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/recommendations'] });
     }
   };
 
