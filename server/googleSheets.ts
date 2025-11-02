@@ -307,6 +307,7 @@ export interface CourseSubcategory {
   id: string;
   title: string;
   lessons: CourseLesson[];
+  subcategories?: CourseSubcategory[]; // Support nested subcategories
 }
 
 export interface CourseTrackingData {
@@ -495,11 +496,13 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
 
     // Add last subcategory if exists
     if (currentSubcategory !== null && currentCourse !== null) {
-      if (!currentCourse.subcategories) {
-        currentCourse.subcategories = [];
+      const course = currentCourse as CourseTrackingData;
+      const subcat = currentSubcategory as CourseSubcategory;
+      if (!course.subcategories) {
+        course.subcategories = [];
       }
-      currentCourse.subcategories.push(currentSubcategory);
-      console.log(`📂 Saved final subcategory "${currentSubcategory.title}" with ${currentSubcategory.lessons.length} lessons (end of file)`);
+      course.subcategories.push(subcat);
+      console.log(`📂 Saved final subcategory "${subcat.title}" with ${subcat.lessons.length} lessons (end of file)`);
     }
 
     // Add last course
@@ -670,6 +673,57 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
       if (coursesToMergeAsSubcategories.length > 0) {
         console.log(`✅ Merged ${coursesToMergeAsSubcategories.length} mastery courses into Platinum Fast Track`);
         console.log(`📚 Platinum Fast Track now has ${platinumCourse.subcategories?.length || 0} subcategories`);
+      }
+
+      // Add nested sub-courses within Career Mastery
+      const careerMasterySubcat = platinumCourse.subcategories?.find(s => 
+        s.title.toLowerCase() === 'career mastery'
+      );
+      
+      if (careerMasterySubcat) {
+        console.log('🎯 Adding nested sub-courses to Career Mastery...');
+        
+        // Define nested sub-courses for Career Mastery
+        const careerNestedCourses = [
+          { name: 'Life Coaching', matcher: (title: string) => title.toLowerCase().includes('life') && title.toLowerCase().includes('coaching') },
+          { name: 'Online Selling with 5 days Challenge', matcher: (title: string) => title.toLowerCase().includes('online') && title.toLowerCase().includes('selling') },
+          { name: 'LOA With Vastu Frequency', matcher: (title: string) => title.toLowerCase().includes('loa') && title.toLowerCase().includes('vastu') && title.toLowerCase().includes('frequency') },
+          { name: 'LOA Remedies For Vastu', matcher: (title: string) => title.toLowerCase().includes('loa') && title.toLowerCase().includes('remedies') && title.toLowerCase().includes('vastu') },
+          { name: 'Canva Graphic Design Mastery', matcher: (title: string) => title.toLowerCase().includes('canva') && title.toLowerCase().includes('graphic') },
+        ];
+
+        const nestedCoursesToRemove: number[] = [];
+        careerMasterySubcat.subcategories = [];
+
+        // Find and add each nested course
+        for (const nestedCourse of careerNestedCourses) {
+          const courseIndex = courses.findIndex(c => nestedCourse.matcher(c.title));
+          
+          if (courseIndex !== -1) {
+            const course = courses[courseIndex];
+            console.log(`   📦 Adding "${course.title}" as nested sub-course under Career Mastery (${course.lessons.length} lessons)`);
+            
+            const subcategoryId = nestedCourse.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            careerMasterySubcat.subcategories.push({
+              id: subcategoryId,
+              title: nestedCourse.name,
+              lessons: course.lessons
+            });
+            
+            nestedCoursesToRemove.push(courseIndex);
+          } else {
+            console.log(`   ⚠️  Course not found for "${nestedCourse.name}"`);
+          }
+        }
+
+        // Remove nested courses in reverse order
+        for (let i = nestedCoursesToRemove.length - 1; i >= 0; i--) {
+          courses.splice(nestedCoursesToRemove[i], 1);
+        }
+
+        console.log(`   ✅ Added ${careerMasterySubcat.subcategories.length} nested sub-courses to Career Mastery`);
+      } else {
+        console.log('   ⚠️  Career Mastery subcategory not found');
       }
     } else {
       console.log('⚠️  Platinum Fast Track course not found');

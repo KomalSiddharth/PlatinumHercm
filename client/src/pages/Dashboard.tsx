@@ -906,9 +906,13 @@ export default function Dashboard() {
                 {!coursesLoading && !coursesError && courses.length > 0 && (
                   <div className="space-y-3">
                     {courses.map((course, index) => {
-                    // Calculate total lessons including subcategories
+                    // Calculate total lessons including subcategories and nested subcategories
                     const directLessons = course.lessons || [];
-                    const subcategoryLessons = (course.subcategories || []).flatMap(sub => sub.lessons || []);
+                    const subcategoryLessons = ((course as any).subcategories || []).flatMap((sub: any) => {
+                      const subLessons = sub.lessons || [];
+                      const nestedLessons = (sub.subcategories || []).flatMap((nested: any) => nested.lessons || []);
+                      return [...subLessons, ...nestedLessons];
+                    });
                     const allLessons = [...directLessons, ...subcategoryLessons];
                     
                     const completedLessons = allLessons.filter(l => l.completed).length;
@@ -1093,7 +1097,7 @@ export default function Dashboard() {
                               ))}
                               
                               {/* Render subcategories if they exist */}
-                              {course.subcategories && course.subcategories.length > 0 && course.subcategories.map((subcategory: any) => (
+                              {(course as any).subcategories && (course as any).subcategories.length > 0 && (course as any).subcategories.map((subcategory: any) => (
                                 <Collapsible key={subcategory.id} className="mt-3">
                                   <div className="border-l-2 border-primary/30 pl-3">
                                     <CollapsibleTrigger asChild>
@@ -1118,7 +1122,7 @@ export default function Dashboard() {
                                                 c.id === course.id
                                                   ? {
                                                       ...c,
-                                                      subcategories: c.subcategories?.map((sub: any) =>
+                                                      subcategories: (c as any).subcategories?.map((sub: any) =>
                                                         sub.id === subcategory.id
                                                           ? {
                                                               ...sub,
@@ -1165,7 +1169,7 @@ export default function Dashboard() {
                                                   c.id === course.id
                                                     ? {
                                                         ...c,
-                                                        subcategories: c.subcategories?.map((sub: any) =>
+                                                        subcategories: (c as any).subcategories?.map((sub: any) =>
                                                           sub.id === subcategory.id
                                                             ? {
                                                                 ...sub,
@@ -1212,6 +1216,146 @@ export default function Dashboard() {
                                             </Badge>
                                           </div>
                                         </div>
+                                      ))}
+                                      
+                                      {/* Render nested subcategories (e.g., within Career Mastery) */}
+                                      {subcategory.subcategories && subcategory.subcategories.length > 0 && subcategory.subcategories.map((nestedSubcat: any) => (
+                                        <Collapsible key={nestedSubcat.id} className="mt-3">
+                                          <div className="border-l-2 border-accent/30 pl-3">
+                                            <CollapsibleTrigger asChild>
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="w-full justify-between hover:bg-muted/50 mb-2"
+                                                data-testid={`button-nested-subcategory-${nestedSubcat.id}`}
+                                              >
+                                                <span className="font-medium text-xs">{nestedSubcat.title}</span>
+                                                <ChevronDown className="w-3 h-3" />
+                                              </Button>
+                                            </CollapsibleTrigger>
+                                            <CollapsibleContent className="space-y-2 mt-2">
+                                              {nestedSubcat.lessons && nestedSubcat.lessons.map((nestedLesson: any) => (
+                                                <div key={nestedLesson.id} className="flex items-start gap-2">
+                                                  <Checkbox
+                                                    checked={nestedLesson.completed}
+                                                    onCheckedChange={async (checked) => {
+                                                      // Update local state for nested subcategory lesson
+                                                      setCourses(prev => prev.map(c => 
+                                                        c.id === course.id
+                                                          ? {
+                                                              ...c,
+                                                              subcategories: (c as any).subcategories?.map((sub: any) =>
+                                                                sub.id === subcategory.id
+                                                                  ? {
+                                                                      ...sub,
+                                                                      subcategories: sub.subcategories?.map((nested: any) =>
+                                                                        nested.id === nestedSubcat.id
+                                                                          ? {
+                                                                              ...nested,
+                                                                              lessons: nested.lessons.map((l: any) =>
+                                                                                l.id === nestedLesson.id
+                                                                                  ? { ...l, completed: checked as boolean }
+                                                                                  : l
+                                                                              )
+                                                                            }
+                                                                          : nested
+                                                                      )
+                                                                    }
+                                                                  : sub
+                                                              )
+                                                            }
+                                                          : c
+                                                      ));
+                                                      
+                                                      try {
+                                                        const toggleResponse = await apiRequest('POST', '/api/course-video-completions/toggle', {
+                                                          videoId: `${course.id}-${nestedLesson.id}`,
+                                                          courseId: course.id
+                                                        });
+                                                        
+                                                        if (!toggleResponse.ok) throw new Error('Failed to toggle lesson');
+                                                        
+                                                        if (checked) {
+                                                          await apiRequest('POST', '/api/persistent-assignments', {
+                                                            hrcmArea: course.category.toLowerCase(),
+                                                            courseId: course.id,
+                                                            courseName: `${subcategory.title} - ${nestedSubcat.title}`,
+                                                            lessonName: nestedLesson.title,
+                                                            lessonUrl: nestedLesson.url || '',
+                                                            source: 'user',
+                                                            completed: false
+                                                          });
+                                                          queryClient.invalidateQueries({ queryKey: ['/api/persistent-assignments'] });
+                                                          queryClient.invalidateQueries({ queryKey: ['/api/hercm'] });
+                                                          toast({
+                                                            title: 'Lesson Completed!',
+                                                            description: `${nestedLesson.title} added to Assignment column`,
+                                                          });
+                                                        }
+                                                      } catch (error) {
+                                                        console.error('Error updating nested lesson:', error);
+                                                        setCourses(prev => prev.map(c => 
+                                                          c.id === course.id
+                                                            ? {
+                                                                ...c,
+                                                                subcategories: (c as any).subcategories?.map((sub: any) =>
+                                                                  sub.id === subcategory.id
+                                                                    ? {
+                                                                        ...sub,
+                                                                        subcategories: sub.subcategories?.map((nested: any) =>
+                                                                          nested.id === nestedSubcat.id
+                                                                            ? {
+                                                                                ...nested,
+                                                                                lessons: nested.lessons.map((l: any) =>
+                                                                                  l.id === nestedLesson.id
+                                                                                    ? { ...l, completed: !checked }
+                                                                                    : l
+                                                                                )
+                                                                              }
+                                                                            : nested
+                                                                        )
+                                                                      }
+                                                                    : sub
+                                                                )
+                                                              }
+                                                            : c
+                                                        ));
+                                                        toast({
+                                                          title: 'Error',
+                                                          description: 'Failed to update lesson status',
+                                                          variant: 'destructive'
+                                                        });
+                                                      }
+                                                    }}
+                                                    className="mt-0.5"
+                                                    data-testid={`checkbox-nested-lesson-${nestedLesson.id}`}
+                                                  />
+                                                  <div className="flex-1 flex items-center justify-between gap-2">
+                                                    {nestedLesson.url ? (
+                                                      <a
+                                                        href={nestedLesson.url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-xs cursor-pointer flex-1 hover:underline text-primary hover:text-primary/80"
+                                                        data-testid={`link-nested-lesson-${nestedLesson.id}`}
+                                                      >
+                                                        {nestedLesson.title}
+                                                      </a>
+                                                    ) : (
+                                                      <span className="text-xs flex-1">{nestedLesson.title}</span>
+                                                    )}
+                                                    <Badge 
+                                                      className="text-[10px] px-1.5 py-0 h-5 bg-gradient-to-r from-primary to-accent text-white border-0 golden-glow smooth-transition"
+                                                      data-testid={`badge-nested-points-${nestedLesson.id}`}
+                                                    >
+                                                      +{nestedLesson.points || 10} pts
+                                                    </Badge>
+                                                  </div>
+                                                </div>
+                                              ))}
+                                            </CollapsibleContent>
+                                          </div>
+                                        </Collapsible>
                                       ))}
                                     </CollapsibleContent>
                                   </div>
