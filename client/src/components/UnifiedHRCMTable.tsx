@@ -295,6 +295,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       newDate.setDate(newDate.getDate() + 1);
     }
     setSelectedDate(newDate);
+    const dateStr = newDate.toISOString().split('T')[0];
+    setCurrentDateStr(dateStr);
+    console.log(`[NAVIGATION] Date navigated to: ${dateStr}`);
   };
 
   // Fetch HRCM data for the selected date (admin-aware)
@@ -1913,6 +1916,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   onSelect={(date) => {
                     if (date) {
                       setSelectedDate(date);
+                      const dateStr = date.toISOString().split('T')[0];
+                      setCurrentDateStr(dateStr);
+                      console.log(`[CALENDAR] Date selected: ${dateStr}`);
                     }
                   }}
                   initialFocus
@@ -1923,7 +1929,13 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     variant="outline"
                     size="sm"
                     className="w-full"
-                    onClick={() => setSelectedDate(new Date())}
+                    onClick={() => {
+                      const today = new Date();
+                      setSelectedDate(today);
+                      const dateStr = today.toISOString().split('T')[0];
+                      setCurrentDateStr(dateStr);
+                      console.log(`[CALENDAR] Reset to today: ${dateStr}`);
+                    }}
                     data-testid="button-reset-to-today"
                   >
                     Back to Today
