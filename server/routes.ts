@@ -2779,6 +2779,8 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       const { id } = req.params;
       const { status } = req.body;
       
+      console.log('[REALTIME DEBUG] PUT /api/admin/recommendation/:id/status called:', { id, status });
+      
       // Allow pending, accepted, rejected, and completed statuses
       if (!['pending', 'accepted', 'rejected', 'completed'].includes(status)) {
         return res.status(400).json({ message: "Invalid status" });
@@ -2786,25 +2788,38 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
 
       const recommendation = await storage.updateRecommendationStatus(id, status);
       
-      console.log('[WebSocket] Recommendation status updated:', { id, status, adminId: recommendation.adminId });
+      console.log('[REALTIME DEBUG] Recommendation after update:', {
+        id: recommendation.id,
+        status: recommendation.status,
+        adminId: recommendation.adminId,
+        userId: recommendation.userId,
+        courseName: recommendation.courseName
+      });
       
       // Send real-time notification to admin about status change
       if (recommendation.adminId) {
-        console.log('[WebSocket] Sending status change notification to admin:', recommendation.adminId);
-        notifyUser(recommendation.adminId, 'recommendation_status_changed', {
+        console.log('[REALTIME DEBUG] About to send WebSocket to admin:', recommendation.adminId);
+        
+        const wsPayload = {
           recommendationId: id,
           courseName: recommendation.courseName,
           status: status,
           userId: recommendation.userId,
           message: `User ${status} course: ${recommendation.courseName}`,
-        });
+        };
+        
+        console.log('[REALTIME DEBUG] WebSocket payload:', wsPayload);
+        
+        notifyUser(recommendation.adminId, 'recommendation_status_changed', wsPayload);
+        
+        console.log('[REALTIME DEBUG] WebSocket notification sent successfully!');
       } else {
-        console.warn('[WebSocket] No adminId found in recommendation, cannot send notification');
+        console.warn('[REALTIME DEBUG] ERROR: No adminId found in recommendation!', recommendation);
       }
       
       res.json(recommendation);
     } catch (error) {
-      console.error("Error updating recommendation status:", error);
+      console.error("[REALTIME DEBUG] Error updating recommendation status:", error);
       res.status(500).json({ message: "Failed to update recommendation status" });
     }
   });
@@ -3004,15 +3019,45 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       }
 
       // Update status to accepted
-      await storage.updateRecommendationStatus(id, 'accepted');
+      const updatedRecommendation = await storage.updateRecommendationStatus(id, 'accepted');
 
       // NOTE: Assignment is already created when admin makes the recommendation
       // We don't need to create it again here - just update the status
       // This prevents duplicate assignments from being created
 
+      console.log('[REALTIME DEBUG] POST /api/user/recommendations/:id/accept - Status updated to accepted');
+      console.log('[REALTIME DEBUG] Recommendation after update:', {
+        id: updatedRecommendation.id,
+        status: updatedRecommendation.status,
+        adminId: updatedRecommendation.adminId,
+        userId: updatedRecommendation.userId,
+        courseName: updatedRecommendation.courseName
+      });
+
+      // Send real-time notification to admin about status change
+      if (updatedRecommendation.adminId) {
+        console.log('[REALTIME DEBUG] About to send WebSocket to admin:', updatedRecommendation.adminId);
+        
+        const wsPayload = {
+          recommendationId: id,
+          courseName: updatedRecommendation.courseName,
+          status: 'accepted',
+          userId: updatedRecommendation.userId,
+          message: `User accepted course: ${updatedRecommendation.courseName}`,
+        };
+        
+        console.log('[REALTIME DEBUG] WebSocket payload:', wsPayload);
+        
+        notifyUser(updatedRecommendation.adminId, 'recommendation_status_changed', wsPayload);
+        
+        console.log('[REALTIME DEBUG] WebSocket notification sent successfully!');
+      } else {
+        console.warn('[REALTIME DEBUG] ERROR: No adminId found in recommendation!', updatedRecommendation);
+      }
+
       res.json({ 
         message: "Recommendation accepted", 
-        recommendation
+        recommendation: updatedRecommendation
       });
     } catch (error) {
       console.error("Error accepting recommendation:", error);
@@ -3052,10 +3097,27 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         return res.status(403).json({ message: "Not authorized to dismiss this recommendation" });
       }
 
-      // Update status to dismissed (we'll need to add this status to the schema)
-      await storage.updateRecommendationStatus(id, 'completed'); // Using 'completed' as dismissed for now
+      // Update status to rejected (dismissed = rejected)
+      const updatedRecommendation = await storage.updateRecommendationStatus(id, 'rejected');
 
-      res.json({ message: "Recommendation dismissed", recommendation });
+      console.log('[REALTIME DEBUG] POST /api/user/recommendations/:id/dismiss - Status updated to rejected');
+      
+      // Send real-time notification to admin about status change
+      if (updatedRecommendation.adminId) {
+        console.log('[REALTIME DEBUG] Sending WebSocket to admin:', updatedRecommendation.adminId);
+        
+        notifyUser(updatedRecommendation.adminId, 'recommendation_status_changed', {
+          recommendationId: id,
+          courseName: updatedRecommendation.courseName,
+          status: 'rejected',
+          userId: updatedRecommendation.userId,
+          message: `User rejected course: ${updatedRecommendation.courseName}`,
+        });
+        
+        console.log('[REALTIME DEBUG] WebSocket notification sent successfully!');
+      }
+
+      res.json({ message: "Recommendation dismissed", recommendation: updatedRecommendation });
     } catch (error) {
       console.error("Error dismissing recommendation:", error);
       res.status(500).json({ message: "Failed to dismiss recommendation" });

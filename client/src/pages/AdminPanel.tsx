@@ -128,30 +128,51 @@ export default function AdminPanel() {
   
   // Listen for real-time recommendation status changes
   useEffect(() => {
-    if (!lastMessage) return;
+    console.log('[ADMIN REALTIME] WebSocket useEffect triggered, lastMessage:', lastMessage);
     
-    console.log('[AdminPanel] Received WebSocket message:', lastMessage);
+    if (!lastMessage) {
+      console.log('[ADMIN REALTIME] No lastMessage, returning');
+      return;
+    }
+    
+    console.log('[ADMIN REALTIME] Processing message type:', lastMessage.type);
+    console.log('[ADMIN REALTIME] Full message data:', lastMessage.data);
     
     if (lastMessage.type === 'recommendation_status_changed') {
-      console.log('[AdminPanel] Recommendation status changed, updating instantly');
+      console.log('[ADMIN REALTIME] ✅ RECOMMENDATION STATUS CHANGED EVENT RECEIVED!');
+      console.log('[ADMIN REALTIME] Recommendation ID:', lastMessage.data.recommendationId);
+      console.log('[ADMIN REALTIME] New Status:', lastMessage.data.status);
+      console.log('[ADMIN REALTIME] Course Name:', lastMessage.data.courseName);
       
       // INSTANT UPDATE: Immediately update the cache with new status
+      console.log('[ADMIN REALTIME] About to update queryClient cache...');
       queryClient.setQueryData(['/api/admin/recommendations'], (old: any) => {
-        if (!old) return old;
-        return old.map((rec: any) =>
+        console.log('[ADMIN REALTIME] Current cache data:', old);
+        if (!old) {
+          console.log('[ADMIN REALTIME] No cache data, returning');
+          return old;
+        }
+        const updated = old.map((rec: any) =>
           rec.id === lastMessage.data.recommendationId
             ? { ...rec, status: lastMessage.data.status }
             : rec
         );
+        console.log('[ADMIN REALTIME] Updated cache data:', updated);
+        return updated;
       });
       
+      console.log('[ADMIN REALTIME] Cache updated! Showing toast...');
       toast({
-        title: "Status Updated",
+        title: "Status Updated ✓",
         description: lastMessage.data.message,
       });
       
       // Background refresh to confirm
+      console.log('[ADMIN REALTIME] Invalidating queries for background refresh...');
       queryClient.invalidateQueries({ queryKey: ['/api/admin/recommendations'] });
+      console.log('[ADMIN REALTIME] All updates complete!');
+    } else {
+      console.log('[ADMIN REALTIME] Message type not recommendation_status_changed, ignoring');
     }
   }, [lastMessage, toast]);
 
