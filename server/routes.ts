@@ -115,8 +115,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const requestedDate = req.params.date;
       
-      // Get all weeks for user
-      const allWeeks = await storage.getHercmWeeksByUser(user.id);
+      // Get ALL weeks for user (no week number deduplication)
+      const allWeeks = await storage.getAllHercmWeeksByUserWithDates(user.id);
       
       console.log(`[HERCM BY-DATE] Requested date: ${requestedDate}, Total weeks found: ${allWeeks?.length || 0}`);
       

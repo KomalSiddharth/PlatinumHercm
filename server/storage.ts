@@ -311,6 +311,20 @@ export class DatabaseStorage implements IStorage {
     return week;
   }
 
+  // Get ALL weeks for a user with date strings (no deduplication by week number)
+  async getAllHercmWeeksByUserWithDates(userId: string): Promise<any[]> {
+    const allWeeks = await db
+      .select({
+        ...hercmWeeks,
+        dateString: sql<string>`TO_CHAR(${hercmWeeks.createdAt}, 'YYYY-MM-DD')`.as('date_string')
+      })
+      .from(hercmWeeks)
+      .where(eq(hercmWeeks.userId, userId))
+      .orderBy(desc(hercmWeeks.createdAt));
+    
+    return allWeeks;
+  }
+
   async getHercmWeeksByUser(userId: string): Promise<any[]> {
     // Get ALL weeks and then filter to latest per week number
     const allWeeks = await db
