@@ -746,6 +746,7 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
               return (lower.includes('pineal') || lower.includes('penial')) && lower.includes('gland') && lower.includes('meditation');
             }
           },
+          { name: 'Depression To Celebration', matcher: (title: string) => title.toLowerCase().includes('depression') && title.toLowerCase().includes('celebration') },
         ];
 
         const healthNestedCoursesToRemove: number[] = [];
