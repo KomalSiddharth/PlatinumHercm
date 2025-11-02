@@ -569,11 +569,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   }, [viewingHistory, historicalSnapshot, selectedHistoryDate, allWeeksData]);
 
   useEffect(() => {
-    // Skip if viewing history
-    if (viewingHistory) return;
-    
     console.log('[FRONTEND DEBUG] useEffect triggered - weekData:', weekData);
     console.log('[FRONTEND DEBUG] weekData?.beliefs:', weekData?.beliefs);
+    console.log('[FRONTEND DEBUG] viewingHistory:', viewingHistory);
+    console.log('[FRONTEND DEBUG] currentDateStr:', currentDateStr);
     
     // Priority: Use actual database data if available, otherwise use demo/blank template
     if (weekData?.beliefs) {
