@@ -63,8 +63,8 @@ interface AssignmentLesson {
   id: string;
   courseId: string;
   courseName: string;
-  lessonName: string;
-  url: string;
+  lessonName: string | null;  // Can be null for course-level recommendations
+  url: string | null;  // Can be null for course-level recommendations
   completed: boolean;
   source?: 'user' | 'admin';  // Track if user-selected or admin-recommended
   recommendationId?: string;   // Original recommendation ID if admin-recommended
@@ -2631,7 +2631,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                           data-testid={`checkbox-user-lesson-${lesson.id}`}
                                         />
                                         <span className="text-xs line-clamp-1 text-cyan-700 dark:text-cyan-400">
-                                          {lesson.lessonName}
+                                          {lesson.lessonName || lesson.courseName}
                                         </span>
                                       </div>
                                     ))}
