@@ -2816,14 +2816,9 @@ export default function AdminPanel() {
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    onClick={() => {
-                                      updatePlatinumStandardMutation.mutate({
-                                        id: standard.id,
-                                        data: { isActive: !standard.isActive }
-                                      });
-                                    }}
+                                    onClick={() => setEditingStandard(standard)}
                                     className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950"
-                                    data-testid={`button-toggle-standard-${standard.id}`}
+                                    data-testid={`button-edit-standard-${standard.id}`}
                                   >
                                     <Pencil className="w-4 h-4" />
                                   </Button>
@@ -3213,6 +3208,66 @@ export default function AdminPanel() {
               data-testid="button-confirm-edit-email"
             >
               {updateEmailMutation.isPending ? 'Updating...' : 'Update Email'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Platinum Standard Dialog */}
+      <Dialog open={!!editingStandard} onOpenChange={() => setEditingStandard(null)}>
+        <DialogContent data-testid="dialog-edit-platinum-standard">
+          <DialogHeader>
+            <DialogTitle>Edit Platinum Standard</DialogTitle>
+            <DialogDescription>Update standard text and status</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Standard Text</label>
+              <Input
+                type="text"
+                placeholder="Enter platinum standard text..."
+                value={editingStandard?.standardText || ''}
+                onChange={(e) => setEditingStandard(editingStandard ? { ...editingStandard, standardText: e.target.value } : null)}
+                data-testid="input-edit-standard-text"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Status</label>
+              <select
+                value={editingStandard?.isActive ? 'active' : 'inactive'}
+                onChange={(e) => setEditingStandard(editingStandard ? { ...editingStandard, isActive: e.target.value === 'active' } : null)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                data-testid="select-edit-standard-status"
+              >
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setEditingStandard(null)} data-testid="button-cancel-edit-standard">
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                if (editingStandard) {
+                  if (!editingStandard.standardText.trim()) {
+                    toast({ title: "Error", description: "Standard text cannot be empty", variant: "destructive" });
+                    return;
+                  }
+                  updatePlatinumStandardMutation.mutate({
+                    id: editingStandard.id,
+                    data: { 
+                      standardText: editingStandard.standardText.trim(),
+                      isActive: editingStandard.isActive 
+                    }
+                  });
+                }
+              }}
+              disabled={updatePlatinumStandardMutation.isPending}
+              data-testid="button-confirm-edit-standard"
+            >
+              {updatePlatinumStandardMutation.isPending ? 'Updating...' : 'Update Standard'}
             </Button>
           </div>
         </DialogContent>
