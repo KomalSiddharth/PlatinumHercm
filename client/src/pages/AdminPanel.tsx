@@ -130,14 +130,18 @@ export default function AdminPanel() {
   useEffect(() => {
     if (!lastMessage) return;
     
+    console.log('[AdminPanel] Received WebSocket message:', lastMessage);
+    
     if (lastMessage.type === 'recommendation_status_changed') {
+      console.log('[AdminPanel] Recommendation status changed, refreshing list');
       toast({
         title: "Status Updated",
         description: lastMessage.data.message,
       });
       
-      // Refresh recommendations list
+      // Refresh recommendations list immediately
       queryClient.invalidateQueries({ queryKey: ['/api/admin/recommendations'] });
+      queryClient.refetchQueries({ queryKey: ['/api/admin/recommendations'] });
     }
   }, [lastMessage, toast]);
 

@@ -2629,7 +2629,8 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
           lessonName: null, // Course-level assignment, not lesson-specific
           url: null,
           completed: false,
-          source: 'admin_recommendation',
+          source: 'admin',
+          recommendationId: recommendation.id,
         });
         console.log('[DEBUG] POST /api/admin/recommendations - Created persistent assignment:', persistentAssignment);
       } catch (assignmentError) {
@@ -2655,8 +2656,8 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         try {
           const assignments = await storage.getUserPersistentAssignments(recommendation.userId);
           const relatedAssignment = assignments.find((a: any) => 
-            a.courseName === recommendation.courseName && 
-            a.source === 'admin_recommendation'
+            a.source === 'admin' &&
+            (a.recommendationId === recommendation.id || a.courseName === recommendation.courseName)
           );
           
           if (relatedAssignment) {
@@ -2691,8 +2692,8 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         // Find and delete the related persistent assignment
         const assignments = await storage.getUserPersistentAssignments(recommendation.userId);
         const relatedAssignment = assignments.find((a: any) => 
-          a.courseName === recommendation.courseName && 
-          a.source === 'admin_recommendation'
+          a.source === 'admin' &&
+          (a.recommendationId === recommendation.id || a.courseName === recommendation.courseName)
         );
         
         if (relatedAssignment) {
@@ -2701,11 +2702,14 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         }
         
         // Send real-time notification to user about deletion
+        console.log('[WebSocket] Sending deletion notification to user:', recommendation.userId);
         notifyUser(recommendation.userId, 'course_recommendation_deleted', {
           courseName: recommendation.courseName,
           hrcmArea: recommendation.hrcmArea,
           message: `Course recommendation removed: ${recommendation.courseName}`,
         });
+      } else {
+        console.warn('[WebSocket] Recommendation not found for deletion notification');
       }
       
       // Delete the recommendation
@@ -2782,8 +2786,11 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
 
       const recommendation = await storage.updateRecommendationStatus(id, status);
       
+      console.log('[WebSocket] Recommendation status updated:', { id, status, adminId: recommendation.adminId });
+      
       // Send real-time notification to admin about status change
       if (recommendation.adminId) {
+        console.log('[WebSocket] Sending status change notification to admin:', recommendation.adminId);
         notifyUser(recommendation.adminId, 'recommendation_status_changed', {
           recommendationId: id,
           courseName: recommendation.courseName,
@@ -2791,6 +2798,8 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
           userId: recommendation.userId,
           message: `User ${status} course: ${recommendation.courseName}`,
         });
+      } else {
+        console.warn('[WebSocket] No adminId found in recommendation, cannot send notification');
       }
       
       res.json(recommendation);
@@ -2997,24 +3006,13 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       // Update status to accepted
       await storage.updateRecommendationStatus(id, 'accepted');
 
-      // INSTANT UPDATE FIX: Add to NEW persistent assignments table instead of old unified assignment
-      // This ensures the recommendation appears immediately in the Assignment column (in red for admin)
-      const newAssignment = await storage.addPersistentAssignment({
-        userId: user.id,
-        courseId: recommendation.courseId,
-        courseName: recommendation.courseName,
-        lessonName: recommendation.lessonName || recommendation.courseName,
-        url: recommendation.lessonUrl || '',
-        hrcmArea: recommendation.hrcmArea.toLowerCase(),
-        completed: false,
-        source: 'admin', // Admin recommendations show in red
-        recommendationId: recommendation.id
-      });
+      // NOTE: Assignment is already created when admin makes the recommendation
+      // We don't need to create it again here - just update the status
+      // This prevents duplicate assignments from being created
 
       res.json({ 
-        message: "Recommendation accepted and added to Assignment", 
-        recommendation,
-        assignment: newAssignment
+        message: "Recommendation accepted", 
+        recommendation
       });
     } catch (error) {
       console.error("Error accepting recommendation:", error);

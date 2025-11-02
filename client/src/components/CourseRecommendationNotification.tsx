@@ -73,8 +73,11 @@ export function CourseRecommendationNotification({ userId }: CourseRecommendatio
   useEffect(() => {
     if (!lastMessage) return;
 
+    console.log('[CourseRecommendation] Received WebSocket message:', lastMessage);
+
     // Handle new course recommendation
     if (lastMessage.type === 'course_recommended') {
+      console.log('[CourseRecommendation] New recommendation received, playing sound');
       playNotificationSound();
       setRecommendation(lastMessage.data.recommendation);
       setShowDialog(true);
@@ -82,14 +85,18 @@ export function CourseRecommendationNotification({ userId }: CourseRecommendatio
 
     // Handle course recommendation deletion
     if (lastMessage.type === 'course_recommendation_deleted') {
+      console.log('[CourseRecommendation] Recommendation deleted, refreshing queries');
       toast({
         title: "Course Removed",
         description: lastMessage.data.message,
       });
       
-      // Refresh assignments and recommendations
+      // Refresh ALL related queries
       queryClient.invalidateQueries({ queryKey: ['/api/persistent-assignments'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/recommendations'] });
+      
+      // Force immediate refetch
+      queryClient.refetchQueries({ queryKey: ['/api/persistent-assignments'] });
     }
   }, [lastMessage, toast]);
 
@@ -97,21 +104,11 @@ export function CourseRecommendationNotification({ userId }: CourseRecommendatio
     try {
       if (!recommendation) return;
 
-      // Update recommendation status to accepted FIRST
+      // Update recommendation status to accepted
+      // Note: Assignment is already created by backend when admin recommended
+      // We just need to update the status, not create a duplicate assignment
       await apiRequest('PUT', `/api/admin/recommendation/${recommendation.id}/status`, {
         status: 'accepted',
-      });
-
-      // Add to persistent assignments
-      await apiRequest('POST', '/api/persistent-assignments', {
-        hrcmArea: recommendation.hrcmArea.toLowerCase(),
-        courseId: recommendation.courseId,
-        courseName: recommendation.courseName,
-        lessonId: recommendation.lessonId,
-        lessonName: recommendation.lessonName,
-        url: recommendation.lessonUrl,
-        source: 'admin_recommendation',
-        recommendationId: recommendation.id,
       });
 
       toast({
@@ -119,7 +116,7 @@ export function CourseRecommendationNotification({ userId }: CourseRecommendatio
         description: `${recommendation.courseName} added to your assignments.`,
       });
 
-      // Refresh data
+      // Refresh data to show updated status
       queryClient.invalidateQueries({ queryKey: ['/api/persistent-assignments'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/recommendations'] });
 
