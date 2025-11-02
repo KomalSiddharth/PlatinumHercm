@@ -693,6 +693,7 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
           { name: 'Lead Business', matcher: (title: string) => title.toLowerCase().includes('lead') && title.toLowerCase().includes('business') },
           { name: 'Digital Coaching System', matcher: (title: string) => title.toLowerCase().includes('digital') && title.toLowerCase().includes('coaching') && title.toLowerCase().includes('system') },
           { name: 'Lead Self', matcher: (title: string) => title.toLowerCase().includes('lead') && title.toLowerCase().includes('self') },
+          { name: 'Corporate Train The Trainer by Mitesh Khatri', matcher: (title: string) => title.toLowerCase().includes('corporate') && title.toLowerCase().includes('train') && title.toLowerCase().includes('trainer') },
         ];
 
         const nestedCoursesToRemove: number[] = [];
@@ -898,6 +899,7 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
       (title: string) => title.toLowerCase().includes('lead') && title.toLowerCase().includes('business'),
       (title: string) => title.toLowerCase().includes('digital') && title.toLowerCase().includes('coaching') && title.toLowerCase().includes('system'),
       (title: string) => title.toLowerCase().includes('lead') && title.toLowerCase().includes('self'),
+      (title: string) => title.toLowerCase().includes('corporate') && title.toLowerCase().includes('train') && title.toLowerCase().includes('trainer'),
       // Health Mastery nested courses
       (title: string) => title.toLowerCase().includes('morning') && title.toLowerCase().includes('happy') && title.toLowerCase().includes('gym'),
       (title: string) => {
