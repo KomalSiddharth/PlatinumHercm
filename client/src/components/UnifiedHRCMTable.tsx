@@ -2607,10 +2607,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       // CRITICAL: Persistent assignments should ALWAYS show across all dates
                       // - Assignments persist until completed, regardless of date
                       // - This includes: course tracking additions, recommendations, and user-added assignments
-                      // - Admin view uses unified assignment for viewing historical snapshots
-                      const assignmentsToDisplay = isAdminView 
-                        ? unifiedAssignment  // Admin view - show historical snapshot
-                        : persistentAssignments;  // Always use persistent assignments for all dates
+                      // - Admin view ALSO uses persistent assignments (fetched via admin API endpoint)
+                      // - Both user and admin view use the same persistentAssignments data source
+                      const assignmentsToDisplay = persistentAssignments;  // Always use persistent assignments for all views
                       
                       // Filter to show only pending (uncompleted) assignments in UI
                       // Database keeps all records for history/analytics, but UI shows only active work
