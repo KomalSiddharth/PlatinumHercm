@@ -2611,12 +2611,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       // - Both user and admin view use the same persistentAssignments data source
                       const assignmentsToDisplay = persistentAssignments;  // Always use persistent assignments for all views
                       
-                      // Filter to show only pending (uncompleted) assignments in UI
-                      // Database keeps all records for history/analytics, but UI shows only active work
-                      const pendingAssignments = assignmentsToDisplay.filter((l: any) => !l.completed);
-                      
-                      const userLessons = pendingAssignments.filter((l: any) => l.source === 'user' || !l.source);
-                      const adminLessons = pendingAssignments.filter((l: any) => l.source === 'admin');
+                      // Show ALL assignments (completed + pending) so users can see their progress
+                      // Previously filtered to show only pending, but this caused confusion when clicking checkbox
+                      // Users would click to complete, and assignment would disappear (looked like deletion)
+                      const userLessons = assignmentsToDisplay.filter((l: any) => l.source === 'user' || !l.source);
+                      const adminLessons = assignmentsToDisplay.filter((l: any) => l.source === 'admin');
                       const allLessons = [...userLessons, ...adminLessons];
                       const totalCount = allLessons.length;
                       
