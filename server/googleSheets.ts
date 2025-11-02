@@ -737,7 +737,11 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
         // Define nested sub-courses for Health Mastery
         const healthNestedCourses = [
           { name: 'Morning Happy Gym Dance Videos', matcher: (title: string) => title.toLowerCase().includes('morning') && title.toLowerCase().includes('happy') && title.toLowerCase().includes('gym') },
-          { name: 'Pineal Gland Meditation', matcher: (title: string) => title.toLowerCase().includes('pineal') && title.toLowerCase().includes('gland') && title.toLowerCase().includes('meditation') },
+          { name: 'Pineal Gland Meditation', matcher: (title: string) => {
+              const lower = title.toLowerCase();
+              return (lower.includes('pineal') || lower.includes('penial')) && lower.includes('gland') && lower.includes('meditation');
+            }
+          },
         ];
 
         const healthNestedCoursesToRemove: number[] = [];
