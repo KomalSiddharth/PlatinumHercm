@@ -887,6 +887,49 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
       courses.splice(relationshipMasteryIndex, 1);
     }
 
+    // Remove any remaining duplicate courses that should only appear within Platinum Fast Track
+    const duplicateMatchers = [
+      // Career Mastery nested courses
+      (title: string) => title.toLowerCase().includes('life') && title.toLowerCase().includes('coaching'),
+      (title: string) => title.toLowerCase().includes('online') && title.toLowerCase().includes('selling'),
+      (title: string) => title.toLowerCase().includes('loa') && title.toLowerCase().includes('vastu') && title.toLowerCase().includes('frequency'),
+      (title: string) => title.toLowerCase().includes('loa') && title.toLowerCase().includes('remedies') && title.toLowerCase().includes('vastu'),
+      (title: string) => title.toLowerCase().includes('canva') && title.toLowerCase().includes('graphic'),
+      (title: string) => title.toLowerCase().includes('lead') && title.toLowerCase().includes('business'),
+      (title: string) => title.toLowerCase().includes('digital') && title.toLowerCase().includes('coaching') && title.toLowerCase().includes('system'),
+      (title: string) => title.toLowerCase().includes('lead') && title.toLowerCase().includes('self'),
+      // Health Mastery nested courses
+      (title: string) => title.toLowerCase().includes('morning') && title.toLowerCase().includes('happy') && title.toLowerCase().includes('gym'),
+      (title: string) => {
+        const lower = title.toLowerCase();
+        return (lower.includes('pineal') || lower.includes('penial')) && lower.includes('gland') && lower.includes('meditation');
+      },
+      // Relationship Mastery nested courses
+      (title: string) => title.toLowerCase().includes('practical') && title.toLowerCase().includes('spirituality'),
+      // Wealth Mastery nested courses
+      (title: string) => title.toLowerCase().includes('investing') && title.toLowerCase().includes('saving'),
+    ];
+
+    const coursesToRemove: number[] = [];
+    for (let i = 0; i < courses.length; i++) {
+      for (const matcher of duplicateMatchers) {
+        if (matcher(courses[i].title)) {
+          coursesToRemove.push(i);
+          console.log(`🗑️  Removing duplicate "${courses[i].title}" (already in Platinum Fast Track)`);
+          break;
+        }
+      }
+    }
+
+    // Remove duplicates in reverse order
+    for (let i = coursesToRemove.length - 1; i >= 0; i--) {
+      courses.splice(coursesToRemove[i], 1);
+    }
+
+    if (coursesToRemove.length > 0) {
+      console.log(`✅ Removed ${coursesToRemove.length} duplicate courses from main list`);
+    }
+
     cachedCourseTracking = courses;
     courseTrackingCacheTimestamp = Date.now();
     console.log(`Loaded ${courses.length} courses from Google Sheets with ${courses.reduce((sum, c) => sum + c.lessons.length, 0)} total lessons`);
