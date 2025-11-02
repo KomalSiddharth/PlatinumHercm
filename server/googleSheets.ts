@@ -827,6 +827,53 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
       } else {
         console.log('   ⚠️  Relationship Mastery subcategory not found');
       }
+
+      // Add nested sub-courses within Wealth Mastery
+      const wealthMasterySubcat = platinumCourse.subcategories?.find(s => 
+        s.title.toLowerCase() === 'wealth mastery'
+      );
+      
+      if (wealthMasterySubcat) {
+        console.log('🎯 Adding nested sub-courses to Wealth Mastery...');
+        
+        // Define nested sub-courses for Wealth Mastery
+        const wealthNestedCourses = [
+          { name: 'Investing & Saving', matcher: (title: string) => title.toLowerCase().includes('investing') && title.toLowerCase().includes('saving') },
+        ];
+
+        const wealthNestedCoursesToRemove: number[] = [];
+        wealthMasterySubcat.subcategories = [];
+
+        // Find and add each nested course
+        for (const nestedCourse of wealthNestedCourses) {
+          const courseIndex = courses.findIndex(c => nestedCourse.matcher(c.title));
+          
+          if (courseIndex !== -1) {
+            const course = courses[courseIndex];
+            console.log(`   📦 Adding "${course.title}" as nested sub-course under Wealth Mastery (${course.lessons.length} lessons)`);
+            
+            const subcategoryId = nestedCourse.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            wealthMasterySubcat.subcategories.push({
+              id: subcategoryId,
+              title: nestedCourse.name,
+              lessons: course.lessons
+            });
+            
+            wealthNestedCoursesToRemove.push(courseIndex);
+          } else {
+            console.log(`   ⚠️  Course not found for "${nestedCourse.name}"`);
+          }
+        }
+
+        // Remove nested courses in reverse order
+        for (let i = wealthNestedCoursesToRemove.length - 1; i >= 0; i--) {
+          courses.splice(wealthNestedCoursesToRemove[i], 1);
+        }
+
+        console.log(`   ✅ Added ${wealthMasterySubcat.subcategories.length} nested sub-courses to Wealth Mastery`);
+      } else {
+        console.log('   ⚠️  Wealth Mastery subcategory not found');
+      }
     } else {
       console.log('⚠️  Platinum Fast Track course not found');
     }
