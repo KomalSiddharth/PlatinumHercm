@@ -921,10 +921,10 @@ export default function Dashboard() {
 
                     return (
                       <Collapsible key={course.id}>
-                        <div className={`flex items-center gap-3 p-3 rounded-lg hover-elevate ${index !== courses.length - 1 ? 'border-b' : ''}`}>
+                        <div className={`flex items-center gap-3 p-3 rounded-lg hover-elevate bg-primary/5 dark:bg-primary/10 ${index !== courses.length - 1 ? 'border-b' : ''}`}>
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
-                              <h3 className="font-semibold text-sm">{course.title}</h3>
+                              <h3 className="font-semibold text-sm text-primary dark:text-primary/90">{course.title}</h3>
                               {totalLessons > 0 && (
                                 <Badge className="text-[10px] px-1.5 py-0 h-4 bg-gradient-to-r from-primary to-accent text-white border-0">
                                   {completedLessons}/{totalLessons}
@@ -1104,10 +1104,10 @@ export default function Dashboard() {
                                       <Button
                                         variant="ghost"
                                         size="sm"
-                                        className="w-full justify-between hover:bg-muted/50 mb-2"
+                                        className="w-full justify-between hover:bg-muted/50 mb-2 bg-accent/5 dark:bg-accent/10"
                                         data-testid={`button-subcategory-${subcategory.id}`}
                                       >
-                                        <span className="font-medium text-xs">{subcategory.title}</span>
+                                        <span className="font-medium text-xs text-accent dark:text-accent/90">{subcategory.title}</span>
                                         <ChevronDown className="w-3 h-3" />
                                       </Button>
                                     </CollapsibleTrigger>
@@ -1226,10 +1226,10 @@ export default function Dashboard() {
                                               <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="w-full justify-between hover:bg-muted/50 mb-2"
+                                                className="w-full justify-between hover:bg-muted/50 mb-2 bg-purple-500/5 dark:bg-purple-500/10"
                                                 data-testid={`button-nested-subcategory-${nestedSubcat.id}`}
                                               >
-                                                <span className="font-medium text-xs">{nestedSubcat.title}</span>
+                                                <span className="font-medium text-xs text-purple-600 dark:text-purple-400">{nestedSubcat.title}</span>
                                                 <ChevronDown className="w-3 h-3" />
                                               </Button>
                                             </CollapsibleTrigger>
