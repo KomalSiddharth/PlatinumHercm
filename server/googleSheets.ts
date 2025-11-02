@@ -737,6 +737,7 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
         // Define nested sub-courses for Health Mastery
         const healthNestedCourses = [
           { name: 'Morning Happy Gym Dance Videos', matcher: (title: string) => title.toLowerCase().includes('morning') && title.toLowerCase().includes('happy') && title.toLowerCase().includes('gym') },
+          { name: 'Pineal Gland Meditation', matcher: (title: string) => title.toLowerCase().includes('pineal') && title.toLowerCase().includes('gland') && title.toLowerCase().includes('meditation') },
         ];
 
         const healthNestedCoursesToRemove: number[] = [];
@@ -771,6 +772,53 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
         console.log(`   ✅ Added ${healthMasterySubcat.subcategories.length} nested sub-courses to Health Mastery`);
       } else {
         console.log('   ⚠️  Health Mastery subcategory not found');
+      }
+
+      // Add nested sub-courses within Relationship Mastery
+      const relationshipMasterySubcat = platinumCourse.subcategories?.find(s => 
+        s.title.toLowerCase() === 'relationship mastery'
+      );
+      
+      if (relationshipMasterySubcat) {
+        console.log('🎯 Adding nested sub-courses to Relationship Mastery...');
+        
+        // Define nested sub-courses for Relationship Mastery
+        const relationshipNestedCourses = [
+          { name: 'Practical Spirituality', matcher: (title: string) => title.toLowerCase().includes('practical') && title.toLowerCase().includes('spirituality') },
+        ];
+
+        const relationshipNestedCoursesToRemove: number[] = [];
+        relationshipMasterySubcat.subcategories = [];
+
+        // Find and add each nested course
+        for (const nestedCourse of relationshipNestedCourses) {
+          const courseIndex = courses.findIndex(c => nestedCourse.matcher(c.title));
+          
+          if (courseIndex !== -1) {
+            const course = courses[courseIndex];
+            console.log(`   📦 Adding "${course.title}" as nested sub-course under Relationship Mastery (${course.lessons.length} lessons)`);
+            
+            const subcategoryId = nestedCourse.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            relationshipMasterySubcat.subcategories.push({
+              id: subcategoryId,
+              title: nestedCourse.name,
+              lessons: course.lessons
+            });
+            
+            relationshipNestedCoursesToRemove.push(courseIndex);
+          } else {
+            console.log(`   ⚠️  Course not found for "${nestedCourse.name}"`);
+          }
+        }
+
+        // Remove nested courses in reverse order
+        for (let i = relationshipNestedCoursesToRemove.length - 1; i >= 0; i--) {
+          courses.splice(relationshipNestedCoursesToRemove[i], 1);
+        }
+
+        console.log(`   ✅ Added ${relationshipMasterySubcat.subcategories.length} nested sub-courses to Relationship Mastery`);
+      } else {
+        console.log('   ⚠️  Relationship Mastery subcategory not found');
       }
     } else {
       console.log('⚠️  Platinum Fast Track course not found');
