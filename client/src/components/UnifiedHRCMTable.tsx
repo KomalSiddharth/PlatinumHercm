@@ -28,6 +28,7 @@ import {
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { useWebSocket } from '@/hooks/useWebSocket';
 import { format, isSameDay } from 'date-fns';
 import WeekComparison from './WeekComparison';
 import { RefinedHistoryModal } from './RefinedHistoryModal';
@@ -273,6 +274,37 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   const lastFocusedButton = useRef<HTMLButtonElement | null>(null);
   const hasAutoProgressed = useRef<Set<number>>(new Set()); // Track which weeks have been auto-progressed
   const { toast} = useToast();
+
+  // Real-time WebSocket connection for instant sync
+  // When user makes changes, admin panels viewing this user see updates immediately (no delay!)
+  const { lastMessage } = useWebSocket(viewAsUserId || undefined);
+  
+  // Listen for real-time HRCM data changes
+  useEffect(() => {
+    if (!lastMessage) return;
+    
+    console.log('[HRCM REALTIME] WebSocket message received:', lastMessage);
+    
+    if (lastMessage.type === 'hrcm_data_changed') {
+      console.log('[HRCM REALTIME] ✅ HRCM DATA CHANGED EVENT - Instant refetch!');
+      console.log('[HRCM REALTIME] User:', lastMessage.data?.userId, 'Week:', lastMessage.data?.weekNumber);
+      
+      // Instantly refetch all HRCM data to show latest changes
+      queryClient.invalidateQueries({ queryKey: ['/api/hercm/by-date'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/hercm/weeks'] });
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey[0];
+          return typeof key === 'string' && (key.includes('/api/admin/user/') && key.includes('/hercm/'));
+        }
+      });
+      
+      toast({
+        title: 'Data Updated',
+        description: 'Dashboard refreshed with latest changes',
+      });
+    }
+  }, [lastMessage, toast]);
 
   // Optimized date change handler - single source of truth, instant UI updates
   const handleDateChange = (newDate: Date) => {

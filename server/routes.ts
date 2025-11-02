@@ -139,12 +139,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`[HERCM BY-DATE] Week ${index + 1}: createdAt=${week.createdAt}, dateString=${week.dateString}, weekNumber=${week.weekNumber}`);
       });
       
-      // CRITICAL: Check if requested date is in the FUTURE
-      const todayStr = new Date().toISOString().split('T')[0];
+      // CRITICAL: Check if requested date is in the FUTURE using LOCAL timezone (NOT UTC)
+      // Using UTC caused bug: IST 3rd Nov 1:30 AM → UTC 2nd Nov 8 PM → thought 3rd was future!
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const todayStr = `${year}-${month}-${day}`;  // Local date, not UTC!
+      
       const requestedDateTime = new Date(requestedDate).getTime();
       const todayTime = new Date(todayStr).getTime();
       
-      console.log(`[BY-DATE DEBUG] Today: ${todayStr}, Requested: ${requestedDate}, Is Future: ${requestedDateTime > todayTime}`);
+      console.log(`[BY-DATE DEBUG] Today (LOCAL): ${todayStr}, Requested: ${requestedDate}, Is Future: ${requestedDateTime > todayTime}`);
       
       if (requestedDateTime > todayTime) {
         // FUTURE DATE - Return null (blank table)
@@ -710,6 +716,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       if (weekData.currentC !== null) {
         await updateRatingProgression(userId, 'money', weekData.currentC, weekData.weekNumber);
+      }
+      
+      // Broadcast WebSocket event to all admin panels viewing this user's dashboard
+      // This enables instant real-time sync - admins see changes immediately without delay
+      try {
+        console.log(`[WEBSOCKET] Broadcasting HRCM data change for user ${userId}, week ${weekData.weekNumber}`);
+        wss.clients.forEach((client) => {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({
+              type: 'hrcm_data_changed',
+              userId: userId,
+              weekNumber: weekData.weekNumber,
+              timestamp: new Date().toISOString()
+            }));
+          }
+        });
+      } catch (wsError) {
+        console.error('[WEBSOCKET] Error broadcasting HRCM change:', wsError);
+        // Don't fail the save if WebSocket broadcast fails
       }
       
       res.json(week);
