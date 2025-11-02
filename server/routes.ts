@@ -99,6 +99,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get HRCM data by specific date (like Emotional Tracker)
   app.get('/api/hercm/by-date/:date', isAuthenticated, async (req: any, res) => {
     try {
+      // CRITICAL: Disable ALL caching to prevent showing wrong date's data
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      
       const userId = req.user?.claims?.sub || req.session.userEmail;
       if (!userId) {
         return res.status(401).json({ message: "User not authenticated" });
@@ -2334,21 +2339,23 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   // Admin: Get HRCM data by specific date for a user (like Emotional Tracker)
   app.get('/api/admin/user/:userId/hercm/by-date/:date', isAdmin, async (req, res) => {
     try {
+      // CRITICAL: Disable ALL caching to prevent showing wrong date's data
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      
       const { userId, date: requestedDate } = req.params;
       
       // Get all weeks for the specified user
-      const allWeeks = await storage.getHercmWeeksByUser(userId);
+      const allWeeks = await storage.getAllHercmWeeksByUserWithDates(userId);
       
       if (!allWeeks || allWeeks.length === 0) {
         return res.json(null);
       }
       
-      // NEW LOGIC: Show latest filled data for ANY requested date
-      // Step 1: Try exact date match first
+      // EXACT DATE MATCHING ONLY (same as user route)
       const exactMatchWeeks = allWeeks.filter((week: any) => {
-        const weekDate = new Date(week.createdAt);
-        const weekDateStr = weekDate.toISOString().split('T')[0];
-        return weekDateStr === requestedDate;
+        return week.dateString === requestedDate;
       });
       
       let week;
@@ -2359,11 +2366,8 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         )[0];
       } else {
-        // No exact match - return MOST RECENT saved week overall
-        // This shows latest filled data on ANY date (past, present, or future)
-        week = allWeeks.sort((a: any, b: any) => 
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        )[0];
+        // No exact match - return NULL (show blank table for dates without data)
+        return res.json(null);
       }
       
       // Transform to beliefs format
