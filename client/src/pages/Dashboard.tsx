@@ -39,30 +39,39 @@ interface Ritual {
   history: { date: string; completed: boolean }[];
 }
 
-// Helper function to get today's date in YYYY-MM-DD format
+// Helper function to get today's date in YYYY-MM-DD format (LOCAL timezone, NOT UTC)
 const getTodayDate = () => {
   const today = new Date();
-  return today.toISOString().split('T')[0];
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;  // IST local date
 };
 
-// Helper function to get current week's start date (Monday) in YYYY-MM-DD format
+// Helper function to get current week's start date (Monday) in YYYY-MM-DD format (LOCAL timezone)
 const getWeekStartDate = () => {
   const today = new Date();
   const day = today.getDay();
   const diff = day === 0 ? -6 : 1 - day; // If Sunday (0), go back 6 days, else go to Monday
   const monday = new Date(today);
   monday.setDate(today.getDate() + diff);
-  return monday.toISOString().split('T')[0];
+  const year = monday.getFullYear();
+  const month = String(monday.getMonth() + 1).padStart(2, '0');
+  const dayOfMonth = String(monday.getDate()).padStart(2, '0');
+  return `${year}-${month}-${dayOfMonth}`;
 };
 
-// Helper function to get current week's end date (Sunday) in YYYY-MM-DD format
+// Helper function to get current week's end date (Sunday) in YYYY-MM-DD format (LOCAL timezone)
 const getWeekEndDate = () => {
   const today = new Date();
   const day = today.getDay();
   const diff = day === 0 ? 0 : 7 - day; // If Sunday, stay same, else go to next Sunday
   const sunday = new Date(today);
   sunday.setDate(today.getDate() + diff);
-  return sunday.toISOString().split('T')[0];
+  const year = sunday.getFullYear();
+  const month = String(sunday.getMonth() + 1).padStart(2, '0');
+  const dayOfMonth = String(sunday.getDate()).padStart(2, '0');
+  return `${year}-${month}-${dayOfMonth}`;
 };
 
 // Helper function to generate current month history
