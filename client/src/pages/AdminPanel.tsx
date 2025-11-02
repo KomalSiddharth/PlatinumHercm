@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useWebSocket } from '@/hooks/useWebSocket';
 import { 
   Users, 
   Upload, 
@@ -121,6 +122,24 @@ export default function AdminPanel() {
     queryKey: ['/api/auth/user'],
     retry: false,
   });
+
+  // Real-time WebSocket connection for admin notifications
+  const { lastMessage } = useWebSocket(currentUser?.id);
+  
+  // Listen for real-time recommendation status changes
+  useEffect(() => {
+    if (!lastMessage) return;
+    
+    if (lastMessage.type === 'recommendation_status_changed') {
+      toast({
+        title: "Status Updated",
+        description: lastMessage.data.message,
+      });
+      
+      // Refresh recommendations list
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/recommendations'] });
+    }
+  }, [lastMessage, toast]);
 
   const { data: approvedEmails = [], isLoading } = useQuery<ApprovedEmail[]>({
     queryKey: ['/api/admin/approved-emails'],

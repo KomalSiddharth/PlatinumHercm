@@ -2770,16 +2770,29 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Update recommendation status
-  app.put('/api/admin/recommendation/:id/status', isAdmin, async (req, res) => {
+  app.put('/api/admin/recommendation/:id/status', async (req, res) => {
     try {
       const { id } = req.params;
       const { status } = req.body;
       
-      if (!['pending', 'accepted', 'completed'].includes(status)) {
+      // Allow pending, accepted, rejected, and completed statuses
+      if (!['pending', 'accepted', 'rejected', 'completed'].includes(status)) {
         return res.status(400).json({ message: "Invalid status" });
       }
 
       const recommendation = await storage.updateRecommendationStatus(id, status);
+      
+      // Send real-time notification to admin about status change
+      if (recommendation.adminId) {
+        notifyUser(recommendation.adminId, 'recommendation_status_changed', {
+          recommendationId: id,
+          courseName: recommendation.courseName,
+          status: status,
+          userId: recommendation.userId,
+          message: `User ${status} course: ${recommendation.courseName}`,
+        });
+      }
+      
       res.json(recommendation);
     } catch (error) {
       console.error("Error updating recommendation status:", error);

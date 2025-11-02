@@ -17,45 +17,50 @@ interface CourseRecommendationNotificationProps {
   userId: string | undefined;
 }
 
-// Play notification sound using Web Audio API (no file needed)
+// Play notification sound using simple Audio (more reliable than Web Audio API)
 function playNotificationSound() {
   try {
-    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-    const ctx = new AudioContext();
-    const oscillator = ctx.createOscillator();
-    const gainNode = ctx.createGain();
-
-    oscillator.type = 'sine';
-    oscillator.frequency.value = 800; // High pitch notification
-    gainNode.gain.value = 0.3; // 30% volume
-
-    oscillator.connect(gainNode);
-    gainNode.connect(ctx.destination);
-
-    oscillator.start(ctx.currentTime);
-    oscillator.stop(ctx.currentTime + 0.15); // 150ms beep
-
-    // Second beep
-    setTimeout(() => {
-      const osc2 = ctx.createOscillator();
-      const gain2 = ctx.createGain();
+    // Create a simple beep sound using data URI
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    
+    // Resume audio context (needed for autoplay policy)
+    audioContext.resume().then(() => {
+      // Create oscillator for first beep
+      const oscillator1 = audioContext.createOscillator();
+      const gainNode1 = audioContext.createGain();
       
-      osc2.type = 'sine';
-      osc2.frequency.value = 600;
-      gain2.gain.value = 0.3;
+      oscillator1.type = 'sine';
+      oscillator1.frequency.value = 800;
+      gainNode1.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
       
-      osc2.connect(gain2);
-      gain2.connect(ctx.destination);
+      oscillator1.connect(gainNode1);
+      gainNode1.connect(audioContext.destination);
       
-      osc2.start(ctx.currentTime);
-      osc2.stop(ctx.currentTime + 0.15);
-    }, 100);
-
-    oscillator.onended = () => {
-      ctx.close();
-    };
+      oscillator1.start(audioContext.currentTime);
+      oscillator1.stop(audioContext.currentTime + 0.15);
+      
+      // Create oscillator for second beep
+      const oscillator2 = audioContext.createOscillator();
+      const gainNode2 = audioContext.createGain();
+      
+      oscillator2.type = 'sine';
+      oscillator2.frequency.value = 600;
+      gainNode2.gain.setValueAtTime(0.3, audioContext.currentTime + 0.2);
+      gainNode2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.35);
+      
+      oscillator2.connect(gainNode2);
+      gainNode2.connect(audioContext.destination);
+      
+      oscillator2.start(audioContext.currentTime + 0.2);
+      oscillator2.stop(audioContext.currentTime + 0.35);
+      
+      console.log('[Notification] Sound played successfully');
+    }).catch(err => {
+      console.warn('[Notification] Audio context resume failed:', err);
+    });
   } catch (error) {
-    console.error('Error playing notification sound:', error);
+    console.error('[Notification] Error playing sound:', error);
   }
 }
 
@@ -92,6 +97,11 @@ export function CourseRecommendationNotification({ userId }: CourseRecommendatio
     try {
       if (!recommendation) return;
 
+      // Update recommendation status to accepted FIRST
+      await apiRequest('PUT', `/api/admin/recommendation/${recommendation.id}/status`, {
+        status: 'accepted',
+      });
+
       // Add to persistent assignments
       await apiRequest('POST', '/api/persistent-assignments', {
         hrcmArea: recommendation.hrcmArea.toLowerCase(),
@@ -104,14 +114,9 @@ export function CourseRecommendationNotification({ userId }: CourseRecommendatio
         recommendationId: recommendation.id,
       });
 
-      // Update recommendation status to accepted
-      await apiRequest('PUT', `/api/admin/recommendation/${recommendation.id}/status`, {
-        status: 'accepted',
-      });
-
       toast({
-        title: "Course Added",
-        description: `${recommendation.courseName} has been added to your assignments.`,
+        title: "Course Accepted ✓",
+        description: `${recommendation.courseName} added to your assignments.`,
       });
 
       // Refresh data
@@ -133,15 +138,18 @@ export function CourseRecommendationNotification({ userId }: CourseRecommendatio
     try {
       if (!recommendation) return;
 
-      // Update recommendation status to rejected (but don't delete)
+      // Update recommendation status to rejected (DON'T DELETE - keep permanently)
       await apiRequest('PUT', `/api/admin/recommendation/${recommendation.id}/status`, {
         status: 'rejected',
       });
 
       toast({
-        title: "Recommendation Rejected",
+        title: "Course Rejected",
         description: `You rejected ${recommendation.courseName}.`,
       });
+
+      // Refresh recommendations
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/recommendations'] });
 
       setShowDialog(false);
       setRecommendation(null);
