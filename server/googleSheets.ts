@@ -603,25 +603,7 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
       // Mastery courses to merge as subcategories
       const masteryCourseMappings = [
         { 
-          matcher: (title: string) => {
-            // Match Career Mastery course OR specific career-related courses
-            const careerKeywords = [
-              'life coaching',
-              'online selling',
-              '5 days challenge',
-              'loa with vastu',
-              'vastu frequency',
-              'loa remedies for vastu',
-              'handwriting frequency',
-              'canva graphic design',
-              'graphic design mastery'
-            ];
-            
-            const hasCareerMastery = title.includes('career') && (title.includes('mastery') || title.includes('master'));
-            const isCareerCourse = careerKeywords.some(keyword => title.includes(keyword));
-            
-            return hasCareerMastery || isCareerCourse;
-          },
+          matcher: (title: string) => title.includes('career') && (title.includes('mastery') || title.includes('master')),
           subcategoryName: 'Career Mastery' 
         },
         { 
@@ -636,54 +618,47 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
       
       const coursesToMergeAsSubcategories: number[] = [];
       
-      // Initialize subcategories array
-      if (!platinumCourse.subcategories) {
-        platinumCourse.subcategories = [];
-      }
-      
-      // Find and merge ALL matching courses for each mastery subcategory
+      // Find and merge each mastery course
       for (const mapping of masteryCourseMappings) {
-        let foundCount = 0;
-        
-        // Find ALL courses that match this subcategory
-        courses.forEach((course, idx) => {
-          if (idx === platinumCourseIndex) return; // Skip platinum itself
-          if (coursesToMergeAsSubcategories.includes(idx)) return; // Skip already merged
-          
-          const title = course.title.toLowerCase();
-          if (mapping.matcher(title)) {
-            foundCount++;
-            console.log(`📦 Merging "${course.title}" into Platinum Fast Track as "${mapping.subcategoryName}" subcategory (${course.lessons.length} lessons)`);
-            
-            // Check if subcategory already exists
-            const existingSubcatIdx = platinumCourse.subcategories!.findIndex(s => 
-              s.title.toLowerCase() === mapping.subcategoryName.toLowerCase()
-            );
-            
-            if (existingSubcatIdx !== -1) {
-              // Append lessons to existing subcategory
-              platinumCourse.subcategories![existingSubcatIdx].lessons = 
-                platinumCourse.subcategories![existingSubcatIdx].lessons.concat(course.lessons);
-              console.log(`   ✅ Added ${course.lessons.length} lessons to existing "${mapping.subcategoryName}" subcategory`);
-            } else {
-              // Create new subcategory
-              const subcategoryId = mapping.subcategoryName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-              platinumCourse.subcategories!.push({
-                id: subcategoryId,
-                title: mapping.subcategoryName,
-                lessons: course.lessons
-              });
-              console.log(`   ✅ Created new "${mapping.subcategoryName}" subcategory with ${course.lessons.length} lessons`);
-            }
-            
-            coursesToMergeAsSubcategories.push(idx);
-          }
+        const courseIndex = courses.findIndex((c, idx) => {
+          if (idx === platinumCourseIndex) return false; // Skip platinum itself
+          const title = c.title.toLowerCase();
+          return mapping.matcher(title);
         });
         
-        if (foundCount === 0) {
-          console.log(`⚠️  No courses found for "${mapping.subcategoryName}"`);
+        if (courseIndex !== -1) {
+          const masteryCourse = courses[courseIndex];
+          console.log(`📦 Merging "${masteryCourse.title}" into Platinum Fast Track as "${mapping.subcategoryName}" subcategory (${masteryCourse.lessons.length} lessons)`);
+          
+          // Create or update subcategory
+          if (!platinumCourse.subcategories) {
+            platinumCourse.subcategories = [];
+          }
+          
+          // Check if subcategory already exists
+          const existingSubcatIdx = platinumCourse.subcategories.findIndex(s => 
+            s.title.toLowerCase() === mapping.subcategoryName.toLowerCase()
+          );
+          
+          if (existingSubcatIdx !== -1) {
+            // Append lessons to existing subcategory
+            platinumCourse.subcategories[existingSubcatIdx].lessons = 
+              platinumCourse.subcategories[existingSubcatIdx].lessons.concat(masteryCourse.lessons);
+            console.log(`   ✅ Added ${masteryCourse.lessons.length} lessons to existing "${mapping.subcategoryName}" subcategory`);
+          } else {
+            // Create new subcategory
+            const subcategoryId = mapping.subcategoryName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            platinumCourse.subcategories.push({
+              id: subcategoryId,
+              title: mapping.subcategoryName,
+              lessons: masteryCourse.lessons
+            });
+            console.log(`   ✅ Created new "${mapping.subcategoryName}" subcategory with ${masteryCourse.lessons.length} lessons`);
+          }
+          
+          coursesToMergeAsSubcategories.push(courseIndex);
         } else {
-          console.log(`✅ Found and merged ${foundCount} courses into "${mapping.subcategoryName}"`);
+          console.log(`⚠️  No course found for "${mapping.subcategoryName}"`);
         }
       }
       
