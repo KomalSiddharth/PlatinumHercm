@@ -311,19 +311,22 @@ export class DatabaseStorage implements IStorage {
     return week;
   }
 
-  async getHercmWeeksByUser(userId: string): Promise<HercmWeek[]> {
+  async getHercmWeeksByUser(userId: string): Promise<any[]> {
     // Get ALL weeks and then filter to latest per week number
     const allWeeks = await db
-      .select()
+      .select({
+        ...hercmWeeks,
+        dateString: sql<string>`TO_CHAR(${hercmWeeks.createdAt}, 'YYYY-MM-DD')`.as('date_string')
+      })
       .from(hercmWeeks)
       .where(eq(hercmWeeks.userId, userId))
       .orderBy(desc(hercmWeeks.createdAt));
     
     // Keep only the BEST entry for each week number
     // Score each entry based on completeness (prefer more complete data)
-    const weekMap = new Map<number, HercmWeek>();
+    const weekMap = new Map<number, any>();
     
-    const calculateCompleteness = (week: HercmWeek): number => {
+    const calculateCompleteness = (week: any): number => {
       let score = 0;
       const hasHealthChecklist = week.healthChecklist && Array.isArray(week.healthChecklist) && week.healthChecklist.length > 0;
       const hasRelationshipChecklist = week.relationshipChecklist && Array.isArray(week.relationshipChecklist) && week.relationshipChecklist.length > 0;

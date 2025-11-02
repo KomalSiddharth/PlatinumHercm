@@ -127,10 +127,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Log all week dates for debugging
       allWeeks.forEach((week: any, index: number) => {
-        // Extract date string directly from timestamp (avoid UTC conversion issues)
-        const createdAtStr = String(week.createdAt);
-        const weekDateStr = createdAtStr.split('T')[0].split(' ')[0];
-        console.log(`[HERCM BY-DATE] Week ${index + 1}: createdAt=${week.createdAt}, dateStr=${weekDateStr}, weekNumber=${week.weekNumber}`);
+        console.log(`[HERCM BY-DATE] Week ${index + 1}: createdAt=${week.createdAt}, dateString=${week.dateString}, weekNumber=${week.weekNumber}`);
       });
       
       // CRITICAL: Check if requested date is in the FUTURE
@@ -147,13 +144,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // NOT FUTURE (Past or Today) - Show data
-      // Step 1: Try exact date match first
+      // Step 1: Try exact date match using dateString from SQL
       const exactMatchWeeks = allWeeks.filter((week: any) => {
-        // Extract date string directly from timestamp (avoid UTC conversion issues)
-        const createdAtStr = String(week.createdAt);
-        const weekDateStr = createdAtStr.split('T')[0].split(' ')[0];
-        const isMatch = weekDateStr === requestedDate;
-        console.log(`[HERCM BY-DATE] Comparing ${weekDateStr} === ${requestedDate}: ${isMatch}`);
+        const isMatch = week.dateString === requestedDate;
+        console.log(`[HERCM BY-DATE] Comparing ${week.dateString} === ${requestedDate}: ${isMatch}`);
         return isMatch;
       });
       
