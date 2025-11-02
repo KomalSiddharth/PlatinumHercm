@@ -120,7 +120,8 @@ export default function Dashboard() {
   const [userEmail, setUserEmail] = useState('');
   const [totalPoints, setTotalPoints] = useState(0);
   
-  const todayDate = useMemo(() => getTodayDate(), []);
+  // Use useState instead of useMemo so it can be updated when date changes at midnight
+  const [todayDate, setTodayDate] = useState(getTodayDate());
   const weekStartDate = useMemo(() => getWeekStartDate(), []);
   const weekEndDate = useMemo(() => getWeekEndDate(), []);
   const currentMonth = useMemo(() => new Date().getMonth(), []);
@@ -165,6 +166,35 @@ export default function Dashboard() {
     queryKey: ['/api/hercm/weeks'],
     enabled: !!currentUser,
   });
+  
+  // 🌙 AUTOMATIC MIDNIGHT RESET - Check every minute for date change (IST timezone)
+  useEffect(() => {
+    const checkDateChange = () => {
+      const newDate = getTodayDate();
+      if (newDate !== todayDate) {
+        console.log(`[MIDNIGHT RESET] Date changed from ${todayDate} to ${newDate} - Resetting daily rituals...`);
+        setTodayDate(newDate);
+        // Invalidate ritual completions to refetch for new day (checkboxes will auto-uncheck)
+        queryClient.invalidateQueries({ queryKey: ['/api/ritual-completions'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/ritual-completions/week'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/ritual-completions/month'] });
+        toast({
+          title: '🌅 New Day Started!',
+          description: `Daily rituals reset for ${newDate}`,
+          duration: 5000,
+        });
+      }
+    };
+
+    // Check immediately on mount
+    checkDateChange();
+    
+    // Check every 60 seconds (1 minute) for date change
+    const intervalId = setInterval(checkDateChange, 60000);
+    
+    // Cleanup interval on unmount
+    return () => clearInterval(intervalId);
+  }, [todayDate, toast]);
   
   // Map database rituals to Dashboard Ritual interface
   const rituals: Ritual[] = useMemo(() => {
