@@ -15,6 +15,7 @@ import UserActivitySearch from '@/components/UserActivitySearch';
 import UserDashboardSearch from '@/components/UserDashboardSearch';
 import EmotionalTracker from '@/components/EmotionalTracker';
 import { CourseRecommendations } from '@/components/CourseRecommendations';
+import { CourseRecommendationNotification } from '@/components/CourseRecommendationNotification';
 import FeedbackButton from '@/components/FeedbackButton';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -704,6 +705,9 @@ export default function Dashboard() {
         onNavigate={scrollToSection}
         onProfileClick={() => setProfileOpen(true)}
       />
+      
+      {/* Real-time notification for course recommendations */}
+      <CourseRecommendationNotification userId={currentUser?.id} />
 
       <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 space-y-6 sm:space-y-8 md:space-y-12">
         {/* Course Recommendations */}

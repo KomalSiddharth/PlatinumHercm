@@ -1,6 +1,7 @@
 // Server routes with Replit Auth integration
 import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
+import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, isAdmin } from "./replitAuth";
 import { fetchCourseData, findMatchingCourse, recommendCourses, fetchEnhancedCourseData } from "./googleSheets";
@@ -13,6 +14,9 @@ import { validateAndCapRating, updateRatingProgression, getRatingCaps, getRating
 import { backupAllData, backupUserData, getBackupStats } from "./backupService";
 import { isSupabaseConfigured, checkSupabaseHealth } from "./supabase";
 import OpenAI from "openai";
+
+// WebSocket clients management
+const wsClients = new Map<string, WebSocket>();
 
 const openai = new OpenAI({
   baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
@@ -2695,6 +2699,13 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
           console.log('[DEBUG] Deleting related persistent assignment:', relatedAssignment.id);
           await storage.deletePersistentAssignment(relatedAssignment.id, recommendation.userId);
         }
+        
+        // Send real-time notification to user about deletion
+        notifyUser(recommendation.userId, 'course_recommendation_deleted', {
+          courseName: recommendation.courseName,
+          hrcmArea: recommendation.hrcmArea,
+          message: `Course recommendation removed: ${recommendation.courseName}`,
+        });
       }
       
       // Delete the recommendation
@@ -2731,6 +2742,12 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         lessonUrl,
         reason,
         status: 'pending',
+      });
+
+      // Send real-time notification to user
+      notifyUser(userId, 'course_recommended', {
+        recommendation,
+        message: `New course recommended: ${courseName}`,
       });
 
       res.json(recommendation);
@@ -5067,5 +5084,56 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
   });
 
   const httpServer = createServer(app);
+  
+  // Setup WebSocket server for real-time notifications
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  
+  wss.on('connection', (ws: WebSocket, req) => {
+    console.log('[WebSocket] New client connected');
+    
+    ws.on('message', (message: string) => {
+      try {
+        const data = JSON.parse(message.toString());
+        
+        // Register client with userId
+        if (data.type === 'register' && data.userId) {
+          wsClients.set(data.userId, ws);
+          console.log(`[WebSocket] Client registered: ${data.userId}`);
+          ws.send(JSON.stringify({ type: 'registered', userId: data.userId }));
+        }
+      } catch (error) {
+        console.error('[WebSocket] Error parsing message:', error);
+      }
+    });
+    
+    ws.on('close', () => {
+      // Remove client from map
+      for (const [userId, client] of Array.from(wsClients.entries())) {
+        if (client === ws) {
+          wsClients.delete(userId);
+          console.log(`[WebSocket] Client disconnected: ${userId}`);
+          break;
+        }
+      }
+    });
+    
+    ws.on('error', (error) => {
+      console.error('[WebSocket] Error:', error);
+    });
+  });
+  
+  console.log('[WebSocket] Server initialized');
+  
   return httpServer;
+}
+
+// Helper function to send real-time notifications to specific user
+export function notifyUser(userId: string, event: string, data: any) {
+  const client = wsClients.get(userId);
+  if (client && client.readyState === WebSocket.OPEN) {
+    client.send(JSON.stringify({ type: event, data }));
+    console.log(`[WebSocket] Sent ${event} to user ${userId}`);
+    return true;
+  }
+  return false;
 }
