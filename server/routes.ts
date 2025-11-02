@@ -2643,8 +2643,31 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   // Admin delete ALL course recommendations
   app.delete('/api/admin/recommendations/all', isAdmin, async (req: any, res) => {
     try {
+      // First get all recommendations to find related persistent assignments
+      const recommendations = await storage.getAllCourseRecommendations();
+      
+      // Delete all related persistent assignments
+      for (const recommendation of recommendations) {
+        try {
+          const assignments = await storage.getUserPersistentAssignments(recommendation.userId);
+          const relatedAssignment = assignments.find((a: any) => 
+            a.courseName === recommendation.courseName && 
+            a.source === 'admin_recommendation'
+          );
+          
+          if (relatedAssignment) {
+            console.log('[DEBUG] Deleting related persistent assignment for:', recommendation.courseName);
+            await storage.deletePersistentAssignment(relatedAssignment.id, recommendation.userId);
+          }
+        } catch (error) {
+          console.error('[DEBUG] Failed to delete related assignment:', error);
+          // Continue with other deletions even if one fails
+        }
+      }
+      
+      // Delete all recommendations
       await storage.deleteAllRecommendations();
-      res.json({ message: "All recommendations deleted successfully" });
+      res.json({ message: "All recommendations and related assignments deleted successfully" });
     } catch (error) {
       console.error("Error deleting all recommendations:", error);
       res.status(500).json({ message: "Failed to delete all recommendations" });
@@ -2655,8 +2678,28 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   app.delete('/api/admin/recommendations/:id', isAdmin, async (req: any, res) => {
     try {
       const { id } = req.params;
+      
+      // First, get the recommendation details to find related persistent assignment
+      const recommendations = await storage.getAllCourseRecommendations();
+      const recommendation = recommendations.find((r: any) => r.id === id);
+      
+      if (recommendation) {
+        // Find and delete the related persistent assignment
+        const assignments = await storage.getUserPersistentAssignments(recommendation.userId);
+        const relatedAssignment = assignments.find((a: any) => 
+          a.courseName === recommendation.courseName && 
+          a.source === 'admin_recommendation'
+        );
+        
+        if (relatedAssignment) {
+          console.log('[DEBUG] Deleting related persistent assignment:', relatedAssignment.id);
+          await storage.deletePersistentAssignment(relatedAssignment.id, recommendation.userId);
+        }
+      }
+      
+      // Delete the recommendation
       await storage.deleteRecommendation(id);
-      res.json({ message: "Recommendation deleted successfully" });
+      res.json({ message: "Recommendation and related assignment deleted successfully" });
     } catch (error) {
       console.error("Error deleting recommendation:", error);
       res.status(500).json({ message: "Failed to delete recommendation" });
