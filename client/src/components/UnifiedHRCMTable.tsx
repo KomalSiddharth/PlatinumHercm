@@ -309,13 +309,19 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       const endpoint = isAdminView && viewAsUserId
         ? `/api/admin/user/${viewAsUserId}/hercm/by-date/${currentDateStr}`
         : `/api/hercm/by-date/${currentDateStr}`;
-      console.log(`[FRONTEND] Fetching HRCM data for date: ${currentDateStr}, endpoint: ${endpoint}`);
-      const response = await fetch(endpoint);
-      if (!response.ok) throw new Error('Failed to fetch HRCM data');
+      console.log(`[FRONTEND] Fetching HRCM data for date: ${currentDateStr}, endpoint: ${endpoint}, isAdminView: ${isAdminView}, viewAsUserId: ${viewAsUserId}`);
+      const response = await fetch(endpoint, {
+        credentials: 'include', // Required for admin authentication
+      });
+      if (!response.ok) {
+        console.error(`[FRONTEND] Failed to fetch HRCM data: ${response.status} ${response.statusText}`);
+        throw new Error('Failed to fetch HRCM data');
+      }
       const data = await response.json();
-      console.log(`[FRONTEND] Received HRCM data for ${currentDateStr}:`, data ? 'Data found' : 'No data');
+      console.log(`[FRONTEND] Received HRCM data for ${currentDateStr}:`, data ? 'Data found' : 'No data', data);
       return data;
     },
+    enabled: isAdminView ? !!viewAsUserId : true, // Only fetch when we have a user ID in admin view
     staleTime: 0,  // Always fetch fresh data
     gcTime: 0,  // Immediately garbage collect old cache (was cacheTime in v4)
     refetchOnMount: true,  // Refetch when component mounts
@@ -339,6 +345,23 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   
   const { data: allWeeksData } = useQuery({
     queryKey: allWeeksQueryKey,
+    queryFn: async () => {
+      const endpoint = isAdminView && viewAsUserId
+        ? `/api/admin/user/${viewAsUserId}/hercm/weeks`
+        : `/api/hercm/weeks`;
+      console.log(`[FRONTEND] Fetching all weeks data, endpoint: ${endpoint}, isAdminView: ${isAdminView}, viewAsUserId: ${viewAsUserId}`);
+      const response = await fetch(endpoint, {
+        credentials: 'include', // Required for admin authentication
+      });
+      if (!response.ok) {
+        console.error(`[FRONTEND] Failed to fetch all weeks data: ${response.status} ${response.statusText}`);
+        throw new Error('Failed to fetch all weeks data');
+      }
+      const data = await response.json();
+      console.log(`[FRONTEND] Received all weeks data:`, data);
+      return data;
+    },
+    enabled: isAdminView ? !!viewAsUserId : true, // Only fetch when we have a user ID in admin view
   });
 
   // Fetch rating caps and progression status
