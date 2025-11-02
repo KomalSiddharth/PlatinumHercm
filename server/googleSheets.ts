@@ -725,6 +725,53 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
       } else {
         console.log('   ⚠️  Career Mastery subcategory not found');
       }
+
+      // Add nested sub-courses within Health Mastery
+      const healthMasterySubcat = platinumCourse.subcategories?.find(s => 
+        s.title.toLowerCase() === 'health mastery'
+      );
+      
+      if (healthMasterySubcat) {
+        console.log('🎯 Adding nested sub-courses to Health Mastery...');
+        
+        // Define nested sub-courses for Health Mastery
+        const healthNestedCourses = [
+          { name: 'Morning Happy Gym Dance Videos', matcher: (title: string) => title.toLowerCase().includes('morning') && title.toLowerCase().includes('happy') && title.toLowerCase().includes('gym') },
+        ];
+
+        const healthNestedCoursesToRemove: number[] = [];
+        healthMasterySubcat.subcategories = [];
+
+        // Find and add each nested course
+        for (const nestedCourse of healthNestedCourses) {
+          const courseIndex = courses.findIndex(c => nestedCourse.matcher(c.title));
+          
+          if (courseIndex !== -1) {
+            const course = courses[courseIndex];
+            console.log(`   📦 Adding "${course.title}" as nested sub-course under Health Mastery (${course.lessons.length} lessons)`);
+            
+            const subcategoryId = nestedCourse.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            healthMasterySubcat.subcategories.push({
+              id: subcategoryId,
+              title: nestedCourse.name,
+              lessons: course.lessons
+            });
+            
+            healthNestedCoursesToRemove.push(courseIndex);
+          } else {
+            console.log(`   ⚠️  Course not found for "${nestedCourse.name}"`);
+          }
+        }
+
+        // Remove nested courses in reverse order
+        for (let i = healthNestedCoursesToRemove.length - 1; i >= 0; i--) {
+          courses.splice(healthNestedCoursesToRemove[i], 1);
+        }
+
+        console.log(`   ✅ Added ${healthMasterySubcat.subcategories.length} nested sub-courses to Health Mastery`);
+      } else {
+        console.log('   ⚠️  Health Mastery subcategory not found');
+      }
     } else {
       console.log('⚠️  Platinum Fast Track course not found');
     }
