@@ -313,11 +313,10 @@ export class DatabaseStorage implements IStorage {
 
   // Get ALL weeks for a user with date strings (no deduplication by week number)
   async getAllHercmWeeksByUserWithDates(userId: string): Promise<any[]> {
+    // Use stored dateString column (in LOCAL timezone) instead of computing from createdAt (UTC)
+    // This fixes timezone bugs where IST users saw blank tables after refresh
     const allWeeks = await db
-      .select({
-        ...hercmWeeks,
-        dateString: sql<string>`TO_CHAR(${hercmWeeks.createdAt}, 'YYYY-MM-DD')`.as('date_string')
-      })
+      .select()
       .from(hercmWeeks)
       .where(eq(hercmWeeks.userId, userId))
       .orderBy(desc(hercmWeeks.createdAt));
@@ -327,11 +326,9 @@ export class DatabaseStorage implements IStorage {
 
   async getHercmWeeksByUser(userId: string): Promise<any[]> {
     // Get ALL weeks and then filter to latest per week number
+    // Use stored dateString column (in LOCAL timezone) instead of computing from createdAt (UTC)
     const allWeeks = await db
-      .select({
-        ...hercmWeeks,
-        dateString: sql<string>`TO_CHAR(${hercmWeeks.createdAt}, 'YYYY-MM-DD')`.as('date_string')
-      })
+      .select()
       .from(hercmWeeks)
       .where(eq(hercmWeeks.userId, userId))
       .orderBy(desc(hercmWeeks.createdAt));
@@ -382,9 +379,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createHercmWeek(weekData: InsertHercmWeek): Promise<HercmWeek> {
+    // AUTO-SET dateString using LOCAL date (not UTC) to fix timezone bugs
+    // This ensures admin and user views always match the correct date
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const localDateString = `${year}-${month}-${day}`;
+    
     const [week] = await db
       .insert(hercmWeeks)
-      .values(weekData as any)
+      .values({ ...weekData, dateString: localDateString } as any)
       .returning();
     return week;
   }

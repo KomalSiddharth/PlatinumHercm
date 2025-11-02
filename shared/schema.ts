@@ -173,6 +173,10 @@ export const hercmWeeks = pgTable("hercm_weeks", {
   // Unified Assignment (for all areas) - includes both user-selected and admin-recommended courses
   unifiedAssignment: jsonb("unified_assignment").$type<{ id: string; courseId: string; courseName: string; lessonName: string; url: string; completed: boolean; source?: 'user' | 'admin'; recommendationId?: string }[]>(),
   
+  // Date string in YYYY-MM-DD format (LOCAL timezone, not UTC!)
+  // Stored explicitly to avoid timezone conversion issues
+  dateString: varchar("date_string"),
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

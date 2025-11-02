@@ -2375,17 +2375,30 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       
       const { userId, date: requestedDate } = req.params;
       
+      console.log(`[ADMIN HERCM BY-DATE] Admin requesting data for userId: ${userId}, date: ${requestedDate}`);
+      
       // Get all weeks for the specified user
       const allWeeks = await storage.getAllHercmWeeksByUserWithDates(userId);
+      
+      console.log(`[ADMIN HERCM BY-DATE] Found ${allWeeks?.length || 0} weeks for user ${userId}`);
       
       if (!allWeeks || allWeeks.length === 0) {
         return res.json(null);
       }
       
+      // Log all week dates for debugging
+      allWeeks.forEach((week: any, index: number) => {
+        console.log(`[ADMIN HERCM BY-DATE] Week ${index + 1}: dateString=${week.dateString}, weekNumber=${week.weekNumber}, healthProblems=${week.healthProblems?.substring(0, 50) || 'empty'}`);
+      });
+      
       // EXACT DATE MATCHING ONLY (same as user route)
       const exactMatchWeeks = allWeeks.filter((week: any) => {
-        return week.dateString === requestedDate;
+        const isMatch = week.dateString === requestedDate;
+        console.log(`[ADMIN HERCM BY-DATE] Comparing ${week.dateString} === ${requestedDate}: ${isMatch}`);
+        return isMatch;
       });
+      
+      console.log(`[ADMIN HERCM BY-DATE] Exact matches found: ${exactMatchWeeks.length}`);
       
       let week;
       
@@ -2394,8 +2407,10 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         week = exactMatchWeeks.sort((a: any, b: any) => 
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         )[0];
+        console.log(`[ADMIN HERCM BY-DATE] Selected week - healthProblems: ${week.healthProblems?.substring(0, 100) || 'empty'}`);
       } else {
         // No exact match - return NULL (show blank table for dates without data)
+        console.log(`[ADMIN HERCM BY-DATE] No exact match for ${requestedDate}, returning null`);
         return res.json(null);
       }
       
