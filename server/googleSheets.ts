@@ -794,6 +794,8 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
         // Define nested sub-courses for Relationship Mastery
         const relationshipNestedCourses = [
           { name: 'Practical Spirituality', matcher: (title: string) => title.toLowerCase().includes('practical') && title.toLowerCase().includes('spirituality') },
+          { name: "Dr. John Demartini's Values By Mitesh Khatri", matcher: (title: string) => title.toLowerCase().includes('demartini') && title.toLowerCase().includes('values') },
+          { name: 'Demartini Method Explained by Mitesh Khatri', matcher: (title: string) => title.toLowerCase().includes('demartini') && title.toLowerCase().includes('method') },
         ];
 
         const relationshipNestedCoursesToRemove: number[] = [];
@@ -909,6 +911,8 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
       },
       // Relationship Mastery nested courses
       (title: string) => title.toLowerCase().includes('practical') && title.toLowerCase().includes('spirituality'),
+      (title: string) => title.toLowerCase().includes('demartini') && title.toLowerCase().includes('values'),
+      (title: string) => title.toLowerCase().includes('demartini') && title.toLowerCase().includes('method'),
       // Wealth Mastery nested courses
       (title: string) => title.toLowerCase().includes('investing') && title.toLowerCase().includes('saving'),
     ];
