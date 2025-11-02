@@ -163,11 +163,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         )[0];
       } else {
-        // No exact match - return MOST RECENT saved week for past/today dates
-        console.log(`[BY-DATE DEBUG] No exact match for ${requestedDate}, returning most recent week`);
-        week = allWeeks.sort((a: any, b: any) => 
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        )[0];
+        // No exact match - return NULL (show blank table for dates without data)
+        console.log(`[BY-DATE DEBUG] No exact match for ${requestedDate}, returning null (blank table)`);
+        return res.json(null);
       }
       
       console.log(`[BY-DATE DEBUG] Selected week - createdAt: ${week.createdAt}, healthProblems: ${week.healthProblems}, healthCurrentFeelings: ${week.healthCurrentFeelings}`);
