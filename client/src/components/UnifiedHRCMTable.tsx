@@ -2659,7 +2659,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                           data-testid={`checkbox-admin-lesson-${lesson.id}`}
                                         />
                                         <span className="text-xs line-clamp-1 text-pink-700 dark:text-pink-400">
-                                          {lesson.lessonName}
+                                          {lesson.lessonName || lesson.courseName}
                                         </span>
                                       </div>
                                     ))}
@@ -2705,7 +2705,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                         className="text-xs hover:underline flex-1 text-cyan-700 dark:text-cyan-400 leading-relaxed"
                                         data-testid={`link-popup-user-lesson-${lesson.id}`}
                                       >
-                                        {lesson.lessonName}
+                                        {lesson.lessonName || lesson.courseName}
                                       </a>
                                       {!isAdminView && (
                                         <Button
@@ -2745,7 +2745,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                         className="text-xs hover:underline flex-1 text-pink-700 dark:text-pink-400 leading-relaxed"
                                         data-testid={`link-popup-admin-lesson-${lesson.id}`}
                                       >
-                                        {lesson.lessonName}
+                                        {lesson.lessonName || lesson.courseName}
                                       </a>
                                       {!isAdminView && (
                                         <Button
