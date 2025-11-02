@@ -395,9 +395,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateHercmWeek(id: string, weekData: Partial<InsertHercmWeek>): Promise<HercmWeek> {
+    // AUTO-SET dateString using LOCAL date (not UTC) to fix timezone bugs
+    // This ensures EVERY update sets the correct local date for by-date queries
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const localDateString = `${year}-${month}-${day}`;
+    
     const [week] = await db
       .update(hercmWeeks)
-      .set({ ...weekData, updatedAt: new Date() } as any)
+      .set({ ...weekData, dateString: localDateString, updatedAt: new Date() } as any)
       .where(eq(hercmWeeks.id, id))
       .returning();
     return week;
