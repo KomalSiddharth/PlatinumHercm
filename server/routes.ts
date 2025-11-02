@@ -131,7 +131,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`[HERCM BY-DATE] Week ${index + 1}: createdAt=${week.createdAt}, dateStr=${weekDateStr}, weekNumber=${week.weekNumber}`);
       });
       
-      // NEW LOGIC: Show latest filled data for ANY requested date
+      // CRITICAL: Check if requested date is in the FUTURE
+      const todayStr = new Date().toISOString().split('T')[0];
+      const requestedDateTime = new Date(requestedDate).getTime();
+      const todayTime = new Date(todayStr).getTime();
+      
+      console.log(`[BY-DATE DEBUG] Today: ${todayStr}, Requested: ${requestedDate}, Is Future: ${requestedDateTime > todayTime}`);
+      
+      if (requestedDateTime > todayTime) {
+        // FUTURE DATE - Return null (blank table)
+        console.log(`[BY-DATE DEBUG] Future date detected - returning null`);
+        return res.json(null);
+      }
+      
+      // NOT FUTURE (Past or Today) - Show data
       // Step 1: Try exact date match first
       const exactMatchWeeks = allWeeks.filter((week: any) => {
         const weekDate = new Date(week.createdAt);
@@ -150,8 +163,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         )[0];
       } else {
-        // No exact match - return MOST RECENT saved week overall
-        // This shows latest filled data on ANY date (past, present, or future)
+        // No exact match - return MOST RECENT saved week for past/today dates
         console.log(`[BY-DATE DEBUG] No exact match for ${requestedDate}, returning most recent week`);
         week = allWeeks.sort((a: any, b: any) => 
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
