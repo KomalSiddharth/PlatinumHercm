@@ -462,6 +462,8 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
           console.log(`🆕 Creating Platinum Fast Track course: "${question}" at row ${index + 1}`);
         } else if (question.toLowerCase().includes('june') && question.toLowerCase().includes('dmp')) {
           console.log(`🆕 Creating course: "${question}" at row ${index + 1}`);
+        } else if (question.toLowerCase().includes('basic') && question.toLowerCase().includes('law') && question.toLowerCase().includes('attraction')) {
+          console.log(`🆕 [DEBUG] Creating Basic Law of Attraction course: "${question}" at row ${index + 1}, URL: "${answer || '#'}"`);
         }
       } else if (currentCourse !== null && answer) {
         // Add lesson to current subcategory (if Platinum Fast Track) or to course
@@ -507,7 +509,11 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
 
     // Add last course
     if (currentCourse !== null) {
-      courses.push(currentCourse);
+      const course = currentCourse as CourseTrackingData;
+      if (course.title.toLowerCase().includes('basic') && course.title.toLowerCase().includes('law') && course.title.toLowerCase().includes('attraction')) {
+        console.log(`📚 [DEBUG] Saving Basic Law of Attraction course: "${course.title}" with ${course.lessons.length} lessons`);
+      }
+      courses.push(course);
     }
 
     // Merge "June'25 DMP Recordings" and ALL subsequent DMP-related courses into "DMP - Daily Magic Practice Recordings" course
@@ -942,6 +948,14 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
 
     if (coursesToRemove.length > 0) {
       console.log(`✅ Removed ${coursesToRemove.length} duplicate courses from main list`);
+    }
+
+    // Final check for Basic Law of Attraction
+    const basicLOA = courses.find(c => c.title.toLowerCase().includes('basic') && c.title.toLowerCase().includes('law') && c.title.toLowerCase().includes('attraction'));
+    if (basicLOA) {
+      console.log(`✅ [DEBUG] Basic Law of Attraction IS in final course list: "${basicLOA.title}" with ${basicLOA.lessons.length} lessons`);
+    } else {
+      console.log(`❌ [DEBUG] Basic Law of Attraction NOT FOUND in final course list!`);
     }
 
     cachedCourseTracking = courses;
