@@ -1572,6 +1572,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 <Textarea
                   value={newCheckpointText}
                   onChange={(e) => setNewCheckpointText(e.target.value)}
+                  onFocus={(e) => {
+                    const length = e.target.value.length;
+                    e.target.setSelectionRange(length, length);
+                  }}
                   placeholder={`Enter your ${colorScheme.label.toLowerCase()} checkpoint...`}
                   className="min-h-[100px] text-sm bg-white dark:bg-gray-950 border-muted"
                   autoFocus
@@ -3052,6 +3056,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               <Textarea
                 value={editDialogData?.value || ''}
                 onChange={(e) => setEditDialogData(prev => prev ? { ...prev, value: e.target.value } : null)}
+                onFocus={(e) => {
+                  const length = e.target.value.length;
+                  e.target.setSelectionRange(length, length);
+                }}
                 className="min-h-[200px] text-sm resize-none border-0 bg-transparent focus-visible:ring-0"
                 placeholder={`Enter your ${editDialogData?.label.toLowerCase()}...`}
                 autoFocus
@@ -3103,6 +3111,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               <Textarea
                 value={firstCheckpointData?.text || ''}
                 onChange={(e) => setFirstCheckpointData(prev => prev ? { ...prev, text: e.target.value } : null)}
+                onFocus={(e) => {
+                  const length = e.target.value.length;
+                  e.target.setSelectionRange(length, length);
+                }}
                 placeholder="Enter your checkpoint..."
                 className="min-h-[100px] text-sm bg-white dark:bg-gray-950 border-muted"
                 autoFocus
