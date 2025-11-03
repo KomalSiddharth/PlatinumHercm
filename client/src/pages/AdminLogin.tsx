@@ -33,10 +33,7 @@ export default function AdminLogin() {
       // Invalidate cached admin info to fetch fresh data for newly logged-in admin
       await queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       
-      toast({
-        title: "Admin Login Successful",
-        description: "Welcome to Admin Panel"
-      });
+      // Navigate to admin panel (silent login - no toast message)
       setLocation('/admin/panel');
     } catch (error: any) {
       toast({

@@ -69,8 +69,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Apply general rate limiting to all API routes
   app.use('/api/', apiLimiter);
 
-  // Auth routes with strict rate limiting
-  app.get('/api/auth/user', authLimiter, isAuthenticated, async (req: any, res) => {
+  // Auth routes - no rate limiting to allow immediate re-login after logout
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
       // Prioritize email-based session auth to match login flow
       const userId = req.session.userEmail || req.user?.claims?.sub;

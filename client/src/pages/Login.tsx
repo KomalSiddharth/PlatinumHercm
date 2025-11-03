@@ -36,12 +36,7 @@ export default function Login() {
       // Wait a moment for the query to refetch
       await new Promise(resolve => setTimeout(resolve, 200));
       
-      toast({
-        title: "Login Successful",
-        description: "Welcome to Platinum HRCM Dashboard"
-      });
-      
-      // Navigate to dashboard
+      // Navigate to dashboard (silent login - no toast message)
       setLocation('/dashboard');
     } catch (error: any) {
       toast({
