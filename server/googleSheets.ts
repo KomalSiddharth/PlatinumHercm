@@ -514,6 +514,11 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
     courses.forEach(course => {
       if (course.subcategories && course.subcategories.length > 0 && 
           course.title.toLowerCase().includes('platinum') && course.title.toLowerCase().includes('fast')) {
+        console.log(`\n🔍 BEFORE SORTING - Platinum Fast Track has ${course.subcategories.length} subcategories:`);
+        course.subcategories.forEach((sub, idx) => {
+          console.log(`   ${idx + 1}. "${sub.title}" (id: ${sub.id}, lessons: ${sub.lessons.length})`);
+        });
+        
         const subcategoryOrder = {
           'health mastery': 1,
           'relationship mastery': 2,
@@ -521,13 +526,30 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
           'wealth mastery': 4
         };
         
+        // Remove duplicates based on title (case-insensitive)
+        const uniqueSubcategories = new Map();
+        course.subcategories.forEach(sub => {
+          const key = sub.title.toLowerCase();
+          if (!uniqueSubcategories.has(key)) {
+            uniqueSubcategories.set(key, sub);
+          } else {
+            console.log(`   ⚠️  Duplicate found: "${sub.title}" - keeping first occurrence`);
+          }
+        });
+        
+        course.subcategories = Array.from(uniqueSubcategories.values());
+        
         course.subcategories.sort((a, b) => {
           const orderA = subcategoryOrder[a.title.toLowerCase() as keyof typeof subcategoryOrder] || 999;
           const orderB = subcategoryOrder[b.title.toLowerCase() as keyof typeof subcategoryOrder] || 999;
           return orderA - orderB;
         });
         
-        console.log(`✅ Sorted Platinum Fast Track subcategories: ${course.subcategories.map(s => s.title).join(' → ')}`);
+        console.log(`\n✅ AFTER SORTING - Platinum Fast Track has ${course.subcategories.length} unique subcategories:`);
+        course.subcategories.forEach((sub, idx) => {
+          console.log(`   ${idx + 1}. "${sub.title}" (id: ${sub.id}, lessons: ${sub.lessons.length})`);
+        });
+        console.log('');
       }
     });
 
