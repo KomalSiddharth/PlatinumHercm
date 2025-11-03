@@ -29,7 +29,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Check,
-  ChevronsUpDown
+  ChevronsUpDown,
+  Moon,
+  Sun
 } from 'lucide-react';
 import type { ApprovedEmail, AdminUser, AccessLog } from '@shared/schema';
 import {
@@ -115,7 +117,38 @@ export default function AdminPanel() {
   const [newStandardText, setNewStandardText] = useState('');
   const [editingStandard, setEditingStandard] = useState<any>(null);
   
+  // Dark/Light mode state
+  const [darkMode, setDarkMode] = useState(() => {
+    const savedTheme = localStorage.getItem('theme');
+    return savedTheme === 'dark';
+  });
+  
   const { toast } = useToast();
+  
+  // Apply saved theme on component mount
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+      setDarkMode(true);
+    } else {
+      document.documentElement.classList.remove('dark');
+      setDarkMode(false);
+    }
+  }, []);
+  
+  const toggleDarkMode = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    
+    if (newDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  };
 
   // Check if user is logged in (admin restrictions removed)
   const { data: currentUser, isLoading: userLoading } = useQuery<{ id: string; email: string; firstName?: string; lastName?: string; isAdmin?: boolean }>({
@@ -947,6 +980,15 @@ export default function AdminPanel() {
             <span className="text-sm text-gray-600 dark:text-gray-400">
               Welcome, {adminInfo?.firstName || 'Admin'}
             </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleDarkMode}
+              data-testid="button-theme-toggle"
+              className="hover-elevate active-elevate-2"
+            >
+              {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </Button>
             <Button 
               onClick={handleLogout} 
               variant="destructive"
