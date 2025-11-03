@@ -327,7 +327,7 @@ export interface CourseTrackingData {
 // Cache for course tracking data
 let cachedCourseTracking: CourseTrackingData[] = [];
 let courseTrackingCacheTimestamp = 0;
-const COURSE_TRACKING_CACHE_TTL = 1 * 60 * 1000; // 1 minute (temporary for testing)
+const COURSE_TRACKING_CACHE_TTL = 0; // DISABLED - Force fresh data every time for sorting fix
 
 // Fetch course tracking data from Google Sheet
 // Format: Question column = Lesson name, Answer column = Lesson URL
