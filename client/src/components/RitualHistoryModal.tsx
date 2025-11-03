@@ -15,6 +15,7 @@ interface RitualHistoryModalProps {
   history: {
     date: string;
     completed: boolean;
+    marked: boolean;
   }[];
 }
 
@@ -24,8 +25,11 @@ export default function RitualHistoryModal({
   ritualTitle,
   history
 }: RitualHistoryModalProps) {
-  const completedCount = history.filter(h => h.completed).length;
-  const completionRate = Math.round((completedCount / history.length) * 100);
+  const markedDays = history.filter(h => h.marked);
+  const completedCount = markedDays.filter(h => h.completed).length;
+  const completionRate = markedDays.length > 0 
+    ? Math.round((completedCount / markedDays.length) * 100) 
+    : 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -43,7 +47,7 @@ export default function RitualHistoryModal({
             <div className="flex items-center justify-center gap-2">
               <p className="text-3xl font-bold">{completionRate}%</p>
               <Badge variant={completionRate >= 80 ? 'default' : 'secondary'}>
-                {completedCount}/{history.length} days
+                {completedCount}/{markedDays.length} days tracked
               </Badge>
             </div>
           </div>
@@ -53,7 +57,7 @@ export default function RitualHistoryModal({
               <div
                 key={idx}
                 className={`flex items-center justify-between p-3 rounded-lg border ${
-                  day.completed
+                  day.marked && day.completed
                     ? 'bg-chart-3/10 border-chart-3/20'
                     : 'bg-muted/20 border-border'
                 }`}
@@ -61,24 +65,28 @@ export default function RitualHistoryModal({
               >
                 <span className="font-medium">{day.date}</span>
                 <div className="flex items-center gap-2">
-                  {day.completed ? (
-                    <>
-                      <Badge variant="outline" className="bg-chart-3/20 text-chart-3 border-chart-3/30">
-                        Completed
-                      </Badge>
-                      <div className="w-6 h-6 rounded-full bg-chart-3 flex items-center justify-center">
-                        <Check className="w-4 h-4 text-white" />
-                      </div>
-                    </>
+                  {day.marked ? (
+                    day.completed ? (
+                      <>
+                        <Badge variant="outline" className="bg-chart-3/20 text-chart-3 border-chart-3/30">
+                          Completed
+                        </Badge>
+                        <div className="w-6 h-6 rounded-full bg-chart-3 flex items-center justify-center">
+                          <Check className="w-4 h-4 text-white" />
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <Badge variant="secondary" className="text-muted-foreground">
+                          Missed
+                        </Badge>
+                        <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center">
+                          <X className="w-4 h-4 text-muted-foreground" />
+                        </div>
+                      </>
+                    )
                   ) : (
-                    <>
-                      <Badge variant="secondary" className="text-muted-foreground">
-                        Missed
-                      </Badge>
-                      <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center">
-                        <X className="w-4 h-4 text-muted-foreground" />
-                      </div>
-                    </>
+                    <span className="text-sm text-muted-foreground italic">Not marked</span>
                   )}
                 </div>
               </div>

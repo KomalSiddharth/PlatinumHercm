@@ -36,7 +36,7 @@ interface Ritual {
   points: number;
   active: boolean;
   completed: boolean;
-  history: { date: string; completed: boolean }[];
+  history: { date: string; completed: boolean; marked: boolean }[];
 }
 
 // Helper function to get today's date in YYYY-MM-DD format (LOCAL timezone, NOT UTC)
@@ -91,12 +91,11 @@ const generateCurrentMonthHistory = (completions: RitualCompletion[] = []) => {
     
     // Check if this date has a completion record
     const completionRecord = completions.find(c => c.date === isoDate);
-    const isMarked = !!completionRecord; // Date was marked (either completed or not)
-    const isCompleted = completionRecord?.isCompleted || false;
+    const isMarked = !!completionRecord; // Date was marked if there's a completion record
     
     history.push({
       date: dateStr,
-      completed: isCompleted,
+      completed: isMarked, // If marked, it means completed (presence of record = completion)
       marked: isMarked // true if date has a record, false if no data
     });
   }
