@@ -14,6 +14,7 @@ import { validateAndCapRating, updateRatingProgression, getRatingCaps, getRating
 import { backupAllData, backupUserData, getBackupStats } from "./backupService";
 import { isSupabaseConfigured, checkSupabaseHealth } from "./supabase";
 import OpenAI from "openai";
+import rateLimit from "express-rate-limit";
 
 // WebSocket clients management
 const wsClients = new Map<string, WebSocket>();
@@ -21,6 +22,36 @@ const wsClients = new Map<string, WebSocket>();
 const openai = new OpenAI({
   baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY
+});
+
+// Rate Limiting Configuration for Security
+// Prevents brute force attacks and API abuse
+
+// General API rate limiter: 100 requests per 15 minutes
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per window
+  message: 'Too many requests from this IP, please try again after 15 minutes',
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
+// Strict rate limiter for auth endpoints: 10 requests per 15 minutes
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Limit each IP to 10 requests per window
+  message: 'Too many authentication attempts, please try again after 15 minutes',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// File upload rate limiter: 20 uploads per hour
+const uploadLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 20, // Limit each IP to 20 uploads per hour
+  message: 'Too many file uploads, please try again after an hour',
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 // Extend express-session to include custom session fields
@@ -35,8 +66,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup Replit Auth middleware
   await setupAuth(app);
 
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  // Apply general rate limiting to all API routes
+  app.use('/api/', apiLimiter);
+
+  // Auth routes with strict rate limiting
+  app.get('/api/auth/user', authLimiter, isAuthenticated, async (req: any, res) => {
     try {
       // Prioritize email-based session auth to match login flow
       const userId = req.session.userEmail || req.user?.claims?.sub;
@@ -2103,7 +2137,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
-  app.post('/api/admin/bulk-upload', isAdmin, async (req, res) => {
+  app.post('/api/admin/bulk-upload', uploadLimiter, isAdmin, async (req, res) => {
     try {
       const { entries } = req.body;
       
