@@ -141,8 +141,13 @@ export default function Dashboard() {
   // Fetch ALL ritual completions (for history navigation across months)
   const { data: allRitualCompletions = [] } = useQuery<RitualCompletion[]>({
     queryKey: ['/api/ritual-completions'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/ritual-completions');
+      return response.json();
+    },
     enabled: !!currentUser,
   });
+
 
   // Fetch user's HRCM weeks to check 7-day restriction
   const { data: userWeeks = [], isLoading: loadingWeeks, isError: weeksError } = useQuery<any[]>({
