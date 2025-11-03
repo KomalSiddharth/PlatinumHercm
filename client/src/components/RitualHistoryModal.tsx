@@ -1,3 +1,4 @@
+import { useState, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -6,38 +7,128 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Check, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Check, X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface RitualHistoryModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   ritualTitle: string;
-  history: {
-    date: string;
-    completed: boolean;
-    marked: boolean;
-  }[];
+  ritualId: string;
+  allCompletions: Array<{ date: string; ritualId: string }>;
 }
+
+// Helper function to generate history for any month/year
+const generateMonthHistory = (year: number, month: number, completions: Array<{ date: string; ritualId: string }>, ritualId: string) => {
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const history = [];
+  
+  for (let day = 1; day <= daysInMonth; day++) {
+    const isoDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const date = new Date(year, month, day);
+    const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    
+    const completionRecord = completions.find(c => c.date === isoDate && c.ritualId === ritualId);
+    const isMarked = !!completionRecord;
+    
+    history.push({
+      date: dateStr,
+      completed: isMarked,
+      marked: isMarked
+    });
+  }
+  
+  return history;
+};
 
 export default function RitualHistoryModal({
   open,
   onOpenChange,
   ritualTitle,
-  history
+  ritualId,
+  allCompletions
 }: RitualHistoryModalProps) {
+  const now = new Date();
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(now.getMonth()); // 0-11
+
+  // Generate history for selected month
+  const history = useMemo(() => {
+    return generateMonthHistory(selectedYear, selectedMonth, allCompletions, ritualId);
+  }, [selectedYear, selectedMonth, allCompletions, ritualId]);
+
   const markedDays = history.filter(h => h.marked);
   const completedCount = markedDays.filter(h => h.completed).length;
   const completionRate = markedDays.length > 0 
     ? Math.round((completedCount / markedDays.length) * 100) 
     : 0;
 
+  const handlePrevMonth = () => {
+    if (selectedMonth === 0) {
+      setSelectedMonth(11);
+      setSelectedYear(selectedYear - 1);
+    } else {
+      setSelectedMonth(selectedMonth - 1);
+    }
+  };
+
+  const handleNextMonth = () => {
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth();
+    
+    // Don't allow going beyond current month
+    if (selectedYear === currentYear && selectedMonth === currentMonth) {
+      return;
+    }
+    
+    if (selectedMonth === 11) {
+      setSelectedMonth(0);
+      setSelectedYear(selectedYear + 1);
+    } else {
+      setSelectedMonth(selectedMonth + 1);
+    }
+  };
+
+  const isCurrentMonth = selectedYear === now.getFullYear() && selectedMonth === now.getMonth();
+
+  // Reset to current month when modal opens
+  const handleOpenChange = (open: boolean) => {
+    if (open) {
+      setSelectedYear(now.getFullYear());
+      setSelectedMonth(now.getMonth());
+    }
+    onOpenChange(open);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="text-xl">{ritualTitle}</DialogTitle>
-          <DialogDescription>
-            {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} - Monthly completion history
+          <DialogDescription className="flex items-center justify-between gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handlePrevMonth}
+              className="h-8 w-8"
+              data-testid="button-prev-month"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <span className="flex-1 text-center">
+              {new Date(selectedYear, selectedMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} - Monthly history
+            </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleNextMonth}
+              disabled={isCurrentMonth}
+              className="h-8 w-8"
+              data-testid="button-next-month"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
           </DialogDescription>
         </DialogHeader>
 
