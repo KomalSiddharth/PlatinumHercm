@@ -359,6 +359,10 @@ export default function EmotionalTracker() {
                                       saveHoverEdit();
                                     }
                                   }}
+                                  onFocus={(e) => {
+                                    const length = e.target.value.length;
+                                    e.target.setSelectionRange(length, length);
+                                  }}
                                   className="text-sm min-h-[100px] resize-none"
                                   placeholder="Click to edit..."
                                   autoFocus
@@ -422,6 +426,10 @@ export default function EmotionalTracker() {
                                       e.preventDefault();
                                       saveHoverEdit();
                                     }
+                                  }}
+                                  onFocus={(e) => {
+                                    const length = e.target.value.length;
+                                    e.target.setSelectionRange(length, length);
                                   }}
                                   className="text-sm min-h-[100px] resize-none"
                                   placeholder="Click to edit..."
@@ -487,6 +495,10 @@ export default function EmotionalTracker() {
                                       saveHoverEdit();
                                     }
                                   }}
+                                  onFocus={(e) => {
+                                    const length = e.target.value.length;
+                                    e.target.setSelectionRange(length, length);
+                                  }}
                                   className="text-sm min-h-[100px] resize-none"
                                   placeholder="Click to edit..."
                                   autoFocus
@@ -550,6 +562,10 @@ export default function EmotionalTracker() {
                                       e.preventDefault();
                                       saveHoverEdit();
                                     }
+                                  }}
+                                  onFocus={(e) => {
+                                    const length = e.target.value.length;
+                                    e.target.setSelectionRange(length, length);
                                   }}
                                   className="text-sm min-h-[100px] resize-none"
                                   placeholder="Click to edit..."

@@ -37,10 +37,12 @@ export function getSession() {
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
+    rolling: true, // CRITICAL FIX: Refresh session cookie on every request to prevent logout on browser refresh
     cookie: {
       httpOnly: true,
       secure: true,
       maxAge: sessionTtl,
+      sameSite: 'lax', // CRITICAL FIX: Allow cookies to be sent on browser navigation/refresh
     },
   });
 }
