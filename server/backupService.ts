@@ -206,10 +206,15 @@ export async function backupAllData(): Promise<BackupResult> {
       const transformedEmails = allApprovedEmails.map(transformToSnakeCase);
       const { error: emailsError } = await supabase!
         .from('approved_emails')
-        .upsert(transformedEmails, { onConflict: 'id' });
+        .upsert(transformedEmails, { onConflict: 'email' }); // Use email as conflict key
       
-      if (emailsError) throw new Error(`Approved emails backup failed: ${emailsError.message}`);
-      stats.approvedEmails = allApprovedEmails.length;
+      if (emailsError) {
+        // Log warning but continue backup (duplicate emails shouldn't stop entire backup)
+        console.warn(`[BACKUP] Approved emails backup warning: ${emailsError.message}`);
+        console.warn('[BACKUP] Tip: Check for duplicate emails or Supabase table schema');
+      } else {
+        stats.approvedEmails = allApprovedEmails.length;
+      }
     }
 
     // 9. Backup Platinum Progress (auto-transform to snake_case)

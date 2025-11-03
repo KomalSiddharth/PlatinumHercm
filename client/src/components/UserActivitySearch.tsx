@@ -220,7 +220,7 @@ export default function UserActivitySearch({ apiEndpoint = '/api/team/search-use
                             className={`${getRatingColor(rating)} text-xs h-5`}
                             data-testid={`badge-${category.toLowerCase()}-rating-${user.id}`}
                           >
-                            {rating}/10
+                            {(rating || 0).toFixed(1)}/10
                           </Badge>
                         </div>
                         {problem && (

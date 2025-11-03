@@ -521,7 +521,7 @@ export default function UserDashboardSearch() {
                             {label}
                           </span>
                           <Badge className={`${getRatingColor(value)} text-xs h-5`}>
-                            {value}/10
+                            {(value || 0).toFixed(1)}/10
                           </Badge>
                         </div>
                       </div>
