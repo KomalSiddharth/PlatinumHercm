@@ -73,15 +73,6 @@ export default function RitualHistoryModal({
   };
 
   const handleNextMonth = () => {
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth();
-    
-    // Don't allow going beyond current month
-    if (selectedYear === currentYear && selectedMonth === currentMonth) {
-      return;
-    }
-    
     if (selectedMonth === 11) {
       setSelectedMonth(0);
       setSelectedYear(selectedYear + 1);
@@ -89,8 +80,6 @@ export default function RitualHistoryModal({
       setSelectedMonth(selectedMonth + 1);
     }
   };
-
-  const isCurrentMonth = selectedYear === now.getFullYear() && selectedMonth === now.getMonth();
 
   // Reset to current month when modal opens
   const handleOpenChange = (open: boolean) => {
@@ -123,7 +112,6 @@ export default function RitualHistoryModal({
               variant="ghost"
               size="icon"
               onClick={handleNextMonth}
-              disabled={isCurrentMonth}
               className="h-8 w-8"
               data-testid="button-next-month"
             >
