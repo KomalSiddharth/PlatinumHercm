@@ -242,7 +242,6 @@ export default function AdminPanel() {
 
   const { data: userAnalytics = [], isLoading: isLoadingAnalytics } = useQuery<any[]>({
     queryKey: ['/api/admin/users-analytics'],
-    enabled: activeTab === 'analytics',
     staleTime: 30000, // Cache for 30 seconds to improve performance
   });
 
@@ -256,7 +255,6 @@ export default function AdminPanel() {
     completionRates: { courses: number; rituals: number };
   }>({
     queryKey: [`/api/admin/team-analytics?period=${teamAnalyticsPeriod}`],
-    enabled: activeTab === 'analytics',
     staleTime: 30000, // Cache for 30 seconds to improve performance
   });
 
