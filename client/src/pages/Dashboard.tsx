@@ -36,7 +36,6 @@ interface Ritual {
   points: number;
   active: boolean;
   completed: boolean;
-  history: { date: string; completed: boolean; marked: boolean }[];
 }
 
 // Helper function to get today's date in YYYY-MM-DD format (LOCAL timezone, NOT UTC)
@@ -72,35 +71,6 @@ const getWeekEndDate = () => {
   const month = String(sunday.getMonth() + 1).padStart(2, '0');
   const dayOfMonth = String(sunday.getDate()).padStart(2, '0');
   return `${year}-${month}-${dayOfMonth}`;
-};
-
-// Helper function to generate current month history (Show ALL dates in the month)
-const generateCurrentMonthHistory = (completions: RitualCompletion[] = []) => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth();
-  
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  
-  const history = [];
-  for (let day = 1; day <= daysInMonth; day++) {
-    // Create ISO date string directly without timezone conversion
-    const isoDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    const date = new Date(year, month, day);
-    const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    
-    // Check if this date has a completion record
-    const completionRecord = completions.find(c => c.date === isoDate);
-    const isMarked = !!completionRecord; // Date was marked if there's a completion record
-    
-    history.push({
-      date: dateStr,
-      completed: isMarked, // If marked, it means completed (presence of record = completion)
-      marked: isMarked // true if date has a record, false if no data
-    });
-  }
-  
-  return history;
 };
 
 // Map frequency to recurrence
@@ -168,9 +138,9 @@ export default function Dashboard() {
     enabled: !!currentUser,
   });
 
-  // Fetch monthly ritual completions (for history)
-  const { data: monthlyCompletions = [] } = useQuery<RitualCompletion[]>({
-    queryKey: ['/api/ritual-completions/month', currentYear, currentMonth],
+  // Fetch ALL ritual completions (for history navigation across months)
+  const { data: allRitualCompletions = [] } = useQuery<RitualCompletion[]>({
+    queryKey: ['/api/ritual-completions'],
     enabled: !!currentUser,
   });
 
@@ -189,8 +159,6 @@ export default function Dashboard() {
         setTodayDate(newDate);
         // Invalidate ritual completions to refetch for new day (checkboxes will auto-uncheck)
         queryClient.invalidateQueries({ queryKey: ['/api/ritual-completions'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/ritual-completions/week'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/ritual-completions/month'] });
         toast({
           title: '🌅 New Day Started!',
           description: `Daily rituals reset for ${newDate}`,
@@ -215,8 +183,6 @@ export default function Dashboard() {
       // Use points from database instead of calculating
       const points = dbRitual.points || calculatePoints(dbRitual.frequency);
       const isCompleted = todayCompletions.some(c => c.ritualId === dbRitual.id);
-      // Get this ritual's completions from monthly data
-      const ritualCompletions = monthlyCompletions.filter(c => c.ritualId === dbRitual.id);
       
       return {
         id: dbRitual.id,
@@ -224,11 +190,10 @@ export default function Dashboard() {
         recurrence: mapFrequencyToRecurrence(dbRitual.frequency),
         points,
         active: dbRitual.isActive,
-        completed: isCompleted,
-        history: generateCurrentMonthHistory(ritualCompletions)
+        completed: isCompleted
       };
     });
-  }, [dbRituals, todayCompletions, monthlyCompletions]);
+  }, [dbRituals, todayCompletions]);
 
   const hrcmRef = useRef<HTMLDivElement>(null);
   const ritualsRef = useRef<HTMLDivElement>(null);
@@ -1473,7 +1438,8 @@ export default function Dashboard() {
           open={historyOpen}
           onOpenChange={setHistoryOpen}
           ritualTitle={selectedRitual.title}
-          history={selectedRitual.history}
+          ritualId={selectedRitual.id}
+          allCompletions={allRitualCompletions}
         />
       )}
 

@@ -3484,6 +3484,22 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Ritual Completions endpoints
+  // Get all ritual completions for user (for history navigation)
+  app.get('/api/ritual-completions', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const completions = await storage.getAllRitualCompletions(userId);
+      res.json(completions);
+    } catch (error) {
+      console.error("Error fetching all ritual completions:", error);
+      res.status(500).json({ message: "Failed to fetch all ritual completions" });
+    }
+  });
+
   app.get('/api/ritual-completions/:date', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.session.userEmail;
