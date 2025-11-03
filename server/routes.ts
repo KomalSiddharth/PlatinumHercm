@@ -2267,9 +2267,20 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
-  app.delete('/api/admin/team/:id', isAdmin, async (req, res) => {
+  app.delete('/api/admin/team/:id', isAdmin, async (req: any, res) => {
     try {
       const { id } = req.params;
+      
+      // Prevent admin from deleting themselves (to avoid losing session access)
+      const currentUserEmail = req.session?.userEmail || req.user?.claims?.sub;
+      const adminToDelete = await storage.getAdminUserById(id);
+      
+      if (adminToDelete && currentUserEmail && adminToDelete.email === currentUserEmail) {
+        return res.status(400).json({ 
+          message: "Cannot delete your own admin account. Ask another admin to remove you." 
+        });
+      }
+      
       await storage.deleteAdminUser(id);
       res.json({ success: true, message: "Admin user deleted" });
     } catch (error) {
