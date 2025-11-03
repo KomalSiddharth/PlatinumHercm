@@ -311,21 +311,16 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     const dateStr = newDate.toISOString().split('T')[0];
     const todayStr = new Date().toISOString().split('T')[0];
     
+    // 🔥 CRITICAL FIX: Clear beliefs state IMMEDIATELY to prevent showing stale data
+    setBeliefs(getBlankBeliefs());
+    setUnifiedAssignment([]);
+    
     // Batch all state updates together for instant, smooth transition
     setSelectedDate(newDate);
     setCurrentDateStr(dateStr);
     setViewingHistory(dateStr !== todayStr);
     
-    // 🔥 FIX: Invalidate queries to force refetch for new date
-    queryClient.invalidateQueries({ queryKey: ['/api/hercm/by-date'] });
-    queryClient.invalidateQueries({ 
-      predicate: (query) => {
-        const key = query.queryKey[0];
-        return typeof key === 'string' && (key.includes('/api/admin/user/') && key.includes('/hercm/by-date'));
-      }
-    });
-    
-    console.log(`[DATE CHANGE] Instantly switched to: ${dateStr} - Queries invalidated for refetch`);
+    console.log(`[DATE CHANGE] ✅ Switched to: ${dateStr} - Cleared stale data, query will refetch`);
   };
 
   // Navigate date (Previous/Next) - using optimized handler
