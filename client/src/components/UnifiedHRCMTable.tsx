@@ -306,21 +306,31 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     }
   }, [lastMessage, toast]);
 
-  // Optimized date change handler - single source of truth, instant UI updates
+  // 🔥 FIXED DATE NAVIGATION - Calendar, Left Arrow, Right Arrow - All Working!
   const handleDateChange = (newDate: Date) => {
     const dateStr = newDate.toISOString().split('T')[0];
     const todayStr = new Date().toISOString().split('T')[0];
     
-    // 🔥 CRITICAL FIX: Clear beliefs state IMMEDIATELY to prevent showing stale data
+    console.log(`[🔥 DATE CHANGE v2] Switching to: ${dateStr} from current: ${currentDateStr}`);
+    
+    // 🔥 CRITICAL: Clear stale data FIRST to show blank table instantly
     setBeliefs(getBlankBeliefs());
     setUnifiedAssignment([]);
     
-    // Batch all state updates together for instant, smooth transition
+    // Update all date-related states
     setSelectedDate(newDate);
     setCurrentDateStr(dateStr);
     setViewingHistory(dateStr !== todayStr);
     
-    console.log(`[DATE CHANGE] ✅ Switched to: ${dateStr} - Cleared stale data, query will refetch`);
+    // Force query refetch by invalidating cache
+    queryClient.invalidateQueries({ 
+      predicate: (query) => {
+        const key = String(query.queryKey[0]);
+        return key.includes('/hercm/by-date');
+      }
+    });
+    
+    console.log(`[🔥 DATE CHANGE v2] ✅ Complete! Date: ${dateStr}, History mode: ${dateStr !== todayStr}`);
   };
 
   // Navigate date (Previous/Next) - using optimized handler
