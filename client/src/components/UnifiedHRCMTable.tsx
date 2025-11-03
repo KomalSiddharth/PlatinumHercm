@@ -917,7 +917,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     });
   };
 
-  // Mutation for saving week data to database
+  // Mutation for saving week data to database (silent auto-save)
   const saveWeekMutation = useMutation({
     mutationFn: async (weekData: any) => {
       const response = await apiRequest('POST', '/api/hercm/save-with-comparison', weekData);
@@ -936,17 +936,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           return typeof key === 'string' && key.includes('/api/analytics/progress');
         }
       });
-      toast({
-        title: 'Saved!',
-        description: 'Your changes have been saved successfully.',
-      });
+      // Silent save - no toast message for auto-save
     },
-    onError: () => {
-      toast({
-        title: 'Error',
-        description: 'Failed to save changes. Please try again.',
-        variant: 'destructive',
-      });
+    onError: (error) => {
+      // Log error silently for debugging, but don't show toast for auto-save failures
+      console.error('[AUTO-SAVE ERROR]', error);
+      // Data will be retried on next change anyway
     }
   });
 
