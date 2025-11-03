@@ -114,42 +114,9 @@ export default function AdminUserDashboardViewer({ approvedEmails }: AdminUserDa
   };
 
   const handleViewHistory = (ritual: any) => {
-    // Build history from allRitualCompletions
-    const history = buildRitualHistory(ritual.id, dashboardData?.allRitualCompletions || []);
-    setSelectedRitual({ ...ritual, history });
+    // Set selected ritual - modal will build history from allRitualCompletions
+    setSelectedRitual(ritual);
     setHistoryOpen(true);
-  };
-
-  // Helper function to build ritual history for current month (ONLY past dates)
-  const buildRitualHistory = (ritualId: string, completions: any[]) => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
-    const today = now.getDate();
-    
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const history = [];
-
-    for (let day = 1; day <= daysInMonth; day++) {
-      // CRITICAL FIX: Only show history for PAST dates (before today)
-      if (day >= today) {
-        continue; // Skip today and future dates
-      }
-      
-      const date = new Date(year, month, day);
-      const dateStr = date.toISOString().split('T')[0];
-      const completion = completions.find(
-        (c: any) => c.ritualId === ritualId && c.date === dateStr
-      );
-      
-      history.push({
-        date: dateStr,
-        completed: !!completion,
-        skipped: completion?.skipped || false,
-      });
-    }
-
-    return history;
   };
 
   const getRatingColor = (rating: number) => {
@@ -400,7 +367,8 @@ export default function AdminUserDashboardViewer({ approvedEmails }: AdminUserDa
                 open={historyOpen}
                 onOpenChange={setHistoryOpen}
                 ritualTitle={selectedRitual.title}
-                history={selectedRitual.history || []}
+                ritualId={selectedRitual.id}
+                allCompletions={dashboardData?.allRitualCompletions || []}
               />
             )}
           </>
