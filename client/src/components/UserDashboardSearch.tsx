@@ -499,7 +499,7 @@ export default function UserDashboardSearch() {
                       Overall Score
                     </span>
                     <Badge className={getRatingColor(user.latestWeek.overallScore)}>
-                      {user.latestWeek.overallScore}/10
+                      {(user.latestWeek.overallScore || 0).toFixed(1)}/10
                     </Badge>
                   </div>
 

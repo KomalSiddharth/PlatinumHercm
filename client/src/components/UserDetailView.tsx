@@ -76,7 +76,7 @@ export default function UserDetailView({ userId }: UserDetailViewProps) {
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold" data-testid="progress-overall-score">
-                {progressSummary.overallScore}/10
+                {(progressSummary.overallScore || 0).toFixed(1)}/10
               </p>
             </CardContent>
           </Card>
