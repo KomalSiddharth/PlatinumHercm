@@ -1524,19 +1524,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (usersByEmail.has(emailKey)) {
           const existing = usersByEmail.get(emailKey);
           
-          // Replace placeholder with actual user data, or prefer user with more HRCM weeks
+          // Replace placeholder with actual user data (first match wins - avoids expensive DB queries)
           if (existing.isPlaceholder) {
             usersByEmail.set(emailKey, user);
-          } else {
-            // If duplicate users for same email, prefer one with more HRCM data
-            const existingWeeks = await storage.getHercmWeeksByUser(existing.id);
-            const currentWeeks = await storage.getHercmWeeksByUser(user.id);
-            
-            if (currentWeeks.length > existingWeeks.length || 
-                (currentWeeks.length === existingWeeks.length && !user.email && existing.email)) {
-              usersByEmail.set(emailKey, user);
-            }
           }
+          // Skip duplicate checking - it was causing 42-second delays with thousands of DB queries
         }
       }
       
