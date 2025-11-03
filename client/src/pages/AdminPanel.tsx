@@ -2621,7 +2621,7 @@ export default function AdminPanel() {
                     <div>
                       <label className="text-sm font-medium mb-2 block">HRCM Area</label>
                       <select 
-                        className="w-full border rounded-md p-2" 
+                        className="w-full border border-input rounded-md p-2 bg-background text-foreground" 
                         value={recHrcmArea}
                         onChange={(e) => setRecHrcmArea(e.target.value)}
                         data-testid="select-hrcm-area"
