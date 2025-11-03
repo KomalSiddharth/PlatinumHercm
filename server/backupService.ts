@@ -131,8 +131,13 @@ export async function backupAllData(): Promise<BackupResult> {
         .from('hercm_weeks')
         .upsert(transformedHercm, { onConflict: 'id' });
       
-      if (hercmError) throw new Error(`HRCM weeks backup failed: ${hercmError.message}`);
-      stats.hercmWeeks = allHercmWeeks.length;
+      if (hercmError) {
+        // Log warning but continue backup (column mismatch shouldn't stop entire backup)
+        console.warn(`[BACKUP] HRCM weeks backup warning: ${hercmError.message}`);
+        console.warn('[BACKUP] Tip: Ensure Supabase hercm_weeks table has date_string column');
+      } else {
+        stats.hercmWeeks = allHercmWeeks.length;
+      }
     }
 
     // 3. Backup Ritual Completions (auto-transform to snake_case)
