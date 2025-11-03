@@ -1370,13 +1370,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       Array.from(weeksByNumber.entries())
         .sort(([weekA], [weekB]) => weekA - weekB) // Sort by week number
         .forEach(([weekNumber, weeks]) => {
-          // Sort weeks by createdAt to find first and latest
-          const sortedByDate = [...weeks].sort((a, b) => 
+          // 🔥 FIX: Sort by createdAt for "first", but use dateString for "latest"
+          // First = earliest entry created (original data)
+          // Latest = most recent date's data (could be today's update)
+          const sortedByCreatedAt = [...weeks].sort((a, b) => 
             new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
           );
           
-          const firstWeek = sortedByDate[0];
-          const latestWeek = sortedByDate[sortedByDate.length - 1];
+          const sortedByDateString = [...weeks].sort((a, b) => {
+            const dateA = a.dateString || '1970-01-01';
+            const dateB = b.dateString || '1970-01-01';
+            return dateA.localeCompare(dateB);
+          });
+          
+          const firstWeek = sortedByCreatedAt[0];
+          const latestWeek = sortedByDateString[sortedByDateString.length - 1];
           
           // Helper function to create week data object
           const createWeekData = (week: typeof sortedWeeks[0], label: string) => {
@@ -1386,10 +1394,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const moneyProgress = calculateChecklistProgress(week.moneyChecklist || []);
             const achievement = Math.round((healthProgress + relationshipProgress + careerProgress + moneyProgress) / 4);
             
+            // 🔥 FIX: Use dateString for "latest" (most recent update), createdAt for "first" (original entry)
+            const displayDate = label === 'latest' && week.dateString 
+              ? new Date(week.dateString + 'T00:00:00') // Convert YYYY-MM-DD to Date
+              : week.createdAt;
+            
             return {
               week: weekNumber,
               label, // "first" or "latest"
-              date: week.createdAt,
+              date: displayDate,
               h: week.currentH || 0,
               r: week.currentE || 0,
               c: week.currentR || 0,
@@ -1399,8 +1412,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             };
           };
           
-          // If only one entry for this week, show it as both first and latest
-          if (sortedByDate.length === 1) {
+          // If only one entry for this week, show it as "only"
+          if (weeks.length === 1) {
             compactWeeklyData.push(createWeekData(firstWeek, 'only'));
           } else {
             // Show both first and latest
