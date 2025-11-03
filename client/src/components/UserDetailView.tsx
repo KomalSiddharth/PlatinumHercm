@@ -300,24 +300,30 @@ export default function UserDetailView({ userId }: UserDetailViewProps) {
               <TableBody>
                 {compactWeeklyData.length > 0 ? (
                   compactWeeklyData.map((weekData: any, index: number) => {
-                    const isFirst = index === 0;
-                    const isLatest = index === compactWeeklyData.length - 1;
-                    const bgClass = isFirst 
-                      ? "bg-blue-50 dark:bg-blue-950/20" 
-                      : isLatest 
-                        ? "bg-green-50 dark:bg-green-950/20" 
-                        : "hover:bg-muted/50";
+                    // 🔥 NEW: Color code based on label (first, latest, only)
+                    const bgClass = weekData.label === 'first'
+                      ? "bg-blue-50 dark:bg-blue-950/20"
+                      : weekData.label === 'latest'
+                        ? "bg-green-50 dark:bg-green-950/20"
+                        : weekData.label === 'only'
+                          ? "bg-amber-50 dark:bg-amber-950/20"
+                          : "hover:bg-muted/50";
+                    
+                    // Display label text
+                    const labelText = weekData.label === 'first'
+                      ? " (First)"
+                      : weekData.label === 'latest'
+                        ? " (Latest)"
+                        : "";
                     
                     return (
                       <TableRow 
-                        key={`week-${weekData.week}`} 
-                        data-testid={`compact-week-${weekData.week}`} 
+                        key={`week-${weekData.week}-${weekData.label}`} 
+                        data-testid={`compact-week-${weekData.week}-${weekData.label}`} 
                         className={bgClass}
                       >
                         <TableCell className="font-bold">
-                          Week {weekData.week}
-                          {isFirst && " (First)"}
-                          {isLatest && !isFirst && " (Latest)"}
+                          Week {weekData.week}{labelText}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {new Date(weekData.date).toLocaleDateString()}
@@ -347,8 +353,8 @@ export default function UserDetailView({ userId }: UserDetailViewProps) {
           </div>
           <div className="mt-4 p-4 bg-muted rounded-lg text-sm">
             <p className="text-muted-foreground">
-              <strong>Complete Progress History:</strong> First week highlighted in blue, latest week in green. 
-              Track your complete journey and watch your scores improve over time! 🚀
+              <strong>Complete Progress History:</strong> For each week number, both <span className="text-blue-600 dark:text-blue-400 font-semibold">first entry (blue)</span> and <span className="text-green-600 dark:text-green-400 font-semibold">latest entry (green)</span> are shown. 
+              Track your complete journey and watch how your scores evolve within each week! 🚀
             </p>
           </div>
         </CardContent>
