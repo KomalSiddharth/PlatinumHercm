@@ -74,16 +74,23 @@ const getWeekEndDate = () => {
   return `${year}-${month}-${dayOfMonth}`;
 };
 
-// Helper function to generate current month history
+// Helper function to generate current month history (ONLY show past dates, not today or future)
 const generateCurrentMonthHistory = (completions: RitualCompletion[] = []) => {
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth();
+  const today = now.getDate();
   
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   
   const history = [];
   for (let day = 1; day <= daysInMonth; day++) {
+    // CRITICAL FIX: Only show history for PAST dates (before today)
+    // Today and future dates should NOT appear in history
+    if (day >= today) {
+      continue; // Skip today and future dates
+    }
+    
     // Create ISO date string directly without timezone conversion
     const isoDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const date = new Date(year, month, day);

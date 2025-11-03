@@ -120,16 +120,22 @@ export default function AdminUserDashboardViewer({ approvedEmails }: AdminUserDa
     setHistoryOpen(true);
   };
 
-  // Helper function to build ritual history for current month
+  // Helper function to build ritual history for current month (ONLY past dates)
   const buildRitualHistory = (ritualId: string, completions: any[]) => {
     const now = new Date();
     const year = now.getFullYear();
     const month = now.getMonth();
+    const today = now.getDate();
     
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const history = [];
 
     for (let day = 1; day <= daysInMonth; day++) {
+      // CRITICAL FIX: Only show history for PAST dates (before today)
+      if (day >= today) {
+        continue; // Skip today and future dates
+      }
+      
       const date = new Date(year, month, day);
       const dateStr = date.toISOString().split('T')[0];
       const completion = completions.find(
