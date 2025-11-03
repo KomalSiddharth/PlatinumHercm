@@ -316,7 +316,16 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     setCurrentDateStr(dateStr);
     setViewingHistory(dateStr !== todayStr);
     
-    console.log(`[DATE CHANGE] Instantly switched to: ${dateStr}`);
+    // 🔥 FIX: Invalidate queries to force refetch for new date
+    queryClient.invalidateQueries({ queryKey: ['/api/hercm/by-date'] });
+    queryClient.invalidateQueries({ 
+      predicate: (query) => {
+        const key = query.queryKey[0];
+        return typeof key === 'string' && (key.includes('/api/admin/user/') && key.includes('/hercm/by-date'));
+      }
+    });
+    
+    console.log(`[DATE CHANGE] Instantly switched to: ${dateStr} - Queries invalidated for refetch`);
   };
 
   // Navigate date (Previous/Next) - using optimized handler
