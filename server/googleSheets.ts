@@ -510,6 +510,27 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
       courses.push(currentCourse);
     }
 
+    // Sort Platinum Fast Track subcategories in specific order: Health → Relationship → Career → Wealth
+    courses.forEach(course => {
+      if (course.subcategories && course.subcategories.length > 0 && 
+          course.title.toLowerCase().includes('platinum') && course.title.toLowerCase().includes('fast')) {
+        const subcategoryOrder = {
+          'health mastery': 1,
+          'relationship mastery': 2,
+          'career mastery': 3,
+          'wealth mastery': 4
+        };
+        
+        course.subcategories.sort((a, b) => {
+          const orderA = subcategoryOrder[a.title.toLowerCase() as keyof typeof subcategoryOrder] || 999;
+          const orderB = subcategoryOrder[b.title.toLowerCase() as keyof typeof subcategoryOrder] || 999;
+          return orderA - orderB;
+        });
+        
+        console.log(`✅ Sorted Platinum Fast Track subcategories: ${course.subcategories.map(s => s.title).join(' → ')}`);
+      }
+    });
+
     // Merge "June'25 DMP Recordings" and ALL subsequent DMP-related courses into "DMP - Daily Magic Practice Recordings" course
     const dmpCourseIndex = courses.findIndex(c => 
       c.title.toLowerCase().includes('dmp') && 
