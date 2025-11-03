@@ -84,7 +84,7 @@ export default function AdminPanel() {
   
   // Analytics states
   const [selectedUserForDetail, setSelectedUserForDetail] = useState<string | null>(null);
-  const [emailSearchQuery, setEmailSearchQuery] = useState('');
+  const [userSearchQuery, setUserSearchQuery] = useState('');
   const [searchedUser, setSearchedUser] = useState<any>(null);
   const [analyticsCurrentPage, setAnalyticsCurrentPage] = useState(1);
   const [analyticsItemsPerPage, setAnalyticsItemsPerPage] = useState(10);
@@ -259,8 +259,8 @@ export default function AdminPanel() {
   });
 
   const searchUserMutation = useMutation({
-    mutationFn: async (email: string) => {
-      const response = await fetch(`/api/admin/search-user?email=${encodeURIComponent(email)}`);
+    mutationFn: async (query: string) => {
+      const response = await fetch(`/api/admin/search-user-by-name?name=${encodeURIComponent(query)}`);
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'User not found');
@@ -268,29 +268,31 @@ export default function AdminPanel() {
       return response.json();
     },
     onSuccess: (data) => {
-      setSearchedUser(data);
-      setSelectedUserForDetail(data.id);
+      // If multiple users found, show the first one
+      const user = Array.isArray(data) ? data[0] : data;
+      setSearchedUser(user);
+      setSelectedUserForDetail(user.id);
     },
     onError: (error: any) => {
       toast({ 
         title: "User Not Found", 
-        description: error.message || "No user found with this email",
+        description: error.message || "No user found with this name or email",
         variant: "destructive" 
       });
       setSearchedUser(null);
     }
   });
 
-  const handleEmailSearch = () => {
-    if (!emailSearchQuery.trim()) {
+  const handleUserSearch = () => {
+    if (!userSearchQuery.trim()) {
       toast({ 
-        title: "Email Required", 
-        description: "Please enter an email address to search",
+        title: "Search Query Required", 
+        description: "Please enter a name or email to search",
         variant: "destructive" 
       });
       return;
     }
-    searchUserMutation.mutate(emailSearchQuery.trim());
+    searchUserMutation.mutate(userSearchQuery.trim());
   };
 
   const addEmailMutation = useMutation({
@@ -2191,16 +2193,16 @@ export default function AdminPanel() {
                 <CardContent>
                   <div className="flex gap-2">
                     <Input
-                      type="email"
-                      placeholder="example@email.com"
-                      value={emailSearchQuery}
-                      onChange={(e) => setEmailSearchQuery(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleEmailSearch()}
-                      data-testid="input-email-search"
+                      type="text"
+                      placeholder="Search by name or email (e.g., John or john@email.com)"
+                      value={userSearchQuery}
+                      onChange={(e) => setUserSearchQuery(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleUserSearch()}
+                      data-testid="input-user-search"
                       className="flex-1 text-base"
                     />
                     <Button 
-                      onClick={handleEmailSearch}
+                      onClick={handleUserSearch}
                       disabled={searchUserMutation.isPending}
                       data-testid="button-search-user"
                       className="bg-gradient-to-r from-pink-500 to-blue-500 text-white"
