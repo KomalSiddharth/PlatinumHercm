@@ -59,8 +59,9 @@ export default function RitualHistoryModal({
 
   const markedDays = history.filter(h => h.marked);
   const completedCount = markedDays.filter(h => h.completed).length;
-  const completionRate = markedDays.length > 0 
-    ? Math.round((completedCount / markedDays.length) * 100) 
+  const totalDaysInMonth = history.length;
+  const completionRate = totalDaysInMonth > 0 
+    ? Math.round((completedCount / totalDaysInMonth) * 100) 
     : 0;
 
   const handlePrevMonth = () => {
@@ -126,7 +127,7 @@ export default function RitualHistoryModal({
             <div className="flex items-center justify-center gap-2">
               <p className="text-3xl font-bold">{completionRate}%</p>
               <Badge variant={completionRate >= 80 ? 'default' : 'secondary'}>
-                {completedCount}/{markedDays.length} days tracked
+                {completedCount}/{totalDaysInMonth} days tracked
               </Badge>
             </div>
           </div>
