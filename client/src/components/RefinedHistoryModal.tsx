@@ -88,6 +88,11 @@ export function RefinedHistoryModal({ open, onOpenChange, currentWeek }: Refined
                   mode="single"
                   selected={selectedDate}
                   onSelect={setSelectedDate}
+                  disabled={(date) => {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    return date > today; // Disable all future dates
+                  }}
                   initialFocus
                   data-testid="calendar-picker"
                 />

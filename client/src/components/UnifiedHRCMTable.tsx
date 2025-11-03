@@ -1985,6 +1985,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       handleDateChange(date);
                     }
                   }}
+                  disabled={(date) => {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    return date > today; // Disable all future dates
+                  }}
                   initialFocus
                   data-testid="calendar-date-picker"
                 />
@@ -2008,8 +2013,15 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               variant="ghost"
               size="sm"
               onClick={() => navigateDate('next')}
+              disabled={(() => {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const selected = new Date(selectedDate);
+                selected.setHours(0, 0, 0, 0);
+                return selected.getTime() >= today.getTime(); // Disable if today or future
+              })()}
               data-testid="button-next-date"
-              className="text-white hover:bg-white/20 h-7 w-7 sm:h-8 sm:w-8 p-0"
+              className="text-white hover:bg-white/20 h-7 w-7 sm:h-8 sm:w-8 p-0 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <ChevronRightIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </Button>
