@@ -716,6 +716,34 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
       if (coursesToMergeAsSubcategories.length > 0) {
         console.log(`✅ Merged ${coursesToMergeAsSubcategories.length} mastery courses into Platinum Fast Track`);
         console.log(`📚 Platinum Fast Track now has ${platinumCourse.subcategories?.length || 0} subcategories`);
+        
+        // CRITICAL: Sort subcategories in exact order after merging
+        if (platinumCourse.subcategories && platinumCourse.subcategories.length > 0) {
+          console.log(`🔄 SORTING subcategories after merging...`);
+          console.log(`🔍 BEFORE FINAL SORTING - Platinum Fast Track has ${platinumCourse.subcategories.length} subcategories:`);
+          platinumCourse.subcategories.forEach((sub, idx) => {
+            console.log(`   ${idx + 1}. "${sub.title}" (id: ${sub.id}, lessons: ${sub.lessons.length})`);
+          });
+          
+          const sortOrder = ['health-mastery', 'relationship-mastery', 'career-mastery', 'wealth-mastery'];
+          
+          const sortedSubcategories = platinumCourse.subcategories.sort((a, b) => {
+            const indexA = sortOrder.indexOf(a.id);
+            const indexB = sortOrder.indexOf(b.id);
+            
+            if (indexA === -1 && indexB === -1) return 0;
+            if (indexA === -1) return 1;
+            if (indexB === -1) return -1;
+            return indexA - indexB;
+          });
+          
+          platinumCourse.subcategories = sortedSubcategories;
+          
+          console.log(`✅ AFTER FINAL SORTING - Platinum Fast Track has ${platinumCourse.subcategories.length} unique subcategories:`);
+          platinumCourse.subcategories.forEach((sub, idx) => {
+            console.log(`   ${idx + 1}. "${sub.title}" (id: ${sub.id}, lessons: ${sub.lessons.length})`);
+          });
+        }
       }
 
       // Add nested sub-courses within Career Mastery
