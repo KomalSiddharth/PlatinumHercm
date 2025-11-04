@@ -1018,6 +1018,29 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
         console.log(`   ⚠️  "Platinum Membership 5 Days Challenge" course not found`);
       }
       
+      // Find and add "Platinum Healing Sessions" course
+      const healingSessionsCourseIndex = courses.findIndex((c, idx) => {
+        if (idx === platinumChallengeCourseIndex) return false; // Skip the main course itself
+        const title = c.title.toLowerCase();
+        return title.includes('platinum') && title.includes('healing') && title.includes('sessions');
+      });
+      
+      if (healingSessionsCourseIndex !== -1) {
+        const healingSessionsCourse = courses[healingSessionsCourseIndex];
+        console.log(`📦 Adding "${healingSessionsCourse.title}" as subcategory of "${platinumChallengeCourse.title}" (${healingSessionsCourse.lessons.length} lessons)`);
+        
+        platinumChallengeCourse.subcategories.push({
+          id: 'platinum-healing-sessions',
+          title: 'Platinum Healing Sessions',
+          lessons: healingSessionsCourse.lessons
+        });
+        
+        coursesToAddAsSubcategories.push(healingSessionsCourseIndex);
+        console.log(`   ✅ Added "Platinum Healing Sessions" as subcategory with ${healingSessionsCourse.lessons.length} lessons`);
+      } else {
+        console.log(`   ⚠️  "Platinum Healing Sessions" course not found`);
+      }
+      
       // Remove all added subcategories from main course list in reverse order
       for (let i = coursesToAddAsSubcategories.length - 1; i >= 0; i--) {
         courses.splice(coursesToAddAsSubcategories[i], 1);
