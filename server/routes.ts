@@ -27,13 +27,17 @@ const openai = new OpenAI({
 // Rate Limiting Configuration for Security
 // Prevents brute force attacks and API abuse
 
-// General API rate limiter: 100 requests per 15 minutes
+// General API rate limiter: 5000 requests per 15 minutes (increased for admin panel heavy usage)
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per window
+  max: 5000, // Limit each IP to 5000 requests per window (admin panel needs high limit)
   message: 'Too many requests from this IP, please try again after 15 minutes',
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  skip: (req) => {
+    // Skip rate limiting for admin routes (already protected by authentication)
+    return req.path.startsWith('/api/admin/');
+  }
 });
 
 // Strict rate limiter for auth endpoints: 10 requests per 15 minutes
