@@ -647,18 +647,13 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   }, [viewingHistory, historicalSnapshot, selectedHistoryDate, allWeeksData]);
 
   useEffect(() => {
-    console.log('[TODAY EFFECT] weekData:', weekData);
-    console.log('[TODAY EFFECT] weekData?.beliefs:', weekData?.beliefs);
-    console.log('[TODAY EFFECT] viewingHistory:', viewingHistory);
-    console.log('[TODAY EFFECT] currentDateStr:', currentDateStr);
+    console.log('[WEEKDATA EFFECT] weekData:', weekData);
+    console.log('[WEEKDATA EFFECT] weekData?.beliefs:', weekData?.beliefs);
+    console.log('[WEEKDATA EFFECT] viewingHistory:', viewingHistory);
+    console.log('[WEEKDATA EFFECT] currentDateStr:', currentDateStr);
     
-    // CRITICAL: Only process weekData when NOT in history mode
-    if (viewingHistory) {
-      console.log('[TODAY EFFECT] ⏸️ Skipping - in history mode');
-      return; // Let the history effect handle it
-    }
-    
-    // Priority: Use actual database data if available, otherwise use demo/blank template
+    // Process weekData for BOTH today and history dates
+    // The /api/hercm/by-date endpoint returns data for any date (not just today)
     if (weekData?.beliefs) {
       console.log('[FRONTEND DEBUG] Processing beliefs from weekData');
       
@@ -722,7 +717,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       setUnifiedAssignment(combinedAssignments);
     } else if (weekData === null) {
       // Explicitly null from server (no data for this date) - show blank
-      console.log('[TODAY EFFECT] ⚠️ weekData is null - showing blank template');
+      console.log('[WEEKDATA EFFECT] ⚠️ weekData is null - showing blank template');
       const dynamicBeliefs: HRCMBelief[] = [
         {
           category: 'Health' as const,
@@ -790,9 +785,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       setUnifiedAssignment([]);
     } else {
       // weekData is undefined (still loading) - don't change anything
-      console.log('[TODAY EFFECT] ⏳ weekData is undefined - still loading, keeping current state');
+      console.log('[WEEKDATA EFFECT] ⏳ weekData is undefined - still loading, keeping current state');
     }
-  }, [weekData, platinumStandardsData, viewingHistory]);
+  }, [weekData, platinumStandardsData]);
   // FIXED: Added platinumStandardsData to deps to auto-update when admin adds new standards
 
   const weeklyProgress = beliefs.length > 0
