@@ -526,11 +526,17 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   const historicalSnapshot = getSnapshotForDate();
 
   useEffect(() => {
-    // If viewing historical data
-    if (viewingHistory) {
-      // If snapshot exists, convert database fields to beliefs array format
-      if (historicalSnapshot) {
-        const convertedBeliefs: HRCMBelief[] = [
+    console.log('[HISTORY EFFECT] viewingHistory:', viewingHistory, 'historicalSnapshot:', !!historicalSnapshot);
+    
+    // ONLY run this effect when viewing history (NOT today)
+    if (!viewingHistory) {
+      console.log('[HISTORY EFFECT] ⏸️ Not viewing history - skipping');
+      return;
+    }
+    
+    // If snapshot exists, convert database fields to beliefs array format
+    if (historicalSnapshot) {
+      const convertedBeliefs: HRCMBelief[] = [
           {
             category: 'Health',
             currentRating: historicalSnapshot.currentH || 0,
@@ -630,20 +636,24 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           }
         });
         setUnifiedAssignment(combinedAssignments);
-      } else {
-        // No snapshot found (future date or no data for this date) - show blank
-        setBeliefs(getBlankBeliefs());
-        setUnifiedAssignment([]);
-      }
-      return;
+    } else {
+      // No snapshot found (future date or no data for this date) - show blank
+      setBeliefs(getBlankBeliefs());
+      setUnifiedAssignment([]);
     }
   }, [viewingHistory, historicalSnapshot, selectedHistoryDate, allWeeksData]);
 
   useEffect(() => {
-    console.log('[FRONTEND DEBUG] useEffect triggered - weekData:', weekData);
-    console.log('[FRONTEND DEBUG] weekData?.beliefs:', weekData?.beliefs);
-    console.log('[FRONTEND DEBUG] viewingHistory:', viewingHistory);
-    console.log('[FRONTEND DEBUG] currentDateStr:', currentDateStr);
+    console.log('[TODAY EFFECT] weekData:', weekData);
+    console.log('[TODAY EFFECT] weekData?.beliefs:', weekData?.beliefs);
+    console.log('[TODAY EFFECT] viewingHistory:', viewingHistory);
+    console.log('[TODAY EFFECT] currentDateStr:', currentDateStr);
+    
+    // CRITICAL: Only process weekData when NOT in history mode
+    if (viewingHistory) {
+      console.log('[TODAY EFFECT] ⏸️ Skipping - in history mode');
+      return; // Let the history effect handle it
+    }
     
     // Priority: Use actual database data if available, otherwise use demo/blank template
     if (weekData?.beliefs) {
@@ -707,9 +717,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         }
       });
       setUnifiedAssignment(combinedAssignments);
-    } else {
-      console.log('[FRONTEND DEBUG] No weekData - using template with DYNAMIC platinum standards');
-      // No database data - use template with DYNAMIC platinum standards from database
+    } else if (weekData === null) {
+      // Explicitly null from server (no data for this date) - show blank
+      console.log('[TODAY EFFECT] ⚠️ weekData is null - showing blank template');
       const dynamicBeliefs: HRCMBelief[] = [
         {
           category: 'Health' as const,
@@ -775,8 +785,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       
       setBeliefs(dynamicBeliefs);
       setUnifiedAssignment([]);
+    } else {
+      // weekData is undefined (still loading) - don't change anything
+      console.log('[TODAY EFFECT] ⏳ weekData is undefined - still loading, keeping current state');
     }
-  }, [weekNumber, weekData, ratingCaps, platinumStandardsData]);
+  }, [weekData, platinumStandardsData, viewingHistory]);
   // FIXED: Added platinumStandardsData to deps to auto-update when admin adds new standards
 
   const weeklyProgress = beliefs.length > 0
