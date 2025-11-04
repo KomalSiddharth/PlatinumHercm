@@ -2652,7 +2652,7 @@ export default function AdminPanel() {
                       />
                     </div>
                     <Button 
-                      className="w-full" 
+                      className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold" 
                       onClick={() => {
                         if (!recUserEmail || !recCourseName) {
                           toast({ title: "Missing Fields", description: "Please fill in email and course name", variant: "destructive" });
