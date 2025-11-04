@@ -2293,311 +2293,115 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   </div>
                 </TableCell>
 
-                {/* Current Week - Problems */}
+                {/* Current Week - Problems (Checkpoint System) */}
                 <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top">
-                  {belief.problems && belief.problems.length > 0 ? (
-                    <HoverCard 
-                      openDelay={200}
-                      onOpenChange={(isOpen) => handleHoverClose(isOpen, belief.category, 'problems')}
-                    >
-                      <HoverCardTrigger asChild>
-                        <div className="cursor-pointer">
-                          <Input
-                            type="text"
-                            value={belief.problems}
-                            readOnly
-                            className="text-xs cursor-pointer bg-white dark:bg-gray-950"
-                            data-testid={`text-problems-${belief.category.toLowerCase()}`}
-                          />
-                        </div>
-                      </HoverCardTrigger>
-                      <HoverCardContent 
-                        side="top" 
-                        align="center" 
-                        className="w-96 bg-gradient-to-br from-coral-red/10 via-white to-coral-red/5 dark:from-coral-red/20 dark:via-gray-900 dark:to-coral-red/10 border-2 border-coral-red/30 z-[100]"
-                      >
-                        <div className="space-y-2">
-                          <h4 className="text-sm font-semibold text-coral-red">Results</h4>
-                          {viewingHistory || isAdminView ? (
-                            <p className="text-sm text-foreground whitespace-pre-wrap break-words">{belief.problems}</p>
-                          ) : (
-                            hoverEditingField?.category === belief.category && hoverEditingField?.field === 'problems' ? (
-                              <Textarea
-                                value={hoverEditValue}
-                                onChange={(e) => setHoverEditValue(e.target.value)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter' && !e.shiftKey) {
-                                    e.preventDefault();
-                                    saveHoverEdit();
-                                  }
-                                }}
-                                onBlur={() => {
-                                  // Auto-save on blur (unfocus)
-                                  saveHoverEdit();
-                                }}
-                                onFocus={(e) => {
-                                  const length = e.target.value.length;
-                                  e.target.setSelectionRange(length, length);
-                                }}
-                                className="text-sm min-h-[100px] resize-none overflow-hidden"
-                                placeholder="Click to edit..."
-                                autoFocus
-                                data-testid={`textarea-hover-problems-${belief.category.toLowerCase()}`}
-                              />
-                            ) : (
-                              <p 
-                                className="text-sm text-foreground whitespace-pre-wrap break-words cursor-text hover:bg-accent/5 p-2 rounded"
-                                onClick={() => startHoverEdit(belief.category, 'problems', belief.problems)}
-                                data-testid={`text-hover-problems-${belief.category.toLowerCase()}`}
-                              >
-                                {belief.problems}
-                              </p>
-                            )
-                          )}
-                        </div>
-                      </HoverCardContent>
-                    </HoverCard>
-                  ) : (
-                    <Input
-                      type="text"
-                      value={belief.problems || ''}
-                      onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'problems', belief.problems || '', 'Results', 'coral-red')}
-                      readOnly
-                      className="text-xs cursor-pointer bg-white dark:bg-gray-950"
-                      placeholder="Click to add..."
-                      data-testid={`text-problems-${belief.category.toLowerCase()}`}
+                  {belief.problemsChecklist && belief.problemsChecklist.length > 0 ? (
+                    <CompactChecklistView
+                      items={belief.problemsChecklist}
+                      onToggle={(itemId) => handleProblemsChecklistToggle(belief.category, itemId)}
+                      onUpdateText={(itemId, text) => handleUpdateCheckpointText(belief.category, itemId, text, 'problems')}
+                      onAddCheckpoint={(text) => handleAddCheckpoint(belief.category, 'problems', text)}
+                      onDeleteCheckpoint={(itemId) => handleDeleteCheckpoint(belief.category, itemId, 'problems')}
+                      category={belief.category}
+                      checklistType="problems"
+                      disabled={viewingHistory || isAdminView}
                     />
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => !viewingHistory && !isAdminView && handleShowFirstCheckpointDialog(belief.category, 'problems')}
+                      className="h-7 w-full text-xs text-muted-foreground hover:text-foreground gap-1 justify-start"
+                      disabled={viewingHistory || isAdminView}
+                      data-testid={`button-add-first-checkpoint-problems-${belief.category.toLowerCase()}`}
+                    >
+                      <Plus className="w-3 h-3" />
+                      Add Checkpoint
+                    </Button>
                   )}
                 </TableCell>
 
-                {/* Current Week - Feelings */}
-                <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top">
-                  {belief.currentFeelings && belief.currentFeelings.length > 0 ? (
-                    <HoverCard 
-                      openDelay={200}
-                      onOpenChange={(isOpen) => handleHoverClose(isOpen, belief.category, 'currentFeelings')}
-                    >
-                      <HoverCardTrigger asChild>
-                        <div className="cursor-pointer">
-                          <Input
-                            type="text"
-                            value={belief.currentFeelings}
-                            readOnly
-                            className="text-xs cursor-pointer bg-white dark:bg-gray-950"
-                            data-testid={`text-feelings-${belief.category.toLowerCase()}`}
-                          />
-                        </div>
-                      </HoverCardTrigger>
-                      <HoverCardContent 
-                        side="top" 
-                        align="center" 
-                        className="w-96 bg-gradient-to-br from-emerald-green/10 via-white to-emerald-green/5 dark:from-emerald-green/20 dark:via-gray-900 dark:to-emerald-green/10 border-2 border-emerald-green/30 z-[100]"
-                      >
-                        <div className="space-y-2">
-                          <h4 className="text-sm font-semibold text-emerald-green">Feelings</h4>
-                          {viewingHistory || isAdminView ? (
-                            <p className="text-sm text-foreground whitespace-pre-wrap break-words">{belief.currentFeelings}</p>
-                          ) : (
-                            hoverEditingField?.category === belief.category && hoverEditingField?.field === 'currentFeelings' ? (
-                              <Textarea
-                                value={hoverEditValue}
-                                onChange={(e) => setHoverEditValue(e.target.value)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter' && !e.shiftKey) {
-                                    e.preventDefault();
-                                    saveHoverEdit();
-                                  }
-                                }}
-                                onBlur={() => {
-                                  // Auto-save on blur (unfocus)
-                                  saveHoverEdit();
-                                }}
-                                onFocus={(e) => {
-                                  const length = e.target.value.length;
-                                  e.target.setSelectionRange(length, length);
-                                }}
-                                className="text-sm min-h-[100px] resize-none overflow-hidden"
-                                placeholder="Click to edit..."
-                                autoFocus
-                                data-testid={`textarea-hover-feelings-${belief.category.toLowerCase()}`}
-                              />
-                            ) : (
-                              <p 
-                                className="text-sm text-foreground whitespace-pre-wrap break-words cursor-text hover:bg-accent/5 p-2 rounded"
-                                onClick={() => startHoverEdit(belief.category, 'currentFeelings', belief.currentFeelings)}
-                                data-testid={`text-hover-feelings-${belief.category.toLowerCase()}`}
-                              >
-                                {belief.currentFeelings}
-                              </p>
-                            )
-                          )}
-                        </div>
-                      </HoverCardContent>
-                    </HoverCard>
-                  ) : (
-                    <Input
-                      type="text"
-                      value={belief.currentFeelings || ''}
-                      onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'currentFeelings', belief.currentFeelings || '', 'Feelings', 'emerald-green')}
-                      readOnly
-                      className="text-xs cursor-pointer bg-white dark:bg-gray-950"
-                      placeholder="Click to add..."
-                      data-testid={`text-feelings-${belief.category.toLowerCase()}`}
+                {/* Current Week - Feelings (Checkpoint System) */}
+                <TableCell className="p-2 bg-emerald-green/5 dark:bg-emerald-green/10 align-top">
+                  {belief.feelingsCurrentChecklist && belief.feelingsCurrentChecklist.length > 0 ? (
+                    <CompactChecklistView
+                      items={belief.feelingsCurrentChecklist}
+                      onToggle={(itemId) => handleFeelingsCurrentChecklistToggle(belief.category, itemId)}
+                      onUpdateText={(itemId, text) => handleUpdateCheckpointText(belief.category, itemId, text, 'feelingsCurrent')}
+                      onAddCheckpoint={(text) => handleAddCheckpoint(belief.category, 'feelingsCurrent', text)}
+                      onDeleteCheckpoint={(itemId) => handleDeleteCheckpoint(belief.category, itemId, 'feelingsCurrent')}
+                      category={belief.category}
+                      checklistType="feelingsCurrent"
+                      disabled={viewingHistory || isAdminView}
                     />
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => !viewingHistory && !isAdminView && handleShowFirstCheckpointDialog(belief.category, 'feelingsCurrent')}
+                      className="h-7 w-full text-xs text-muted-foreground hover:text-foreground gap-1 justify-start"
+                      disabled={viewingHistory || isAdminView}
+                      data-testid={`button-add-first-checkpoint-feelings-${belief.category.toLowerCase()}`}
+                    >
+                      <Plus className="w-3 h-3" />
+                      Add Checkpoint
+                    </Button>
                   )}
                 </TableCell>
 
-                {/* Current Week - Beliefs */}
-                <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top">
-                  {belief.currentBelief && belief.currentBelief.length > 0 ? (
-                    <HoverCard 
-                      openDelay={200}
-                      onOpenChange={(isOpen) => handleHoverClose(isOpen, belief.category, 'currentBelief')}
-                    >
-                      <HoverCardTrigger asChild>
-                        <div className="cursor-pointer">
-                          <Input
-                            type="text"
-                            value={belief.currentBelief}
-                            readOnly
-                            className="text-xs cursor-pointer bg-white dark:bg-gray-950"
-                            data-testid={`text-beliefs-${belief.category.toLowerCase()}`}
-                          />
-                        </div>
-                      </HoverCardTrigger>
-                      <HoverCardContent 
-                        side="top" 
-                        align="center" 
-                        className="w-96 bg-gradient-to-br from-golden-yellow/10 via-white to-golden-yellow/5 dark:from-golden-yellow/20 dark:via-gray-900 dark:to-golden-yellow/10 border-2 border-golden-yellow/30 z-[100]"
-                      >
-                        <div className="space-y-2">
-                          <h4 className="text-sm font-semibold text-golden-yellow">Beliefs/Reasons</h4>
-                          {viewingHistory || isAdminView ? (
-                            <p className="text-sm text-foreground whitespace-pre-wrap break-words">{belief.currentBelief}</p>
-                          ) : (
-                            hoverEditingField?.category === belief.category && hoverEditingField?.field === 'currentBelief' ? (
-                              <Textarea
-                                value={hoverEditValue}
-                                onChange={(e) => setHoverEditValue(e.target.value)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter' && !e.shiftKey) {
-                                    e.preventDefault();
-                                    saveHoverEdit();
-                                  }
-                                }}
-                                onBlur={() => {
-                                  // Auto-save on blur (unfocus)
-                                  saveHoverEdit();
-                                }}
-                                onFocus={(e) => {
-                                  const length = e.target.value.length;
-                                  e.target.setSelectionRange(length, length);
-                                }}
-                                className="text-sm min-h-[100px] resize-none overflow-hidden"
-                                placeholder="Click to edit..."
-                                autoFocus
-                                data-testid={`textarea-hover-beliefs-${belief.category.toLowerCase()}`}
-                              />
-                            ) : (
-                              <p 
-                                className="text-sm text-foreground whitespace-pre-wrap break-words cursor-text hover:bg-accent/5 p-2 rounded"
-                                onClick={() => startHoverEdit(belief.category, 'currentBelief', belief.currentBelief)}
-                                data-testid={`text-hover-beliefs-${belief.category.toLowerCase()}`}
-                              >
-                                {belief.currentBelief}
-                              </p>
-                            )
-                          )}
-                        </div>
-                      </HoverCardContent>
-                    </HoverCard>
-                  ) : (
-                    <Input
-                      type="text"
-                      value={belief.currentBelief || ''}
-                      onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'currentBelief', belief.currentBelief || '', 'Beliefs/Reasons', 'golden-yellow')}
-                      readOnly
-                      className="text-xs cursor-pointer bg-white dark:bg-gray-950"
-                      placeholder="Click to add..."
-                      data-testid={`text-beliefs-${belief.category.toLowerCase()}`}
+                {/* Current Week - Beliefs (Checkpoint System) */}
+                <TableCell className="p-2 bg-golden-yellow/5 dark:bg-golden-yellow/10 align-top">
+                  {belief.beliefsCurrentChecklist && belief.beliefsCurrentChecklist.length > 0 ? (
+                    <CompactChecklistView
+                      items={belief.beliefsCurrentChecklist}
+                      onToggle={(itemId) => handleBeliefsCurrentChecklistToggle(belief.category, itemId)}
+                      onUpdateText={(itemId, text) => handleUpdateCheckpointText(belief.category, itemId, text, 'beliefsCurrent')}
+                      onAddCheckpoint={(text) => handleAddCheckpoint(belief.category, 'beliefsCurrent', text)}
+                      onDeleteCheckpoint={(itemId) => handleDeleteCheckpoint(belief.category, itemId, 'beliefsCurrent')}
+                      category={belief.category}
+                      checklistType="beliefsCurrent"
+                      disabled={viewingHistory || isAdminView}
                     />
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => !viewingHistory && !isAdminView && handleShowFirstCheckpointDialog(belief.category, 'beliefsCurrent')}
+                      className="h-7 w-full text-xs text-muted-foreground hover:text-foreground gap-1 justify-start"
+                      disabled={viewingHistory || isAdminView}
+                      data-testid={`button-add-first-checkpoint-beliefs-${belief.category.toLowerCase()}`}
+                    >
+                      <Plus className="w-3 h-3" />
+                      Add Checkpoint
+                    </Button>
                   )}
                 </TableCell>
 
-                {/* Current Week - Actions */}
-                <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 border-r align-top">
-                  {belief.currentActions && belief.currentActions.length > 0 ? (
-                    <HoverCard 
-                      openDelay={200}
-                      onOpenChange={(isOpen) => handleHoverClose(isOpen, belief.category, 'currentActions')}
-                    >
-                      <HoverCardTrigger asChild>
-                        <div className="cursor-pointer">
-                          <Input
-                            type="text"
-                            value={belief.currentActions}
-                            readOnly
-                            className="text-xs cursor-pointer bg-white dark:bg-gray-950"
-                            data-testid={`text-actions-${belief.category.toLowerCase()}`}
-                          />
-                        </div>
-                      </HoverCardTrigger>
-                      <HoverCardContent 
-                        side="top" 
-                        align="center" 
-                        className="w-96 bg-gradient-to-br from-soft-lavender/20 via-white to-soft-lavender/10 dark:from-soft-lavender/30 dark:via-gray-900 dark:to-soft-lavender/15 border-2 border-soft-lavender/40 z-[100]"
-                      >
-                        <div className="space-y-2">
-                          <h4 className="text-sm font-semibold text-soft-lavender">Actions</h4>
-                          {viewingHistory || isAdminView ? (
-                            <p className="text-sm text-foreground whitespace-pre-wrap break-words">{belief.currentActions}</p>
-                          ) : (
-                            hoverEditingField?.category === belief.category && hoverEditingField?.field === 'currentActions' ? (
-                              <Textarea
-                                value={hoverEditValue}
-                                onChange={(e) => setHoverEditValue(e.target.value)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter' && !e.shiftKey) {
-                                    e.preventDefault();
-                                    saveHoverEdit();
-                                  }
-                                }}
-                                onBlur={() => {
-                                  // Auto-save on blur (unfocus)
-                                  saveHoverEdit();
-                                }}
-                                onFocus={(e) => {
-                                  const length = e.target.value.length;
-                                  e.target.setSelectionRange(length, length);
-                                }}
-                                className="text-sm min-h-[100px] resize-none overflow-hidden"
-                                placeholder="Click to edit..."
-                                autoFocus
-                                data-testid={`textarea-hover-actions-${belief.category.toLowerCase()}`}
-                              />
-                            ) : (
-                              <p 
-                                className="text-sm text-foreground whitespace-pre-wrap break-words cursor-text hover:bg-accent/5 p-2 rounded"
-                                onClick={() => startHoverEdit(belief.category, 'currentActions', belief.currentActions)}
-                                data-testid={`text-hover-actions-${belief.category.toLowerCase()}`}
-                              >
-                                {belief.currentActions}
-                              </p>
-                            )
-                          )}
-                        </div>
-                      </HoverCardContent>
-                    </HoverCard>
-                  ) : (
-                    <Input
-                      type="text"
-                      value={belief.currentActions || ''}
-                      onClick={() => !viewingHistory && !isAdminView && openEditDialog(belief.category, 'currentActions', belief.currentActions || '', 'Actions', 'soft-lavender')}
-                      readOnly
-                      className="text-xs cursor-pointer bg-white dark:bg-gray-950"
-                      placeholder="Click to add..."
-                      data-testid={`text-actions-${belief.category.toLowerCase()}`}
+                {/* Current Week - Actions (Checkpoint System) */}
+                <TableCell className="p-2 bg-soft-lavender/5 dark:bg-soft-lavender/10 border-r align-top">
+                  {belief.actionsCurrentChecklist && belief.actionsCurrentChecklist.length > 0 ? (
+                    <CompactChecklistView
+                      items={belief.actionsCurrentChecklist}
+                      onToggle={(itemId) => handleActionsCurrentChecklistToggle(belief.category, itemId)}
+                      onUpdateText={(itemId, text) => handleUpdateCheckpointText(belief.category, itemId, text, 'actionsCurrent')}
+                      onAddCheckpoint={(text) => handleAddCheckpoint(belief.category, 'actionsCurrent', text)}
+                      onDeleteCheckpoint={(itemId) => handleDeleteCheckpoint(belief.category, itemId, 'actionsCurrent')}
+                      category={belief.category}
+                      checklistType="actionsCurrent"
+                      disabled={viewingHistory || isAdminView}
                     />
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => !viewingHistory && !isAdminView && handleShowFirstCheckpointDialog(belief.category, 'actionsCurrent')}
+                      className="h-7 w-full text-xs text-muted-foreground hover:text-foreground gap-1 justify-start"
+                      disabled={viewingHistory || isAdminView}
+                      data-testid={`button-add-first-checkpoint-actions-${belief.category.toLowerCase()}`}
+                    >
+                      <Plus className="w-3 h-3" />
+                      Add Checkpoint
+                    </Button>
                   )}
                 </TableCell>
 
