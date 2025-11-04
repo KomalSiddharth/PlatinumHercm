@@ -1071,9 +1071,9 @@ export default function AdminPanel() {
         </div>
 
         {/* Admin Panel Content with Vertical Sidebar */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 flex flex-row overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 flex flex-row overflow-hidden min-h-[600px]">
           {/* Left Vertical Sidebar - Tabs */}
-          <div className="w-64 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+          <div className="w-64 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 overflow-y-auto">
             <div className="flex flex-col p-4 space-y-1">
               <button 
                 onClick={() => setActiveTab('analytics')}
