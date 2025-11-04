@@ -1041,6 +1041,29 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
         console.log(`   ⚠️  "Platinum Healing Sessions" course not found`);
       }
       
+      // Find and add "DMP - Daily Magic Practice Recordings" course
+      const dmpCourseIndex = courses.findIndex((c, idx) => {
+        if (idx === platinumChallengeCourseIndex) return false; // Skip the main course itself
+        const title = c.title.toLowerCase();
+        return title.includes('dmp') && title.includes('daily') && title.includes('magic') && title.includes('practice');
+      });
+      
+      if (dmpCourseIndex !== -1) {
+        const dmpCourse = courses[dmpCourseIndex];
+        console.log(`📦 Adding "${dmpCourse.title}" as subcategory of "${platinumChallengeCourse.title}" (${dmpCourse.lessons.length} lessons)`);
+        
+        platinumChallengeCourse.subcategories.push({
+          id: 'dmp-daily-magic-practice-recordings',
+          title: 'DMP - Daily Magic Practice Recordings',
+          lessons: dmpCourse.lessons
+        });
+        
+        coursesToAddAsSubcategories.push(dmpCourseIndex);
+        console.log(`   ✅ Added "DMP - Daily Magic Practice Recordings" as subcategory with ${dmpCourse.lessons.length} lessons`);
+      } else {
+        console.log(`   ⚠️  "DMP - Daily Magic Practice Recordings" course not found`);
+      }
+      
       // Remove all added subcategories from main course list in reverse order
       for (let i = coursesToAddAsSubcategories.length - 1; i >= 0; i--) {
         courses.splice(coursesToAddAsSubcategories[i], 1);
