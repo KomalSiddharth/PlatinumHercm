@@ -197,10 +197,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // NOT FUTURE (Past or Today) - Show data
-      // Step 1: Try exact date match using dateString from SQL
+      // IMPROVED SEARCH LOGIC for Google-level performance:
+      // Step 1: Try exact dateString match (fastest, most accurate)
       const exactMatchWeeks = allWeeks.filter((week: any) => {
         const isMatch = week.dateString === requestedDate;
-        console.log(`[HERCM BY-DATE] Comparing ${week.dateString} === ${requestedDate}: ${isMatch}`);
+        console.log(`[HERCM BY-DATE] Exact match check: ${week.dateString} === ${requestedDate}: ${isMatch}`);
         return isMatch;
       });
       
@@ -208,14 +209,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (exactMatchWeeks.length > 0) {
         // Found exact match - return most recent entry for that date
-        console.log(`[BY-DATE DEBUG] Exact match found for ${requestedDate}`);
+        console.log(`[BY-DATE DEBUG] ✅ Exact dateString match found for ${requestedDate}`);
         week = exactMatchWeeks.sort((a: any, b: any) => 
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         )[0];
       } else {
-        // No exact match - return NULL (show blank table for dates without data)
-        console.log(`[BY-DATE DEBUG] No exact match for ${requestedDate}, returning null (blank table)`);
-        return res.json(null);
+        // Step 2: FALLBACK - Use createdAt to find data created on the requested date
+        // This ensures ALL historical data is accessible even if dateString wasn't set properly
+        console.log(`[BY-DATE DEBUG] No exact dateString match, trying createdAt fallback...`);
+        
+        const requestedDateStart = new Date(requestedDate);
+        requestedDateStart.setHours(0, 0, 0, 0);
+        
+        const requestedDateEnd = new Date(requestedDate);
+        requestedDateEnd.setHours(23, 59, 59, 999);
+        
+        const createdAtMatches = allWeeks.filter((week: any) => {
+          if (!week.createdAt) return false;
+          const createdDate = new Date(week.createdAt);
+          const isInRange = createdDate >= requestedDateStart && createdDate <= requestedDateEnd;
+          if (isInRange) {
+            console.log(`[BY-DATE DEBUG] ✅ createdAt match: ${week.createdAt} is on ${requestedDate}`);
+          }
+          return isInRange;
+        });
+        
+        if (createdAtMatches.length > 0) {
+          // Found data created on this date - return most recent
+          console.log(`[BY-DATE DEBUG] ✅ Found ${createdAtMatches.length} entries via createdAt for ${requestedDate}`);
+          week = createdAtMatches.sort((a: any, b: any) => 
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          )[0];
+        } else {
+          // No data found for this date - return null (blank table)
+          console.log(`[BY-DATE DEBUG] ❌ No data found for ${requestedDate} (checked dateString and createdAt)`);
+          return res.json(null);
+        }
       }
       
       console.log(`[BY-DATE DEBUG] Selected week - createdAt: ${week.createdAt}, healthProblems: ${week.healthProblems}, healthCurrentFeelings: ${week.healthCurrentFeelings}`);
@@ -2454,28 +2483,56 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         console.log(`[ADMIN HERCM BY-DATE] Week ${index + 1}: dateString=${week.dateString}, weekNumber=${week.weekNumber}, healthProblems=${week.healthProblems?.substring(0, 50) || 'empty'}`);
       });
       
-      // EXACT DATE MATCHING ONLY (same as user route)
+      // IMPROVED SEARCH LOGIC for Google-level performance (same as user route)
+      // Step 1: Try exact dateString match (fastest, most accurate)
       const exactMatchWeeks = allWeeks.filter((week: any) => {
         const isMatch = week.dateString === requestedDate;
-        console.log(`[ADMIN HERCM BY-DATE] Comparing ${week.dateString} === ${requestedDate}: ${isMatch}`);
+        console.log(`[ADMIN HERCM BY-DATE] Exact match check: ${week.dateString} === ${requestedDate}: ${isMatch}`);
         return isMatch;
       });
-      
-      console.log(`[ADMIN HERCM BY-DATE] Exact matches found: ${exactMatchWeeks.length}`);
       
       let week;
       
       if (exactMatchWeeks.length > 0) {
         // Found exact match - return most recent entry for that date
+        console.log(`[ADMIN HERCM BY-DATE] ✅ Exact dateString match found for ${requestedDate}`);
         week = exactMatchWeeks.sort((a: any, b: any) => 
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         )[0];
-        console.log(`[ADMIN HERCM BY-DATE] Selected week - healthProblems: ${week.healthProblems?.substring(0, 100) || 'empty'}`);
       } else {
-        // No exact match - return NULL (show blank table for dates without data)
-        console.log(`[ADMIN HERCM BY-DATE] No exact match for ${requestedDate}, returning null`);
-        return res.json(null);
+        // Step 2: FALLBACK - Use createdAt to find data created on the requested date
+        console.log(`[ADMIN HERCM BY-DATE] No exact dateString match, trying createdAt fallback...`);
+        
+        const requestedDateStart = new Date(requestedDate);
+        requestedDateStart.setHours(0, 0, 0, 0);
+        
+        const requestedDateEnd = new Date(requestedDate);
+        requestedDateEnd.setHours(23, 59, 59, 999);
+        
+        const createdAtMatches = allWeeks.filter((week: any) => {
+          if (!week.createdAt) return false;
+          const createdDate = new Date(week.createdAt);
+          const isInRange = createdDate >= requestedDateStart && createdDate <= requestedDateEnd;
+          if (isInRange) {
+            console.log(`[ADMIN HERCM BY-DATE] ✅ createdAt match: ${week.createdAt} is on ${requestedDate}`);
+          }
+          return isInRange;
+        });
+        
+        if (createdAtMatches.length > 0) {
+          // Found data created on this date - return most recent
+          console.log(`[ADMIN HERCM BY-DATE] ✅ Found ${createdAtMatches.length} entries via createdAt for ${requestedDate}`);
+          week = createdAtMatches.sort((a: any, b: any) => 
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          )[0];
+        } else {
+          // No data found for this date - return null (blank table)
+          console.log(`[ADMIN HERCM BY-DATE] ❌ No data found for ${requestedDate} (checked dateString and createdAt)`);
+          return res.json(null);
+        }
       }
+      
+      console.log(`[ADMIN HERCM BY-DATE] Selected week - healthProblems: ${week.healthProblems?.substring(0, 100) || 'empty'}`);
       
       // Transform to beliefs format
       const beliefs = [
