@@ -359,6 +359,10 @@ export default function EmotionalTracker() {
                                       saveHoverEdit();
                                     }
                                   }}
+                                  onBlur={() => {
+                                    // Auto-save on blur
+                                    saveHoverEdit();
+                                  }}
                                   onFocus={(e) => {
                                     const length = e.target.value.length;
                                     e.target.setSelectionRange(length, length);
@@ -426,6 +430,10 @@ export default function EmotionalTracker() {
                                       e.preventDefault();
                                       saveHoverEdit();
                                     }
+                                  }}
+                                  onBlur={() => {
+                                    // Auto-save on blur
+                                    saveHoverEdit();
                                   }}
                                   onFocus={(e) => {
                                     const length = e.target.value.length;
@@ -495,6 +503,10 @@ export default function EmotionalTracker() {
                                       saveHoverEdit();
                                     }
                                   }}
+                                  onBlur={() => {
+                                    // Auto-save on blur
+                                    saveHoverEdit();
+                                  }}
                                   onFocus={(e) => {
                                     const length = e.target.value.length;
                                     e.target.setSelectionRange(length, length);
@@ -562,6 +574,10 @@ export default function EmotionalTracker() {
                                       e.preventDefault();
                                       saveHoverEdit();
                                     }
+                                  }}
+                                  onBlur={() => {
+                                    // Auto-save on blur
+                                    saveHoverEdit();
                                   }}
                                   onFocus={(e) => {
                                     const length = e.target.value.length;
