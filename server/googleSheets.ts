@@ -971,29 +971,60 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
         return title.includes('webinar') && title.includes('recordings');
       });
       
+      // Initialize subcategories if not present
+      if (!platinumChallengeCourse.subcategories) {
+        platinumChallengeCourse.subcategories = [];
+      }
+      
+      const coursesToAddAsSubcategories: number[] = [];
+      
+      // Find and add "All My Webinar Recordings" course
       if (webinarCourseIndex !== -1) {
         const webinarCourse = courses[webinarCourseIndex];
         console.log(`📦 Adding "${webinarCourse.title}" as subcategory of "${platinumChallengeCourse.title}" (${webinarCourse.lessons.length} lessons)`);
         
-        // Initialize subcategories if not present
-        if (!platinumChallengeCourse.subcategories) {
-          platinumChallengeCourse.subcategories = [];
-        }
-        
-        // Add as subcategory
-        const subcategoryId = 'all-my-webinar-recordings';
         platinumChallengeCourse.subcategories.push({
-          id: subcategoryId,
+          id: 'all-my-webinar-recordings',
           title: 'All My Webinar Recordings',
           lessons: webinarCourse.lessons
         });
         
-        // Remove from main course list
-        courses.splice(webinarCourseIndex, 1);
-        
+        coursesToAddAsSubcategories.push(webinarCourseIndex);
         console.log(`   ✅ Added "All My Webinar Recordings" as subcategory with ${webinarCourse.lessons.length} lessons`);
       } else {
         console.log(`   ⚠️  "All My Webinar Recordings" course not found`);
+      }
+      
+      // Find and add "Platinum Membership 5 Days Challenge" course
+      const membershipChallengeCourseIndex = courses.findIndex((c, idx) => {
+        if (idx === platinumChallengeCourseIndex) return false; // Skip the main course itself
+        const title = c.title.toLowerCase();
+        return title.includes('platinum') && title.includes('membership') && title.includes('5 days') && title.includes('challenge');
+      });
+      
+      if (membershipChallengeCourseIndex !== -1) {
+        const membershipChallengeCourse = courses[membershipChallengeCourseIndex];
+        console.log(`📦 Adding "${membershipChallengeCourse.title}" as subcategory of "${platinumChallengeCourse.title}" (${membershipChallengeCourse.lessons.length} lessons)`);
+        
+        platinumChallengeCourse.subcategories.push({
+          id: 'platinum-membership-5-days-challenge',
+          title: 'Platinum Membership 5 Days Challenge',
+          lessons: membershipChallengeCourse.lessons
+        });
+        
+        coursesToAddAsSubcategories.push(membershipChallengeCourseIndex);
+        console.log(`   ✅ Added "Platinum Membership 5 Days Challenge" as subcategory with ${membershipChallengeCourse.lessons.length} lessons`);
+      } else {
+        console.log(`   ⚠️  "Platinum Membership 5 Days Challenge" course not found`);
+      }
+      
+      // Remove all added subcategories from main course list in reverse order
+      for (let i = coursesToAddAsSubcategories.length - 1; i >= 0; i--) {
+        courses.splice(coursesToAddAsSubcategories[i], 1);
+      }
+      
+      if (platinumChallengeCourse.subcategories.length > 0) {
+        console.log(`✅ Added ${platinumChallengeCourse.subcategories.length} subcategories to "My 5 Days Platinum Challenge Recordings"`);
       }
     } else {
       console.log('⚠️  "My 5 Days Platinum Challenge Recordings" course not found');
