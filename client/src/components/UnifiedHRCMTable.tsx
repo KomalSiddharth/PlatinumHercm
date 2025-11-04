@@ -308,8 +308,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
   // 🔥 GOOGLE-LEVEL DATE NAVIGATION - Instant, Smooth, No Glitches!
   const handleDateChange = async (newDate: Date) => {
-    const dateStr = newDate.toISOString().split('T')[0];
-    const todayStr = new Date().toISOString().split('T')[0];
+    // CRITICAL: Use LOCAL timezone for date strings, NOT UTC!
+    // toISOString() uses UTC which causes timezone bugs (IST 2 AM Nov 4 = UTC Nov 3)
+    const dateStr = `${newDate.getFullYear()}-${String(newDate.getMonth() + 1).padStart(2, '0')}-${String(newDate.getDate()).padStart(2, '0')}`;
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     
     console.log(`[🔥 DATE CHANGE] Switching to: ${dateStr} from current: ${currentDateStr}`);
     
