@@ -953,6 +953,52 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
       console.log('⚠️  Platinum Fast Track course not found');
     }
 
+    // Add "All My Webinar Recordings" as subcategory of "My 5 Days Platinum Challenge Recordings"
+    const platinumChallengeCourseIndex = courses.findIndex(c => 
+      c.title.toLowerCase().includes('5 days') && 
+      c.title.toLowerCase().includes('platinum') &&
+      c.title.toLowerCase().includes('challenge')
+    );
+
+    if (platinumChallengeCourseIndex !== -1) {
+      const platinumChallengeCourse = courses[platinumChallengeCourseIndex];
+      console.log(`🔍 Found "My 5 Days Platinum Challenge Recordings" course at index ${platinumChallengeCourseIndex}`);
+      
+      // Find "All My Webinar Recordings" course
+      const webinarCourseIndex = courses.findIndex((c, idx) => {
+        if (idx === platinumChallengeCourseIndex) return false; // Skip the main course itself
+        const title = c.title.toLowerCase();
+        return title.includes('webinar') && title.includes('recordings');
+      });
+      
+      if (webinarCourseIndex !== -1) {
+        const webinarCourse = courses[webinarCourseIndex];
+        console.log(`📦 Adding "${webinarCourse.title}" as subcategory of "${platinumChallengeCourse.title}" (${webinarCourse.lessons.length} lessons)`);
+        
+        // Initialize subcategories if not present
+        if (!platinumChallengeCourse.subcategories) {
+          platinumChallengeCourse.subcategories = [];
+        }
+        
+        // Add as subcategory
+        const subcategoryId = 'all-my-webinar-recordings';
+        platinumChallengeCourse.subcategories.push({
+          id: subcategoryId,
+          title: 'All My Webinar Recordings',
+          lessons: webinarCourse.lessons
+        });
+        
+        // Remove from main course list
+        courses.splice(webinarCourseIndex, 1);
+        
+        console.log(`   ✅ Added "All My Webinar Recordings" as subcategory with ${webinarCourse.lessons.length} lessons`);
+      } else {
+        console.log(`   ⚠️  "All My Webinar Recordings" course not found`);
+      }
+    } else {
+      console.log('⚠️  "My 5 Days Platinum Challenge Recordings" course not found');
+    }
+
     // Filter out "Relationship Mastery" course completely from the list
     const relationshipMasteryIndex = courses.findIndex(c => 
       c.title.toLowerCase().includes('relationship') && c.title.toLowerCase().includes('mastery')
