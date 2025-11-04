@@ -92,6 +92,11 @@ interface HRCMBelief {
   currentFeelings: string;
   currentBelief: string;
   currentActions: string;
+  // Current Week Checklists
+  problemsChecklist?: ChecklistItem[];
+  feelingsCurrentChecklist?: ChecklistItem[];
+  beliefsCurrentChecklist?: ChecklistItem[];
+  actionsCurrentChecklist?: ChecklistItem[];
   // Next Week Data
   targetRating: number;
   result: string;
@@ -265,7 +270,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [collapsedCourses, setCollapsedCourses] = useState<Set<string>>(new Set());
   const [showFirstCheckpointDialog, setShowFirstCheckpointDialog] = useState(false);
-  const [firstCheckpointData, setFirstCheckpointData] = useState<{ category: string; checklistType: 'result' | 'feelings' | 'beliefs' | 'actions'; text: string } | null>(null);
+  const [firstCheckpointData, setFirstCheckpointData] = useState<{ category: string; checklistType: 'result' | 'feelings' | 'beliefs' | 'actions' | 'problems' | 'feelingsCurrent' | 'beliefsCurrent' | 'actionsCurrent'; text: string } | null>(null);
   const [unifiedAssignment, setUnifiedAssignment] = useState<AssignmentLesson[]>([]);
   const [progressOpen, setProgressOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -1251,8 +1256,82 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     });
   };
 
+  // ======== CURRENT WEEK CHECKPOINT HANDLERS ========
+  
+  // Toggle problems checklist item (Current Week)
+  const handleProblemsChecklistToggle = (category: string, itemId: string) => {
+    setBeliefs(prev => {
+      const updated = prev.map(belief => {
+        if (belief.category === category && belief.problemsChecklist) {
+          const updatedChecklist = belief.problemsChecklist.map(item =>
+            item.id === itemId ? { ...item, checked: !item.checked } : item
+          );
+          return { ...belief, problemsChecklist: updatedChecklist };
+        }
+        return belief;
+      });
+      
+      saveWeekMutation.mutate({ weekNumber, year: new Date().getFullYear(), beliefs: updated });
+      return updated;
+    });
+  };
+
+  // Toggle feelings current checklist item (Current Week)
+  const handleFeelingsCurrentChecklistToggle = (category: string, itemId: string) => {
+    setBeliefs(prev => {
+      const updated = prev.map(belief => {
+        if (belief.category === category && belief.feelingsCurrentChecklist) {
+          const updatedChecklist = belief.feelingsCurrentChecklist.map(item =>
+            item.id === itemId ? { ...item, checked: !item.checked } : item
+          );
+          return { ...belief, feelingsCurrentChecklist: updatedChecklist };
+        }
+        return belief;
+      });
+      
+      saveWeekMutation.mutate({ weekNumber, year: new Date().getFullYear(), beliefs: updated });
+      return updated;
+    });
+  };
+
+  // Toggle beliefs current checklist item (Current Week)
+  const handleBeliefsCurrentChecklistToggle = (category: string, itemId: string) => {
+    setBeliefs(prev => {
+      const updated = prev.map(belief => {
+        if (belief.category === category && belief.beliefsCurrentChecklist) {
+          const updatedChecklist = belief.beliefsCurrentChecklist.map(item =>
+            item.id === itemId ? { ...item, checked: !item.checked } : item
+          );
+          return { ...belief, beliefsCurrentChecklist: updatedChecklist };
+        }
+        return belief;
+      });
+      
+      saveWeekMutation.mutate({ weekNumber, year: new Date().getFullYear(), beliefs: updated });
+      return updated;
+    });
+  };
+
+  // Toggle actions current checklist item (Current Week)
+  const handleActionsCurrentChecklistToggle = (category: string, itemId: string) => {
+    setBeliefs(prev => {
+      const updated = prev.map(belief => {
+        if (belief.category === category && belief.actionsCurrentChecklist) {
+          const updatedChecklist = belief.actionsCurrentChecklist.map(item =>
+            item.id === itemId ? { ...item, checked: !item.checked } : item
+          );
+          return { ...belief, actionsCurrentChecklist: updatedChecklist };
+        }
+        return belief;
+      });
+      
+      saveWeekMutation.mutate({ weekNumber, year: new Date().getFullYear(), beliefs: updated });
+      return updated;
+    });
+  };
+
   // Show dialog for first checkpoint
-  const handleShowFirstCheckpointDialog = (category: string, checklistType: 'result' | 'feelings' | 'beliefs' | 'actions') => {
+  const handleShowFirstCheckpointDialog = (category: string, checklistType: 'result' | 'feelings' | 'beliefs' | 'actions' | 'problems' | 'feelingsCurrent' | 'beliefsCurrent' | 'actionsCurrent') => {
     setFirstCheckpointData({ category, checklistType, text: '' });
     setShowFirstCheckpointDialog(true);
   };
@@ -1267,7 +1346,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   };
 
   // Add new checkpoint to a checklist
-  const handleAddCheckpoint = (category: string, checklistType: 'result' | 'feelings' | 'beliefs' | 'actions', text: string = '') => {
+  const handleAddCheckpoint = (category: string, checklistType: 'result' | 'feelings' | 'beliefs' | 'actions' | 'problems' | 'feelingsCurrent' | 'beliefsCurrent' | 'actionsCurrent', text: string = '') => {
     setBeliefs(prev => {
       const updated = prev.map(belief => {
         if (belief.category === category) {
@@ -1277,6 +1356,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             checked: false
           };
           
+          // Next Week Target checkpoints
           if (checklistType === 'result') {
             return { ...belief, resultChecklist: [...(belief.resultChecklist || []), newItem] };
           } else if (checklistType === 'feelings') {
@@ -1285,6 +1365,16 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             return { ...belief, beliefsChecklist: [...(belief.beliefsChecklist || []), newItem] };
           } else if (checklistType === 'actions') {
             return { ...belief, actionsChecklist: [...(belief.actionsChecklist || []), newItem] };
+          }
+          // Current Week checkpoints
+          else if (checklistType === 'problems') {
+            return { ...belief, problemsChecklist: [...(belief.problemsChecklist || []), newItem] };
+          } else if (checklistType === 'feelingsCurrent') {
+            return { ...belief, feelingsCurrentChecklist: [...(belief.feelingsCurrentChecklist || []), newItem] };
+          } else if (checklistType === 'beliefsCurrent') {
+            return { ...belief, beliefsCurrentChecklist: [...(belief.beliefsCurrentChecklist || []), newItem] };
+          } else if (checklistType === 'actionsCurrent') {
+            return { ...belief, actionsCurrentChecklist: [...(belief.actionsCurrentChecklist || []), newItem] };
           }
         }
         return belief;
@@ -1296,10 +1386,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   };
 
   // Update checkpoint text
-  const handleUpdateCheckpointText = (category: string, itemId: string, text: string, checklistType: 'result' | 'feelings' | 'beliefs' | 'actions') => {
+  const handleUpdateCheckpointText = (category: string, itemId: string, text: string, checklistType: 'result' | 'feelings' | 'beliefs' | 'actions' | 'problems' | 'feelingsCurrent' | 'beliefsCurrent' | 'actionsCurrent') => {
     setBeliefs(prev => {
       const updated = prev.map(belief => {
         if (belief.category === category) {
+          // Next Week Target checkpoints
           if (checklistType === 'result' && belief.resultChecklist) {
             const updatedChecklist = belief.resultChecklist.map(item =>
               item.id === itemId ? { ...item, text } : item
@@ -1321,6 +1412,28 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             );
             return { ...belief, actionsChecklist: updatedChecklist };
           }
+          // Current Week checkpoints
+          else if (checklistType === 'problems' && belief.problemsChecklist) {
+            const updatedChecklist = belief.problemsChecklist.map(item =>
+              item.id === itemId ? { ...item, text } : item
+            );
+            return { ...belief, problemsChecklist: updatedChecklist };
+          } else if (checklistType === 'feelingsCurrent' && belief.feelingsCurrentChecklist) {
+            const updatedChecklist = belief.feelingsCurrentChecklist.map(item =>
+              item.id === itemId ? { ...item, text } : item
+            );
+            return { ...belief, feelingsCurrentChecklist: updatedChecklist };
+          } else if (checklistType === 'beliefsCurrent' && belief.beliefsCurrentChecklist) {
+            const updatedChecklist = belief.beliefsCurrentChecklist.map(item =>
+              item.id === itemId ? { ...item, text } : item
+            );
+            return { ...belief, beliefsCurrentChecklist: updatedChecklist };
+          } else if (checklistType === 'actionsCurrent' && belief.actionsCurrentChecklist) {
+            const updatedChecklist = belief.actionsCurrentChecklist.map(item =>
+              item.id === itemId ? { ...item, text } : item
+            );
+            return { ...belief, actionsCurrentChecklist: updatedChecklist };
+          }
         }
         return belief;
       });
@@ -1331,10 +1444,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   };
 
   // Delete checkpoint
-  const handleDeleteCheckpoint = (category: string, itemId: string, checklistType: 'result' | 'feelings' | 'beliefs' | 'actions') => {
+  const handleDeleteCheckpoint = (category: string, itemId: string, checklistType: 'result' | 'feelings' | 'beliefs' | 'actions' | 'problems' | 'feelingsCurrent' | 'beliefsCurrent' | 'actionsCurrent') => {
     setBeliefs(prev => {
       const updated = prev.map(belief => {
         if (belief.category === category) {
+          // Next Week Target checkpoints
           if (checklistType === 'result' && belief.resultChecklist) {
             const updatedChecklist = belief.resultChecklist.filter(item => item.id !== itemId);
             return { ...belief, resultChecklist: updatedChecklist };
@@ -1347,6 +1461,20 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           } else if (checklistType === 'actions' && belief.actionsChecklist) {
             const updatedChecklist = belief.actionsChecklist.filter(item => item.id !== itemId);
             return { ...belief, actionsChecklist: updatedChecklist };
+          }
+          // Current Week checkpoints
+          else if (checklistType === 'problems' && belief.problemsChecklist) {
+            const updatedChecklist = belief.problemsChecklist.filter(item => item.id !== itemId);
+            return { ...belief, problemsChecklist: updatedChecklist };
+          } else if (checklistType === 'feelingsCurrent' && belief.feelingsCurrentChecklist) {
+            const updatedChecklist = belief.feelingsCurrentChecklist.filter(item => item.id !== itemId);
+            return { ...belief, feelingsCurrentChecklist: updatedChecklist };
+          } else if (checklistType === 'beliefsCurrent' && belief.beliefsCurrentChecklist) {
+            const updatedChecklist = belief.beliefsCurrentChecklist.filter(item => item.id !== itemId);
+            return { ...belief, beliefsCurrentChecklist: updatedChecklist };
+          } else if (checklistType === 'actionsCurrent' && belief.actionsCurrentChecklist) {
+            const updatedChecklist = belief.actionsCurrentChecklist.filter(item => item.id !== itemId);
+            return { ...belief, actionsCurrentChecklist: updatedChecklist };
           }
         }
         return belief;
@@ -1387,6 +1515,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     // Get color scheme based on checklistType
     const getColorScheme = (type: string) => {
       switch(type) {
+        // Next Week Target checkpoints
         case 'result':
           return {
             gradient: 'from-coral-red/10 via-white to-coral-red/5 dark:from-coral-red/20 dark:via-gray-900 dark:to-coral-red/10',
@@ -1415,6 +1544,43 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             label: 'Beliefs/Reasons'
           };
         case 'actions':
+          return {
+            gradient: 'from-soft-lavender/20 via-white to-soft-lavender/10 dark:from-soft-lavender/30 dark:via-gray-900 dark:to-soft-lavender/15',
+            border: 'border-soft-lavender/40',
+            bar: 'bg-soft-lavender',
+            text: 'text-soft-lavender',
+            glow: 'lavender-glow',
+            label: 'Actions'
+          };
+        // Current Week checkpoints
+        case 'problems':
+          return {
+            gradient: 'from-coral-red/10 via-white to-coral-red/5 dark:from-coral-red/20 dark:via-gray-900 dark:to-coral-red/10',
+            border: 'border-coral-red/30',
+            bar: 'bg-coral-red',
+            text: 'text-coral-red',
+            glow: 'coral-glow',
+            label: 'Problems'
+          };
+        case 'feelingsCurrent':
+          return {
+            gradient: 'from-emerald-green/10 via-white to-emerald-green/5 dark:from-emerald-green/20 dark:via-gray-900 dark:to-emerald-green/10',
+            border: 'border-emerald-green/30',
+            bar: 'bg-emerald-green',
+            text: 'text-emerald-green',
+            glow: 'emerald-glow',
+            label: 'Feelings'
+          };
+        case 'beliefsCurrent':
+          return {
+            gradient: 'from-golden-yellow/10 via-white to-golden-yellow/5 dark:from-golden-yellow/20 dark:via-gray-900 dark:to-golden-yellow/10',
+            border: 'border-golden-yellow/30',
+            bar: 'bg-golden-yellow',
+            text: 'text-golden-yellow',
+            glow: 'golden-glow',
+            label: 'Beliefs'
+          };
+        case 'actionsCurrent':
           return {
             gradient: 'from-soft-lavender/20 via-white to-soft-lavender/10 dark:from-soft-lavender/30 dark:via-gray-900 dark:to-soft-lavender/15',
             border: 'border-soft-lavender/40',
