@@ -2815,7 +2815,7 @@ export default function AdminPanel() {
                         });
                       }}
                       disabled={addPlatinumStandardMutation.isPending}
-                      className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity"
+                      className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold"
                       data-testid="button-add-standard"
                     >
                       <Plus className="w-4 h-4 mr-2" />
