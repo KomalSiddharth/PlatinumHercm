@@ -193,56 +193,129 @@ export default function AdminUserDashboardViewer({ approvedEmails }: AdminUserDa
           </Card>
         ) : (
           <>
-            {/* Week Selector - Matching User Dashboard */}
+            {/* Progress Comparison: Week 1 vs Latest Week */}
             {dashboardData.allWeeks && dashboardData.allWeeks.length > 0 && (
-              <Card className="bg-blue-50 dark:bg-blue-950/30">
-                <CardContent className="pt-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                        HRCM Weekly Data
-                      </p>
-                      <p className="text-xs text-blue-700 dark:text-blue-300 mt-0.5">
-                        Total {dashboardData.allWeeks.length} {dashboardData.allWeeks.length === 1 ? 'week' : 'weeks'} of data available
-                      </p>
+              <>
+                <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30">
+                  <CardContent className="pt-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                          📊 Progress Comparison - First Week vs Latest Week
+                        </p>
+                        <p className="text-xs text-blue-700 dark:text-blue-300 mt-0.5">
+                          Total {dashboardData.allWeeks.length} {dashboardData.allWeeks.length === 1 ? 'week' : 'weeks'} of data available
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <label className="text-sm font-medium whitespace-nowrap">Select Week:</label>
-                      <Select 
-                        value={selectedWeekNumber.toString()} 
-                        onValueChange={(value) => setSelectedWeekNumber(parseInt(value))}
-                      >
-                        <SelectTrigger className="w-[140px]" data-testid="select-week-number">
-                          <SelectValue placeholder="Select week" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {dashboardData.allWeeks
-                            .sort((a: any, b: any) => b.weekNumber - a.weekNumber)
-                            .map((week: any) => (
-                              <SelectItem 
-                                key={week.id} 
-                                value={week.weekNumber.toString()}
-                                data-testid={`option-week-${week.weekNumber}`}
-                              >
-                                Week {week.weekNumber} {week.weekNumber === Math.max(...dashboardData.allWeeks.map((w: any) => w.weekNumber)) ? '(Latest)' : ''}
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                  </CardContent>
+                </Card>
 
-            {/* Display selected week's HRCM table */}
-            <div className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-3 sm:p-4 md:p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
-              <UnifiedHRCMTable 
-                weekNumber={selectedWeekNumber}
-                viewAsUserId={selectedUserId} 
-                isAdminView={true}
-              />
-            </div>
+                {/* Side-by-Side Comparison: Week 1 and Latest Week */}
+                <div className="grid md:grid-cols-2 gap-4">
+                  {/* Week 1 (First Week) */}
+                  <div className="scroll-mt-20 bg-green-50 dark:bg-green-950/40 p-3 sm:p-4 md:p-6 rounded-lg border-2 border-green-200 dark:border-green-800">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Badge className="bg-green-600 text-white" data-testid="badge-week-1">
+                        Week 1 - Starting Point
+                      </Badge>
+                    </div>
+                    <UnifiedHRCMTable 
+                      weekNumber={1}
+                      viewAsUserId={selectedUserId} 
+                      isAdminView={true}
+                    />
+                  </div>
+
+                  {/* Latest Week */}
+                  <div className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-3 sm:p-4 md:p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Badge className="bg-blue-600 text-white" data-testid="badge-latest-week">
+                        Week {Math.max(...dashboardData.allWeeks.map((w: any) => w.weekNumber))} - Latest Progress
+                      </Badge>
+                      <TrendingUp className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <UnifiedHRCMTable 
+                      weekNumber={Math.max(...dashboardData.allWeeks.map((w: any) => w.weekNumber))}
+                      viewAsUserId={selectedUserId} 
+                      isAdminView={true}
+                    />
+                  </div>
+                </div>
+
+                {/* Additional Week Selector (Optional) */}
+                <Collapsible>
+                  <Card className="bg-amber-50 dark:bg-amber-950/30">
+                    <CardContent className="pt-4">
+                      <CollapsibleTrigger asChild>
+                        <Button variant="outline" className="w-full justify-between" data-testid="button-toggle-custom-week">
+                          <span className="flex items-center gap-2">
+                            <HistoryIcon className="w-4 h-4" />
+                            View Other Weeks (Optional)
+                          </span>
+                          <ChevronDown className="w-4 h-4" />
+                        </Button>
+                      </CollapsibleTrigger>
+                    </CardContent>
+                  </Card>
+                  
+                  <CollapsibleContent className="mt-4">
+                    <Card className="bg-amber-50 dark:bg-amber-950/30">
+                      <CardContent className="pt-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                          <div>
+                            <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
+                              Custom Week Selection
+                            </p>
+                            <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
+                              Select any specific week to view detailed data
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <label className="text-sm font-medium whitespace-nowrap">Select Week:</label>
+                            <Select 
+                              value={selectedWeekNumber.toString()} 
+                              onValueChange={(value) => setSelectedWeekNumber(parseInt(value))}
+                            >
+                              <SelectTrigger className="w-[140px]" data-testid="select-week-number">
+                                <SelectValue placeholder="Select week" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {dashboardData.allWeeks
+                                  .sort((a: any, b: any) => b.weekNumber - a.weekNumber)
+                                  .map((week: any) => (
+                                    <SelectItem 
+                                      key={week.id} 
+                                      value={week.weekNumber.toString()}
+                                      data-testid={`option-week-${week.weekNumber}`}
+                                    >
+                                      Week {week.weekNumber} {week.weekNumber === Math.max(...dashboardData.allWeeks.map((w: any) => w.weekNumber)) ? '(Latest)' : ''}
+                                    </SelectItem>
+                                  ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        {/* Display custom selected week */}
+                        <div className="scroll-mt-20 bg-amber-100 dark:bg-amber-950/60 p-3 sm:p-4 md:p-6 rounded-lg border-2 border-amber-300 dark:border-amber-700">
+                          <div className="flex items-center gap-2 mb-3">
+                            <Badge className="bg-amber-600 text-white" data-testid="badge-custom-week">
+                              Week {selectedWeekNumber} - Custom View
+                            </Badge>
+                          </div>
+                          <UnifiedHRCMTable 
+                            weekNumber={selectedWeekNumber}
+                            viewAsUserId={selectedUserId} 
+                            isAdminView={true}
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </CollapsibleContent>
+                </Collapsible>
+              </>
+            )}
             
             {/* Daily Rituals Section - Matching User Dashboard */}
             <section className="scroll-mt-20 p-3 sm:p-4 md:p-6 rounded-lg border-2" style={{ backgroundColor: '#00008c', borderColor: '#0000cc' }}>
