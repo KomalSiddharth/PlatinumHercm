@@ -2165,6 +2165,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                     saveHoverEdit();
                                   }
                                 }}
+                                onBlur={() => {
+                                  // Auto-save on blur (unfocus)
+                                  saveHoverEdit();
+                                }}
                                 onFocus={(e) => {
                                   const length = e.target.value.length;
                                   e.target.setSelectionRange(length, length);
@@ -2237,6 +2241,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                     e.preventDefault();
                                     saveHoverEdit();
                                   }
+                                }}
+                                onBlur={() => {
+                                  // Auto-save on blur (unfocus)
+                                  saveHoverEdit();
                                 }}
                                 onFocus={(e) => {
                                   const length = e.target.value.length;
@@ -2311,6 +2319,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                     saveHoverEdit();
                                   }
                                 }}
+                                onBlur={() => {
+                                  // Auto-save on blur (unfocus)
+                                  saveHoverEdit();
+                                }}
                                 onFocus={(e) => {
                                   const length = e.target.value.length;
                                   e.target.setSelectionRange(length, length);
@@ -2383,6 +2395,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                     e.preventDefault();
                                     saveHoverEdit();
                                   }
+                                }}
+                                onBlur={() => {
+                                  // Auto-save on blur (unfocus)
+                                  saveHoverEdit();
                                 }}
                                 onFocus={(e) => {
                                   const length = e.target.value.length;
