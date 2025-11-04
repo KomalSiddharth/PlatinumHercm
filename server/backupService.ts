@@ -271,7 +271,7 @@ export async function backupAllData(): Promise<BackupResult> {
       const transformedRating = allRatingProgression.map(transformToSnakeCase);
       const { error: ratingError } = await supabase!
         .from('rating_progression')
-        .upsert(transformedRating, { onConflict: 'id' });
+        .upsert(transformedRating, { onConflict: 'user_id' });
       
       if (ratingError) throw new Error(`Rating progression backup failed: ${ratingError.message}`);
       stats.ratingProgression = allRatingProgression.length;
