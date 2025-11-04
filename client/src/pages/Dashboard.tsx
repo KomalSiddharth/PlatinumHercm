@@ -275,6 +275,7 @@ export default function Dashboard() {
     },
     onSuccess: (_, variables) => {
       // Invalidate all ritual completion queries
+      queryClient.invalidateQueries({ queryKey: ['/api/ritual-completions'] }); // Base query for ALL completions (history modal)
       queryClient.invalidateQueries({ queryKey: ['/api/ritual-completions', todayDate] });
       queryClient.invalidateQueries({ queryKey: ['/api/ritual-completions/month', currentYear, currentMonth] });
       queryClient.invalidateQueries({ queryKey: ['/api/ritual-completions/week', weekStartDate, weekEndDate] });
