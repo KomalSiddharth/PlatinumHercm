@@ -1099,6 +1099,57 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
       console.log('⚠️  "My 5 Days Platinum Challenge Recordings" course not found');
     }
 
+    // Add subcategories to "Basic Law of Attraction Level 1" course
+    const basicLoaCourseIndex = courses.findIndex(c => {
+      const title = c.title.toLowerCase();
+      return title.includes('basic') && title.includes('law') && title.includes('attraction') && title.includes('level 1');
+    });
+
+    if (basicLoaCourseIndex !== -1) {
+      const basicLoaCourse = courses[basicLoaCourseIndex];
+      console.log(`🔍 Found "Basic Law of Attraction Level 1" course (${basicLoaCourse.lessons.length} lessons)`);
+      
+      if (!basicLoaCourse.subcategories) {
+        basicLoaCourse.subcategories = [];
+      }
+      
+      const basicLoaSubcoursesToAdd: number[] = [];
+      
+      // Find and add "LOA & DMP Certification" course
+      const loaDmpCertificationIndex = courses.findIndex((c, idx) => {
+        if (idx === basicLoaCourseIndex) return false; // Skip the main course itself
+        const title = c.title.toLowerCase();
+        return title.includes('loa') && title.includes('dmp') && title.includes('certification');
+      });
+      
+      if (loaDmpCertificationIndex !== -1) {
+        const loaDmpCertificationCourse = courses[loaDmpCertificationIndex];
+        console.log(`📦 Adding "${loaDmpCertificationCourse.title}" as subcategory of "${basicLoaCourse.title}" (${loaDmpCertificationCourse.lessons.length} lessons)`);
+        
+        basicLoaCourse.subcategories.push({
+          id: 'loa-dmp-certification',
+          title: 'LOA & DMP Certification',
+          lessons: loaDmpCertificationCourse.lessons
+        });
+        
+        basicLoaSubcoursesToAdd.push(loaDmpCertificationIndex);
+        console.log(`   ✅ Added "LOA & DMP Certification" as subcategory with ${loaDmpCertificationCourse.lessons.length} lessons`);
+      } else {
+        console.log(`   ⚠️  "LOA & DMP Certification" course not found`);
+      }
+      
+      // Remove all added subcategories from main course list in reverse order
+      for (let i = basicLoaSubcoursesToAdd.length - 1; i >= 0; i--) {
+        courses.splice(basicLoaSubcoursesToAdd[i], 1);
+      }
+      
+      if (basicLoaCourse.subcategories.length > 0) {
+        console.log(`✅ Added ${basicLoaCourse.subcategories.length} subcategories to "Basic Law of Attraction Level 1"`);
+      }
+    } else {
+      console.log('⚠️  "Basic Law of Attraction Level 1" course not found');
+    }
+
     // Filter out "Relationship Mastery" course completely from the list
     const relationshipMasteryIndex = courses.findIndex(c => 
       c.title.toLowerCase().includes('relationship') && c.title.toLowerCase().includes('mastery')
