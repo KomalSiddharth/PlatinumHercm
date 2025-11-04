@@ -1616,7 +1616,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Google Sheets course tracking - fetch all courses and lessons
   app.get('/api/courses/tracking', isAuthenticated, async (req, res) => {
     try {
-      const sheetUrl = "https://docs.google.com/spreadsheets/d/1s3pCuwFC303v2P4PVfZ8V2SizjvUZRVKnpNmUXkShtA/edit?usp=sharing";
+      const sheetUrl = "https://docs.google.com/spreadsheets/d/13UN1Az5GyUPxj7tKSc26rjvPtNINMkS_C_VoYcuzDHg/edit?usp=sharing";
       const { fetchCourseTrackingData, clearCourseTrackingCache } = await import('./googleSheets');
       
       // Clear cache if requested via query param
