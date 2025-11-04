@@ -1064,6 +1064,29 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
         console.log(`   ⚠️  "DMP - Daily Magic Practice Recordings" course not found`);
       }
       
+      // Find and add "Lead People" course
+      const leadPeopleCourseIndex = courses.findIndex((c, idx) => {
+        if (idx === platinumChallengeCourseIndex) return false; // Skip the main course itself
+        const title = c.title.toLowerCase();
+        return title.includes('lead') && title.includes('people');
+      });
+      
+      if (leadPeopleCourseIndex !== -1) {
+        const leadPeopleCourse = courses[leadPeopleCourseIndex];
+        console.log(`📦 Adding "${leadPeopleCourse.title}" as subcategory of "${platinumChallengeCourse.title}" (${leadPeopleCourse.lessons.length} lessons)`);
+        
+        platinumChallengeCourse.subcategories.push({
+          id: 'lead-people',
+          title: 'Lead People',
+          lessons: leadPeopleCourse.lessons
+        });
+        
+        coursesToAddAsSubcategories.push(leadPeopleCourseIndex);
+        console.log(`   ✅ Added "Lead People" as subcategory with ${leadPeopleCourse.lessons.length} lessons`);
+      } else {
+        console.log(`   ⚠️  "Lead People" course not found`);
+      }
+      
       // Remove all added subcategories from main course list in reverse order
       for (let i = coursesToAddAsSubcategories.length - 1; i >= 0; i--) {
         courses.splice(coursesToAddAsSubcategories[i], 1);
