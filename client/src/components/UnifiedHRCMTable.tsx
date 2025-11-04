@@ -3103,9 +3103,16 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               <div className="flex items-start gap-2 mb-3">
                 <div className="w-1 h-full bg-gradient-to-b from-primary to-accent rounded-full"></div>
                 <p className="text-sm font-medium">
-                  {firstCheckpointData?.category} - {firstCheckpointData?.checklistType === 'result' ? 'Results' : 
-                   firstCheckpointData?.checklistType === 'feelings' ? 'Feelings' : 
-                   firstCheckpointData?.checklistType === 'beliefs' ? 'Beliefs/Reasons' : 'Actions'}
+                  {firstCheckpointData?.category} - {
+                    firstCheckpointData?.checklistType === 'result' ? 'Results' : 
+                    firstCheckpointData?.checklistType === 'feelings' ? 'Feelings' : 
+                    firstCheckpointData?.checklistType === 'beliefs' ? 'Beliefs/Reasons' : 
+                    firstCheckpointData?.checklistType === 'actions' ? 'Actions' :
+                    firstCheckpointData?.checklistType === 'problems' ? 'Problems' :
+                    firstCheckpointData?.checklistType === 'feelingsCurrent' ? 'Feelings' :
+                    firstCheckpointData?.checklistType === 'beliefsCurrent' ? 'Beliefs' :
+                    firstCheckpointData?.checklistType === 'actionsCurrent' ? 'Actions' : 'Checkpoint'
+                  }
                 </p>
               </div>
               <Textarea
