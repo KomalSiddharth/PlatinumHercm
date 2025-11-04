@@ -1026,11 +1026,11 @@ export class DatabaseStorage implements IStorage {
     
     // Platinum badges from platinum progress (if achieved)
     const userPlatinumBadges: any[] = [];
-    if (platinumProgress?.achievedAt) {
+    if (platinumProgress?.platinumAchievedAt) {
       userPlatinumBadges.push({
         id: platinumProgress.id,
         badgeName: 'Platinum Standards',
-        achievedAt: platinumProgress.achievedAt,
+        achievedAt: platinumProgress.platinumAchievedAt,
         userId: platinumProgress.userId,
       });
     }
@@ -1120,7 +1120,7 @@ export class DatabaseStorage implements IStorage {
     
     // Get all users and filter by approved emails
     const allUsers = await this.getAllUsers();
-    const approvedUsers = allUsers.filter(u => approvedEmailSet.has(u.email));
+    const approvedUsers = allUsers.filter(u => u.email && approvedEmailSet.has(u.email));
     
     // Get both user IDs and emails from approved users (some weeks use email as userId)
     const approvedUserIds = new Set(approvedUsers.map(u => u.id));

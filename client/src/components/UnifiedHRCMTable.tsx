@@ -306,31 +306,34 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     }
   }, [lastMessage, toast]);
 
-  // 🔥 FIXED DATE NAVIGATION - Calendar, Left Arrow, Right Arrow - All Working!
-  const handleDateChange = (newDate: Date) => {
+  // 🔥 GOOGLE-LEVEL DATE NAVIGATION - Instant, Smooth, No Glitches!
+  const handleDateChange = async (newDate: Date) => {
     const dateStr = newDate.toISOString().split('T')[0];
     const todayStr = new Date().toISOString().split('T')[0];
     
-    console.log(`[🔥 DATE CHANGE v2] Switching to: ${dateStr} from current: ${currentDateStr}`);
+    console.log(`[🔥 DATE CHANGE] Switching to: ${dateStr} from current: ${currentDateStr}`);
     
-    // 🔥 CRITICAL: Clear stale data FIRST to show blank table instantly
-    setBeliefs(getBlankBeliefs());
-    setUnifiedAssignment([]);
-    
-    // Update all date-related states
+    // Update date states FIRST (this changes the queryKey, triggering automatic refetch)
     setSelectedDate(newDate);
     setCurrentDateStr(dateStr);
     setViewingHistory(dateStr !== todayStr);
     
-    // Force query refetch by invalidating cache
-    queryClient.invalidateQueries({ 
-      predicate: (query) => {
-        const key = String(query.queryKey[0]);
-        return key.includes('/hercm/by-date');
-      }
-    });
+    // Force immediate refetch for the new date (don't just invalidate, actually refetch!)
+    const endpoint = isAdminView && viewAsUserId
+      ? `/api/admin/user/${viewAsUserId}/hercm/by-date/${dateStr}`
+      : `/api/hercm/by-date/${dateStr}`;
     
-    console.log(`[🔥 DATE CHANGE v2] ✅ Complete! Date: ${dateStr}, History mode: ${dateStr !== todayStr}`);
+    try {
+      await queryClient.refetchQueries({
+        queryKey: isAdminView && viewAsUserId
+          ? [`/api/admin/user/${viewAsUserId}/hercm/by-date`, dateStr]
+          : ['/api/hercm/by-date', dateStr],
+        exact: true,
+      });
+      console.log(`[🔥 DATE CHANGE] ✅ Data loaded for ${dateStr}`);
+    } catch (error) {
+      console.error(`[🔥 DATE CHANGE] ❌ Error loading data for ${dateStr}:`, error);
+    }
   };
 
   // Navigate date (Previous/Next) - using optimized handler
