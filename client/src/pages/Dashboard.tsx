@@ -924,8 +924,13 @@ export default function Dashboard() {
                 {!coursesLoading && !coursesError && courses.length > 0 && (
                   <div className="space-y-3">
                     {courses.map((course, index) => {
-                    const completedLessons = course.lessons.filter(l => l.completed).length;
-                    const totalLessons = course.lessons.length;
+                    // Calculate total lessons including subcategories
+                    const directLessons = course.lessons || [];
+                    const subcategoryLessons = ((course as any).subcategories || []).flatMap((sub: any) => sub.lessons || []);
+                    const allLessons = [...directLessons, ...subcategoryLessons];
+                    
+                    const completedLessons = allLessons.filter(l => l.completed).length;
+                    const totalLessons = allLessons.length;
                     const progress = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
 
                     return (
@@ -969,12 +974,12 @@ export default function Dashboard() {
                         <CollapsibleContent className="px-3 pb-3">
                           {totalLessons > 0 ? (
                             <div className="bg-muted/30 rounded-lg p-3 mt-2 space-y-2">
+                              {/* Direct course lessons */}
                               {course.lessons.map((lesson) => (
                                 <div key={lesson.id} className="flex items-start gap-2">
                                   <Checkbox
                                     checked={lesson.completed}
                                     onCheckedChange={async (checked) => {
-                                      // Update local state first for immediate UI feedback
                                       setCourses(prev => prev.map(c => 
                                         c.id === course.id
                                           ? {
@@ -989,28 +994,16 @@ export default function Dashboard() {
                                       ));
                                       
                                       try {
-                                        console.log(`[Lesson Toggle] Toggling ${course.id}-${lesson.id}, checked:`, checked);
-                                        
-                                        // Toggle completion in database
                                         const toggleResponse = await apiRequest('POST', '/api/course-video-completions/toggle', {
                                           videoId: `${course.id}-${lesson.id}`,
                                           courseId: course.id
                                         });
                                         
-                                        const toggleData = await toggleResponse.json();
-                                        console.log('[Lesson Toggle] API Response:', toggleData);
+                                        if (!toggleResponse.ok) throw new Error('Failed to toggle');
                                         
-                                        if (!toggleResponse.ok) {
-                                          console.error('[Lesson Toggle] API failed:', toggleData);
-                                          throw new Error('Failed to toggle lesson completion');
-                                        }
-                                        
-                                        console.log('[Lesson Toggle] Successfully saved to database');
-                                        
-                                        // If checked, add to persistent assignment; if unchecked, remove from assignment
                                         if (checked) {
-                                          const assignmentResponse = await apiRequest('POST', '/api/persistent-assignments', {
-                                            hrcmArea: course.category.toLowerCase(), // health, relationship, career, money
+                                          await apiRequest('POST', '/api/persistent-assignments', {
+                                            hrcmArea: course.category.toLowerCase(),
                                             courseId: course.id,
                                             courseName: course.title,
                                             lessonName: lesson.title,
@@ -1018,45 +1011,15 @@ export default function Dashboard() {
                                             source: 'user',
                                             completed: false
                                           });
-                                          
-                                          if (assignmentResponse.ok) {
-                                            // Invalidate queries to refresh assignment data
-                                            queryClient.invalidateQueries({ queryKey: ['/api/persistent-assignments'] });
-                                            queryClient.invalidateQueries({ queryKey: ['/api/hercm'] });
-                                            
-                                            toast({
-                                              title: 'Lesson Completed!',
-                                              description: `${lesson.title} added to Assignment column`,
-                                            });
-                                          }
-                                        } else {
-                                          // When unchecking, we need to find and delete the assignment
-                                          // This requires fetching current assignments first
-                                          const assignmentsResponse = await apiRequest('GET', '/api/persistent-assignments');
-                                          if (assignmentsResponse.ok) {
-                                            const assignments = await assignmentsResponse.json();
-                                            const matchingAssignment = assignments.find((a: any) => 
-                                              a.courseId === course.id && a.lessonName === lesson.title
-                                            );
-                                            
-                                            if (matchingAssignment) {
-                                              const deleteResponse = await apiRequest('DELETE', `/api/persistent-assignments/${matchingAssignment.id}`);
-                                              if (deleteResponse.ok) {
-                                                // Invalidate queries to refresh assignment data
-                                                queryClient.invalidateQueries({ queryKey: ['/api/persistent-assignments'] });
-                                                queryClient.invalidateQueries({ queryKey: ['/api/hercm'] });
-                                                
-                                                toast({
-                                                  title: 'Lesson Unchecked',
-                                                  description: `${lesson.title} removed from Assignment column`,
-                                                });
-                                              }
-                                            }
-                                          }
+                                          queryClient.invalidateQueries({ queryKey: ['/api/persistent-assignments'] });
+                                          queryClient.invalidateQueries({ queryKey: ['/api/hercm'] });
+                                          toast({
+                                            title: 'Lesson Completed!',
+                                            description: `${lesson.title} added to Assignment column`,
+                                          });
                                         }
                                       } catch (error) {
                                         console.error('Error updating lesson:', error);
-                                        // Revert local state on error
                                         setCourses(prev => prev.map(c => 
                                           c.id === course.id
                                             ? {
@@ -1091,9 +1054,7 @@ export default function Dashboard() {
                                         {lesson.title}
                                       </a>
                                     ) : (
-                                      <span className="text-xs flex-1">
-                                        {lesson.title}
-                                      </span>
+                                      <span className="text-xs flex-1">{lesson.title}</span>
                                     )}
                                     <Badge 
                                       className="text-[10px] px-1.5 py-0 h-5 bg-gradient-to-r from-primary to-accent text-white border-0 golden-glow smooth-transition"
@@ -1103,6 +1064,131 @@ export default function Dashboard() {
                                     </Badge>
                                   </div>
                                 </div>
+                              ))}
+                              
+                              {/* Render subcategories (e.g., Health Mastery, Career Mastery) */}
+                              {(course as any).subcategories && (course as any).subcategories.length > 0 && (course as any).subcategories.map((subcategory: any) => (
+                                <Collapsible key={subcategory.id} className="mt-3">
+                                  <div className="border-l-2 border-primary/30 pl-3">
+                                    <CollapsibleTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="w-full justify-between hover:bg-muted/50 mb-2 bg-accent/5 dark:bg-accent/10"
+                                        data-testid={`button-subcategory-${subcategory.id}`}
+                                      >
+                                        <span className="font-medium text-xs text-accent dark:text-accent/90">{subcategory.title}</span>
+                                        <ChevronDown className="w-3 h-3" />
+                                      </Button>
+                                    </CollapsibleTrigger>
+                                    <CollapsibleContent className="space-y-2 mt-2">
+                                      {subcategory.lessons && subcategory.lessons.map((lesson: any) => (
+                                        <div key={lesson.id} className="flex items-start gap-2">
+                                          <Checkbox
+                                            checked={lesson.completed}
+                                            onCheckedChange={async (checked) => {
+                                              setCourses(prev => prev.map(c => 
+                                                c.id === course.id
+                                                  ? {
+                                                      ...c,
+                                                      subcategories: (c as any).subcategories?.map((sub: any) =>
+                                                        sub.id === subcategory.id
+                                                          ? {
+                                                              ...sub,
+                                                              lessons: sub.lessons.map((l: any) =>
+                                                                l.id === lesson.id
+                                                                  ? { ...l, completed: checked as boolean }
+                                                                  : l
+                                                              )
+                                                            }
+                                                          : sub
+                                                      )
+                                                    }
+                                                  : c
+                                              ));
+                                              
+                                              try {
+                                                const toggleResponse = await apiRequest('POST', '/api/course-video-completions/toggle', {
+                                                  videoId: `${course.id}-${lesson.id}`,
+                                                  courseId: course.id
+                                                });
+                                                
+                                                if (!toggleResponse.ok) throw new Error('Failed to toggle');
+                                                
+                                                if (checked) {
+                                                  await apiRequest('POST', '/api/persistent-assignments', {
+                                                    hrcmArea: course.category.toLowerCase(),
+                                                    courseId: course.id,
+                                                    courseName: course.title,
+                                                    lessonName: lesson.title,
+                                                    lessonUrl: lesson.url || '',
+                                                    source: 'user',
+                                                    completed: false
+                                                  });
+                                                  queryClient.invalidateQueries({ queryKey: ['/api/persistent-assignments'] });
+                                                  queryClient.invalidateQueries({ queryKey: ['/api/hercm'] });
+                                                  toast({
+                                                    title: 'Lesson Completed!',
+                                                    description: `${lesson.title} added to Assignment column`,
+                                                  });
+                                                }
+                                              } catch (error) {
+                                                console.error('Error updating lesson:', error);
+                                                setCourses(prev => prev.map(c => 
+                                                  c.id === course.id
+                                                    ? {
+                                                        ...c,
+                                                        subcategories: (c as any).subcategories?.map((sub: any) =>
+                                                          sub.id === subcategory.id
+                                                            ? {
+                                                                ...sub,
+                                                                lessons: sub.lessons.map((l: any) =>
+                                                                  l.id === lesson.id
+                                                                    ? { ...l, completed: !checked }
+                                                                    : l
+                                                                )
+                                                              }
+                                                            : sub
+                                                        )
+                                                      }
+                                                    : c
+                                                ));
+                                                toast({
+                                                  title: 'Error',
+                                                  description: 'Failed to update lesson status',
+                                                  variant: 'destructive'
+                                                });
+                                              }
+                                            }}
+                                            className="mt-0.5"
+                                            data-testid={`checkbox-subcategory-lesson-${lesson.id}`}
+                                          />
+                                          <div className="flex-1 flex items-center justify-between gap-2">
+                                            {lesson.url ? (
+                                              <a
+                                                href={lesson.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-xs cursor-pointer flex-1 hover:underline text-primary hover:text-primary/80"
+                                                data-testid={`link-subcategory-lesson-${lesson.id}`}
+                                              >
+                                                {lesson.title}
+                                              </a>
+                                            ) : (
+                                              <span className="text-xs flex-1">{lesson.title}</span>
+                                            )}
+                                            <Badge 
+                                              className="text-[10px] px-1.5 py-0 h-5 bg-gradient-to-r from-primary to-accent text-white border-0 golden-glow smooth-transition"
+                                              data-testid={`badge-subcategory-points-${lesson.id}`}
+                                            >
+                                              +{lesson.points || 10} pts
+                                            </Badge>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </CollapsibleContent>
+                                  </div>
+                                </Collapsible>
                               ))}
                             </div>
                           ) : (
