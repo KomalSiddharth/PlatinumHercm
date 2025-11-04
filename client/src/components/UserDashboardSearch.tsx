@@ -106,42 +106,9 @@ export default function UserDashboardSearch() {
     return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
   };
 
-  // Handle ritual history view (ONLY past dates)
+  // Handle ritual history view
   const handleViewHistory = (ritual: any) => {
-    if (!dashboardData?.allRitualCompletions) return;
-    
-    // Get current month's date range
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth();
-    const today = now.getDate();
-    const startOfMonth = new Date(currentYear, currentMonth, 1);
-    const endOfMonth = new Date(currentYear, currentMonth + 1, 0);
-
-    // Build history for each day of current month (ONLY past dates)
-    const history = [];
-    for (let day = startOfMonth.getDate(); day <= endOfMonth.getDate(); day++) {
-      // CRITICAL FIX: Only show history for PAST dates (before today)
-      if (day >= today) {
-        continue; // Skip today and future dates
-      }
-      
-      const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      const completion = dashboardData.allRitualCompletions.find((c: any) => 
-        c.ritualId === ritual.id && c.date === dateStr
-      );
-      
-      history.push({
-        date: dateStr,
-        completed: !!completion,
-        skipped: false
-      });
-    }
-
-    setSelectedRitual({
-      ...ritual,
-      history
-    });
+    setSelectedRitual(ritual);
     setHistoryOpen(true);
   };
 
@@ -383,7 +350,8 @@ export default function UserDashboardSearch() {
                 open={historyOpen}
                 onOpenChange={setHistoryOpen}
                 ritualTitle={selectedRitual.title}
-                history={selectedRitual.history || []}
+                ritualId={selectedRitual.id}
+                allCompletions={dashboardData.allRitualCompletions || []}
               />
             )}
           </>
