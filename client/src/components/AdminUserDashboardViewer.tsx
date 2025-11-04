@@ -524,7 +524,7 @@ export default function AdminUserDashboardViewer({ approvedEmails }: AdminUserDa
           <Button 
             onClick={handleViewDashboard}
             disabled={!selectedUserEmail || isDashboardLoading}
-            className="w-full"
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold"
             data-testid="button-view-dashboard"
           >
             {isDashboardLoading ? (
