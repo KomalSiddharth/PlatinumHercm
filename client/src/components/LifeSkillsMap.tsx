@@ -39,9 +39,13 @@ export default function LifeSkillsMap() {
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
   const [openSubcategories, setOpenSubcategories] = useState<Record<string, boolean>>({});
 
-  const { data: coursesData, isLoading, isError } = useQuery<CourseTrackingData[]>({
+  console.log('[LifeSkillsMap] Component mounted/rendering');
+  
+  const { data: coursesData, isLoading, isError, error } = useQuery<CourseTrackingData[]>({
     queryKey: ['/api/courses/tracking'],
   });
+
+  console.log('[LifeSkillsMap] Query state:', { isLoading, isError, hasData: !!coursesData, error });
 
   const toggleLessonMutation = useMutation({
     mutationFn: async ({ lessonId, completed }: { lessonId: string; completed: boolean }) => {

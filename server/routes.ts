@@ -1691,9 +1691,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Google Sheets course tracking - fetch all courses and lessons
-  app.get('/api/courses/tracking', isAuthenticated, async (req, res) => {
+  app.get('/api/courses/tracking', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user!.id;
+      // Handle both OIDC auth (req.user.claims.sub) and email-based auth (req.session.userEmail)
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const sheetUrl = "https://docs.google.com/spreadsheets/d/1na9ioh9uT8wxSkjTMxG61hUF75JxuSTF/edit";
       const { fetchCourseTrackingData, clearCourseTrackingCache } = await import('./googleSheets');
       
@@ -1714,38 +1719,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const courses = await fetchCourseTrackingData(sheetUrl);
       console.log(`[COURSE TRACKING] Fetched ${courses.length} courses from Google Sheets`);
       
-      if (courses.length > 0) {
-        console.log(`[COURSE TRACKING] First course: "${courses[0].title}" with ${courses[0].lessons.length} lessons`);
+      if (courses.length > 0 && courses[0]) {
+        const firstCourse = courses[0];
+        const lessonsCount = firstCourse.lessons ? firstCourse.lessons.length : 0;
+        console.log(`[COURSE TRACKING] First course: "${firstCourse.title}" with ${lessonsCount} lessons`);
       }
       
-      // Mark lessons as completed
-      const coursesWithCompletions = courses.map(course => {
-        // Filter out any undefined/invalid lessons
-        const validLessons = (course.lessons || []).filter(lesson => lesson && lesson.id);
-        
-        return {
-          ...course,
-          lessons: validLessons.map(lesson => ({
-            ...lesson,
-            completed: userCompletions.has(lesson.id),
-          })),
-          subcategories: course.subcategories?.map(subcat => {
-            const validSubLessons = (subcat.lessons || []).filter(lesson => lesson && lesson.id);
-            return {
-              ...subcat,
-              lessons: validSubLessons.map(lesson => ({
-                ...lesson,
-                completed: userCompletions.has(lesson.id),
-              })),
-            };
-          }),
-        };
-      });
+      // Mark lessons as completed with better error handling
+      const coursesWithCompletions = courses.map((course, idx) => {
+        try {
+          if (!course) {
+            console.warn(`[COURSE TRACKING] Course at index ${idx} is undefined, skipping`);
+            return null;
+          }
+          
+          // Filter out any undefined/invalid lessons
+          const validLessons = (course.lessons || []).filter(lesson => {
+            if (!lesson) {
+              console.warn(`[COURSE TRACKING] Found undefined lesson in course "${course.title}"`);
+              return false;
+            }
+            if (!lesson.id) {
+              console.warn(`[COURSE TRACKING] Found lesson without ID in course "${course.title}": ${JSON.stringify(lesson)}`);
+              return false;
+            }
+            return true;
+          });
+          
+          return {
+            ...course,
+            lessons: validLessons.map(lesson => ({
+              ...lesson,
+              completed: userCompletions.has(lesson.id),
+            })),
+            subcategories: course.subcategories?.map(subcat => {
+              if (!subcat) return null;
+              const validSubLessons = (subcat.lessons || []).filter(lesson => lesson && lesson.id);
+              return {
+                ...subcat,
+                lessons: validSubLessons.map(lesson => ({
+                  ...lesson,
+                  completed: userCompletions.has(lesson.id),
+                })),
+              };
+            }).filter(Boolean),
+          };
+        } catch (err) {
+          console.error(`[COURSE TRACKING] Error processing course at index ${idx}:`, err);
+          return null;
+        }
+      }).filter(Boolean);
       
       console.log(`[COURSE TRACKING] Returning ${coursesWithCompletions.length} courses with completions to frontend`);
       res.json(coursesWithCompletions);
     } catch (error) {
       console.error("[COURSE TRACKING] Error fetching course tracking data:", error);
+      if (error instanceof Error) {
+        console.error("[COURSE TRACKING] Error stack:", error.stack);
+      }
       res.status(500).json({ message: "Failed to fetch courses", error: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
@@ -1776,9 +1807,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Toggle lesson completion
-  app.post('/api/lessons/toggle', isAuthenticated, async (req, res) => {
+  app.post('/api/lessons/toggle', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user!.id;
+      // Handle both OIDC auth (req.user.claims.sub) and email-based auth (req.session.userEmail)
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const { lessonId, completed } = req.body;
 
       if (!lessonId) {
