@@ -371,13 +371,9 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
 
     const courses: CourseTrackingData[] = [];
     let currentCourse: CourseTrackingData | null = null;
-    let currentSubcategory: CourseSubcategory | null = null;
     let lessonCounter = 0;
-    let subcategoryLessonCounter = 0;
-    
-    // Track if we should nest Health Mastery as subcategory
-    let platinumFastTrackCourse: CourseTrackingData | null = null;
 
+    // FIRST PASS: Parse all courses normally (including Health Mastery as a regular course)
     rows.forEach((row, index) => {
       const question = (row[0] || '').toString().trim();
       const answer = (row[1] || '').toString().trim();
@@ -395,39 +391,6 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
 
       // If Column B (Answer) is EMPTY = it's a COURSE heading
       if (!answer) {
-        // Check if this is "Health Mastery" - make it a subcategory of Platinum Fast Track
-        if (question.toLowerCase().includes('health mastery') && platinumFastTrackCourse) {
-          // Close any previous subcategory
-          if (currentSubcategory) {
-            if (!platinumFastTrackCourse.subcategories) {
-              platinumFastTrackCourse.subcategories = [];
-            }
-            platinumFastTrackCourse.subcategories.push(currentSubcategory);
-            console.log(`  ✅ Added subcategory "${currentSubcategory.title}" with ${currentSubcategory.lessons.length} lessons`);
-          }
-          
-          // Create new subcategory
-          const subcategoryId = question.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-          currentSubcategory = {
-            id: subcategoryId,
-            title: question,
-            lessons: [],
-          };
-          subcategoryLessonCounter = 0;
-          console.log(`  🔸 NEW SUBCATEGORY: "${question}" at row ${index + 1}`);
-          return;
-        }
-        
-        // Close any previous subcategory
-        if (currentSubcategory && currentCourse) {
-          if (!currentCourse.subcategories) {
-            currentCourse.subcategories = [];
-          }
-          currentCourse.subcategories.push(currentSubcategory);
-          console.log(`  ✅ Added subcategory "${currentSubcategory.title}" with ${currentSubcategory.lessons.length} lessons`);
-          currentSubcategory = null;
-        }
-        
         // Save previous course if exists
         if (currentCourse !== null) {
           courses.push(currentCourse);
@@ -449,31 +412,11 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
           lessons: [],
         };
         lessonCounter = 0;
-        
-        // Track Platinum Fast Track for nesting
-        if (question.toLowerCase().includes('platinum') && question.toLowerCase().includes('fast track')) {
-          platinumFastTrackCourse = currentCourse;
-          console.log(`🎓 NEW COURSE (Platinum Fast Track): "${question}" at row ${index + 1}`);
-        } else {
-          console.log(`🎓 NEW COURSE (empty URL): "${question}" at row ${index + 1}`);
-        }
+        console.log(`🎓 NEW COURSE (empty URL): "${question}" at row ${index + 1}`);
       } 
       // If Column B (Answer) has a URL = it's a LESSON
       else if (answer) {
-        // If we're inside a subcategory, add lesson to subcategory
-        if (currentSubcategory) {
-          subcategoryLessonCounter++;
-          const lessonId = `${currentSubcategory.id}-${subcategoryLessonCounter}`;
-          currentSubcategory.lessons.push({
-            id: lessonId,
-            title: question,
-            url: answer,
-            completed: false,
-          });
-          console.log(`    📝 Subcategory Lesson ${subcategoryLessonCounter}: "${question.substring(0, 40)}..." → ${answer.substring(0, 30)}...`);
-        }
-        // Otherwise add to current course
-        else if (currentCourse !== null) {
+        if (currentCourse !== null) {
           lessonCounter++;
           const lessonId = `${currentCourse.id}-${lessonCounter}`;
           currentCourse.lessons.push({
@@ -486,20 +429,42 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
         }
       }
     });
-
-    // Close any remaining subcategory
-    if (currentSubcategory && currentCourse) {
-      if (!currentCourse.subcategories) {
-        currentCourse.subcategories = [];
-      }
-      currentCourse.subcategories.push(currentSubcategory);
-      console.log(`  ✅ Added final subcategory "${currentSubcategory.title}" with ${currentSubcategory.lessons.length} lessons`);
-    }
     
     // Add last course if exists
     if (currentCourse !== null) {
       courses.push(currentCourse);
       console.log(`✅ Saved final course "${currentCourse.title}" with ${currentCourse.lessons.length} lessons`);
+    }
+
+    // SECOND PASS: Move Health Mastery as subcategory under Platinum Fast Track
+    const platinumFastTrackIndex = courses.findIndex(c => 
+      c.title.toLowerCase().includes('platinum') && c.title.toLowerCase().includes('fast track')
+    );
+    const healthMasteryIndex = courses.findIndex(c => 
+      c.title.toLowerCase().includes('health mastery')
+    );
+
+    if (platinumFastTrackIndex !== -1 && healthMasteryIndex !== -1) {
+      const healthMasteryCourse = courses[healthMasteryIndex];
+      const platinumCourse = courses[platinumFastTrackIndex];
+      
+      // Convert Health Mastery course to subcategory
+      const healthMasterySubcat: CourseSubcategory = {
+        id: healthMasteryCourse.id,
+        title: healthMasteryCourse.title,
+        lessons: healthMasteryCourse.lessons,
+      };
+      
+      // Add to Platinum Fast Track's subcategories
+      if (!platinumCourse.subcategories) {
+        platinumCourse.subcategories = [];
+      }
+      platinumCourse.subcategories.push(healthMasterySubcat);
+      
+      // Remove Health Mastery from main courses array
+      courses.splice(healthMasteryIndex, 1);
+      
+      console.log(`🔸 Moved "Health Mastery" (${healthMasteryCourse.lessons.length} lessons) as subcategory under "Platinum Fast Track"`);
     }
 
     console.log(`\n🎉 Total courses parsed: ${courses.length}`);
