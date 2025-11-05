@@ -1687,6 +1687,15 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         const length = e.target.value.length;
                         e.target.setSelectionRange(length, length);
                       }}
+                      onKeyDown={(e) => {
+                        // Save on Enter key (without Shift for new line)
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          setEditingId(null);
+                        }
+                        // Prevent event propagation for all keys to avoid closing parent
+                        e.stopPropagation();
+                      }}
                       placeholder="Type checkpoint..."
                       className="min-h-[60px] text-xs flex-1 border bg-background/50 focus-visible:ring-1 p-2 resize-none"
                       autoFocus
@@ -1755,6 +1764,15 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   onFocus={(e) => {
                     const length = e.target.value.length;
                     e.target.setSelectionRange(length, length);
+                  }}
+                  onKeyDown={(e) => {
+                    // Save on Enter key (without Shift for new line)
+                    if (e.key === 'Enter' && !e.shiftKey && newCheckpointText.trim()) {
+                      e.preventDefault();
+                      handleSaveNewCheckpoint();
+                    }
+                    // Prevent event propagation for all keys to avoid closing dialog
+                    e.stopPropagation();
                   }}
                   placeholder={`Enter your ${colorScheme.label.toLowerCase()} checkpoint...`}
                   className="min-h-[100px] text-sm bg-white dark:bg-gray-950 border-muted"
