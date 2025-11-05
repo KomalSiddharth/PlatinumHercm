@@ -1697,16 +1697,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const sheetUrl = "https://docs.google.com/spreadsheets/d/1na9ioh9uT8wxSkjTMxG61hUF75JxuSTF/edit";
       const { fetchCourseTrackingData, clearCourseTrackingCache } = await import('./googleSheets');
       
+      console.log(`[COURSE TRACKING] Request from user: ${userId}`);
+      console.log(`[COURSE TRACKING] Using sheet URL: ${sheetUrl}`);
+      
       // Clear cache if requested via query param
       if (req.query.clearCache === 'true') {
+        console.log('[COURSE TRACKING] Cache clear requested');
         clearCourseTrackingCache();
       }
       
       // Get user's lesson completions
       const userCompletions = await storage.getUserLessonCompletions(userId);
+      console.log(`[COURSE TRACKING] User has ${userCompletions.size} lesson completions`);
       
       // Fetch courses and mark lessons as completed based on user data
       const courses = await fetchCourseTrackingData(sheetUrl);
+      console.log(`[COURSE TRACKING] Fetched ${courses.length} courses from Google Sheets`);
+      
+      if (courses.length > 0) {
+        console.log(`[COURSE TRACKING] First course: "${courses[0].title}" with ${courses[0].lessons.length} lessons`);
+      }
       
       // Mark lessons as completed
       const coursesWithCompletions = courses.map(course => ({
@@ -1724,9 +1734,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })),
       }));
       
+      console.log(`[COURSE TRACKING] Returning ${coursesWithCompletions.length} courses with completions to frontend`);
       res.json(coursesWithCompletions);
     } catch (error) {
-      console.error("Error fetching course tracking data:", error);
+      console.error("[COURSE TRACKING] Error fetching course tracking data:", error);
       res.status(500).json({ message: "Failed to fetch courses", error: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
