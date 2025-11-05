@@ -506,36 +506,39 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
         }
       }
       
-      // Move "Morning Happy Gym Dance Videos" under "Health Mastery"
+      // Move Health Mastery sub-sub-courses
       const healthMasterySubcat = platinumCourse.subcategories?.find(sc => 
-        sc.title.toLowerCase().includes('health mastery') && 
-        !sc.title.toLowerCase().includes('morning') &&
-        !sc.title.toLowerCase().includes('gym') &&
-        !sc.title.toLowerCase().includes('dance')
+        sc.title.toLowerCase().includes('health mastery')
       );
       
       if (healthMasterySubcat) {
-        const gymDanceCourseIndex = courses.findIndex(c => 
-          c.title.toLowerCase().includes('morning') && 
-          c.title.toLowerCase().includes('gym') &&
-          c.title.toLowerCase().includes('dance')
-        );
-        
-        if (gymDanceCourseIndex !== -1) {
-          const gymDanceCourse = courses[gymDanceCourseIndex];
-          
-          if (!healthMasterySubcat.subcategories) {
-            healthMasterySubcat.subcategories = [];
-          }
-          
-          healthMasterySubcat.subcategories.push({
-            id: gymDanceCourse.id,
-            title: gymDanceCourse.title,
-            lessons: gymDanceCourse.lessons,
-          });
-          courses.splice(gymDanceCourseIndex, 1);
-          console.log(`🔹 Moved "${gymDanceCourse.title}" (${gymDanceCourse.lessons.length} lessons) as sub-sub-course under "Health Mastery"`);
+        if (!healthMasterySubcat.subcategories) {
+          healthMasterySubcat.subcategories = [];
         }
+        
+        // List of Health Mastery sub-sub-courses to move
+        const healthSubCourses = [
+          { keywords: ["morning", "gym", "dance"], name: "Morning Happy Gym Dance Videos" },
+          { keywords: ["penial", "gland", "meditation"], name: "Penial Gland Meditations" }
+        ];
+        
+        healthSubCourses.forEach(({ keywords, name }) => {
+          const subCourseIndex = courses.findIndex(c => {
+            const lowerTitle = c.title.toLowerCase();
+            return keywords.every(keyword => lowerTitle.includes(keyword));
+          });
+          
+          if (subCourseIndex !== -1) {
+            const subCourse = courses[subCourseIndex];
+            healthMasterySubcat.subcategories!.push({
+              id: subCourse.id,
+              title: subCourse.title,
+              lessons: subCourse.lessons,
+            });
+            courses.splice(subCourseIndex, 1);
+            console.log(`🔹 Moved "${subCourse.title}" (${subCourse.lessons.length} lessons) as sub-sub-course under "Health Mastery"`);
+          }
+        });
       }
       
       // Move Career Mastery sub-sub-courses

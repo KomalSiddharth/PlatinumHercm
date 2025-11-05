@@ -100,7 +100,7 @@ export default function LifeSkillsMap() {
         <Button
           variant="default"
           size="sm"
-          className="bg-[#ec4899] hover:bg-[#db2777] text-white flex items-center gap-1"
+          className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white flex items-center gap-1"
           data-testid="button-skill-map"
         >
           <Map className="h-4 w-4" />
