@@ -216,50 +216,55 @@ export default function LifeSkillsMap() {
                                 open={isSubcatOpen}
                                 onOpenChange={() => toggleSubcategory(subcatKey)}
                               >
-                                <CollapsibleTrigger 
-                                  className="flex items-center gap-2 w-full p-2 rounded hover:bg-gray-800/30 transition-colors"
-                                  data-testid={`button-subcategory-${subcatKey}`}
-                                >
-                                  <ChevronRight 
-                                    className={`h-3 w-3 text-gray-500 transition-transform ${isSubcatOpen ? 'rotate-90' : ''}`}
-                                  />
-                                  <span className="text-sm text-gray-300" data-testid={`text-subcategory-title-${subcatKey}`}>
-                                    {subcat.title}
-                                  </span>
-                                </CollapsibleTrigger>
-                                
-                                <CollapsibleContent>
-                                  <div className="ml-5 mt-1 space-y-1">
-                                    {subcat.lessons.map((lesson) => (
-                                      <div 
-                                        key={lesson.id}
-                                        className="flex items-center justify-between p-2 rounded hover:bg-gray-800/20 transition-colors"
-                                        data-testid={`container-lesson-${lesson.id}`}
-                                      >
-                                        <div className="flex items-center gap-2 flex-1">
-                                          <Checkbox
-                                            checked={lesson.completed}
-                                            onCheckedChange={() => handleLessonToggle(lesson.id, lesson.completed)}
-                                            className="border-gray-500"
-                                            data-testid={`checkbox-lesson-${lesson.id}`}
-                                          />
-                                          <a
-                                            href={lesson.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-sm text-blue-400 hover:text-blue-300 hover:underline"
-                                            data-testid={`link-lesson-${lesson.id}`}
-                                          >
-                                            {lesson.title}
-                                          </a>
+                                <div className="border border-cyan-500/30 bg-gradient-to-r from-cyan-900/20 to-blue-900/10 rounded-md mb-2">
+                                  <CollapsibleTrigger 
+                                    className="flex items-center gap-2 w-full p-3 rounded-md hover:bg-cyan-900/30 transition-colors"
+                                    data-testid={`button-subcategory-${subcatKey}`}
+                                  >
+                                    <ChevronRight 
+                                      className={`h-4 w-4 text-cyan-400 transition-transform ${isSubcatOpen ? 'rotate-90' : ''}`}
+                                    />
+                                    <span className="text-sm font-semibold text-cyan-300" data-testid={`text-subcategory-title-${subcatKey}`}>
+                                      🔸 {subcat.title}
+                                    </span>
+                                    <span className="ml-auto text-xs text-cyan-400/60">
+                                      {subcat.lessons.filter(l => l.completed).length}/{subcat.lessons.length} lessons
+                                    </span>
+                                  </CollapsibleTrigger>
+                                  
+                                  <CollapsibleContent>
+                                    <div className="ml-5 mt-2 space-y-1 bg-cyan-950/10 p-2 rounded-b-md">
+                                      {subcat.lessons.map((lesson) => (
+                                        <div 
+                                          key={lesson.id}
+                                          className="flex items-center justify-between p-2 rounded hover:bg-gray-800/20 transition-colors"
+                                          data-testid={`container-lesson-${lesson.id}`}
+                                        >
+                                          <div className="flex items-center gap-2 flex-1">
+                                            <Checkbox
+                                              checked={lesson.completed}
+                                              onCheckedChange={() => handleLessonToggle(lesson.id, lesson.completed)}
+                                              className="border-gray-500"
+                                              data-testid={`checkbox-lesson-${lesson.id}`}
+                                            />
+                                            <a
+                                              href={lesson.url}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-sm text-blue-400 hover:text-blue-300 hover:underline"
+                                              data-testid={`link-lesson-${lesson.id}`}
+                                            >
+                                              {lesson.title}
+                                            </a>
+                                          </div>
+                                          <span className="text-xs text-gray-500" data-testid={`text-lesson-points-${lesson.id}`}>
+                                            10 pts
+                                          </span>
                                         </div>
-                                        <span className="text-xs text-gray-500" data-testid={`text-lesson-points-${lesson.id}`}>
-                                          10 pts
-                                        </span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </CollapsibleContent>
+                                      ))}
+                                    </div>
+                                  </CollapsibleContent>
+                                </div>
                               </Collapsible>
                             );
                           })
