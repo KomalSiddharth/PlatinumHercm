@@ -117,7 +117,7 @@ export default function LifeSkillsMap() {
           </div>
         ) : isError ? (
           <div 
-            className="bg-[#0f1c2e] dark:bg-[#0f1c2e] rounded-lg border border-red-700/50 py-16 px-6"
+            className="bg-[#0f1c2e] dark:bg-[#0f1c2e] rounded-lg border border-blue-700/50 py-16 px-6"
             data-testid="container-error-state"
           >
             <p className="text-center text-red-400 mb-4" data-testid="text-error-state">
