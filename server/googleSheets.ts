@@ -666,7 +666,8 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
         { keywords: ["aug", "2025", "platinum", "bonus", "call", "recording"], name: "Aug 2025 Platinum Bonus Call Recording" },
         { keywords: ["sept", "25", "platinum", "bonus", "call", "recording"], name: "Sept'25 Platinum Bonus Call Recording" },
         { keywords: ["platinum", "healing", "sessions"], name: "Platinum Healing Sessions" },
-        { keywords: ["platinum", "membership", "5", "days", "challenge"], name: "Platinum Membership 5 Days Challenge" }
+        { keywords: ["platinum", "membership", "5", "days", "challenge"], name: "Platinum Membership 5 Days Challenge" },
+        { keywords: ["jack", "canfield", "special", "session"], name: "Jack Canfield Special Session" }
       ];
       
       platinumWeeklySubCourses.forEach(({ keywords, name }) => {
