@@ -436,7 +436,7 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
       console.log(`✅ Saved final course "${currentCourse.title}" with ${currentCourse.lessons.length} lessons`);
     }
 
-    // SECOND PASS: Move Health Mastery & Relationship Mastery as subcategories under Platinum Fast Track
+    // SECOND PASS: Move Mastery courses as subcategories under Platinum Fast Track
     const platinumFastTrackIndex = courses.findIndex(c => 
       c.title.toLowerCase().includes('platinum') && c.title.toLowerCase().includes('fast track')
     );
@@ -449,35 +449,30 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
         platinumCourse.subcategories = [];
       }
       
-      // Move Health Mastery
-      const healthMasteryIndex = courses.findIndex(c => 
-        c.title.toLowerCase().includes('health mastery')
-      );
-      if (healthMasteryIndex !== -1) {
-        const healthMasteryCourse = courses[healthMasteryIndex];
-        platinumCourse.subcategories.push({
-          id: healthMasteryCourse.id,
-          title: healthMasteryCourse.title,
-          lessons: healthMasteryCourse.lessons,
-        });
-        courses.splice(healthMasteryIndex, 1);
-        console.log(`🔸 Moved "Health Mastery" (${healthMasteryCourse.lessons.length} lessons) as subcategory under "Platinum Fast Track"`);
-      }
+      // List of mastery courses to move as subcategories
+      const masteryCourses = [
+        'health mastery',
+        'relationship mastery',
+        'career mastery',
+        'wealth mastery'
+      ];
       
-      // Move Relationship Mastery (check again after Health Mastery removal since indices changed)
-      const relationshipMasteryIndex = courses.findIndex(c => 
-        c.title.toLowerCase().includes('relationship mastery')
-      );
-      if (relationshipMasteryIndex !== -1) {
-        const relationshipMasteryCourse = courses[relationshipMasteryIndex];
-        platinumCourse.subcategories.push({
-          id: relationshipMasteryCourse.id,
-          title: relationshipMasteryCourse.title,
-          lessons: relationshipMasteryCourse.lessons,
-        });
-        courses.splice(relationshipMasteryIndex, 1);
-        console.log(`🔸 Moved "Relationship Mastery" (${relationshipMasteryCourse.lessons.length} lessons) as subcategory under "Platinum Fast Track"`);
-      }
+      // Move each mastery course as subcategory
+      masteryCourses.forEach(masteryName => {
+        const masteryIndex = courses.findIndex(c => 
+          c.title.toLowerCase().includes(masteryName)
+        );
+        if (masteryIndex !== -1) {
+          const masteryCourse = courses[masteryIndex];
+          platinumCourse.subcategories.push({
+            id: masteryCourse.id,
+            title: masteryCourse.title,
+            lessons: masteryCourse.lessons,
+          });
+          courses.splice(masteryIndex, 1);
+          console.log(`🔸 Moved "${masteryCourse.title}" (${masteryCourse.lessons.length} lessons) as subcategory under "Platinum Fast Track"`);
+        }
+      });
     }
 
     console.log(`\n🎉 Total courses parsed: ${courses.length}`);
