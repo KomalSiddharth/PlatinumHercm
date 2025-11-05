@@ -346,59 +346,36 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
     return cachedCourseTracking;
   }
   
-  console.log('🔄 Fetching fresh course data from Google Sheets with formatting...');
+  console.log('🔄 Fetching fresh course data from Google Sheets (simple method)...');
 
   try {
     const sheets = await getUncachableGoogleSheetClient();
     const spreadsheetId = extractSpreadsheetId(sheetUrl);
     
-    // Fetch data WITH FORMATTING to detect bold text
-    // We need to use spreadsheets.get with includeGridData to get formatting
-    const response = await sheets.spreadsheets.get({
+    // Use simple values.get (no formatting needed)
+    // Rows with empty Column B = Course headings
+    // Rows with non-empty Column B = Lessons
+    const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      ranges: ['Sheet1!A1:B2000'],
-      includeGridData: true,
+      range: 'Sheet1!A1:B2000',
     });
 
-    const sheet = response.data.sheets?.[0];
-    const gridData = sheet?.data?.[0];
-    const rowData = gridData?.rowData || [];
+    const rows = response.data.values || [];
     
-    if (rowData.length === 0) {
+    if (rows.length === 0) {
       console.warn('No data found in course tracking sheet');
       return [];
     }
     
-    console.log(`📊 Fetched ${rowData.length} rows with formatting data`);
-
-    // Helper function to check if text is bold
-    const isBoldText = (cell: any): boolean => {
-      if (!cell || !cell.effectiveFormat || !cell.effectiveFormat.textFormat) {
-        return false;
-      }
-      return cell.effectiveFormat.textFormat.bold === true;
-    };
-
-    // Helper function to get cell value
-    const getCellValue = (cell: any): string => {
-      if (!cell || !cell.effectiveValue) {
-        return '';
-      }
-      return String(cell.effectiveValue.stringValue || cell.effectiveValue.numberValue || '').trim();
-    };
+    console.log(`📊 Fetched ${rows.length} rows from Google Sheet`);
 
     const courses: CourseTrackingData[] = [];
     let currentCourse: CourseTrackingData | null = null;
     let lessonCounter = 0;
 
-    rowData.forEach((row, index) => {
-      const cells = row.values || [];
-      const questionCell = cells[0]; // Column A
-      const answerCell = cells[1];   // Column B
-
-      const question = getCellValue(questionCell);
-      const answer = getCellValue(answerCell);
-      const isBold = isBoldText(questionCell);
+    rows.forEach((row, index) => {
+      const question = (row[0] || '').toString().trim();
+      const answer = (row[1] || '').toString().trim();
 
       // Skip header row
       if (index === 0 && question.toLowerCase().includes('question')) {
@@ -411,8 +388,8 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
         return;
       }
 
-      // If text is BOLD in Question column = it's a COURSE
-      if (isBold) {
+      // If Column B (Answer) is EMPTY = it's a COURSE heading
+      if (!answer) {
         // Save previous course if exists
         if (currentCourse !== null) {
           courses.push(currentCourse);
@@ -435,10 +412,10 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
         };
         lessonCounter = 0;
         
-        console.log(`🎓 NEW COURSE (BOLD): "${question}" at row ${index + 1}`);
+        console.log(`🎓 NEW COURSE (empty URL): "${question}" at row ${index + 1}`);
       } 
-      // If text is NOT BOLD and we have a current course = it's a LESSON
-      else if (!isBold && currentCourse !== null && answer) {
+      // If Column B (Answer) has a URL = it's a LESSON
+      else if (currentCourse !== null && answer) {
         lessonCounter++;
         const lessonId = `${currentCourse.id}-${lessonCounter}`;
         currentCourse.lessons.push({
