@@ -342,8 +342,8 @@ export default function EmotionalTracker() {
                             </div>
                           </TooltipTrigger>
                           {data.positiveEmotions && (
-                            <TooltipContent>
-                              <p className="max-w-xs">{data.positiveEmotions}</p>
+                            <TooltipContent className="bg-green-100 dark:bg-green-900/80 border-green-300 dark:border-green-700">
+                              <p className="max-w-xs text-green-800 dark:text-green-200 font-medium">{data.positiveEmotions}</p>
                             </TooltipContent>
                           )}
                         </Tooltip>
@@ -366,8 +366,8 @@ export default function EmotionalTracker() {
                             </div>
                           </TooltipTrigger>
                           {data.negativeEmotions && (
-                            <TooltipContent>
-                              <p className="max-w-xs">{data.negativeEmotions}</p>
+                            <TooltipContent className="bg-red-100 dark:bg-red-900/80 border-red-300 dark:border-red-700">
+                              <p className="max-w-xs text-red-800 dark:text-red-200 font-medium">{data.negativeEmotions}</p>
                             </TooltipContent>
                           )}
                         </Tooltip>
@@ -390,8 +390,8 @@ export default function EmotionalTracker() {
                             </div>
                           </TooltipTrigger>
                           {data.repeatingEmotions && (
-                            <TooltipContent>
-                              <p className="max-w-xs">{data.repeatingEmotions}</p>
+                            <TooltipContent className="bg-blue-100 dark:bg-blue-900/80 border-blue-300 dark:border-blue-700">
+                              <p className="max-w-xs text-blue-800 dark:text-blue-200 font-medium">{data.repeatingEmotions}</p>
                             </TooltipContent>
                           )}
                         </Tooltip>
@@ -414,8 +414,8 @@ export default function EmotionalTracker() {
                             </div>
                           </TooltipTrigger>
                           {data.missingEmotions && (
-                            <TooltipContent>
-                              <p className="max-w-xs">{data.missingEmotions}</p>
+                            <TooltipContent className="bg-orange-100 dark:bg-orange-900/80 border-orange-300 dark:border-orange-700">
+                              <p className="max-w-xs text-orange-800 dark:text-orange-200 font-medium">{data.missingEmotions}</p>
                             </TooltipContent>
                           )}
                         </Tooltip>
