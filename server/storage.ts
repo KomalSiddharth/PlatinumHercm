@@ -395,14 +395,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateHercmWeek(id: string, weekData: Partial<InsertHercmWeek>): Promise<HercmWeek> {
-    // CRITICAL FIX: NEVER overwrite dateString to preserve original creation date
-    // This ensures historical calendar navigation works perfectly
-    // Remove dateString from update to preserve the original date when data was first created
-    const { dateString, ...updateDataWithoutDate } = weekData;
-    
+    // CRITICAL FIX: ALLOW dateString update to reflect when data was last edited
+    // When user edits Nov 5 data, dateString should be Nov 5 (not preserved from old date)
+    // This ensures data filled on Nov 5 appears on Nov 5 after refresh
     const [week] = await db
       .update(hercmWeeks)
-      .set({ ...updateDataWithoutDate, updatedAt: new Date() } as any)
+      .set({ ...weekData, updatedAt: new Date() } as any)
       .where(eq(hercmWeeks.id, id))
       .returning();
     return week;

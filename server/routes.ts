@@ -789,6 +789,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         weekData.achievementRate = Math.round((healthProgress + relationshipProgress + careerProgress + moneyProgress) / 4);
       }
       
+      // CRITICAL FIX: Set dateString to TODAY (local timezone, NOT UTC) on EVERY save
+      // This ensures data filled on Nov 5 appears on Nov 5 after refresh
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      weekData.dateString = `${year}-${month}-${day}`;
+      
+      console.log(`[SAVE DEBUG] Setting dateString to TODAY: ${weekData.dateString} (weekNumber: ${weekData.weekNumber})`);
+      
       // UPSERT logic: Check if week already exists for this user+weekNumber
       // If exists, UPDATE it (preserves checked states across refresh)
       // If not exists, CREATE new week
