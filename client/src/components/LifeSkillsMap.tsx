@@ -159,6 +159,9 @@ export default function LifeSkillsMap() {
                                             >
                                               {lesson.title}
                                             </a>
+                                            <span className="text-xs font-medium text-accent dark:text-accent/80 flex-shrink-0">
+                                              10 pts
+                                            </span>
                                             {lesson.completed && (
                                               <CheckCircle2 className="h-3.5 w-3.5 text-chart-3 flex-shrink-0" />
                                             )}
@@ -170,7 +173,7 @@ export default function LifeSkillsMap() {
                                 </div>
                               );
                             })
-                          ) : (
+                          ) : course.lessons.length > 0 ? (
                             /* If no subcategories, show flat lessons (Level 1) */
                             course.lessons.map((lesson, lessonIdx) => (
                               <div 
@@ -188,11 +191,18 @@ export default function LifeSkillsMap() {
                                 >
                                   {lesson.title}
                                 </a>
+                                <span className="text-xs font-medium text-accent dark:text-accent/80 flex-shrink-0">
+                                  10 pts
+                                </span>
                                 {lesson.completed && (
                                   <CheckCircle2 className="h-3.5 w-3.5 text-chart-3 flex-shrink-0" />
                                 )}
                               </div>
                             ))
+                          ) : (
+                            <div className="text-xs text-muted-foreground italic px-2 py-1">
+                              No lessons available
+                            </div>
                           )}
                         </div>
                       </CollapsibleContent>
