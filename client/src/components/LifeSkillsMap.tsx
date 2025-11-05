@@ -259,7 +259,7 @@ export default function LifeSkillsMap() {
                                 <div className="flex items-center gap-2 flex-1">
                                   <Checkbox
                                     checked={lesson.completed}
-                                    onCheckedChange={() => handleLessonToggle(lesson.id, lesson.completed)}
+                                    onCheckedChange={() => handleLessonToggle(course.id, lesson.id, lesson.completed, lesson.title, course.title, lesson.url, course.category)}
                                     className="border-gray-500"
                                     data-testid={`checkbox-lesson-${lesson.id}`}
                                   />
@@ -335,7 +335,7 @@ export default function LifeSkillsMap() {
                                           <div className="flex items-center gap-2 flex-1">
                                             <Checkbox
                                               checked={lesson.completed}
-                                              onCheckedChange={() => handleLessonToggle(lesson.id, lesson.completed)}
+                                              onCheckedChange={() => handleLessonToggle(course.id, lesson.id, lesson.completed, lesson.title, subcat.title, lesson.url, course.category)}
                                               className="border-gray-500"
                                               data-testid={`checkbox-lesson-${lesson.id}`}
                                             />
@@ -409,7 +409,7 @@ export default function LifeSkillsMap() {
                                                       <div className="flex items-center gap-2 flex-1">
                                                         <Checkbox
                                                           checked={lesson.completed}
-                                                          onCheckedChange={() => handleLessonToggle(lesson.id, lesson.completed)}
+                                                          onCheckedChange={() => handleLessonToggle(course.id, lesson.id, lesson.completed, lesson.title, subSubcat.title, lesson.url, course.category)}
                                                           className="border-gray-500"
                                                           data-testid={`checkbox-lesson-${lesson.id}`}
                                                         />
