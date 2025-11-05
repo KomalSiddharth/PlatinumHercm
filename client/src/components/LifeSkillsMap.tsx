@@ -72,7 +72,8 @@ export default function LifeSkillsMap() {
 
   return (
     <Card 
-      className="w-full border border-primary/20 bg-[#1a2942] dark:bg-[#1a2942]" 
+      className="w-full border-2" 
+      style={{ backgroundColor: '#00008c', borderColor: '#0000cc' }}
       data-testid="card-course-tracker"
     >
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-4">
@@ -80,7 +81,7 @@ export default function LifeSkillsMap() {
           <h2 className="text-2xl font-bold text-white mb-1" data-testid="text-course-tracker-title">
             Course Tracker
           </h2>
-          <p className="text-sm text-gray-400" data-testid="text-course-tracker-subtitle">
+          <p className="text-sm text-white/80" data-testid="text-course-tracker-subtitle">
             Manage your learning journey and skill development
           </p>
         </div>
@@ -98,21 +99,21 @@ export default function LifeSkillsMap() {
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
-              <p className="text-gray-400">Loading courses...</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white/30 mx-auto mb-4"></div>
+              <p className="text-white/70">Loading courses...</p>
             </div>
           </div>
         ) : isError || !coursesData || coursesData.length === 0 ? (
           <div 
-            className="bg-[#0f1c2e] dark:bg-[#0f1c2e] rounded-lg border border-gray-700/50 py-16"
+            className="rounded-lg border-2 border-white/20 py-16 bg-white/5"
             data-testid="container-empty-state"
           >
-            <p className="text-center text-gray-400" data-testid="text-empty-state">
+            <p className="text-center text-white/70" data-testid="text-empty-state">
               No courses available at the moment.
             </p>
           </div>
         ) : (
-          <div className="bg-[#0f1c2e] dark:bg-[#0f1c2e] rounded-lg border border-gray-700/50 p-6">
+          <div className="rounded-lg border-2 border-white/20 p-6 bg-white/5">
             <div className="space-y-3">
               {coursesData.map((course, courseIdx) => {
                 let totalLessons = 0;
@@ -138,12 +139,12 @@ export default function LifeSkillsMap() {
                     onOpenChange={() => toggleCategory(course.id)}
                   >
                     <CollapsibleTrigger 
-                      className="flex items-center justify-between w-full p-3 rounded-md hover:bg-gray-800/50 transition-colors group"
+                      className="flex items-center justify-between w-full p-3 rounded-md hover:bg-white/10 transition-colors group"
                       data-testid={`button-course-${course.id}`}
                     >
                       <div className="flex items-center gap-2 flex-1">
                         <ChevronRight 
-                          className={`h-4 w-4 text-gray-400 transition-transform ${isOpen ? 'rotate-90' : ''}`}
+                          className={`h-4 w-4 text-white/60 transition-transform ${isOpen ? 'rotate-90' : ''}`}
                         />
                         <span className="font-semibold text-white text-sm" data-testid={`text-course-title-${course.id}`}>
                           {course.title}
@@ -151,17 +152,17 @@ export default function LifeSkillsMap() {
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-gray-400" data-testid={`text-course-progress-${course.id}`}>
+                          <span className="text-xs text-white/70" data-testid={`text-course-progress-${course.id}`}>
                             {completedLessons}/{totalLessons} lessons
                           </span>
-                          <span className="text-xs font-semibold text-pink-400" data-testid={`text-course-percent-${course.id}`}>
+                          <span className="text-xs font-semibold text-white" data-testid={`text-course-percent-${course.id}`}>
                             {progressPercent}%
                           </span>
                         </div>
                         <div className="w-24">
                           <Progress 
                             value={progressPercent} 
-                            className="h-2 bg-gray-700"
+                            className="h-2 bg-white/20"
                             data-testid={`progress-course-${course.id}`}
                           />
                         </div>
@@ -182,13 +183,13 @@ export default function LifeSkillsMap() {
                                 onOpenChange={() => toggleSubcategory(subcatKey)}
                               >
                                 <CollapsibleTrigger 
-                                  className="flex items-center gap-2 w-full p-2 rounded hover:bg-gray-800/30 transition-colors"
+                                  className="flex items-center gap-2 w-full p-2 rounded hover:bg-white/5 transition-colors"
                                   data-testid={`button-subcategory-${subcatKey}`}
                                 >
                                   <ChevronRight 
-                                    className={`h-3 w-3 text-gray-500 transition-transform ${isSubcatOpen ? 'rotate-90' : ''}`}
+                                    className={`h-3 w-3 text-white/50 transition-transform ${isSubcatOpen ? 'rotate-90' : ''}`}
                                   />
-                                  <span className="text-sm text-gray-300" data-testid={`text-subcategory-title-${subcatKey}`}>
+                                  <span className="text-sm text-white/80" data-testid={`text-subcategory-title-${subcatKey}`}>
                                     {subcat.title}
                                   </span>
                                 </CollapsibleTrigger>
@@ -198,27 +199,27 @@ export default function LifeSkillsMap() {
                                     {subcat.lessons.map((lesson) => (
                                       <div 
                                         key={lesson.id}
-                                        className="flex items-center justify-between p-2 rounded hover:bg-gray-800/20 transition-colors"
+                                        className="flex items-center justify-between p-2 rounded hover:bg-white/5 transition-colors"
                                         data-testid={`container-lesson-${lesson.id}`}
                                       >
                                         <div className="flex items-center gap-2 flex-1">
                                           <Checkbox
                                             checked={lesson.completed}
                                             onCheckedChange={() => handleLessonToggle(lesson.id, lesson.completed)}
-                                            className="border-gray-500"
+                                            className="border-white/30"
                                             data-testid={`checkbox-lesson-${lesson.id}`}
                                           />
                                           <a
                                             href={lesson.url}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="text-sm text-blue-400 hover:text-blue-300 hover:underline"
+                                            className="text-sm text-white/90 hover:text-white hover:underline"
                                             data-testid={`link-lesson-${lesson.id}`}
                                           >
                                             {lesson.title}
                                           </a>
                                         </div>
-                                        <span className="text-xs text-gray-500" data-testid={`text-lesson-points-${lesson.id}`}>
+                                        <span className="text-xs text-white/50" data-testid={`text-lesson-points-${lesson.id}`}>
                                           10 pts
                                         </span>
                                       </div>
@@ -233,27 +234,27 @@ export default function LifeSkillsMap() {
                             {course.lessons.map((lesson) => (
                               <div 
                                 key={lesson.id}
-                                className="flex items-center justify-between p-2 rounded hover:bg-gray-800/20 transition-colors"
+                                className="flex items-center justify-between p-2 rounded hover:bg-white/5 transition-colors"
                                 data-testid={`container-lesson-${lesson.id}`}
                               >
                                 <div className="flex items-center gap-2 flex-1">
                                   <Checkbox
                                     checked={lesson.completed}
                                     onCheckedChange={() => handleLessonToggle(lesson.id, lesson.completed)}
-                                    className="border-gray-500"
+                                    className="border-white/30"
                                     data-testid={`checkbox-lesson-${lesson.id}`}
                                   />
                                   <a
                                     href={lesson.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-sm text-blue-400 hover:text-blue-300 hover:underline"
+                                    className="text-sm text-white/90 hover:text-white hover:underline"
                                     data-testid={`link-lesson-${lesson.id}`}
                                   >
                                     {lesson.title}
                                   </a>
                                 </div>
-                                <span className="text-xs text-gray-500" data-testid={`text-lesson-points-${lesson.id}`}>
+                                <span className="text-xs text-white/50" data-testid={`text-lesson-points-${lesson.id}`}>
                                   10 pts
                                 </span>
                               </div>
