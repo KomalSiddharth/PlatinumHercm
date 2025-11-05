@@ -37,7 +37,7 @@ interface CourseCardProps {
   completedModules?: string[];
   onUpdateProgress?: (id: string) => void;
   onVisit?: (id: string) => void;
-  onModuleToggle?: (courseId: string, moduleId: string, completed: boolean) => void;
+  onModuleToggle?: (courseId: string, moduleId: string, completed: boolean, lessonName?: string, courseName?: string, url?: string, hrcmArea?: string) => void;
   category?: string;
 }
 
@@ -62,7 +62,7 @@ interface SubcategoryRendererProps {
   openSubcategories: Record<string, boolean>;
   toggleSubcategory: (id: string) => void;
   localCompletedModules: string[];
-  handleModuleToggle: (moduleId: string, completed: boolean) => void;
+  handleModuleToggle: (moduleId: string, completed: boolean, lessonName?: string, lessonUrl?: string) => void;
   depth: number;
 }
 
@@ -106,13 +106,13 @@ function SubcategoryRenderer({
             >
               <Checkbox
                 checked={localCompletedModules.includes(lesson.id)}
-                onCheckedChange={(checked) => handleModuleToggle(lesson.id, checked as boolean)}
+                onCheckedChange={(checked) => handleModuleToggle(lesson.id, checked as boolean, lesson.title, lesson.url)}
                 className="border-white/40 data-[state=checked]:bg-white data-[state=checked]:text-primary"
                 data-testid={`checkbox-lesson-${lesson.id}`}
               />
               <label className="text-sm text-white cursor-pointer flex-1" onClick={() => {
                 const isChecked = localCompletedModules.includes(lesson.id);
-                handleModuleToggle(lesson.id, !isChecked);
+                handleModuleToggle(lesson.id, !isChecked, lesson.title, lesson.url);
               }}>
                 {lesson.title}
               </label>
@@ -196,13 +196,13 @@ export default function CourseCard({
   const firstLetter = title.charAt(0).toUpperCase();
   const gradientClass = categoryColors[category as keyof typeof categoryColors] || categoryColors.default;
 
-  const handleModuleToggle = (moduleId: string, completed: boolean) => {
+  const handleModuleToggle = (moduleId: string, completed: boolean, lessonName?: string, lessonUrl?: string) => {
     const newCompleted = completed 
       ? [...localCompletedModules, moduleId]
       : localCompletedModules.filter(id => id !== moduleId);
     
     setLocalCompletedModules(newCompleted);
-    onModuleToggle(id, moduleId, completed);
+    onModuleToggle(id, moduleId, completed, lessonName, title, lessonUrl, category);
   };
 
   const toggleSubcategory = (subcategoryId: string) => {
@@ -298,13 +298,13 @@ export default function CourseCard({
                 >
                   <Checkbox
                     checked={localCompletedModules.includes(module.id)}
-                    onCheckedChange={(checked) => handleModuleToggle(module.id, checked as boolean)}
+                    onCheckedChange={(checked) => handleModuleToggle(module.id, checked as boolean, module.title, module.url)}
                     className="border-white/40 data-[state=checked]:bg-white data-[state=checked]:text-primary"
                     data-testid={`checkbox-module-${module.id}`}
                   />
                   <label className="text-sm text-white cursor-pointer flex-1" onClick={() => {
                     const isChecked = localCompletedModules.includes(module.id);
-                    handleModuleToggle(module.id, !isChecked);
+                    handleModuleToggle(module.id, !isChecked, module.title, module.url);
                   }}>
                     {module.title}
                   </label>

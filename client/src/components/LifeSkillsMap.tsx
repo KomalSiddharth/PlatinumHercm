@@ -57,11 +57,36 @@ export default function LifeSkillsMap() {
   console.log('[LifeSkillsMap] Query state:', { isLoading, isError, hasData: !!coursesData, error });
 
   const toggleLessonMutation = useMutation({
-    mutationFn: async ({ lessonId, completed }: { lessonId: string; completed: boolean }) => {
-      return await apiRequest('/api/lessons/toggle', 'POST', { lessonId, completed });
+    mutationFn: async ({ 
+      lessonId, 
+      completed, 
+      lessonName, 
+      courseName, 
+      courseId, 
+      url, 
+      hrcmArea 
+    }: { 
+      lessonId: string; 
+      completed: boolean;
+      lessonName?: string;
+      courseName?: string;
+      courseId?: string;
+      url?: string;
+      hrcmArea?: string;
+    }) => {
+      return await apiRequest('/api/lessons/toggle', 'POST', { 
+        lessonId, 
+        completed, 
+        lessonName, 
+        courseName, 
+        courseId, 
+        url, 
+        hrcmArea 
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/courses/tracking'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user'] });
     },
   });
 
@@ -79,8 +104,24 @@ export default function LifeSkillsMap() {
     }));
   };
 
-  const handleLessonToggle = (lessonId: string, currentCompleted: boolean) => {
-    toggleLessonMutation.mutate({ lessonId, completed: !currentCompleted });
+  const handleLessonToggle = (
+    courseId: string, 
+    lessonId: string, 
+    currentCompleted: boolean,
+    lessonName?: string,
+    courseName?: string,
+    url?: string,
+    hrcmArea?: string
+  ) => {
+    toggleLessonMutation.mutate({ 
+      lessonId, 
+      completed: !currentCompleted,
+      lessonName,
+      courseName,
+      courseId,
+      url,
+      hrcmArea
+    });
   };
 
   return (

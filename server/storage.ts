@@ -75,6 +75,7 @@ export interface IStorage {
   createPlatinumProgress(progress: InsertPlatinumProgress): Promise<PlatinumProgress>;
   updatePlatinumProgress(userId: string, progress: Partial<InsertPlatinumProgress>): Promise<PlatinumProgress>;
   upsertPlatinumProgress(progress: InsertPlatinumProgress): Promise<PlatinumProgress>;
+  addPointsToUser(userId: string, points: number): Promise<void>;
   
   // Approved Emails operations
   getApprovedEmail(email: string): Promise<ApprovedEmail | undefined>;
@@ -448,6 +449,32 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return progress;
+  }
+
+  async addPointsToUser(userId: string, points: number): Promise<void> {
+    // Get or create platinum progress
+    let progress = await this.getPlatinumProgress(userId);
+    
+    if (!progress) {
+      // Create initial progress record
+      progress = await this.createPlatinumProgress({
+        userId,
+        totalPoints: points,
+        currentStreak: 0,
+        badges: [],
+        platinumAchieved: false,
+      });
+    } else {
+      // Update existing progress
+      const newTotalPoints = Math.max(0, (progress.totalPoints || 0) + points);
+      await db
+        .update(platinumProgress)
+        .set({ 
+          totalPoints: newTotalPoints,
+          updatedAt: new Date()
+        })
+        .where(eq(platinumProgress.userId, userId));
+    }
   }
 
   // User by email (case-insensitive)

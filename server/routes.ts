@@ -1815,7 +1815,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "User not authenticated" });
       }
       
-      const { lessonId, completed } = req.body;
+      const { lessonId, completed, lessonName, courseName, courseId, url, hrcmArea } = req.body;
 
       if (!lessonId) {
         return res.status(400).json({ message: "lessonId is required" });
@@ -1824,9 +1824,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (completed) {
         // Mark as completed
         await storage.markLessonComplete(userId, lessonId);
+        
+        // Add 10 points
+        await storage.addPointsToUser(userId, 10);
+        console.log(`✅ Added 10 points to user ${userId} for completing lesson: ${lessonName}`);
+        
+        // Add to persistent assignments if lesson metadata is provided
+        if (lessonName && courseName && courseId) {
+          const area = hrcmArea || 'Career'; // Default to Career if not specified
+          await storage.addPersistentAssignment({
+            userId,
+            hrcmArea: area,
+            courseId,
+            courseName,
+            lessonId,
+            lessonName,
+            url: url || '',
+            source: 'user',
+            completed: true
+          });
+          console.log(`📝 Added lesson "${lessonName}" to ${area} assignment column`);
+        }
       } else {
         // Mark as incomplete (remove completion record)
         await storage.markLessonIncomplete(userId, lessonId);
+        
+        // Subtract 10 points
+        await storage.addPointsToUser(userId, -10);
+        console.log(`❌ Subtracted 10 points from user ${userId} for unchecking lesson: ${lessonName}`);
+        
+        // Remove from persistent assignments if it exists
+        if (lessonId) {
+          const assignments = await storage.getUserPersistentAssignments(userId);
+          const assignment = assignments.find((a: any) => a.lessonId === lessonId && a.source === 'user');
+          if (assignment) {
+            await storage.deletePersistentAssignment(assignment.id, userId);
+            console.log(`🗑️ Removed lesson "${lessonName}" from assignment column`);
+          }
+        }
       }
 
       res.json({ success: true, lessonId, completed });
