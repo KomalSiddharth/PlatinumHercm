@@ -1699,7 +1699,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "User not authenticated" });
       }
       
-      const sheetUrl = "https://docs.google.com/spreadsheets/d/1na9ioh9uT8wxSkjTMxG61hUF75JxuSTF/edit";
+      const sheetUrl = "https://docs.google.com/spreadsheets/d/1WItwo6f0TJ9EhHYtiTt_9mlBbQGHE5nBpgiKChUOq_c/edit";
       const { fetchCourseTrackingData, clearCourseTrackingCache } = await import('./googleSheets');
       
       console.log(`[COURSE TRACKING] Request from user: ${userId}`);
@@ -1784,7 +1784,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Google Sheets course suggestions
   app.get('/api/courses/suggestions', isAuthenticated, async (req, res) => {
     try {
-      const sheetUrl = "https://docs.google.com/spreadsheets/d/1na9ioh9uT8wxSkjTMxG61hUF75JxuSTF/edit";
+      const sheetUrl = "https://docs.google.com/spreadsheets/d/1WItwo6f0TJ9EhHYtiTt_9mlBbQGHE5nBpgiKChUOq_c/edit";
       const courses = await fetchCourseData(sheetUrl);
       res.json(courses);
     } catch (error) {
@@ -1796,7 +1796,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/courses/match', isAuthenticated, async (req, res) => {
     try {
       const { category, currentBelief } = req.body;
-      const sheetUrl = "https://docs.google.com/spreadsheets/d/1na9ioh9uT8wxSkjTMxG61hUF75JxuSTF/edit";
+      const sheetUrl = "https://docs.google.com/spreadsheets/d/1WItwo6f0TJ9EhHYtiTt_9mlBbQGHE5nBpgiKChUOq_c/edit";
       const courses = await fetchCourseData(sheetUrl);
       const match = findMatchingCourse(courses, category, currentBelief);
       res.json(match || { courseName: "No matching course found", description: "" });
