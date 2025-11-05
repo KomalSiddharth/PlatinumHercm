@@ -561,7 +561,9 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
           { keywords: ["lead", "business"], name: "Lead Business" },
           { keywords: ["digital", "coaching", "success", "platinum"], name: "Digital Coaching Success - Platinum Version" },
           { keywords: ["digital", "coaching", "system"], name: "Digital Coaching System" },
-          { keywords: ["life", "coaching"], name: "Life Coaching" }
+          { keywords: ["life", "coaching"], name: "Life Coaching" },
+          { keywords: ["dr", "john", "demartini", "value", "mitesh"], name: "Dr. John Demartini's Value by Mitesh Khatri" },
+          { keywords: ["demartini", "method", "explained", "mitesh"], name: "Demartini Method Explained by Mitesh Khatri" }
         ];
         
         careerSubCourses.forEach(({ keywords, name }) => {
@@ -648,7 +650,8 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
       const platinumWeeklySubCourses = [
         { keywords: ["aug", "2025", "platinum", "bonus", "call", "recording"], name: "Aug 2025 Platinum Bonus Call Recording" },
         { keywords: ["sept", "25", "platinum", "bonus", "call", "recording"], name: "Sept'25 Platinum Bonus Call Recording" },
-        { keywords: ["platinum", "healing", "sessions"], name: "Platinum Healing Sessions" }
+        { keywords: ["platinum", "healing", "sessions"], name: "Platinum Healing Sessions" },
+        { keywords: ["platinum", "membership", "5", "days", "challenge"], name: "Platinum Membership 5 Days Challenge" }
       ];
       
       platinumWeeklySubCourses.forEach(({ keywords, name }) => {
