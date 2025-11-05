@@ -17,6 +17,7 @@ import EmotionalTracker from '@/components/EmotionalTracker';
 import { CourseRecommendations } from '@/components/CourseRecommendations';
 import { CourseRecommendationNotification } from '@/components/CourseRecommendationNotification';
 import FeedbackButton from '@/components/FeedbackButton';
+import LifeSkillsMap from '@/components/LifeSkillsMap';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
@@ -842,36 +843,8 @@ export default function Dashboard() {
         </section>
 
         {/* Course Tracker Section */}
-        <section ref={coursesRef} id="courses" className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-3 sm:p-4 md:p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
-          <div className="space-y-4 sm:space-y-6">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <h2 className="text-2xl sm:text-2xl md:text-3xl font-bold">Course Tracker</h2>
-                <p className="text-sm sm:text-base text-muted-foreground mt-1">Manage your learning journey and skill development</p>
-              </div>
-              <Button
-                onClick={() => {
-                  window.open('https://docs.google.com/spreadsheets/d/1BDeCzNYBU1HybnaOtytH7aeKZDj-f6nQJxHwgVKqxQ0/edit?usp=sharing', '_blank');
-                }}
-                variant="default"
-                size="sm"
-                className="gap-2 shrink-0 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white border-0"
-                data-testid="button-skill-map"
-              >
-                <Map className="w-4 h-4" />
-                Skill Map
-              </Button>
-            </div>
-
-            {/* Single Card - No Courses Displayed */}
-            <Card>
-              <CardContent className="p-4">
-                <div className="p-4 text-center text-sm text-muted-foreground" data-testid="courses-empty">
-                  No courses available at the moment.
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+        <section ref={coursesRef} id="courses" className="scroll-mt-20">
+          <LifeSkillsMap />
         </section>
 
         {/* Team Activity Section - Hidden as per user request */}
