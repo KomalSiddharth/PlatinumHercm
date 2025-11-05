@@ -74,6 +74,7 @@ export default function LifeSkillsMap() {
       url?: string;
       hrcmArea?: string;
     }) => {
+      console.log('[Lesson Toggle] Starting mutation:', { lessonId, completed });
       return await apiRequest('/api/lessons/toggle', 'POST', { 
         lessonId, 
         completed, 
@@ -84,9 +85,21 @@ export default function LifeSkillsMap() {
         hrcmArea 
       });
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
+      console.log('[Lesson Toggle] Mutation succeeded, invalidating queries...');
+      console.log('[Lesson Toggle] Points change:', variables.completed ? '+10' : '-10');
+      
       queryClient.invalidateQueries({ queryKey: ['/api/courses/tracking'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/total-points'] });
+      
+      // Force an immediate refetch of the total points query
+      queryClient.refetchQueries({ queryKey: ['/api/user/total-points'] });
+      
+      console.log('[Lesson Toggle] Queries invalidated and refetched');
+    },
+    onError: (error) => {
+      console.error('[Lesson Toggle] Mutation failed:', error);
     },
   });
 
@@ -254,14 +267,18 @@ export default function LifeSkillsMap() {
                             {course.lessons.map((lesson) => (
                               <div 
                                 key={lesson.id}
-                                className="flex items-center justify-between p-2 rounded hover:bg-gray-800/20 transition-colors"
+                                className="flex items-center justify-between p-2 rounded hover:bg-gray-800/20 transition-colors cursor-pointer"
                                 data-testid={`container-lesson-${lesson.id}`}
+                                onClick={() => handleLessonToggle(course.id, lesson.id, lesson.completed, lesson.title, course.title, lesson.url, course.category)}
                               >
                                 <div className="flex items-center gap-2 flex-1">
                                   <Checkbox
                                     checked={lesson.completed}
-                                    onCheckedChange={() => handleLessonToggle(course.id, lesson.id, lesson.completed, lesson.title, course.title, lesson.url, course.category)}
-                                    className="border-gray-500"
+                                    onCheckedChange={(checked) => {
+                                      // Prevent double-toggle from parent onClick
+                                      return;
+                                    }}
+                                    className="border-gray-500 pointer-events-none"
                                     data-testid={`checkbox-lesson-${lesson.id}`}
                                   />
                                   <a
@@ -270,6 +287,7 @@ export default function LifeSkillsMap() {
                                     rel="noopener noreferrer"
                                     className="text-sm text-blue-400 hover:text-blue-300 hover:underline"
                                     data-testid={`link-lesson-${lesson.id}`}
+                                    onClick={(e) => e.stopPropagation()}
                                   >
                                     {lesson.title}
                                   </a>
@@ -330,14 +348,18 @@ export default function LifeSkillsMap() {
                                       {subcat.lessons.map((lesson) => (
                                         <div 
                                           key={lesson.id}
-                                          className="flex items-center justify-between p-2 rounded hover:bg-gray-800/20 transition-colors"
+                                          className="flex items-center justify-between p-2 rounded hover:bg-gray-800/20 transition-colors cursor-pointer"
                                           data-testid={`container-lesson-${lesson.id}`}
+                                          onClick={() => handleLessonToggle(course.id, lesson.id, lesson.completed, lesson.title, subcat.title, lesson.url, course.category)}
                                         >
                                           <div className="flex items-center gap-2 flex-1">
                                             <Checkbox
                                               checked={lesson.completed}
-                                              onCheckedChange={() => handleLessonToggle(course.id, lesson.id, lesson.completed, lesson.title, subcat.title, lesson.url, course.category)}
-                                              className="border-gray-500"
+                                              onCheckedChange={(checked) => {
+                                                // Prevent double-toggle from parent onClick
+                                                return;
+                                              }}
+                                              className="border-gray-500 pointer-events-none"
                                               data-testid={`checkbox-lesson-${lesson.id}`}
                                             />
                                             <a
@@ -346,6 +368,7 @@ export default function LifeSkillsMap() {
                                               rel="noopener noreferrer"
                                               className="text-sm text-blue-400 hover:text-blue-300 hover:underline"
                                               data-testid={`link-lesson-${lesson.id}`}
+                                              onClick={(e) => e.stopPropagation()}
                                             >
                                               {lesson.title}
                                             </a>
@@ -404,14 +427,18 @@ export default function LifeSkillsMap() {
                                                   {subSubcat.lessons.map((lesson) => (
                                                     <div 
                                                       key={lesson.id}
-                                                      className="flex items-center justify-between p-2 rounded hover:bg-gray-800/20 transition-colors"
+                                                      className="flex items-center justify-between p-2 rounded hover:bg-gray-800/20 transition-colors cursor-pointer"
                                                       data-testid={`container-lesson-${lesson.id}`}
+                                                      onClick={() => handleLessonToggle(course.id, lesson.id, lesson.completed, lesson.title, subSubcat.title, lesson.url, course.category)}
                                                     >
                                                       <div className="flex items-center gap-2 flex-1">
                                                         <Checkbox
                                                           checked={lesson.completed}
-                                                          onCheckedChange={() => handleLessonToggle(course.id, lesson.id, lesson.completed, lesson.title, subSubcat.title, lesson.url, course.category)}
-                                                          className="border-gray-500"
+                                                          onCheckedChange={(checked) => {
+                                                            // Prevent double-toggle from parent onClick
+                                                            return;
+                                                          }}
+                                                          className="border-gray-500 pointer-events-none"
                                                           data-testid={`checkbox-lesson-${lesson.id}`}
                                                         />
                                                         <a
@@ -420,6 +447,7 @@ export default function LifeSkillsMap() {
                                                           rel="noopener noreferrer"
                                                           className="text-sm text-blue-400 hover:text-blue-300 hover:underline"
                                                           data-testid={`link-lesson-${lesson.id}`}
+                                                          onClick={(e) => e.stopPropagation()}
                                                         >
                                                           {lesson.title}
                                                         </a>

@@ -642,7 +642,7 @@ export default function Dashboard() {
   }, [currentUser]); // Only run when user is loaded
 
   // Fetch ALL-TIME cumulative points (all ritual completions + all course lessons)
-  const { data: totalPointsData } = useQuery<{
+  const { data: totalPointsData, dataUpdatedAt } = useQuery<{
     totalPoints: number;
     ritualPoints: number;
     lessonPoints: number;
@@ -656,9 +656,10 @@ export default function Dashboard() {
   // Update totalPoints when data is fetched
   useEffect(() => {
     if (totalPointsData) {
+      console.log('[Dashboard Points] Updating totalPoints:', totalPointsData.totalPoints, 'at', new Date(dataUpdatedAt).toISOString());
       setTotalPoints(totalPointsData.totalPoints);
     }
-  }, [totalPointsData]);
+  }, [totalPointsData, dataUpdatedAt]);
 
   // Fetch live leaderboard data
   const { data: leaderboardData = [] } = useQuery<Array<{
