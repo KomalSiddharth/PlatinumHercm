@@ -560,9 +560,10 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
           careerMasterySubcat.subcategories = [];
         }
         
+        console.log(`📊 [COURSE STRUCTURE] Processing Career Mastery sub-sub-courses...`);
+        
         // List of Career Mastery sub-sub-courses to move
         const careerSubCourses = [
-          { keywords: ["investing", "saving"], name: "Investing and Saving" },
           { keywords: ["canva", "graphic", "design"], name: "Canva Graphic Design Mastery" },
           { keywords: ["ai"], name: "AI Course" },
           { keywords: ["corporate", "train", "trainer", "mitesh"], name: "Corporate Train the Trainer by Mitesh Khatri" },
@@ -596,6 +597,45 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
             });
             courses.splice(subCourseIndex, 1);
             console.log(`🔹 Moved "${subCourse.title}" (${subCourse.lessons.length} lessons) as sub-sub-course under "Career Mastery"`);
+          }
+        });
+      }
+      
+      console.log(`📊 [COURSE STRUCTURE] Processing Wealth Mastery sub-sub-courses...`);
+      console.log(`📊 [COURSE STRUCTURE] Remaining courses before Wealth Mastery processing:`, courses.map(c => c.title));
+      
+      // Move Wealth Mastery sub-sub-courses
+      const wealthMasterySubcat = platinumCourse.subcategories?.find(sc => 
+        sc.title.toLowerCase().includes('wealth mastery')
+      );
+      
+      if (wealthMasterySubcat) {
+        if (!wealthMasterySubcat.subcategories) {
+          wealthMasterySubcat.subcategories = [];
+        }
+        
+        console.log(`📊 [COURSE STRUCTURE] Found Wealth Mastery subcategory: "${wealthMasterySubcat.title}"`);
+        
+        // List of Wealth Mastery sub-sub-courses to move
+        const wealthSubCourses = [
+          { keywords: ["investing", "saving"], name: "Investing and Saving" }
+        ];
+        
+        wealthSubCourses.forEach(({ keywords, name }) => {
+          const subCourseIndex = courses.findIndex(c => {
+            const lowerTitle = c.title.toLowerCase();
+            return keywords.every(keyword => lowerTitle.includes(keyword.toLowerCase()));
+          });
+          
+          if (subCourseIndex !== -1) {
+            const subCourse = courses[subCourseIndex];
+            wealthMasterySubcat.subcategories!.push({
+              id: subCourse.id,
+              title: subCourse.title,
+              lessons: subCourse.lessons,
+            });
+            courses.splice(subCourseIndex, 1);
+            console.log(`🔹 Moved "${subCourse.title}" (${subCourse.lessons.length} lessons) as sub-sub-course under "Wealth Mastery"`);
           }
         });
       }
