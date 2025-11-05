@@ -19,6 +19,7 @@ interface CourseSubcategory {
   id: string;
   title: string;
   lessons: CourseLesson[];
+  subcategories?: CourseSubcategory[];  // Support for nested sub-sub-courses
 }
 
 interface CourseTrackingData {
@@ -312,6 +313,86 @@ export default function LifeSkillsMap() {
                                           </span>
                                         </div>
                                       ))}
+                                      
+                                      {/* Show sub-sub-courses (nested subcategories) with purple/violet gradient */}
+                                      {subcat.subcategories && subcat.subcategories.length > 0 && subcat.subcategories.map((subSubcat) => {
+                                        const subSubcatKey = `${course.id}-${subcat.id}-${subSubcat.id}`;
+                                        const isSubSubcatOpen = openSubcategories[subSubcatKey] || false;
+                                        
+                                        return (
+                                          <Collapsible
+                                            key={subSubcatKey}
+                                            open={isSubSubcatOpen}
+                                            onOpenChange={() => toggleSubcategory(subSubcatKey)}
+                                          >
+                                            <div className="border border-purple-500/30 bg-gradient-to-r from-purple-900/20 to-violet-900/10 rounded-md mb-2 mt-2">
+                                              <CollapsibleTrigger 
+                                                className="flex items-center justify-between w-full p-3 rounded-md hover:bg-purple-900/30 transition-colors"
+                                                data-testid={`button-subsubcategory-${subSubcatKey}`}
+                                              >
+                                                <div className="flex items-center gap-2 flex-1">
+                                                  <ChevronRight 
+                                                    className={`h-3.5 w-3.5 text-purple-400 transition-transform ${isSubSubcatOpen ? 'rotate-90' : ''}`}
+                                                  />
+                                                  <span className="text-sm font-semibold text-purple-300" data-testid={`text-subsubcategory-title-${subSubcatKey}`}>
+                                                    🔹 {subSubcat.title}
+                                                  </span>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                  <div className="flex items-center gap-2">
+                                                    <span className="text-xs text-purple-400/60" data-testid={`text-subsubcat-progress-${subSubcatKey}`}>
+                                                      {subSubcat.lessons.filter(l => l.completed).length}/{subSubcat.lessons.length} lessons
+                                                    </span>
+                                                    <span className="text-xs font-semibold text-purple-300" data-testid={`text-subsubcat-percent-${subSubcatKey}`}>
+                                                      {subSubcat.lessons.length > 0 ? Math.round((subSubcat.lessons.filter(l => l.completed).length / subSubcat.lessons.length) * 100) : 0}%
+                                                    </span>
+                                                  </div>
+                                                  <div className="w-20">
+                                                    <Progress 
+                                                      value={subSubcat.lessons.length > 0 ? Math.round((subSubcat.lessons.filter(l => l.completed).length / subSubcat.lessons.length) * 100) : 0} 
+                                                      className="h-2 bg-purple-950"
+                                                      data-testid={`progress-subsubcat-${subSubcatKey}`}
+                                                    />
+                                                  </div>
+                                                </div>
+                                              </CollapsibleTrigger>
+                                              
+                                              <CollapsibleContent>
+                                                <div className="ml-5 mt-2 space-y-1 bg-purple-950/10 p-2 rounded-b-md">
+                                                  {subSubcat.lessons.map((lesson) => (
+                                                    <div 
+                                                      key={lesson.id}
+                                                      className="flex items-center justify-between p-2 rounded hover:bg-gray-800/20 transition-colors"
+                                                      data-testid={`container-lesson-${lesson.id}`}
+                                                    >
+                                                      <div className="flex items-center gap-2 flex-1">
+                                                        <Checkbox
+                                                          checked={lesson.completed}
+                                                          onCheckedChange={() => handleLessonToggle(lesson.id, lesson.completed)}
+                                                          className="border-gray-500"
+                                                          data-testid={`checkbox-lesson-${lesson.id}`}
+                                                        />
+                                                        <a
+                                                          href={lesson.url}
+                                                          target="_blank"
+                                                          rel="noopener noreferrer"
+                                                          className="text-sm text-blue-400 hover:text-blue-300 hover:underline"
+                                                          data-testid={`link-lesson-${lesson.id}`}
+                                                        >
+                                                          {lesson.title}
+                                                        </a>
+                                                      </div>
+                                                      <span className="text-xs text-gray-500" data-testid={`text-lesson-points-${lesson.id}`}>
+                                                        10 pts
+                                                      </span>
+                                                    </div>
+                                                  ))}
+                                                </div>
+                                              </CollapsibleContent>
+                                            </div>
+                                          </Collapsible>
+                                        );
+                                      })}
                                     </div>
                                   </CollapsibleContent>
                                 </div>

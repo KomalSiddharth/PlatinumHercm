@@ -468,11 +468,41 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
             id: masteryCourse.id,
             title: masteryCourse.title,
             lessons: masteryCourse.lessons,
+            subcategories: [],  // Initialize for potential sub-sub-courses
           });
           courses.splice(masteryIndex, 1);
           console.log(`🔸 Moved "${masteryCourse.title}" (${masteryCourse.lessons.length} lessons) as subcategory under "Platinum Fast Track"`);
         }
       });
+      
+      // THIRD PASS: Move "Relationship Mastery with Mitesh Khatri" as sub-sub-course under "Relationship Mastery"
+      const relationshipMasterySubcat = platinumCourse.subcategories?.find(sc => 
+        sc.title.toLowerCase().includes('relationship mastery') && 
+        !sc.title.toLowerCase().includes('mitesh khatri')
+      );
+      
+      if (relationshipMasterySubcat) {
+        const miteshCourseIndex = courses.findIndex(c => 
+          c.title.toLowerCase().includes('relationship mastery') && 
+          c.title.toLowerCase().includes('mitesh khatri')
+        );
+        
+        if (miteshCourseIndex !== -1) {
+          const miteshCourse = courses[miteshCourseIndex];
+          
+          if (!relationshipMasterySubcat.subcategories) {
+            relationshipMasterySubcat.subcategories = [];
+          }
+          
+          relationshipMasterySubcat.subcategories.push({
+            id: miteshCourse.id,
+            title: miteshCourse.title,
+            lessons: miteshCourse.lessons,
+          });
+          courses.splice(miteshCourseIndex, 1);
+          console.log(`🔹 Moved "${miteshCourse.title}" (${miteshCourse.lessons.length} lessons) as sub-sub-course under "Relationship Mastery"`);
+        }
+      }
     }
 
     console.log(`\n🎉 Total courses parsed: ${courses.length}`);
