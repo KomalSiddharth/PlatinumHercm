@@ -28,7 +28,7 @@ export default function AdminLogin() {
     setLoading(true);
     
     try {
-      await apiRequest('POST', '/api/auth/admin-login', { email });
+      await apiRequest('/api/auth/admin-login', 'POST', { email });
       
       // Invalidate cached admin info to fetch fresh data for newly logged-in admin
       await queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });

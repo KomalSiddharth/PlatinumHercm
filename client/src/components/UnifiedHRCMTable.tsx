@@ -939,7 +939,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   // Mutation for saving week data to database (silent auto-save)
   const saveWeekMutation = useMutation({
     mutationFn: async (weekData: any) => {
-      const response = await apiRequest('POST', '/api/hercm/save-with-comparison', weekData);
+      const response = await apiRequest('/api/hercm/save-with-comparison', 'POST', weekData);
       return response.json();
     },
     onSuccess: async () => {
@@ -967,7 +967,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   // Generate Next Week mutation
   const generateNextWeekMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/hercm/generate-next-week', {
+      const response = await apiRequest('/api/hercm/generate-next-week', 'POST', {
         weekNumber,
         beliefs
       });
@@ -1032,7 +1032,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     setLoadingAssignments(prev => new Set(prev).add(category));
 
     try {
-      const response = await apiRequest('POST', '/api/courses/recommend-assignment', {
+      const response = await apiRequest('/api/courses/recommend-assignment', 'POST', {
         category: belief.category,
         currentRating: belief.currentRating,
         problems: belief.result,
@@ -1146,7 +1146,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   // Toggle persistent assignment lesson completion
   const handleUnifiedAssignmentToggle = async (assignmentId: string) => {
     try {
-      const response = await apiRequest('PUT', `/api/persistent-assignments/${assignmentId}/toggle`, {});
+      const response = await apiRequest(`/api/persistent-assignments/${assignmentId}/toggle`, 'PUT', {});
       
       if (response.ok) {
         // Refetch assignments to get updated data
@@ -1165,7 +1165,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   // Remove persistent assignment
   const handleRemoveUnifiedAssignment = async (assignmentId: string) => {
     try {
-      const response = await apiRequest('DELETE', `/api/persistent-assignments/${assignmentId}`, {});
+      const response = await apiRequest(`/api/persistent-assignments/${assignmentId}`, 'DELETE', {});
       
       if (response.ok) {
         await refetchAssignments();
@@ -1897,7 +1897,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       // Save current week data and wait for completion before moving to next
       const performAutoProgression = async () => {
         try {
-          await apiRequest('POST', '/api/hercm/save-with-comparison', {
+          await apiRequest('/api/hercm/save-with-comparison', 'POST', {
             weekNumber,
             year: new Date().getFullYear(),
             beliefs,

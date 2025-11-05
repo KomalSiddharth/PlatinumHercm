@@ -297,7 +297,7 @@ export default function AdminPanel() {
 
   const addEmailMutation = useMutation({
     mutationFn: async (data: { email: string; name?: string }) => {
-      return apiRequest('POST', '/api/admin/approved-emails', data);
+      return apiRequest('/api/admin/approved-emails', 'POST', data);
     },
     onSuccess: () => {
       // Invalidate all related queries to auto-refresh analytics
@@ -325,7 +325,7 @@ export default function AdminPanel() {
 
   const bulkUploadMutation = useMutation({
     mutationFn: async (emails: string[]) => {
-      return apiRequest('POST', '/api/admin/bulk-upload', { emails });
+      return apiRequest('/api/admin/bulk-upload', 'POST', { emails });
     },
     onSuccess: () => {
       // Invalidate all related queries to auto-refresh analytics
@@ -428,7 +428,7 @@ export default function AdminPanel() {
 
   const deleteAllMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('DELETE', '/api/admin/approved-emails/all');
+      return apiRequest('/api/admin/approved-emails/all', 'DELETE');
     },
     onSuccess: () => {
       // Invalidate all related queries to auto-refresh analytics
@@ -448,7 +448,7 @@ export default function AdminPanel() {
   // Team Management mutations
   const addAdminMutation = useMutation({
     mutationFn: async (data: { name: string; email: string }) => {
-      return apiRequest('POST', '/api/admin/team', data);
+      return apiRequest('/api/admin/team', 'POST', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/team'] });
@@ -517,7 +517,7 @@ export default function AdminPanel() {
 
   const addRecommendationMutation = useMutation({
     mutationFn: async (data: { userEmail: string; hrcmArea: string; courseName: string; reason?: string }) => {
-      return apiRequest('POST', '/api/admin/recommendations', data);
+      return apiRequest('/api/admin/recommendations', 'POST', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/recommendations'] });
@@ -555,7 +555,7 @@ export default function AdminPanel() {
 
   const clearAllRecommendationsMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('DELETE', '/api/admin/recommendations/all');
+      return apiRequest('/api/admin/recommendations/all', 'DELETE');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/recommendations'] });
@@ -576,7 +576,7 @@ export default function AdminPanel() {
   // Platinum standards mutations
   const addPlatinumStandardMutation = useMutation({
     mutationFn: async (data: { category: string; standardText: string }) => {
-      return apiRequest('POST', '/api/admin/platinum-standards', data);
+      return apiRequest('/api/admin/platinum-standards', 'POST', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/platinum-standards'] });
@@ -661,7 +661,7 @@ export default function AdminPanel() {
 
   const clearAllFeedbackMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('DELETE', '/api/admin/feedback/clear-all');
+      return apiRequest('/api/admin/feedback/clear-all', 'DELETE');
     },
     // Optimistic update - instantly clear from UI
     onMutate: async () => {
@@ -699,7 +699,7 @@ export default function AdminPanel() {
 
   const clearAllLogsMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('DELETE', '/api/admin/access-logs');
+      return apiRequest('/api/admin/access-logs', 'DELETE');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/access-logs'] });
@@ -828,7 +828,7 @@ export default function AdminPanel() {
       let uploadedCount = 0;
       
       for (const batch of batches) {
-        await apiRequest('POST', '/api/admin/bulk-upload', { entries: batch });
+        await apiRequest('/api/admin/bulk-upload', 'POST', { entries: batch });
         uploadedCount += batch.length;
         setUploadProgress({ current: uploadedCount, total: emailEntries.length, isUploading: true });
       }

@@ -20,7 +20,7 @@ export default function FeedbackButton() {
 
   const submitMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest('POST', '/api/feedback', data);
+      const response = await apiRequest('/api/feedback', 'POST', data);
       return response.json();
     },
     onSuccess: () => {

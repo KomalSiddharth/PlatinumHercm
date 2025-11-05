@@ -45,7 +45,7 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
   const { data: badgeData } = useQuery<BadgeCheckResponse>({
     queryKey: ['/api/badges/check-platinum', currentMonth, currentYear],
     queryFn: async () => {
-      const response = await apiRequest('POST', '/api/badges/check-platinum', {
+      const response = await apiRequest('/api/badges/check-platinum', 'POST', {
         month: currentMonth,
         year: currentYear
       });

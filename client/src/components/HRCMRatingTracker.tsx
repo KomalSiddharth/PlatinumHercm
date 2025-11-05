@@ -40,7 +40,7 @@ export function HERCMRatingTracker({ weekNumber, year, userId }: HERCMRatingTrac
   const handleAutoFill = async () => {
     setAutoFilling(true);
     try {
-      const suggestions: any = await apiRequest('POST', '/api/hercm/auto-fill-goals', {
+      const suggestions: any = await apiRequest('/api/hercm/auto-fill-goals', 'POST', {
         currentH,
         currentE,
         currentR,
@@ -74,7 +74,7 @@ export function HERCMRatingTracker({ weekNumber, year, userId }: HERCMRatingTrac
     setSaving(true);
     try {
       // Fetch previous week to get targets
-      const previousWeeks: any = await apiRequest('GET', '/api/hercm/weeks');
+      const previousWeeks: any = await apiRequest('/api/hercm/weeks', 'GET');
       let targetH = null, targetE = null, targetR = null, targetC = null, targetM = null;
       
       if (previousWeeks && previousWeeks.length > 0) {
@@ -109,7 +109,7 @@ export function HERCMRatingTracker({ weekNumber, year, userId }: HERCMRatingTrac
         weekStatus: 'active',
       };
       
-      const savedWeek: any = await apiRequest('POST', '/api/hercm/save-with-comparison', weekData);
+      const savedWeek: any = await apiRequest('/api/hercm/save-with-comparison', 'POST', weekData);
       
       toast({
         title: "Week Saved!",

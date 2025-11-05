@@ -28,7 +28,7 @@ export default function Login() {
     setLoading(true);
     
     try {
-      await apiRequest('POST', '/api/auth/login', { email });
+      await apiRequest('/api/auth/login', 'POST', { email });
       
       // Ensure user data is fetched before redirecting
       await queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });

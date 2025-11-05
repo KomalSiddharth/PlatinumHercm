@@ -143,7 +143,7 @@ export default function Dashboard() {
   const { data: allRitualCompletions = [] } = useQuery<RitualCompletion[]>({
     queryKey: ['/api/ritual-completions'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/ritual-completions');
+      const response = await apiRequest('/api/ritual-completions', 'GET');
       return response.json();
     },
     enabled: !!currentUser,
@@ -231,7 +231,7 @@ export default function Dashboard() {
   const addRitualMutation = useMutation({
     mutationFn: async (newRitual: { title: string; recurrence: string; points: number }) => {
       const frequency = newRitual.recurrence === 'mon-fri' ? 'weekly' : 'daily';
-      const response = await apiRequest('POST', '/api/rituals', {
+      const response = await apiRequest('/api/rituals', 'POST', {
         title: newRitual.title,
         description: '',
         category: 'Health', // Default category
@@ -268,7 +268,7 @@ export default function Dashboard() {
         await apiRequest('DELETE', `/api/ritual-completions/${id}/${todayDate}`);
       } else {
         // Create completion
-        await apiRequest('POST', '/api/ritual-completions', {
+        await apiRequest('/api/ritual-completions', 'POST', {
           ritualId: id,
           date: todayDate,
         });
@@ -428,7 +428,7 @@ export default function Dashboard() {
       
       // SYNC existing checked lessons to Assignment column (one-time on page load)
       try {
-        await apiRequest('POST', '/api/course-video-completions/sync-to-assignment', {
+        await apiRequest('/api/course-video-completions/sync-to-assignment', 'POST', {
           coursesData: courses,
           weekNumber: currentWeek
         });
@@ -455,7 +455,7 @@ export default function Dashboard() {
       completed: boolean;
       currentWeekNumber: number;
     }) => {
-      return await apiRequest('POST', '/api/course-video-completions/toggle', { 
+      return await apiRequest('/api/course-video-completions/toggle', 'POST', { 
         videoId, 
         courseId,
         courseName,
@@ -928,7 +928,7 @@ export default function Dashboard() {
                 className="h-20 text-lg font-semibold hover-elevate"
                 onClick={async () => {
                   try {
-                    const response = await apiRequest('POST', '/api/assignment/add-lessons', {
+                    const response = await apiRequest('/api/assignment/add-lessons', 'POST', {
                       weekNumber: currentWeek,
                       category,
                       lessons: pendingAssignmentLessons,

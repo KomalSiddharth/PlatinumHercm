@@ -86,7 +86,7 @@ export default function EmotionalTracker() {
   // Mutation for saving/updating tracker data
   const saveMutation = useMutation({
     mutationFn: async (data: Partial<EmotionalTrackerData>) => {
-      const response = await apiRequest('POST', '/api/emotional-trackers', data);
+      const response = await apiRequest('/api/emotional-trackers', 'POST', data);
       return response.json();
     },
     onSuccess: () => {
