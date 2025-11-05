@@ -1,9 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Progress } from "@/components/ui/progress";
-import { ChevronRight, Folder, FolderOpen, FileText, CheckCircle2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ChevronRight, Folder, FolderOpen, FileText } from "lucide-react";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 interface SkillMapping {
   problem: string;
@@ -52,6 +54,16 @@ export default function LifeSkillsMap() {
     queryKey: ['/api/courses/tracking'],
   });
 
+  // Mutation to toggle lesson completion
+  const toggleLessonMutation = useMutation({
+    mutationFn: async ({ lessonId, completed }: { lessonId: string; completed: boolean }) => {
+      return await apiRequest('/api/lessons/toggle', 'POST', { lessonId, completed });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/courses/tracking'] });
+    },
+  });
+
   const toggleCategory = (category: string) => {
     setOpenCategories(prev => ({
       ...prev,
@@ -64,6 +76,10 @@ export default function LifeSkillsMap() {
       ...prev,
       [subcategoryKey]: !prev[subcategoryKey]
     }));
+  };
+
+  const handleLessonToggle = (lessonId: string, currentCompleted: boolean) => {
+    toggleLessonMutation.mutate({ lessonId, completed: !currentCompleted });
   };
 
   return (
@@ -178,6 +194,12 @@ export default function LifeSkillsMap() {
                                             className="flex items-center gap-2 px-2 py-1 hover-elevate active-elevate-2 rounded-md transition-all"
                                             data-testid={`row-skill-mapping-${courseIdx}-${subcatIdx}-${lessonIdx}`}
                                           >
+                                            <Checkbox
+                                              checked={lesson.completed}
+                                              onCheckedChange={() => handleLessonToggle(lesson.id, lesson.completed)}
+                                              className="flex-shrink-0"
+                                              data-testid={`checkbox-lesson-${courseIdx}-${subcatIdx}-${lessonIdx}`}
+                                            />
                                             <FileText className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                                             <a
                                               href={lesson.url}
@@ -191,9 +213,6 @@ export default function LifeSkillsMap() {
                                             <span className="text-xs font-medium text-accent dark:text-accent/80 flex-shrink-0">
                                               10 pts
                                             </span>
-                                            {lesson.completed && (
-                                              <CheckCircle2 className="h-3.5 w-3.5 text-chart-3 flex-shrink-0" />
-                                            )}
                                           </div>
                                         ))}
                                       </div>
@@ -210,6 +229,12 @@ export default function LifeSkillsMap() {
                                 className="flex items-center gap-2 px-2 py-1 hover-elevate active-elevate-2 rounded-md transition-all"
                                 data-testid={`row-skill-mapping-${courseIdx}-${lessonIdx}`}
                               >
+                                <Checkbox
+                                  checked={lesson.completed}
+                                  onCheckedChange={() => handleLessonToggle(lesson.id, lesson.completed)}
+                                  className="flex-shrink-0"
+                                  data-testid={`checkbox-lesson-${courseIdx}-${lessonIdx}`}
+                                />
                                 <FileText className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                                 <a
                                   href={lesson.url}
@@ -223,9 +248,6 @@ export default function LifeSkillsMap() {
                                 <span className="text-xs font-medium text-accent dark:text-accent/80 flex-shrink-0">
                                   10 pts
                                 </span>
-                                {lesson.completed && (
-                                  <CheckCircle2 className="h-3.5 w-3.5 text-chart-3 flex-shrink-0" />
-                                )}
                               </div>
                             ))
                           ) : (

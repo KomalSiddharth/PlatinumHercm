@@ -136,6 +136,9 @@ export interface IStorage {
   getCourseVideoCompletions(userId: string, courseId: string): Promise<CourseVideoCompletion[]>;
   getAllCourseVideoCompletions(userId: string): Promise<CourseVideoCompletion[]>;
   toggleVideoCompletion(userId: string, videoId: string): Promise<{ completed: boolean }>;
+  markLessonComplete(userId: string, lessonId: string): Promise<void>;
+  markLessonIncomplete(userId: string, lessonId: string): Promise<void>;
+  getUserLessonCompletions(userId: string): Promise<Set<string>>;
   
   // Rating Progression operations
   getRatingProgression(userId: string): Promise<RatingProgression | undefined>;
@@ -967,6 +970,39 @@ export class DatabaseStorage implements IStorage {
         .values({ userId, videoId } as any);
       return { completed: true };
     }
+  }
+
+  async markLessonComplete(userId: string, lessonId: string): Promise<void> {
+    // Check if already exists
+    const [existing] = await db
+      .select()
+      .from(courseVideoCompletions)
+      .where(and(
+        eq(courseVideoCompletions.userId, userId),
+        eq(courseVideoCompletions.videoId, lessonId)
+      ));
+
+    if (!existing) {
+      // Create completion record
+      await db
+        .insert(courseVideoCompletions)
+        .values({ userId, videoId: lessonId } as any);
+    }
+  }
+
+  async markLessonIncomplete(userId: string, lessonId: string): Promise<void> {
+    // Delete completion record
+    await db
+      .delete(courseVideoCompletions)
+      .where(and(
+        eq(courseVideoCompletions.userId, userId),
+        eq(courseVideoCompletions.videoId, lessonId)
+      ));
+  }
+
+  async getUserLessonCompletions(userId: string): Promise<Set<string>> {
+    const completions = await this.getAllCourseVideoCompletions(userId);
+    return new Set(completions.map(c => c.videoId));
   }
 
   // Rating Progression operations

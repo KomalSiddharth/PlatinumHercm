@@ -1693,6 +1693,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Google Sheets course tracking - fetch all courses and lessons
   app.get('/api/courses/tracking', isAuthenticated, async (req, res) => {
     try {
+      const userId = req.user!.id;
       const sheetUrl = "https://docs.google.com/spreadsheets/d/1na9ioh9uT8wxSkjTMxG61hUF75JxuSTF/edit";
       const { fetchCourseTrackingData, clearCourseTrackingCache } = await import('./googleSheets');
       
@@ -1701,8 +1702,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         clearCourseTrackingCache();
       }
       
+      // Get user's lesson completions
+      const userCompletions = await storage.getUserLessonCompletions(userId);
+      
+      // Fetch courses and mark lessons as completed based on user data
       const courses = await fetchCourseTrackingData(sheetUrl);
-      res.json(courses);
+      
+      // Mark lessons as completed
+      const coursesWithCompletions = courses.map(course => ({
+        ...course,
+        lessons: course.lessons.map(lesson => ({
+          ...lesson,
+          completed: userCompletions.has(lesson.id),
+        })),
+        subcategories: course.subcategories?.map(subcat => ({
+          ...subcat,
+          lessons: subcat.lessons.map(lesson => ({
+            ...lesson,
+            completed: userCompletions.has(lesson.id),
+          })),
+        })),
+      }));
+      
+      res.json(coursesWithCompletions);
     } catch (error) {
       console.error("Error fetching course tracking data:", error);
       res.status(500).json({ message: "Failed to fetch courses", error: error instanceof Error ? error.message : 'Unknown error' });
@@ -1731,6 +1753,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error matching course:", error);
       res.status(500).json({ message: "Failed to match course" });
+    }
+  });
+
+  // Toggle lesson completion
+  app.post('/api/lessons/toggle', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const { lessonId, completed } = req.body;
+
+      if (!lessonId) {
+        return res.status(400).json({ message: "lessonId is required" });
+      }
+
+      if (completed) {
+        // Mark as completed
+        await storage.markLessonComplete(userId, lessonId);
+      } else {
+        // Mark as incomplete (remove completion record)
+        await storage.markLessonIncomplete(userId, lessonId);
+      }
+
+      res.json({ success: true, lessonId, completed });
+    } catch (error) {
+      console.error("Error toggling lesson completion:", error);
+      res.status(500).json({ message: "Failed to toggle lesson completion" });
     }
   });
 
