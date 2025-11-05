@@ -475,7 +475,9 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
         }
       });
       
-      // THIRD PASS: Move "Relationship Mastery with Mitesh Khatri" as sub-sub-course under "Relationship Mastery"
+      // THIRD PASS: Move sub-sub-courses under mastery subcategories
+      
+      // Move "Relationship Mastery with Mitesh Khatri" under "Relationship Mastery"
       const relationshipMasterySubcat = platinumCourse.subcategories?.find(sc => 
         sc.title.toLowerCase().includes('relationship mastery') && 
         !sc.title.toLowerCase().includes('mitesh khatri')
@@ -501,6 +503,38 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
           });
           courses.splice(miteshCourseIndex, 1);
           console.log(`🔹 Moved "${miteshCourse.title}" (${miteshCourse.lessons.length} lessons) as sub-sub-course under "Relationship Mastery"`);
+        }
+      }
+      
+      // Move "Morning Happy Gym Dance Videos" under "Health Mastery"
+      const healthMasterySubcat = platinumCourse.subcategories?.find(sc => 
+        sc.title.toLowerCase().includes('health mastery') && 
+        !sc.title.toLowerCase().includes('morning') &&
+        !sc.title.toLowerCase().includes('gym') &&
+        !sc.title.toLowerCase().includes('dance')
+      );
+      
+      if (healthMasterySubcat) {
+        const gymDanceCourseIndex = courses.findIndex(c => 
+          c.title.toLowerCase().includes('morning') && 
+          c.title.toLowerCase().includes('gym') &&
+          c.title.toLowerCase().includes('dance')
+        );
+        
+        if (gymDanceCourseIndex !== -1) {
+          const gymDanceCourse = courses[gymDanceCourseIndex];
+          
+          if (!healthMasterySubcat.subcategories) {
+            healthMasterySubcat.subcategories = [];
+          }
+          
+          healthMasterySubcat.subcategories.push({
+            id: gymDanceCourse.id,
+            title: gymDanceCourse.title,
+            lessons: gymDanceCourse.lessons,
+          });
+          courses.splice(gymDanceCourseIndex, 1);
+          console.log(`🔹 Moved "${gymDanceCourse.title}" (${gymDanceCourse.lessons.length} lessons) as sub-sub-course under "Health Mastery"`);
         }
       }
     }
