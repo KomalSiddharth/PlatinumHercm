@@ -436,35 +436,48 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
       console.log(`✅ Saved final course "${currentCourse.title}" with ${currentCourse.lessons.length} lessons`);
     }
 
-    // SECOND PASS: Move Health Mastery as subcategory under Platinum Fast Track
+    // SECOND PASS: Move Health Mastery & Relationship Mastery as subcategories under Platinum Fast Track
     const platinumFastTrackIndex = courses.findIndex(c => 
       c.title.toLowerCase().includes('platinum') && c.title.toLowerCase().includes('fast track')
     );
-    const healthMasteryIndex = courses.findIndex(c => 
-      c.title.toLowerCase().includes('health mastery')
-    );
-
-    if (platinumFastTrackIndex !== -1 && healthMasteryIndex !== -1) {
-      const healthMasteryCourse = courses[healthMasteryIndex];
+    
+    if (platinumFastTrackIndex !== -1) {
       const platinumCourse = courses[platinumFastTrackIndex];
       
-      // Convert Health Mastery course to subcategory
-      const healthMasterySubcat: CourseSubcategory = {
-        id: healthMasteryCourse.id,
-        title: healthMasteryCourse.title,
-        lessons: healthMasteryCourse.lessons,
-      };
-      
-      // Add to Platinum Fast Track's subcategories
+      // Initialize subcategories array
       if (!platinumCourse.subcategories) {
         platinumCourse.subcategories = [];
       }
-      platinumCourse.subcategories.push(healthMasterySubcat);
       
-      // Remove Health Mastery from main courses array
-      courses.splice(healthMasteryIndex, 1);
+      // Move Health Mastery
+      const healthMasteryIndex = courses.findIndex(c => 
+        c.title.toLowerCase().includes('health mastery')
+      );
+      if (healthMasteryIndex !== -1) {
+        const healthMasteryCourse = courses[healthMasteryIndex];
+        platinumCourse.subcategories.push({
+          id: healthMasteryCourse.id,
+          title: healthMasteryCourse.title,
+          lessons: healthMasteryCourse.lessons,
+        });
+        courses.splice(healthMasteryIndex, 1);
+        console.log(`🔸 Moved "Health Mastery" (${healthMasteryCourse.lessons.length} lessons) as subcategory under "Platinum Fast Track"`);
+      }
       
-      console.log(`🔸 Moved "Health Mastery" (${healthMasteryCourse.lessons.length} lessons) as subcategory under "Platinum Fast Track"`);
+      // Move Relationship Mastery (check again after Health Mastery removal since indices changed)
+      const relationshipMasteryIndex = courses.findIndex(c => 
+        c.title.toLowerCase().includes('relationship mastery')
+      );
+      if (relationshipMasteryIndex !== -1) {
+        const relationshipMasteryCourse = courses[relationshipMasteryIndex];
+        platinumCourse.subcategories.push({
+          id: relationshipMasteryCourse.id,
+          title: relationshipMasteryCourse.title,
+          lessons: relationshipMasteryCourse.lessons,
+        });
+        courses.splice(relationshipMasteryIndex, 1);
+        console.log(`🔸 Moved "Relationship Mastery" (${relationshipMasteryCourse.lessons.length} lessons) as subcategory under "Platinum Fast Track"`);
+      }
     }
 
     console.log(`\n🎉 Total courses parsed: ${courses.length}`);
