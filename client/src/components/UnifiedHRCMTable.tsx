@@ -1380,25 +1380,25 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             checked: false
           };
           
-          // Next Week Target checkpoints
+          // Next Week Target checkpoints - Add new checkpoint at START for visibility
           if (checklistType === 'result') {
-            return { ...belief, resultChecklist: [...(belief.resultChecklist || []), newItem] };
+            return { ...belief, resultChecklist: [newItem, ...(belief.resultChecklist || [])] };
           } else if (checklistType === 'feelings') {
-            return { ...belief, feelingsChecklist: [...(belief.feelingsChecklist || []), newItem] };
+            return { ...belief, feelingsChecklist: [newItem, ...(belief.feelingsChecklist || [])] };
           } else if (checklistType === 'beliefs') {
-            return { ...belief, beliefsChecklist: [...(belief.beliefsChecklist || []), newItem] };
+            return { ...belief, beliefsChecklist: [newItem, ...(belief.beliefsChecklist || [])] };
           } else if (checklistType === 'actions') {
-            return { ...belief, actionsChecklist: [...(belief.actionsChecklist || []), newItem] };
+            return { ...belief, actionsChecklist: [newItem, ...(belief.actionsChecklist || [])] };
           }
-          // Current Week checkpoints
+          // Current Week checkpoints - Add new checkpoint at START for visibility
           else if (checklistType === 'problems') {
-            return { ...belief, problemsChecklist: [...(belief.problemsChecklist || []), newItem] };
+            return { ...belief, problemsChecklist: [newItem, ...(belief.problemsChecklist || [])] };
           } else if (checklistType === 'feelingsCurrent') {
-            return { ...belief, feelingsCurrentChecklist: [...(belief.feelingsCurrentChecklist || []), newItem] };
+            return { ...belief, feelingsCurrentChecklist: [newItem, ...(belief.feelingsCurrentChecklist || [])] };
           } else if (checklistType === 'beliefsCurrent') {
-            return { ...belief, beliefsCurrentChecklist: [...(belief.beliefsCurrentChecklist || []), newItem] };
+            return { ...belief, beliefsCurrentChecklist: [newItem, ...(belief.beliefsCurrentChecklist || [])] };
           } else if (checklistType === 'actionsCurrent') {
-            return { ...belief, actionsCurrentChecklist: [...(belief.actionsCurrentChecklist || []), newItem] };
+            return { ...belief, actionsCurrentChecklist: [newItem, ...(belief.actionsCurrentChecklist || [])] };
           }
         }
         return belief;
