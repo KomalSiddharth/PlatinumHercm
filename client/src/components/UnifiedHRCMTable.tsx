@@ -1548,6 +1548,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     disabled?: boolean;
   }) => {
     const [editingId, setEditingId] = useState<string | null>(null);
+    const [editingText, setEditingText] = useState<string>(''); // Local state for editing
     const [showAddDialog, setShowAddDialog] = useState(false);
     const [newCheckpointText, setNewCheckpointText] = useState('');
     const visibleItems = items.slice(0, 1);
@@ -1722,11 +1723,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   />
                   {editingId === item.id && !disabled ? (
                     <Textarea
-                      value={item.text}
-                      onChange={(e) => onUpdateText(item.id, e.target.value)}
+                      value={editingText}
+                      onChange={(e) => setEditingText(e.target.value)}
                       onBlur={(e) => {
+                        // Save changes before closing
+                        if (editingText !== item.text) {
+                          onUpdateText(item.id, editingText);
+                        }
                         // Only close edit box if clicking outside the textarea AND outside the hover card
-                        // This prevents premature closing when user is still typing
                         const relatedTarget = e.relatedTarget as HTMLElement;
                         const isClickingInsideCard = relatedTarget?.closest('[role="dialog"]');
                         if (!isClickingInsideCard) {
@@ -1741,6 +1745,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         // Save on Enter key (without Shift for new line)
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault();
+                          if (editingText !== item.text) {
+                            onUpdateText(item.id, editingText);
+                          }
                           setEditingId(null);
                         }
                         // Prevent event propagation for all keys to avoid closing parent
@@ -1762,7 +1769,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   ) : (
                     <>
                       <button
-                        onClick={() => !disabled && setEditingId(item.id)}
+                        onClick={() => {
+                          if (!disabled) {
+                            setEditingText(item.text);
+                            setEditingId(item.id);
+                          }
+                        }}
                         disabled={disabled}
                         className="flex-1 text-left text-xs py-0.5 px-1 rounded hover:bg-muted/30 transition-colors min-h-[20px] break-words disabled:cursor-not-allowed"
                         data-testid={`text-hover-${checklistType}-${category.toLowerCase()}-${item.id}`}
