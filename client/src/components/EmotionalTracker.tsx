@@ -4,7 +4,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { Heart, Brain, RefreshCcw, Sparkles, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -172,6 +173,16 @@ export default function EmotionalTracker() {
     setDialogValue('');
   };
 
+  // Handle dialog close - auto-save on close
+  const handleDialogClose = (open: boolean) => {
+    if (!open && editingField) {
+      // Dialog is closing - auto-save the data
+      saveDialogEdit();
+    } else {
+      setDialogOpen(open);
+    }
+  };
+
   if (isLoading) {
     return (
       <Card className="border-2 border-primary/30 dark:border-primary/50">
@@ -316,62 +327,98 @@ export default function EmotionalTracker() {
                       
                       {/* Positive Emotions */}
                       <td className="p-1 sm:p-1.5 md:p-2">
-                        <div
-                          onClick={() => openEditDialog(timeSlot, 'positiveEmotions')}
-                          className={`cursor-pointer min-h-[36px] rounded px-3 py-2 text-sm ${FIELD_COLORS.positiveEmotions.bg} ${FIELD_COLORS.positiveEmotions.border} border hover:border-green-400 dark:hover:border-green-500 transition-colors`}
-                          data-testid={`input-positive-${index}`}
-                        >
-                          {data.positiveEmotions ? (
-                            <span className="text-gray-700 dark:text-gray-200">{data.positiveEmotions}</span>
-                          ) : (
-                            <span className="text-gray-400 dark:text-gray-500 italic">Click to add...</span>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div
+                              onClick={() => openEditDialog(timeSlot, 'positiveEmotions')}
+                              className={`cursor-pointer min-h-[36px] max-h-[36px] overflow-hidden rounded px-3 py-2 text-sm ${FIELD_COLORS.positiveEmotions.bg} ${FIELD_COLORS.positiveEmotions.border} border hover:border-green-400 dark:hover:border-green-500 transition-colors`}
+                              data-testid={`input-positive-${index}`}
+                            >
+                              {data.positiveEmotions ? (
+                                <span className="text-gray-700 dark:text-gray-200 line-clamp-1">{data.positiveEmotions}</span>
+                              ) : (
+                                <span className="text-gray-400 dark:text-gray-500 italic">Click to add...</span>
+                              )}
+                            </div>
+                          </TooltipTrigger>
+                          {data.positiveEmotions && (
+                            <TooltipContent>
+                              <p className="max-w-xs">{data.positiveEmotions}</p>
+                            </TooltipContent>
                           )}
-                        </div>
+                        </Tooltip>
                       </td>
 
                       {/* Negative Emotions */}
                       <td className="p-1 sm:p-1.5 md:p-2">
-                        <div
-                          onClick={() => openEditDialog(timeSlot, 'negativeEmotions')}
-                          className={`cursor-pointer min-h-[36px] rounded px-3 py-2 text-sm ${FIELD_COLORS.negativeEmotions.bg} ${FIELD_COLORS.negativeEmotions.border} border hover:border-red-400 dark:hover:border-red-500 transition-colors`}
-                          data-testid={`input-negative-${index}`}
-                        >
-                          {data.negativeEmotions ? (
-                            <span className="text-gray-700 dark:text-gray-200">{data.negativeEmotions}</span>
-                          ) : (
-                            <span className="text-gray-400 dark:text-gray-500 italic">Click to add...</span>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div
+                              onClick={() => openEditDialog(timeSlot, 'negativeEmotions')}
+                              className={`cursor-pointer min-h-[36px] max-h-[36px] overflow-hidden rounded px-3 py-2 text-sm ${FIELD_COLORS.negativeEmotions.bg} ${FIELD_COLORS.negativeEmotions.border} border hover:border-red-400 dark:hover:border-red-500 transition-colors`}
+                              data-testid={`input-negative-${index}`}
+                            >
+                              {data.negativeEmotions ? (
+                                <span className="text-gray-700 dark:text-gray-200 line-clamp-1">{data.negativeEmotions}</span>
+                              ) : (
+                                <span className="text-gray-400 dark:text-gray-500 italic">Click to add...</span>
+                              )}
+                            </div>
+                          </TooltipTrigger>
+                          {data.negativeEmotions && (
+                            <TooltipContent>
+                              <p className="max-w-xs">{data.negativeEmotions}</p>
+                            </TooltipContent>
                           )}
-                        </div>
+                        </Tooltip>
                       </td>
 
                       {/* Repeating Emotions */}
                       <td className="p-1 sm:p-1.5 md:p-2">
-                        <div
-                          onClick={() => openEditDialog(timeSlot, 'repeatingEmotions')}
-                          className={`cursor-pointer min-h-[36px] rounded px-3 py-2 text-sm ${FIELD_COLORS.repeatingEmotions.bg} ${FIELD_COLORS.repeatingEmotions.border} border hover:border-blue-400 dark:hover:border-blue-500 transition-colors`}
-                          data-testid={`input-repeating-${index}`}
-                        >
-                          {data.repeatingEmotions ? (
-                            <span className="text-gray-700 dark:text-gray-200">{data.repeatingEmotions}</span>
-                          ) : (
-                            <span className="text-gray-400 dark:text-gray-500 italic">Click to add...</span>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div
+                              onClick={() => openEditDialog(timeSlot, 'repeatingEmotions')}
+                              className={`cursor-pointer min-h-[36px] max-h-[36px] overflow-hidden rounded px-3 py-2 text-sm ${FIELD_COLORS.repeatingEmotions.bg} ${FIELD_COLORS.repeatingEmotions.border} border hover:border-blue-400 dark:hover:border-blue-500 transition-colors`}
+                              data-testid={`input-repeating-${index}`}
+                            >
+                              {data.repeatingEmotions ? (
+                                <span className="text-gray-700 dark:text-gray-200 line-clamp-1">{data.repeatingEmotions}</span>
+                              ) : (
+                                <span className="text-gray-400 dark:text-gray-500 italic">Click to add...</span>
+                              )}
+                            </div>
+                          </TooltipTrigger>
+                          {data.repeatingEmotions && (
+                            <TooltipContent>
+                              <p className="max-w-xs">{data.repeatingEmotions}</p>
+                            </TooltipContent>
                           )}
-                        </div>
+                        </Tooltip>
                       </td>
 
                       {/* Missing Emotions */}
                       <td className="p-1 sm:p-1.5 md:p-2">
-                        <div
-                          onClick={() => openEditDialog(timeSlot, 'missingEmotions')}
-                          className={`cursor-pointer min-h-[36px] rounded px-3 py-2 text-sm ${FIELD_COLORS.missingEmotions.bg} ${FIELD_COLORS.missingEmotions.border} border hover:border-orange-400 dark:hover:border-orange-500 transition-colors`}
-                          data-testid={`input-missing-${index}`}
-                        >
-                          {data.missingEmotions ? (
-                            <span className="text-gray-700 dark:text-gray-200">{data.missingEmotions}</span>
-                          ) : (
-                            <span className="text-gray-400 dark:text-gray-500 italic">Click to add...</span>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div
+                              onClick={() => openEditDialog(timeSlot, 'missingEmotions')}
+                              className={`cursor-pointer min-h-[36px] max-h-[36px] overflow-hidden rounded px-3 py-2 text-sm ${FIELD_COLORS.missingEmotions.bg} ${FIELD_COLORS.missingEmotions.border} border hover:border-orange-400 dark:hover:border-orange-500 transition-colors`}
+                              data-testid={`input-missing-${index}`}
+                            >
+                              {data.missingEmotions ? (
+                                <span className="text-gray-700 dark:text-gray-200 line-clamp-1">{data.missingEmotions}</span>
+                              ) : (
+                                <span className="text-gray-400 dark:text-gray-500 italic">Click to add...</span>
+                              )}
+                            </div>
+                          </TooltipTrigger>
+                          {data.missingEmotions && (
+                            <TooltipContent>
+                              <p className="max-w-xs">{data.missingEmotions}</p>
+                            </TooltipContent>
                           )}
-                        </div>
+                        </Tooltip>
                       </td>
                     </tr>
                   );
@@ -390,7 +437,7 @@ export default function EmotionalTracker() {
       </Card>
 
       {/* Edit Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={handleDialogClose}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>
@@ -407,21 +454,14 @@ export default function EmotionalTracker() {
               data-testid="textarea-dialog-edit"
             />
           </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDialogOpen(false)}
-              data-testid="button-cancel"
-            >
-              Cancel
-            </Button>
+          <div className="flex justify-end pt-4">
             <Button
               onClick={saveDialogEdit}
               data-testid="button-save"
             >
               Save
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </>
