@@ -560,7 +560,8 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
           { keywords: ["online", "selling", "5", "days"], name: "Online Selling with 5 Days Challenge" },
           { keywords: ["lead", "business"], name: "Lead Business" },
           { keywords: ["digital", "coaching", "success", "platinum"], name: "Digital Coaching Success - Platinum Version" },
-          { keywords: ["digital", "coaching", "system"], name: "Digital Coaching System" }
+          { keywords: ["digital", "coaching", "system"], name: "Digital Coaching System" },
+          { keywords: ["life", "coaching"], name: "Life Coaching" }
         ];
         
         careerSubCourses.forEach(({ keywords, name }) => {
@@ -602,7 +603,9 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
         { keywords: ["june'25", "dmp", "recordings"], name: "June'25 DMP recordings" },
         { keywords: ["20th june", "master at relationship"], name: "20th June - Master at Relationship" },
         { keywords: ["22nd mar", "hopeful"], name: "22nd Mar - I Am Hopeful" },
-        { keywords: ["8th oct", "nothing is working", "universe"], name: "8th Oct - Universe is Working" }
+        { keywords: ["8th oct", "nothing is working", "universe"], name: "8th Oct - Universe is Working" },
+        { keywords: ["my", "5", "days", "platinum", "challenge", "recordings"], name: "My 5 Days Platinum Challenge Recordings" },
+        { keywords: ["one", "day", "miracle"], name: "One Day Miracle" }
       ];
       
       dmpSubCourses.forEach(({ keywords, name }) => {
