@@ -74,7 +74,6 @@ export default function LifeSkillsMap() {
       url?: string;
       hrcmArea?: string;
     }) => {
-      console.log('[Lesson Toggle] Starting mutation:', { lessonId, completed });
       return await apiRequest('/api/lessons/toggle', 'POST', { 
         lessonId, 
         completed, 
@@ -85,20 +84,61 @@ export default function LifeSkillsMap() {
         hrcmArea 
       });
     },
-    onSuccess: (data, variables) => {
-      console.log('[Lesson Toggle] Mutation succeeded, invalidating queries...');
-      console.log('[Lesson Toggle] Points change:', variables.completed ? '+10' : '-10');
+    onMutate: async ({ lessonId, completed }) => {
+      // Cancel outgoing refetches to avoid overwriting our optimistic update
+      await queryClient.cancelQueries({ queryKey: ['/api/courses/tracking'] });
       
-      queryClient.invalidateQueries({ queryKey: ['/api/courses/tracking'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/user'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/user/total-points'] });
+      // Snapshot the previous value
+      const previousCourses = queryClient.getQueryData<CourseTrackingData[]>(['/api/courses/tracking']);
       
-      // Force an immediate refetch of the total points query
-      queryClient.refetchQueries({ queryKey: ['/api/user/total-points'] });
+      // Optimistically update the UI
+      queryClient.setQueryData<CourseTrackingData[]>(
+        ['/api/courses/tracking'],
+        (old) => {
+          if (!old) return old;
+          
+          return old.map(course => {
+            // Helper function to update lessons recursively
+            const updateLessons = (lessons: CourseLesson[]): CourseLesson[] => {
+              return lessons.map(lesson => 
+                lesson.id === lessonId 
+                  ? { ...lesson, completed: !completed }
+                  : lesson
+              );
+            };
+            
+            // Helper function to update subcategories recursively
+            const updateSubcategories = (subcats?: CourseSubcategory[]): CourseSubcategory[] | undefined => {
+              if (!subcats) return subcats;
+              return subcats.map(subcat => ({
+                ...subcat,
+                lessons: updateLessons(subcat.lessons),
+                subcategories: updateSubcategories(subcat.subcategories)
+              }));
+            };
+            
+            return {
+              ...course,
+              lessons: updateLessons(course.lessons),
+              subcategories: updateSubcategories(course.subcategories)
+            };
+          });
+        }
+      );
       
-      console.log('[Lesson Toggle] Queries invalidated and refetched');
+      return { previousCourses };
     },
-    onError: (error) => {
+    onSuccess: () => {
+      // Refetch to ensure we have the latest data from the server
+      queryClient.invalidateQueries({ queryKey: ['/api/courses/tracking'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/total-points'] });
+      queryClient.refetchQueries({ queryKey: ['/api/user/total-points'] });
+    },
+    onError: (error, variables, context) => {
+      // Rollback to previous state on error
+      if (context?.previousCourses) {
+        queryClient.setQueryData(['/api/courses/tracking'], context.previousCourses);
+      }
       console.error('[Lesson Toggle] Mutation failed:', error);
     },
   });
@@ -209,11 +249,33 @@ export default function LifeSkillsMap() {
                 let totalLessons = 0;
                 let completedLessons = 0;
                 
-                if (course.subcategories && course.subcategories.length > 0) {
-                  course.subcategories.forEach(subcat => {
-                    totalLessons += subcat.lessons.length;
-                    completedLessons += subcat.lessons.filter(l => l.completed).length;
+                // Helper function to recursively count lessons in subcategories
+                const countLessons = (subcats: CourseSubcategory[] | undefined): { total: number, completed: number } => {
+                  if (!subcats || subcats.length === 0) return { total: 0, completed: 0 };
+                  
+                  let total = 0;
+                  let completed = 0;
+                  
+                  subcats.forEach(subcat => {
+                    // Count direct lessons
+                    total += subcat.lessons.length;
+                    completed += subcat.lessons.filter(l => l.completed).length;
+                    
+                    // Recursively count lessons in nested subcategories
+                    if (subcat.subcategories && subcat.subcategories.length > 0) {
+                      const nested = countLessons(subcat.subcategories);
+                      total += nested.total;
+                      completed += nested.completed;
+                    }
                   });
+                  
+                  return { total, completed };
+                };
+                
+                if (course.subcategories && course.subcategories.length > 0) {
+                  const counts = countLessons(course.subcategories);
+                  totalLessons = counts.total;
+                  completedLessons = counts.completed;
                 } else {
                   totalLessons = course.lessons.length;
                   completedLessons = course.lessons.filter(l => l.completed).length;
