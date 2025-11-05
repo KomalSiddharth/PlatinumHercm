@@ -1719,20 +1719,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Mark lessons as completed
-      const coursesWithCompletions = courses.map(course => ({
-        ...course,
-        lessons: course.lessons.map(lesson => ({
-          ...lesson,
-          completed: userCompletions.has(lesson.id),
-        })),
-        subcategories: course.subcategories?.map(subcat => ({
-          ...subcat,
-          lessons: subcat.lessons.map(lesson => ({
+      const coursesWithCompletions = courses.map(course => {
+        // Filter out any undefined/invalid lessons
+        const validLessons = (course.lessons || []).filter(lesson => lesson && lesson.id);
+        
+        return {
+          ...course,
+          lessons: validLessons.map(lesson => ({
             ...lesson,
             completed: userCompletions.has(lesson.id),
           })),
-        })),
-      }));
+          subcategories: course.subcategories?.map(subcat => {
+            const validSubLessons = (subcat.lessons || []).filter(lesson => lesson && lesson.id);
+            return {
+              ...subcat,
+              lessons: validSubLessons.map(lesson => ({
+                ...lesson,
+                completed: userCompletions.has(lesson.id),
+              })),
+            };
+          }),
+        };
+      });
       
       console.log(`[COURSE TRACKING] Returning ${coursesWithCompletions.length} courses with completions to frontend`);
       res.json(coursesWithCompletions);
