@@ -39,12 +39,14 @@ The frontend is built with React, Vite, Tailwind CSS, TanStack Query, and Wouter
 - **Database Driver**: `@neondatabase/serverless` for PostgreSQL.
 - **External Backup System**: Supabase for automated, high-frequency (every 1 minute) external database backups covering all 15 tables, with UPSERT operations and camelCase to snake_case transformation for data integrity and disaster recovery. Configurable via environment variables and includes admin API endpoints for status, stats, and manual backup triggers.
 
-## Recent Updates (November 4, 2025)
+## Recent Updates (November 5, 2025)
 
 ### New Features
 - **Current Week Checkpoint System**: Implemented checkpoint system for Current Week table columns (Problems, Feelings, Beliefs, Actions) identical to Next Week Target functionality. Added 16 new database columns (4 checkpoint columns × 4 HRCM categories) with JSONB arrays storing `{ id, text, checked }[]`. Features include color-coded CompactChecklistView component, add/edit/toggle/delete operations, auto-save on blur, and hover popup expansion for full checklist access. Database schema updated and migrated successfully with zero errors.
+- **Checkpoint Edit UX Improvement**: Fixed backspace key issue in Current Week checkpoint editing. Added `onKeyDown` handler to save on Enter key press and prevent event propagation for all keys. Users can now freely use backspace while editing checkpoints without the edit box closing unexpectedly.
 
 ### Critical Fixes
+- **HRCM Data Persistence Bug (FIXED)**: Resolved critical issue where all HRCM table data (checkpoints, text fields, ratings) was disappearing on page refresh or logout. Root cause: Current Week checkpoint columns (problemsChecklist, feelingsCurrentChecklist, beliefsCurrentChecklist, actionsCurrentChecklist) were defined in database schema but NOT being saved/loaded by backend API. Fixed by adding checkpoint column mappings to save endpoint (`/api/hercm/save-with-comparison`) and all 4 fetch endpoints (`/api/hercm/by-date/:date`, `/api/hercm/week/:weekNumber`, admin endpoints). Data now persists correctly across browser refresh, logout/login, and calendar date navigation with proper date-based versioning (latest edit overwrites earlier edits).
 - **Supabase Backup System**: Fixed duplicate key constraint error by changing conflict resolution from `onConflict: 'id'` to `onConflict: 'user_id'` in `ratingProgression` table backup (line 277 in backupService.ts). System now backing up 16 rating progression records with zero errors.
 - **WebSocket Dev Warning**: Identified as dev-only cosmetic issue (vite.config.ts is protected configuration file). Does not affect production or functionality.
 

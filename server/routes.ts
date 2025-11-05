@@ -268,7 +268,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           resultChecklist: week.healthResultChecklist || [],
           feelingsChecklist: week.healthFeelingsChecklist || [],
           beliefsChecklist: week.healthBeliefsChecklist || [],
-          actionsChecklist: week.healthActionsChecklist || []
+          actionsChecklist: week.healthActionsChecklist || [],
+          problemsChecklist: week.healthProblemsChecklist || [],
+          feelingsCurrentChecklist: week.healthFeelingsCurrentChecklist || [],
+          beliefsCurrentChecklist: week.healthBeliefsCurrentChecklist || [],
+          actionsCurrentChecklist: week.healthActionsCurrentChecklist || []
         },
         {
           category: 'Relationship',
@@ -287,7 +291,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           resultChecklist: week.relationshipResultChecklist || [],
           feelingsChecklist: week.relationshipFeelingsChecklist || [],
           beliefsChecklist: week.relationshipBeliefsChecklist || [],
-          actionsChecklist: week.relationshipActionsChecklist || []
+          actionsChecklist: week.relationshipActionsChecklist || [],
+          problemsChecklist: week.relationshipProblemsChecklist || [],
+          feelingsCurrentChecklist: week.relationshipFeelingsCurrentChecklist || [],
+          beliefsCurrentChecklist: week.relationshipBeliefsCurrentChecklist || [],
+          actionsCurrentChecklist: week.relationshipActionsCurrentChecklist || []
         },
         {
           category: 'Career',
@@ -306,7 +314,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           resultChecklist: week.careerResultChecklist || [],
           feelingsChecklist: week.careerFeelingsChecklist || [],
           beliefsChecklist: week.careerBeliefsChecklist || [],
-          actionsChecklist: week.careerActionsChecklist || []
+          actionsChecklist: week.careerActionsChecklist || [],
+          problemsChecklist: week.careerProblemsChecklist || [],
+          feelingsCurrentChecklist: week.careerFeelingsCurrentChecklist || [],
+          beliefsCurrentChecklist: week.careerBeliefsCurrentChecklist || [],
+          actionsCurrentChecklist: week.careerActionsCurrentChecklist || []
         },
         {
           category: 'Money',
@@ -325,7 +337,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           resultChecklist: week.moneyResultChecklist || [],
           feelingsChecklist: week.moneyFeelingsChecklist || [],
           beliefsChecklist: week.moneyBeliefsChecklist || [],
-          actionsChecklist: week.moneyActionsChecklist || []
+          actionsChecklist: week.moneyActionsChecklist || [],
+          problemsChecklist: week.moneyProblemsChecklist || [],
+          feelingsCurrentChecklist: week.moneyFeelingsCurrentChecklist || [],
+          beliefsCurrentChecklist: week.moneyBeliefsCurrentChecklist || [],
+          actionsCurrentChecklist: week.moneyActionsCurrentChecklist || []
         }
       ];
       
@@ -434,7 +450,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           resultChecklist: week.healthResultChecklist || [],
           feelingsChecklist: week.healthFeelingsChecklist || [],
           beliefsChecklist: week.healthBeliefsChecklist || [],
-          actionsChecklist: week.healthActionsChecklist || []
+          actionsChecklist: week.healthActionsChecklist || [],
+          problemsChecklist: week.healthProblemsChecklist || [],
+          feelingsCurrentChecklist: week.healthFeelingsCurrentChecklist || [],
+          beliefsCurrentChecklist: week.healthBeliefsCurrentChecklist || [],
+          actionsCurrentChecklist: week.healthActionsCurrentChecklist || []
         },
         {
           category: 'Relationship',
@@ -453,7 +473,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           resultChecklist: week.relationshipResultChecklist || [],
           feelingsChecklist: week.relationshipFeelingsChecklist || [],
           beliefsChecklist: week.relationshipBeliefsChecklist || [],
-          actionsChecklist: week.relationshipActionsChecklist || []
+          actionsChecklist: week.relationshipActionsChecklist || [],
+          problemsChecklist: week.relationshipProblemsChecklist || [],
+          feelingsCurrentChecklist: week.relationshipFeelingsCurrentChecklist || [],
+          beliefsCurrentChecklist: week.relationshipBeliefsCurrentChecklist || [],
+          actionsCurrentChecklist: week.relationshipActionsCurrentChecklist || []
         },
         {
           category: 'Career',
@@ -472,7 +496,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           resultChecklist: week.careerResultChecklist || [],
           feelingsChecklist: week.careerFeelingsChecklist || [],
           beliefsChecklist: week.careerBeliefsChecklist || [],
-          actionsChecklist: week.careerActionsChecklist || []
+          actionsChecklist: week.careerActionsChecklist || [],
+          problemsChecklist: week.careerProblemsChecklist || [],
+          feelingsCurrentChecklist: week.careerFeelingsCurrentChecklist || [],
+          beliefsCurrentChecklist: week.careerBeliefsCurrentChecklist || [],
+          actionsCurrentChecklist: week.careerActionsCurrentChecklist || []
         },
         {
           category: 'Money',
@@ -491,7 +519,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           resultChecklist: week.moneyResultChecklist || [],
           feelingsChecklist: week.moneyFeelingsChecklist || [],
           beliefsChecklist: week.moneyBeliefsChecklist || [],
-          actionsChecklist: week.moneyActionsChecklist || []
+          actionsChecklist: week.moneyActionsChecklist || [],
+          problemsChecklist: week.moneyProblemsChecklist || [],
+          feelingsCurrentChecklist: week.moneyFeelingsCurrentChecklist || [],
+          beliefsCurrentChecklist: week.moneyBeliefsCurrentChecklist || [],
+          actionsCurrentChecklist: week.moneyActionsCurrentChecklist || []
         }
       ];
       
@@ -700,6 +732,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           weekData[`${prefix}FeelingsChecklist`] = belief.feelingsChecklist || [];
           weekData[`${prefix}BeliefsChecklist`] = belief.beliefsChecklist || [];
           weekData[`${prefix}ActionsChecklist`] = belief.actionsChecklist || [];
+          
+          // Map Current Week checkpoint checklists
+          weekData[`${prefix}ProblemsChecklist`] = belief.problemsChecklist || [];
+          weekData[`${prefix}FeelingsCurrentChecklist`] = belief.feelingsCurrentChecklist || [];
+          weekData[`${prefix}BeliefsCurrentChecklist`] = belief.beliefsCurrentChecklist || [];
+          weekData[`${prefix}ActionsCurrentChecklist`] = belief.actionsCurrentChecklist || [];
         });
       }
       
@@ -2377,7 +2415,11 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
           resultChecklist: week.healthResultChecklist || [],
           feelingsChecklist: week.healthFeelingsChecklist || [],
           beliefsChecklist: week.healthBeliefsChecklist || [],
-          actionsChecklist: week.healthActionsChecklist || []
+          actionsChecklist: week.healthActionsChecklist || [],
+          problemsChecklist: week.healthProblemsChecklist || [],
+          feelingsCurrentChecklist: week.healthFeelingsCurrentChecklist || [],
+          beliefsCurrentChecklist: week.healthBeliefsCurrentChecklist || [],
+          actionsCurrentChecklist: week.healthActionsCurrentChecklist || []
         },
         {
           category: 'Relationship',
@@ -2396,7 +2438,11 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
           resultChecklist: week.relationshipResultChecklist || [],
           feelingsChecklist: week.relationshipFeelingsChecklist || [],
           beliefsChecklist: week.relationshipBeliefsChecklist || [],
-          actionsChecklist: week.relationshipActionsChecklist || []
+          actionsChecklist: week.relationshipActionsChecklist || [],
+          problemsChecklist: week.relationshipProblemsChecklist || [],
+          feelingsCurrentChecklist: week.relationshipFeelingsCurrentChecklist || [],
+          beliefsCurrentChecklist: week.relationshipBeliefsCurrentChecklist || [],
+          actionsCurrentChecklist: week.relationshipActionsCurrentChecklist || []
         },
         {
           category: 'Career',
@@ -2415,7 +2461,11 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
           resultChecklist: week.careerResultChecklist || [],
           feelingsChecklist: week.careerFeelingsChecklist || [],
           beliefsChecklist: week.careerBeliefsChecklist || [],
-          actionsChecklist: week.careerActionsChecklist || []
+          actionsChecklist: week.careerActionsChecklist || [],
+          problemsChecklist: week.careerProblemsChecklist || [],
+          feelingsCurrentChecklist: week.careerFeelingsCurrentChecklist || [],
+          beliefsCurrentChecklist: week.careerBeliefsCurrentChecklist || [],
+          actionsCurrentChecklist: week.careerActionsCurrentChecklist || []
         },
         {
           category: 'Money',
@@ -2434,7 +2484,11 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
           resultChecklist: week.moneyResultChecklist || [],
           feelingsChecklist: week.moneyFeelingsChecklist || [],
           beliefsChecklist: week.moneyBeliefsChecklist || [],
-          actionsChecklist: week.moneyActionsChecklist || []
+          actionsChecklist: week.moneyActionsChecklist || [],
+          problemsChecklist: week.moneyProblemsChecklist || [],
+          feelingsCurrentChecklist: week.moneyFeelingsCurrentChecklist || [],
+          beliefsCurrentChecklist: week.moneyBeliefsCurrentChecklist || [],
+          actionsCurrentChecklist: week.moneyActionsCurrentChecklist || []
         }
       ];
       
@@ -2553,7 +2607,11 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
           resultChecklist: week.healthResultChecklist || [],
           feelingsChecklist: week.healthFeelingsChecklist || [],
           beliefsChecklist: week.healthBeliefsChecklist || [],
-          actionsChecklist: week.healthActionsChecklist || []
+          actionsChecklist: week.healthActionsChecklist || [],
+          problemsChecklist: week.healthProblemsChecklist || [],
+          feelingsCurrentChecklist: week.healthFeelingsCurrentChecklist || [],
+          beliefsCurrentChecklist: week.healthBeliefsCurrentChecklist || [],
+          actionsCurrentChecklist: week.healthActionsCurrentChecklist || []
         },
         {
           category: 'Relationship',
@@ -2572,7 +2630,11 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
           resultChecklist: week.relationshipResultChecklist || [],
           feelingsChecklist: week.relationshipFeelingsChecklist || [],
           beliefsChecklist: week.relationshipBeliefsChecklist || [],
-          actionsChecklist: week.relationshipActionsChecklist || []
+          actionsChecklist: week.relationshipActionsChecklist || [],
+          problemsChecklist: week.relationshipProblemsChecklist || [],
+          feelingsCurrentChecklist: week.relationshipFeelingsCurrentChecklist || [],
+          beliefsCurrentChecklist: week.relationshipBeliefsCurrentChecklist || [],
+          actionsCurrentChecklist: week.relationshipActionsCurrentChecklist || []
         },
         {
           category: 'Career',
@@ -2591,7 +2653,11 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
           resultChecklist: week.careerResultChecklist || [],
           feelingsChecklist: week.careerFeelingsChecklist || [],
           beliefsChecklist: week.careerBeliefsChecklist || [],
-          actionsChecklist: week.careerActionsChecklist || []
+          actionsChecklist: week.careerActionsChecklist || [],
+          problemsChecklist: week.careerProblemsChecklist || [],
+          feelingsCurrentChecklist: week.careerFeelingsCurrentChecklist || [],
+          beliefsCurrentChecklist: week.careerBeliefsCurrentChecklist || [],
+          actionsCurrentChecklist: week.careerActionsCurrentChecklist || []
         },
         {
           category: 'Money',
@@ -2610,7 +2676,11 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
           resultChecklist: week.moneyResultChecklist || [],
           feelingsChecklist: week.moneyFeelingsChecklist || [],
           beliefsChecklist: week.moneyBeliefsChecklist || [],
-          actionsChecklist: week.moneyActionsChecklist || []
+          actionsChecklist: week.moneyActionsChecklist || [],
+          problemsChecklist: week.moneyProblemsChecklist || [],
+          feelingsCurrentChecklist: week.moneyFeelingsCurrentChecklist || [],
+          beliefsCurrentChecklist: week.moneyBeliefsCurrentChecklist || [],
+          actionsCurrentChecklist: week.moneyActionsCurrentChecklist || []
         }
       ];
       
