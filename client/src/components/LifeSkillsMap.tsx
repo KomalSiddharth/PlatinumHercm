@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Progress } from "@/components/ui/progress";
 import { ChevronRight, Folder, FolderOpen, FileText, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -88,28 +89,56 @@ export default function LifeSkillsMap() {
             <div className="min-w-full border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden bg-background p-4">
               {/* Tree View */}
               <div className="space-y-1">
-                {(coursesData || []).map((course, courseIdx) => (
-                  <div key={`course-${courseIdx}`} className="space-y-0.5">
-                    {/* Course (Level 0) */}
-                    <Collapsible
-                      open={openCategories[course.title]}
-                      onOpenChange={() => toggleCategory(course.title)}
-                      data-testid={`collapsible-category-${courseIdx}`}
-                    >
-                      <CollapsibleTrigger 
-                        className="flex items-center gap-2 w-full hover-elevate active-elevate-2 rounded-md px-2 py-1.5 text-left transition-all" 
-                        data-testid={`button-toggle-${course.title.toLowerCase().replace(/\s+/g, '-')}`}
+                {(coursesData || []).map((course, courseIdx) => {
+                  // Calculate progress for this course
+                  let totalLessons = 0;
+                  let completedLessons = 0;
+                  
+                  // Count lessons in subcategories
+                  if (course.subcategories && course.subcategories.length > 0) {
+                    course.subcategories.forEach(subcat => {
+                      totalLessons += subcat.lessons.length;
+                      completedLessons += subcat.lessons.filter(l => l.completed).length;
+                    });
+                  } else {
+                    totalLessons = course.lessons.length;
+                    completedLessons = course.lessons.filter(l => l.completed).length;
+                  }
+                  
+                  const progressPercent = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+                  
+                  return (
+                    <div key={`course-${courseIdx}`} className="space-y-0.5">
+                      {/* Course (Level 0) */}
+                      <Collapsible
+                        open={openCategories[course.title]}
+                        onOpenChange={() => toggleCategory(course.title)}
+                        data-testid={`collapsible-category-${courseIdx}`}
                       >
-                        <ChevronRight className={`h-4 w-4 text-primary transition-transform duration-200 flex-shrink-0 ${openCategories[course.title] ? 'transform rotate-90' : ''}`} />
-                        {openCategories[course.title] ? (
-                          <FolderOpen className="h-5 w-5 text-primary flex-shrink-0" />
-                        ) : (
-                          <Folder className="h-5 w-5 text-primary flex-shrink-0" />
-                        )}
-                        <span className="font-bold text-sm text-primary dark:text-accent">
-                          {course.title}
-                        </span>
-                      </CollapsibleTrigger>
+                        <div className="space-y-1">
+                          <CollapsibleTrigger 
+                            className="flex items-center gap-2 w-full hover-elevate active-elevate-2 rounded-md px-2 py-1.5 text-left transition-all" 
+                            data-testid={`button-toggle-${course.title.toLowerCase().replace(/\s+/g, '-')}`}
+                          >
+                            <ChevronRight className={`h-4 w-4 text-primary transition-transform duration-200 flex-shrink-0 ${openCategories[course.title] ? 'transform rotate-90' : ''}`} />
+                            {openCategories[course.title] ? (
+                              <FolderOpen className="h-5 w-5 text-primary flex-shrink-0" />
+                            ) : (
+                              <Folder className="h-5 w-5 text-primary flex-shrink-0" />
+                            )}
+                            <span className="font-bold text-sm text-primary dark:text-accent">
+                              {course.title}
+                            </span>
+                          </CollapsibleTrigger>
+                          
+                          {/* Progress Bar */}
+                          <div className="flex items-center gap-2 px-2 ml-8">
+                            <Progress value={progressPercent} className="h-2 flex-1" data-testid={`progress-course-${courseIdx}`} />
+                            <span className="text-xs font-medium text-muted-foreground min-w-[3rem] text-right">
+                              {completedLessons}/{totalLessons} ({progressPercent}%)
+                            </span>
+                          </div>
+                        </div>
 
                       <CollapsibleContent>
                         <div className="ml-6 border-l-2 border-muted-foreground/20 pl-1 space-y-0.5 mt-0.5">
@@ -205,10 +234,11 @@ export default function LifeSkillsMap() {
                             </div>
                           )}
                         </div>
-                      </CollapsibleContent>
-                    </Collapsible>
-                  </div>
-                ))}
+                        </CollapsibleContent>
+                      </Collapsible>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>

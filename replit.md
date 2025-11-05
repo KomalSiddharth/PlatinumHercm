@@ -16,7 +16,7 @@ The frontend is built with React, Vite, Tailwind CSS, TanStack Query, and Wouter
 
 ### Feature Specifications
 - **Core Tracking**: Weekly HRCM scoring, daily ritual tracking with complete monthly calendar history, comprehensive course progress monitoring with persistent lesson checkboxes, and a Daily Emotional Tracker across 9 time slots. Includes read-only history mode for past dates.
-- **Life Problems & Life Skill Map**: Dynamically populated tabular structure powered by the Course Tracking API, displaying courses as collapsible categories with lessons as clickable "Life Skills." Supports hierarchical course organization with subcategories.
+- **Life Problems & Life Skill Map**: Google Sheets-powered course tracking (Sheet ID: 1pZaS2wnzwgk6VqB7KvchX2bfCmucvrhTf3Q6qAJG7Cw) with 580 courses. Bold lines in Question column = Main courses with progress bars showing completion (X/Y lessons, Z%). Non-bold lines = Clickable lessons linking to URLs from Answer column. Each lesson displays "10 pts". Supports collapsible course structure with nested subcategories and tree-based hierarchical view.
 - **Goal Management**: Includes a "Platinum Streak" for consistent engagement, "Platinum Standards" for sustained performance, and a rating increment constraint system.
 - **Personalization & AI**: AI-powered course recommendations and AI-driven auto-fill suggestions for "Next Week Target" (problems, feelings, actions) and smart HRCM pattern insights.
 - **Reporting & Analytics**: PDF export for reports, detailed weekly progress analytics with graphical representations, and a team leaderboard.
