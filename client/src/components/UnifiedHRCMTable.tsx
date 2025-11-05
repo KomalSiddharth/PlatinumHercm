@@ -1261,7 +1261,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   // Toggle problems checklist item (Current Week)
   const handleProblemsChecklistToggle = (category: string, itemId: string) => {
     setBeliefs(prev => {
-      const updated = prev.map(belief => {
+      let updated = prev.map(belief => {
         if (belief.category === category && belief.problemsChecklist) {
           const updatedChecklist = belief.problemsChecklist.map(item =>
             item.id === itemId ? { ...item, checked: !item.checked } : item
@@ -1271,6 +1271,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         return belief;
       });
       
+      // Auto-sync to Next Week Target
+      updated = syncCurrentToNextWeek(updated);
+      
       saveWeekMutation.mutate({ weekNumber, year: new Date().getFullYear(), beliefs: updated });
       return updated;
     });
@@ -1279,7 +1282,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   // Toggle feelings current checklist item (Current Week)
   const handleFeelingsCurrentChecklistToggle = (category: string, itemId: string) => {
     setBeliefs(prev => {
-      const updated = prev.map(belief => {
+      let updated = prev.map(belief => {
         if (belief.category === category && belief.feelingsCurrentChecklist) {
           const updatedChecklist = belief.feelingsCurrentChecklist.map(item =>
             item.id === itemId ? { ...item, checked: !item.checked } : item
@@ -1289,6 +1292,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         return belief;
       });
       
+      // Auto-sync to Next Week Target
+      updated = syncCurrentToNextWeek(updated);
+      
       saveWeekMutation.mutate({ weekNumber, year: new Date().getFullYear(), beliefs: updated });
       return updated;
     });
@@ -1297,7 +1303,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   // Toggle beliefs current checklist item (Current Week)
   const handleBeliefsCurrentChecklistToggle = (category: string, itemId: string) => {
     setBeliefs(prev => {
-      const updated = prev.map(belief => {
+      let updated = prev.map(belief => {
         if (belief.category === category && belief.beliefsCurrentChecklist) {
           const updatedChecklist = belief.beliefsCurrentChecklist.map(item =>
             item.id === itemId ? { ...item, checked: !item.checked } : item
@@ -1307,6 +1313,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         return belief;
       });
       
+      // Auto-sync to Next Week Target
+      updated = syncCurrentToNextWeek(updated);
+      
       saveWeekMutation.mutate({ weekNumber, year: new Date().getFullYear(), beliefs: updated });
       return updated;
     });
@@ -1315,7 +1324,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   // Toggle actions current checklist item (Current Week)
   const handleActionsCurrentChecklistToggle = (category: string, itemId: string) => {
     setBeliefs(prev => {
-      const updated = prev.map(belief => {
+      let updated = prev.map(belief => {
         if (belief.category === category && belief.actionsCurrentChecklist) {
           const updatedChecklist = belief.actionsCurrentChecklist.map(item =>
             item.id === itemId ? { ...item, checked: !item.checked } : item
@@ -1324,6 +1333,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         }
         return belief;
       });
+      
+      // Auto-sync to Next Week Target
+      updated = syncCurrentToNextWeek(updated);
       
       saveWeekMutation.mutate({ weekNumber, year: new Date().getFullYear(), beliefs: updated });
       return updated;
@@ -1345,10 +1357,22 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     }
   };
 
+  // Helper function to sync Current Week checkpoints to Next Week Target (replace mode)
+  const syncCurrentToNextWeek = (updatedBeliefs: HRCMBelief[]) => {
+    return updatedBeliefs.map(belief => ({
+      ...belief,
+      // Replace Next Week Target checkpoints with Current Week checkpoints
+      resultChecklist: belief.problemsChecklist ? [...belief.problemsChecklist] : [],
+      feelingsChecklist: belief.feelingsCurrentChecklist ? [...belief.feelingsCurrentChecklist] : [],
+      beliefsChecklist: belief.beliefsCurrentChecklist ? [...belief.beliefsCurrentChecklist] : [],
+      actionsChecklist: belief.actionsCurrentChecklist ? [...belief.actionsCurrentChecklist] : []
+    }));
+  };
+
   // Add new checkpoint to a checklist
   const handleAddCheckpoint = (category: string, checklistType: 'result' | 'feelings' | 'beliefs' | 'actions' | 'problems' | 'feelingsCurrent' | 'beliefsCurrent' | 'actionsCurrent', text: string = '') => {
     setBeliefs(prev => {
-      const updated = prev.map(belief => {
+      let updated = prev.map(belief => {
         if (belief.category === category) {
           const newItem: ChecklistItem = {
             id: `${category}-${checklistType}-${Date.now()}`,
@@ -1380,6 +1404,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         return belief;
       });
       
+      // Auto-sync: If Current Week checkpoint was modified, sync to Next Week Target
+      const isCurrentWeekCheckpoint = ['problems', 'feelingsCurrent', 'beliefsCurrent', 'actionsCurrent'].includes(checklistType);
+      if (isCurrentWeekCheckpoint) {
+        updated = syncCurrentToNextWeek(updated);
+      }
+      
       saveWeekMutation.mutate({ weekNumber, year: new Date().getFullYear(), beliefs: updated });
       return updated;
     });
@@ -1388,7 +1418,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   // Update checkpoint text
   const handleUpdateCheckpointText = (category: string, itemId: string, text: string, checklistType: 'result' | 'feelings' | 'beliefs' | 'actions' | 'problems' | 'feelingsCurrent' | 'beliefsCurrent' | 'actionsCurrent') => {
     setBeliefs(prev => {
-      const updated = prev.map(belief => {
+      let updated = prev.map(belief => {
         if (belief.category === category) {
           // Next Week Target checkpoints
           if (checklistType === 'result' && belief.resultChecklist) {
@@ -1438,6 +1468,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         return belief;
       });
       
+      // Auto-sync: If Current Week checkpoint was modified, sync to Next Week Target
+      const isCurrentWeekCheckpoint = ['problems', 'feelingsCurrent', 'beliefsCurrent', 'actionsCurrent'].includes(checklistType);
+      if (isCurrentWeekCheckpoint) {
+        updated = syncCurrentToNextWeek(updated);
+      }
+      
       saveWeekMutation.mutate({ weekNumber, year: new Date().getFullYear(), beliefs: updated });
       return updated;
     });
@@ -1446,7 +1482,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   // Delete checkpoint
   const handleDeleteCheckpoint = (category: string, itemId: string, checklistType: 'result' | 'feelings' | 'beliefs' | 'actions' | 'problems' | 'feelingsCurrent' | 'beliefsCurrent' | 'actionsCurrent') => {
     setBeliefs(prev => {
-      const updated = prev.map(belief => {
+      let updated = prev.map(belief => {
         if (belief.category === category) {
           // Next Week Target checkpoints
           if (checklistType === 'result' && belief.resultChecklist) {
@@ -1479,6 +1515,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         }
         return belief;
       });
+      
+      // Auto-sync: If Current Week checkpoint was deleted, sync to Next Week Target
+      const isCurrentWeekCheckpoint = ['problems', 'feelingsCurrent', 'beliefsCurrent', 'actionsCurrent'].includes(checklistType);
+      if (isCurrentWeekCheckpoint) {
+        updated = syncCurrentToNextWeek(updated);
+      }
       
       saveWeekMutation.mutate({ weekNumber, year: new Date().getFullYear(), beliefs: updated });
       return updated;
