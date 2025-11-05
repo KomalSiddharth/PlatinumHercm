@@ -622,6 +622,20 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
       });
     }
 
+    // FILTER OUT: Remove "Final Q&A" course
+    const finalQACourseIndex = courses.findIndex(c => 
+      c.title.toLowerCase().includes('final') && 
+      (c.title.toLowerCase().includes('q&a') || 
+       c.title.toLowerCase().includes('q & a') ||
+       c.title.toLowerCase().includes('qa'))
+    );
+    
+    if (finalQACourseIndex !== -1) {
+      const removedCourse = courses[finalQACourseIndex];
+      courses.splice(finalQACourseIndex, 1);
+      console.log(`🚫 Removed "${removedCourse.title}" from course list`);
+    }
+
     console.log(`\n🎉 Total courses parsed: ${courses.length}`);
     courses.forEach((course, idx) => {
       console.log(`   ${idx + 1}. "${course.title}" - ${course.lessons.length} lessons`);
