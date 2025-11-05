@@ -205,8 +205,42 @@ export default function LifeSkillsMap() {
                     
                     <CollapsibleContent>
                       <div className="ml-6 mt-2 space-y-2">
-                        {course.subcategories && course.subcategories.length > 0 ? (
-                          course.subcategories.map((subcat) => {
+                        {/* Show main course lessons first (if any) */}
+                        {course.lessons && course.lessons.length > 0 && (
+                          <div className="ml-5 space-y-1 mb-3">
+                            {course.lessons.map((lesson) => (
+                              <div 
+                                key={lesson.id}
+                                className="flex items-center justify-between p-2 rounded hover:bg-gray-800/20 transition-colors"
+                                data-testid={`container-lesson-${lesson.id}`}
+                              >
+                                <div className="flex items-center gap-2 flex-1">
+                                  <Checkbox
+                                    checked={lesson.completed}
+                                    onCheckedChange={() => handleLessonToggle(lesson.id, lesson.completed)}
+                                    className="border-gray-500"
+                                    data-testid={`checkbox-lesson-${lesson.id}`}
+                                  />
+                                  <a
+                                    href={lesson.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-sm text-blue-400 hover:text-blue-300 hover:underline"
+                                    data-testid={`link-lesson-${lesson.id}`}
+                                  >
+                                    {lesson.title}
+                                  </a>
+                                </div>
+                                <span className="text-xs text-gray-500" data-testid={`text-lesson-points-${lesson.id}`}>
+                                  10 pts
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {/* Show subcategories (if any) */}
+                        {course.subcategories && course.subcategories.length > 0 && course.subcategories.map((subcat) => {
                             const subcatKey = `${course.id}-${subcat.id}`;
                             const isSubcatOpen = openSubcategories[subcatKey] || false;
                             
@@ -218,18 +252,34 @@ export default function LifeSkillsMap() {
                               >
                                 <div className="border border-cyan-500/30 bg-gradient-to-r from-cyan-900/20 to-blue-900/10 rounded-md mb-2">
                                   <CollapsibleTrigger 
-                                    className="flex items-center gap-2 w-full p-3 rounded-md hover:bg-cyan-900/30 transition-colors"
+                                    className="flex items-center justify-between w-full p-3 rounded-md hover:bg-cyan-900/30 transition-colors"
                                     data-testid={`button-subcategory-${subcatKey}`}
                                   >
-                                    <ChevronRight 
-                                      className={`h-4 w-4 text-cyan-400 transition-transform ${isSubcatOpen ? 'rotate-90' : ''}`}
-                                    />
-                                    <span className="text-sm font-semibold text-cyan-300" data-testid={`text-subcategory-title-${subcatKey}`}>
-                                      🔸 {subcat.title}
-                                    </span>
-                                    <span className="ml-auto text-xs text-cyan-400/60">
-                                      {subcat.lessons.filter(l => l.completed).length}/{subcat.lessons.length} lessons
-                                    </span>
+                                    <div className="flex items-center gap-2 flex-1">
+                                      <ChevronRight 
+                                        className={`h-4 w-4 text-cyan-400 transition-transform ${isSubcatOpen ? 'rotate-90' : ''}`}
+                                      />
+                                      <span className="text-sm font-semibold text-cyan-300" data-testid={`text-subcategory-title-${subcatKey}`}>
+                                        🔸 {subcat.title}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-xs text-cyan-400/60" data-testid={`text-subcat-progress-${subcatKey}`}>
+                                          {subcat.lessons.filter(l => l.completed).length}/{subcat.lessons.length} lessons
+                                        </span>
+                                        <span className="text-xs font-semibold text-cyan-300" data-testid={`text-subcat-percent-${subcatKey}`}>
+                                          {subcat.lessons.length > 0 ? Math.round((subcat.lessons.filter(l => l.completed).length / subcat.lessons.length) * 100) : 0}%
+                                        </span>
+                                      </div>
+                                      <div className="w-20">
+                                        <Progress 
+                                          value={subcat.lessons.length > 0 ? Math.round((subcat.lessons.filter(l => l.completed).length / subcat.lessons.length) * 100) : 0} 
+                                          className="h-2 bg-cyan-950"
+                                          data-testid={`progress-subcat-${subcatKey}`}
+                                        />
+                                      </div>
+                                    </div>
                                   </CollapsibleTrigger>
                                   
                                   <CollapsibleContent>
@@ -267,39 +317,7 @@ export default function LifeSkillsMap() {
                                 </div>
                               </Collapsible>
                             );
-                          })
-                        ) : (
-                          <div className="ml-5 space-y-1">
-                            {course.lessons.map((lesson) => (
-                              <div 
-                                key={lesson.id}
-                                className="flex items-center justify-between p-2 rounded hover:bg-gray-800/20 transition-colors"
-                                data-testid={`container-lesson-${lesson.id}`}
-                              >
-                                <div className="flex items-center gap-2 flex-1">
-                                  <Checkbox
-                                    checked={lesson.completed}
-                                    onCheckedChange={() => handleLessonToggle(lesson.id, lesson.completed)}
-                                    className="border-gray-500"
-                                    data-testid={`checkbox-lesson-${lesson.id}`}
-                                  />
-                                  <a
-                                    href={lesson.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-sm text-blue-400 hover:text-blue-300 hover:underline"
-                                    data-testid={`link-lesson-${lesson.id}`}
-                                  >
-                                    {lesson.title}
-                                  </a>
-                                </div>
-                                <span className="text-xs text-gray-500" data-testid={`text-lesson-points-${lesson.id}`}>
-                                  10 pts
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                          })}
                       </div>
                     </CollapsibleContent>
                   </Collapsible>
