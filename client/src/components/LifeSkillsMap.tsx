@@ -126,7 +126,7 @@ export default function LifeSkillsMap() {
 
   return (
     <Card 
-      className="w-full border-2 border-primary/40 bg-[#1a2942] dark:bg-[#1a2942]" 
+      className="w-full border-2 border-blue-500/40 bg-[#1a2942] dark:bg-[#1a2942]" 
       data-testid="card-course-tracker"
     >
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-4">
