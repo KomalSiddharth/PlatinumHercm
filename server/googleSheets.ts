@@ -477,33 +477,40 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
       
       // THIRD PASS: Move sub-sub-courses under mastery subcategories
       
-      // Move "Relationship Mastery with Mitesh Khatri" under "Relationship Mastery"
+      // Move Relationship Mastery sub-sub-courses
       const relationshipMasterySubcat = platinumCourse.subcategories?.find(sc => 
         sc.title.toLowerCase().includes('relationship mastery') && 
         !sc.title.toLowerCase().includes('mitesh khatri')
       );
       
       if (relationshipMasterySubcat) {
-        const miteshCourseIndex = courses.findIndex(c => 
-          c.title.toLowerCase().includes('relationship mastery') && 
-          c.title.toLowerCase().includes('mitesh khatri')
-        );
-        
-        if (miteshCourseIndex !== -1) {
-          const miteshCourse = courses[miteshCourseIndex];
-          
-          if (!relationshipMasterySubcat.subcategories) {
-            relationshipMasterySubcat.subcategories = [];
-          }
-          
-          relationshipMasterySubcat.subcategories.push({
-            id: miteshCourse.id,
-            title: miteshCourse.title,
-            lessons: miteshCourse.lessons,
-          });
-          courses.splice(miteshCourseIndex, 1);
-          console.log(`🔹 Moved "${miteshCourse.title}" (${miteshCourse.lessons.length} lessons) as sub-sub-course under "Relationship Mastery"`);
+        if (!relationshipMasterySubcat.subcategories) {
+          relationshipMasterySubcat.subcategories = [];
         }
+        
+        // List of Relationship Mastery sub-sub-courses to move
+        const relationshipSubCourses = [
+          { keywords: ["relationship mastery", "mitesh khatri"], name: "Relationship Mastery with Mitesh Khatri" },
+          { keywords: ["practical", "spirituality"], name: "Practical Spirituality" }
+        ];
+        
+        relationshipSubCourses.forEach(({ keywords, name }) => {
+          const subCourseIndex = courses.findIndex(c => {
+            const lowerTitle = c.title.toLowerCase();
+            return keywords.every(keyword => lowerTitle.includes(keyword.toLowerCase()));
+          });
+          
+          if (subCourseIndex !== -1) {
+            const subCourse = courses[subCourseIndex];
+            relationshipMasterySubcat.subcategories!.push({
+              id: subCourse.id,
+              title: subCourse.title,
+              lessons: subCourse.lessons,
+            });
+            courses.splice(subCourseIndex, 1);
+            console.log(`🔹 Moved "${subCourse.title}" (${subCourse.lessons.length} lessons) as sub-sub-course under "Relationship Mastery"`);
+          }
+        });
       }
       
       // Move Health Mastery sub-sub-courses
@@ -567,7 +574,11 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
           { keywords: ["dr", "john", "demartini", "value", "mitesh"], name: "Dr. John Demartini's Value by Mitesh Khatri" },
           { keywords: ["demartini", "method", "explained", "mitesh"], name: "Demartini Method Explained by Mitesh Khatri" },
           { keywords: ["lead", "people"], name: "Lead People" },
-          { keywords: ["lead", "self"], name: "Lead Self" }
+          { keywords: ["lead", "self"], name: "Lead Self" },
+          { keywords: ["basic", "law", "attraction", "level", "1"], name: "Basic Law of Attraction Level 1" },
+          { keywords: ["loa", "dmp", "certification"], name: "LOA & DMP Certification" },
+          { keywords: ["loa", "vastu", "frequency"], name: "LOA with Vastu Frequency" },
+          { keywords: ["loa", "remedies", "vastu"], name: "LOA Remedies for Vastu" }
         ];
         
         careerSubCourses.forEach(({ keywords, name }) => {
