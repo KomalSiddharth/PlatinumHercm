@@ -563,7 +563,9 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
           { keywords: ["digital", "coaching", "system"], name: "Digital Coaching System" },
           { keywords: ["life", "coaching"], name: "Life Coaching" },
           { keywords: ["dr", "john", "demartini", "value", "mitesh"], name: "Dr. John Demartini's Value by Mitesh Khatri" },
-          { keywords: ["demartini", "method", "explained", "mitesh"], name: "Demartini Method Explained by Mitesh Khatri" }
+          { keywords: ["demartini", "method", "explained", "mitesh"], name: "Demartini Method Explained by Mitesh Khatri" },
+          { keywords: ["lead", "people"], name: "Lead People" },
+          { keywords: ["lead", "self"], name: "Lead Self" }
         ];
         
         careerSubCourses.forEach(({ keywords, name }) => {
