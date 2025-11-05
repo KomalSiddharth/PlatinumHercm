@@ -143,6 +143,7 @@ export default function LifeSkillsMap() {
           size="sm"
           className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white flex items-center gap-1"
           data-testid="button-skill-map"
+          onClick={() => window.open('https://docs.google.com/spreadsheets/d/13UN1Az5GyUPxj7tKSc26rjvPtNINMkS_C_VoYcuzDHg/edit?usp=sharing', '_blank')}
         >
           <Map className="h-4 w-4" />
           Skill Map
