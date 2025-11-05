@@ -537,6 +537,43 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
           console.log(`🔹 Moved "${gymDanceCourse.title}" (${gymDanceCourse.lessons.length} lessons) as sub-sub-course under "Health Mastery"`);
         }
       }
+      
+      // Move Career Mastery sub-sub-courses
+      const careerMasterySubcat = platinumCourse.subcategories?.find(sc => 
+        sc.title.toLowerCase().includes('career mastery')
+      );
+      
+      if (careerMasterySubcat) {
+        if (!careerMasterySubcat.subcategories) {
+          careerMasterySubcat.subcategories = [];
+        }
+        
+        // List of Career Mastery sub-sub-courses to move
+        const careerSubCourses = [
+          { keywords: ["investing", "saving"], name: "Investing and Saving" },
+          { keywords: ["canva", "graphic", "design"], name: "Canva Graphic Design Mastery" },
+          { keywords: ["ai"], name: "AI Course" },
+          { keywords: ["corporate", "train", "trainer", "mitesh"], name: "Corporate Train the Trainer by Mitesh Khatri" }
+        ];
+        
+        careerSubCourses.forEach(({ keywords, name }) => {
+          const subCourseIndex = courses.findIndex(c => {
+            const lowerTitle = c.title.toLowerCase();
+            return keywords.every(keyword => lowerTitle.includes(keyword.toLowerCase()));
+          });
+          
+          if (subCourseIndex !== -1) {
+            const subCourse = courses[subCourseIndex];
+            careerMasterySubcat.subcategories!.push({
+              id: subCourse.id,
+              title: subCourse.title,
+              lessons: subCourse.lessons,
+            });
+            courses.splice(subCourseIndex, 1);
+            console.log(`🔹 Moved "${subCourse.title}" (${subCourse.lessons.length} lessons) as sub-sub-course under "Career Mastery"`);
+          }
+        });
+      }
     }
     
     // FOURTH PASS: Move DMP-related courses as sub-sub-courses under "DMP - Daily Magic Practice Recordings"
