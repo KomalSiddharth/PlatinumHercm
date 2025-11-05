@@ -519,7 +519,9 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
         // List of Health Mastery sub-sub-courses to move
         const healthSubCourses = [
           { keywords: ["morning", "gym", "dance"], name: "Morning Happy Gym Dance Videos" },
-          { keywords: ["penial", "gland", "meditation"], name: "Penial Gland Meditations" }
+          { keywords: ["penial", "gland", "meditation"], name: "Penial Gland Meditations" },
+          { keywords: ["chakra", "healing"], name: "Chakra Healing" },
+          { keywords: ["depression", "celebration"], name: "Depression to Celebration" }
         ];
         
         healthSubCourses.forEach(({ keywords, name }) => {
