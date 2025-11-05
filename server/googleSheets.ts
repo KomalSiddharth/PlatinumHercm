@@ -623,7 +623,8 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
         { keywords: ["8th oct", "nothing is working", "universe"], name: "8th Oct - Universe is Working" },
         { keywords: ["my", "5", "days", "platinum", "challenge", "recordings"], name: "My 5 Days Platinum Challenge Recordings" },
         { keywords: ["one", "day", "miracle"], name: "One Day Miracle" },
-        { keywords: ["all", "my", "webinar", "recordings"], name: "All My Webinar Recordings" }
+        { keywords: ["all", "my", "webinar", "recordings"], name: "All My Webinar Recordings" },
+        { keywords: ["imk", "bonuses"], name: "IMK Bonuses" }
       ];
       
       dmpSubCourses.forEach(({ keywords, name }) => {
