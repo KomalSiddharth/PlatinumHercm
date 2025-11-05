@@ -538,6 +538,47 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
         }
       }
     }
+    
+    // FOURTH PASS: Move DMP-related courses as sub-sub-courses under "DMP - Daily Magic Practice Recordings"
+    const dmpCourseIndex = courses.findIndex(c => 
+      c.title.toLowerCase().includes('dmp') && 
+      c.title.toLowerCase().includes('daily magic practice') &&
+      c.title.toLowerCase().includes('recordings')
+    );
+    
+    if (dmpCourseIndex !== -1) {
+      const dmpCourse = courses[dmpCourseIndex];
+      
+      if (!dmpCourse.subcategories) {
+        dmpCourse.subcategories = [];
+      }
+      
+      // List of DMP sub-courses to move
+      const dmpSubCourses = [
+        { keywords: ["june'25", "dmp", "recordings"], name: "June'25 DMP recordings" },
+        { keywords: ["20th june", "master at relationship"], name: "20th June - Master at Relationship" },
+        { keywords: ["22nd mar", "hopeful"], name: "22nd Mar - I Am Hopeful" },
+        { keywords: ["8th oct", "nothing is working", "universe"], name: "8th Oct - Universe is Working" }
+      ];
+      
+      dmpSubCourses.forEach(({ keywords, name }) => {
+        const subCourseIndex = courses.findIndex(c => {
+          const lowerTitle = c.title.toLowerCase();
+          return keywords.every(keyword => lowerTitle.includes(keyword.toLowerCase()));
+        });
+        
+        if (subCourseIndex !== -1) {
+          const subCourse = courses[subCourseIndex];
+          dmpCourse.subcategories!.push({
+            id: subCourse.id,
+            title: subCourse.title,
+            lessons: subCourse.lessons,
+          });
+          courses.splice(subCourseIndex, 1);
+          console.log(`🔹 Moved "${subCourse.title}" (${subCourse.lessons.length} lessons) as sub-sub-course under "DMP - Daily Magic Practice Recordings"`);
+        }
+      });
+    }
 
     console.log(`\n🎉 Total courses parsed: ${courses.length}`);
     courses.forEach((course, idx) => {
