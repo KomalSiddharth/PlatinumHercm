@@ -4,7 +4,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronRight, Map } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
@@ -41,9 +41,17 @@ export default function LifeSkillsMap() {
 
   console.log('[LifeSkillsMap] Component mounted/rendering');
   
-  const { data: coursesData, isLoading, isError, error } = useQuery<CourseTrackingData[]>({
+  const { data: coursesData, isLoading, isError, error, refetch } = useQuery<CourseTrackingData[]>({
     queryKey: ['/api/courses/tracking'],
+    retry: 2,
+    retryDelay: 1000,
   });
+
+  // Force refetch on mount to clear any cached errors
+  useEffect(() => {
+    console.log('[LifeSkillsMap] Forcing refetch on mount');
+    queryClient.invalidateQueries({ queryKey: ['/api/courses/tracking'] });
+  }, []);
 
   console.log('[LifeSkillsMap] Query state:', { isLoading, isError, hasData: !!coursesData, error });
 
@@ -106,7 +114,30 @@ export default function LifeSkillsMap() {
               <p className="text-gray-400">Loading courses...</p>
             </div>
           </div>
-        ) : isError || !coursesData || coursesData.length === 0 ? (
+        ) : isError ? (
+          <div 
+            className="bg-[#0f1c2e] dark:bg-[#0f1c2e] rounded-lg border border-red-700/50 py-16 px-6"
+            data-testid="container-error-state"
+          >
+            <p className="text-center text-red-400 mb-4" data-testid="text-error-state">
+              Error loading courses from Google Sheets
+            </p>
+            <p className="text-center text-gray-500 text-sm" data-testid="text-error-details">
+              {error instanceof Error ? error.message : 'Unknown error occurred'}
+            </p>
+            <div className="flex justify-center mt-4">
+              <Button 
+                onClick={() => refetch()} 
+                variant="outline"
+                size="sm"
+                className="text-white border-white/20 hover:bg-white/10"
+                data-testid="button-retry"
+              >
+                Retry
+              </Button>
+            </div>
+          </div>
+        ) : !coursesData || coursesData.length === 0 ? (
           <div 
             className="bg-[#0f1c2e] dark:bg-[#0f1c2e] rounded-lg border border-gray-700/50 py-16"
             data-testid="container-empty-state"
