@@ -553,7 +553,11 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
           { keywords: ["investing", "saving"], name: "Investing and Saving" },
           { keywords: ["canva", "graphic", "design"], name: "Canva Graphic Design Mastery" },
           { keywords: ["ai"], name: "AI Course" },
-          { keywords: ["corporate", "train", "trainer", "mitesh"], name: "Corporate Train the Trainer by Mitesh Khatri" }
+          { keywords: ["corporate", "train", "trainer", "mitesh"], name: "Corporate Train the Trainer by Mitesh Khatri" },
+          { keywords: ["online", "selling", "5", "days"], name: "Online Selling with 5 Days Challenge" },
+          { keywords: ["lead", "business"], name: "Lead Business" },
+          { keywords: ["digital", "coaching", "success", "platinum"], name: "Digital Coaching Success - Platinum Version" },
+          { keywords: ["digital", "coaching", "system"], name: "Digital Coaching System" }
         ];
         
         careerSubCourses.forEach(({ keywords, name }) => {
