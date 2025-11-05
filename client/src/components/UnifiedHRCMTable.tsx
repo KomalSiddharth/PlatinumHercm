@@ -1682,7 +1682,15 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     <Textarea
                       value={item.text}
                       onChange={(e) => onUpdateText(item.id, e.target.value)}
-                      onBlur={() => setEditingId(null)}
+                      onBlur={(e) => {
+                        // Only close edit box if clicking outside the textarea AND outside the hover card
+                        // This prevents premature closing when user is still typing
+                        const relatedTarget = e.relatedTarget as HTMLElement;
+                        const isClickingInsideCard = relatedTarget?.closest('[role="dialog"]');
+                        if (!isClickingInsideCard) {
+                          setEditingId(null);
+                        }
+                      }}
                       onFocus={(e) => {
                         const length = e.target.value.length;
                         e.target.setSelectionRange(length, length);
@@ -1694,6 +1702,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                           setEditingId(null);
                         }
                         // Prevent event propagation for all keys to avoid closing parent
+                        e.stopPropagation();
+                      }}
+                      onClick={(e) => {
+                        // Prevent click from propagating to parent elements
+                        e.stopPropagation();
+                      }}
+                      onMouseDown={(e) => {
+                        // Keep focus on textarea when clicking inside it
                         e.stopPropagation();
                       }}
                       placeholder="Type checkpoint..."
