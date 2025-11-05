@@ -579,6 +579,48 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
         }
       });
     }
+    
+    // FIFTH PASS: Move Platinum Weekly Call related courses as sub-sub-courses under "Platinum Weekly Call"
+    const platinumWeeklyCallIndex = courses.findIndex(c => 
+      c.title.toLowerCase().includes('platinum') && 
+      c.title.toLowerCase().includes('weekly') &&
+      c.title.toLowerCase().includes('call') &&
+      !c.title.toLowerCase().includes('bonus') &&
+      !c.title.toLowerCase().includes('healing')
+    );
+    
+    if (platinumWeeklyCallIndex !== -1) {
+      const platinumWeeklyCall = courses[platinumWeeklyCallIndex];
+      
+      if (!platinumWeeklyCall.subcategories) {
+        platinumWeeklyCall.subcategories = [];
+      }
+      
+      // List of Platinum Weekly Call sub-courses to move
+      const platinumWeeklySubCourses = [
+        { keywords: ["aug", "2025", "platinum", "bonus", "call", "recording"], name: "Aug 2025 Platinum Bonus Call Recording" },
+        { keywords: ["sept", "25", "platinum", "bonus", "call", "recording"], name: "Sept'25 Platinum Bonus Call Recording" },
+        { keywords: ["platinum", "healing", "sessions"], name: "Platinum Healing Sessions" }
+      ];
+      
+      platinumWeeklySubCourses.forEach(({ keywords, name }) => {
+        const subCourseIndex = courses.findIndex(c => {
+          const lowerTitle = c.title.toLowerCase();
+          return keywords.every(keyword => lowerTitle.includes(keyword.toLowerCase()));
+        });
+        
+        if (subCourseIndex !== -1) {
+          const subCourse = courses[subCourseIndex];
+          platinumWeeklyCall.subcategories!.push({
+            id: subCourse.id,
+            title: subCourse.title,
+            lessons: subCourse.lessons,
+          });
+          courses.splice(subCourseIndex, 1);
+          console.log(`🔹 Moved "${subCourse.title}" (${subCourse.lessons.length} lessons) as sub-sub-course under "Platinum Weekly Call"`);
+        }
+      });
+    }
 
     console.log(`\n🎉 Total courses parsed: ${courses.length}`);
     courses.forEach((course, idx) => {
