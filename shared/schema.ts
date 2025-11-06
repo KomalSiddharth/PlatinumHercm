@@ -566,3 +566,56 @@ export const insertUserFeedbackSchema = createInsertSchema(userFeedback).omit({
 
 export type InsertUserFeedback = z.infer<typeof insertUserFeedbackSchema>;
 export type UserFeedback = typeof userFeedback.$inferSelect;
+
+// Next Week Target Snapshots - Friday-to-Friday continuity system
+export const nextWeekSnapshots = pgTable("next_week_snapshots", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  snapshotDate: varchar("snapshot_date").notNull(), // Friday date (YYYY-MM-DD format)
+  snapshotData: jsonb("snapshot_data").$type<{
+    health: {
+      nextFeelings: string;
+      nextWeekTarget: string;
+      nextActions: string;
+      feelingsChecklist: { id: string; text: string; checked: boolean }[];
+      nextWeekTargetChecklist: { id: string; text: string; checked: boolean }[];
+      actionsChecklist: { id: string; text: string; checked: boolean }[];
+    };
+    relationship: {
+      nextFeelings: string;
+      nextWeekTarget: string;
+      nextActions: string;
+      feelingsChecklist: { id: string; text: string; checked: boolean }[];
+      nextWeekTargetChecklist: { id: string; text: string; checked: boolean }[];
+      actionsChecklist: { id: string; text: string; checked: boolean }[];
+    };
+    career: {
+      nextFeelings: string;
+      nextWeekTarget: string;
+      nextActions: string;
+      feelingsChecklist: { id: string; text: string; checked: boolean }[];
+      nextWeekTargetChecklist: { id: string; text: string; checked: boolean }[];
+      actionsChecklist: { id: string; text: string; checked: boolean }[];
+    };
+    money: {
+      nextFeelings: string;
+      nextWeekTarget: string;
+      nextActions: string;
+      feelingsChecklist: { id: string; text: string; checked: boolean }[];
+      nextWeekTargetChecklist: { id: string; text: string; checked: boolean }[];
+      actionsChecklist: { id: string; text: string; checked: boolean }[];
+    };
+  }>().notNull(),
+  archived: boolean("archived").default(false).notNull(), // True when Update button clicked
+  createdAt: timestamp("created_at").defaultNow(),
+  archivedAt: timestamp("archived_at"),
+});
+
+export const insertNextWeekSnapshotSchema = createInsertSchema(nextWeekSnapshots).omit({
+  id: true,
+  createdAt: true,
+  archivedAt: true,
+});
+
+export type InsertNextWeekSnapshot = z.infer<typeof insertNextWeekSnapshotSchema>;
+export type NextWeekSnapshot = typeof nextWeekSnapshots.$inferSelect;
