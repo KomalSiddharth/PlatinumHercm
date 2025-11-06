@@ -1130,6 +1130,22 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         timestamp: new Date().toISOString()
       });
       
+      // CRITICAL DEBUG: Log checkpoint data being sent
+      if (weekData.beliefs && weekData.beliefs.length > 0) {
+        weekData.beliefs.forEach((belief: any) => {
+          console.log(`[FRONTEND SAVE] ${belief.category} checkpoint data:`, {
+            problemsChecklist: belief.problemsChecklist,
+            problemsChecklistLength: belief.problemsChecklist?.length || 0,
+            feelingsCurrentChecklist: belief.feelingsCurrentChecklist,
+            feelingsCurrentChecklistLength: belief.feelingsCurrentChecklist?.length || 0,
+            beliefsCurrentChecklist: belief.beliefsCurrentChecklist,
+            beliefsCurrentChecklistLength: belief.beliefsCurrentChecklist?.length || 0,
+            actionsCurrentChecklist: belief.actionsCurrentChecklist,
+            actionsCurrentChecklistLength: belief.actionsCurrentChecklist?.length || 0
+          });
+        });
+      }
+      
       const response = await apiRequest('/api/hercm/save-with-comparison', 'POST', weekData);
       const result = await response.json();
       

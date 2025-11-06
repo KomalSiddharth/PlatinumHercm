@@ -789,7 +789,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         weekData.achievementRate = Math.round((healthProgress + relationshipProgress + careerProgress + moneyProgress) / 4);
       }
       
-      // COMPREHENSIVE LOGGING: Track text field saves
+      // COMPREHENSIVE LOGGING: Track text field saves + CHECKPOINT DATA
       console.log(`[SAVE] === SAVE OPERATION START ===`);
       console.log(`[SAVE] User: ${userId}, Week: ${weekData.weekNumber}`);
       console.log(`[SAVE] Text fields being saved:`);
@@ -800,6 +800,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`[SAVE]   Career - Problems: "${weekData.careerProblems?.substring(0, 50)}..." (${weekData.careerProblems?.length || 0} chars)`);
       console.log(`[SAVE]   Money - Problems: "${weekData.moneyProblems?.substring(0, 50)}..." (${weekData.moneyProblems?.length || 0} chars)`);
       console.log(`[SAVE] Ratings: H=${weekData.currentH}, E=${weekData.currentE}, R=${weekData.currentR}, C=${weekData.currentC}`);
+      console.log(`[SAVE] CHECKPOINT DATA RECEIVED FROM FRONTEND:`);
+      console.log(`[SAVE]   Health - ProblemsChecklist:`, weekData.healthProblemsChecklist?.length || 0, 'items');
+      console.log(`[SAVE]   Health - FeelingsCurrentChecklist:`, weekData.healthFeelingsCurrentChecklist?.length || 0, 'items');
+      console.log(`[SAVE]   Health - BeliefsCurrentChecklist:`, weekData.healthBeliefsCurrentChecklist?.length || 0, 'items');
+      console.log(`[SAVE]   Health - ActionsCurrentChecklist:`, weekData.healthActionsCurrentChecklist?.length || 0, 'items');
+      console.log(`[SAVE]   Relationship - ProblemsChecklist:`, weekData.relationshipProblemsChecklist?.length || 0, 'items');
+      console.log(`[SAVE]   Career - ProblemsChecklist:`, weekData.careerProblemsChecklist?.length || 0, 'items');
+      console.log(`[SAVE]   Money - ProblemsChecklist:`, weekData.moneyProblemsChecklist?.length || 0, 'items');
       
       // UPSERT logic: Check if week already exists for this user+weekNumber
       // If exists, UPDATE it (preserves checked states across refresh)
