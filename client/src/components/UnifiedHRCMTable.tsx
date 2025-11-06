@@ -295,6 +295,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   const [historyOpen, setHistoryOpen] = useState(false);
   const [selectedHistoryDate, setSelectedHistoryDate] = useState<Date | undefined>(undefined);
   const [viewingHistory, setViewingHistory] = useState(false);
+  const [weeklyAverageProgress, setWeeklyAverageProgress] = useState<number>(0);
   const lastFocusedButton = useRef<HTMLButtonElement | null>(null);
   const hasAutoProgressed = useRef<Set<number>>(new Set()); // Track which weeks have been auto-progressed
   const { toast} = useToast();
@@ -906,9 +907,62 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   }, [weekData, platinumStandardsData]);
   // FIXED: Added platinumStandardsData to deps to auto-update when admin adds new standards
 
-  const weeklyProgress = beliefs.length > 0
-    ? Math.round(beliefs.reduce((sum, b) => sum + calculateProgress(b.checklist), 0) / beliefs.length)
-    : 0;
+  // Calculate weekly average progress across Friday-Thursday (7 days)
+  useEffect(() => {
+    const calculateWeeklyAverage = async () => {
+      try {
+        // Get all 7 dates in the current Friday-Thursday week
+        const weekDates = getWeekDateRange(selectedDate);
+        
+        // Fetch data for all 7 days in parallel
+        const promises = weekDates.map(async (dateStr) => {
+          try {
+            const endpoint = isAdminView && viewAsUserId
+              ? `/api/admin/user/${viewAsUserId}/hercm/by-date/${dateStr}`
+              : `/api/hercm/by-date/${dateStr}`;
+            
+            const response = await fetch(endpoint, {
+              credentials: 'include',
+            });
+            
+            if (!response.ok) {
+              return 0; // Return 0 for days with no data
+            }
+            
+            const data = await response.json();
+            
+            // Calculate progress for this day
+            if (data && data.beliefs && data.beliefs.length > 0) {
+              const dayProgress = data.beliefs.reduce((sum: number, b: HRCMBelief) => {
+                return sum + calculateProgress(b.checklist);
+              }, 0) / data.beliefs.length;
+              return dayProgress;
+            }
+            
+            return 0; // No data for this day
+          } catch (error) {
+            console.error(`[WEEKLY AVG] Error fetching data for ${dateStr}:`, error);
+            return 0; // Return 0 on error
+          }
+        });
+        
+        // Wait for all fetches to complete
+        const dailyProgresses = await Promise.all(promises);
+        
+        // Calculate average across all 7 days (including 0% for days with no data)
+        const weeklyAvg = dailyProgresses.reduce((sum, progress) => sum + progress, 0) / 7;
+        
+        setWeeklyAverageProgress(Math.round(weeklyAvg));
+      } catch (error) {
+        console.error('[WEEKLY AVG] Error calculating weekly average:', error);
+        setWeeklyAverageProgress(0);
+      }
+    };
+    
+    calculateWeeklyAverage();
+  }, [selectedDate, viewAsUserId, isAdminView, beliefs]); // Recalculate when date changes or beliefs update
+
+  const weeklyProgress = weeklyAverageProgress;
 
   const handleChecklistToggle = (category: string, itemId: string) => {
     setBeliefs(prev => {
