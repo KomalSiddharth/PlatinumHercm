@@ -2354,13 +2354,20 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Badge 
-            className={`${getProgressColor(weeklyProgress)} ${!isAdminView ? 'cursor-pointer hover:opacity-80' : ''} smooth-transition`}
-            onClick={() => !isAdminView && setProgressOpen(true)}
-            data-testid="badge-weekly-progress"
-          >
-            {weeklyProgress}% Weekly Progress
-          </Badge>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge 
+                className={`${getProgressColor(weeklyProgress)} ${!isAdminView ? 'cursor-pointer hover:opacity-80' : ''} smooth-transition`}
+                onClick={() => !isAdminView && setProgressOpen(true)}
+                data-testid="badge-weekly-progress"
+              >
+                {weeklyProgress}% Weekly Progress
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="text-sm">Average across Friday-Thursday (7 days)</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </div>
 
