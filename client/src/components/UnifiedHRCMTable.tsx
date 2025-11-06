@@ -998,6 +998,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       saveWeekMutation.mutate({
         weekNumber,
         year: new Date().getFullYear(),
+        dateString: currentDateStr, // Use selected calendar date, not today's date
         beliefs: updated,
       });
       
@@ -1029,6 +1030,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       saveWeekMutation.mutate({
         weekNumber,
         year: new Date().getFullYear(),
+        dateString: currentDateStr, // Use selected calendar date, not today's date
         beliefs: updated,
       });
       
@@ -1107,6 +1109,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       saveWeekMutation.mutate({
         weekNumber,
         year: new Date().getFullYear(),
+        dateString: currentDateStr, // Use selected calendar date, not today's date
         beliefs: updated,
       });
       
@@ -1240,7 +1243,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       // Save the blanked state to database
       saveWeekMutation.mutate({ 
         weekNumber, 
-        year: new Date().getFullYear(), 
+        year: new Date().getFullYear(),
+        dateString: currentDateStr, // Use selected calendar date, not today's date
         beliefs: beliefs.map(belief => ({
           ...belief,
           targetRating: 0,
@@ -1308,6 +1312,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         
         saveWeekMutation.mutate({
           weekNumber,
+          year: new Date().getFullYear(),
+          dateString: currentDateStr, // Use selected calendar date, not today's date
           beliefs: updated
         });
         
