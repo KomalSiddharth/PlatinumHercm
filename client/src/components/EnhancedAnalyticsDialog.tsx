@@ -54,6 +54,14 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
   const monthlyData = analyticsData?.monthlyData || [];
 
   const currentData = viewType === 'weekly' ? weeklyData : monthlyData;
+  
+  // Debug logging
+  console.log('[ANALYTICS DIALOG] viewType:', viewType);
+  console.log('[ANALYTICS DIALOG] selectedWeek:', selectedWeek);
+  console.log('[ANALYTICS DIALOG] analyticsData:', analyticsData);
+  console.log('[ANALYTICS DIALOG] weeklyData:', weeklyData);
+  console.log('[ANALYTICS DIALOG] monthlyData:', monthlyData);
+  console.log('[ANALYTICS DIALOG] currentData:', currentData);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

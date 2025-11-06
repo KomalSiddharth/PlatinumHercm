@@ -960,7 +960,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     };
     
     calculateWeeklyAverage();
-  }, [selectedDate, viewAsUserId, isAdminView, beliefs]); // Recalculate when date changes or beliefs update
+  }, [selectedDate, viewAsUserId, isAdminView]); // Only recalculate when date changes (not beliefs to avoid too many API calls)
 
   const weeklyProgress = weeklyAverageProgress;
 
