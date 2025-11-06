@@ -1056,33 +1056,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     }
   });
 
-  // Generate Next Week mutation
-  const generateNextWeekMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest('/api/hercm/generate-next-week', 'POST', {
-        weekNumber,
-        beliefs
-      });
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/hercm/weeks'] });
-      toast({
-        title: 'Next Week Created!',
-        description: `Week ${weekNumber + 1} has been generated.`,
-      });
-      if (onWeekChange) {
-        onWeekChange(weekNumber + 1);
-      }
-    },
-    onError: () => {
-      toast({
-        title: 'Error',
-        description: 'Failed to generate next week.',
-        variant: 'destructive',
-      });
-    }
-  });
 
   // Update mutation - Archive snapshot and blank Next Week Target table
   const updateSnapshotMutation = useMutation({
@@ -1144,36 +1117,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   });
 
   // Handlers
-  const handleGenerateNextWeek = () => {
-    // Reset all data fields (Rating, Results, Feelings, Beliefs/Reasons, Actions) in both tables
-    setBeliefs(prev => prev.map(belief => ({
-      ...belief,
-      // Current Week - Empty these fields
-      currentRating: 0,
-      problems: '',
-      currentFeelings: '',
-      currentBelief: '',
-      currentActions: '',
-      // Next Week Target - Empty these fields
-      targetRating: 0,
-      result: '',
-      nextFeelings: '',
-      nextWeekTarget: '',
-      nextActions: '',
-      // Clear checklists for next week target columns
-      resultChecklist: [],
-      feelingsChecklist: [],
-      beliefsChecklist: [],
-      actionsChecklist: [],
-    })));
-    
-    // Call API to generate next week
-    generateNextWeekMutation.mutate();
-  };
-
-  // Generate Next Week is always unlocked
-  const canGenerateNextWeek = true;
-  const nextWeekUnlockDate = '';
 
   // Get rating-based AI assignment course recommendations for Next Week
   const getAssignmentRecommendation = async (category: string) => {
@@ -2345,25 +2288,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           >
             {weeklyProgress}% Weekly Progress
           </Badge>
-          
-          {!isAdminView && (
-            <>
-              <Button
-                size="sm"
-                onClick={handleGenerateNextWeek}
-                disabled={generateNextWeekMutation.isPending}
-                className="bg-gradient-to-r from-primary to-accent text-white smooth-transition"
-                data-testid="button-generate-next-week"
-              >
-                {generateNextWeekMutation.isPending ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <TrendingUp className="w-4 h-4 mr-2" />
-                )}
-                Generate Next Week
-              </Button>
-            </>
-          )}
         </div>
       </div>
 
