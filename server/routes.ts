@@ -814,27 +814,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If not exists, CREATE new week
       const existingWeek = await storage.getHercmWeek(userId, weekData.weekNumber);
       
+      // CRITICAL FIX: Set dateString to TODAY for both CREATE and UPDATE
+      // This ensures data is always tagged with the current date for daily tracking
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      weekData.dateString = `${year}-${month}-${day}`;
+      
       let week;
       if (existingWeek) {
         // Week exists - UPDATE it to preserve data and avoid duplicate rows
         console.log(`[SAVE] Week ${weekData.weekNumber} exists (id: ${existingWeek.id}) - UPDATING`);
-        console.log(`[SAVE] Existing dateString: ${existingWeek.dateString} → PRESERVING (not overwriting)`);
+        console.log(`[SAVE] Old dateString: ${existingWeek.dateString} → NEW dateString: ${weekData.dateString}`);
         console.log(`[SAVE] Existing createdAt: ${existingWeek.createdAt} → PRESERVING`);
         
-        // CRITICAL FIX: Exclude createdAt, updatedAt, AND dateString to preserve original creation date
-        // This prevents Nov 5th data from being tagged with Nov 6th date during auto-save!
-        const { createdAt, updatedAt, dateString, ...updateData } = weekData;
+        // CRITICAL FIX: Update dateString to today, but preserve createdAt
+        const { createdAt, updatedAt, ...updateData } = weekData;
         week = await storage.updateHercmWeek(existingWeek.id, updateData);
         console.log(`[SAVE] ✅ UPDATE completed successfully`);
       } else {
         // Week doesn't exist - CREATE new
-        // ONLY set dateString when CREATING a new week (not when updating existing)
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        weekData.dateString = `${year}-${month}-${day}`;
-        
         console.log(`[SAVE] Week ${weekData.weekNumber} does NOT exist - CREATING new with dateString: ${weekData.dateString}`);
         week = await storage.createHercmWeek(weekData);
         console.log(`[SAVE] ✅ CREATE completed successfully`);
