@@ -177,6 +177,51 @@ export default function LifeSkillsMap() {
     });
   };
 
+  // Calculate overall progress across ALL courses
+  const calculateOverallProgress = () => {
+    if (!coursesData || coursesData.length === 0) return { completed: 0, total: 0, percent: 0 };
+    
+    let totalCompleted = 0;
+    let totalLessons = 0;
+    
+    // Helper function to recursively count lessons in subcategories
+    const countLessons = (subcats: CourseSubcategory[] | undefined): { total: number, completed: number } => {
+      if (!subcats || subcats.length === 0) return { total: 0, completed: 0 };
+      
+      let total = 0;
+      let completed = 0;
+      
+      subcats.forEach(subcat => {
+        total += subcat.lessons.length;
+        completed += subcat.lessons.filter(l => l.completed).length;
+        
+        if (subcat.subcategories && subcat.subcategories.length > 0) {
+          const nested = countLessons(subcat.subcategories);
+          total += nested.total;
+          completed += nested.completed;
+        }
+      });
+      
+      return { total, completed };
+    };
+    
+    coursesData.forEach(course => {
+      if (course.subcategories && course.subcategories.length > 0) {
+        const counts = countLessons(course.subcategories);
+        totalLessons += counts.total;
+        totalCompleted += counts.completed;
+      } else {
+        totalLessons += course.lessons.length;
+        totalCompleted += course.lessons.filter(l => l.completed).length;
+      }
+    });
+    
+    const percent = totalLessons > 0 ? Math.round((totalCompleted / totalLessons) * 100) : 0;
+    return { completed: totalCompleted, total: totalLessons, percent };
+  };
+  
+  const overallProgress = calculateOverallProgress();
+
   return (
     <Card 
       className="w-full border-2 border-blue-500/40 bg-[#1a2942] dark:bg-[#1a2942]" 
@@ -187,9 +232,24 @@ export default function LifeSkillsMap() {
           <h2 className="text-2xl font-bold text-white mb-1" data-testid="text-course-tracker-title">
             Course Tracker
           </h2>
-          <p className="text-sm text-gray-400" data-testid="text-course-tracker-subtitle">
+          <p className="text-sm text-gray-400 mb-3" data-testid="text-course-tracker-subtitle">
             Manage your learning journey and skill development
           </p>
+          
+          {/* Overall Progress Bar */}
+          <div className="space-y-2" data-testid="container-overall-progress">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-300 font-medium">Overall Progress</span>
+              <span className="text-primary font-bold" data-testid="text-overall-progress-percent">
+                {overallProgress.completed}/{overallProgress.total} lessons ({overallProgress.percent}%)
+              </span>
+            </div>
+            <Progress 
+              value={overallProgress.percent} 
+              className="h-2 bg-gray-700"
+              data-testid="progress-overall"
+            />
+          </div>
         </div>
         <Button
           variant="default"
