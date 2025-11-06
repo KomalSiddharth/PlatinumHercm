@@ -210,6 +210,25 @@ const getProgressColor = (progress: number) => {
   return 'bg-gradient-to-r from-coral-red to-coral-red/80 text-white coral-glow smooth-transition';
 };
 
+// Helper function to get Friday-Thursday date range for any given date
+const getWeekDateRange = (currentDate: Date): string[] => {
+  const dayOfWeek = getDay(currentDate);
+  const daysToSubtract = dayOfWeek >= 5 ? dayOfWeek - 5 : dayOfWeek + 2;
+  
+  const friday = new Date(currentDate);
+  friday.setDate(currentDate.getDate() - daysToSubtract);
+  
+  const dateStrings: string[] = [];
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(friday);
+    date.setDate(friday.getDate() + i);
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    dateStrings.push(dateStr);
+  }
+  
+  return dateStrings;
+};
+
 // Health Standards - Predefined checklist for Health category  
 const HEALTH_STANDARDS: ChecklistItem[] = [
   { id: 'health-std-1', text: 'I started my Day with Magic Water', checked: false },
