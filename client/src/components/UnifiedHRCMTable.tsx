@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Sparkles, Check, X, TrendingUp, Save, Loader2, ArrowUp, ArrowDown, Plus, MoreHorizontal, Calendar as CalendarIcon, Trash2, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon } from 'lucide-react';
+import { Sparkles, Check, X, TrendingUp, Save, Loader2, ArrowUp, ArrowDown, Plus, MoreHorizontal, Calendar as CalendarIcon, Trash2, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, RefreshCw } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -280,6 +280,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   const [editValue, setEditValue] = useState('');
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editDialogData, setEditDialogData] = useState<{ category: string; field: string; value: string; label: string; color: string } | null>(null);
+  const [manualNextWeekMode, setManualNextWeekMode] = useState(false); // 🔥 Flag to disable auto-sync when user manually updates Next Week Target
   
   // State for hover editing
   const [hoverEditingField, setHoverEditingField] = useState<{ category: string; field: string } | null>(null);
@@ -1010,9 +1011,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
   // 🔥 AUTO-SYNC: Real-time sync from Current Week to Next Week Target
   useEffect(() => {
-    // Only auto-sync when viewing today (not history or admin view)
-    if (viewingHistory || isAdminView) {
-      console.log('[AUTO-SYNC] ⏸️ Skipping auto-sync (history/admin view)');
+    // Only auto-sync when viewing today (not history or admin view) AND manual mode is OFF
+    if (viewingHistory || isAdminView || manualNextWeekMode) {
+      console.log('[AUTO-SYNC] ⏸️ Skipping auto-sync (history/admin view or manual mode enabled)');
       return;
     }
     
@@ -1068,8 +1069,15 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     beliefs.map(b => JSON.stringify(b.actionsCurrentChecklist || [])).join('|'),
     viewingHistory,
     isAdminView,
+    manualNextWeekMode,
   ]);
   // Dependencies: Only trigger when Current Week fields change
+
+  // Reset manual mode when date changes (allow auto-sync again on new day)
+  useEffect(() => {
+    setManualNextWeekMode(false);
+    console.log('[AUTO-SYNC] 🔄 Date changed - re-enabling auto-sync');
+  }, [currentDateStr]);
 
   // Calculate weekly average progress across Friday-Thursday (7 days)
   useEffect(() => {
@@ -1837,6 +1845,39 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       }
     }
     setShowFirstCheckpointDialog(open);
+  };
+
+  // 🔥 UPDATE BUTTON: Clear Next Week Target data and enable manual planning mode
+  const handleClearNextWeekTarget = () => {
+    console.log('[UPDATE BTN] 🗑️ Clearing Next Week Target data and enabling manual mode...');
+    
+    // Clear all Next Week Target fields
+    const clearedBeliefs = beliefs.map(belief => ({
+      ...belief,
+      result: '',
+      nextFeelings: '',
+      nextWeekTarget: '',
+      nextActions: '',
+      resultChecklist: [],
+      feelingsChecklist: [],
+      beliefsChecklist: [],
+      actionsChecklist: [],
+    }));
+    
+    setBeliefs(clearedBeliefs);
+    setManualNextWeekMode(true); // Disable auto-sync
+    
+    // Save cleared data to database
+    saveWeekMutation.mutate({
+      beliefs: clearedBeliefs,
+      weekNumber: weekNumber,
+      dateString: currentDateStr,
+    });
+    
+    toast({
+      title: 'Next Week Target Cleared',
+      description: 'Auto-sync disabled. You can now plan your next week manually.',
+    });
   };
 
   // Helper function to sync Current Week checkpoints to Next Week Target (replace mode)
@@ -3105,27 +3146,27 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               Next Week Target
             </h3>
             <div className="flex-1 flex justify-end items-center gap-2">
-              {!viewingHistory && !isAdminView && activeSnapshot && (
+              {!viewingHistory && !isAdminView && (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => updateSnapshotMutation.mutate()}
-                      disabled={updateSnapshotMutation.isPending}
-                      data-testid="button-update-snapshot"
+                      onClick={handleClearNextWeekTarget}
+                      disabled={saveWeekMutation.isPending}
+                      data-testid="button-update-next-week"
                       className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white h-8"
                     >
-                      {updateSnapshotMutation.isPending ? (
+                      {saveWeekMutation.isPending ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
-                        <Save className="w-4 h-4" />
+                        <RefreshCw className="w-4 h-4" />
                       )}
                       <span className="ml-1.5">Update</span>
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Archive current data and blank table for fresh planning</p>
+                    <p>Clear auto-synced data and plan your next week manually</p>
                   </TooltipContent>
                 </Tooltip>
               )}
