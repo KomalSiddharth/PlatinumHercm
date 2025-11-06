@@ -1372,6 +1372,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       if (response.ok) {
         // Refetch assignments to get updated data
         await refetchAssignments();
+        
+        // CRITICAL: Invalidate points query to update header display (+10/-10 points)
+        await queryClient.invalidateQueries({ queryKey: ['/api/user/total-points'] });
+        
+        console.log('[ASSIGNMENT] ✅ Assignment toggled and points query invalidated');
       }
     } catch (error) {
       console.error('Error toggling persistent assignment:', error);
