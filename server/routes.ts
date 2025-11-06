@@ -138,6 +138,187 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 🆕 Get previous day's HRCM data for daily auto-copy feature
+  app.get('/api/hercm/previous-day/:date', isAuthenticated, async (req: any, res) => {
+    try {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      let user = await storage.getUser(userId);
+      if (!user && typeof userId === 'string' && userId.includes('@')) {
+        user = await storage.getUserByEmail(userId);
+      }
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      const currentDate = req.params.date;
+      
+      // Calculate previous day's date
+      const currentDateTime = new Date(currentDate);
+      currentDateTime.setDate(currentDateTime.getDate() - 1);
+      const previousDate = `${currentDateTime.getFullYear()}-${String(currentDateTime.getMonth() + 1).padStart(2, '0')}-${String(currentDateTime.getDate()).padStart(2, '0')}`;
+      
+      console.log(`[PREVIOUS DAY] Current: ${currentDate}, Previous: ${previousDate}`);
+      
+      // Get ALL weeks for user
+      const allWeeks = await storage.getAllHercmWeeksByUserWithDates(user.id);
+      
+      if (!allWeeks || allWeeks.length === 0) {
+        console.log(`[PREVIOUS DAY] No weeks found for user ${user.id}`);
+        return res.json(null);
+      }
+      
+      // Try exact dateString match for previous day
+      const exactMatchWeeks = allWeeks.filter((week: any) => week.dateString === previousDate);
+      
+      let week;
+      
+      if (exactMatchWeeks.length > 0) {
+        console.log(`[PREVIOUS DAY] ✅ Found data for ${previousDate}`);
+        week = exactMatchWeeks.sort((a: any, b: any) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )[0];
+      } else {
+        // Fallback: Try createdAt match
+        const previousDateStart = new Date(previousDate);
+        previousDateStart.setHours(0, 0, 0, 0);
+        
+        const previousDateEnd = new Date(previousDate);
+        previousDateEnd.setHours(23, 59, 59, 999);
+        
+        const createdAtMatches = allWeeks.filter((week: any) => {
+          if (!week.createdAt) return false;
+          const createdDate = new Date(week.createdAt);
+          return createdDate >= previousDateStart && createdDate <= previousDateEnd;
+        });
+        
+        if (createdAtMatches.length > 0) {
+          console.log(`[PREVIOUS DAY] ✅ Found data via createdAt for ${previousDate}`);
+          week = createdAtMatches.sort((a: any, b: any) => 
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          )[0];
+        } else {
+          console.log(`[PREVIOUS DAY] ❌ No data found for ${previousDate}`);
+          return res.json(null);
+        }
+      }
+      
+      // Transform to beliefs format
+      const beliefs = [
+        {
+          category: 'Health',
+          currentRating: week.currentH || 0,
+          targetRating: week.targetH || 0,
+          problems: week.healthProblems || '',
+          currentFeelings: week.healthCurrentFeelings || '',
+          currentBelief: week.healthCurrentBelief || '',
+          currentActions: week.healthCurrentActions || '',
+          result: week.healthResult || '',
+          nextFeelings: week.healthNextFeelings || '',
+          nextWeekTarget: week.healthNextTarget || '',
+          nextActions: week.healthNextActions || '',
+          checklist: week.healthChecklist || [],
+          assignment: week.healthAssignment || { courses: [], lessons: [] },
+          problemsChecklist: week.healthProblemsChecklist || [],
+          feelingsCurrentChecklist: week.healthFeelingsCurrentChecklist || [],
+          beliefsCurrentChecklist: week.healthBeliefsCurrentChecklist || [],
+          actionsCurrentChecklist: week.healthActionsCurrentChecklist || [],
+          resultChecklist: week.healthResultChecklist || [],
+          feelingsChecklist: week.healthFeelingsChecklist || [],
+          beliefsChecklist: week.healthBeliefsChecklist || [],
+          actionsChecklist: week.healthActionsChecklist || [],
+        },
+        {
+          category: 'Relationship',
+          currentRating: week.currentE || 0,
+          targetRating: week.targetE || 0,
+          problems: week.relationshipProblems || '',
+          currentFeelings: week.relationshipCurrentFeelings || '',
+          currentBelief: week.relationshipCurrentBelief || '',
+          currentActions: week.relationshipCurrentActions || '',
+          result: week.relationshipResult || '',
+          nextFeelings: week.relationshipNextFeelings || '',
+          nextWeekTarget: week.relationshipNextTarget || '',
+          nextActions: week.relationshipNextActions || '',
+          checklist: week.relationshipChecklist || [],
+          assignment: week.relationshipAssignment || { courses: [], lessons: [] },
+          problemsChecklist: week.relationshipProblemsChecklist || [],
+          feelingsCurrentChecklist: week.relationshipFeelingsCurrentChecklist || [],
+          beliefsCurrentChecklist: week.relationshipBeliefsCurrentChecklist || [],
+          actionsCurrentChecklist: week.relationshipActionsCurrentChecklist || [],
+          resultChecklist: week.relationshipResultChecklist || [],
+          feelingsChecklist: week.relationshipFeelingsChecklist || [],
+          beliefsChecklist: week.relationshipBeliefsChecklist || [],
+          actionsChecklist: week.relationshipActionsChecklist || [],
+        },
+        {
+          category: 'Career',
+          currentRating: week.currentR || 0,
+          targetRating: week.targetR || 0,
+          problems: week.careerProblems || '',
+          currentFeelings: week.careerCurrentFeelings || '',
+          currentBelief: week.careerCurrentBelief || '',
+          currentActions: week.careerCurrentActions || '',
+          result: week.careerResult || '',
+          nextFeelings: week.careerNextFeelings || '',
+          nextWeekTarget: week.careerNextTarget || '',
+          nextActions: week.careerNextActions || '',
+          checklist: week.careerChecklist || [],
+          assignment: week.careerAssignment || { courses: [], lessons: [] },
+          problemsChecklist: week.careerProblemsChecklist || [],
+          feelingsCurrentChecklist: week.careerFeelingsCurrentChecklist || [],
+          beliefsCurrentChecklist: week.careerBeliefsCurrentChecklist || [],
+          actionsCurrentChecklist: week.careerActionsCurrentChecklist || [],
+          resultChecklist: week.careerResultChecklist || [],
+          feelingsChecklist: week.careerFeelingsChecklist || [],
+          beliefsChecklist: week.careerBeliefsChecklist || [],
+          actionsChecklist: week.careerActionsChecklist || [],
+        },
+        {
+          category: 'Money',
+          currentRating: week.currentC || 0,
+          targetRating: week.targetC || 0,
+          problems: week.moneyProblems || '',
+          currentFeelings: week.moneyCurrentFeelings || '',
+          currentBelief: week.moneyCurrentBelief || '',
+          currentActions: week.moneyCurrentActions || '',
+          result: week.moneyResult || '',
+          nextFeelings: week.moneyNextFeelings || '',
+          nextWeekTarget: week.moneyNextTarget || '',
+          nextActions: week.moneyNextActions || '',
+          checklist: week.moneyChecklist || [],
+          assignment: week.moneyAssignment || { courses: [], lessons: [] },
+          problemsChecklist: week.moneyProblemsChecklist || [],
+          feelingsCurrentChecklist: week.moneyFeelingsCurrentChecklist || [],
+          beliefsCurrentChecklist: week.moneyBeliefsCurrentChecklist || [],
+          actionsCurrentChecklist: week.moneyActionsCurrentChecklist || [],
+          resultChecklist: week.moneyResultChecklist || [],
+          feelingsChecklist: week.moneyFeelingsChecklist || [],
+          beliefsChecklist: week.moneyBeliefsChecklist || [],
+          actionsChecklist: week.moneyActionsChecklist || [],
+        }
+      ];
+
+      res.json({
+        beliefs,
+        weekNumber: week.weekNumber,
+        createdAt: week.createdAt,
+        dateString: week.dateString
+      });
+    } catch (error) {
+      console.error("Error fetching previous day data:", error);
+      res.status(500).json({ message: "Failed to fetch previous day data" });
+    }
+  });
+
   // Get HRCM data by specific date (like Emotional Tracker)
   app.get('/api/hercm/by-date/:date', isAuthenticated, async (req: any, res) => {
     try {
