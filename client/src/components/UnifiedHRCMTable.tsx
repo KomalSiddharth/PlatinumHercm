@@ -846,54 +846,141 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       });
       setUnifiedAssignment(combinedAssignments);
     } else if (weekData === null) {
-      // Explicitly null from server (no data for this date) - show blank
-      console.log('[WEEKDATA EFFECT] ⚠️ weekData is null - showing blank template');
-      const dynamicBeliefs: HRCMBelief[] = [
-        {
-          category: 'Health' as const,
-          currentRating: 0,
-          problems: '',
-          currentFeelings: '',
-          currentBelief: '',
-          currentActions: '',
-          targetRating: 0,
-          result: '',
-          nextFeelings: '',
-          nextWeekTarget: '',
-          nextActions: '',
-          checklist: getPlatinumStandardsForCategory('Health'),
-          assignment: { courses: [], lessons: [] }
-        },
-        {
-          category: 'Relationship' as const,
-          currentRating: 0,
-          problems: '',
-          currentFeelings: '',
-          currentBelief: '',
-          currentActions: '',
-          targetRating: 0,
-          result: '',
-          nextFeelings: '',
-          nextWeekTarget: '',
-          nextActions: '',
-          checklist: getPlatinumStandardsForCategory('Relationship'),
-          assignment: { courses: [], lessons: [] }
-        },
-        {
-          category: 'Career' as const,
-          currentRating: 0,
-          problems: '',
-          currentFeelings: '',
-          currentBelief: '',
-          currentActions: '',
-          targetRating: 0,
-          result: '',
-          nextFeelings: '',
-          nextWeekTarget: '',
-          nextActions: '',
-          checklist: getPlatinumStandardsForCategory('Career'),
-          assignment: { courses: [], lessons: [] }
-        },
+      // Explicitly null from server (no data for this date)
+      console.log('[WEEKDATA EFFECT] ⚠️ weekData is null - checking for daily auto-copy');
+      
+      // 🔥 DAILY AUTO-COPY FEATURE: If viewing today and no data exists, fetch & copy previous day's data
+      if (!viewingHistory && !isAdminView) {
+        console.log('[AUTO-COPY] 🚀 Fetching previous day data for auto-copy...');
+        
+        // Fetch previous day's data
+        fetch(`/api/hercm/previous-day/${currentDateStr}`, {
+          credentials: 'include',
+        })
+          .then(res => res.json())
+          .then(previousDayData => {
+            if (previousDayData && previousDayData.beliefs) {
+              console.log('[AUTO-COPY] ✅ Previous day data found! Auto-copying to today...');
+              
+              // Process and merge with platinum standards
+              const copiedBeliefs = previousDayData.beliefs.map((belief: any) => {
+                const freshStandards = getPlatinumStandardsForCategory(belief.category);
+                
+                // Merge saved checklist with fresh platinum standards
+                const mergedChecklist = freshStandards.map(freshItem => {
+                  const existing = belief.checklist?.find((e: any) => e.id === freshItem.id);
+                  return existing ? { ...freshItem, checked: existing.checked } : freshItem;
+                });
+                
+                return {
+                  ...belief,
+                  checklist: mergedChecklist,
+                  // Preserve all checkpoint checklists
+                  problemsChecklist: belief.problemsChecklist || [],
+                  feelingsCurrentChecklist: belief.feelingsCurrentChecklist || [],
+                  beliefsCurrentChecklist: belief.beliefsCurrentChecklist || [],
+                  actionsCurrentChecklist: belief.actionsCurrentChecklist || [],
+                  resultChecklist: belief.resultChecklist || [],
+                  feelingsChecklist: belief.feelingsChecklist || [],
+                  beliefsChecklist: belief.beliefsChecklist || [],
+                  actionsChecklist: belief.actionsChecklist || [],
+                };
+              });
+              
+              setBeliefs(copiedBeliefs);
+              
+              // Extract assignments
+              const combinedAssignments: AssignmentLesson[] = [];
+              copiedBeliefs.forEach((belief: any) => {
+                if (belief.assignment && belief.assignment.lessons) {
+                  belief.assignment.lessons.forEach((lesson: any) => {
+                    combinedAssignments.push({
+                      id: lesson.id,
+                      courseId: lesson.courseId,
+                      courseName: lesson.courseName,
+                      lessonName: lesson.lessonName,
+                      url: lesson.url,
+                      completed: lesson.completed || false,
+                      source: lesson.source || 'user',
+                      hrcmArea: belief.category.toLowerCase()
+                    });
+                  });
+                }
+              });
+              setUnifiedAssignment(combinedAssignments);
+              
+              // 🔥 AUTO-SAVE: Save copied data to current day's database
+              console.log('[AUTO-COPY] 💾 Auto-saving copied data to today...');
+              saveWeekMutation.mutate({
+                beliefs: copiedBeliefs,
+                weekNumber: weekNumber,
+                dateString: currentDateStr, // Save to TODAY's date
+              });
+              
+              toast({
+                title: 'Previous Day Data Copied',
+                description: 'Yesterday\'s data has been auto-copied to today. You can now edit it.',
+              });
+            } else {
+              console.log('[AUTO-COPY] ❌ No previous day data found - showing blank template');
+              setBeliefs(getBlankBeliefs());
+              setUnifiedAssignment([]);
+            }
+          })
+          .catch(error => {
+            console.error('[AUTO-COPY] ❌ Error fetching previous day data:', error);
+            setBeliefs(getBlankBeliefs());
+            setUnifiedAssignment([]);
+          });
+      } else {
+        // Viewing history or admin view - show blank template
+        console.log('[WEEKDATA EFFECT] ⚠️ Viewing history/admin - showing blank template');
+        const dynamicBeliefs: HRCMBelief[] = [
+          {
+            category: 'Health' as const,
+            currentRating: 0,
+            problems: '',
+            currentFeelings: '',
+            currentBelief: '',
+            currentActions: '',
+            targetRating: 0,
+            result: '',
+            nextFeelings: '',
+            nextWeekTarget: '',
+            nextActions: '',
+            checklist: getPlatinumStandardsForCategory('Health'),
+            assignment: { courses: [], lessons: [] }
+          },
+          {
+            category: 'Relationship' as const,
+            currentRating: 0,
+            problems: '',
+            currentFeelings: '',
+            currentBelief: '',
+            currentActions: '',
+            targetRating: 0,
+            result: '',
+            nextFeelings: '',
+            nextWeekTarget: '',
+            nextActions: '',
+            checklist: getPlatinumStandardsForCategory('Relationship'),
+            assignment: { courses: [], lessons: [] }
+          },
+          {
+            category: 'Career' as const,
+            currentRating: 0,
+            problems: '',
+            currentFeelings: '',
+            currentBelief: '',
+            currentActions: '',
+            targetRating: 0,
+            result: '',
+            nextFeelings: '',
+            nextWeekTarget: '',
+            nextActions: '',
+            checklist: getPlatinumStandardsForCategory('Career'),
+            assignment: { courses: [], lessons: [] }
+          },
         {
           category: 'Money' as const,
           currentRating: 0,
@@ -911,8 +998,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         }
       ];
       
-      setBeliefs(dynamicBeliefs);
-      setUnifiedAssignment([]);
+        setBeliefs(dynamicBeliefs);
+        setUnifiedAssignment([]);
+      }
     } else {
       // weekData is undefined (still loading) - don't change anything
       console.log('[WEEKDATA EFFECT] ⏳ weekData is undefined - still loading, keeping current state');
