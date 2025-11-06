@@ -24,42 +24,26 @@ interface HercmWeek {
 
 export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: EnhancedAnalyticsDialogProps) {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [viewType, setViewType] = useState<'weekly' | 'monthly'>('weekly');
-  const [selectedWeek, setSelectedWeek] = useState<number>(currentWeek);
+  const [viewType, setViewType] = useState<'monthly'>('monthly'); // Default to monthly view only
 
-  // Fetch available weeks from database
-  const { data: availableWeeks } = useQuery<HercmWeek[]>({
-    queryKey: ['/api/hercm/weeks'],
-    enabled: open,
-  });
-
-  // Get unique week numbers from available weeks
-  const weekNumbers = availableWeeks 
-    ? Array.from(new Set(availableWeeks.map(w => w.weekNumber))).sort((a, b) => a - b)
-    : [];
-
-  // Fetch analytics data for selected week only
+  // Fetch analytics data - no week filtering
   const { data: analyticsData, isLoading } = useQuery<{
     weeklyData?: Array<{ week: string; Health: number; Relationship: number; Career: number; Money: number }>;
     monthlyData?: Array<{ month: string; Health: number; Relationship: number; Career: number; Money: number }>;
   }>({
-    queryKey: [`/api/analytics/progress?viewType=${viewType}&year=${selectedDate.getFullYear()}&month=${selectedDate.getMonth() + 1}&week=${selectedWeek}`],
+    queryKey: [`/api/analytics/progress?viewType=${viewType}&year=${selectedDate.getFullYear()}&month=${selectedDate.getMonth() + 1}`],
     enabled: open,
   });
 
   const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
   // Use REAL data from API - no fake fallback data
-  const weeklyData = analyticsData?.weeklyData || [];
   const monthlyData = analyticsData?.monthlyData || [];
-
-  const currentData = viewType === 'weekly' ? weeklyData : monthlyData;
+  const currentData = monthlyData;
   
   // Debug logging
   console.log('[ANALYTICS DIALOG] viewType:', viewType);
-  console.log('[ANALYTICS DIALOG] selectedWeek:', selectedWeek);
   console.log('[ANALYTICS DIALOG] analyticsData:', analyticsData);
-  console.log('[ANALYTICS DIALOG] weeklyData:', weeklyData);
   console.log('[ANALYTICS DIALOG] monthlyData:', monthlyData);
   console.log('[ANALYTICS DIALOG] currentData:', currentData);
 
@@ -74,70 +58,30 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {/* Controls */}
+          {/* Controls - Month Selector Only */}
           <div className="flex flex-wrap items-center gap-4 p-4 bg-muted/30 rounded-lg">
-            {/* View Type Toggle */}
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">View:</span>
-              <Select value={viewType} onValueChange={(v) => setViewType(v as 'weekly' | 'monthly')}>
-                <SelectTrigger className="w-32" data-testid="select-view-type">
+              <span className="text-sm font-medium">Select Month:</span>
+              <Select 
+                value={selectedDate.getMonth().toString()} 
+                onValueChange={(v) => {
+                  const newDate = new Date(selectedDate);
+                  newDate.setMonth(Number(v));
+                  setSelectedDate(newDate);
+                }}
+              >
+                <SelectTrigger className="w-40" data-testid="select-month">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="weekly">Weekly</SelectItem>
-                  <SelectItem value="monthly">Monthly</SelectItem>
+                  {monthNames.map((month, idx) => (
+                    <SelectItem key={idx} value={idx.toString()}>
+                      {month}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
-
-            {/* Month Selector (only for monthly view) */}
-            {viewType === 'monthly' && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">Month:</span>
-                <Select 
-                  value={selectedDate.getMonth().toString()} 
-                  onValueChange={(v) => {
-                    const newDate = new Date(selectedDate);
-                    newDate.setMonth(Number(v));
-                    setSelectedDate(newDate);
-                  }}
-                >
-                  <SelectTrigger className="w-40" data-testid="select-month">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {monthNames.map((month, idx) => (
-                      <SelectItem key={idx} value={idx.toString()}>
-                        {month}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {/* Week Selector (for weekly view) - DYNAMIC based on user's filled weeks */}
-            {viewType === 'weekly' && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">Week:</span>
-                <Select value={selectedWeek.toString()} onValueChange={(v) => setSelectedWeek(Number(v))}>
-                  <SelectTrigger className="w-24" data-testid="select-week">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {weekNumbers.length > 0 ? (
-                      weekNumbers.map((w) => (
-                        <SelectItem key={w} value={w.toString()}>
-                          Week {w}
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <SelectItem value="1" disabled>No weeks available</SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
           </div>
 
           {/* Chart Tabs */}
@@ -154,7 +98,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={currentData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey={viewType === 'weekly' ? 'week' : 'month'} />
+                    <XAxis dataKey="month" />
                     <YAxis domain={[0, 100]} />
                     <Tooltip />
                     <Legend />
@@ -167,13 +111,13 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
               </div>
             </TabsContent>
 
-            {/* Line Chart - Shows dots for single week, lines for multiple weeks */}
+            {/* Line Chart - Monthly Progress Trend */}
             <TabsContent value="line" className="space-y-4">
               <div className="h-96">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={currentData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey={viewType === 'weekly' ? 'week' : 'month'} />
+                    <XAxis dataKey="month" />
                     <YAxis domain={[0, 100]} />
                     <Tooltip />
                     <Legend />
@@ -220,15 +164,10 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                 {['Health', 'Relationship', 'Career', 'Money'].map((category, idx) => {
                   const colors = ['from-red-500 to-orange-500', 'from-blue-500 to-cyan-500', 'from-purple-500 to-pink-500', 'from-green-500 to-emerald-500'];
                   
-                  // Show specific week/month data instead of average
+                  // Show monthly data only
                   let progress = 0;
-                  if (viewType === 'weekly') {
-                    const weekData = currentData.find((d: any) => d.week === `W${selectedWeek}`);
-                    progress = weekData ? (weekData[category as keyof typeof weekData] as number) : 0;
-                  } else {
-                    const monthData = currentData.find((d: any) => d.month === monthNames[selectedDate.getMonth()].substring(0, 3));
-                    progress = monthData ? (monthData[category as keyof typeof monthData] as number) : 0;
-                  }
+                  const monthData = currentData.find((d: any) => d.month === monthNames[selectedDate.getMonth()].substring(0, 3));
+                  progress = monthData ? (monthData[category as keyof typeof monthData] as number) : 0;
                   
                   return (
                     <div key={category} className="p-6 bg-muted/30 rounded-lg space-y-3">
@@ -243,29 +182,22 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                         />
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        {viewType === 'weekly' ? `Week ${selectedWeek}` : monthNames[selectedDate.getMonth()]} Progress
+                        {monthNames[selectedDate.getMonth()]} Progress
                       </p>
                     </div>
                   );
                 })}
               </div>
 
-              {/* Overall Stats for specific period */}
+              {/* Overall Stats for selected month */}
               <div className="grid grid-cols-3 gap-4 pt-4 border-t">
                 <div className="text-center p-4 bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg">
                   <div className="text-2xl font-bold text-primary">
                     {(() => {
                       let total = 0;
-                      if (viewType === 'weekly') {
-                        const weekData = currentData.find((d: any) => d.week === `W${selectedWeek}`);
-                        if (weekData) {
-                          total = Math.round(((weekData.Health as number) + (weekData.Relationship as number) + (weekData.Career as number) + (weekData.Money as number)) / 4);
-                        }
-                      } else {
-                        const monthData = currentData.find((d: any) => d.month === monthNames[selectedDate.getMonth()].substring(0, 3));
-                        if (monthData) {
-                          total = Math.round(((monthData.Health as number) + (monthData.Relationship as number) + (monthData.Career as number) + (monthData.Money as number)) / 4);
-                        }
+                      const monthData = currentData.find((d: any) => d.month === monthNames[selectedDate.getMonth()].substring(0, 3));
+                      if (monthData) {
+                        total = Math.round(((monthData.Health as number) + (monthData.Relationship as number) + (monthData.Career as number) + (monthData.Money as number)) / 4);
                       }
                       return total;
                     })()}%
@@ -281,9 +213,9 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                 </div>
                 <div className="text-center p-4 bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg">
                   <div className="text-2xl font-bold text-primary">
-                    {viewType === 'weekly' ? `Week ${selectedWeek}` : monthNames[selectedDate.getMonth()]}
+                    {monthNames[selectedDate.getMonth()]}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">Selected Period</p>
+                  <p className="text-xs text-muted-foreground mt-1">Selected Month</p>
                 </div>
               </div>
             </TabsContent>
