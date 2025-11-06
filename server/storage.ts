@@ -51,6 +51,9 @@ import {
   userFeedback,
   type UserFeedback,
   type InsertUserFeedback,
+  nextWeekSnapshots,
+  type NextWeekSnapshot,
+  type InsertNextWeekSnapshot,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, count, sql, gte, lte } from "drizzle-orm";
@@ -209,6 +212,13 @@ export interface IStorage {
   updateFeedbackStatus(id: string, status: string, adminResponse?: string): Promise<UserFeedback>;
   deleteFeedback(id: string): Promise<void>;
   clearAllFeedback(): Promise<void>;
+  
+  // Next Week Snapshot operations - Friday continuity system
+  getActiveSnapshot(userId: string): Promise<NextWeekSnapshot | undefined>;
+  getSnapshotByDate(userId: string, date: string): Promise<NextWeekSnapshot | undefined>;
+  createSnapshot(snapshot: InsertNextWeekSnapshot): Promise<NextWeekSnapshot>;
+  archiveSnapshot(id: string): Promise<void>;
+  archiveAllUserSnapshots(userId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1597,6 +1607,72 @@ export class DatabaseStorage implements IStorage {
 
   async clearAllFeedback(): Promise<void> {
     await db.delete(userFeedback);
+  }
+
+  // Next Week Snapshot operations - Friday continuity system
+  async getActiveSnapshot(userId: string): Promise<NextWeekSnapshot | undefined> {
+    const [snapshot] = await db
+      .select()
+      .from(nextWeekSnapshots)
+      .where(
+        and(
+          eq(nextWeekSnapshots.userId, userId),
+          eq(nextWeekSnapshots.archived, false)
+        )
+      )
+      .orderBy(desc(nextWeekSnapshots.createdAt))
+      .limit(1);
+    
+    return snapshot;
+  }
+
+  async getSnapshotByDate(userId: string, date: string): Promise<NextWeekSnapshot | undefined> {
+    const [snapshot] = await db
+      .select()
+      .from(nextWeekSnapshots)
+      .where(
+        and(
+          eq(nextWeekSnapshots.userId, userId),
+          eq(nextWeekSnapshots.snapshotDate, date)
+        )
+      )
+      .limit(1);
+    
+    return snapshot;
+  }
+
+  async createSnapshot(snapshot: InsertNextWeekSnapshot): Promise<NextWeekSnapshot> {
+    const [newSnapshot] = await db
+      .insert(nextWeekSnapshots)
+      .values(snapshot)
+      .returning();
+    
+    return newSnapshot;
+  }
+
+  async archiveSnapshot(id: string): Promise<void> {
+    await db
+      .update(nextWeekSnapshots)
+      .set({ 
+        archived: true,
+        archivedAt: new Date()
+      })
+      .where(eq(nextWeekSnapshots.id, id));
+  }
+
+  async archiveAllUserSnapshots(userId: string): Promise<void> {
+    await db
+      .update(nextWeekSnapshots)
+      .set({ 
+        archived: true,
+        archivedAt: new Date()
+      })
+      .where(
+        and(
+          eq(nextWeekSnapshots.userId, userId),
+          eq(nextWeekSnapshots.archived, false)
+        )
+      );
   }
 }
 
