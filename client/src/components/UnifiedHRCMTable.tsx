@@ -1364,40 +1364,84 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     });
   };
 
-  // Toggle persistent assignment lesson completion
-  const handleUnifiedAssignmentToggle = async (assignmentId: string) => {
-    try {
-      console.log('[ASSIGNMENT] 🔵 Starting toggle for assignment ID:', assignmentId);
-      const response = await apiRequest(`/api/persistent-assignments/${assignmentId}/toggle`, 'PUT', {});
+  // Assignment toggle mutation with INSTANT optimistic updates (Google-level UX)
+  const assignmentToggleMutation = useMutation({
+    mutationFn: async (assignmentId: string) => {
+      return await apiRequest(`/api/persistent-assignments/${assignmentId}/toggle`, 'PUT', {});
+    },
+    onMutate: async (assignmentId: string) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: persistentAssignmentsQueryKey });
+      await queryClient.cancelQueries({ queryKey: ['/api/user/total-points'] });
       
-      console.log('[ASSIGNMENT] 🔵 API Response:', {
-        ok: response.ok,
-        status: response.status,
-        statusText: response.statusText
+      // Snapshot previous values
+      const previousAssignments = queryClient.getQueryData<any[]>(persistentAssignmentsQueryKey);
+      const previousPoints = queryClient.getQueryData<{ totalPoints: number }>(['/api/user/total-points']);
+      
+      // Find the assignment being toggled
+      const assignment = previousAssignments?.find(a => a.id === assignmentId);
+      const wasCompleted = assignment?.completed || false;
+      const willBeCompleted = !wasCompleted;
+      
+      // INSTANT UI UPDATE: Optimistically update assignments
+      queryClient.setQueryData<any[]>(
+        persistentAssignmentsQueryKey,
+        (old) => old ? old.map(a => 
+          a.id === assignmentId 
+            ? { ...a, completed: willBeCompleted, updatedAt: new Date().toISOString() }
+            : a
+        ) : old
+      );
+      
+      // INSTANT UI UPDATE: Optimistically update points in header (+10 or -10)
+      if (previousPoints) {
+        const pointsChange = willBeCompleted ? 10 : -10;
+        queryClient.setQueryData<{ totalPoints: number }>(
+          ['/api/user/total-points'],
+          { totalPoints: previousPoints.totalPoints + pointsChange }
+        );
+      }
+      
+      console.log('[ASSIGNMENT] ⚡ Instant optimistic update applied:', {
+        assignmentId,
+        wasCompleted,
+        willBeCompleted,
+        pointsChange: willBeCompleted ? '+10' : '-10'
       });
       
-      if (response.ok) {
-        const data = await response.json();
-        console.log('[ASSIGNMENT] 🔵 Response data:', data);
-        
-        // Refetch assignments to get updated data
-        await refetchAssignments();
-        
-        // CRITICAL: Invalidate points query to update header display (+10/-10 points)
-        await queryClient.invalidateQueries({ queryKey: ['/api/user/total-points'] });
-        
-        console.log('[ASSIGNMENT] ✅ Assignment toggled and points query invalidated');
-      } else {
-        console.error('[ASSIGNMENT] ❌ Response not OK:', response.status, response.statusText);
+      // Return context for rollback if needed
+      return { previousAssignments, previousPoints };
+    },
+    onSuccess: async (response) => {
+      const data = await response.json();
+      console.log('[ASSIGNMENT] ✅ Server confirmed:', data);
+      
+      // Refetch to sync with server (but UI already updated instantly!)
+      await queryClient.refetchQueries({ queryKey: persistentAssignmentsQueryKey });
+      await queryClient.refetchQueries({ queryKey: ['/api/user/total-points'] });
+    },
+    onError: (error, assignmentId, context) => {
+      console.error('[ASSIGNMENT] ❌ Toggle failed, rolling back:', error);
+      
+      // Rollback optimistic updates
+      if (context?.previousAssignments) {
+        queryClient.setQueryData(persistentAssignmentsQueryKey, context.previousAssignments);
       }
-    } catch (error) {
-      console.error('[ASSIGNMENT] ❌ Error toggling persistent assignment:', error);
+      if (context?.previousPoints) {
+        queryClient.setQueryData(['/api/user/total-points'], context.previousPoints);
+      }
+      
       toast({
         title: 'Error',
         description: 'Failed to update assignment',
         variant: 'destructive'
       });
     }
+  });
+  
+  // Toggle handler - uses mutation for instant response
+  const handleUnifiedAssignmentToggle = (assignmentId: string) => {
+    assignmentToggleMutation.mutate(assignmentId);
   };
 
   // Remove persistent assignment

@@ -87,9 +87,11 @@ export default function LifeSkillsMap() {
     onMutate: async ({ lessonId, completed }) => {
       // Cancel outgoing refetches to avoid overwriting our optimistic update
       await queryClient.cancelQueries({ queryKey: ['/api/courses/tracking'] });
+      await queryClient.cancelQueries({ queryKey: ['/api/user/total-points'] });
       
-      // Snapshot the previous value
+      // Snapshot the previous values
       const previousCourses = queryClient.getQueryData<CourseTrackingData[]>(['/api/courses/tracking']);
+      const previousPoints = queryClient.getQueryData<{ totalPoints: number }>(['/api/user/total-points']);
       
       // Optimistically update the UI
       queryClient.setQueryData<CourseTrackingData[]>(
@@ -126,18 +128,30 @@ export default function LifeSkillsMap() {
         }
       );
       
-      return { previousCourses };
+      // INSTANT POINTS UPDATE: +10 when checking, -10 when unchecking
+      if (previousPoints) {
+        const pointsChange = !completed ? 10 : -10; // completed=false means we're checking it now
+        queryClient.setQueryData<{ totalPoints: number }>(
+          ['/api/user/total-points'],
+          { totalPoints: previousPoints.totalPoints + pointsChange }
+        );
+        console.log('[Course Tracker] ⚡ Instant points update:', pointsChange > 0 ? '+10' : '-10');
+      }
+      
+      return { previousCourses, previousPoints };
     },
     onSuccess: () => {
       // Refetch to ensure we have the latest data from the server
       queryClient.invalidateQueries({ queryKey: ['/api/courses/tracking'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/user/total-points'] });
       queryClient.refetchQueries({ queryKey: ['/api/user/total-points'] });
     },
     onError: (error, variables, context) => {
       // Rollback to previous state on error
       if (context?.previousCourses) {
         queryClient.setQueryData(['/api/courses/tracking'], context.previousCourses);
+      }
+      if (context?.previousPoints) {
+        queryClient.setQueryData(['/api/user/total-points'], context.previousPoints);
       }
       console.error('[Lesson Toggle] Mutation failed:', error);
     },
