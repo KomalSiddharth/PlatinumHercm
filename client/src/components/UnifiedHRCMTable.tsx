@@ -2403,11 +2403,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       handleDateChange(date);
                     }
                   }}
-                  disabled={(date) => {
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    return date > today; // Disable all future dates
-                  }}
                   initialFocus
                   data-testid="calendar-date-picker"
                 />
