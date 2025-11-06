@@ -193,17 +193,17 @@ export default function AdminUserDashboardViewer({ approvedEmails }: AdminUserDa
           </Card>
         ) : (
           <>
-            {/* Progress Comparison: Week 1 vs Latest Week */}
+            {/* Week 1 Dashboard */}
             {dashboardData.allWeeks && dashboardData.allWeeks.length > 0 && (
               <>
-                <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30">
+                <Card className="bg-gradient-to-r from-green-50 to-teal-50 dark:from-green-950/30 dark:to-teal-950/30">
                   <CardContent className="pt-4">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                       <div>
-                        <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                          📊 Progress Comparison - First Week vs Latest Week
+                        <p className="text-sm font-medium text-green-900 dark:text-green-100">
+                          📊 Week 1 Dashboard
                         </p>
-                        <p className="text-xs text-blue-700 dark:text-blue-300 mt-0.5">
+                        <p className="text-xs text-green-700 dark:text-green-300 mt-0.5">
                           Total {dashboardData.allWeeks.length} {dashboardData.allWeeks.length === 1 ? 'week' : 'weeks'} of data available
                         </p>
                       </div>
@@ -211,36 +211,18 @@ export default function AdminUserDashboardViewer({ approvedEmails }: AdminUserDa
                   </CardContent>
                 </Card>
 
-                {/* Side-by-Side Comparison: Week 1 and Latest Week */}
-                <div className="grid md:grid-cols-2 gap-4">
-                  {/* Week 1 (First Week) */}
-                  <div className="scroll-mt-20 bg-green-50 dark:bg-green-950/40 p-3 sm:p-4 md:p-6 rounded-lg border-2 border-green-200 dark:border-green-800">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Badge className="bg-green-600 text-white" data-testid="badge-week-1">
-                        Week 1 - Starting Point
-                      </Badge>
-                    </div>
-                    <UnifiedHRCMTable 
-                      weekNumber={1}
-                      viewAsUserId={selectedUserId} 
-                      isAdminView={true}
-                    />
+                {/* Week 1 HRCM Table */}
+                <div className="scroll-mt-20 bg-green-50 dark:bg-green-950/40 p-3 sm:p-4 md:p-6 rounded-lg border-2 border-green-200 dark:border-green-800">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Badge className="bg-green-600 text-white" data-testid="badge-week-1">
+                      Week 1
+                    </Badge>
                   </div>
-
-                  {/* Latest Week */}
-                  <div className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-3 sm:p-4 md:p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Badge className="bg-blue-600 text-white" data-testid="badge-latest-week">
-                        Week {Math.max(...dashboardData.allWeeks.map((w: any) => w.weekNumber))} - Latest Progress
-                      </Badge>
-                      <TrendingUp className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <UnifiedHRCMTable 
-                      weekNumber={Math.max(...dashboardData.allWeeks.map((w: any) => w.weekNumber))}
-                      viewAsUserId={selectedUserId} 
-                      isAdminView={true}
-                    />
-                  </div>
+                  <UnifiedHRCMTable 
+                    weekNumber={1}
+                    viewAsUserId={selectedUserId} 
+                    isAdminView={true}
+                  />
                 </div>
 
                 {/* Additional Week Selector (Optional) */}
