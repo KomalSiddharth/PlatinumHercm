@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Search, User, ArrowLeft, TrendingUp, AlertCircle, Loader2, Trophy, History as HistoryIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import UnifiedHRCMTable from './UnifiedHRCMTable';
 import AdminEmotionalTrackerView from './AdminEmotionalTrackerView';
 import RitualHistoryModal from './RitualHistoryModal';
@@ -51,7 +50,6 @@ export default function UserDashboardSearch() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const [selectedWeekNumber, setSelectedWeekNumber] = useState<number>(1);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [selectedRitual, setSelectedRitual] = useState<any | null>(null);
   const { toast } = useToast();
@@ -68,16 +66,12 @@ export default function UserDashboardSearch() {
     enabled: !!selectedUserId,
   });
 
-  // Set selected week to latest week when dashboard data loads
-  useEffect(() => {
-    if (dashboardData?.allWeeks && dashboardData.allWeeks.length > 0) {
-      // Get the latest week (highest week number)
-      const latestWeek = dashboardData.allWeeks.reduce((max, week) => 
+  // Auto-detect latest week (no manual selection needed)
+  const latestWeekNumber = dashboardData?.allWeeks && dashboardData.allWeeks.length > 0
+    ? dashboardData.allWeeks.reduce((max, week) => 
         week.weekNumber > max ? week.weekNumber : max, 1
-      );
-      setSelectedWeekNumber(latestWeek);
-    }
-  }, [dashboardData?.allWeeks]);
+      )
+    : 1;
 
   const handleSearch = () => {
     if (!searchQuery.trim()) {
@@ -180,50 +174,10 @@ export default function UserDashboardSearch() {
           </Card>
         ) : (
           <>
-            {/* Week Selector - only show if user has multiple weeks */}
-            {dashboardData.allWeeks && dashboardData.allWeeks.length > 0 && (
-              <Card className="bg-gradient-to-r from-blue-50 to-teal-50 dark:from-blue-950/40 dark:to-teal-950/40 border-blue-200 dark:border-blue-800">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex-1">
-                      <h3 className="text-sm font-medium text-muted-foreground mb-1">HRCM Weekly History</h3>
-                      <p className="text-xs text-muted-foreground">
-                        Total {dashboardData.allWeeks.length} {dashboardData.allWeeks.length === 1 ? 'week' : 'weeks'} of data available
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <label className="text-sm font-medium whitespace-nowrap">Select Week:</label>
-                      <Select 
-                        value={selectedWeekNumber.toString()} 
-                        onValueChange={(value) => setSelectedWeekNumber(parseInt(value))}
-                      >
-                        <SelectTrigger className="w-[140px]" data-testid="select-week-number">
-                          <SelectValue placeholder="Select week" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {dashboardData.allWeeks
-                            .sort((a: any, b: any) => b.weekNumber - a.weekNumber) // Latest first
-                            .map((week: any) => (
-                              <SelectItem 
-                                key={week.id} 
-                                value={week.weekNumber.toString()}
-                                data-testid={`select-week-${week.weekNumber}`}
-                              >
-                                Week {week.weekNumber} {week.weekNumber === dashboardData.allWeeks.reduce((max: number, w: any) => w.weekNumber > max ? w.weekNumber : max, 1) ? '(Latest)' : ''}
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Display selected week's HRCM table */}
+            {/* Display latest week's HRCM table (auto-detected) */}
             <div className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-3 sm:p-4 md:p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
               <UnifiedHRCMTable 
-                weekNumber={selectedWeekNumber}
+                weekNumber={latestWeekNumber}
                 viewAsUserId={selectedUserId} 
                 isAdminView={true}
               />
