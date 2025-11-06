@@ -492,6 +492,13 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     staleTime: 0,
   });
 
+  // Debug logging for snapshot
+  useEffect(() => {
+    console.log('[FRIDAY SNAPSHOT DEBUG] Today is:', new Date().toLocaleDateString('en-US', { weekday: 'long' }));
+    console.log('[FRIDAY SNAPSHOT DEBUG] Active snapshot:', activeSnapshot);
+    console.log('[FRIDAY SNAPSHOT DEBUG] viewingHistory:', viewingHistory, 'isAdminView:', isAdminView);
+  }, [activeSnapshot, viewingHistory, isAdminView]);
+
   // Check if today is Friday
   const isTodayFriday = () => {
     const today = new Date();
