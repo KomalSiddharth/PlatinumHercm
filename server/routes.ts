@@ -814,13 +814,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If not exists, CREATE new week
       const existingWeek = await storage.getHercmWeek(userId, weekData.weekNumber);
       
-      // CRITICAL FIX: Set dateString to TODAY for both CREATE and UPDATE
-      // This ensures data is always tagged with the current date for daily tracking
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      weekData.dateString = `${year}-${month}-${day}`;
+      // CRITICAL FIX: Use dateString from frontend if provided, otherwise use today's date
+      // This allows historical date editing while defaulting to today for new entries
+      if (!weekData.dateString) {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        weekData.dateString = `${year}-${month}-${day}`;
+      }
       
       let week;
       if (existingWeek) {
@@ -829,7 +831,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`[SAVE] Old dateString: ${existingWeek.dateString} → NEW dateString: ${weekData.dateString}`);
         console.log(`[SAVE] Existing createdAt: ${existingWeek.createdAt} → PRESERVING`);
         
-        // CRITICAL FIX: Update dateString to today, but preserve createdAt
+        // CRITICAL FIX: Update dateString to match the calendar date user is editing, preserve createdAt
         const { createdAt, updatedAt, ...updateData } = weekData;
         week = await storage.updateHercmWeek(existingWeek.id, updateData);
         console.log(`[SAVE] ✅ UPDATE completed successfully`);
