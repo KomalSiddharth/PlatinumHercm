@@ -990,10 +990,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`[SAVE]   Career - ProblemsChecklist:`, weekData.careerProblemsChecklist?.length || 0, 'items');
       console.log(`[SAVE]   Money - ProblemsChecklist:`, weekData.moneyProblemsChecklist?.length || 0, 'items');
       
-      // UPSERT logic: Check if week already exists for this user+weekNumber
+      // UPSERT logic: Check if week already exists for this user+weekNumber+dateString
+      // 🔥 CRITICAL FIX: Check by dateString too to prevent auto-copy from overwriting previous dates
       // If exists, UPDATE it (preserves checked states across refresh)
       // If not exists, CREATE new week
-      const existingWeek = await storage.getHercmWeek(userId, weekData.weekNumber);
+      const existingWeek = await storage.getHercmWeekByDate(userId, weekData.weekNumber, weekData.dateString);
       
       // CRITICAL DEBUG: Log what dateString was received from frontend
       console.log(`[SAVE] DEBUG - Received from frontend:`, {

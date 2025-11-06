@@ -68,6 +68,7 @@ export interface IStorage {
   
   // HERCM Week operations
   getHercmWeek(userId: string, weekNumber: number): Promise<HercmWeek | undefined>;
+  getHercmWeekByDate(userId: string, weekNumber: number, dateString: string): Promise<HercmWeek | undefined>;
   getHercmWeekById(id: string): Promise<HercmWeek | undefined>;
   getHercmWeeksByUser(userId: string): Promise<HercmWeek[]>;
   createHercmWeek(week: InsertHercmWeek): Promise<HercmWeek>;
@@ -315,6 +316,20 @@ export class DatabaseStorage implements IStorage {
     }
     
     return bestWeek;
+  }
+
+  // Get HRCM week by userId, weekNumber AND dateString (for daily auto-copy fix)
+  async getHercmWeekByDate(userId: string, weekNumber: number, dateString: string): Promise<HercmWeek | undefined> {
+    const [week] = await db
+      .select()
+      .from(hercmWeeks)
+      .where(and(
+        eq(hercmWeeks.userId, userId),
+        eq(hercmWeeks.weekNumber, weekNumber),
+        eq(hercmWeeks.dateString, dateString)
+      ))
+      .orderBy(desc(hercmWeeks.createdAt));
+    return week;
   }
 
   async getHercmWeekById(id: string): Promise<HercmWeek | undefined> {
