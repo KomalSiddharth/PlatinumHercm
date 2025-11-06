@@ -574,7 +574,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
     if (hasData) {
       console.log('[FRIDAY SNAPSHOT] Creating new snapshot for Friday:', lastFridayDate);
-      apiRequest('POST', '/api/snapshots', {
+      apiRequest('/api/snapshots', 'POST', {
         snapshotDate: lastFridayDate,
         snapshotData
       }).then(() => {
@@ -1217,7 +1217,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   const updateSnapshotMutation = useMutation({
     mutationFn: async () => {
       if (activeSnapshot) {
-        await apiRequest('POST', `/api/snapshots/${activeSnapshot.id}/archive`, {});
+        await apiRequest(`/api/snapshots/${activeSnapshot.id}/archive`, 'POST', {});
       }
       // Also clear the Next Week Target data in local state
       return Promise.resolve();
