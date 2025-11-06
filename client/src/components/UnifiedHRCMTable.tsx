@@ -1008,6 +1008,69 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   }, [weekData, platinumStandardsData]);
   // FIXED: Added platinumStandardsData to deps to auto-update when admin adds new standards
 
+  // 🔥 AUTO-SYNC: Real-time sync from Current Week to Next Week Target
+  useEffect(() => {
+    // Only auto-sync when viewing today (not history or admin view)
+    if (viewingHistory || isAdminView) {
+      console.log('[AUTO-SYNC] ⏸️ Skipping auto-sync (history/admin view)');
+      return;
+    }
+    
+    console.log('[AUTO-SYNC] 🔄 Syncing Current Week → Next Week Target...');
+    
+    // Create updated beliefs with auto-synced Next Week Target data
+    const syncedBeliefs = beliefs.map(belief => ({
+      ...belief,
+      // Sync Current Week text fields → Next Week Target text fields
+      result: belief.problems,
+      nextFeelings: belief.currentFeelings,
+      nextWeekTarget: belief.currentBelief,
+      nextActions: belief.currentActions,
+      // Sync Current Week checklists → Next Week Target checklists
+      resultChecklist: belief.problemsChecklist || [],
+      feelingsChecklist: belief.feelingsCurrentChecklist || [],
+      beliefsChecklist: belief.beliefsCurrentChecklist || [],
+      actionsChecklist: belief.actionsCurrentChecklist || [],
+    }));
+    
+    // Check if anything actually changed to avoid unnecessary updates
+    const hasChanges = beliefs.some((belief, index) => {
+      const synced = syncedBeliefs[index];
+      return (
+        belief.result !== synced.result ||
+        belief.nextFeelings !== synced.nextFeelings ||
+        belief.nextWeekTarget !== synced.nextWeekTarget ||
+        belief.nextActions !== synced.nextActions
+      );
+    });
+    
+    if (hasChanges) {
+      console.log('[AUTO-SYNC] ✅ Changes detected - updating Next Week Target fields');
+      setBeliefs(syncedBeliefs);
+      
+      // Auto-save the synced data
+      saveWeekMutation.mutate({
+        beliefs: syncedBeliefs,
+        weekNumber: weekNumber,
+        dateString: currentDateStr,
+      });
+    } else {
+      console.log('[AUTO-SYNC] ⏭️ No changes detected - skipping update');
+    }
+  }, [
+    beliefs.map(b => b.problems).join('|'),
+    beliefs.map(b => b.currentFeelings).join('|'),
+    beliefs.map(b => b.currentBelief).join('|'),
+    beliefs.map(b => b.currentActions).join('|'),
+    beliefs.map(b => JSON.stringify(b.problemsChecklist || [])).join('|'),
+    beliefs.map(b => JSON.stringify(b.feelingsCurrentChecklist || [])).join('|'),
+    beliefs.map(b => JSON.stringify(b.beliefsCurrentChecklist || [])).join('|'),
+    beliefs.map(b => JSON.stringify(b.actionsCurrentChecklist || [])).join('|'),
+    viewingHistory,
+    isAdminView,
+  ]);
+  // Dependencies: Only trigger when Current Week fields change
+
   // Calculate weekly average progress across Friday-Thursday (7 days)
   useEffect(() => {
     const calculateWeeklyAverage = async () => {
