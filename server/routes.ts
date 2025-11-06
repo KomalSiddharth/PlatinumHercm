@@ -5255,14 +5255,26 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
       const userId = req.user?.claims?.sub || req.session.userEmail;
       const { id } = req.params;
       
+      console.log('[ASSIGNMENT SERVER] 🟢 PUT /api/persistent-assignments/:id/toggle called');
+      console.log('[ASSIGNMENT SERVER] 🟢 Assignment ID:', id);
+      console.log('[ASSIGNMENT SERVER] 🟢 User ID:', userId);
+      
       if (!userId) {
+        console.log('[ASSIGNMENT SERVER] ❌ User not authenticated');
         return res.status(401).json({ message: "User not authenticated" });
       }
 
+      console.log('[ASSIGNMENT SERVER] 🟢 Calling togglePersistentAssignmentCompletion...');
       const updated = await storage.togglePersistentAssignmentCompletion(id, userId);
+      console.log('[ASSIGNMENT SERVER] ✅ Assignment toggled successfully:', {
+        id: updated.id,
+        completed: updated.completed,
+        lessonName: updated.lessonName
+      });
+      
       res.json(updated);
     } catch (error) {
-      console.error("Error toggling assignment completion:", error);
+      console.error("[ASSIGNMENT SERVER] ❌ Error toggling assignment completion:", error);
       res.status(500).json({ message: "Failed to toggle assignment completion" });
     }
   });

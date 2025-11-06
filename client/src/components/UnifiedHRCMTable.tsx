@@ -1367,9 +1367,19 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   // Toggle persistent assignment lesson completion
   const handleUnifiedAssignmentToggle = async (assignmentId: string) => {
     try {
+      console.log('[ASSIGNMENT] 🔵 Starting toggle for assignment ID:', assignmentId);
       const response = await apiRequest(`/api/persistent-assignments/${assignmentId}/toggle`, 'PUT', {});
       
+      console.log('[ASSIGNMENT] 🔵 API Response:', {
+        ok: response.ok,
+        status: response.status,
+        statusText: response.statusText
+      });
+      
       if (response.ok) {
+        const data = await response.json();
+        console.log('[ASSIGNMENT] 🔵 Response data:', data);
+        
         // Refetch assignments to get updated data
         await refetchAssignments();
         
@@ -1377,9 +1387,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         await queryClient.invalidateQueries({ queryKey: ['/api/user/total-points'] });
         
         console.log('[ASSIGNMENT] ✅ Assignment toggled and points query invalidated');
+      } else {
+        console.error('[ASSIGNMENT] ❌ Response not OK:', response.status, response.statusText);
       }
     } catch (error) {
-      console.error('Error toggling persistent assignment:', error);
+      console.error('[ASSIGNMENT] ❌ Error toggling persistent assignment:', error);
       toast({
         title: 'Error',
         description: 'Failed to update assignment',
