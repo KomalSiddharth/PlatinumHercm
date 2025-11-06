@@ -1518,11 +1518,14 @@ export class DatabaseStorage implements IStorage {
       throw new Error('Assignment not found');
     }
 
+    const wasCompleted = current.completed;
+    const willBeCompleted = !wasCompleted;
+
     // Toggle the completion status
     const [updated] = await db
       .update(userPersistentAssignments)
       .set({ 
-        completed: !current.completed,
+        completed: willBeCompleted,
         updatedAt: new Date()
       })
       .where(and(
@@ -1530,6 +1533,17 @@ export class DatabaseStorage implements IStorage {
         eq(userPersistentAssignments.userId, userId)
       ))
       .returning();
+
+    // Award/subtract 10 points based on completion status change
+    if (willBeCompleted && !wasCompleted) {
+      // Marking as completed → Award 10 points
+      await this.addPointsToUser(userId, 10);
+      console.log(`✅ [ASSIGNMENT POINTS] Added 10 points to user ${userId} for completing assignment: ${current.lessonName}`);
+    } else if (!willBeCompleted && wasCompleted) {
+      // Unmarking (completed → incomplete) → Subtract 10 points
+      await this.addPointsToUser(userId, -10);
+      console.log(`❌ [ASSIGNMENT POINTS] Subtracted 10 points from user ${userId} for unchecking assignment: ${current.lessonName}`);
+    }
 
     return updated;
   }
