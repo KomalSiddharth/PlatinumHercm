@@ -432,17 +432,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createHercmWeek(weekData: InsertHercmWeek): Promise<HercmWeek> {
-    // AUTO-SET dateString using LOCAL date (not UTC) to fix timezone bugs
-    // This ensures admin and user views always match the correct date
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const localDateString = `${year}-${month}-${day}`;
+    // CRITICAL FIX: Preserve dateString if provided, otherwise use TODAY's date
+    // This ensures historical dates remain intact when auto-copying data
+    // and calendar view shows correct dates after refresh
+    let finalDateString = weekData.dateString;
+    
+    if (!finalDateString) {
+      // No dateString provided - auto-set using LOCAL date (not UTC)
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      finalDateString = `${year}-${month}-${day}`;
+    }
+    
+    console.log(`[CREATE HERCM WEEK] Saving with dateString: ${finalDateString}`);
     
     const [week] = await db
       .insert(hercmWeeks)
-      .values({ ...weekData, dateString: localDateString } as any)
+      .values({ ...weekData, dateString: finalDateString } as any)
       .returning();
     return week;
   }
