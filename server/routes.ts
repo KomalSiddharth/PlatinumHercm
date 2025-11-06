@@ -789,6 +789,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         weekData.achievementRate = Math.round((healthProgress + relationshipProgress + careerProgress + moneyProgress) / 4);
       }
       
+      // COMPREHENSIVE LOGGING: Track text field saves
+      console.log(`[SAVE] === SAVE OPERATION START ===`);
+      console.log(`[SAVE] User: ${userId}, Week: ${weekData.weekNumber}`);
+      console.log(`[SAVE] Text fields being saved:`);
+      console.log(`[SAVE]   Health - Problems: "${weekData.healthProblems?.substring(0, 50)}..." (${weekData.healthProblems?.length || 0} chars)`);
+      console.log(`[SAVE]   Health - Feelings: "${weekData.healthCurrentFeelings?.substring(0, 50)}..." (${weekData.healthCurrentFeelings?.length || 0} chars)`);
+      console.log(`[SAVE]   Health - Actions: "${weekData.healthCurrentActions?.substring(0, 50)}..." (${weekData.healthCurrentActions?.length || 0} chars)`);
+      console.log(`[SAVE]   Relationship - Problems: "${weekData.relationshipProblems?.substring(0, 50)}..." (${weekData.relationshipProblems?.length || 0} chars)`);
+      console.log(`[SAVE]   Career - Problems: "${weekData.careerProblems?.substring(0, 50)}..." (${weekData.careerProblems?.length || 0} chars)`);
+      console.log(`[SAVE]   Money - Problems: "${weekData.moneyProblems?.substring(0, 50)}..." (${weekData.moneyProblems?.length || 0} chars)`);
+      console.log(`[SAVE] Ratings: H=${weekData.currentH}, E=${weekData.currentE}, R=${weekData.currentR}, C=${weekData.currentC}`);
+      
       // UPSERT logic: Check if week already exists for this user+weekNumber
       // If exists, UPDATE it (preserves checked states across refresh)
       // If not exists, CREATE new week
@@ -797,14 +809,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let week;
       if (existingWeek) {
         // Week exists - UPDATE it to preserve data and avoid duplicate rows
-        console.log(`[SAVE DEBUG] Week ${weekData.weekNumber} exists (id: ${existingWeek.id}) - updating`);
-        console.log(`[SAVE DEBUG] Existing dateString: ${existingWeek.dateString}, PRESERVING it (not overwriting)`);
-        console.log(`[SAVE DEBUG] Existing createdAt: ${existingWeek.createdAt}, preserving it`);
+        console.log(`[SAVE] Week ${weekData.weekNumber} exists (id: ${existingWeek.id}) - UPDATING`);
+        console.log(`[SAVE] Existing dateString: ${existingWeek.dateString} → PRESERVING (not overwriting)`);
+        console.log(`[SAVE] Existing createdAt: ${existingWeek.createdAt} → PRESERVING`);
         
         // CRITICAL FIX: Exclude createdAt, updatedAt, AND dateString to preserve original creation date
         // This prevents Nov 5th data from being tagged with Nov 6th date during auto-save!
         const { createdAt, updatedAt, dateString, ...updateData } = weekData;
         week = await storage.updateHercmWeek(existingWeek.id, updateData);
+        console.log(`[SAVE] ✅ UPDATE completed successfully`);
       } else {
         // Week doesn't exist - CREATE new
         // ONLY set dateString when CREATING a new week (not when updating existing)
@@ -814,9 +827,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const day = String(now.getDate()).padStart(2, '0');
         weekData.dateString = `${year}-${month}-${day}`;
         
-        console.log(`[SAVE DEBUG] Week ${weekData.weekNumber} does not exist - creating new with dateString: ${weekData.dateString}`);
+        console.log(`[SAVE] Week ${weekData.weekNumber} does NOT exist - CREATING new with dateString: ${weekData.dateString}`);
         week = await storage.createHercmWeek(weekData);
+        console.log(`[SAVE] ✅ CREATE completed successfully`);
       }
+      
+      // Verify what was actually saved
+      console.log(`[SAVE] Verifying saved data...`);
+      console.log(`[SAVE]   Saved healthProblems: "${week.healthProblems?.substring(0, 50)}..." (${week.healthProblems?.length || 0} chars)`);
+      console.log(`[SAVE]   Saved healthCurrentFeelings: "${week.healthCurrentFeelings?.substring(0, 50)}..." (${week.healthCurrentFeelings?.length || 0} chars)`);
+      console.log(`[SAVE]   Saved healthCurrentActions: "${week.healthCurrentActions?.substring(0, 50)}..." (${week.healthCurrentActions?.length || 0} chars)`);
+      console.log(`[SAVE]   Saved currentH rating: ${week.currentH}`);
+      console.log(`[SAVE]   Saved dateString: ${week.dateString}`);
+      console.log(`[SAVE] === SAVE OPERATION END ===\n`);
       
       // Update rating progression after saving (pass weekNumber to prevent replay attacks)
       if (weekData.currentH !== null) {
@@ -830,6 +853,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       if (weekData.currentC !== null) {
         await updateRatingProgression(userId, 'money', weekData.currentC, weekData.weekNumber);
+      }
+      
+      // AUTOMATIC SUPABASE BACKUP: Backup this user's data immediately after save
+      if (isSupabaseConfigured) {
+        try {
+          console.log(`[BACKUP] Starting automatic Supabase backup for user ${userId}...`);
+          const backupResult = await backupUserData(userId);
+          if (backupResult.success) {
+            console.log(`[BACKUP] ✅ User data backed up to Supabase successfully`);
+          } else {
+            console.warn(`[BACKUP] ⚠️ Backup failed: ${backupResult.message}`);
+          }
+        } catch (backupError) {
+          console.error('[BACKUP] ❌ Error during automatic backup:', backupError);
+          // Don't fail the save if backup fails - just log it
+        }
+      } else {
+        console.log('[BACKUP] Supabase not configured - skipping backup');
       }
       
       // Broadcast WebSocket event to all admin panels viewing this user's dashboard
