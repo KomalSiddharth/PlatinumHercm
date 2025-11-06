@@ -776,10 +776,13 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       
       // SMART MERGE: Combine saved checklist with fresh platinum standards
       // Preserves checked states + adds new standards automatically
+      // CRITICAL FIX: Also preserve checkpoint checklists (problemsChecklist, feelingsCurrentChecklist, etc.)
       const updatedBeliefs = weekData.beliefs.map(belief => {
         console.log(`[FRONTEND DEBUG] ${belief.category} - checklist:`, belief.checklist);
         console.log(`[FRONTEND DEBUG] ${belief.category} - checklist length:`, belief.checklist?.length);
         console.log(`[FRONTEND DEBUG] ${belief.category} - is array:`, Array.isArray(belief.checklist));
+        console.log(`[FRONTEND DEBUG] ${belief.category} - problemsChecklist:`, belief.problemsChecklist);
+        console.log(`[FRONTEND DEBUG] ${belief.category} - feelingsCurrentChecklist:`, belief.feelingsCurrentChecklist);
         
         // Get fresh platinum standards from database
         const freshStandards = getPlatinumStandardsForCategory(belief.category);
@@ -798,7 +801,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           
           return {
             ...belief,
-            checklist: mergedChecklist
+            checklist: mergedChecklist,
+            // CRITICAL: Preserve checkpoint checklists from database
+            problemsChecklist: belief.problemsChecklist || [],
+            feelingsCurrentChecklist: belief.feelingsCurrentChecklist || [],
+            beliefsCurrentChecklist: belief.beliefsCurrentChecklist || [],
+            actionsCurrentChecklist: belief.actionsCurrentChecklist || []
           };
         }
         
@@ -806,7 +814,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         console.log(`[FRONTEND DEBUG] ${belief.category} - LOADING FRESH STANDARDS`);
         return {
           ...belief,
-          checklist: freshStandards
+          checklist: freshStandards,
+          // CRITICAL: Preserve checkpoint checklists from database even when no platinum standards
+          problemsChecklist: belief.problemsChecklist || [],
+          feelingsCurrentChecklist: belief.feelingsCurrentChecklist || [],
+          beliefsCurrentChecklist: belief.beliefsCurrentChecklist || [],
+          actionsCurrentChecklist: belief.actionsCurrentChecklist || []
         };
       });
       
