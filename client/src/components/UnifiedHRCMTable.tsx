@@ -1651,6 +1651,18 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       setFirstCheckpointData(null);
     }
   };
+  
+  // Handle first checkpoint dialog close with auto-save (click-outside-to-save)
+  const handleFirstCheckpointDialogClose = (open: boolean) => {
+    if (!open) {
+      // Dialog is closing - save if there's text
+      if (firstCheckpointData && firstCheckpointData.text.trim()) {
+        handleAddCheckpoint(firstCheckpointData.category, firstCheckpointData.checklistType, firstCheckpointData.text.trim());
+        setFirstCheckpointData(null);
+      }
+    }
+    setShowFirstCheckpointDialog(open);
+  };
 
   // Helper function to sync Current Week checkpoints to Next Week Target (replace mode)
   const syncCurrentToNextWeek = (updatedBeliefs: HRCMBelief[]) => {
@@ -1954,6 +1966,18 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       }
     };
     
+    // Handle dialog close with auto-save (click-outside-to-save)
+    const handleDialogClose = (open: boolean) => {
+      if (!open) {
+        // Dialog is closing - save if there's text
+        if (newCheckpointText.trim()) {
+          onAddCheckpoint(newCheckpointText.trim());
+          setNewCheckpointText('');
+        }
+      }
+      setShowAddDialog(open);
+    };
+    
     return (
       <>
         <HoverCard openDelay={200}>
@@ -2063,19 +2087,18 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     />
                   ) : (
                     <>
-                      <button
+                      <span
                         onClick={() => {
                           if (!disabled) {
                             setEditingText(item.text);
                             setEditingId(item.id);
                           }
                         }}
-                        disabled={disabled}
-                        className="flex-1 text-left text-xs py-0.5 px-1 rounded hover:bg-muted/30 transition-colors min-h-[20px] break-words disabled:cursor-not-allowed"
+                        className={`flex-1 text-left text-xs py-0.5 px-1 rounded ${!disabled ? 'cursor-pointer hover:bg-muted/30' : 'cursor-not-allowed'} transition-colors min-h-[20px] break-words`}
                         data-testid={`text-hover-${checklistType}-${category.toLowerCase()}-${item.id}`}
                       >
                         {item.text || <span className="text-muted-foreground italic">Click to edit...</span>}
-                      </button>
+                      </span>
                       {!disabled && (
                         <Button
                           size="sm"
@@ -2110,7 +2133,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         )}
 
         {/* Add Checkpoint Dialog */}
-        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <Dialog open={showAddDialog} onOpenChange={handleDialogClose}>
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle className={`text-base font-semibold ${colorScheme.text}`}>
@@ -3519,7 +3542,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       </Dialog>
 
       {/* First Checkpoint Dialog */}
-      <Dialog open={showFirstCheckpointDialog} onOpenChange={setShowFirstCheckpointDialog}>
+      <Dialog open={showFirstCheckpointDialog} onOpenChange={handleFirstCheckpointDialogClose}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="text-base font-semibold">
