@@ -40,12 +40,6 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
   // Use REAL data from API - no fake fallback data
   const monthlyData = analyticsData?.monthlyData || [];
   const currentData = monthlyData;
-  
-  // Debug logging
-  console.log('[ANALYTICS DIALOG] viewType:', viewType);
-  console.log('[ANALYTICS DIALOG] analyticsData:', analyticsData);
-  console.log('[ANALYTICS DIALOG] monthlyData:', monthlyData);
-  console.log('[ANALYTICS DIALOG] currentData:', currentData);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
