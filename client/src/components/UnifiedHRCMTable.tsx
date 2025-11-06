@@ -296,6 +296,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   const [historyOpen, setHistoryOpen] = useState(false);
   const [selectedHistoryDate, setSelectedHistoryDate] = useState<Date | undefined>(undefined);
   const [viewingHistory, setViewingHistory] = useState(false);
+  const [hasDataForDate, setHasDataForDate] = useState(false); // 🔥 Track if data exists for current date
   const [weeklyAverageProgress, setWeeklyAverageProgress] = useState<number>(0);
   const lastFocusedButton = useRef<HTMLButtonElement | null>(null);
   const hasAutoProgressed = useRef<Set<number>>(new Set()); // Track which weeks have been auto-progressed
@@ -775,6 +776,15 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     if (weekData?.beliefs) {
       console.log('[FRONTEND DEBUG] Processing beliefs from weekData');
       
+      // 🔥 Check if data exists for this date (has non-empty fields)
+      const hasData = weekData.beliefs.some((b: any) => 
+        b.problems || b.currentFeelings || b.currentBelief || b.currentActions ||
+        b.result || b.nextFeelings || b.nextWeekTarget || b.nextActions ||
+        (b.checklist && b.checklist.length > 0)
+      );
+      setHasDataForDate(hasData);
+      console.log('[WEEKDATA EFFECT] hasDataForDate:', hasData);
+      
       // SMART MERGE: Combine saved checklist with fresh platinum standards
       // Preserves checked states + adds new standards automatically
       // CRITICAL FIX: Also preserve checkpoint checklists (problemsChecklist, feelingsCurrentChecklist, etc.)
@@ -849,6 +859,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     } else if (weekData === null) {
       // Explicitly null from server (no data for this date)
       console.log('[WEEKDATA EFFECT] ⚠️ weekData is null - checking for daily auto-copy');
+      setHasDataForDate(false); // 🔥 No data exists for this date
       
       // 🔥 DAILY AUTO-COPY FEATURE: If viewing today and no data exists, fetch & copy previous day's data
       if (!viewingHistory && !isAdminView) {
@@ -2934,7 +2945,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         
                         handleRatingChange(belief.category, finalRating);
                       }}
-                      disabled={viewingHistory || isAdminView}
+                      disabled={(viewingHistory && hasDataForDate) || isAdminView}
                       className="w-16 h-9 text-center font-semibold"
                       data-testid={`input-${belief.category.toLowerCase()}-rating`}
                     />
@@ -2965,7 +2976,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       onDeleteCheckpoint={(itemId) => handleDeleteCheckpoint(belief.category, itemId, 'problems')}
                       category={belief.category}
                       checklistType="problems"
-                      disabled={viewingHistory || isAdminView}
+                      disabled={(viewingHistory && hasDataForDate) || isAdminView}
                     />
                   ) : (
                     <Button
@@ -2973,7 +2984,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       variant="ghost"
                       onClick={() => !viewingHistory && !isAdminView && handleShowFirstCheckpointDialog(belief.category, 'problems')}
                       className="h-7 w-full text-xs text-muted-foreground hover:text-foreground gap-1 justify-start"
-                      disabled={viewingHistory || isAdminView}
+                      disabled={(viewingHistory && hasDataForDate) || isAdminView}
                       data-testid={`button-add-first-checkpoint-problems-${belief.category.toLowerCase()}`}
                     >
                       <Plus className="w-3 h-3" />
@@ -2993,7 +3004,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       onDeleteCheckpoint={(itemId) => handleDeleteCheckpoint(belief.category, itemId, 'feelingsCurrent')}
                       category={belief.category}
                       checklistType="feelingsCurrent"
-                      disabled={viewingHistory || isAdminView}
+                      disabled={(viewingHistory && hasDataForDate) || isAdminView}
                     />
                   ) : (
                     <Button
@@ -3001,7 +3012,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       variant="ghost"
                       onClick={() => !viewingHistory && !isAdminView && handleShowFirstCheckpointDialog(belief.category, 'feelingsCurrent')}
                       className="h-7 w-full text-xs text-muted-foreground hover:text-foreground gap-1 justify-start"
-                      disabled={viewingHistory || isAdminView}
+                      disabled={(viewingHistory && hasDataForDate) || isAdminView}
                       data-testid={`button-add-first-checkpoint-feelings-${belief.category.toLowerCase()}`}
                     >
                       <Plus className="w-3 h-3" />
@@ -3021,7 +3032,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       onDeleteCheckpoint={(itemId) => handleDeleteCheckpoint(belief.category, itemId, 'beliefsCurrent')}
                       category={belief.category}
                       checklistType="beliefsCurrent"
-                      disabled={viewingHistory || isAdminView}
+                      disabled={(viewingHistory && hasDataForDate) || isAdminView}
                     />
                   ) : (
                     <Button
@@ -3029,7 +3040,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       variant="ghost"
                       onClick={() => !viewingHistory && !isAdminView && handleShowFirstCheckpointDialog(belief.category, 'beliefsCurrent')}
                       className="h-7 w-full text-xs text-muted-foreground hover:text-foreground gap-1 justify-start"
-                      disabled={viewingHistory || isAdminView}
+                      disabled={(viewingHistory && hasDataForDate) || isAdminView}
                       data-testid={`button-add-first-checkpoint-beliefs-${belief.category.toLowerCase()}`}
                     >
                       <Plus className="w-3 h-3" />
@@ -3049,7 +3060,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       onDeleteCheckpoint={(itemId) => handleDeleteCheckpoint(belief.category, itemId, 'actionsCurrent')}
                       category={belief.category}
                       checklistType="actionsCurrent"
-                      disabled={viewingHistory || isAdminView}
+                      disabled={(viewingHistory && hasDataForDate) || isAdminView}
                     />
                   ) : (
                     <Button
@@ -3057,7 +3068,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       variant="ghost"
                       onClick={() => !viewingHistory && !isAdminView && handleShowFirstCheckpointDialog(belief.category, 'actionsCurrent')}
                       className="h-7 w-full text-xs text-muted-foreground hover:text-foreground gap-1 justify-start"
-                      disabled={viewingHistory || isAdminView}
+                      disabled={(viewingHistory && hasDataForDate) || isAdminView}
                       data-testid={`button-add-first-checkpoint-actions-${belief.category.toLowerCase()}`}
                     >
                       <Plus className="w-3 h-3" />
@@ -3078,7 +3089,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                               <Checkbox
                                 checked={item.checked}
                                 onCheckedChange={() => handleChecklistToggle(belief.category, item.id)}
-                                disabled={viewingHistory || isAdminView}
+                                disabled={(viewingHistory && hasDataForDate) || isAdminView}
                                 data-testid={`checkbox-${belief.category.toLowerCase()}-${item.id}`}
                                 className="h-3 w-3"
                               />
@@ -3110,7 +3121,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                             <Checkbox
                               checked={item.checked}
                               onCheckedChange={() => handleChecklistToggle(belief.category, item.id)}
-                              disabled={viewingHistory || isAdminView}
+                              disabled={(viewingHistory && hasDataForDate) || isAdminView}
                               data-testid={`checkbox-popup-${belief.category.toLowerCase()}-${item.id}`}
                               className="h-4 w-4 mt-0.5"
                             />
@@ -3247,7 +3258,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       onDeleteCheckpoint={(itemId) => handleDeleteCheckpoint(belief.category, itemId, 'result')}
                       category={belief.category}
                       checklistType="result"
-                      disabled={viewingHistory || isAdminView}
+                      disabled={(viewingHistory && hasDataForDate) || isAdminView}
                     />
                   ) : !viewingHistory && !isAdminView ? (
                     <Button
@@ -3276,7 +3287,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       onDeleteCheckpoint={(itemId) => handleDeleteCheckpoint(belief.category, itemId, 'feelings')}
                       category={belief.category}
                       checklistType="feelings"
-                      disabled={viewingHistory || isAdminView}
+                      disabled={(viewingHistory && hasDataForDate) || isAdminView}
                     />
                   ) : !viewingHistory && !isAdminView ? (
                     <Button
@@ -3305,7 +3316,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       onDeleteCheckpoint={(itemId) => handleDeleteCheckpoint(belief.category, itemId, 'beliefs')}
                       category={belief.category}
                       checklistType="beliefs"
-                      disabled={viewingHistory || isAdminView}
+                      disabled={(viewingHistory && hasDataForDate) || isAdminView}
                     />
                   ) : !viewingHistory && !isAdminView ? (
                     <Button
@@ -3334,7 +3345,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       onDeleteCheckpoint={(itemId) => handleDeleteCheckpoint(belief.category, itemId, 'actions')}
                       category={belief.category}
                       checklistType="actions"
-                      disabled={viewingHistory || isAdminView}
+                      disabled={(viewingHistory && hasDataForDate) || isAdminView}
                     />
                   ) : !viewingHistory && !isAdminView ? (
                     <Button
@@ -3555,7 +3566,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                               <Checkbox
                                 checked={item.checked}
                                 onCheckedChange={() => handleChecklistToggle(belief.category, item.id)}
-                                disabled={viewingHistory || isAdminView}
+                                disabled={(viewingHistory && hasDataForDate) || isAdminView}
                                 data-testid={`checkbox-next-${belief.category.toLowerCase()}-${item.id}`}
                                 className="h-3 w-3"
                               />
@@ -3587,7 +3598,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                             <Checkbox
                               checked={item.checked}
                               onCheckedChange={() => handleChecklistToggle(belief.category, item.id)}
-                              disabled={viewingHistory || isAdminView}
+                              disabled={(viewingHistory && hasDataForDate) || isAdminView}
                               data-testid={`checkbox-next-popup-${belief.category.toLowerCase()}-${item.id}`}
                               className="h-4 w-4 mt-0.5"
                             />
