@@ -1101,13 +1101,39 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     });
   };
 
-  // Mutation for saving week data to database (silent auto-save)
+  // Save status tracking
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [retryCount, setRetryCount] = useState(0);
+  const maxRetries = 3;
+
+  // Mutation for saving week data to database with retry logic and status tracking
   const saveWeekMutation = useMutation({
     mutationFn: async (weekData: any) => {
+      setSaveStatus('saving');
+      console.log('[SAVE] Starting save operation:', {
+        weekNumber: weekData.weekNumber,
+        hasBeliefs: !!weekData.beliefs,
+        beliefCount: weekData.beliefs?.length,
+        timestamp: new Date().toISOString()
+      });
+      
       const response = await apiRequest('/api/hercm/save-with-comparison', 'POST', weekData);
-      return response.json();
+      const result = await response.json();
+      
+      console.log('[SAVE] Save operation completed:', {
+        success: true,
+        timestamp: new Date().toISOString()
+      });
+      
+      return result;
     },
     onSuccess: async () => {
+      setSaveStatus('saved');
+      setRetryCount(0); // Reset retry count on success
+      
+      // Show "saved" status briefly
+      setTimeout(() => setSaveStatus('idle'), 2000);
+      
       // Invalidate and refetch to ensure UI updates immediately
       await queryClient.invalidateQueries({ queryKey: ['/api/hercm/weeks'] });
       await queryClient.refetchQueries({ queryKey: ['/api/hercm/weeks'] });
@@ -1120,12 +1146,40 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           return typeof key === 'string' && key.includes('/api/analytics/progress');
         }
       });
-      // Silent save - no toast message for auto-save
+      
+      console.log('[SAVE] ✅ Data saved successfully and cache invalidated');
     },
     onError: (error) => {
-      // Log error silently for debugging, but don't show toast for auto-save failures
-      console.error('[AUTO-SAVE ERROR]', error);
-      // Data will be retried on next change anyway
+      console.error('[SAVE] ❌ Save failed:', error);
+      setSaveStatus('error');
+      
+      // Auto-retry up to 3 times
+      if (retryCount < maxRetries) {
+        const newRetryCount = retryCount + 1;
+        setRetryCount(newRetryCount);
+        console.log(`[SAVE] Retrying... (${newRetryCount}/${maxRetries})`);
+        
+        // Retry after a delay
+        setTimeout(() => {
+          // Re-trigger the same mutation with the last data
+          saveWeekMutation.mutate(saveWeekMutation.variables as any);
+        }, 1000 * newRetryCount); // Exponential backoff: 1s, 2s, 3s
+      } else {
+        // Max retries reached - show error to user
+        toast({
+          title: "❌ Save Failed",
+          description: `Could not save your data after ${maxRetries} attempts. Please check your connection and try again.`,
+          variant: "destructive",
+        });
+        
+        console.error('[SAVE] Max retries reached. Data not saved.');
+        
+        // Reset retry count after a delay
+        setTimeout(() => {
+          setRetryCount(0);
+          setSaveStatus('idle');
+        }, 5000);
+      }
     }
   });
 
@@ -2354,6 +2408,34 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           </p>
         </div>
         <div className="flex items-center gap-3">
+          {/* Save Status Indicator */}
+          {saveStatus !== 'idle' && (
+            <Badge 
+              variant={saveStatus === 'saved' ? 'default' : saveStatus === 'saving' ? 'secondary' : 'destructive'}
+              className="flex items-center gap-1.5"
+              data-testid="badge-save-status"
+            >
+              {saveStatus === 'saving' && (
+                <>
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  Saving...
+                </>
+              )}
+              {saveStatus === 'saved' && (
+                <>
+                  <Check className="w-3 h-3" />
+                  Saved
+                </>
+              )}
+              {saveStatus === 'error' && (
+                <>
+                  <X className="w-3 h-3" />
+                  Save Failed
+                </>
+              )}
+            </Badge>
+          )}
+          
           <Tooltip>
             <TooltipTrigger asChild>
               <Badge 
