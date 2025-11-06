@@ -25,6 +25,13 @@ The frontend is built with React, Vite, Tailwind CSS, TanStack Query, and Wouter
 - **Click-Outside-to-Save Dialogs (Nov 6, 2025)**: All checkpoint dialogs (First Checkpoint Dialog, Add Checkpoint Dialog, and Edit Checkpoint Dialog) now auto-save when user clicks outside, matching Google-level UX. No need to click "Save" button - simply typing text and clicking away automatically saves the checkpoint.
 - **Popup Dialog Editing (Nov 6, 2025)**: Checkpoint editing now opens in popup dialog (matching first-time creation UX) instead of inline textarea. Clicking any checkpoint text in hover list opens a full popup dialog with color-coded styling matching the checkpoint type (Problems, Feelings, Beliefs, Actions). All three dialogs (First Checkpoint, Add Checkpoint, Edit Checkpoint) share consistent UX with auto-save on click-outside.
 
+**Daily Auto-Copy & Real-Time Auto-Sync (Nov 6, 2025):**
+- **Daily Auto-Copy Feature**: When user views current day and no data exists, system automatically fetches previous day's data via `/api/hercm/previous-day/:date` endpoint, copies it to current day, and auto-saves. Enables seamless daily continuity (e.g., Thursday data → Friday, Friday → Saturday).
+- **Real-Time Auto-Sync**: Automatic synchronization from Current Week to Next Week Target in real-time as user types. Mapping: Current Week Problems → Next Week Results, Current Week Feelings → Next Week Feelings, Current Week Beliefs → Next Week Beliefs/Reasons, Current Week Actions → Next Week Actions. Includes checkpoint checklists synchronization.
+- **Update Button**: Located in Next Week Target header. Clicking "Update" clears all Next Week Target fields and checklists, disables auto-sync (sets `manualNextWeekMode = true`), and allows manual planning without auto-sync interference.
+- **Auto-Sync Reset**: When user navigates to different date, `manualNextWeekMode` resets to `false`, automatically re-enabling auto-sync for the new date.
+- **Backend Endpoint**: `/api/hercm/previous-day/:date` fetches most recent HRCM data before the specified date, ordered by dateString descending, supporting the daily auto-copy workflow.
+
 **Google-Level Instant Optimistic Updates (Nov 6, 2025):**
 - **Zero-Delay Checkbox Response**: All checkboxes (Course Tracker lessons, Assignment Column) use TanStack Query's optimistic updates for instant visual feedback before server confirmation, eliminating any perceived lag or glitches.
 - **Instant Points Update**: Header points counter updates immediately (+10/-10) when any checkbox is toggled, with automatic rollback if server request fails.
