@@ -2223,7 +2223,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 <Button
                   onClick={handleSaveEditedCheckpoint}
                   disabled={!editCheckpointData?.text.trim()}
-                  className={`${colorScheme.button} hover:opacity-90`}
+                  className="bg-gradient-to-r from-primary to-accent text-white hover:opacity-90"
                   data-testid="button-save-edit-checkpoint"
                 >
                   Save Changes
