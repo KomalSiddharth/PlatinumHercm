@@ -1854,10 +1854,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     checklistType: string;
     disabled?: boolean;
   }) => {
-    const [editingId, setEditingId] = useState<string | null>(null);
-    const [editingText, setEditingText] = useState<string>(''); // Local state for editing
     const [showAddDialog, setShowAddDialog] = useState(false);
     const [newCheckpointText, setNewCheckpointText] = useState('');
+    const [showEditCheckpointDialog, setShowEditCheckpointDialog] = useState(false);
+    const [editCheckpointData, setEditCheckpointData] = useState<{ itemId: string; text: string; category: string } | null>(null);
     const visibleItems = items.slice(0, 1);
     const hiddenCount = items.length - 1;
     const hasMoreItems = items.length > 1;
@@ -1978,6 +1978,33 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       setShowAddDialog(open);
     };
     
+    // Open edit checkpoint dialog
+    const handleOpenEditCheckpointDialog = (itemId: string, text: string) => {
+      setEditCheckpointData({ itemId, text, category });
+      setShowEditCheckpointDialog(true);
+    };
+    
+    // Save edited checkpoint
+    const handleSaveEditedCheckpoint = () => {
+      if (editCheckpointData && editCheckpointData.text.trim()) {
+        onUpdateText(editCheckpointData.itemId, editCheckpointData.text.trim());
+        setShowEditCheckpointDialog(false);
+        setEditCheckpointData(null);
+      }
+    };
+    
+    // Handle edit checkpoint dialog close with auto-save (click-outside-to-save)
+    const handleEditCheckpointDialogClose = (open: boolean) => {
+      if (!open) {
+        // Dialog is closing - save if text changed
+        if (editCheckpointData && editCheckpointData.text.trim()) {
+          onUpdateText(editCheckpointData.itemId, editCheckpointData.text.trim());
+          setEditCheckpointData(null);
+        }
+      }
+      setShowEditCheckpointDialog(open);
+    };
+    
     return (
       <>
         <HoverCard openDelay={200}>
@@ -2040,77 +2067,27 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     className="h-4 w-4 mt-0.5 shrink-0"
                     data-testid={`checkbox-hover-${checklistType}-${category.toLowerCase()}-${item.id}`}
                   />
-                  {editingId === item.id && !disabled ? (
-                    <Textarea
-                      value={editingText}
-                      onChange={(e) => setEditingText(e.target.value)}
-                      onBlur={(e) => {
-                        // Save changes before closing
-                        if (editingText !== item.text) {
-                          onUpdateText(item.id, editingText);
-                        }
-                        // Only close edit box if clicking outside the textarea AND outside the hover card
-                        const relatedTarget = e.relatedTarget as HTMLElement;
-                        const isClickingInsideCard = relatedTarget?.closest('[role="dialog"]');
-                        if (!isClickingInsideCard) {
-                          setEditingId(null);
-                        }
-                      }}
-                      onFocus={(e) => {
-                        const length = e.target.value.length;
-                        e.target.setSelectionRange(length, length);
-                      }}
-                      onKeyDown={(e) => {
-                        // Save on Enter key (without Shift for new line)
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          if (editingText !== item.text) {
-                            onUpdateText(item.id, editingText);
-                          }
-                          setEditingId(null);
-                        }
-                        // Prevent event propagation for all keys to avoid closing parent
-                        e.stopPropagation();
-                      }}
-                      onClick={(e) => {
-                        // Prevent click from propagating to parent elements
-                        e.stopPropagation();
-                      }}
-                      onMouseDown={(e) => {
-                        // Keep focus on textarea when clicking inside it
-                        e.stopPropagation();
-                      }}
-                      placeholder="Type checkpoint..."
-                      className="min-h-[60px] text-xs flex-1 border bg-background/50 focus-visible:ring-1 p-2 resize-none"
-                      autoFocus
-                      data-testid={`textarea-hover-${checklistType}-${category.toLowerCase()}-${item.id}`}
-                    />
-                  ) : (
-                    <>
-                      <span
-                        onClick={() => {
-                          if (!disabled) {
-                            setEditingText(item.text);
-                            setEditingId(item.id);
-                          }
-                        }}
-                        className={`flex-1 text-left text-xs py-0.5 px-1 rounded ${!disabled ? 'cursor-pointer hover:bg-muted/30' : 'cursor-not-allowed'} transition-colors min-h-[20px] break-words`}
-                        data-testid={`text-hover-${checklistType}-${category.toLowerCase()}-${item.id}`}
-                      >
-                        {item.text || <span className="text-muted-foreground italic">Click to edit...</span>}
-                      </span>
-                      {!disabled && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => onDeleteCheckpoint(item.id)}
-                          className="h-5 w-5 p-0 opacity-0 group-hover/hover-item:opacity-100 transition-opacity shrink-0"
-                          data-testid={`button-delete-hover-${checklistType}-${category.toLowerCase()}-${item.id}`}
-                        >
-                          <Trash2 className="w-3 h-3 text-destructive" />
-                        </Button>
-                      )}
-                    </>
+                  <span
+                    onClick={() => {
+                      if (!disabled) {
+                        handleOpenEditCheckpointDialog(item.id, item.text);
+                      }
+                    }}
+                    className={`flex-1 text-left text-xs py-0.5 px-1 rounded ${!disabled ? 'cursor-pointer hover:bg-muted/30' : 'cursor-not-allowed'} transition-colors min-h-[20px] break-words`}
+                    data-testid={`text-hover-${checklistType}-${category.toLowerCase()}-${item.id}`}
+                  >
+                    {item.text || <span className="text-muted-foreground italic">Click to edit...</span>}
+                  </span>
+                  {!disabled && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => onDeleteCheckpoint(item.id)}
+                      className="h-5 w-5 p-0 opacity-0 group-hover/hover-item:opacity-100 transition-opacity shrink-0"
+                      data-testid={`button-delete-hover-${checklistType}-${category.toLowerCase()}-${item.id}`}
+                    >
+                      <Trash2 className="w-3 h-3 text-destructive" />
+                    </Button>
                   )}
                 </div>
               ))}
@@ -2183,6 +2160,57 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   data-testid={`button-save-checkpoint-${checklistType}-${category.toLowerCase()}`}
                 >
                   Add Checkpoint
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Checkpoint Dialog */}
+        <Dialog open={showEditCheckpointDialog} onOpenChange={handleEditCheckpointDialogClose}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className={`text-base font-semibold ${colorScheme.text}`}>
+                Edit {colorScheme.label} Checkpoint
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className={`p-4 rounded-lg border-2 ${colorScheme.border} bg-gradient-to-br ${colorScheme.gradient} ${colorScheme.glow}`}>
+                <div className="flex items-start gap-2 mb-3">
+                  <div className={`w-1 h-full ${colorScheme.bar} rounded-full`}></div>
+                  <p className={`text-sm font-medium ${colorScheme.text}`}>{category} - {colorScheme.label}</p>
+                </div>
+                <Textarea
+                  value={editCheckpointData?.text || ''}
+                  onChange={(e) => setEditCheckpointData(prev => prev ? { ...prev, text: e.target.value } : null)}
+                  onFocus={(e) => {
+                    const length = e.target.value.length;
+                    e.target.setSelectionRange(length, length);
+                  }}
+                  placeholder="Edit your checkpoint..."
+                  className="min-h-[100px] text-sm bg-white dark:bg-gray-950 border-muted"
+                  autoFocus
+                  data-testid={`textarea-edit-checkpoint-${checklistType}`}
+                />
+              </div>
+              <div className="flex gap-2 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowEditCheckpointDialog(false);
+                    setEditCheckpointData(null);
+                  }}
+                  data-testid="button-cancel-edit-checkpoint"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSaveEditedCheckpoint}
+                  disabled={!editCheckpointData?.text.trim()}
+                  className={`${colorScheme.button} hover:opacity-90`}
+                  data-testid="button-save-edit-checkpoint"
+                >
+                  Save Changes
                 </Button>
               </div>
             </div>
