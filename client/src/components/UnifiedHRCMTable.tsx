@@ -29,7 +29,7 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useWebSocket } from '@/hooks/useWebSocket';
-import { format, isSameDay } from 'date-fns';
+import { format, isSameDay, getDay } from 'date-fns';
 import WeekComparison from './WeekComparison';
 import { RefinedHistoryModal } from './RefinedHistoryModal';
 import { EnhancedAnalyticsDialog } from './EnhancedAnalyticsDialog';
@@ -476,6 +476,91 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     refetchInterval: 5000, // Poll every 5 seconds for instant admin updates
     refetchIntervalInBackground: true, // Continue polling in background
   });
+
+  // Friday-to-Friday Snapshot System - Fetch active snapshot for continuity
+  const { data: activeSnapshot, refetch: refetchSnapshot } = useQuery<{
+    id: string;
+    userId: string;
+    snapshotDate: string;
+    snapshotData: any;
+    archived: boolean;
+    createdAt: Date;
+    archivedAt: Date | null;
+  } | null>({
+    queryKey: ['/api/snapshots/active'],
+    enabled: !isAdminView && !viewingHistory, // Only for regular users viewing today
+    staleTime: 0,
+  });
+
+  // Check if today is Friday
+  const isTodayFriday = () => {
+    const today = new Date();
+    return getDay(today) === 5; // Friday = 5 (0 = Sunday, 6 = Saturday)
+  };
+
+  // Get last Friday's date string
+  const getLastFridayDate = () => {
+    const today = new Date();
+    const dayOfWeek = getDay(today);
+    const daysToSubtract = dayOfWeek >= 5 ? dayOfWeek - 5 : dayOfWeek + 2;
+    const lastFriday = new Date(today);
+    lastFriday.setDate(today.getDate() - daysToSubtract);
+    return `${lastFriday.getFullYear()}-${String(lastFriday.getMonth() + 1).padStart(2, '0')}-${String(lastFriday.getDate()).padStart(2, '0')}`;
+  };
+
+  // Auto-create snapshot on new Friday (only runs once per Friday)
+  useEffect(() => {
+    if (isAdminView || viewingHistory || !isTodayFriday()) return;
+    
+    const lastFridayDate = getLastFridayDate();
+    
+    // Check if we already have a snapshot for this Friday
+    if (activeSnapshot && activeSnapshot.snapshotDate === lastFridayDate) {
+      console.log('[FRIDAY SNAPSHOT] Snapshot already exists for this Friday');
+      return;
+    }
+
+    // Create new snapshot from current Next Week Target data
+    const snapshotData = {
+      beliefs: beliefs.map(b => ({
+        category: b.category,
+        targetRating: b.targetRating,
+        result: b.result,
+        nextFeelings: b.nextFeelings,
+        nextWeekTarget: b.nextWeekTarget,
+        nextActions: b.nextActions,
+        resultChecklist: b.resultChecklist || [],
+        feelingsChecklist: b.feelingsChecklist || [],
+        beliefsChecklist: b.beliefsChecklist || [],
+        actionsChecklist: b.actionsChecklist || [],
+      }))
+    };
+
+    // Only create if there's actual data to snapshot
+    const hasData = beliefs.some(b => 
+      b.targetRating > 0 || b.result || b.nextFeelings || b.nextWeekTarget || b.nextActions ||
+      (b.resultChecklist && b.resultChecklist.length > 0) ||
+      (b.feelingsChecklist && b.feelingsChecklist.length > 0) ||
+      (b.beliefsChecklist && b.beliefsChecklist.length > 0) ||
+      (b.actionsChecklist && b.actionsChecklist.length > 0)
+    );
+
+    if (hasData) {
+      console.log('[FRIDAY SNAPSHOT] Creating new snapshot for Friday:', lastFridayDate);
+      apiRequest('POST', '/api/snapshots', {
+        snapshotDate: lastFridayDate,
+        snapshotData
+      }).then(() => {
+        refetchSnapshot();
+        toast({
+          title: 'Friday Snapshot Created',
+          description: 'Your Next Week Target data has been preserved for this week.',
+        });
+      }).catch(error => {
+        console.error('[FRIDAY SNAPSHOT] Error creating snapshot:', error);
+      });
+    }
+  }, [beliefs, activeSnapshot, isAdminView, viewingHistory, toast]);
 
   // Transform platinum standards into ChecklistItem format
   // Uses database ID for stable identification across admin updates
@@ -987,6 +1072,65 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       toast({
         title: 'Error',
         description: 'Failed to generate next week.',
+        variant: 'destructive',
+      });
+    }
+  });
+
+  // Update mutation - Archive snapshot and blank Next Week Target table
+  const updateSnapshotMutation = useMutation({
+    mutationFn: async () => {
+      if (activeSnapshot) {
+        await apiRequest('POST', `/api/snapshots/${activeSnapshot.id}/archive`, {});
+      }
+      // Also clear the Next Week Target data in local state
+      return Promise.resolve();
+    },
+    onSuccess: () => {
+      // Blank the Next Week Target table
+      setBeliefs(prev => prev.map(belief => ({
+        ...belief,
+        targetRating: 0,
+        result: '',
+        nextFeelings: '',
+        nextWeekTarget: '',
+        nextActions: '',
+        resultChecklist: [],
+        feelingsChecklist: [],
+        beliefsChecklist: [],
+        actionsChecklist: [],
+      })));
+      
+      // Save the blanked state to database
+      saveWeekMutation.mutate({ 
+        weekNumber, 
+        year: new Date().getFullYear(), 
+        beliefs: beliefs.map(belief => ({
+          ...belief,
+          targetRating: 0,
+          result: '',
+          nextFeelings: '',
+          nextWeekTarget: '',
+          nextActions: '',
+          resultChecklist: [],
+          feelingsChecklist: [],
+          beliefsChecklist: [],
+          actionsChecklist: [],
+        }))
+      });
+      
+      // Refetch snapshot to clear it from UI
+      refetchSnapshot();
+      
+      toast({
+        title: 'Updated!',
+        description: 'Previous data archived. Next Week Target table is now blank for fresh planning.',
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to update snapshot.',
         variant: 'destructive',
       });
     }
@@ -2565,11 +2709,45 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
       {/* Next Week Table */}
       <div className="border-2 border-emerald-green/70 dark:border-emerald-green/50 rounded-lg overflow-x-auto shadow-lg">
-        <div className="bg-emerald-green dark:bg-emerald-green/90 py-3 border-b-2 border-emerald-green/80 dark:border-emerald-green/60 flex items-center justify-center">
-          <h3 className="font-bold text-white text-xl drop-shadow-md flex items-center gap-2">
-            <TrendingUp className="w-5 h-5" />
-            Next Week Target
-          </h3>
+        <div className="bg-emerald-green dark:bg-emerald-green/90 py-3 border-b-2 border-emerald-green/80 dark:border-emerald-green/60 px-4">
+          <div className="flex items-center justify-between">
+            <div className="flex-1"></div>
+            <h3 className="font-bold text-white text-xl drop-shadow-md flex items-center gap-2">
+              <TrendingUp className="w-5 h-5" />
+              Next Week Target
+            </h3>
+            <div className="flex-1 flex justify-end items-center gap-2">
+              {!viewingHistory && !isAdminView && activeSnapshot && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => updateSnapshotMutation.mutate()}
+                      disabled={updateSnapshotMutation.isPending}
+                      data-testid="button-update-snapshot"
+                      className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white h-8"
+                    >
+                      {updateSnapshotMutation.isPending ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Save className="w-4 h-4" />
+                      )}
+                      <span className="ml-1.5">Update</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Archive current data and blank table for fresh planning</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+              {!viewingHistory && !isAdminView && activeSnapshot && (
+                <Badge variant="outline" className="bg-white/10 border-white/30 text-white text-xs">
+                  Friday {format(new Date(activeSnapshot.snapshotDate), 'MMM d')}
+                </Badge>
+              )}
+            </div>
+          </div>
         </div>
         <Table>
           <TableHeader>
