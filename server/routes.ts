@@ -814,6 +814,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If not exists, CREATE new week
       const existingWeek = await storage.getHercmWeek(userId, weekData.weekNumber);
       
+      // CRITICAL DEBUG: Log what dateString was received from frontend
+      console.log(`[SAVE] DEBUG - Received from frontend:`, {
+        weekNumber: weekData.weekNumber,
+        dateStringReceived: weekData.dateString,
+        hasDateString: !!weekData.dateString
+      });
+      
       // CRITICAL FIX: Use dateString from frontend if provided, otherwise use today's date
       // This allows historical date editing while defaulting to today for new entries
       if (!weekData.dateString) {
@@ -822,6 +829,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const month = String(now.getMonth() + 1).padStart(2, '0');
         const day = String(now.getDate()).padStart(2, '0');
         weekData.dateString = `${year}-${month}-${day}`;
+        console.log(`[SAVE] DEBUG - No dateString from frontend, using today: ${weekData.dateString}`);
+      } else {
+        console.log(`[SAVE] DEBUG - Using dateString from frontend: ${weekData.dateString}`);
       }
       
       let week;

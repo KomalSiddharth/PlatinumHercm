@@ -1128,6 +1128,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       setSaveStatus('saving');
       console.log('[SAVE] Starting save operation:', {
         weekNumber: weekData.weekNumber,
+        dateString: weekData.dateString,
+        currentDateStr: currentDateStr,
         hasBeliefs: !!weekData.beliefs,
         beliefCount: weekData.beliefs?.length,
         timestamp: new Date().toISOString()
