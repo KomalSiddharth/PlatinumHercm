@@ -5549,6 +5549,63 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
     }
   });
 
+  // Next Week Snapshot routes - Friday continuity system
+  // Get active snapshot (latest unarchived)
+  app.get('/api/snapshots/active', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.email;
+      const snapshot = await storage.getActiveSnapshot(userId);
+      res.json(snapshot || null);
+    } catch (error) {
+      console.error("Error fetching active snapshot:", error);
+      res.status(500).json({ message: "Failed to fetch snapshot" });
+    }
+  });
+
+  // Create new snapshot
+  app.post('/api/snapshots', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.email;
+      const { snapshotDate, snapshotData } = req.body;
+
+      const newSnapshot = await storage.createSnapshot({
+        userId,
+        snapshotDate,
+        snapshotData,
+        archived: false
+      });
+
+      res.json(newSnapshot);
+    } catch (error) {
+      console.error("Error creating snapshot:", error);
+      res.status(500).json({ message: "Failed to create snapshot" });
+    }
+  });
+
+  // Archive snapshot (Update button clicked)
+  app.post('/api/snapshots/:id/archive', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      await storage.archiveSnapshot(id);
+      res.json({ success: true, message: "Snapshot archived successfully" });
+    } catch (error) {
+      console.error("Error archiving snapshot:", error);
+      res.status(500).json({ message: "Failed to archive snapshot" });
+    }
+  });
+
+  // Archive all user snapshots
+  app.post('/api/snapshots/archive-all', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.email;
+      await storage.archiveAllUserSnapshots(userId);
+      res.json({ success: true, message: "All snapshots archived successfully" });
+    } catch (error) {
+      console.error("Error archiving all snapshots:", error);
+      res.status(500).json({ message: "Failed to archive snapshots" });
+    }
+  });
+
   const httpServer = createServer(app);
   
   // Setup WebSocket server for real-time notifications
