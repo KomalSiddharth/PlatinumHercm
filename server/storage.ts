@@ -359,15 +359,54 @@ export class DatabaseStorage implements IStorage {
       const hasMoneyChecklist = week.moneyChecklist && Array.isArray(week.moneyChecklist) && week.moneyChecklist.length > 0;
       const hasUnifiedAssignment = week.unifiedAssignment && Array.isArray(week.unifiedAssignment) && week.unifiedAssignment.length > 0;
       
-      // Score based on checklist data presence AND unifiedAssignment
+      // CRITICAL: Also check CHECKPOINT data (Current Week checkpoints)
+      const hasHealthProblemsChecklist = week.healthProblemsChecklist && Array.isArray(week.healthProblemsChecklist) && week.healthProblemsChecklist.length > 0;
+      const hasHealthFeelingsCurrentChecklist = week.healthFeelingsCurrentChecklist && Array.isArray(week.healthFeelingsCurrentChecklist) && week.healthFeelingsCurrentChecklist.length > 0;
+      const hasHealthBeliefsCurrentChecklist = week.healthBeliefsCurrentChecklist && Array.isArray(week.healthBeliefsCurrentChecklist) && week.healthBeliefsCurrentChecklist.length > 0;
+      const hasHealthActionsCurrentChecklist = week.healthActionsCurrentChecklist && Array.isArray(week.healthActionsCurrentChecklist) && week.healthActionsCurrentChecklist.length > 0;
+      
+      const hasRelationshipProblemsChecklist = week.relationshipProblemsChecklist && Array.isArray(week.relationshipProblemsChecklist) && week.relationshipProblemsChecklist.length > 0;
+      const hasRelationshipFeelingsCurrentChecklist = week.relationshipFeelingsCurrentChecklist && Array.isArray(week.relationshipFeelingsCurrentChecklist) && week.relationshipFeelingsCurrentChecklist.length > 0;
+      const hasRelationshipBeliefsCurrentChecklist = week.relationshipBeliefsCurrentChecklist && Array.isArray(week.relationshipBeliefsCurrentChecklist) && week.relationshipBeliefsCurrentChecklist.length > 0;
+      const hasRelationshipActionsCurrentChecklist = week.relationshipActionsCurrentChecklist && Array.isArray(week.relationshipActionsCurrentChecklist) && week.relationshipActionsCurrentChecklist.length > 0;
+      
+      const hasCareerProblemsChecklist = week.careerProblemsChecklist && Array.isArray(week.careerProblemsChecklist) && week.careerProblemsChecklist.length > 0;
+      const hasCareerFeelingsCurrentChecklist = week.careerFeelingsCurrentChecklist && Array.isArray(week.careerFeelingsCurrentChecklist) && week.careerFeelingsCurrentChecklist.length > 0;
+      const hasCareerBeliefsCurrentChecklist = week.careerBeliefsCurrentChecklist && Array.isArray(week.careerBeliefsCurrentChecklist) && week.careerBeliefsCurrentChecklist.length > 0;
+      const hasCareerActionsCurrentChecklist = week.careerActionsCurrentChecklist && Array.isArray(week.careerActionsCurrentChecklist) && week.careerActionsCurrentChecklist.length > 0;
+      
+      const hasMoneyProblemsChecklist = week.moneyProblemsChecklist && Array.isArray(week.moneyProblemsChecklist) && week.moneyProblemsChecklist.length > 0;
+      const hasMoneyFeelingsCurrentChecklist = week.moneyFeelingsCurrentChecklist && Array.isArray(week.moneyFeelingsCurrentChecklist) && week.moneyFeelingsCurrentChecklist.length > 0;
+      const hasMoneyBeliefsCurrentChecklist = week.moneyBeliefsCurrentChecklist && Array.isArray(week.moneyBeliefsCurrentChecklist) && week.moneyBeliefsCurrentChecklist.length > 0;
+      const hasMoneyActionsCurrentChecklist = week.moneyActionsCurrentChecklist && Array.isArray(week.moneyActionsCurrentChecklist) && week.moneyActionsCurrentChecklist.length > 0;
+      
+      // Score based on checklist data presence AND unifiedAssignment AND checkpoint data
       if (hasHealthChecklist) score += 10;
       if (hasRelationshipChecklist) score += 10;
       if (hasCareerChecklist) score += 10;
       if (hasMoneyChecklist) score += 10;
       if (hasUnifiedAssignment) score += 10;  // Add 10 points for having assignment data
       
+      // Add 5 points per checkpoint field (checkpoint data is valuable!)
+      if (hasHealthProblemsChecklist) score += 5;
+      if (hasHealthFeelingsCurrentChecklist) score += 5;
+      if (hasHealthBeliefsCurrentChecklist) score += 5;
+      if (hasHealthActionsCurrentChecklist) score += 5;
+      if (hasRelationshipProblemsChecklist) score += 5;
+      if (hasRelationshipFeelingsCurrentChecklist) score += 5;
+      if (hasRelationshipBeliefsCurrentChecklist) score += 5;
+      if (hasRelationshipActionsCurrentChecklist) score += 5;
+      if (hasCareerProblemsChecklist) score += 5;
+      if (hasCareerFeelingsCurrentChecklist) score += 5;
+      if (hasCareerBeliefsCurrentChecklist) score += 5;
+      if (hasCareerActionsCurrentChecklist) score += 5;
+      if (hasMoneyProblemsChecklist) score += 5;
+      if (hasMoneyFeelingsCurrentChecklist) score += 5;
+      if (hasMoneyBeliefsCurrentChecklist) score += 5;
+      if (hasMoneyActionsCurrentChecklist) score += 5;
+      
       // Prefer NEWER data - timestamp is now primary tiebreaker
-      // Divide by smaller number so timestamp weighs more (max ~1.7 vs max 50 from checklists+assignment)
+      // Divide by smaller number so timestamp weighs more (max ~1.7 vs max 130 from checklists+assignment+checkpoints)
       score += week.createdAt ? new Date(week.createdAt).getTime() / 10000000000000 : 0;
       
       return score;
