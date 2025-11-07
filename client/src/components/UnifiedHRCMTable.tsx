@@ -300,6 +300,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   const lastFocusedButton = useRef<HTMLButtonElement | null>(null);
   const hasAutoProgressed = useRef<Set<number>>(new Set()); // Track which weeks have been auto-progressed
   const { toast} = useToast();
+  
+  // Custom Assignment Dialog State
+  const [showCustomAssignmentDialog, setShowCustomAssignmentDialog] = useState(false);
+  const [customAssignmentText, setCustomAssignmentText] = useState('');
+  const [editCustomAssignmentId, setEditCustomAssignmentId] = useState<string | null>(null);
 
   // Real-time WebSocket connection for instant sync
   // When user makes changes, admin panels viewing this user see updates immediately (no delay!)
@@ -3394,6 +3399,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         );
                       }
                       
+                      // Separate custom text assignments
+                      const customAssignments = assignmentsToDisplay.filter((l: any) => l.source === 'custom');
+                      
                       // Direct display of all assignments without hover card
                       return (
                         <div className="space-y-3 overflow-y-auto max-h-[320px]">
@@ -3475,6 +3483,68 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                 </div>
                               ))}
                             </div>
+                          )}
+                          
+                          {/* Custom Text Assignments - Full List */}
+                          {customAssignments.length > 0 && (
+                            <div className="space-y-2">
+                              <div className="text-xs font-semibold text-purple-600 dark:text-purple-400 mb-2">
+                                My Custom Goals ({customAssignments.length})
+                              </div>
+                              {customAssignments.map((assignment) => (
+                                <div key={assignment.id} className="flex items-center gap-2 py-1 group/assignment">
+                                  <Checkbox
+                                    checked={assignment.completed}
+                                    onCheckedChange={() => handleUnifiedAssignmentToggle(assignment.id)}
+                                    disabled={isAdminView}
+                                    className="h-4 w-4 mt-0.5 shrink-0"
+                                    data-testid={`checkbox-custom-assignment-${assignment.id}`}
+                                  />
+                                  <span
+                                    className="text-xs flex-1 text-purple-700 dark:text-purple-400 leading-relaxed cursor-pointer hover:underline"
+                                    onClick={() => {
+                                      if (!isAdminView) {
+                                        setEditCustomAssignmentId(assignment.id);
+                                        setCustomAssignmentText(assignment.customText || '');
+                                        setShowCustomAssignmentDialog(true);
+                                      }
+                                    }}
+                                    data-testid={`text-custom-assignment-${assignment.id}`}
+                                  >
+                                    {assignment.customText}
+                                  </span>
+                                  {!isAdminView && (
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => handleRemoveUnifiedAssignment(assignment.id)}
+                                      className="h-4 w-4 p-0 opacity-0 group-hover/assignment:opacity-100 transition-opacity shrink-0"
+                                      data-testid={`button-delete-custom-assignment-${assignment.id}`}
+                                    >
+                                      <Trash2 className="w-3 h-3 text-destructive" />
+                                    </Button>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          
+                          {/* Add Custom Assignment Button */}
+                          {!isAdminView && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setEditCustomAssignmentId(null);
+                                setCustomAssignmentText('');
+                                setShowCustomAssignmentDialog(true);
+                              }}
+                              className="w-full h-8 text-xs border-dashed border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30"
+                              data-testid="button-add-custom-assignment"
+                            >
+                              <Plus className="w-3 h-3 mr-1" />
+                              Add Custom Goal
+                            </Button>
                           )}
                         </div>
                       );
