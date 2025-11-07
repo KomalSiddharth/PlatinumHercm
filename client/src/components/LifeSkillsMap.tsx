@@ -387,8 +387,8 @@ export default function LifeSkillsMap() {
             </p>
           </div>
         ) : (
-          <div className="bg-[#0f1c2e] dark:bg-[#0f1c2e] rounded-lg border border-gray-700/50 p-6">
-            <div className="space-y-3">
+          <div className="bg-[#0f1c2e] dark:bg-[#0f1c2e] rounded-lg border border-gray-700/50 p-4 max-h-[500px] overflow-y-auto">
+            <div className="space-y-2">
               {coursesData.map((course, courseIdx) => {
                 let totalLessons = 0;
                 let completedLessons = 0;
@@ -435,7 +435,7 @@ export default function LifeSkillsMap() {
                     onOpenChange={() => toggleCategory(course.id)}
                   >
                     <CollapsibleTrigger 
-                      className="flex items-center justify-between w-full p-3 rounded-md hover:bg-gray-800/50 transition-colors group"
+                      className="flex items-center justify-between w-full p-2 rounded-md hover:bg-gray-800/50 transition-colors group"
                       data-testid={`button-course-${course.id}`}
                     >
                       <div className="flex items-center gap-2 flex-1">
@@ -466,14 +466,14 @@ export default function LifeSkillsMap() {
                     </CollapsibleTrigger>
                     
                     <CollapsibleContent>
-                      <div className="ml-6 mt-2 space-y-2">
+                      <div className="ml-4 mt-1 space-y-1">
                         {/* Show main course lessons first (if any) */}
                         {course.lessons && course.lessons.length > 0 && (
-                          <div className="ml-5 space-y-1 mb-3">
+                          <div className="ml-3 space-y-1 mb-2">
                             {course.lessons.map((lesson) => (
                               <div 
                                 key={lesson.id}
-                                className="flex items-center justify-between p-2 rounded hover:bg-gray-800/20 transition-colors cursor-pointer group"
+                                className="flex items-center justify-between p-1.5 rounded hover:bg-gray-800/20 transition-colors cursor-pointer group"
                                 data-testid={`container-lesson-${lesson.id}`}
                                 onClick={() => handleLessonToggle(course.id, lesson.id, lesson.completed, lesson.title, course.title, lesson.url, course.category)}
                               >
@@ -531,9 +531,9 @@ export default function LifeSkillsMap() {
                                 open={isSubcatOpen}
                                 onOpenChange={() => toggleSubcategory(subcatKey)}
                               >
-                                <div className="border border-cyan-500/30 bg-gradient-to-r from-cyan-900/20 to-blue-900/10 rounded-md mb-2">
+                                <div className="border border-cyan-500/30 bg-gradient-to-r from-cyan-900/20 to-blue-900/10 rounded-md mb-1.5">
                                   <CollapsibleTrigger 
-                                    className="flex items-center justify-between w-full p-3 rounded-md hover:bg-cyan-900/30 transition-colors"
+                                    className="flex items-center justify-between w-full p-2 rounded-md hover:bg-cyan-900/30 transition-colors"
                                     data-testid={`button-subcategory-${subcatKey}`}
                                   >
                                     <div className="flex items-center gap-2 flex-1">
@@ -564,11 +564,11 @@ export default function LifeSkillsMap() {
                                   </CollapsibleTrigger>
                                   
                                   <CollapsibleContent>
-                                    <div className="ml-5 mt-2 space-y-1 bg-cyan-950/10 p-2 rounded-b-md">
+                                    <div className="ml-3 mt-1 space-y-1 bg-cyan-950/10 p-1.5 rounded-b-md">
                                       {subcat.lessons.map((lesson) => (
                                         <div 
                                           key={lesson.id}
-                                          className="flex items-center justify-between p-2 rounded hover:bg-gray-800/20 transition-colors cursor-pointer group"
+                                          className="flex items-center justify-between p-1.5 rounded hover:bg-gray-800/20 transition-colors cursor-pointer group"
                                           data-testid={`container-lesson-${lesson.id}`}
                                           onClick={() => handleLessonToggle(course.id, lesson.id, lesson.completed, lesson.title, subcat.title, lesson.url, course.category)}
                                         >
@@ -624,9 +624,9 @@ export default function LifeSkillsMap() {
                                             open={isSubSubcatOpen}
                                             onOpenChange={() => toggleSubcategory(subSubcatKey)}
                                           >
-                                            <div className="border border-purple-500/30 bg-gradient-to-r from-purple-900/20 to-violet-900/10 rounded-md mb-2 mt-2">
+                                            <div className="border border-purple-500/30 bg-gradient-to-r from-purple-900/20 to-violet-900/10 rounded-md mb-1.5 mt-1.5">
                                               <CollapsibleTrigger 
-                                                className="flex items-center justify-between w-full p-3 rounded-md hover:bg-purple-900/30 transition-colors"
+                                                className="flex items-center justify-between w-full p-2 rounded-md hover:bg-purple-900/30 transition-colors"
                                                 data-testid={`button-subsubcategory-${subSubcatKey}`}
                                               >
                                                 <div className="flex items-center gap-2 flex-1">
@@ -657,11 +657,11 @@ export default function LifeSkillsMap() {
                                               </CollapsibleTrigger>
                                               
                                               <CollapsibleContent>
-                                                <div className="ml-5 mt-2 space-y-1 bg-purple-950/10 p-2 rounded-b-md">
+                                                <div className="ml-3 mt-1 space-y-1 bg-purple-950/10 p-1.5 rounded-b-md">
                                                   {subSubcat.lessons.map((lesson) => (
                                                     <div 
                                                       key={lesson.id}
-                                                      className="flex items-center justify-between p-2 rounded hover:bg-gray-800/20 transition-colors cursor-pointer group"
+                                                      className="flex items-center justify-between p-1.5 rounded hover:bg-gray-800/20 transition-colors cursor-pointer group"
                                                       data-testid={`container-lesson-${lesson.id}`}
                                                       onClick={() => handleLessonToggle(course.id, lesson.id, lesson.completed, lesson.title, subSubcat.title, lesson.url, course.category)}
                                                     >
