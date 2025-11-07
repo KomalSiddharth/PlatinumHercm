@@ -2660,7 +2660,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     });
     
     setBeliefs(updatedBeliefs);
-    saveWeekMutation.mutate({ weekNumber, year: new Date().getFullYear(), beliefs: updatedBeliefs });
+    saveWeekMutation.mutate({ 
+      weekNumber, 
+      year: new Date().getFullYear(), 
+      dateString: currentDateStr, // 🔥 CRITICAL FIX: Use selected calendar date
+      beliefs: updatedBeliefs 
+    });
     
     setShowEditDialog(false);
     setEditDialogData(null);
@@ -2683,7 +2688,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         });
         
         setBeliefs(updatedBeliefs);
-        saveWeekMutation.mutate({ weekNumber, year: new Date().getFullYear(), beliefs: updatedBeliefs });
+        saveWeekMutation.mutate({ 
+          weekNumber, 
+          year: new Date().getFullYear(), 
+          dateString: currentDateStr, // 🔥 CRITICAL FIX: Use selected calendar date
+          beliefs: updatedBeliefs 
+        });
       }
       
       // Clear hover editing state
@@ -2716,7 +2726,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       });
       
       setBeliefs(updatedBeliefs);
-      saveWeekMutation.mutate({ weekNumber, year: new Date().getFullYear(), beliefs: updatedBeliefs });
+      saveWeekMutation.mutate({ 
+        weekNumber, 
+        year: new Date().getFullYear(), 
+        dateString: currentDateStr, // 🔥 CRITICAL FIX: Use selected calendar date
+        beliefs: updatedBeliefs 
+      });
     }
     
     // Clear hover editing state
@@ -3776,6 +3791,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         saveWeekMutation.mutate({
                           weekNumber,
                           year: new Date().getFullYear(),
+                          dateString: currentDateStr, // 🔥 CRITICAL FIX: Use selected calendar date
                           beliefs,
                         });
                       }}
