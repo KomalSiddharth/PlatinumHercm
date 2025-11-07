@@ -2995,23 +2995,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             </Button>
           </div>
 
-            {/* Center: Heading - Shows "Current Week" for today, date for other days */}
+            {/* Center: Heading - Shows current date */}
             <h3 className="font-bold text-white text-sm sm:text-base md:text-lg lg:text-xl drop-shadow-md flex items-center gap-1 sm:gap-2">
               <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
-              {(() => {
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                const selected = new Date(selectedDate);
-                selected.setHours(0, 0, 0, 0);
-                
-                // If selected date is today, show "Current Week"
-                if (selected.getTime() === today.getTime()) {
-                  return 'Current Week';
-                }
-                
-                // For other dates, show the actual date
-                return format(selectedDate, 'MMMM dd, yyyy');
-              })()}
+              {format(selectedDate, 'MMMM dd, yyyy')}
             </h3>
 
             {/* Right: Spacer for balance */}
@@ -3255,7 +3242,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             <div className="flex-1"></div>
             <h3 className="font-bold text-white text-xl drop-shadow-md flex items-center gap-2">
               <TrendingUp className="w-5 h-5" />
-              Next Week Target
+              {format(selectedDate, 'MMMM dd, yyyy')}
             </h3>
             <div className="flex-1 flex justify-end items-center gap-2">
               {!viewingHistory && !isAdminView && (
