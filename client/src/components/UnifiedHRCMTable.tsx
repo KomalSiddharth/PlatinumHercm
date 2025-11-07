@@ -1714,6 +1714,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       
       if (response.ok) {
         await refetchAssignments();
+        await queryClient.refetchQueries({ queryKey: ['/api/user/total-points'] });
         toast({
           title: 'Assignment Removed',
           description: 'Assignment removed successfully',

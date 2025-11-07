@@ -5502,6 +5502,7 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
       const assignmentData = {
         userId,
         customText: customText.trim(),
+        hrcmArea: 'general',  // Default area for custom assignments
         source: 'custom',
         completed: false
       };
