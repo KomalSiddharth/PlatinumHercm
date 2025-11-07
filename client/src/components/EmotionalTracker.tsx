@@ -320,66 +320,66 @@ export default function EmotionalTracker() {
                         index % 2 === 0 ? 'bg-white/50 dark:bg-gray-900/20' : 'bg-primary/5 dark:bg-primary/10'
                       }`}
                     >
-                      <td className="p-1.5 sm:p-2 md:p-3 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 align-top" data-testid={`time-slot-${index}`}>
+                      <td className="p-1.5 sm:p-2 md:p-3 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 align-top w-[100px] sm:w-[120px]" data-testid={`time-slot-${index}`}>
                         {timeSlot}
                       </td>
                       
                       {/* Positive Emotions */}
-                      <td className="p-1 sm:p-1.5 md:p-2 align-top">
+                      <td className="p-1 sm:p-1.5 md:p-2 align-top w-[160px] sm:w-[200px]">
                         <div
                           onClick={() => openEditDialog(timeSlot, 'positiveEmotions')}
-                          className={`cursor-pointer h-[36px] overflow-hidden rounded px-3 py-2 text-sm ${FIELD_COLORS.positiveEmotions.bg} ${FIELD_COLORS.positiveEmotions.border} border hover:border-green-400 dark:hover:border-green-500 transition-colors flex items-center`}
+                          className={`cursor-pointer h-[36px] w-full overflow-hidden rounded px-3 py-2 text-sm ${FIELD_COLORS.positiveEmotions.bg} ${FIELD_COLORS.positiveEmotions.border} border hover:border-green-400 dark:hover:border-green-500 transition-colors flex items-center`}
                           data-testid={`input-positive-${index}`}
                         >
                           {data.positiveEmotions ? (
-                            <span className="text-gray-700 dark:text-gray-200 truncate w-full">{data.positiveEmotions}</span>
+                            <span className="text-gray-700 dark:text-gray-200 truncate block">{data.positiveEmotions}</span>
                           ) : (
-                            <span className="text-gray-400 dark:text-gray-500 italic">Click to add...</span>
+                            <span className="text-gray-400 dark:text-gray-500 italic truncate block">Click to add...</span>
                           )}
                         </div>
                       </td>
 
                       {/* Negative Emotions */}
-                      <td className="p-1 sm:p-1.5 md:p-2 align-top">
+                      <td className="p-1 sm:p-1.5 md:p-2 align-top w-[160px] sm:w-[200px]">
                         <div
                           onClick={() => openEditDialog(timeSlot, 'negativeEmotions')}
-                          className={`cursor-pointer h-[36px] overflow-hidden rounded px-3 py-2 text-sm ${FIELD_COLORS.negativeEmotions.bg} ${FIELD_COLORS.negativeEmotions.border} border hover:border-red-400 dark:hover:border-red-500 transition-colors flex items-center`}
+                          className={`cursor-pointer h-[36px] w-full overflow-hidden rounded px-3 py-2 text-sm ${FIELD_COLORS.negativeEmotions.bg} ${FIELD_COLORS.negativeEmotions.border} border hover:border-red-400 dark:hover:border-red-500 transition-colors flex items-center`}
                           data-testid={`input-negative-${index}`}
                         >
                           {data.negativeEmotions ? (
-                            <span className="text-gray-700 dark:text-gray-200 truncate w-full">{data.negativeEmotions}</span>
+                            <span className="text-gray-700 dark:text-gray-200 truncate block">{data.negativeEmotions}</span>
                           ) : (
-                            <span className="text-gray-400 dark:text-gray-500 italic">Click to add...</span>
+                            <span className="text-gray-400 dark:text-gray-500 italic truncate block">Click to add...</span>
                           )}
                         </div>
                       </td>
 
                       {/* Repeating Emotions */}
-                      <td className="p-1 sm:p-1.5 md:p-2 align-top">
+                      <td className="p-1 sm:p-1.5 md:p-2 align-top w-[160px] sm:w-[200px]">
                         <div
                           onClick={() => openEditDialog(timeSlot, 'repeatingEmotions')}
-                          className={`cursor-pointer h-[36px] overflow-hidden rounded px-3 py-2 text-sm ${FIELD_COLORS.repeatingEmotions.bg} ${FIELD_COLORS.repeatingEmotions.border} border hover:border-blue-400 dark:hover:border-blue-500 transition-colors flex items-center`}
+                          className={`cursor-pointer h-[36px] w-full overflow-hidden rounded px-3 py-2 text-sm ${FIELD_COLORS.repeatingEmotions.bg} ${FIELD_COLORS.repeatingEmotions.border} border hover:border-blue-400 dark:hover:border-blue-500 transition-colors flex items-center`}
                           data-testid={`input-repeating-${index}`}
                         >
                           {data.repeatingEmotions ? (
-                            <span className="text-gray-700 dark:text-gray-200 truncate w-full">{data.repeatingEmotions}</span>
+                            <span className="text-gray-700 dark:text-gray-200 truncate block">{data.repeatingEmotions}</span>
                           ) : (
-                            <span className="text-gray-400 dark:text-gray-500 italic">Click to add...</span>
+                            <span className="text-gray-400 dark:text-gray-500 italic truncate block">Click to add...</span>
                           )}
                         </div>
                       </td>
 
                       {/* Missing Emotions */}
-                      <td className="p-1 sm:p-1.5 md:p-2 align-top">
+                      <td className="p-1 sm:p-1.5 md:p-2 align-top w-[160px] sm:w-[200px]">
                         <div
                           onClick={() => openEditDialog(timeSlot, 'missingEmotions')}
-                          className={`cursor-pointer h-[36px] overflow-hidden rounded px-3 py-2 text-sm ${FIELD_COLORS.missingEmotions.bg} ${FIELD_COLORS.missingEmotions.border} border hover:border-orange-400 dark:hover:border-orange-500 transition-colors flex items-center`}
+                          className={`cursor-pointer h-[36px] w-full overflow-hidden rounded px-3 py-2 text-sm ${FIELD_COLORS.missingEmotions.bg} ${FIELD_COLORS.missingEmotions.border} border hover:border-orange-400 dark:hover:border-orange-500 transition-colors flex items-center`}
                           data-testid={`input-missing-${index}`}
                         >
                           {data.missingEmotions ? (
-                            <span className="text-gray-700 dark:text-gray-200 truncate w-full">{data.missingEmotions}</span>
+                            <span className="text-gray-700 dark:text-gray-200 truncate block">{data.missingEmotions}</span>
                           ) : (
-                            <span className="text-gray-400 dark:text-gray-500 italic">Click to add...</span>
+                            <span className="text-gray-400 dark:text-gray-500 italic truncate block">Click to add...</span>
                           )}
                         </div>
                       </td>
