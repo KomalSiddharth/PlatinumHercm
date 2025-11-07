@@ -49,6 +49,9 @@ interface UserDashboardData {
 }
 
 export default function UserDashboardSearch() {
+  // 🔥 NEW DROPDOWN VERSION - v2.0
+  console.log('🔥 UserDashboardSearch v2.0 - DROPDOWN VERSION LOADED');
+  
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -312,9 +315,14 @@ export default function UserDashboardSearch() {
   // Search interface with Select User dropdown
   return (
     <div className="space-y-4">
-      {/* Select User Combobox - Matching Screenshot */}
+      {/* 🔥 NEW DROPDOWN SEARCH DESIGN */}
       <div className="space-y-2">
-        <h3 className="text-lg font-semibold">Select User</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">Select User</h3>
+          <Badge variant="outline" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+            NEW ✨
+          </Badge>
+        </div>
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button
