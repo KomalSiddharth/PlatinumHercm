@@ -1640,19 +1640,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const rituals = await storage.getRitualsByUser(userId);
       const platinumProgress = await storage.getPlatinumProgress(userId);
       
-      // Calculate emotion trends - USE CURRENT WEEK RATINGS (not emotionScore fields)
-      // This matches what users see in their Current Week HRCM table
-      const emotionTrends = sortedWeeks.map(week => ({
-        weekNumber: week.weekNumber,
+      // 🔥 DAY-WISE HRCM TRENDS (not week-wise) - For daily graph representation
+      // Group by dateString to get day-by-day data
+      const dayWiseData = new Map<string, typeof sortedWeeks[0]>();
+      
+      // Keep latest entry for each date (in case of multiple updates on same day)
+      sortedWeeks.forEach(week => {
+        if (week.dateString) {
+          const existing = dayWiseData.get(week.dateString);
+          if (!existing || new Date(week.createdAt as Date).getTime() > new Date(existing.createdAt as Date).getTime()) {
+            dayWiseData.set(week.dateString, week);
+          }
+        }
+      });
+      
+      // Convert to array and sort by date
+      const sortedDays = Array.from(dayWiseData.entries())
+        .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
+        .map(([date, week]) => ({ date, week }));
+      
+      // Calculate emotion trends - DAY-WISE
+      const emotionTrends = sortedDays.map(({ date, week }) => ({
+        date, // YYYY-MM-DD format for daily representation
         healthEmotion: week.currentH || 5,
         relationshipEmotion: week.currentE || 5,
         careerEmotion: week.currentR || 5,
         moneyEmotion: week.currentC || 5,
       }));
       
-      // Calculate HRCM rating trends
-      const hrcmTrends = sortedWeeks.map(week => ({
-        weekNumber: week.weekNumber,
+      // Calculate HRCM rating trends - DAY-WISE for graph
+      const hrcmTrends = sortedDays.map(({ date, week }) => ({
+        date, // YYYY-MM-DD format for daily graph
         health: week.currentH || 0,
         relationship: week.currentE || 0,
         career: week.currentR || 0,
@@ -1744,7 +1762,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const progressSummary = latestWeek ? {
-        currentWeek: latestWeek.weekNumber,
+        currentWeek: 1, // 🔥 ALWAYS SHOW WEEK 1 FOR EVERYONE
         overallScore: latestWeek.overallScore || 0, // Average HRCM rating (out of 10)
         achievementRate, // NOW: Fresh calculated from checklists (matches table)
         currentStreak: platinumProgress?.currentStreak || 0,
@@ -1766,62 +1784,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`[COMPACT WEEKLY DEBUG] weeksByNumber size: ${weeksByNumber.size}, keys: ${Array.from(weeksByNumber.keys()).join(', ')}`);
       
-      // For each week number, extract first and latest entries
+      // 🔥 ONLY SHOW WEEK 1 (first and latest) - Remove all other weeks
       const compactWeeklyData: any[] = [];
-      Array.from(weeksByNumber.entries())
-        .sort(([weekA], [weekB]) => weekA - weekB) // Sort by week number
-        .forEach(([weekNumber, weeks]) => {
-          // 🔥 FIX: Sort by createdAt for "first", but use dateString for "latest"
-          // First = earliest entry created (original data)
-          // Latest = most recent date's data (could be today's update)
-          const sortedByCreatedAt = [...weeks].sort((a, b) => 
-            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-          );
-          
-          const sortedByDateString = [...weeks].sort((a, b) => {
-            const dateA = a.dateString || '1970-01-01';
-            const dateB = b.dateString || '1970-01-01';
-            return dateA.localeCompare(dateB);
-          });
-          
-          const firstWeek = sortedByCreatedAt[0];
-          const latestWeek = sortedByDateString[sortedByDateString.length - 1];
-          
-          // Helper function to create week data object
-          const createWeekData = (week: typeof sortedWeeks[0], label: string) => {
-            const healthProgress = calculateChecklistProgress(week.healthChecklist || []);
-            const relationshipProgress = calculateChecklistProgress(week.relationshipChecklist || []);
-            const careerProgress = calculateChecklistProgress(week.careerChecklist || []);
-            const moneyProgress = calculateChecklistProgress(week.moneyChecklist || []);
-            const achievement = Math.round((healthProgress + relationshipProgress + careerProgress + moneyProgress) / 4);
-            
-            // 🔥 FIX: Use dateString for "latest" (most recent update), createdAt for "first" (original entry)
-            const displayDate = label === 'latest' && week.dateString 
-              ? new Date(week.dateString + 'T00:00:00') // Convert YYYY-MM-DD to Date
-              : week.createdAt;
-            
-            return {
-              week: weekNumber,
-              label, // "first" or "latest"
-              date: displayDate,
-              h: week.currentH || 0,
-              r: week.currentE || 0,
-              c: week.currentR || 0,
-              m: week.currentC || 0,
-              score: week.overallScore || 0,
-              achievement,
-            };
-          };
-          
-          // If only one entry for this week, show it as "only"
-          if (weeks.length === 1) {
-            compactWeeklyData.push(createWeekData(firstWeek, 'only'));
-          } else {
-            // Show both first and latest
-            compactWeeklyData.push(createWeekData(firstWeek, 'first'));
-            compactWeeklyData.push(createWeekData(latestWeek, 'latest'));
-          }
+      const week1Entries = weeksByNumber.get(1); // Get only Week 1 entries
+      
+      if (week1Entries && week1Entries.length > 0) {
+        // Sort by createdAt for "first", but use dateString for "latest"
+        const sortedByCreatedAt = [...week1Entries].sort((a, b) => 
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
+        
+        const sortedByDateString = [...week1Entries].sort((a, b) => {
+          const dateA = a.dateString || '1970-01-01';
+          const dateB = b.dateString || '1970-01-01';
+          return dateA.localeCompare(dateB);
         });
+        
+        const firstWeek = sortedByCreatedAt[0];
+        const latestWeek = sortedByDateString[sortedByDateString.length - 1];
+        
+        // Helper function to create week data object
+        const createWeekData = (week: typeof sortedWeeks[0], label: string) => {
+          const healthProgress = calculateChecklistProgress(week.healthChecklist || []);
+          const relationshipProgress = calculateChecklistProgress(week.relationshipChecklist || []);
+          const careerProgress = calculateChecklistProgress(week.careerChecklist || []);
+          const moneyProgress = calculateChecklistProgress(week.moneyChecklist || []);
+          const achievement = Math.round((healthProgress + relationshipProgress + careerProgress + moneyProgress) / 4);
+          
+          // Use dateString for "latest" (most recent update), createdAt for "first" (original entry)
+          const displayDate = label === 'latest' && week.dateString 
+            ? new Date(week.dateString + 'T00:00:00') // Convert YYYY-MM-DD to Date
+            : week.createdAt;
+          
+          return {
+            week: 1, // Always Week 1
+            label, // "first" or "latest"
+            date: displayDate,
+            h: week.currentH || 0,
+            r: week.currentE || 0,
+            c: week.currentR || 0,
+            m: week.currentC || 0,
+            score: week.overallScore || 0,
+            achievement,
+          };
+        };
+        
+        // If only one entry for Week 1, show it as "only"
+        if (week1Entries.length === 1) {
+          compactWeeklyData.push(createWeekData(firstWeek, 'only'));
+        } else {
+          // Show both first and latest for Week 1
+          compactWeeklyData.push(createWeekData(firstWeek, 'first'));
+          compactWeeklyData.push(createWeekData(latestWeek, 'latest'));
+        }
+      }
       
       console.log(`[COMPACT WEEKLY DEBUG] compactWeeklyData length: ${compactWeeklyData.length}, weeks: ${compactWeeklyData.map(w => w.week).join(', ')}`);
       
