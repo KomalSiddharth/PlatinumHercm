@@ -117,7 +117,7 @@ export default function UserDetailView({ userId }: UserDetailViewProps) {
           <CardHeader className="bg-gradient-to-r from-pink-100 to-blue-100 dark:from-pink-950 dark:to-blue-950">
             <CardTitle className="text-lg font-bold">📈 HRCM Growth & Loss Tracker</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Stock market style view: All 4 life areas tracked week by week
+              Stock market style view: All 4 life areas tracked day by day
             </p>
           </CardHeader>
           <CardContent className="pt-6 bg-black dark:bg-black">
@@ -143,10 +143,15 @@ export default function UserDetailView({ userId }: UserDetailViewProps) {
                 </defs>
                 <CartesianGrid strokeDasharray="1 1" stroke="#1f2937" opacity={0.3} vertical={false} />
                 <XAxis 
-                  dataKey="weekNumber" 
+                  dataKey="date"
                   stroke="#4b5563"
-                  tick={{ fill: '#9ca3af', fontSize: 12 }}
+                  tick={{ fill: '#9ca3af', fontSize: 10 }}
                   axisLine={{ stroke: '#374151' }}
+                  tickFormatter={(date) => {
+                    // Format date: 2025-11-07 → Nov 7
+                    const d = new Date(date);
+                    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                  }}
                 />
                 <YAxis 
                   domain={[0, 10]} 
