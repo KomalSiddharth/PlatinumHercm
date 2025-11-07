@@ -1646,6 +1646,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       const wasCompleted = assignment?.completed || false;
       const willBeCompleted = !wasCompleted;
       
+      console.log('[ASSIGNMENT] 📊 Before optimistic update - Previous points:', previousPoints);
+      
       // INSTANT UI UPDATE: Optimistically update assignments
       queryClient.setQueryData<any[]>(
         persistentAssignmentsQueryKey,
@@ -1659,18 +1661,22 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       // INSTANT UI UPDATE: Optimistically update points in header (+10 or -10)
       if (previousPoints) {
         const pointsChange = willBeCompleted ? 10 : -10;
+        const newTotalPoints = previousPoints.totalPoints + pointsChange;
         queryClient.setQueryData<{ totalPoints: number }>(
           ['/api/user/total-points'],
-          { totalPoints: previousPoints.totalPoints + pointsChange }
+          { totalPoints: newTotalPoints }
         );
+        console.log('[ASSIGNMENT] ⚡ Optimistic points update:', {
+          assignmentId,
+          wasCompleted,
+          willBeCompleted,
+          previousPoints: previousPoints.totalPoints,
+          pointsChange,
+          newTotalPoints
+        });
+      } else {
+        console.warn('[ASSIGNMENT] ⚠️ No previous points data found for optimistic update');
       }
-      
-      console.log('[ASSIGNMENT] ⚡ Instant optimistic update applied:', {
-        assignmentId,
-        wasCompleted,
-        willBeCompleted,
-        pointsChange: willBeCompleted ? '+10' : '-10'
-      });
       
       // Return context for rollback if needed
       return { previousAssignments, previousPoints };
@@ -3938,8 +3944,28 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         </DialogContent>
       </Dialog>
       
-      {/* Custom Assignment Dialog */}
-      <Dialog open={showCustomAssignmentDialog} onOpenChange={setShowCustomAssignmentDialog}>
+      {/* Custom Assignment Dialog - Click Outside to Save */}
+      <Dialog 
+        open={showCustomAssignmentDialog} 
+        onOpenChange={(open) => {
+          // Auto-save when clicking outside (closing dialog)
+          if (!open && customAssignmentText.trim()) {
+            // Save the custom assignment before closing
+            if (editCustomAssignmentId) {
+              updateCustomAssignmentMutation.mutate({ id: editCustomAssignmentId, customText: customAssignmentText });
+            } else {
+              createCustomAssignmentMutation.mutate(customAssignmentText);
+            }
+          }
+          
+          // Close dialog and reset state
+          if (!open) {
+            setShowCustomAssignmentDialog(false);
+            setCustomAssignmentText('');
+            setEditCustomAssignmentId(null);
+          }
+        }}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="text-base font-semibold">
