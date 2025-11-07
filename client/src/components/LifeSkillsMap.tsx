@@ -502,56 +502,18 @@ export default function LifeSkillsMap() {
                                   <span className="text-xs text-gray-500" data-testid={`text-lesson-points-${lesson.id}`}>
                                     10 pts
                                   </span>
-                                  <DropdownMenu>
-                                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        className="h-6 w-6 p-0"
-                                        data-testid={`button-add-assignment-${lesson.id}`}
-                                      >
-                                        <Plus className="h-3 w-3" />
-                                      </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                                      <DropdownMenuItem
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleAddToAssignment('health', course.id, course.title, lesson.id, lesson.title, lesson.url);
-                                        }}
-                                        data-testid={`menu-add-health-${lesson.id}`}
-                                      >
-                                        Health
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleAddToAssignment('relationship', course.id, course.title, lesson.id, lesson.title, lesson.url);
-                                        }}
-                                        data-testid={`menu-add-relationship-${lesson.id}`}
-                                      >
-                                        Relationship
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleAddToAssignment('career', course.id, course.title, lesson.id, lesson.title, lesson.url);
-                                        }}
-                                        data-testid={`menu-add-career-${lesson.id}`}
-                                      >
-                                        Career
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleAddToAssignment('money', course.id, course.title, lesson.id, lesson.title, lesson.url);
-                                        }}
-                                        data-testid={`menu-add-money-${lesson.id}`}
-                                      >
-                                        Money
-                                      </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-6 w-6 p-0"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleAddToAssignment('general', course.id, course.title, lesson.id, lesson.title, lesson.url);
+                                    }}
+                                    data-testid={`button-add-assignment-${lesson.id}`}
+                                  >
+                                    <Plus className="h-3 w-3" />
+                                  </Button>
                                 </div>
                               </div>
                             ))}
@@ -635,56 +597,18 @@ export default function LifeSkillsMap() {
                                             <span className="text-xs text-gray-500" data-testid={`text-lesson-points-${lesson.id}`}>
                                               10 pts
                                             </span>
-                                            <DropdownMenu>
-                                              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                                <Button
-                                                  size="sm"
-                                                  variant="ghost"
-                                                  className="h-6 w-6 p-0"
-                                                  data-testid={`button-add-assignment-${lesson.id}`}
-                                                >
-                                                  <Plus className="h-3 w-3" />
-                                                </Button>
-                                              </DropdownMenuTrigger>
-                                              <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                                                <DropdownMenuItem
-                                                  onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleAddToAssignment('health', course.id, subcat.title, lesson.id, lesson.title, lesson.url);
-                                                  }}
-                                                  data-testid={`menu-add-health-${lesson.id}`}
-                                                >
-                                                  Health
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                  onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleAddToAssignment('relationship', course.id, subcat.title, lesson.id, lesson.title, lesson.url);
-                                                  }}
-                                                  data-testid={`menu-add-relationship-${lesson.id}`}
-                                                >
-                                                  Relationship
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                  onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleAddToAssignment('career', course.id, subcat.title, lesson.id, lesson.title, lesson.url);
-                                                  }}
-                                                  data-testid={`menu-add-career-${lesson.id}`}
-                                                >
-                                                  Career
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                  onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleAddToAssignment('money', course.id, subcat.title, lesson.id, lesson.title, lesson.url);
-                                                  }}
-                                                  data-testid={`menu-add-money-${lesson.id}`}
-                                                >
-                                                  Money
-                                                </DropdownMenuItem>
-                                              </DropdownMenuContent>
-                                            </DropdownMenu>
+                                            <Button
+                                              size="sm"
+                                              variant="ghost"
+                                              className="h-6 w-6 p-0"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleAddToAssignment('general', course.id, subcat.title, lesson.id, lesson.title, lesson.url);
+                                              }}
+                                              data-testid={`button-add-assignment-${lesson.id}`}
+                                            >
+                                              <Plus className="h-3 w-3" />
+                                            </Button>
                                           </div>
                                         </div>
                                       ))}
@@ -766,56 +690,18 @@ export default function LifeSkillsMap() {
                                                         <span className="text-xs text-gray-500" data-testid={`text-lesson-points-${lesson.id}`}>
                                                           10 pts
                                                         </span>
-                                                        <DropdownMenu>
-                                                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                                            <Button
-                                                              size="sm"
-                                                              variant="ghost"
-                                                              className="h-6 w-6 p-0"
-                                                              data-testid={`button-add-assignment-${lesson.id}`}
-                                                            >
-                                                              <Plus className="h-3 w-3" />
-                                                            </Button>
-                                                          </DropdownMenuTrigger>
-                                                          <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                                                            <DropdownMenuItem
-                                                              onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleAddToAssignment('health', course.id, subSubcat.title, lesson.id, lesson.title, lesson.url);
-                                                              }}
-                                                              data-testid={`menu-add-health-${lesson.id}`}
-                                                            >
-                                                              Health
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem
-                                                              onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleAddToAssignment('relationship', course.id, subSubcat.title, lesson.id, lesson.title, lesson.url);
-                                                              }}
-                                                              data-testid={`menu-add-relationship-${lesson.id}`}
-                                                            >
-                                                              Relationship
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem
-                                                              onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleAddToAssignment('career', course.id, subSubcat.title, lesson.id, lesson.title, lesson.url);
-                                                              }}
-                                                              data-testid={`menu-add-career-${lesson.id}`}
-                                                            >
-                                                              Career
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem
-                                                              onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleAddToAssignment('money', course.id, subSubcat.title, lesson.id, lesson.title, lesson.url);
-                                                              }}
-                                                              data-testid={`menu-add-money-${lesson.id}`}
-                                                            >
-                                                              Money
-                                                            </DropdownMenuItem>
-                                                          </DropdownMenuContent>
-                                                        </DropdownMenu>
+                                                        <Button
+                                                          size="sm"
+                                                          variant="ghost"
+                                                          className="h-6 w-6 p-0"
+                                                          onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleAddToAssignment('general', course.id, subSubcat.title, lesson.id, lesson.title, lesson.url);
+                                                          }}
+                                                          data-testid={`button-add-assignment-${lesson.id}`}
+                                                        >
+                                                          <Plus className="h-3 w-3" />
+                                                        </Button>
                                                       </div>
                                                     </div>
                                                   ))}
