@@ -3010,7 +3010,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </TableCell>
 
                 {/* Current Week - Problems (Text Block) */}
-                <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top">
+                <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
                   <div
                     onClick={() => {
                       if (!((viewingHistory && hasDataForDate) || isAdminView)) {
@@ -3019,14 +3019,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         setDialogOpen(true);
                       }
                     }}
-                    style={{ height: '60px' }}
-                    className={`cursor-pointer overflow-hidden text-ellipsis rounded px-3 py-2 text-sm bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 hover:border-red-300 dark:hover:border-red-700 transition-colors ${
+                    style={{ height: '60px', width: '100%' }}
+                    className={`cursor-pointer overflow-hidden rounded px-3 py-2 text-sm bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 hover:border-red-300 dark:hover:border-red-700 transition-colors break-words ${
                       ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
                     }`}
                     data-testid={`text-block-problems-${belief.category.toLowerCase()}`}
                   >
                     {belief.problems ? (
-                      <div className="overflow-hidden text-ellipsis line-clamp-3 text-red-700 dark:text-red-300 text-xs leading-tight">{belief.problems}</div>
+                      <div className="overflow-hidden line-clamp-3 text-red-700 dark:text-red-300 text-xs leading-tight break-words">{belief.problems}</div>
                     ) : (
                       <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
                     )}
@@ -3034,7 +3034,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </TableCell>
 
                 {/* Current Week - Feelings (Text Block) */}
-                <TableCell className="p-2 bg-emerald-green/5 dark:bg-emerald-green/10 align-top">
+                <TableCell className="p-2 bg-emerald-green/5 dark:bg-emerald-green/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
                   <div
                     onClick={() => {
                       if (!((viewingHistory && hasDataForDate) || isAdminView)) {
@@ -3043,14 +3043,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         setDialogOpen(true);
                       }
                     }}
-                    style={{ height: '60px' }}
-                    className={`cursor-pointer overflow-hidden text-ellipsis rounded px-3 py-2 text-sm bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 transition-colors ${
+                    style={{ height: '60px', width: '100%' }}
+                    className={`cursor-pointer overflow-hidden rounded px-3 py-2 text-sm bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 transition-colors break-words ${
                       ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
                     }`}
                     data-testid={`text-block-feelings-${belief.category.toLowerCase()}`}
                   >
                     {belief.currentFeelings ? (
-                      <div className="overflow-hidden text-ellipsis line-clamp-3 text-green-700 dark:text-green-300 text-xs leading-tight">{belief.currentFeelings}</div>
+                      <div className="overflow-hidden line-clamp-3 text-green-700 dark:text-green-300 text-xs leading-tight break-words">{belief.currentFeelings}</div>
                     ) : (
                       <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
                     )}
@@ -3058,7 +3058,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </TableCell>
 
                 {/* Current Week - Beliefs (Text Block) */}
-                <TableCell className="p-2 bg-golden-yellow/5 dark:bg-golden-yellow/10 align-top">
+                <TableCell className="p-2 bg-golden-yellow/5 dark:bg-golden-yellow/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
                   <div
                     onClick={() => {
                       if (!((viewingHistory && hasDataForDate) || isAdminView)) {
@@ -3067,14 +3067,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         setDialogOpen(true);
                       }
                     }}
-                    style={{ height: '60px' }}
-                    className={`cursor-pointer overflow-hidden text-ellipsis rounded px-3 py-2 text-sm bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 hover:border-amber-300 dark:hover:border-amber-700 transition-colors ${
+                    style={{ height: '60px', width: '100%' }}
+                    className={`cursor-pointer overflow-hidden rounded px-3 py-2 text-sm bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 hover:border-amber-300 dark:hover:border-amber-700 transition-colors break-words ${
                       ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
                     }`}
                     data-testid={`text-block-beliefs-${belief.category.toLowerCase()}`}
                   >
                     {belief.currentBelief ? (
-                      <div className="overflow-hidden text-ellipsis line-clamp-3 text-amber-700 dark:text-amber-300 text-xs leading-tight">{belief.currentBelief}</div>
+                      <div className="overflow-hidden line-clamp-3 text-amber-700 dark:text-amber-300 text-xs leading-tight break-words">{belief.currentBelief}</div>
                     ) : (
                       <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
                     )}
@@ -3082,7 +3082,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </TableCell>
 
                 {/* Current Week - Actions (Text Block) */}
-                <TableCell className="p-2 bg-soft-lavender/5 dark:bg-soft-lavender/10 border-r align-top">
+                <TableCell className="p-2 bg-soft-lavender/5 dark:bg-soft-lavender/10 border-r align-top w-[180px] min-w-[180px] max-w-[180px]">
                   <div
                     onClick={() => {
                       if (!((viewingHistory && hasDataForDate) || isAdminView)) {
@@ -3091,14 +3091,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         setDialogOpen(true);
                       }
                     }}
-                    style={{ height: '60px' }}
-                    className={`cursor-pointer overflow-hidden text-ellipsis rounded px-3 py-2 text-sm bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 hover:border-blue-300 dark:hover:border-blue-700 transition-colors ${
+                    style={{ height: '60px', width: '100%' }}
+                    className={`cursor-pointer overflow-hidden rounded px-3 py-2 text-sm bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 hover:border-blue-300 dark:hover:border-blue-700 transition-colors break-words ${
                       ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
                     }`}
                     data-testid={`text-block-actions-${belief.category.toLowerCase()}`}
                   >
                     {belief.currentActions ? (
-                      <div className="overflow-hidden text-ellipsis line-clamp-3 text-blue-700 dark:text-blue-300 text-xs leading-tight">{belief.currentActions}</div>
+                      <div className="overflow-hidden line-clamp-3 text-blue-700 dark:text-blue-300 text-xs leading-tight break-words">{belief.currentActions}</div>
                     ) : (
                       <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
                     )}
@@ -3269,7 +3269,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </TableCell>
 
                 {/* Next Week - Results (Text Block) */}
-                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top max-h-[85px] w-[180px] overflow-hidden">
+                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
                   <div
                     onClick={() => {
                       if (!((viewingHistory && hasDataForDate) || isAdminView)) {
@@ -3278,14 +3278,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         setDialogOpen(true);
                       }
                     }}
-                    style={{ height: '60px' }}
-                    className={`cursor-pointer overflow-hidden text-ellipsis rounded px-3 py-2 text-sm bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 hover:border-red-300 dark:hover:border-red-700 transition-colors ${
+                    style={{ height: '60px', width: '100%' }}
+                    className={`cursor-pointer overflow-hidden rounded px-3 py-2 text-sm bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 hover:border-red-300 dark:hover:border-red-700 transition-colors break-words ${
                       ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
                     }`}
                     data-testid={`text-block-result-${belief.category.toLowerCase()}`}
                   >
                     {belief.result ? (
-                      <div className="overflow-hidden text-ellipsis line-clamp-3 text-red-700 dark:text-red-300 text-xs leading-tight">{belief.result}</div>
+                      <div className="overflow-hidden line-clamp-3 text-red-700 dark:text-red-300 text-xs leading-tight break-words">{belief.result}</div>
                     ) : (
                       <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
                     )}
@@ -3293,7 +3293,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </TableCell>
 
                 {/* Next Week - Feelings (Text Block) */}
-                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top max-h-[85px] w-[180px] overflow-hidden">
+                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
                   <div
                     onClick={() => {
                       if (!((viewingHistory && hasDataForDate) || isAdminView)) {
@@ -3302,14 +3302,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         setDialogOpen(true);
                       }
                     }}
-                    style={{ height: '60px' }}
-                    className={`cursor-pointer overflow-hidden text-ellipsis rounded px-3 py-2 text-sm bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 transition-colors ${
+                    style={{ height: '60px', width: '100%' }}
+                    className={`cursor-pointer overflow-hidden rounded px-3 py-2 text-sm bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 transition-colors break-words ${
                       ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
                     }`}
                     data-testid={`text-block-next-feelings-${belief.category.toLowerCase()}`}
                   >
                     {belief.nextFeelings ? (
-                      <div className="overflow-hidden text-ellipsis line-clamp-3 text-green-700 dark:text-green-300 text-xs leading-tight">{belief.nextFeelings}</div>
+                      <div className="overflow-hidden line-clamp-3 text-green-700 dark:text-green-300 text-xs leading-tight break-words">{belief.nextFeelings}</div>
                     ) : (
                       <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
                     )}
@@ -3317,7 +3317,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </TableCell>
 
                 {/* Next Week - Beliefs/Reasons (Text Block) */}
-                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top max-h-[85px] w-[180px] overflow-hidden">
+                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
                   <div
                     onClick={() => {
                       if (!((viewingHistory && hasDataForDate) || isAdminView)) {
@@ -3326,14 +3326,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         setDialogOpen(true);
                       }
                     }}
-                    style={{ height: '60px' }}
-                    className={`cursor-pointer overflow-hidden text-ellipsis rounded px-3 py-2 text-sm bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 hover:border-amber-300 dark:hover:border-amber-700 transition-colors ${
+                    style={{ height: '60px', width: '100%' }}
+                    className={`cursor-pointer overflow-hidden rounded px-3 py-2 text-sm bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 hover:border-amber-300 dark:hover:border-amber-700 transition-colors break-words ${
                       ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
                     }`}
                     data-testid={`text-block-next-beliefs-${belief.category.toLowerCase()}`}
                   >
                     {belief.nextWeekTarget ? (
-                      <div className="overflow-hidden text-ellipsis line-clamp-3 text-amber-700 dark:text-amber-300 text-xs leading-tight">{belief.nextWeekTarget}</div>
+                      <div className="overflow-hidden line-clamp-3 text-amber-700 dark:text-amber-300 text-xs leading-tight break-words">{belief.nextWeekTarget}</div>
                     ) : (
                       <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
                     )}
@@ -3341,7 +3341,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </TableCell>
 
                 {/* Next Week - Actions (Text Block) */}
-                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 border-r align-top max-h-[85px] w-[180px] overflow-hidden">
+                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 border-r align-top w-[180px] min-w-[180px] max-w-[180px]">
                   <div
                     onClick={() => {
                       if (!((viewingHistory && hasDataForDate) || isAdminView)) {
@@ -3350,14 +3350,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         setDialogOpen(true);
                       }
                     }}
-                    style={{ height: '60px' }}
-                    className={`cursor-pointer overflow-hidden text-ellipsis rounded px-3 py-2 text-sm bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 hover:border-blue-300 dark:hover:border-blue-700 transition-colors ${
+                    style={{ height: '60px', width: '100%' }}
+                    className={`cursor-pointer overflow-hidden rounded px-3 py-2 text-sm bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 hover:border-blue-300 dark:hover:border-blue-700 transition-colors break-words ${
                       ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
                     }`}
                     data-testid={`text-block-next-actions-${belief.category.toLowerCase()}`}
                   >
                     {belief.nextActions ? (
-                      <div className="overflow-hidden text-ellipsis line-clamp-3 text-blue-700 dark:text-blue-300 text-xs leading-tight">{belief.nextActions}</div>
+                      <div className="overflow-hidden line-clamp-3 text-blue-700 dark:text-blue-300 text-xs leading-tight break-words">{belief.nextActions}</div>
                     ) : (
                       <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
                     )}
