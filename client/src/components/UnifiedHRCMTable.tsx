@@ -2839,20 +2839,13 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             </Badge>
           )}
           
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Badge 
-                className={`${getProgressColor(weeklyProgress)} ${!isAdminView ? 'cursor-pointer hover:opacity-80' : ''} smooth-transition`}
-                onClick={() => !isAdminView && setProgressOpen(true)}
-                data-testid="badge-weekly-progress"
-              >
-                {weeklyProgress}% Weekly Progress
-              </Badge>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p className="text-sm">Average across Friday-Thursday (7 days)</p>
-            </TooltipContent>
-          </Tooltip>
+          <Badge 
+            className={`${getProgressColor(weeklyProgress)} ${!isAdminView ? 'cursor-pointer hover:opacity-80' : ''} smooth-transition`}
+            onClick={() => !isAdminView && setProgressOpen(true)}
+            data-testid="badge-weekly-progress"
+          >
+            {weeklyProgress}% Weekly Progress
+          </Badge>
         </div>
       </div>
 
@@ -3193,28 +3186,21 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             </h3>
             <div className="flex-1 flex justify-end items-center gap-2">
               {!viewingHistory && !isAdminView && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleClearNextWeekTarget}
-                      disabled={saveWeekMutation.isPending}
-                      data-testid="button-update-next-week"
-                      className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white h-8"
-                    >
-                      {saveWeekMutation.isPending ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <RefreshCw className="w-4 h-4" />
-                      )}
-                      <span className="ml-1.5">Update</span>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Clear auto-synced data and plan your next week manually</p>
-                  </TooltipContent>
-                </Tooltip>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleClearNextWeekTarget}
+                  disabled={saveWeekMutation.isPending}
+                  data-testid="button-update-next-week"
+                  className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white h-8"
+                >
+                  {saveWeekMutation.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="w-4 h-4" />
+                  )}
+                  <span className="ml-1.5">Update</span>
+                </Button>
               )}
               {!viewingHistory && !isAdminView && activeSnapshot && (
                 <Badge variant="outline" className="bg-white/10 border-white/30 text-white text-xs">
