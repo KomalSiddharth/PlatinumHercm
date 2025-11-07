@@ -331,14 +331,9 @@ export default function UserDashboardSearch() {
   // Search interface with Select User dropdown
   return (
     <div className="space-y-4">
-      {/* 🔥 NEW DROPDOWN SEARCH DESIGN */}
+      {/* 🔥 DROPDOWN SEARCH DESIGN */}
       <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <h3 className="text-lg font-semibold">Select User</h3>
-          <Badge variant="outline" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-            NEW ✨
-          </Badge>
-        </div>
+        <h3 className="text-lg font-semibold">Select User</h3>
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button
