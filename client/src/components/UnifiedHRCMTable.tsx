@@ -975,7 +975,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               
               // Auto-save copied data to current date
               const savePayload = {
-                weekNumber: weekNumberState,
+                weekNumber,
                 dateString: currentDateStr, // 🔥 CRITICAL: Save to current date!
                 beliefs: copiedBeliefs,
                 unifiedAssignment: previousDayData.unifiedAssignment || []
