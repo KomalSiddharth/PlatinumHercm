@@ -60,9 +60,25 @@ export default function UserDashboardSearch() {
   const { toast } = useToast();
 
   // Search users by name or email (live search as user types)
-  const { data: searchResults, isLoading: isSearching } = useQuery<UserSearchResult[]>({
-    queryKey: [`/api/admin/search-user-by-name?name=${searchQuery}`],
+  const { data: searchResults, isLoading: isSearching, error: searchError } = useQuery<UserSearchResult[]>({
+    queryKey: [`/api/admin/search-user-by-name`, searchQuery],
+    queryFn: async () => {
+      if (searchQuery.length < 2) return [];
+      console.log('🔍 Searching for:', searchQuery);
+      const response = await fetch(`/api/admin/search-user-by-name?name=${encodeURIComponent(searchQuery)}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          console.log('❌ No users found for:', searchQuery);
+          return []; // Return empty array instead of throwing error
+        }
+        throw new Error('Search failed');
+      }
+      const data = await response.json();
+      console.log('✅ Search results:', data.length, 'users');
+      return data;
+    },
     enabled: searchQuery.length >= 2, // Only search when 2+ characters typed
+    retry: false, // Don't retry on 404
   });
 
   // Get selected user's dashboard data
