@@ -431,9 +431,10 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
     });
     
     // Add last course if exists
-    if (currentCourse !== null) {
-      courses.push(currentCourse);
-      console.log(`✅ Saved final course "${currentCourse.title}" with ${currentCourse.lessons.length} lessons`);
+    if (currentCourse) {
+      const finalCourse = currentCourse;
+      courses.push(finalCourse);
+      console.log(`✅ Saved final course "${finalCourse.title}" with ${finalCourse.lessons.length} lessons`);
     }
 
     // REMOVED ALL NESTING LOGIC: All courses now display as top-level courses
