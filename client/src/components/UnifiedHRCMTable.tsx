@@ -1045,9 +1045,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
   // 🔥 AUTO-SYNC: Real-time sync from Current Week to Next Week Target
   useEffect(() => {
-    // Only auto-sync when viewing today (not history or admin view) AND manual mode is OFF
-    if (viewingHistory || isAdminView || manualNextWeekMode) {
-      console.log('[AUTO-SYNC] ⏸️ Skipping auto-sync (history/admin view or manual mode enabled)');
+    // Only skip auto-sync for admin view or when manual mode is ON
+    // 🔥 UPDATED: Auto-sync now works on ALL dates (including history)
+    if (isAdminView || manualNextWeekMode) {
+      console.log('[AUTO-SYNC] ⏸️ Skipping auto-sync (admin view or manual mode enabled)');
       return;
     }
     
@@ -1101,11 +1102,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     beliefs.map(b => JSON.stringify(b.feelingsCurrentChecklist || [])).join('|'),
     beliefs.map(b => JSON.stringify(b.beliefsCurrentChecklist || [])).join('|'),
     beliefs.map(b => JSON.stringify(b.actionsCurrentChecklist || [])).join('|'),
-    viewingHistory,
     isAdminView,
     manualNextWeekMode,
   ]);
   // Dependencies: Only trigger when Current Week fields change
+  // 🔥 UPDATED: Removed viewingHistory from dependencies - auto-sync works on all dates
 
   // Reset manual mode when date changes (allow auto-sync again on new day)
   useEffect(() => {
@@ -3269,7 +3270,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               {format(selectedDate, 'MMMM dd, yyyy')}
             </h3>
             <div className="flex-1 flex justify-end items-center gap-2">
-              {!viewingHistory && !isAdminView && (
+              {!isAdminView && (
                 <Button
                   size="sm"
                   variant="outline"
