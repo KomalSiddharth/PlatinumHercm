@@ -881,9 +881,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       console.log('[WEEKDATA EFFECT] ⚠️ weekData is null - checking for daily auto-copy');
       setHasDataForDate(false); // 🔥 No data exists for this date
       
-      // 🔥 DAILY AUTO-COPY FEATURE: If viewing today and no data exists, fetch & copy previous day's data
-      if (!viewingHistory && !isAdminView) {
-        console.log('[AUTO-COPY] 🚀 Fetching previous day data for auto-copy...');
+      // 🔥 DAILY AUTO-COPY FEATURE: ONLY works in FORWARD direction
+      // Auto-copy only if user is viewing TODAY (not editing past dates)
+      const isViewingToday = currentDateStr === today;
+      
+      if (!viewingHistory && !isAdminView && isViewingToday) {
+        console.log('[AUTO-COPY] 🚀 Viewing TODAY with no data - fetching previous day for auto-copy...');
         
         // Fetch previous day's data
         fetch(`/api/hercm/previous-day/${currentDateStr}`, {
