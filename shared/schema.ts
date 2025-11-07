@@ -520,12 +520,13 @@ export const userPersistentAssignments = pgTable("user_persistent_assignments", 
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id),
   hrcmArea: varchar("hrcm_area").notNull(), // 'health', 'relationship', 'career', 'money'
-  courseId: varchar("course_id").notNull(),
-  courseName: varchar("course_name", { length: 500 }).notNull(),
+  courseId: varchar("course_id"), // Optional - for course-based assignments
+  courseName: varchar("course_name", { length: 500 }), // Optional - for course-based assignments
   lessonId: varchar("lesson_id"), // Optional - specific lesson ID
   lessonName: varchar("lesson_name", { length: 500 }),
   url: varchar("url", { length: 1000 }), // Optional URL to the lesson/course
-  source: varchar("source").notNull(), // 'user' (self-added) or 'admin' (recommended by admin)
+  customText: varchar("custom_text", { length: 500 }), // Custom user-entered text assignments
+  source: varchar("source").notNull(), // 'user' (self-added) or 'admin' (recommended by admin) or 'custom' (custom text)
   recommendationId: varchar("recommendation_id"), // Optional - links to adminCourseRecommendations if from admin
   completed: boolean("completed").default(false).notNull(), // Track completion
   createdAt: timestamp("created_at").defaultNow(),
