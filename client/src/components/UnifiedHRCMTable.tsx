@@ -1728,6 +1728,73 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       });
     }
   };
+  
+  // Mutation for creating custom assignment
+  const createCustomAssignmentMutation = useMutation({
+    mutationFn: async (customText: string) => {
+      return await apiRequest('/api/persistent-assignments/custom', 'POST', { customText });
+    },
+    onSuccess: async () => {
+      await refetchAssignments();
+      setShowCustomAssignmentDialog(false);
+      setCustomAssignmentText('');
+      toast({
+        title: 'Custom Goal Added',
+        description: 'Your custom goal has been added successfully',
+      });
+    },
+    onError: (error) => {
+      console.error('Error creating custom assignment:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to create custom goal',
+        variant: 'destructive'
+      });
+    }
+  });
+  
+  // Mutation for updating custom assignment
+  const updateCustomAssignmentMutation = useMutation({
+    mutationFn: async ({ id, customText }: { id: string; customText: string }) => {
+      return await apiRequest(`/api/persistent-assignments/${id}`, 'PATCH', { customText });
+    },
+    onSuccess: async () => {
+      await refetchAssignments();
+      setShowCustomAssignmentDialog(false);
+      setCustomAssignmentText('');
+      setEditCustomAssignmentId(null);
+      toast({
+        title: 'Custom Goal Updated',
+        description: 'Your custom goal has been updated successfully',
+      });
+    },
+    onError: (error) => {
+      console.error('Error updating custom assignment:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update custom goal',
+        variant: 'destructive'
+      });
+    }
+  });
+  
+  // Handler for saving custom assignment (create or update)
+  const handleSaveCustomAssignment = () => {
+    if (!customAssignmentText.trim()) {
+      toast({
+        title: 'Empty Text',
+        description: 'Please enter some text for your custom goal',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    if (editCustomAssignmentId) {
+      updateCustomAssignmentMutation.mutate({ id: editCustomAssignmentId, customText: customAssignmentText });
+    } else {
+      createCustomAssignmentMutation.mutate(customAssignmentText);
+    }
+  };
 
   // Toggle result checklist item
   const handleResultChecklistToggle = (category: string, itemId: string) => {
@@ -3877,6 +3944,54 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 data-testid="button-save-first-checkpoint"
               >
                 Add Checkpoint
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Custom Assignment Dialog */}
+      <Dialog open={showCustomAssignmentDialog} onOpenChange={setShowCustomAssignmentDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base font-semibold">
+              {editCustomAssignmentId ? 'Edit Custom Goal' : 'Add Custom Goal'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="p-4 rounded-lg border-2 bg-gradient-to-br from-purple-100/50 to-purple-50/30 dark:from-purple-900/20 dark:to-purple-950/20 border-purple-200 dark:border-purple-800">
+              <Textarea
+                value={customAssignmentText}
+                onChange={(e) => setCustomAssignmentText(e.target.value)}
+                onFocus={(e) => {
+                  const length = e.target.value.length;
+                  e.target.setSelectionRange(length, length);
+                }}
+                placeholder="Enter your custom goal..."
+                className="min-h-[100px] text-sm bg-white dark:bg-gray-950 border-muted"
+                autoFocus
+                data-testid="textarea-custom-assignment"
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowCustomAssignmentDialog(false);
+                  setCustomAssignmentText('');
+                  setEditCustomAssignmentId(null);
+                }}
+                data-testid="button-cancel-custom-assignment"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSaveCustomAssignment}
+                disabled={!customAssignmentText.trim() || createCustomAssignmentMutation.isPending || updateCustomAssignmentMutation.isPending}
+                className="bg-gradient-to-r from-purple-600 to-purple-500 text-white hover:opacity-90"
+                data-testid="button-save-custom-assignment"
+              >
+                {editCustomAssignmentId ? 'Update Goal' : 'Add Goal'}
               </Button>
             </div>
           </div>
