@@ -473,7 +473,7 @@ export default function LifeSkillsMap() {
                             {course.lessons.map((lesson) => (
                               <div 
                                 key={lesson.id}
-                                className="flex items-center justify-between p-2 rounded hover:bg-gray-800/20 transition-colors cursor-pointer"
+                                className="flex items-center justify-between p-2 rounded hover:bg-gray-800/20 transition-colors cursor-pointer group"
                                 data-testid={`container-lesson-${lesson.id}`}
                                 onClick={() => handleLessonToggle(course.id, lesson.id, lesson.completed, lesson.title, course.title, lesson.url, course.category)}
                               >
@@ -498,9 +498,61 @@ export default function LifeSkillsMap() {
                                     {lesson.title}
                                   </a>
                                 </div>
-                                <span className="text-xs text-gray-500" data-testid={`text-lesson-points-${lesson.id}`}>
-                                  10 pts
-                                </span>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-gray-500" data-testid={`text-lesson-points-${lesson.id}`}>
+                                    10 pts
+                                  </span>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        data-testid={`button-add-assignment-${lesson.id}`}
+                                      >
+                                        <Plus className="h-3 w-3" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                                      <DropdownMenuItem
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleAddToAssignment('health', course.id, course.title, lesson.id, lesson.title, lesson.url);
+                                        }}
+                                        data-testid={`menu-add-health-${lesson.id}`}
+                                      >
+                                        Health
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleAddToAssignment('relationship', course.id, course.title, lesson.id, lesson.title, lesson.url);
+                                        }}
+                                        data-testid={`menu-add-relationship-${lesson.id}`}
+                                      >
+                                        Relationship
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleAddToAssignment('career', course.id, course.title, lesson.id, lesson.title, lesson.url);
+                                        }}
+                                        data-testid={`menu-add-career-${lesson.id}`}
+                                      >
+                                        Career
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleAddToAssignment('money', course.id, course.title, lesson.id, lesson.title, lesson.url);
+                                        }}
+                                        data-testid={`menu-add-money-${lesson.id}`}
+                                      >
+                                        Money
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </div>
                               </div>
                             ))}
                           </div>
@@ -554,7 +606,7 @@ export default function LifeSkillsMap() {
                                       {subcat.lessons.map((lesson) => (
                                         <div 
                                           key={lesson.id}
-                                          className="flex items-center justify-between p-2 rounded hover:bg-gray-800/20 transition-colors cursor-pointer"
+                                          className="flex items-center justify-between p-2 rounded hover:bg-gray-800/20 transition-colors cursor-pointer group"
                                           data-testid={`container-lesson-${lesson.id}`}
                                           onClick={() => handleLessonToggle(course.id, lesson.id, lesson.completed, lesson.title, subcat.title, lesson.url, course.category)}
                                         >
@@ -579,9 +631,61 @@ export default function LifeSkillsMap() {
                                               {lesson.title}
                                             </a>
                                           </div>
-                                          <span className="text-xs text-gray-500" data-testid={`text-lesson-points-${lesson.id}`}>
-                                            10 pts
-                                          </span>
+                                          <div className="flex items-center gap-2">
+                                            <span className="text-xs text-gray-500" data-testid={`text-lesson-points-${lesson.id}`}>
+                                              10 pts
+                                            </span>
+                                            <DropdownMenu>
+                                              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                                <Button
+                                                  size="sm"
+                                                  variant="ghost"
+                                                  className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                  data-testid={`button-add-assignment-${lesson.id}`}
+                                                >
+                                                  <Plus className="h-3 w-3" />
+                                                </Button>
+                                              </DropdownMenuTrigger>
+                                              <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                                                <DropdownMenuItem
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleAddToAssignment('health', course.id, subcat.title, lesson.id, lesson.title, lesson.url);
+                                                  }}
+                                                  data-testid={`menu-add-health-${lesson.id}`}
+                                                >
+                                                  Health
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleAddToAssignment('relationship', course.id, subcat.title, lesson.id, lesson.title, lesson.url);
+                                                  }}
+                                                  data-testid={`menu-add-relationship-${lesson.id}`}
+                                                >
+                                                  Relationship
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleAddToAssignment('career', course.id, subcat.title, lesson.id, lesson.title, lesson.url);
+                                                  }}
+                                                  data-testid={`menu-add-career-${lesson.id}`}
+                                                >
+                                                  Career
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleAddToAssignment('money', course.id, subcat.title, lesson.id, lesson.title, lesson.url);
+                                                  }}
+                                                  data-testid={`menu-add-money-${lesson.id}`}
+                                                >
+                                                  Money
+                                                </DropdownMenuItem>
+                                              </DropdownMenuContent>
+                                            </DropdownMenu>
+                                          </div>
                                         </div>
                                       ))}
                                       
@@ -633,7 +737,7 @@ export default function LifeSkillsMap() {
                                                   {subSubcat.lessons.map((lesson) => (
                                                     <div 
                                                       key={lesson.id}
-                                                      className="flex items-center justify-between p-2 rounded hover:bg-gray-800/20 transition-colors cursor-pointer"
+                                                      className="flex items-center justify-between p-2 rounded hover:bg-gray-800/20 transition-colors cursor-pointer group"
                                                       data-testid={`container-lesson-${lesson.id}`}
                                                       onClick={() => handleLessonToggle(course.id, lesson.id, lesson.completed, lesson.title, subSubcat.title, lesson.url, course.category)}
                                                     >
@@ -658,9 +762,61 @@ export default function LifeSkillsMap() {
                                                           {lesson.title}
                                                         </a>
                                                       </div>
-                                                      <span className="text-xs text-gray-500" data-testid={`text-lesson-points-${lesson.id}`}>
-                                                        10 pts
-                                                      </span>
+                                                      <div className="flex items-center gap-2">
+                                                        <span className="text-xs text-gray-500" data-testid={`text-lesson-points-${lesson.id}`}>
+                                                          10 pts
+                                                        </span>
+                                                        <DropdownMenu>
+                                                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                                            <Button
+                                                              size="sm"
+                                                              variant="ghost"
+                                                              className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                              data-testid={`button-add-assignment-${lesson.id}`}
+                                                            >
+                                                              <Plus className="h-3 w-3" />
+                                                            </Button>
+                                                          </DropdownMenuTrigger>
+                                                          <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                                                            <DropdownMenuItem
+                                                              onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleAddToAssignment('health', course.id, subSubcat.title, lesson.id, lesson.title, lesson.url);
+                                                              }}
+                                                              data-testid={`menu-add-health-${lesson.id}`}
+                                                            >
+                                                              Health
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem
+                                                              onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleAddToAssignment('relationship', course.id, subSubcat.title, lesson.id, lesson.title, lesson.url);
+                                                              }}
+                                                              data-testid={`menu-add-relationship-${lesson.id}`}
+                                                            >
+                                                              Relationship
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem
+                                                              onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleAddToAssignment('career', course.id, subSubcat.title, lesson.id, lesson.title, lesson.url);
+                                                              }}
+                                                              data-testid={`menu-add-career-${lesson.id}`}
+                                                            >
+                                                              Career
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem
+                                                              onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleAddToAssignment('money', course.id, subSubcat.title, lesson.id, lesson.title, lesson.url);
+                                                              }}
+                                                              data-testid={`menu-add-money-${lesson.id}`}
+                                                            >
+                                                              Money
+                                                            </DropdownMenuItem>
+                                                          </DropdownMenuContent>
+                                                        </DropdownMenu>
+                                                      </div>
                                                     </div>
                                                   ))}
                                                 </div>
