@@ -402,7 +402,7 @@ export default function AdminPanel() {
 
   const updateEmailMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: { email: string; name?: string; status: string } }) => {
-      return apiRequest('PUT', `/api/admin/approved-emails/${id}`, data);
+      return apiRequest(`/api/admin/approved-emails/${id}`, 'PUT', data);
     },
     onSuccess: () => {
       // Invalidate all related queries to auto-refresh analytics
