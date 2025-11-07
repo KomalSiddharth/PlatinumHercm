@@ -276,11 +276,15 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [currentDateStr, setCurrentDateStr] = useState<string>(today);
   const [beliefs, setBeliefs] = useState<HRCMBelief[]>([]);
-  const [editingField, setEditingField] = useState<{ category: string; field: string } | null>(null);
+  const [editingField, setEditingField] = useState<{ category: string; field: string; section?: string } | null>(null);
   const [editValue, setEditValue] = useState('');
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editDialogData, setEditDialogData] = useState<{ category: string; field: string; value: string; label: string; color: string } | null>(null);
   const [manualNextWeekMode, setManualNextWeekMode] = useState(false); // 🔥 Flag to disable auto-sync when user manually updates Next Week Target
+  
+  // Text Block Dialog States (Emotional Tracker Style)
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogValue, setDialogValue] = useState('');
   
   // State for hover editing
   const [hoverEditingField, setHoverEditingField] = useState<{ category: string; field: string } | null>(null);
@@ -1222,6 +1226,42 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       
       return updated;
     });
+  };
+
+  // Handle text block dialog close with auto-save (Emotional Tracker Style)
+  const handleDialogClose = (open: boolean) => {
+    if (!open && editingField) {
+      // Dialog is closing - auto-save the data
+      const { category, field } = editingField;
+      
+      setBeliefs(prev => {
+        const updated = prev.map(belief => {
+          if (belief.category === category) {
+            return {
+              ...belief,
+              [field]: dialogValue
+            };
+          }
+          return belief;
+        });
+        
+        // Auto-save changes to database
+        saveWeekMutation.mutate({
+          weekNumber,
+          year: new Date().getFullYear(),
+          dateString: currentDateStr,
+          beliefs: updated,
+        });
+        
+        return updated;
+      });
+      
+      // Reset dialog state
+      setEditingField(null);
+      setDialogValue('');
+    }
+    
+    setDialogOpen(open);
   };
 
   // Open standards dialog for a category
@@ -2981,116 +3021,132 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   </div>
                 </TableCell>
 
-                {/* Current Week - Problems (Checkpoint System) */}
+                {/* Current Week - Problems (Text Block) */}
                 <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top">
-                  {belief.problemsChecklist && belief.problemsChecklist.length > 0 ? (
-                    <CompactChecklistView
-                      items={belief.problemsChecklist}
-                      onToggle={(itemId) => handleProblemsChecklistToggle(belief.category, itemId)}
-                      onUpdateText={(itemId, text) => handleUpdateCheckpointText(belief.category, itemId, text, 'problems')}
-                      onAddCheckpoint={(text) => handleAddCheckpoint(belief.category, 'problems', text)}
-                      onDeleteCheckpoint={(itemId) => handleDeleteCheckpoint(belief.category, itemId, 'problems')}
-                      category={belief.category}
-                      checklistType="problems"
-                      disabled={(viewingHistory && hasDataForDate) || isAdminView}
-                    />
-                  ) : (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => !viewingHistory && !isAdminView && handleShowFirstCheckpointDialog(belief.category, 'problems')}
-                      className="h-7 w-full text-xs text-muted-foreground hover:text-foreground gap-1 justify-start"
-                      disabled={(viewingHistory && hasDataForDate) || isAdminView}
-                      data-testid={`button-add-first-checkpoint-problems-${belief.category.toLowerCase()}`}
-                    >
-                      <Plus className="w-3 h-3" />
-                      Add Checkpoint
-                    </Button>
-                  )}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div
+                        onClick={() => {
+                          if (!((viewingHistory && hasDataForDate) || isAdminView)) {
+                            setEditingField({ category: belief.category, field: 'problems', section: 'current' });
+                            setDialogValue(belief.problems || '');
+                            setDialogOpen(true);
+                          }
+                        }}
+                        className={`cursor-pointer min-h-[60px] max-h-[60px] overflow-hidden rounded px-3 py-2 text-sm bg-coral-red/10 dark:bg-coral-red/20 border border-coral-red/30 hover:border-coral-red/50 dark:hover:border-coral-red/60 transition-colors ${
+                          ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
+                        }`}
+                        data-testid={`text-block-problems-${belief.category.toLowerCase()}`}
+                      >
+                        {belief.problems ? (
+                          <span className="text-gray-700 dark:text-gray-200 line-clamp-2 text-xs">{belief.problems}</span>
+                        ) : (
+                          <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
+                        )}
+                      </div>
+                    </TooltipTrigger>
+                    {belief.problems && (
+                      <TooltipContent className="bg-coral-red/10 dark:bg-coral-red/80 border-coral-red/30 max-w-xs">
+                        <p className="text-xs text-gray-800 dark:text-gray-200 font-medium whitespace-pre-wrap">{belief.problems}</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
                 </TableCell>
 
-                {/* Current Week - Feelings (Checkpoint System) */}
+                {/* Current Week - Feelings (Text Block) */}
                 <TableCell className="p-2 bg-emerald-green/5 dark:bg-emerald-green/10 align-top">
-                  {belief.feelingsCurrentChecklist && belief.feelingsCurrentChecklist.length > 0 ? (
-                    <CompactChecklistView
-                      items={belief.feelingsCurrentChecklist}
-                      onToggle={(itemId) => handleFeelingsCurrentChecklistToggle(belief.category, itemId)}
-                      onUpdateText={(itemId, text) => handleUpdateCheckpointText(belief.category, itemId, text, 'feelingsCurrent')}
-                      onAddCheckpoint={(text) => handleAddCheckpoint(belief.category, 'feelingsCurrent', text)}
-                      onDeleteCheckpoint={(itemId) => handleDeleteCheckpoint(belief.category, itemId, 'feelingsCurrent')}
-                      category={belief.category}
-                      checklistType="feelingsCurrent"
-                      disabled={(viewingHistory && hasDataForDate) || isAdminView}
-                    />
-                  ) : (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => !viewingHistory && !isAdminView && handleShowFirstCheckpointDialog(belief.category, 'feelingsCurrent')}
-                      className="h-7 w-full text-xs text-muted-foreground hover:text-foreground gap-1 justify-start"
-                      disabled={(viewingHistory && hasDataForDate) || isAdminView}
-                      data-testid={`button-add-first-checkpoint-feelings-${belief.category.toLowerCase()}`}
-                    >
-                      <Plus className="w-3 h-3" />
-                      Add Checkpoint
-                    </Button>
-                  )}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div
+                        onClick={() => {
+                          if (!((viewingHistory && hasDataForDate) || isAdminView)) {
+                            setEditingField({ category: belief.category, field: 'currentFeelings', section: 'current' });
+                            setDialogValue(belief.currentFeelings || '');
+                            setDialogOpen(true);
+                          }
+                        }}
+                        className={`cursor-pointer min-h-[60px] max-h-[60px] overflow-hidden rounded px-3 py-2 text-sm bg-emerald-green/10 dark:bg-emerald-green/20 border border-emerald-green/30 hover:border-emerald-green/50 dark:hover:border-emerald-green/60 transition-colors ${
+                          ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
+                        }`}
+                        data-testid={`text-block-feelings-${belief.category.toLowerCase()}`}
+                      >
+                        {belief.currentFeelings ? (
+                          <span className="text-gray-700 dark:text-gray-200 line-clamp-2 text-xs">{belief.currentFeelings}</span>
+                        ) : (
+                          <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
+                        )}
+                      </div>
+                    </TooltipTrigger>
+                    {belief.currentFeelings && (
+                      <TooltipContent className="bg-emerald-green/10 dark:bg-emerald-green/80 border-emerald-green/30 max-w-xs">
+                        <p className="text-xs text-gray-800 dark:text-gray-200 font-medium whitespace-pre-wrap">{belief.currentFeelings}</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
                 </TableCell>
 
-                {/* Current Week - Beliefs (Checkpoint System) */}
+                {/* Current Week - Beliefs (Text Block) */}
                 <TableCell className="p-2 bg-golden-yellow/5 dark:bg-golden-yellow/10 align-top">
-                  {belief.beliefsCurrentChecklist && belief.beliefsCurrentChecklist.length > 0 ? (
-                    <CompactChecklistView
-                      items={belief.beliefsCurrentChecklist}
-                      onToggle={(itemId) => handleBeliefsCurrentChecklistToggle(belief.category, itemId)}
-                      onUpdateText={(itemId, text) => handleUpdateCheckpointText(belief.category, itemId, text, 'beliefsCurrent')}
-                      onAddCheckpoint={(text) => handleAddCheckpoint(belief.category, 'beliefsCurrent', text)}
-                      onDeleteCheckpoint={(itemId) => handleDeleteCheckpoint(belief.category, itemId, 'beliefsCurrent')}
-                      category={belief.category}
-                      checklistType="beliefsCurrent"
-                      disabled={(viewingHistory && hasDataForDate) || isAdminView}
-                    />
-                  ) : (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => !viewingHistory && !isAdminView && handleShowFirstCheckpointDialog(belief.category, 'beliefsCurrent')}
-                      className="h-7 w-full text-xs text-muted-foreground hover:text-foreground gap-1 justify-start"
-                      disabled={(viewingHistory && hasDataForDate) || isAdminView}
-                      data-testid={`button-add-first-checkpoint-beliefs-${belief.category.toLowerCase()}`}
-                    >
-                      <Plus className="w-3 h-3" />
-                      Add Checkpoint
-                    </Button>
-                  )}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div
+                        onClick={() => {
+                          if (!((viewingHistory && hasDataForDate) || isAdminView)) {
+                            setEditingField({ category: belief.category, field: 'currentBelief', section: 'current' });
+                            setDialogValue(belief.currentBelief || '');
+                            setDialogOpen(true);
+                          }
+                        }}
+                        className={`cursor-pointer min-h-[60px] max-h-[60px] overflow-hidden rounded px-3 py-2 text-sm bg-golden-yellow/10 dark:bg-golden-yellow/20 border border-golden-yellow/30 hover:border-golden-yellow/50 dark:hover:border-golden-yellow/60 transition-colors ${
+                          ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
+                        }`}
+                        data-testid={`text-block-beliefs-${belief.category.toLowerCase()}`}
+                      >
+                        {belief.currentBelief ? (
+                          <span className="text-gray-700 dark:text-gray-200 line-clamp-2 text-xs">{belief.currentBelief}</span>
+                        ) : (
+                          <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
+                        )}
+                      </div>
+                    </TooltipTrigger>
+                    {belief.currentBelief && (
+                      <TooltipContent className="bg-golden-yellow/10 dark:bg-golden-yellow/80 border-golden-yellow/30 max-w-xs">
+                        <p className="text-xs text-gray-800 dark:text-gray-200 font-medium whitespace-pre-wrap">{belief.currentBelief}</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
                 </TableCell>
 
-                {/* Current Week - Actions (Checkpoint System) */}
+                {/* Current Week - Actions (Text Block) */}
                 <TableCell className="p-2 bg-soft-lavender/5 dark:bg-soft-lavender/10 border-r align-top">
-                  {belief.actionsCurrentChecklist && belief.actionsCurrentChecklist.length > 0 ? (
-                    <CompactChecklistView
-                      items={belief.actionsCurrentChecklist}
-                      onToggle={(itemId) => handleActionsCurrentChecklistToggle(belief.category, itemId)}
-                      onUpdateText={(itemId, text) => handleUpdateCheckpointText(belief.category, itemId, text, 'actionsCurrent')}
-                      onAddCheckpoint={(text) => handleAddCheckpoint(belief.category, 'actionsCurrent', text)}
-                      onDeleteCheckpoint={(itemId) => handleDeleteCheckpoint(belief.category, itemId, 'actionsCurrent')}
-                      category={belief.category}
-                      checklistType="actionsCurrent"
-                      disabled={(viewingHistory && hasDataForDate) || isAdminView}
-                    />
-                  ) : (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => !viewingHistory && !isAdminView && handleShowFirstCheckpointDialog(belief.category, 'actionsCurrent')}
-                      className="h-7 w-full text-xs text-muted-foreground hover:text-foreground gap-1 justify-start"
-                      disabled={(viewingHistory && hasDataForDate) || isAdminView}
-                      data-testid={`button-add-first-checkpoint-actions-${belief.category.toLowerCase()}`}
-                    >
-                      <Plus className="w-3 h-3" />
-                      Add Checkpoint
-                    </Button>
-                  )}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div
+                        onClick={() => {
+                          if (!((viewingHistory && hasDataForDate) || isAdminView)) {
+                            setEditingField({ category: belief.category, field: 'currentActions', section: 'current' });
+                            setDialogValue(belief.currentActions || '');
+                            setDialogOpen(true);
+                          }
+                        }}
+                        className={`cursor-pointer min-h-[60px] max-h-[60px] overflow-hidden rounded px-3 py-2 text-sm bg-soft-lavender/10 dark:bg-soft-lavender/20 border border-soft-lavender/30 hover:border-soft-lavender/50 dark:hover:border-soft-lavender/60 transition-colors ${
+                          ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
+                        }`}
+                        data-testid={`text-block-actions-${belief.category.toLowerCase()}`}
+                      >
+                        {belief.currentActions ? (
+                          <span className="text-gray-700 dark:text-gray-200 line-clamp-2 text-xs">{belief.currentActions}</span>
+                        ) : (
+                          <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
+                        )}
+                      </div>
+                    </TooltipTrigger>
+                    {belief.currentActions && (
+                      <TooltipContent className="bg-soft-lavender/10 dark:bg-soft-lavender/80 border-soft-lavender/30 max-w-xs">
+                        <p className="text-xs text-gray-800 dark:text-gray-200 font-medium whitespace-pre-wrap">{belief.currentActions}</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
                 </TableCell>
 
                 {/* Platinum Standards - Compact with Hover Popup */}
@@ -3263,120 +3319,132 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   </div>
                 </TableCell>
 
-                {/* Next Week - Problems */}
+                {/* Next Week - Results (Text Block) */}
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top max-h-[85px] w-[180px] overflow-hidden">
-                  {belief.resultChecklist && belief.resultChecklist.length > 0 ? (
-                    <CompactChecklistView
-                      items={belief.resultChecklist}
-                      onToggle={(itemId) => handleResultChecklistToggle(belief.category, itemId)}
-                      onUpdateText={(itemId, text) => handleUpdateCheckpointText(belief.category, itemId, text, 'result')}
-                      onAddCheckpoint={(text) => handleAddCheckpoint(belief.category, 'result', text)}
-                      onDeleteCheckpoint={(itemId) => handleDeleteCheckpoint(belief.category, itemId, 'result')}
-                      category={belief.category}
-                      checklistType="result"
-                      disabled={(viewingHistory && hasDataForDate) || isAdminView}
-                    />
-                  ) : !viewingHistory && !isAdminView ? (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleShowFirstCheckpointDialog(belief.category, 'result')}
-                      className="h-6 w-full text-xs text-muted-foreground hover:text-foreground gap-1"
-                      data-testid={`button-add-checkpoint-result-${belief.category.toLowerCase()}`}
-                    >
-                      <Plus className="w-3 h-3" />
-                      Add Checkpoint
-                    </Button>
-                  ) : (
-                    <p className="text-xs text-muted-foreground text-center py-2">No items</p>
-                  )}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div
+                        onClick={() => {
+                          if (!((viewingHistory && hasDataForDate) || isAdminView)) {
+                            setEditingField({ category: belief.category, field: 'result', section: 'next' });
+                            setDialogValue(belief.result || '');
+                            setDialogOpen(true);
+                          }
+                        }}
+                        className={`cursor-pointer min-h-[60px] max-h-[60px] overflow-hidden rounded px-3 py-2 text-sm bg-coral-red/10 dark:bg-coral-red/20 border border-coral-red/30 hover:border-coral-red/50 dark:hover:border-coral-red/60 transition-colors ${
+                          ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
+                        }`}
+                        data-testid={`text-block-result-${belief.category.toLowerCase()}`}
+                      >
+                        {belief.result ? (
+                          <span className="text-gray-700 dark:text-gray-200 line-clamp-2 text-xs">{belief.result}</span>
+                        ) : (
+                          <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
+                        )}
+                      </div>
+                    </TooltipTrigger>
+                    {belief.result && (
+                      <TooltipContent className="bg-coral-red/10 dark:bg-coral-red/80 border-coral-red/30 max-w-xs">
+                        <p className="text-xs text-gray-800 dark:text-gray-200 font-medium whitespace-pre-wrap">{belief.result}</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
                 </TableCell>
 
-                {/* Next Week - Feelings */}
+                {/* Next Week - Feelings (Text Block) */}
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top max-h-[85px] w-[180px] overflow-hidden">
-                  {belief.feelingsChecklist && belief.feelingsChecklist.length > 0 ? (
-                    <CompactChecklistView
-                      items={belief.feelingsChecklist}
-                      onToggle={(itemId) => handleFeelingsChecklistToggle(belief.category, itemId)}
-                      onUpdateText={(itemId, text) => handleUpdateCheckpointText(belief.category, itemId, text, 'feelings')}
-                      onAddCheckpoint={(text) => handleAddCheckpoint(belief.category, 'feelings', text)}
-                      onDeleteCheckpoint={(itemId) => handleDeleteCheckpoint(belief.category, itemId, 'feelings')}
-                      category={belief.category}
-                      checklistType="feelings"
-                      disabled={(viewingHistory && hasDataForDate) || isAdminView}
-                    />
-                  ) : !viewingHistory && !isAdminView ? (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleShowFirstCheckpointDialog(belief.category, 'feelings')}
-                      className="h-6 w-full text-xs text-muted-foreground hover:text-foreground gap-1"
-                      data-testid={`button-add-checkpoint-feelings-${belief.category.toLowerCase()}`}
-                    >
-                      <Plus className="w-3 h-3" />
-                      Add Checkpoint
-                    </Button>
-                  ) : (
-                    <p className="text-xs text-muted-foreground text-center py-2">No items</p>
-                  )}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div
+                        onClick={() => {
+                          if (!((viewingHistory && hasDataForDate) || isAdminView)) {
+                            setEditingField({ category: belief.category, field: 'nextFeelings', section: 'next' });
+                            setDialogValue(belief.nextFeelings || '');
+                            setDialogOpen(true);
+                          }
+                        }}
+                        className={`cursor-pointer min-h-[60px] max-h-[60px] overflow-hidden rounded px-3 py-2 text-sm bg-emerald-green/10 dark:bg-emerald-green/20 border border-emerald-green/30 hover:border-emerald-green/50 dark:hover:border-emerald-green/60 transition-colors ${
+                          ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
+                        }`}
+                        data-testid={`text-block-next-feelings-${belief.category.toLowerCase()}`}
+                      >
+                        {belief.nextFeelings ? (
+                          <span className="text-gray-700 dark:text-gray-200 line-clamp-2 text-xs">{belief.nextFeelings}</span>
+                        ) : (
+                          <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
+                        )}
+                      </div>
+                    </TooltipTrigger>
+                    {belief.nextFeelings && (
+                      <TooltipContent className="bg-emerald-green/10 dark:bg-emerald-green/80 border-emerald-green/30 max-w-xs">
+                        <p className="text-xs text-gray-800 dark:text-gray-200 font-medium whitespace-pre-wrap">{belief.nextFeelings}</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
                 </TableCell>
 
-                {/* Next Week - Beliefs/Reasons */}
+                {/* Next Week - Beliefs/Reasons (Text Block) */}
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top max-h-[85px] w-[180px] overflow-hidden">
-                  {belief.beliefsChecklist && belief.beliefsChecklist.length > 0 ? (
-                    <CompactChecklistView
-                      items={belief.beliefsChecklist}
-                      onToggle={(itemId) => handleBeliefsChecklistToggle(belief.category, itemId)}
-                      onUpdateText={(itemId, text) => handleUpdateCheckpointText(belief.category, itemId, text, 'beliefs')}
-                      onAddCheckpoint={(text) => handleAddCheckpoint(belief.category, 'beliefs', text)}
-                      onDeleteCheckpoint={(itemId) => handleDeleteCheckpoint(belief.category, itemId, 'beliefs')}
-                      category={belief.category}
-                      checklistType="beliefs"
-                      disabled={(viewingHistory && hasDataForDate) || isAdminView}
-                    />
-                  ) : !viewingHistory && !isAdminView ? (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleShowFirstCheckpointDialog(belief.category, 'beliefs')}
-                      className="h-6 w-full text-xs text-muted-foreground hover:text-foreground gap-1"
-                      data-testid={`button-add-checkpoint-beliefs-${belief.category.toLowerCase()}`}
-                    >
-                      <Plus className="w-3 h-3" />
-                      Add Checkpoint
-                    </Button>
-                  ) : (
-                    <p className="text-xs text-muted-foreground text-center py-2">No items</p>
-                  )}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div
+                        onClick={() => {
+                          if (!((viewingHistory && hasDataForDate) || isAdminView)) {
+                            setEditingField({ category: belief.category, field: 'nextWeekTarget', section: 'next' });
+                            setDialogValue(belief.nextWeekTarget || '');
+                            setDialogOpen(true);
+                          }
+                        }}
+                        className={`cursor-pointer min-h-[60px] max-h-[60px] overflow-hidden rounded px-3 py-2 text-sm bg-golden-yellow/10 dark:bg-golden-yellow/20 border border-golden-yellow/30 hover:border-golden-yellow/50 dark:hover:border-golden-yellow/60 transition-colors ${
+                          ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
+                        }`}
+                        data-testid={`text-block-next-beliefs-${belief.category.toLowerCase()}`}
+                      >
+                        {belief.nextWeekTarget ? (
+                          <span className="text-gray-700 dark:text-gray-200 line-clamp-2 text-xs">{belief.nextWeekTarget}</span>
+                        ) : (
+                          <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
+                        )}
+                      </div>
+                    </TooltipTrigger>
+                    {belief.nextWeekTarget && (
+                      <TooltipContent className="bg-golden-yellow/10 dark:bg-golden-yellow/80 border-golden-yellow/30 max-w-xs">
+                        <p className="text-xs text-gray-800 dark:text-gray-200 font-medium whitespace-pre-wrap">{belief.nextWeekTarget}</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
                 </TableCell>
 
-                {/* Next Week - Actions */}
+                {/* Next Week - Actions (Text Block) */}
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 border-r align-top max-h-[85px] w-[180px] overflow-hidden">
-                  {belief.actionsChecklist && belief.actionsChecklist.length > 0 ? (
-                    <CompactChecklistView
-                      items={belief.actionsChecklist}
-                      onToggle={(itemId) => handleActionsChecklistToggle(belief.category, itemId)}
-                      onUpdateText={(itemId, text) => handleUpdateCheckpointText(belief.category, itemId, text, 'actions')}
-                      onAddCheckpoint={(text) => handleAddCheckpoint(belief.category, 'actions', text)}
-                      onDeleteCheckpoint={(itemId) => handleDeleteCheckpoint(belief.category, itemId, 'actions')}
-                      category={belief.category}
-                      checklistType="actions"
-                      disabled={(viewingHistory && hasDataForDate) || isAdminView}
-                    />
-                  ) : !viewingHistory && !isAdminView ? (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleShowFirstCheckpointDialog(belief.category, 'actions')}
-                      className="h-6 w-full text-xs text-muted-foreground hover:text-foreground gap-1"
-                      data-testid={`button-add-checkpoint-actions-${belief.category.toLowerCase()}`}
-                    >
-                      <Plus className="w-3 h-3" />
-                      Add Checkpoint
-                    </Button>
-                  ) : (
-                    <p className="text-xs text-muted-foreground text-center py-2">No items</p>
-                  )}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div
+                        onClick={() => {
+                          if (!((viewingHistory && hasDataForDate) || isAdminView)) {
+                            setEditingField({ category: belief.category, field: 'nextActions', section: 'next' });
+                            setDialogValue(belief.nextActions || '');
+                            setDialogOpen(true);
+                          }
+                        }}
+                        className={`cursor-pointer min-h-[60px] max-h-[60px] overflow-hidden rounded px-3 py-2 text-sm bg-soft-lavender/10 dark:bg-soft-lavender/20 border border-soft-lavender/30 hover:border-soft-lavender/50 dark:hover:border-soft-lavender/60 transition-colors ${
+                          ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
+                        }`}
+                        data-testid={`text-block-next-actions-${belief.category.toLowerCase()}`}
+                      >
+                        {belief.nextActions ? (
+                          <span className="text-gray-700 dark:text-gray-200 line-clamp-2 text-xs">{belief.nextActions}</span>
+                        ) : (
+                          <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
+                        )}
+                      </div>
+                    </TooltipTrigger>
+                    {belief.nextActions && (
+                      <TooltipContent className="bg-soft-lavender/10 dark:bg-soft-lavender/80 border-soft-lavender/30 max-w-xs">
+                        <p className="text-xs text-gray-800 dark:text-gray-200 font-medium whitespace-pre-wrap">{belief.nextActions}</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
                 </TableCell>
 
                 {/* Unified Assignment Column - Compact with Hover Popup (Show only for first row with rowspan) */}
@@ -3808,6 +3876,33 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               <Save className="w-4 h-4 mr-2" />
               Save
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Text Block Edit Dialog (Emotional Tracker Style) */}
+      <Dialog open={dialogOpen} onOpenChange={handleDialogClose}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="text-base font-semibold">
+              Edit {editingField?.field === 'problems' ? 'Problems' : 
+                    editingField?.field === 'currentFeelings' ? 'Feelings' : 
+                    editingField?.field === 'currentBelief' ? 'Beliefs' : 
+                    editingField?.field === 'currentActions' ? 'Actions' : 
+                    editingField?.field === 'result' ? 'Results' : 
+                    editingField?.field === 'nextFeelings' ? 'Next Week Feelings' : 
+                    editingField?.field === 'nextWeekTarget' ? 'Next Week Beliefs/Reasons' : 
+                    editingField?.field === 'nextActions' ? 'Next Week Actions' : ''}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <Textarea
+              value={dialogValue}
+              onChange={(e) => setDialogValue(e.target.value)}
+              placeholder="Enter text..."
+              className="min-h-[200px] text-sm"
+              data-testid="textarea-text-block-edit"
+            />
           </div>
         </DialogContent>
       </Dialog>
