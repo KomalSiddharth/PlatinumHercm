@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { Heart, Brain, RefreshCcw, Sparkles, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -327,98 +326,62 @@ export default function EmotionalTracker() {
                       
                       {/* Positive Emotions */}
                       <td className="p-1 sm:p-1.5 md:p-2">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div
-                              onClick={() => openEditDialog(timeSlot, 'positiveEmotions')}
-                              className={`cursor-pointer min-h-[36px] max-h-[36px] overflow-hidden rounded px-3 py-2 text-sm ${FIELD_COLORS.positiveEmotions.bg} ${FIELD_COLORS.positiveEmotions.border} border hover:border-green-400 dark:hover:border-green-500 transition-colors`}
-                              data-testid={`input-positive-${index}`}
-                            >
-                              {data.positiveEmotions ? (
-                                <span className="text-gray-700 dark:text-gray-200 line-clamp-1">{data.positiveEmotions}</span>
-                              ) : (
-                                <span className="text-gray-400 dark:text-gray-500 italic">Click to add...</span>
-                              )}
-                            </div>
-                          </TooltipTrigger>
-                          {data.positiveEmotions && (
-                            <TooltipContent className="bg-green-100 dark:bg-green-900/80 border-green-300 dark:border-green-700">
-                              <p className="max-w-xs text-green-800 dark:text-green-200 font-medium">{data.positiveEmotions}</p>
-                            </TooltipContent>
+                        <div
+                          onClick={() => openEditDialog(timeSlot, 'positiveEmotions')}
+                          className={`cursor-pointer min-h-[36px] max-h-[36px] overflow-hidden rounded px-3 py-2 text-sm ${FIELD_COLORS.positiveEmotions.bg} ${FIELD_COLORS.positiveEmotions.border} border hover:border-green-400 dark:hover:border-green-500 transition-colors`}
+                          data-testid={`input-positive-${index}`}
+                        >
+                          {data.positiveEmotions ? (
+                            <span className="text-gray-700 dark:text-gray-200 line-clamp-1">{data.positiveEmotions}</span>
+                          ) : (
+                            <span className="text-gray-400 dark:text-gray-500 italic">Click to add...</span>
                           )}
-                        </Tooltip>
+                        </div>
                       </td>
 
                       {/* Negative Emotions */}
                       <td className="p-1 sm:p-1.5 md:p-2">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div
-                              onClick={() => openEditDialog(timeSlot, 'negativeEmotions')}
-                              className={`cursor-pointer min-h-[36px] max-h-[36px] overflow-hidden rounded px-3 py-2 text-sm ${FIELD_COLORS.negativeEmotions.bg} ${FIELD_COLORS.negativeEmotions.border} border hover:border-red-400 dark:hover:border-red-500 transition-colors`}
-                              data-testid={`input-negative-${index}`}
-                            >
-                              {data.negativeEmotions ? (
-                                <span className="text-gray-700 dark:text-gray-200 line-clamp-1">{data.negativeEmotions}</span>
-                              ) : (
-                                <span className="text-gray-400 dark:text-gray-500 italic">Click to add...</span>
-                              )}
-                            </div>
-                          </TooltipTrigger>
-                          {data.negativeEmotions && (
-                            <TooltipContent className="bg-red-100 dark:bg-red-900/80 border-red-300 dark:border-red-700">
-                              <p className="max-w-xs text-red-800 dark:text-red-200 font-medium">{data.negativeEmotions}</p>
-                            </TooltipContent>
+                        <div
+                          onClick={() => openEditDialog(timeSlot, 'negativeEmotions')}
+                          className={`cursor-pointer min-h-[36px] max-h-[36px] overflow-hidden rounded px-3 py-2 text-sm ${FIELD_COLORS.negativeEmotions.bg} ${FIELD_COLORS.negativeEmotions.border} border hover:border-red-400 dark:hover:border-red-500 transition-colors`}
+                          data-testid={`input-negative-${index}`}
+                        >
+                          {data.negativeEmotions ? (
+                            <span className="text-gray-700 dark:text-gray-200 line-clamp-1">{data.negativeEmotions}</span>
+                          ) : (
+                            <span className="text-gray-400 dark:text-gray-500 italic">Click to add...</span>
                           )}
-                        </Tooltip>
+                        </div>
                       </td>
 
                       {/* Repeating Emotions */}
                       <td className="p-1 sm:p-1.5 md:p-2">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div
-                              onClick={() => openEditDialog(timeSlot, 'repeatingEmotions')}
-                              className={`cursor-pointer min-h-[36px] max-h-[36px] overflow-hidden rounded px-3 py-2 text-sm ${FIELD_COLORS.repeatingEmotions.bg} ${FIELD_COLORS.repeatingEmotions.border} border hover:border-blue-400 dark:hover:border-blue-500 transition-colors`}
-                              data-testid={`input-repeating-${index}`}
-                            >
-                              {data.repeatingEmotions ? (
-                                <span className="text-gray-700 dark:text-gray-200 line-clamp-1">{data.repeatingEmotions}</span>
-                              ) : (
-                                <span className="text-gray-400 dark:text-gray-500 italic">Click to add...</span>
-                              )}
-                            </div>
-                          </TooltipTrigger>
-                          {data.repeatingEmotions && (
-                            <TooltipContent className="bg-blue-100 dark:bg-blue-900/80 border-blue-300 dark:border-blue-700">
-                              <p className="max-w-xs text-blue-800 dark:text-blue-200 font-medium">{data.repeatingEmotions}</p>
-                            </TooltipContent>
+                        <div
+                          onClick={() => openEditDialog(timeSlot, 'repeatingEmotions')}
+                          className={`cursor-pointer min-h-[36px] max-h-[36px] overflow-hidden rounded px-3 py-2 text-sm ${FIELD_COLORS.repeatingEmotions.bg} ${FIELD_COLORS.repeatingEmotions.border} border hover:border-blue-400 dark:hover:border-blue-500 transition-colors`}
+                          data-testid={`input-repeating-${index}`}
+                        >
+                          {data.repeatingEmotions ? (
+                            <span className="text-gray-700 dark:text-gray-200 line-clamp-1">{data.repeatingEmotions}</span>
+                          ) : (
+                            <span className="text-gray-400 dark:text-gray-500 italic">Click to add...</span>
                           )}
-                        </Tooltip>
+                        </div>
                       </td>
 
                       {/* Missing Emotions */}
                       <td className="p-1 sm:p-1.5 md:p-2">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div
-                              onClick={() => openEditDialog(timeSlot, 'missingEmotions')}
-                              className={`cursor-pointer min-h-[36px] max-h-[36px] overflow-hidden rounded px-3 py-2 text-sm ${FIELD_COLORS.missingEmotions.bg} ${FIELD_COLORS.missingEmotions.border} border hover:border-orange-400 dark:hover:border-orange-500 transition-colors`}
-                              data-testid={`input-missing-${index}`}
-                            >
-                              {data.missingEmotions ? (
-                                <span className="text-gray-700 dark:text-gray-200 line-clamp-1">{data.missingEmotions}</span>
-                              ) : (
-                                <span className="text-gray-400 dark:text-gray-500 italic">Click to add...</span>
-                              )}
-                            </div>
-                          </TooltipTrigger>
-                          {data.missingEmotions && (
-                            <TooltipContent className="bg-orange-100 dark:bg-orange-900/80 border-orange-300 dark:border-orange-700">
-                              <p className="max-w-xs text-orange-800 dark:text-orange-200 font-medium">{data.missingEmotions}</p>
-                            </TooltipContent>
+                        <div
+                          onClick={() => openEditDialog(timeSlot, 'missingEmotions')}
+                          className={`cursor-pointer min-h-[36px] max-h-[36px] overflow-hidden rounded px-3 py-2 text-sm ${FIELD_COLORS.missingEmotions.bg} ${FIELD_COLORS.missingEmotions.border} border hover:border-orange-400 dark:hover:border-orange-500 transition-colors`}
+                          data-testid={`input-missing-${index}`}
+                        >
+                          {data.missingEmotions ? (
+                            <span className="text-gray-700 dark:text-gray-200 line-clamp-1">{data.missingEmotions}</span>
+                          ) : (
+                            <span className="text-gray-400 dark:text-gray-500 italic">Click to add...</span>
                           )}
-                        </Tooltip>
+                        </div>
                       </td>
                     </tr>
                   );

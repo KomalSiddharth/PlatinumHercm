@@ -5,11 +5,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Sparkles, Check, X, TrendingUp, Save, Loader2, ArrowUp, ArrowDown, Plus, MoreHorizontal, Calendar as CalendarIcon, Trash2, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, RefreshCw } from 'lucide-react';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
@@ -3023,134 +3018,98 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
                 {/* Current Week - Problems (Text Block) */}
                 <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div
-                        onClick={() => {
-                          if (!((viewingHistory && hasDataForDate) || isAdminView)) {
-                            setEditingField({ category: belief.category, field: 'problems', section: 'current' });
-                            setDialogValue(belief.problems || '');
-                            setDialogOpen(true);
-                          }
-                        }}
-                        style={{ height: '60px' }}
-                        className={`cursor-pointer overflow-hidden text-ellipsis rounded px-3 py-2 text-sm bg-coral-red/10 dark:bg-coral-red/20 border border-coral-red/30 hover:border-coral-red/50 dark:hover:border-coral-red/60 transition-colors ${
-                          ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
-                        }`}
-                        data-testid={`text-block-problems-${belief.category.toLowerCase()}`}
-                      >
-                        {belief.problems ? (
-                          <div className="overflow-hidden text-ellipsis line-clamp-3 text-gray-700 dark:text-gray-200 text-xs leading-tight">{belief.problems}</div>
-                        ) : (
-                          <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
-                        )}
-                      </div>
-                    </TooltipTrigger>
-                    {belief.problems && (
-                      <TooltipContent className="bg-coral-red/10 dark:bg-coral-red/80 border-coral-red/30 max-w-xs">
-                        <p className="text-xs text-gray-800 dark:text-gray-200 font-medium whitespace-pre-wrap">{belief.problems}</p>
-                      </TooltipContent>
+                  <div
+                    onClick={() => {
+                      if (!((viewingHistory && hasDataForDate) || isAdminView)) {
+                        setEditingField({ category: belief.category, field: 'problems', section: 'current' });
+                        setDialogValue(belief.problems || '');
+                        setDialogOpen(true);
+                      }
+                    }}
+                    style={{ height: '60px' }}
+                    className={`cursor-pointer overflow-hidden text-ellipsis rounded px-3 py-2 text-sm bg-coral-red/10 dark:bg-coral-red/20 border border-coral-red/30 hover:border-coral-red/50 dark:hover:border-coral-red/60 transition-colors ${
+                      ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
+                    }`}
+                    data-testid={`text-block-problems-${belief.category.toLowerCase()}`}
+                  >
+                    {belief.problems ? (
+                      <div className="overflow-hidden text-ellipsis line-clamp-3 text-gray-700 dark:text-gray-200 text-xs leading-tight">{belief.problems}</div>
+                    ) : (
+                      <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
                     )}
-                  </Tooltip>
+                  </div>
                 </TableCell>
 
                 {/* Current Week - Feelings (Text Block) */}
                 <TableCell className="p-2 bg-emerald-green/5 dark:bg-emerald-green/10 align-top">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div
-                        onClick={() => {
-                          if (!((viewingHistory && hasDataForDate) || isAdminView)) {
-                            setEditingField({ category: belief.category, field: 'currentFeelings', section: 'current' });
-                            setDialogValue(belief.currentFeelings || '');
-                            setDialogOpen(true);
-                          }
-                        }}
-                        style={{ height: '60px' }}
-                        className={`cursor-pointer overflow-hidden text-ellipsis rounded px-3 py-2 text-sm bg-emerald-green/10 dark:bg-emerald-green/20 border border-emerald-green/30 hover:border-emerald-green/50 dark:hover:border-emerald-green/60 transition-colors ${
-                          ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
-                        }`}
-                        data-testid={`text-block-feelings-${belief.category.toLowerCase()}`}
-                      >
-                        {belief.currentFeelings ? (
-                          <div className="overflow-hidden text-ellipsis line-clamp-3 text-gray-700 dark:text-gray-200 text-xs leading-tight">{belief.currentFeelings}</div>
-                        ) : (
-                          <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
-                        )}
-                      </div>
-                    </TooltipTrigger>
-                    {belief.currentFeelings && (
-                      <TooltipContent className="bg-emerald-green/10 dark:bg-emerald-green/80 border-emerald-green/30 max-w-xs">
-                        <p className="text-xs text-gray-800 dark:text-gray-200 font-medium whitespace-pre-wrap">{belief.currentFeelings}</p>
-                      </TooltipContent>
+                  <div
+                    onClick={() => {
+                      if (!((viewingHistory && hasDataForDate) || isAdminView)) {
+                        setEditingField({ category: belief.category, field: 'currentFeelings', section: 'current' });
+                        setDialogValue(belief.currentFeelings || '');
+                        setDialogOpen(true);
+                      }
+                    }}
+                    style={{ height: '60px' }}
+                    className={`cursor-pointer overflow-hidden text-ellipsis rounded px-3 py-2 text-sm bg-emerald-green/10 dark:bg-emerald-green/20 border border-emerald-green/30 hover:border-emerald-green/50 dark:hover:border-emerald-green/60 transition-colors ${
+                      ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
+                    }`}
+                    data-testid={`text-block-feelings-${belief.category.toLowerCase()}`}
+                  >
+                    {belief.currentFeelings ? (
+                      <div className="overflow-hidden text-ellipsis line-clamp-3 text-gray-700 dark:text-gray-200 text-xs leading-tight">{belief.currentFeelings}</div>
+                    ) : (
+                      <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
                     )}
-                  </Tooltip>
+                  </div>
                 </TableCell>
 
                 {/* Current Week - Beliefs (Text Block) */}
                 <TableCell className="p-2 bg-golden-yellow/5 dark:bg-golden-yellow/10 align-top">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div
-                        onClick={() => {
-                          if (!((viewingHistory && hasDataForDate) || isAdminView)) {
-                            setEditingField({ category: belief.category, field: 'currentBelief', section: 'current' });
-                            setDialogValue(belief.currentBelief || '');
-                            setDialogOpen(true);
-                          }
-                        }}
-                        style={{ height: '60px' }}
-                        className={`cursor-pointer overflow-hidden text-ellipsis rounded px-3 py-2 text-sm bg-golden-yellow/10 dark:bg-golden-yellow/20 border border-golden-yellow/30 hover:border-golden-yellow/50 dark:hover:border-golden-yellow/60 transition-colors ${
-                          ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
-                        }`}
-                        data-testid={`text-block-beliefs-${belief.category.toLowerCase()}`}
-                      >
-                        {belief.currentBelief ? (
-                          <div className="overflow-hidden text-ellipsis line-clamp-3 text-gray-700 dark:text-gray-200 text-xs leading-tight">{belief.currentBelief}</div>
-                        ) : (
-                          <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
-                        )}
-                      </div>
-                    </TooltipTrigger>
-                    {belief.currentBelief && (
-                      <TooltipContent className="bg-golden-yellow/10 dark:bg-golden-yellow/80 border-golden-yellow/30 max-w-xs">
-                        <p className="text-xs text-gray-800 dark:text-gray-200 font-medium whitespace-pre-wrap">{belief.currentBelief}</p>
-                      </TooltipContent>
+                  <div
+                    onClick={() => {
+                      if (!((viewingHistory && hasDataForDate) || isAdminView)) {
+                        setEditingField({ category: belief.category, field: 'currentBelief', section: 'current' });
+                        setDialogValue(belief.currentBelief || '');
+                        setDialogOpen(true);
+                      }
+                    }}
+                    style={{ height: '60px' }}
+                    className={`cursor-pointer overflow-hidden text-ellipsis rounded px-3 py-2 text-sm bg-golden-yellow/10 dark:bg-golden-yellow/20 border border-golden-yellow/30 hover:border-golden-yellow/50 dark:hover:border-golden-yellow/60 transition-colors ${
+                      ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
+                    }`}
+                    data-testid={`text-block-beliefs-${belief.category.toLowerCase()}`}
+                  >
+                    {belief.currentBelief ? (
+                      <div className="overflow-hidden text-ellipsis line-clamp-3 text-gray-700 dark:text-gray-200 text-xs leading-tight">{belief.currentBelief}</div>
+                    ) : (
+                      <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
                     )}
-                  </Tooltip>
+                  </div>
                 </TableCell>
 
                 {/* Current Week - Actions (Text Block) */}
                 <TableCell className="p-2 bg-soft-lavender/5 dark:bg-soft-lavender/10 border-r align-top">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div
-                        onClick={() => {
-                          if (!((viewingHistory && hasDataForDate) || isAdminView)) {
-                            setEditingField({ category: belief.category, field: 'currentActions', section: 'current' });
-                            setDialogValue(belief.currentActions || '');
-                            setDialogOpen(true);
-                          }
-                        }}
-                        style={{ height: '60px' }}
-                        className={`cursor-pointer overflow-hidden text-ellipsis rounded px-3 py-2 text-sm bg-soft-lavender/10 dark:bg-soft-lavender/20 border border-soft-lavender/30 hover:border-soft-lavender/50 dark:hover:border-soft-lavender/60 transition-colors ${
-                          ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
-                        }`}
-                        data-testid={`text-block-actions-${belief.category.toLowerCase()}`}
-                      >
-                        {belief.currentActions ? (
-                          <div className="overflow-hidden text-ellipsis line-clamp-3 text-gray-700 dark:text-gray-200 text-xs leading-tight">{belief.currentActions}</div>
-                        ) : (
-                          <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
-                        )}
-                      </div>
-                    </TooltipTrigger>
-                    {belief.currentActions && (
-                      <TooltipContent className="bg-soft-lavender/10 dark:bg-soft-lavender/80 border-soft-lavender/30 max-w-xs">
-                        <p className="text-xs text-gray-800 dark:text-gray-200 font-medium whitespace-pre-wrap">{belief.currentActions}</p>
-                      </TooltipContent>
+                  <div
+                    onClick={() => {
+                      if (!((viewingHistory && hasDataForDate) || isAdminView)) {
+                        setEditingField({ category: belief.category, field: 'currentActions', section: 'current' });
+                        setDialogValue(belief.currentActions || '');
+                        setDialogOpen(true);
+                      }
+                    }}
+                    style={{ height: '60px' }}
+                    className={`cursor-pointer overflow-hidden text-ellipsis rounded px-3 py-2 text-sm bg-soft-lavender/10 dark:bg-soft-lavender/20 border border-soft-lavender/30 hover:border-soft-lavender/50 dark:hover:border-soft-lavender/60 transition-colors ${
+                      ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
+                    }`}
+                    data-testid={`text-block-actions-${belief.category.toLowerCase()}`}
+                  >
+                    {belief.currentActions ? (
+                      <div className="overflow-hidden text-ellipsis line-clamp-3 text-gray-700 dark:text-gray-200 text-xs leading-tight">{belief.currentActions}</div>
+                    ) : (
+                      <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
                     )}
-                  </Tooltip>
+                  </div>
                 </TableCell>
 
                 {/* Platinum Standards - Compact with Hover Popup */}
@@ -3325,134 +3284,98 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
                 {/* Next Week - Results (Text Block) */}
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top max-h-[85px] w-[180px] overflow-hidden">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div
-                        onClick={() => {
-                          if (!((viewingHistory && hasDataForDate) || isAdminView)) {
-                            setEditingField({ category: belief.category, field: 'result', section: 'next' });
-                            setDialogValue(belief.result || '');
-                            setDialogOpen(true);
-                          }
-                        }}
-                        style={{ height: '60px' }}
-                        className={`cursor-pointer overflow-hidden text-ellipsis rounded px-3 py-2 text-sm bg-coral-red/10 dark:bg-coral-red/20 border border-coral-red/30 hover:border-coral-red/50 dark:hover:border-coral-red/60 transition-colors ${
-                          ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
-                        }`}
-                        data-testid={`text-block-result-${belief.category.toLowerCase()}`}
-                      >
-                        {belief.result ? (
-                          <div className="overflow-hidden text-ellipsis line-clamp-3 text-gray-700 dark:text-gray-200 text-xs leading-tight">{belief.result}</div>
-                        ) : (
-                          <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
-                        )}
-                      </div>
-                    </TooltipTrigger>
-                    {belief.result && (
-                      <TooltipContent className="bg-coral-red/10 dark:bg-coral-red/80 border-coral-red/30 max-w-xs">
-                        <p className="text-xs text-gray-800 dark:text-gray-200 font-medium whitespace-pre-wrap">{belief.result}</p>
-                      </TooltipContent>
+                  <div
+                    onClick={() => {
+                      if (!((viewingHistory && hasDataForDate) || isAdminView)) {
+                        setEditingField({ category: belief.category, field: 'result', section: 'next' });
+                        setDialogValue(belief.result || '');
+                        setDialogOpen(true);
+                      }
+                    }}
+                    style={{ height: '60px' }}
+                    className={`cursor-pointer overflow-hidden text-ellipsis rounded px-3 py-2 text-sm bg-coral-red/10 dark:bg-coral-red/20 border border-coral-red/30 hover:border-coral-red/50 dark:hover:border-coral-red/60 transition-colors ${
+                      ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
+                    }`}
+                    data-testid={`text-block-result-${belief.category.toLowerCase()}`}
+                  >
+                    {belief.result ? (
+                      <div className="overflow-hidden text-ellipsis line-clamp-3 text-gray-700 dark:text-gray-200 text-xs leading-tight">{belief.result}</div>
+                    ) : (
+                      <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
                     )}
-                  </Tooltip>
+                  </div>
                 </TableCell>
 
                 {/* Next Week - Feelings (Text Block) */}
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top max-h-[85px] w-[180px] overflow-hidden">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div
-                        onClick={() => {
-                          if (!((viewingHistory && hasDataForDate) || isAdminView)) {
-                            setEditingField({ category: belief.category, field: 'nextFeelings', section: 'next' });
-                            setDialogValue(belief.nextFeelings || '');
-                            setDialogOpen(true);
-                          }
-                        }}
-                        style={{ height: '60px' }}
-                        className={`cursor-pointer overflow-hidden text-ellipsis rounded px-3 py-2 text-sm bg-emerald-green/10 dark:bg-emerald-green/20 border border-emerald-green/30 hover:border-emerald-green/50 dark:hover:border-emerald-green/60 transition-colors ${
-                          ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
-                        }`}
-                        data-testid={`text-block-next-feelings-${belief.category.toLowerCase()}`}
-                      >
-                        {belief.nextFeelings ? (
-                          <div className="overflow-hidden text-ellipsis line-clamp-3 text-gray-700 dark:text-gray-200 text-xs leading-tight">{belief.nextFeelings}</div>
-                        ) : (
-                          <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
-                        )}
-                      </div>
-                    </TooltipTrigger>
-                    {belief.nextFeelings && (
-                      <TooltipContent className="bg-emerald-green/10 dark:bg-emerald-green/80 border-emerald-green/30 max-w-xs">
-                        <p className="text-xs text-gray-800 dark:text-gray-200 font-medium whitespace-pre-wrap">{belief.nextFeelings}</p>
-                      </TooltipContent>
+                  <div
+                    onClick={() => {
+                      if (!((viewingHistory && hasDataForDate) || isAdminView)) {
+                        setEditingField({ category: belief.category, field: 'nextFeelings', section: 'next' });
+                        setDialogValue(belief.nextFeelings || '');
+                        setDialogOpen(true);
+                      }
+                    }}
+                    style={{ height: '60px' }}
+                    className={`cursor-pointer overflow-hidden text-ellipsis rounded px-3 py-2 text-sm bg-emerald-green/10 dark:bg-emerald-green/20 border border-emerald-green/30 hover:border-emerald-green/50 dark:hover:border-emerald-green/60 transition-colors ${
+                      ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
+                    }`}
+                    data-testid={`text-block-next-feelings-${belief.category.toLowerCase()}`}
+                  >
+                    {belief.nextFeelings ? (
+                      <div className="overflow-hidden text-ellipsis line-clamp-3 text-gray-700 dark:text-gray-200 text-xs leading-tight">{belief.nextFeelings}</div>
+                    ) : (
+                      <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
                     )}
-                  </Tooltip>
+                  </div>
                 </TableCell>
 
                 {/* Next Week - Beliefs/Reasons (Text Block) */}
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top max-h-[85px] w-[180px] overflow-hidden">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div
-                        onClick={() => {
-                          if (!((viewingHistory && hasDataForDate) || isAdminView)) {
-                            setEditingField({ category: belief.category, field: 'nextWeekTarget', section: 'next' });
-                            setDialogValue(belief.nextWeekTarget || '');
-                            setDialogOpen(true);
-                          }
-                        }}
-                        style={{ height: '60px' }}
-                        className={`cursor-pointer overflow-hidden text-ellipsis rounded px-3 py-2 text-sm bg-golden-yellow/10 dark:bg-golden-yellow/20 border border-golden-yellow/30 hover:border-golden-yellow/50 dark:hover:border-golden-yellow/60 transition-colors ${
-                          ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
-                        }`}
-                        data-testid={`text-block-next-beliefs-${belief.category.toLowerCase()}`}
-                      >
-                        {belief.nextWeekTarget ? (
-                          <div className="overflow-hidden text-ellipsis line-clamp-3 text-gray-700 dark:text-gray-200 text-xs leading-tight">{belief.nextWeekTarget}</div>
-                        ) : (
-                          <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
-                        )}
-                      </div>
-                    </TooltipTrigger>
-                    {belief.nextWeekTarget && (
-                      <TooltipContent className="bg-golden-yellow/10 dark:bg-golden-yellow/80 border-golden-yellow/30 max-w-xs">
-                        <p className="text-xs text-gray-800 dark:text-gray-200 font-medium whitespace-pre-wrap">{belief.nextWeekTarget}</p>
-                      </TooltipContent>
+                  <div
+                    onClick={() => {
+                      if (!((viewingHistory && hasDataForDate) || isAdminView)) {
+                        setEditingField({ category: belief.category, field: 'nextWeekTarget', section: 'next' });
+                        setDialogValue(belief.nextWeekTarget || '');
+                        setDialogOpen(true);
+                      }
+                    }}
+                    style={{ height: '60px' }}
+                    className={`cursor-pointer overflow-hidden text-ellipsis rounded px-3 py-2 text-sm bg-golden-yellow/10 dark:bg-golden-yellow/20 border border-golden-yellow/30 hover:border-golden-yellow/50 dark:hover:border-golden-yellow/60 transition-colors ${
+                      ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
+                    }`}
+                    data-testid={`text-block-next-beliefs-${belief.category.toLowerCase()}`}
+                  >
+                    {belief.nextWeekTarget ? (
+                      <div className="overflow-hidden text-ellipsis line-clamp-3 text-gray-700 dark:text-gray-200 text-xs leading-tight">{belief.nextWeekTarget}</div>
+                    ) : (
+                      <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
                     )}
-                  </Tooltip>
+                  </div>
                 </TableCell>
 
                 {/* Next Week - Actions (Text Block) */}
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 border-r align-top max-h-[85px] w-[180px] overflow-hidden">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div
-                        onClick={() => {
-                          if (!((viewingHistory && hasDataForDate) || isAdminView)) {
-                            setEditingField({ category: belief.category, field: 'nextActions', section: 'next' });
-                            setDialogValue(belief.nextActions || '');
-                            setDialogOpen(true);
-                          }
-                        }}
-                        style={{ height: '60px' }}
-                        className={`cursor-pointer overflow-hidden text-ellipsis rounded px-3 py-2 text-sm bg-soft-lavender/10 dark:bg-soft-lavender/20 border border-soft-lavender/30 hover:border-soft-lavender/50 dark:hover:border-soft-lavender/60 transition-colors ${
-                          ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
-                        }`}
-                        data-testid={`text-block-next-actions-${belief.category.toLowerCase()}`}
-                      >
-                        {belief.nextActions ? (
-                          <div className="overflow-hidden text-ellipsis line-clamp-3 text-gray-700 dark:text-gray-200 text-xs leading-tight">{belief.nextActions}</div>
-                        ) : (
-                          <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
-                        )}
-                      </div>
-                    </TooltipTrigger>
-                    {belief.nextActions && (
-                      <TooltipContent className="bg-soft-lavender/10 dark:bg-soft-lavender/80 border-soft-lavender/30 max-w-xs">
-                        <p className="text-xs text-gray-800 dark:text-gray-200 font-medium whitespace-pre-wrap">{belief.nextActions}</p>
-                      </TooltipContent>
+                  <div
+                    onClick={() => {
+                      if (!((viewingHistory && hasDataForDate) || isAdminView)) {
+                        setEditingField({ category: belief.category, field: 'nextActions', section: 'next' });
+                        setDialogValue(belief.nextActions || '');
+                        setDialogOpen(true);
+                      }
+                    }}
+                    style={{ height: '60px' }}
+                    className={`cursor-pointer overflow-hidden text-ellipsis rounded px-3 py-2 text-sm bg-soft-lavender/10 dark:bg-soft-lavender/20 border border-soft-lavender/30 hover:border-soft-lavender/50 dark:hover:border-soft-lavender/60 transition-colors ${
+                      ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
+                    }`}
+                    data-testid={`text-block-next-actions-${belief.category.toLowerCase()}`}
+                  >
+                    {belief.nextActions ? (
+                      <div className="overflow-hidden text-ellipsis line-clamp-3 text-gray-700 dark:text-gray-200 text-xs leading-tight">{belief.nextActions}</div>
+                    ) : (
+                      <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
                     )}
-                  </Tooltip>
+                  </div>
                 </TableCell>
 
                 {/* Unified Assignment Column - Compact with Hover Popup (Show only for first row with rowspan) */}
