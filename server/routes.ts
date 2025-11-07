@@ -5483,6 +5483,60 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
       res.status(500).json({ message: "Failed to add persistent assignment" });
     }
   });
+  
+  // Add custom text assignment
+  app.post('/api/persistent-assignments/custom', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const { customText } = req.body;
+      
+      if (!customText || typeof customText !== 'string' || customText.trim().length === 0) {
+        return res.status(400).json({ message: "Custom text is required" });
+      }
+
+      const assignmentData = {
+        userId,
+        customText: customText.trim(),
+        source: 'custom',
+        completed: false
+      };
+
+      const newAssignment = await storage.addPersistentAssignment(assignmentData);
+      res.json(newAssignment);
+    } catch (error) {
+      console.error("Error adding custom assignment:", error);
+      res.status(500).json({ message: "Failed to add custom assignment" });
+    }
+  });
+  
+  // Update custom text assignment
+  app.patch('/api/persistent-assignments/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      const { id } = req.params;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const { customText } = req.body;
+      
+      if (!customText || typeof customText !== 'string' || customText.trim().length === 0) {
+        return res.status(400).json({ message: "Custom text is required" });
+      }
+
+      const updated = await storage.updateCustomAssignment(id, userId, customText.trim());
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating custom assignment:", error);
+      res.status(500).json({ message: "Failed to update custom assignment" });
+    }
+  });
 
   // Toggle assignment completion
   app.put('/api/persistent-assignments/:id/toggle', isAuthenticated, async (req: any, res) => {

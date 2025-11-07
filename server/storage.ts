@@ -203,6 +203,7 @@ export interface IStorage {
   getUserPersistentAssignments(userId: string): Promise<UserPersistentAssignment[]>;
   addPersistentAssignment(assignment: InsertUserPersistentAssignment): Promise<UserPersistentAssignment>;
   togglePersistentAssignmentCompletion(id: string, userId: string): Promise<UserPersistentAssignment>;
+  updateCustomAssignment(id: string, userId: string, customText: string): Promise<UserPersistentAssignment>;
   deletePersistentAssignment(id: string, userId: string): Promise<void>;
   deleteCompletedAssignments(userId: string): Promise<void>;
   
@@ -1599,6 +1600,26 @@ export class DatabaseStorage implements IStorage {
       console.log(`❌ [ASSIGNMENT POINTS] Subtracted 10 points from user ${userId} for unchecking assignment: ${current.lessonName}`);
     }
 
+    return updated;
+  }
+  
+  async updateCustomAssignment(id: string, userId: string, customText: string): Promise<UserPersistentAssignment> {
+    const [updated] = await db
+      .update(userPersistentAssignments)
+      .set({ 
+        customText: customText,
+        updatedAt: new Date()
+      })
+      .where(and(
+        eq(userPersistentAssignments.id, id),
+        eq(userPersistentAssignments.userId, userId)
+      ))
+      .returning();
+    
+    if (!updated) {
+      throw new Error('Assignment not found');
+    }
+    
     return updated;
   }
 
