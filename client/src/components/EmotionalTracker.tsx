@@ -265,34 +265,34 @@ export default function EmotionalTracker() {
         </CardHeader>
         <CardContent className="p-3 sm:p-4 md:p-6">
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
+            <table className="w-full border-collapse table-fixed">
               <thead>
                 <tr className="border-b-2 border-primary/30 dark:border-primary/50">
-                  <th className="p-1.5 sm:p-2 md:p-3 text-left text-xs sm:text-sm font-semibold text-primary dark:text-primary bg-primary/10 dark:bg-primary/20 min-w-[100px] sm:min-w-[120px]">
+                  <th className="p-1.5 sm:p-2 md:p-3 text-left text-xs sm:text-sm font-semibold text-primary dark:text-primary bg-primary/10 dark:bg-primary/20 w-[15%]">
                     Time Slot
                   </th>
-                  <th className="p-1.5 sm:p-2 md:p-3 text-left text-xs sm:text-sm font-semibold text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/20 min-w-[160px] sm:min-w-[200px]">
+                  <th className="p-1.5 sm:p-2 md:p-3 text-left text-xs sm:text-sm font-semibold text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/20 w-[21.25%]">
                     <div className="flex items-center gap-1 sm:gap-2">
                       <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
                       <span className="hidden sm:inline">Positive Emotions</span>
                       <span className="sm:hidden">Positive</span>
                     </div>
                   </th>
-                  <th className="p-1.5 sm:p-2 md:p-3 text-left text-xs sm:text-sm font-semibold text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20 min-w-[160px] sm:min-w-[200px]">
+                  <th className="p-1.5 sm:p-2 md:p-3 text-left text-xs sm:text-sm font-semibold text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20 w-[21.25%]">
                     <div className="flex items-center gap-1 sm:gap-2">
                       <Brain className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
                       <span className="hidden sm:inline">Negative Emotions</span>
                       <span className="sm:hidden">Negative</span>
                     </div>
                   </th>
-                  <th className="p-1.5 sm:p-2 md:p-3 text-left text-xs sm:text-sm font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 min-w-[160px] sm:min-w-[200px]">
+                  <th className="p-1.5 sm:p-2 md:p-3 text-left text-xs sm:text-sm font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 w-[21.25%]">
                     <div className="flex items-center gap-1 sm:gap-2">
                       <RefreshCcw className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
                       <span className="hidden sm:inline">Repeating Emotions</span>
                       <span className="sm:hidden">Repeating</span>
                     </div>
                   </th>
-                  <th className="p-1.5 sm:p-2 md:p-3 text-left text-xs sm:text-sm font-semibold text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-900/20 min-w-[160px] sm:min-w-[200px]">
+                  <th className="p-1.5 sm:p-2 md:p-3 text-left text-xs sm:text-sm font-semibold text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-900/20 w-[21.25%]">
                     <div className="flex items-center gap-1 sm:gap-2">
                       <Heart className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
                       <span className="hidden sm:inline">Missing Emotions</span>
@@ -320,12 +320,12 @@ export default function EmotionalTracker() {
                         index % 2 === 0 ? 'bg-white/50 dark:bg-gray-900/20' : 'bg-primary/5 dark:bg-primary/10'
                       }`}
                     >
-                      <td className="p-1.5 sm:p-2 md:p-3 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 align-top w-[100px] sm:w-[120px]" data-testid={`time-slot-${index}`}>
+                      <td className="p-1.5 sm:p-2 md:p-3 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 align-top" data-testid={`time-slot-${index}`}>
                         {timeSlot}
                       </td>
                       
                       {/* Positive Emotions */}
-                      <td className="p-1 sm:p-1.5 md:p-2 align-top w-[160px] sm:w-[200px]">
+                      <td className="p-1 sm:p-1.5 md:p-2 align-top">
                         <div
                           onClick={() => openEditDialog(timeSlot, 'positiveEmotions')}
                           className={`cursor-pointer h-[36px] w-full overflow-hidden rounded px-3 py-2 text-sm ${FIELD_COLORS.positiveEmotions.bg} ${FIELD_COLORS.positiveEmotions.border} border hover:border-green-400 dark:hover:border-green-500 transition-colors flex items-center`}
@@ -340,7 +340,7 @@ export default function EmotionalTracker() {
                       </td>
 
                       {/* Negative Emotions */}
-                      <td className="p-1 sm:p-1.5 md:p-2 align-top w-[160px] sm:w-[200px]">
+                      <td className="p-1 sm:p-1.5 md:p-2 align-top">
                         <div
                           onClick={() => openEditDialog(timeSlot, 'negativeEmotions')}
                           className={`cursor-pointer h-[36px] w-full overflow-hidden rounded px-3 py-2 text-sm ${FIELD_COLORS.negativeEmotions.bg} ${FIELD_COLORS.negativeEmotions.border} border hover:border-red-400 dark:hover:border-red-500 transition-colors flex items-center`}
@@ -355,7 +355,7 @@ export default function EmotionalTracker() {
                       </td>
 
                       {/* Repeating Emotions */}
-                      <td className="p-1 sm:p-1.5 md:p-2 align-top w-[160px] sm:w-[200px]">
+                      <td className="p-1 sm:p-1.5 md:p-2 align-top">
                         <div
                           onClick={() => openEditDialog(timeSlot, 'repeatingEmotions')}
                           className={`cursor-pointer h-[36px] w-full overflow-hidden rounded px-3 py-2 text-sm ${FIELD_COLORS.repeatingEmotions.bg} ${FIELD_COLORS.repeatingEmotions.border} border hover:border-blue-400 dark:hover:border-blue-500 transition-colors flex items-center`}
@@ -370,7 +370,7 @@ export default function EmotionalTracker() {
                       </td>
 
                       {/* Missing Emotions */}
-                      <td className="p-1 sm:p-1.5 md:p-2 align-top w-[160px] sm:w-[200px]">
+                      <td className="p-1 sm:p-1.5 md:p-2 align-top">
                         <div
                           onClick={() => openEditDialog(timeSlot, 'missingEmotions')}
                           className={`cursor-pointer h-[36px] w-full overflow-hidden rounded px-3 py-2 text-sm ${FIELD_COLORS.missingEmotions.bg} ${FIELD_COLORS.missingEmotions.border} border hover:border-orange-400 dark:hover:border-orange-500 transition-colors flex items-center`}
