@@ -3364,24 +3364,28 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   </div>
                 </TableCell>
 
-                {/* Unified Assignment Column - Compact with Hover Popup (Show only for first row with rowspan) */}
-                {belief.category === 'Health' && (
-                  <TableCell rowSpan={4} className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10 align-top max-h-[340px] overflow-hidden">
-                    {(() => {
-                      // CRITICAL: Persistent assignments should ALWAYS show across all dates
-                      // - Assignments persist until completed, regardless of date
-                      // - This includes: course tracking additions, recommendations, and user-added assignments
-                      // - Admin view ALSO uses persistent assignments (fetched via admin API endpoint)
-                      // - Both user and admin view use the same persistentAssignments data source
-                      const assignmentsToDisplay = persistentAssignments;  // Always use persistent assignments for all views
-                      
-                      // Show ALL assignments (completed + pending) so users can see their progress
-                      // Previously filtered to show only pending, but this caused confusion when clicking checkbox
-                      // Users would click to complete, and assignment would disappear (looked like deletion)
-                      const userLessons = assignmentsToDisplay.filter((l: any) => l.source === 'user' || !l.source);
-                      const adminLessons = assignmentsToDisplay.filter((l: any) => l.source === 'admin');
-                      const allLessons = [...userLessons, ...adminLessons];
-                      const totalCount = allLessons.length;
+                {/* Area-Specific Assignment Column - Shows assignments filtered by HRCM area */}
+                <TableCell className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10 align-top max-h-[85px] overflow-hidden">
+                  {(() => {
+                    // CRITICAL: Persistent assignments should ALWAYS show across all dates
+                    // - Assignments persist until completed, regardless of date
+                    // - This includes: course tracking additions, recommendations, and user-added assignments
+                    // - Admin view ALSO uses persistent assignments (fetched via admin API endpoint)
+                    // - Both user and admin view use the same persistentAssignments data source
+                    
+                    // FILTER BY HRCM AREA to match the current row (Health, Relationship, Career, Money)
+                    const areaKey = belief.category.toLowerCase(); // 'health', 'relationship', 'career', 'money'
+                    const assignmentsToDisplay = persistentAssignments.filter((a: any) => 
+                      a.hrcmArea === areaKey
+                    );
+                    
+                    // Show ALL assignments (completed + pending) so users can see their progress
+                    // Previously filtered to show only pending, but this caused confusion when clicking checkbox
+                    // Users would click to complete, and assignment would disappear (looked like deletion)
+                    const userLessons = assignmentsToDisplay.filter((l: any) => l.source === 'user' || !l.source);
+                    const adminLessons = assignmentsToDisplay.filter((l: any) => l.source === 'admin');
+                    const allLessons = [...userLessons, ...adminLessons];
+                    const totalCount = allLessons.length;
                       
                       // Empty state
                       if (totalCount === 0) {
@@ -3553,7 +3557,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       );
                     })()}
                   </TableCell>
-                )}
 
                 {/* Platinum Standards - Compact with Hover Popup */}
                 <TableCell className="p-2 bg-soft-lavender/20 dark:bg-soft-lavender/10 align-top max-h-[85px] overflow-hidden">
