@@ -3258,7 +3258,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   onClick={handleClearNextWeekTarget}
                   disabled={saveWeekMutation.isPending}
                   data-testid="button-update-next-week"
-                  className="bg-gradient-to-r from-orange-500 to-coral-500 border-orange-400 text-white hover:from-orange-600 hover:to-coral-600 hover:border-orange-500 shadow-lg h-8 font-semibold"
+                  className="bg-orange-500 border-orange-600 text-white hover:bg-orange-600 hover:border-orange-700 shadow-lg h-8 font-semibold"
                 >
                   {saveWeekMutation.isPending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
