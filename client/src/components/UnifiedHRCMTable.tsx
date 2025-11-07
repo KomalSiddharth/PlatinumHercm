@@ -3033,13 +3033,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                             setDialogOpen(true);
                           }
                         }}
-                        className={`cursor-pointer min-h-[60px] max-h-[60px] overflow-hidden rounded px-3 py-2 text-sm bg-coral-red/10 dark:bg-coral-red/20 border border-coral-red/30 hover:border-coral-red/50 dark:hover:border-coral-red/60 transition-colors ${
+                        style={{ height: '60px' }}
+                        className={`cursor-pointer overflow-hidden text-ellipsis rounded px-3 py-2 text-sm bg-coral-red/10 dark:bg-coral-red/20 border border-coral-red/30 hover:border-coral-red/50 dark:hover:border-coral-red/60 transition-colors ${
                           ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
                         }`}
                         data-testid={`text-block-problems-${belief.category.toLowerCase()}`}
                       >
                         {belief.problems ? (
-                          <span className="text-gray-700 dark:text-gray-200 line-clamp-2 text-xs">{belief.problems}</span>
+                          <div className="overflow-hidden text-ellipsis line-clamp-3 text-gray-700 dark:text-gray-200 text-xs leading-tight">{belief.problems}</div>
                         ) : (
                           <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
                         )}
@@ -3065,13 +3066,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                             setDialogOpen(true);
                           }
                         }}
-                        className={`cursor-pointer min-h-[60px] max-h-[60px] overflow-hidden rounded px-3 py-2 text-sm bg-emerald-green/10 dark:bg-emerald-green/20 border border-emerald-green/30 hover:border-emerald-green/50 dark:hover:border-emerald-green/60 transition-colors ${
+                        style={{ height: '60px' }}
+                        className={`cursor-pointer overflow-hidden text-ellipsis rounded px-3 py-2 text-sm bg-emerald-green/10 dark:bg-emerald-green/20 border border-emerald-green/30 hover:border-emerald-green/50 dark:hover:border-emerald-green/60 transition-colors ${
                           ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
                         }`}
                         data-testid={`text-block-feelings-${belief.category.toLowerCase()}`}
                       >
                         {belief.currentFeelings ? (
-                          <span className="text-gray-700 dark:text-gray-200 line-clamp-2 text-xs">{belief.currentFeelings}</span>
+                          <div className="overflow-hidden text-ellipsis line-clamp-3 text-gray-700 dark:text-gray-200 text-xs leading-tight">{belief.currentFeelings}</div>
                         ) : (
                           <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
                         )}
@@ -3097,13 +3099,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                             setDialogOpen(true);
                           }
                         }}
-                        className={`cursor-pointer min-h-[60px] max-h-[60px] overflow-hidden rounded px-3 py-2 text-sm bg-golden-yellow/10 dark:bg-golden-yellow/20 border border-golden-yellow/30 hover:border-golden-yellow/50 dark:hover:border-golden-yellow/60 transition-colors ${
+                        style={{ height: '60px' }}
+                        className={`cursor-pointer overflow-hidden text-ellipsis rounded px-3 py-2 text-sm bg-golden-yellow/10 dark:bg-golden-yellow/20 border border-golden-yellow/30 hover:border-golden-yellow/50 dark:hover:border-golden-yellow/60 transition-colors ${
                           ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
                         }`}
                         data-testid={`text-block-beliefs-${belief.category.toLowerCase()}`}
                       >
                         {belief.currentBelief ? (
-                          <span className="text-gray-700 dark:text-gray-200 line-clamp-2 text-xs">{belief.currentBelief}</span>
+                          <div className="overflow-hidden text-ellipsis line-clamp-3 text-gray-700 dark:text-gray-200 text-xs leading-tight">{belief.currentBelief}</div>
                         ) : (
                           <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
                         )}
@@ -3129,13 +3132,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                             setDialogOpen(true);
                           }
                         }}
-                        className={`cursor-pointer min-h-[60px] max-h-[60px] overflow-hidden rounded px-3 py-2 text-sm bg-soft-lavender/10 dark:bg-soft-lavender/20 border border-soft-lavender/30 hover:border-soft-lavender/50 dark:hover:border-soft-lavender/60 transition-colors ${
+                        style={{ height: '60px' }}
+                        className={`cursor-pointer overflow-hidden text-ellipsis rounded px-3 py-2 text-sm bg-soft-lavender/10 dark:bg-soft-lavender/20 border border-soft-lavender/30 hover:border-soft-lavender/50 dark:hover:border-soft-lavender/60 transition-colors ${
                           ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
                         }`}
                         data-testid={`text-block-actions-${belief.category.toLowerCase()}`}
                       >
                         {belief.currentActions ? (
-                          <span className="text-gray-700 dark:text-gray-200 line-clamp-2 text-xs">{belief.currentActions}</span>
+                          <div className="overflow-hidden text-ellipsis line-clamp-3 text-gray-700 dark:text-gray-200 text-xs leading-tight">{belief.currentActions}</div>
                         ) : (
                           <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
                         )}
@@ -3331,13 +3335,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                             setDialogOpen(true);
                           }
                         }}
-                        className={`cursor-pointer min-h-[60px] max-h-[60px] overflow-hidden rounded px-3 py-2 text-sm bg-coral-red/10 dark:bg-coral-red/20 border border-coral-red/30 hover:border-coral-red/50 dark:hover:border-coral-red/60 transition-colors ${
+                        style={{ height: '60px' }}
+                        className={`cursor-pointer overflow-hidden text-ellipsis rounded px-3 py-2 text-sm bg-coral-red/10 dark:bg-coral-red/20 border border-coral-red/30 hover:border-coral-red/50 dark:hover:border-coral-red/60 transition-colors ${
                           ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
                         }`}
                         data-testid={`text-block-result-${belief.category.toLowerCase()}`}
                       >
                         {belief.result ? (
-                          <span className="text-gray-700 dark:text-gray-200 line-clamp-2 text-xs">{belief.result}</span>
+                          <div className="overflow-hidden text-ellipsis line-clamp-3 text-gray-700 dark:text-gray-200 text-xs leading-tight">{belief.result}</div>
                         ) : (
                           <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
                         )}
@@ -3363,13 +3368,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                             setDialogOpen(true);
                           }
                         }}
-                        className={`cursor-pointer min-h-[60px] max-h-[60px] overflow-hidden rounded px-3 py-2 text-sm bg-emerald-green/10 dark:bg-emerald-green/20 border border-emerald-green/30 hover:border-emerald-green/50 dark:hover:border-emerald-green/60 transition-colors ${
+                        style={{ height: '60px' }}
+                        className={`cursor-pointer overflow-hidden text-ellipsis rounded px-3 py-2 text-sm bg-emerald-green/10 dark:bg-emerald-green/20 border border-emerald-green/30 hover:border-emerald-green/50 dark:hover:border-emerald-green/60 transition-colors ${
                           ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
                         }`}
                         data-testid={`text-block-next-feelings-${belief.category.toLowerCase()}`}
                       >
                         {belief.nextFeelings ? (
-                          <span className="text-gray-700 dark:text-gray-200 line-clamp-2 text-xs">{belief.nextFeelings}</span>
+                          <div className="overflow-hidden text-ellipsis line-clamp-3 text-gray-700 dark:text-gray-200 text-xs leading-tight">{belief.nextFeelings}</div>
                         ) : (
                           <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
                         )}
@@ -3395,13 +3401,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                             setDialogOpen(true);
                           }
                         }}
-                        className={`cursor-pointer min-h-[60px] max-h-[60px] overflow-hidden rounded px-3 py-2 text-sm bg-golden-yellow/10 dark:bg-golden-yellow/20 border border-golden-yellow/30 hover:border-golden-yellow/50 dark:hover:border-golden-yellow/60 transition-colors ${
+                        style={{ height: '60px' }}
+                        className={`cursor-pointer overflow-hidden text-ellipsis rounded px-3 py-2 text-sm bg-golden-yellow/10 dark:bg-golden-yellow/20 border border-golden-yellow/30 hover:border-golden-yellow/50 dark:hover:border-golden-yellow/60 transition-colors ${
                           ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
                         }`}
                         data-testid={`text-block-next-beliefs-${belief.category.toLowerCase()}`}
                       >
                         {belief.nextWeekTarget ? (
-                          <span className="text-gray-700 dark:text-gray-200 line-clamp-2 text-xs">{belief.nextWeekTarget}</span>
+                          <div className="overflow-hidden text-ellipsis line-clamp-3 text-gray-700 dark:text-gray-200 text-xs leading-tight">{belief.nextWeekTarget}</div>
                         ) : (
                           <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
                         )}
@@ -3427,13 +3434,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                             setDialogOpen(true);
                           }
                         }}
-                        className={`cursor-pointer min-h-[60px] max-h-[60px] overflow-hidden rounded px-3 py-2 text-sm bg-soft-lavender/10 dark:bg-soft-lavender/20 border border-soft-lavender/30 hover:border-soft-lavender/50 dark:hover:border-soft-lavender/60 transition-colors ${
+                        style={{ height: '60px' }}
+                        className={`cursor-pointer overflow-hidden text-ellipsis rounded px-3 py-2 text-sm bg-soft-lavender/10 dark:bg-soft-lavender/20 border border-soft-lavender/30 hover:border-soft-lavender/50 dark:hover:border-soft-lavender/60 transition-colors ${
                           ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
                         }`}
                         data-testid={`text-block-next-actions-${belief.category.toLowerCase()}`}
                       >
                         {belief.nextActions ? (
-                          <span className="text-gray-700 dark:text-gray-200 line-clamp-2 text-xs">{belief.nextActions}</span>
+                          <div className="overflow-hidden text-ellipsis line-clamp-3 text-gray-700 dark:text-gray-200 text-xs leading-tight">{belief.nextActions}</div>
                         ) : (
                           <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
                         )}
