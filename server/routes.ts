@@ -1060,10 +1060,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // AUTOMATIC SUPABASE BACKUP: Backup this user's data immediately after save
       if (isSupabaseConfigured) {
         try {
-          console.log(`[BACKUP] Starting automatic Supabase backup for user ${userId}...`);
+          console.log(`[BACKUP] 🚀 Starting automatic Supabase backup for user ${userId}...`);
           const backupResult = await backupUserData(userId);
           if (backupResult.success) {
             console.log(`[BACKUP] ✅ User data backed up to Supabase successfully`);
+            if (backupResult.stats) {
+              console.log(`[BACKUP] 📊 Backup Stats: HRCM=${backupResult.stats.hercmWeeks || 0} records, Emotional=${backupResult.stats.emotionalTrackers || 0}, Rituals=${backupResult.stats.ritualCompletions || 0}`);
+            }
           } else {
             console.warn(`[BACKUP] ⚠️ Backup failed: ${backupResult.message}`);
           }
@@ -1072,7 +1075,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Don't fail the save if backup fails - just log it
         }
       } else {
-        console.log('[BACKUP] Supabase not configured - skipping backup');
+        console.log('[BACKUP] ⚠️ Supabase not configured - skipping backup');
       }
       
       // Broadcast WebSocket event to all admin panels viewing this user's dashboard
