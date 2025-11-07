@@ -878,14 +878,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       setUnifiedAssignment(combinedAssignments);
     } else if (weekData === null) {
       // Explicitly null from server (no data for this date)
-      console.log('[WEEKDATA EFFECT] ⚠️ weekData is null - showing blank template (auto-copy disabled)');
+      console.log('[WEEKDATA EFFECT] ⚠️ weekData is null - checking for daily auto-copy');
       setHasDataForDate(false); // 🔥 No data exists for this date
       
-      // 🔥 AUTO-COPY DISABLED: Each day is completely independent
-      // Show blank template for all dates (no auto-copying from previous days)
-      console.log('[WEEKDATA EFFECT] 📝 No data for this date - showing blank template');
-      
-      const dynamicBeliefs: HRCMBelief[] = [
+      // Helper function to show blank template
+      const showBlankTemplate = () => {
+        const dynamicBeliefs: HRCMBelief[] = [
           {
             category: 'Health' as const,
             currentRating: 0,
@@ -931,25 +929,85 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             checklist: getPlatinumStandardsForCategory('Career'),
             assignment: { courses: [], lessons: [] }
           },
-        {
-          category: 'Money' as const,
-          currentRating: 0,
-          problems: '',
-          currentFeelings: '',
-          currentBelief: '',
-          currentActions: '',
-          targetRating: 0,
-          result: '',
-          nextFeelings: '',
-          nextWeekTarget: '',
-          nextActions: '',
-          checklist: getPlatinumStandardsForCategory('Money'),
-          assignment: { courses: [], lessons: [] }
-        }
-      ];
+          {
+            category: 'Money' as const,
+            currentRating: 0,
+            problems: '',
+            currentFeelings: '',
+            currentBelief: '',
+            currentActions: '',
+            targetRating: 0,
+            result: '',
+            nextFeelings: '',
+            nextWeekTarget: '',
+            nextActions: '',
+            checklist: getPlatinumStandardsForCategory('Money'),
+            assignment: { courses: [], lessons: [] }
+          }
+        ];
+        
+        setBeliefs(dynamicBeliefs);
+        setUnifiedAssignment([]);
+      };
       
-      setBeliefs(dynamicBeliefs);
-      setUnifiedAssignment([]);
+      // 🔥 DAILY AUTO-COPY FEATURE (RE-ENABLED Nov 7, 2025)
+      // Only auto-copy when viewing current date (not history, not admin)
+      if (!viewingHistory && !isAdminView) {
+        console.log('[AUTO-COPY] 🚀 Fetching previous day data to auto-copy...');
+        
+        // Fetch previous day's data
+        fetch(`/api/hercm/previous-day/${currentDateStr}`)
+          .then(res => res.json())
+          .then(previousDayData => {
+            if (previousDayData && previousDayData.beliefs) {
+              console.log('[AUTO-COPY] ✅ Previous day data found, copying to current date...');
+              
+              // Copy previous day data to current date
+              const copiedBeliefs = previousDayData.beliefs.map((belief: HRCMBelief) => ({
+                ...belief,
+                // Preserve Platinum Standards from current date
+                checklist: getPlatinumStandardsForCategory(belief.category),
+              }));
+              
+              // Update state with copied data
+              setBeliefs(copiedBeliefs);
+              setUnifiedAssignment(previousDayData.unifiedAssignment || []);
+              
+              // Auto-save copied data to current date
+              const savePayload = {
+                weekNumber: weekNumberState,
+                dateString: currentDateStr, // 🔥 CRITICAL: Save to current date!
+                beliefs: copiedBeliefs,
+                unifiedAssignment: previousDayData.unifiedAssignment || []
+              };
+              
+              console.log('[AUTO-COPY] 💾 Auto-saving copied data to current date:', currentDateStr);
+              saveWeekMutation.mutate(savePayload, {
+                onSuccess: () => {
+                  console.log('[AUTO-COPY] ✅ Data successfully copied and saved!');
+                  toast({
+                    title: "📋 Previous Day Data Copied",
+                    description: "Data from previous day has been automatically copied to today.",
+                  });
+                },
+                onError: (error) => {
+                  console.error('[AUTO-COPY] ❌ Failed to save copied data:', error);
+                }
+              });
+            } else {
+              console.log('[AUTO-COPY] ⚠️ No previous day data found - showing blank template');
+              showBlankTemplate();
+            }
+          })
+          .catch(error => {
+            console.error('[AUTO-COPY] ❌ Error fetching previous day:', error);
+            showBlankTemplate();
+          });
+      } else {
+        // Viewing history/admin - show blank template
+        console.log('[WEEKDATA EFFECT] ⚠️ Viewing history/admin - showing blank template');
+        showBlankTemplate();
+      }
     } else {
       // weekData is undefined (still loading) - don't change anything
       console.log('[WEEKDATA EFFECT] ⏳ weekData is undefined - still loading, keeping current state');
