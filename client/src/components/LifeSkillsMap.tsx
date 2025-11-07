@@ -3,10 +3,17 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronRight, Map } from "lucide-react";
+import { ChevronRight, Map, Plus } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
 
 interface CourseLesson {
   id: string;
@@ -39,6 +46,7 @@ interface CourseTrackingData {
 export default function LifeSkillsMap() {
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
   const [openSubcategories, setOpenSubcategories] = useState<Record<string, boolean>>({});
+  const { toast } = useToast();
 
   console.log('[LifeSkillsMap] Component mounted/rendering');
   
@@ -169,6 +177,68 @@ export default function LifeSkillsMap() {
       ...prev,
       [subcategoryKey]: !prev[subcategoryKey]
     }));
+  };
+
+  // Mutation for adding lesson to persistent assignments
+  const addToAssignmentMutation = useMutation({
+    mutationFn: async ({
+      hrcmArea,
+      courseId,
+      courseName,
+      lessonId,
+      lessonName,
+      url
+    }: {
+      hrcmArea: string;
+      courseId: string;
+      courseName: string;
+      lessonId: string;
+      lessonName: string;
+      url: string;
+    }) => {
+      return await apiRequest('/api/persistent-assignments', 'POST', {
+        hrcmArea,
+        courseId,
+        courseName,
+        lessonId,
+        lessonName,
+        url,
+        completed: false,
+        source: 'user'
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/persistent-assignments'] });
+      toast({
+        title: "Added to Assignment",
+        description: "Lesson has been added to Next Week Target Assignment column",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to Add",
+        description: error.message || "Failed to add lesson to assignments",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleAddToAssignment = (
+    hrcmArea: string,
+    courseId: string,
+    courseName: string,
+    lessonId: string,
+    lessonName: string,
+    url: string
+  ) => {
+    addToAssignmentMutation.mutate({
+      hrcmArea,
+      courseId,
+      courseName,
+      lessonId,
+      lessonName,
+      url
+    });
   };
 
   const handleLessonToggle = (
