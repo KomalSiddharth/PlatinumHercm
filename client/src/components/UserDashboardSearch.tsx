@@ -5,13 +5,15 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Search, User, ArrowLeft, TrendingUp, AlertCircle, Loader2, Trophy, History as HistoryIcon } from 'lucide-react';
+import { Search, User, ArrowLeft, TrendingUp, AlertCircle, Loader2, Trophy, History as HistoryIcon, ChevronsUpDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import UnifiedHRCMTable from './UnifiedHRCMTable';
 import AdminEmotionalTrackerView from './AdminEmotionalTrackerView';
 import RitualHistoryModal from './RitualHistoryModal';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 
 interface UserSearchResult {
   id: string;
@@ -47,6 +49,7 @@ interface UserDashboardData {
 }
 
 export default function UserDashboardSearch() {
+  const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -74,12 +77,17 @@ export default function UserDashboardSearch() {
 
   const handleSelectUser = (userId: string) => {
     setSelectedUserId(userId);
+    setOpen(false);
+    setSearchQuery(''); // Clear search after selection
   };
 
   const handleBackToSearch = () => {
     setSelectedUserId(null);
-    setSearchQuery(''); // Clear search when going back
+    setSearchQuery('');
   };
+
+  // Get selected user name for display
+  const selectedUser = searchResults?.find(u => u.id === selectedUserId);
 
   const getRatingColor = (rating: number) => {
     if (rating >= 8) return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
@@ -301,125 +309,84 @@ export default function UserDashboardSearch() {
     );
   }
 
-  // Search interface
+  // Search interface with Select User dropdown
   return (
     <div className="space-y-4">
-      {/* Quick User Lookup - Matching Admin Panel UI */}
-      <Card className="border-2 border-blue-200 dark:border-blue-800">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Search className="w-5 h-5" />
-            Quick User Lookup
-          </CardTitle>
-          <CardDescription>
-            Enter a user's email address to view their detailed analytics and progress report
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-2">
-            <Input
-              type="text"
-              placeholder="Search by name or email (e.g., John or john@email.com)"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && searchQuery.length >= 2 && searchResults && searchResults.length > 0) {
-                  handleSelectUser(searchResults[0].id);
-                }
-              }}
-              data-testid="input-user-dashboard-search"
-              className="flex-1 text-base"
-            />
-            <Button 
-              onClick={() => {
-                if (searchResults && searchResults.length > 0) {
-                  handleSelectUser(searchResults[0].id);
-                }
-              }}
-              disabled={isSearching || !searchResults || searchResults.length === 0}
-              data-testid="button-search-user"
-              className="bg-gradient-to-r from-pink-500 to-blue-500 text-white"
+      {/* Select User Combobox - Matching Screenshot */}
+      <div className="space-y-2">
+        <h3 className="text-lg font-semibold">Select User</h3>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={open}
+              className="w-full justify-between h-12 text-muted-foreground"
+              data-testid="button-select-user-dropdown"
             >
-              <Search className="w-4 h-4 mr-2" />
-              {isSearching ? 'Searching...' : 'Search User'}
+              {selectedUserId && selectedUser
+                ? `${selectedUser.firstName} ${selectedUser.lastName}`
+                : "Search and select user..."}
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Search Results Dropdown */}
-      {searchQuery.length >= 2 && (
-        <>
-          {isSearching && (
-            <Card>
-              <CardContent className="p-6 text-center">
-                <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-primary" />
-                <p className="text-sm text-muted-foreground">Searching for users...</p>
-              </CardContent>
-            </Card>
-          )}
-
-          {!isSearching && searchResults && searchResults.length > 0 && (
-            <Card className="border-2 border-green-200 dark:border-green-800">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm text-muted-foreground">
-                  Found {searchResults.length} user{searchResults.length > 1 ? 's' : ''}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {searchResults.map((user) => (
-                  <div
-                    key={user.id}
-                    onClick={() => handleSelectUser(user.id)}
-                    className="flex items-center gap-3 p-3 border rounded-md hover-elevate cursor-pointer transition-all"
-                    data-testid={`card-user-search-result-${user.id}`}
-                  >
-                    <Avatar className="w-10 h-10">
-                      <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                        {user.firstName?.[0]}{user.lastName?.[0]}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold truncate" data-testid={`text-search-user-name-${user.id}`}>
-                        {user.firstName} {user.lastName}
-                      </div>
-                      <div className="text-sm text-muted-foreground truncate" data-testid={`text-search-user-email-${user.id}`}>
-                        {user.email}
-                      </div>
+          </PopoverTrigger>
+          <PopoverContent className="w-[500px] p-0" align="start">
+            <Command shouldFilter={false}>
+              <CommandInput
+                placeholder="Search by name or email..."
+                value={searchQuery}
+                onValueChange={setSearchQuery}
+                data-testid="input-user-search"
+                className="h-12"
+              />
+              <CommandList className="max-h-[400px]">
+                <CommandEmpty>
+                  {isSearching ? (
+                    <div className="flex items-center justify-center py-6">
+                      <Loader2 className="w-5 h-5 animate-spin text-muted-foreground mr-2" />
+                      <span className="text-sm text-muted-foreground">Searching...</span>
                     </div>
-                    {user.latestWeek && (
-                      <div className="flex items-center gap-2 shrink-0">
-                        <Badge variant="outline" className="text-xs">
-                          Week {user.latestWeek.weekNumber}
-                        </Badge>
-                        <Badge className={getRatingColor(user.latestWeek.overallScore)}>
-                          {user.latestWeek.overallScore.toFixed(1)}/10
-                        </Badge>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
+                  ) : searchQuery.length < 2 ? (
+                    <div className="text-center py-6 text-sm text-muted-foreground">
+                      Type at least 2 characters to search
+                    </div>
+                  ) : (
+                    <div className="text-center py-6 text-sm text-muted-foreground">
+                      No users found
+                    </div>
+                  )}
+                </CommandEmpty>
+                {searchResults && searchResults.length > 0 && (
+                  <CommandGroup>
+                    {searchResults.map((user) => {
+                      const displayName = `${user.firstName || 'No'} ${user.lastName || 'Name'}`;
+                      return (
+                        <CommandItem
+                          key={user.id}
+                          value={`${user.firstName} ${user.lastName} ${user.email}`}
+                          onSelect={() => handleSelectUser(user.id)}
+                          className="flex flex-col items-start py-3 cursor-pointer"
+                          data-testid={`option-user-${user.id}`}
+                        >
+                          <div className="font-semibold text-base">{displayName}</div>
+                          <div className="text-sm text-muted-foreground">{user.email}</div>
+                        </CommandItem>
+                      );
+                    })}
+                  </CommandGroup>
+                )}
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+      </div>
 
-          {!isSearching && (!searchResults || searchResults.length === 0) && (
-            <Card className="border-2 border-orange-200 dark:border-orange-800">
-              <CardContent className="p-6 flex items-center justify-center gap-2 text-orange-600 dark:text-orange-400">
-                <AlertCircle className="w-5 h-5" />
-                <span>No users found matching "{searchQuery}"</span>
-              </CardContent>
-            </Card>
-          )}
-        </>
-      )}
-
-      {/* Empty state when no search performed */}
-      {searchQuery.length < 2 && (
+      {/* Empty state when no user selected */}
+      {!selectedUserId && (
         <Card className="border-dashed">
           <CardContent className="p-8 text-center text-muted-foreground">
             <User className="w-12 h-12 mx-auto mb-3 opacity-50" />
-            <p className="text-sm">Type at least 2 characters to search for a team member</p>
+            <p className="text-sm">Select a user from the dropdown above to view their dashboard</p>
           </CardContent>
         </Card>
       )}
