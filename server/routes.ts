@@ -1389,7 +1389,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin: Search user by name with compact activity
+  // Admin: Search user by name with compact activity (searches approved emails too)
   app.get('/api/admin/search-user-by-name', isAdmin, async (req, res) => {
     try {
       const { name } = req.query;
@@ -1397,13 +1397,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Name parameter required" });
       }
 
-      const users = await storage.getAllUsers();
-      const matchedUsers = users.filter(u => {
+      const searchTerm = name.toLowerCase();
+      console.log('[SEARCH] Searching for:', searchTerm);
+
+      // Get ALL approved emails (same as users-analytics)
+      const approvedEmailsList = await storage.getAllApprovedEmails();
+      const activeApprovedEmails = approvedEmailsList.filter(ae => ae.status === 'active');
+      console.log('[SEARCH] Total approved emails:', activeApprovedEmails.length);
+      
+      // Get all registered users
+      const allUsers = await storage.getAllUsers();
+      console.log('[SEARCH] Total registered users:', allUsers.length);
+      
+      // Create a map: email -> user data (for approved emails)
+      const usersByEmail = new Map<string, any>();
+      
+      // Start with ALL approved emails (even if they haven't logged in)
+      for (const approvedEmail of activeApprovedEmails) {
+        const nameParts = approvedEmail.name ? approvedEmail.name.trim().split(' ') : [];
+        usersByEmail.set(approvedEmail.email, {
+          id: approvedEmail.email, // Use email as ID placeholder
+          email: approvedEmail.email,
+          firstName: nameParts[0] || '',
+          lastName: nameParts.slice(1).join(' ') || '',
+          isPlaceholder: true,
+        });
+      }
+      
+      // Overlay actual user data from users table
+      for (const user of allUsers) {
+        const emailKey = user.email || user.id;
+        if (usersByEmail.has(emailKey)) {
+          const existing = usersByEmail.get(emailKey);
+          if (existing.isPlaceholder) {
+            usersByEmail.set(emailKey, user);
+          }
+        }
+      }
+      
+      // Now search through all users (approved emails + registered)
+      const allUsersArray = Array.from(usersByEmail.values());
+      const matchedUsers = allUsersArray.filter(u => {
         const fullName = `${u.firstName || ''} ${u.lastName || ''}`.toLowerCase();
         const email = (u.email || '').toLowerCase();
-        const searchTerm = name.toLowerCase();
         return fullName.includes(searchTerm) || email.includes(searchTerm);
       });
+
+      console.log('[SEARCH] Matched users:', matchedUsers.length);
 
       if (matchedUsers.length === 0) {
         return res.status(404).json({ message: "No users found" });
@@ -1437,6 +1477,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
       );
 
+      console.log('[SEARCH] Returning users with activity:', usersWithActivity.length);
       res.json(usersWithActivity);
     } catch (error) {
       console.error("Error searching user by name:", error);
