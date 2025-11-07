@@ -350,12 +350,32 @@ export async function backupUserData(userId: string): Promise<BackupResult> {
       stats.users = 1;
     }
 
-    // 2. HRCM weeks (auto-transform to snake_case)
+    // 2. HRCM weeks (auto-transform to snake_case with detailed logging)
     const userHercm = await db.select().from(hercmWeeks).where(eq(hercmWeeks.userId, userId));
     if (userHercm.length > 0) {
+      console.log(`[BACKUP] 🔄 Backing up ${userHercm.length} HRCM week records for user ${userId}...`);
       const transformedHercm = userHercm.map(transformToSnakeCase);
-      await supabase!.from('hercm_weeks').upsert(transformedHercm, { onConflict: 'id' });
-      stats.hercmWeeks = userHercm.length;
+      
+      // Log sample data for debugging
+      if (userHercm.length > 0) {
+        const sample = userHercm[0];
+        console.log(`[BACKUP] Sample HRCM record - Week: ${sample.weekNumber}, Date: ${sample.dateString}, ID: ${sample.id}`);
+      }
+      
+      const { error: hercmError } = await supabase!.from('hercm_weeks').upsert(transformedHercm, { onConflict: 'id' });
+      
+      if (hercmError) {
+        console.error(`[BACKUP] ❌ HRCM weeks backup FAILED for user ${userId}:`, hercmError.message);
+        console.error('[BACKUP] Error details:', hercmError);
+        console.warn('[BACKUP] 💡 Tip: Check Supabase table schema - ensure all columns exist with correct types');
+        console.warn('[BACKUP] 💡 Required columns: date_string, problems_checklist, feelings_current_checklist, beliefs_current_checklist, actions_current_checklist');
+        // Don't throw - continue with other backups
+      } else {
+        console.log(`[BACKUP] ✅ Successfully backed up ${userHercm.length} HRCM week records to Supabase`);
+        stats.hercmWeeks = userHercm.length;
+      }
+    } else {
+      console.log(`[BACKUP] ℹ️ No HRCM data to backup for user ${userId}`);
     }
 
     // 3. Ritual completions (auto-transform to snake_case)
