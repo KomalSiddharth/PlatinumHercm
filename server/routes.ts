@@ -1998,6 +1998,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Custom course ordering sequence
+  const COURSE_ORDER = [
+    "IMK - Platinum Community",
+    "Mitesh - AI",
+    "One Day Miracle",
+    "Platinum Membership",
+    "Manifest With chakra by Mitesh Khatri",
+    "AI Course by Mitesh Khatri",
+    "Platinum DMP",
+    "Depression to Celebration",
+    "Platinum Healing Podcast",
+    "Basic Law of Attraction Level 1",
+    "Daily Magic Practise",
+    "Advance Law of Attraction",
+    "Wealth Mastery",
+    "NLP - Neuro Linguistic Programming",
+    "Ho-Oponopono + EFT Certificationn Course",
+    "Relationship Mastery with Mitesh Khatri",
+    "Practical Spirituality by IMK",
+    "Life Coaching",
+    "Corporate Train the Trainer by Mitesh Khatri",
+    "LOA & DMP Certification",
+    "LOA with Vastu Frequency",
+    "Health Mastery & Happy Gym",
+    "Handwriting Frequency Course",
+    "Investing & Saving",
+    "Dr. Demartini BreakThrough Follow Up Session with IMK",
+    "Dr. John Demartini's Values by Mitesh Khatri",
+    "Platinum Fitness Standards",
+    "Platinum Support Sessions By Platinum Facilitator",
+    "Lead Self",
+    "Lead People",
+    "Lead Bussiness",
+    "Digital Coaching Success - Platinum Version",
+    "Digital Coaching System",
+    "Canva Graphic Design Mastery",
+    "Platinum Internship Magicians",
+    "Law of Attraction Basic",
+    "Podcast Practical Spirituality with My Guru GD || MItesh Khatri",
+    "IMK Bonuses"
+  ];
+
+  // Helper function to normalize course titles for matching
+  function normalizeCourseTitle(title: string): string {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '') // Remove special chars
+      .replace(/\s+/g, ' ')         // Normalize whitespace
+      .trim();
+  }
+
+  // Helper function to get course order index
+  function getCourseOrderIndex(courseTitle: string): number {
+    const normalized = normalizeCourseTitle(courseTitle);
+    const index = COURSE_ORDER.findIndex(orderTitle => {
+      const normalizedOrder = normalizeCourseTitle(orderTitle);
+      // Exact match or contains match
+      return normalizedOrder === normalized || 
+             normalizedOrder.includes(normalized) || 
+             normalized.includes(normalizedOrder);
+    });
+    // Return index if found, otherwise put at end (999999)
+    return index !== -1 ? index : 999999;
+  }
+
   // Google Sheets course tracking - fetch all courses and lessons
   app.get('/api/courses/tracking', isAuthenticated, async (req: any, res) => {
     try {
@@ -2063,8 +2128,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }).filter(Boolean);
       
-      console.log(`[COURSE TRACKING] Returning ${coursesWithCompletions.length} courses with completions to frontend`);
-      res.json(coursesWithCompletions);
+      // Sort courses according to custom order
+      const sortedCourses = [...coursesWithCompletions].sort((a, b) => {
+        if (!a || !b) return 0;
+        const indexA = getCourseOrderIndex(a.title);
+        const indexB = getCourseOrderIndex(b.title);
+        return indexA - indexB;
+      });
+      
+      console.log(`[COURSE TRACKING] Sorted ${sortedCourses.length} courses by custom order`);
+      console.log(`[COURSE TRACKING] First 5 courses: ${sortedCourses.slice(0, 5).map(c => c?.title).filter(Boolean).join(', ')}`);
+      
+      res.json(sortedCourses);
     } catch (error) {
       console.error("[COURSE TRACKING] Error fetching course tracking data:", error);
       if (error instanceof Error) {
