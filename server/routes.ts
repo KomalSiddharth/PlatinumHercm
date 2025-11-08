@@ -2558,6 +2558,163 @@ export async function registerRoutes(app: Express): Promise<Server> {
               completed: false
             }
           ]
+        },
+        {
+          id: 'nlp',
+          title: 'NLP - Neuro Linguistic Programming',
+          url: 'https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming',
+          lessons: [
+            {
+              id: 'nlp-intro',
+              title: 'Introduction To NLP',
+              url: 'https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/2158676641/posts/2191829396',
+              completed: false
+            },
+            {
+              id: 'nlp-lesson-1',
+              title: 'Lesson 1 - NLP Intro Results Sharing of Senior Members',
+              url: 'http://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/2158676641/posts/2191831215',
+              completed: false
+            },
+            {
+              id: 'nlp-lesson-2-part1',
+              title: 'Lesson 2 - Generalization Deletion and Distortion Filters - Part 1',
+              url: 'https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/2158676641/posts/2191831217',
+              completed: false
+            },
+            {
+              id: 'nlp-lesson-2-part2',
+              title: 'Lesson 2 - Generalization Deletion and Distortion Filters - Part 2',
+              url: 'https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/2158676641/posts/2191831216',
+              completed: false
+            },
+            {
+              id: 'nlp-lesson-3',
+              title: 'Lesson 3 - Primary and Sub-Modalities of VAK',
+              url: 'https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/2158676641/posts/2191831214',
+              completed: false
+            },
+            {
+              id: 'nlp-lesson-4',
+              title: 'Lesson 4 - Like to Dislike anything in just 5 Mins',
+              url: 'https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/2158676641/posts/2191831213',
+              completed: false
+            },
+            {
+              id: 'nlp-lesson-5',
+              title: 'Lesson 5 - Dislike to Like anything in just 5 Mins',
+              url: 'https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/2158676641/posts/2191831212',
+              completed: false
+            },
+            {
+              id: 'nlp-precap',
+              title: 'PreCap Result Sharing',
+              url: 'https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/2158676641/posts/2191851177',
+              completed: false
+            },
+            {
+              id: 'nlp-lesson-6',
+              title: 'Lesson 6 - Anchoring - Automatic Emotional Programmes',
+              url: 'https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/2158676641/posts/2191851179',
+              completed: false
+            },
+            {
+              id: 'nlp-10-year-success',
+              title: 'How To achieve 10 Year Of Success in 1 Year',
+              url: 'http://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/2158676641/posts/2191851180',
+              completed: false
+            },
+            {
+              id: 'nlp-lesson-7',
+              title: 'Lesson 7 - Metaphors to Influence The Sub-conscious Mind',
+              url: 'https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/2158676641/posts/2191851181',
+              completed: false
+            },
+            {
+              id: 'nlp-lesson-8',
+              title: 'Lesson 8 - Conversational Hypnosis with Meta & Milton Model',
+              url: 'https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/2158676641/posts/2191851182',
+              completed: false
+            },
+            {
+              id: 'nlp-lesson-9',
+              title: 'Lesson 9 - Eye Accessing Cues',
+              url: 'https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/2158676641/posts/2191846852',
+              completed: false
+            },
+            {
+              id: 'nlp-lesson-10',
+              title: 'Lesson 10 - Pre-Framing Re-Framing Post-Framing',
+              url: 'https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/2158676641/posts/2191846857',
+              completed: false
+            },
+            {
+              id: 'nlp-lesson-11',
+              title: 'Lesson 11 - Swish Technique to Change Small Habits in 5 Mins',
+              url: 'https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/2158676641/posts/2191846860',
+              completed: false
+            },
+            {
+              id: 'nlp-lesson-12',
+              title: 'Lesson 12 - Cure Any Phobia in just 10 Mins',
+              url: 'https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/2158676641/posts/2191846861',
+              completed: false
+            },
+            {
+              id: 'nlp-lesson-13',
+              title: 'Lesson 13 - Belief Transfer in just 10 Mins',
+              url: 'https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/2158676641/posts/2191846863',
+              completed: false
+            },
+            {
+              id: 'nlp-lesson-14',
+              title: 'Lesson 14 - Modelling - The Science of Replicating Success 10x Faster',
+              url: 'https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/2158676641/posts/2191846897',
+              completed: false
+            },
+            {
+              id: 'nlp-lesson-15',
+              title: 'Lesson 15 - Removing Any FEAR in just 5 Mins',
+              url: 'https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/2158676641/posts/2191846891',
+              completed: false
+            },
+            {
+              id: 'nlp-lesson-16',
+              title: 'Lesson 16 - Transformational Vocabulary',
+              url: 'https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/2158676641/posts/2191846902',
+              completed: false
+            },
+            {
+              id: 'nlp-lesson-17',
+              title: 'Lesson 17 - Parts Integration',
+              url: 'https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/2158676641/posts/2191846846',
+              completed: false
+            },
+            {
+              id: 'nlp-lesson-18',
+              title: 'Lesson 18 - Rapport Building Conversational Hypnosis',
+              url: 'https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/2158676641/posts/2191846904',
+              completed: false
+            },
+            {
+              id: 'nlp-lesson-19',
+              title: 'Lesson 19 - Timeline Therapy to Change Emotions Memories',
+              url: 'https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/2158676641/posts/2191846911',
+              completed: false
+            },
+            {
+              id: 'nlp-lesson-20',
+              title: 'Lesson 20 - Stack Anchoring',
+              url: 'https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/2158676641/posts/2191846850',
+              completed: false
+            },
+            {
+              id: 'nlp-integration',
+              title: 'Integration Exercise for all NLP Techniques',
+              url: 'https://coaching.miteshkhatri.com/products/nlp-neuro-linguistic-programming/categories/2158676641/posts/2191847020',
+              completed: false
+            }
+          ]
         }
       ];
       console.log(`[COURSE TRACKING] Returning ${courses.length} hardcoded courses with total lessons: ${courses.reduce((acc, c) => acc + (c.lessons?.length || 0), 0)}`);
