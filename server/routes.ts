@@ -2031,7 +2031,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "Platinum Support Sessions By Platinum Facilitator",
     "Lead Self",
     "Lead People",
-    "Lead Bussiness",
+    "Lead Business",
     "Digital Coaching Success - Platinum Version",
     "Digital Coaching System",
     "Canva Graphic Design Mastery",
