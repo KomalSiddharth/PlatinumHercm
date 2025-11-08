@@ -3189,6 +3189,132 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   completed: false
                 }
               ]
+            },
+            {
+              id: 'hooponopono-bonus-hindi',
+              title: 'BONUS - HINDI Ho\'Oponopono Healer Course',
+              lessons: [
+                {
+                  id: 'hoopo-hindi-welcome',
+                  title: '1. Welcome Video - Start Here',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2150994577/posts/2160433343',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-hindi-results-senior',
+                  title: 'Results of Senior Students',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2150994577/posts/2160476713',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-hindi-lesson-1',
+                  title: '1. Get Ready to Commit to Be a Healer',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2150994577/posts/2160476856',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-hindi-lesson-2',
+                  title: '2. What is Basic Ho\'Oponopono',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2150994577/posts/2160476931',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-hindi-lesson-3',
+                  title: '3. What is Advance Ho\'Oponopono',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2150994577/posts/2160478284',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-hindi-lesson-4-questions',
+                  title: '4. Questions',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2150994577/posts/2160478763',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-hindi-results-1',
+                  title: 'Results Sharing',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2151045743/posts/2160609964',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-hindi-5-preframes',
+                  title: '5 Pre-Frames to Teach Ho oponopono',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2151045743/posts/2160609965',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-hindi-amazing-experience',
+                  title: 'How to Give Amazing Ho Oponopono Experience',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2151045743/posts/2160609966',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-hindi-results-2',
+                  title: 'Results Sharing',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2151090383/posts/2160774596',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-hindi-webinar-part2',
+                  title: 'Part 2 of your Ho Oponopono Webinar',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2151090383/posts/2160774598',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-hindi-questions',
+                  title: 'Questions',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2151090383/posts/2160774597',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-hindi-community',
+                  title: 'How to Join Community Forum',
+                  url: 'http://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2151090383/posts/2160774595',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-hindi-results-3',
+                  title: 'Results Sharing',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2151137560/posts/2160949948',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-hindi-lesson-4-launch',
+                  title: 'Lesson 4 - How to Launch Advance Ho Oponopono',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2151137560/posts/2160949950',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-hindi-lesson-4-conduct',
+                  title: 'Lesson 4 - How to Conduct Advance Ho Oponopono',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2151137560/posts/2160949949',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-hindi-results-4',
+                  title: 'Results Sharing',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2151208360/posts/2161216456',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-hindi-organic',
+                  title: 'How to Attract Organic Students',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2151208360/posts/2161216567',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-hindi-paid',
+                  title: 'How to Attract Paid Students',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2151208360/posts/2161217448',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-hindi-certification',
+                  title: 'Certification Process & Questions',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2151208360/posts/2161217504',
+                  completed: false
+                }
+              ]
             }
           ]
         }
