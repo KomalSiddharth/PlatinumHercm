@@ -3177,6 +3177,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   completed: false
                 }
               ]
+            },
+            {
+              id: 'hooponopono-bonus-children',
+              title: 'BONUS - How to Deliver Children\'s Ho\'oponopono',
+              lessons: [
+                {
+                  id: 'hoopo-children-16mar',
+                  title: '16th Mar - Children\'s Ho\'Oponopono',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course',
+                  completed: false
+                }
+              ]
             }
           ]
         }
