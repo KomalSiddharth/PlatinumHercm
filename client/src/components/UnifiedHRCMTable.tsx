@@ -3457,6 +3457,24 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       // Direct display of all assignments without hover card
                       return (
                         <div className="space-y-3 overflow-y-auto max-h-[320px]">
+                          {/* Add Custom Assignment Button - AT THE TOP */}
+                          {!isAdminView && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setEditCustomAssignmentId(null);
+                                setCustomAssignmentText('');
+                                setShowCustomAssignmentDialog(true);
+                              }}
+                              className="w-full h-8 text-xs border-dashed border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30"
+                              data-testid="button-add-custom-assignment"
+                            >
+                              <Plus className="w-3 h-3 mr-1" />
+                              Add Custom Goal
+                            </Button>
+                          )}
+                          
                           {/* User Lessons - Full List */}
                           {userLessons.length > 0 && (
                             <div className="space-y-2">
@@ -3579,24 +3597,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                 </div>
                               ))}
                             </div>
-                          )}
-                          
-                          {/* Add Custom Assignment Button */}
-                          {!isAdminView && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                setEditCustomAssignmentId(null);
-                                setCustomAssignmentText('');
-                                setShowCustomAssignmentDialog(true);
-                              }}
-                              className="w-full h-8 text-xs border-dashed border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30"
-                              data-testid="button-add-custom-assignment"
-                            >
-                              <Plus className="w-3 h-3 mr-1" />
-                              Add Custom Goal
-                            </Button>
                           )}
                         </div>
                       );
