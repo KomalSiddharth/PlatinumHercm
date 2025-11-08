@@ -2020,6 +2020,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Hardcoded course: Manifest with Chakra by Mitesh Khatri
       const courses: any[] = [
         {
+          id: 'platinum-membership',
+          title: 'Platinum Membership',
+          url: '',
+          lessons: []
+        },
+        {
           id: 'manifest-with-chakra',
           title: 'Manifest with Chakra by Mitesh Khatri',
           url: 'https://coaching.miteshkhatri.com/products/manifest-with-chakra-by-mitesh-khatri',
