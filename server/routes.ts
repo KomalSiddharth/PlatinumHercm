@@ -2225,9 +2225,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
               completed: false
             }
           ]
+        },
+        {
+          id: 'basic-loa-level-1',
+          title: 'Basic Law of Attraction Level 1',
+          url: 'https://coaching.miteshkhatri.com/products/basic-law-of-attraction-level-1',
+          lessons: [
+            {
+              id: 'loa-intro-course',
+              title: 'Basic Law of Attraction Course',
+              url: 'https://coaching.miteshkhatri.com/products/basic-law-of-attraction-level-1/categories/2156164675/posts/2181333642',
+              completed: false
+            },
+            {
+              id: 'loa-lesson-1',
+              title: '1. What are the 4 Levels of LOA',
+              url: 'https://coaching.miteshkhatri.com/products/basic-law-of-attraction-level-1/categories/2147690759/posts/2148209423',
+              completed: false
+            },
+            {
+              id: 'loa-lesson-2',
+              title: '2. What is Law of Attraction',
+              url: 'https://coaching.miteshkhatri.com/products/basic-law-of-attraction-level-1/categories/2147690759/posts/2148209424',
+              completed: false
+            },
+            {
+              id: 'loa-lesson-3',
+              title: '3. Why LOA Works',
+              url: 'https://coaching.miteshkhatri.com/products/basic-law-of-attraction-level-1/categories/2147690759/posts/2148209434',
+              completed: false
+            },
+            {
+              id: 'loa-lesson-4',
+              title: '4. What is The FORMULA of LOA',
+              url: 'https://coaching.miteshkhatri.com/products/basic-law-of-attraction-level-1/categories/2147690759/posts/2148209426',
+              completed: false
+            },
+            {
+              id: 'loa-lesson-5',
+              title: '5. How to Join 30-Days Subconscious Re-Programming Group',
+              url: 'https://coaching.miteshkhatri.com/products/basic-law-of-attraction-level-1/categories/2147690759/posts/2148209431',
+              completed: false
+            },
+            {
+              id: 'loa-lesson-6',
+              title: '6. Four Rules of Tuning Perfect Affirmations',
+              url: 'https://coaching.miteshkhatri.com/products/basic-law-of-attraction-level-1/categories/2147748284/posts/2148209430',
+              completed: false
+            },
+            {
+              id: 'loa-lesson-7',
+              title: '7. Four Areas of Tuning Affirmations',
+              url: 'https://coaching.miteshkhatri.com/products/basic-law-of-attraction-level-1/categories/2147748284/posts/2148209429',
+              completed: false
+            },
+            {
+              id: 'loa-lesson-8',
+              title: '8. Three Type of Affirmations for Success',
+              url: 'https://coaching.miteshkhatri.com/products/basic-law-of-attraction-level-1/categories/2147748284/posts/2148209425',
+              completed: false
+            },
+            {
+              id: 'loa-lesson-9',
+              title: '9. How to Prepare Your Affirmations',
+              url: 'https://coaching.miteshkhatri.com/products/basic-law-of-attraction-level-1/categories/2147748284/posts/2148209422',
+              completed: false
+            },
+            {
+              id: 'loa-lesson-10',
+              title: '10. How to Practice Affirmations in the Right Way',
+              url: 'http://coaching.miteshkhatri.com/products/basic-law-of-attraction-level-1/categories/2147748284/posts/2148209433',
+              completed: false
+            },
+            {
+              id: 'loa-lesson-11',
+              title: '11. How to Clear Negative Energy with HO OPONO OPONO',
+              url: 'https://coaching.miteshkhatri.com/products/basic-law-of-attraction-level-1/categories/2147748295/posts/2148209428',
+              completed: false
+            },
+            {
+              id: 'loa-lesson-12',
+              title: '12. Hindi LOA LIVE - Part 1',
+              url: 'https://coaching.miteshkhatri.com/products/basic-law-of-attraction-level-1/categories/4285636/posts/14388551',
+              completed: false
+            },
+            {
+              id: 'loa-lesson-13-part2',
+              title: '13. Hindi LOA LIVE - Part 2',
+              url: 'https://coaching.miteshkhatri.com/products/basic-law-of-attraction-level-1/categories/4285636/posts/14388552',
+              completed: false
+            },
+            {
+              id: 'loa-lesson-13-part3',
+              title: '13. Hindi LOA LIVE - Part 3',
+              url: 'https://coaching.miteshkhatri.com/products/basic-law-of-attraction-level-1/categories/4285636/posts/14389466',
+              completed: false
+            },
+            {
+              id: 'loa-lesson-14',
+              title: '14. 22nd May - Law of Attraction LIVE Recording',
+              url: 'https://coaching.miteshkhatri.com/products/basic-law-of-attraction-level-1/categories/2148012241/posts/2149365170',
+              completed: false
+            }
+          ]
         }
       ];
-      console.log(`[COURSE TRACKING] Returning ${courses.length} hardcoded courses: "Manifest with Chakra" (${courses[0].lessons.length} lessons), "AI Course" (${courses[1].lessons.length} lessons), and "Depression To Celebration" (${courses[2].lessons.length} lessons)`);
+      console.log(`[COURSE TRACKING] Returning ${courses.length} hardcoded courses: "Manifest with Chakra" (${courses[0].lessons.length} lessons), "AI Course" (${courses[1].lessons.length} lessons), "Depression To Celebration" (${courses[2].lessons.length} lessons), and "Basic Law of Attraction Level 1" (${courses[3].lessons.length} lessons)`);
       
       if (courses.length > 0 && courses[0]) {
         const firstCourse = courses[0];
