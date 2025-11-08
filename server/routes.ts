@@ -2206,9 +2206,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
               completed: false
             }
           ]
+        },
+        {
+          id: 'depression-to-celebration',
+          title: 'Depression To Celebration',
+          url: 'https://coaching.miteshkhatri.com/products/depression-to-celebration',
+          lessons: [
+            {
+              id: 'depression-lesson-1',
+              title: 'Lesson 1 - Depression to Celebration',
+              url: 'https://coaching.miteshkhatri.com/products/depression-to-celebration/categories/2151886711/posts/2163826138',
+              completed: false
+            },
+            {
+              id: 'depression-lesson-2',
+              title: 'Lesson 2 - Depression to Celebration',
+              url: 'https://coaching.miteshkhatri.com/products/depression-to-celebration/categories/2151886711/posts/2163857695',
+              completed: false
+            }
+          ]
         }
       ];
-      console.log(`[COURSE TRACKING] Returning ${courses.length} hardcoded courses: "Manifest with Chakra" (${courses[0].lessons.length} lessons) and "AI Course" (${courses[1].lessons.length} lessons)`);
+      console.log(`[COURSE TRACKING] Returning ${courses.length} hardcoded courses: "Manifest with Chakra" (${courses[0].lessons.length} lessons), "AI Course" (${courses[1].lessons.length} lessons), and "Depression To Celebration" (${courses[2].lessons.length} lessons)`);
       
       if (courses.length > 0 && courses[0]) {
         const firstCourse = courses[0];
@@ -2312,15 +2331,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "lessonId is required" });
       }
 
-      if (completed) {
-        // Mark as completed
+      // Frontend sends CURRENT state, we need to toggle it
+      // If completed=false (currently unchecked), mark as complete
+      // If completed=true (currently checked), mark as incomplete
+      if (!completed) {
+        // Currently unchecked, so mark as completed
         await storage.markLessonComplete(userId, lessonId);
         
         // Add 10 points
         await storage.addPointsToUser(userId, 10);
         console.log(`✅ Added 10 points to user ${userId} for completing lesson: ${lessonName}`);
       } else {
-        // Mark as incomplete (remove completion record)
+        // Currently checked, so mark as incomplete (remove completion record)
         await storage.markLessonIncomplete(userId, lessonId);
         
         // Subtract 10 points
