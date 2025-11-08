@@ -478,11 +478,11 @@ export default function LifeSkillsMap() {
                                   <Checkbox
                                     checked={lesson.completed}
                                     onCheckedChange={(checked) => {
-                                      // Prevent double-toggle from parent onClick
-                                      return;
+                                      handleLessonToggle(course.id, lesson.id, lesson.completed, lesson.title, course.title, lesson.url, course.category);
                                     }}
-                                    className="border-gray-500 pointer-events-none"
+                                    className="border-gray-500"
                                     data-testid={`checkbox-lesson-${lesson.id}`}
+                                    onClick={(e) => e.stopPropagation()}
                                   />
                                   <a
                                     href={lesson.url}
@@ -573,11 +573,11 @@ export default function LifeSkillsMap() {
                                             <Checkbox
                                               checked={lesson.completed}
                                               onCheckedChange={(checked) => {
-                                                // Prevent double-toggle from parent onClick
-                                                return;
+                                                handleLessonToggle(course.id, lesson.id, lesson.completed, lesson.title, subcat.title, lesson.url, course.category);
                                               }}
-                                              className="border-gray-500 pointer-events-none"
+                                              className="border-gray-500"
                                               data-testid={`checkbox-lesson-${lesson.id}`}
+                                              onClick={(e) => e.stopPropagation()}
                                             />
                                             <a
                                               href={lesson.url}
@@ -666,11 +666,11 @@ export default function LifeSkillsMap() {
                                                         <Checkbox
                                                           checked={lesson.completed}
                                                           onCheckedChange={(checked) => {
-                                                            // Prevent double-toggle from parent onClick
-                                                            return;
+                                                            handleLessonToggle(course.id, lesson.id, lesson.completed, lesson.title, subSubcat.title, lesson.url, course.category);
                                                           }}
-                                                          className="border-gray-500 pointer-events-none"
+                                                          className="border-gray-500"
                                                           data-testid={`checkbox-lesson-${lesson.id}`}
+                                                          onClick={(e) => e.stopPropagation()}
                                                         />
                                                         <a
                                                           href={lesson.url}
