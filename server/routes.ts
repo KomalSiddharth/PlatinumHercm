@@ -3933,6 +3933,120 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   completed: false
                 }
               ]
+            },
+            {
+              id: 'ps-batch2-latest',
+              title: 'Practical Spirituality - Batch 2 Latest',
+              lessons: [
+                {
+                  id: 'ps-b2-what-is-ps',
+                  title: '1. What is Practical Spirituality',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2149643015/posts/2155201011',
+                  completed: false
+                },
+                {
+                  id: 'ps-b2-oneness-meditation',
+                  title: '2. The Oneness Meditation Experience',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2149643015/posts/2155200995',
+                  completed: false
+                },
+                {
+                  id: 'ps-b2-meditation-sharing',
+                  title: '3. Meditation Experience Sharing',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2149643015/posts/2155200996',
+                  completed: false
+                },
+                {
+                  id: 'ps-b2-dark-side',
+                  title: '4. Loving Accepting Your Dark Side',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2149643015/posts/2155200997',
+                  completed: false
+                },
+                {
+                  id: 'ps-b2-questions-1',
+                  title: '5. Questions on Practical Spirituality',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2149643015/posts/2155201018',
+                  completed: false
+                },
+                {
+                  id: 'ps-b2-realisation-sharing',
+                  title: 'Realisation Sharing',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2149689287/posts/2155372146',
+                  completed: false
+                },
+                {
+                  id: 'ps-b2-i-am-energy',
+                  title: 'Lesson 2 - If I AM Energy Then',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2149689287/posts/2155372144',
+                  completed: false
+                },
+                {
+                  id: 'ps-b2-questions-2',
+                  title: 'Questions',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2149689287/posts/2155372147',
+                  completed: false
+                },
+                {
+                  id: 'ps-b2-7feb-recap',
+                  title: '7th Feb - Recap Sharing',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2149742782/posts/2155580204',
+                  completed: false
+                },
+                {
+                  id: 'ps-b2-7feb-balance',
+                  title: '7th Feb - Experiencing Balance in Life',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2149742782/posts/2155580205',
+                  completed: false
+                },
+                {
+                  id: 'ps-b2-deserve-affirmation',
+                  title: 'I Deserve Affirmation & Questions on Spirituality',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2149838283/posts/2155933952',
+                  completed: false
+                },
+                {
+                  id: 'ps-b2-oneness-meditation-2',
+                  title: 'Oneness Meditation',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2149885048/posts/2156109548',
+                  completed: false
+                },
+                {
+                  id: 'ps-b2-feeling-balanced',
+                  title: 'Feeling Balanced by Removing Comparison',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2149885048/posts/2156109549',
+                  completed: false
+                },
+                {
+                  id: 'ps-b2-questions-3',
+                  title: 'Questions',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2149885048/posts/2156109550',
+                  completed: false
+                },
+                {
+                  id: 'ps-b2-results-sharing',
+                  title: 'Results Sharing',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2149933676/posts/2156288006',
+                  completed: false
+                },
+                {
+                  id: 'ps-b2-why-no-me',
+                  title: 'Why No Me',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2149933676/posts/2156288007',
+                  completed: false
+                },
+                {
+                  id: 'ps-b2-questions-4',
+                  title: 'Questions',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2149933676/posts/2156288008',
+                  completed: false
+                },
+                {
+                  id: 'ps-b2-13march-questions',
+                  title: '13th March - Questions on Spirituality',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2149980705/posts/2156467961',
+                  completed: false
+                }
+              ]
             }
           ]
         }
