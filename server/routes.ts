@@ -2208,6 +2208,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ]
         },
         {
+          id: 'platinum-dmp',
+          title: 'Platinum DMP Course',
+          url: '',
+          lessons: []
+        },
+        {
           id: 'depression-to-celebration',
           title: 'Depression To Celebration',
           url: 'https://coaching.miteshkhatri.com/products/depression-to-celebration',
