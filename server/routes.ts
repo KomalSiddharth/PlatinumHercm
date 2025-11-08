@@ -3731,6 +3731,210 @@ export async function registerRoutes(app: Express): Promise<Server> {
               ]
             }
           ]
+        },
+        {
+          id: 'practical-spirituality',
+          title: 'Practical Spirituality By IMK',
+          subcategories: [
+            {
+              id: 'ps-with-guru',
+              title: 'Practical Spirituality with my guru',
+              lessons: [
+                {
+                  id: 'ps-6nov-part1',
+                  title: '6th Nov - Part 1',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2151628144/posts/2162812399',
+                  completed: false
+                },
+                {
+                  id: 'ps-6nov-qa',
+                  title: '6th Nov - Spirituality Q&A',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2151628144/posts/2162811998',
+                  completed: false
+                },
+                {
+                  id: 'ps-20nov-meditation',
+                  title: '20th Nov - Meditation & 4 Questions Exercise of Byron Katie with GD',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2151628144/posts/2163187094',
+                  completed: false
+                },
+                {
+                  id: 'ps-27nov-sahil',
+                  title: '27th Nov - Practical Spirituality with Sahil',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2151628144/posts/2163367754',
+                  completed: false
+                },
+                {
+                  id: 'ps-4dec-addictions',
+                  title: '4th Dec - Session with Sahil on Addictions',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2151628144/posts/2163530206',
+                  completed: false
+                },
+                {
+                  id: 'ps-11dec-reflections',
+                  title: '11th Dec - Reflections & Projection to Remove Depression',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2151628144/posts/2163747120',
+                  completed: false
+                },
+                {
+                  id: 'ps-meditation-questions-1',
+                  title: '1. Meditation & Questions',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2152005517/posts/2164300041',
+                  completed: false
+                },
+                {
+                  id: 'ps-meditation-2',
+                  title: '2. Meditation',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2152005517/posts/2164299713',
+                  completed: false
+                },
+                {
+                  id: 'ps-8jan-healing',
+                  title: '8th Jan - Relationship Healing with 4 Questions',
+                  url: 'http://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2152050601/posts/2164441877',
+                  completed: false
+                },
+                {
+                  id: 'ps-18dec-meditation',
+                  title: '18th Dec - Meditation',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2151912146/posts/2163925059',
+                  completed: false
+                },
+                {
+                  id: 'ps-18dec-questions',
+                  title: '18th Dec - Questions with Sahil',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2151912146/posts/2163925060',
+                  completed: false
+                },
+                {
+                  id: 'ps-meditation-part1',
+                  title: 'Meditation Part 1',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2151955959/posts/2164105986',
+                  completed: false
+                },
+                {
+                  id: 'ps-meditation-part2',
+                  title: 'Meditation Part 2',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2151955959/posts/2164105987',
+                  completed: false
+                },
+                {
+                  id: 'ps-results-perfect',
+                  title: 'Results Everything is Always Perfect',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2151955959/posts/2164105988',
+                  completed: false
+                },
+                {
+                  id: 'ps-15jan-meditation',
+                  title: '15th Jan - Meditation',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2152098120/posts/2164649570',
+                  completed: false
+                },
+                {
+                  id: 'ps-questions-guilt',
+                  title: 'Questions on Guilt',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2152098120/posts/2164649571',
+                  completed: false
+                },
+                {
+                  id: 'ps-15jan-closing',
+                  title: '15th Jan - Closing Meditation',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2152098120/posts/2164649569',
+                  completed: false
+                },
+                {
+                  id: 'ps-starting-addiction',
+                  title: 'Starting Meditation on Addiction',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2152161880/posts/2164900491',
+                  completed: false
+                },
+                {
+                  id: 'ps-qa-addiction',
+                  title: 'Q A on Addiction',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2152161880/posts/2164900489',
+                  completed: false
+                },
+                {
+                  id: 'ps-closing-relationships',
+                  title: 'Closing Meditation on Relationships',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2152161880/posts/2164900490',
+                  completed: false
+                },
+                {
+                  id: 'ps-5feb-guru',
+                  title: '5th Feb - Practical Spirituality With My Guru',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2152263790/posts/2165283961',
+                  completed: false
+                },
+                {
+                  id: 'ps-part1-sadness',
+                  title: 'Part 1 - Meditation On Unexplained Sadness',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2152306089/posts/2165447993',
+                  completed: false
+                },
+                {
+                  id: 'ps-part2-forgiveness',
+                  title: 'Part 2 - Meditation On Forgiveness',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2152306089/posts/2165447994',
+                  completed: false
+                },
+                {
+                  id: 'ps-meditation-health',
+                  title: '1. Meditation For Health',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2152364235/posts/2165673989',
+                  completed: false
+                },
+                {
+                  id: 'ps-qa-1',
+                  title: '2. Question & Answer',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2152364235/posts/2165673990',
+                  completed: false
+                },
+                {
+                  id: 'ps-meditation-forgiveness',
+                  title: '3. Meditation For Forgiveness',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2152364235/posts/2165673992',
+                  completed: false
+                },
+                {
+                  id: 'ps-26feb-meditation',
+                  title: '26th Feb - Meditation',
+                  url: 'http://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2152411411/posts/2165854852',
+                  completed: false
+                },
+                {
+                  id: 'ps-26feb-qa',
+                  title: '26th Feb - Question & Answer',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2152411411/posts/2165854854',
+                  completed: false
+                },
+                {
+                  id: 'ps-starting-meditation-1',
+                  title: '1. Starting Maditation',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2152462074/posts/2166055056',
+                  completed: false
+                },
+                {
+                  id: 'ps-qa-2',
+                  title: '2. Question & Answer',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2152462074/posts/2166055057',
+                  completed: false
+                },
+                {
+                  id: 'ps-qa-3',
+                  title: '3. Question & Answer',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2152462074/posts/2166055058',
+                  completed: false
+                },
+                {
+                  id: 'ps-closing-meditation-4',
+                  title: '4. Closing Meditation',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2152462074/posts/2166055059',
+                  completed: false
+                }
+              ]
+            }
+          ]
         }
       ];
       console.log(`[COURSE TRACKING] Returning ${courses.length} hardcoded courses with total lessons: ${courses.reduce((acc, c) => acc + (c.lessons?.length || 0), 0)}`);
