@@ -2425,6 +2425,139 @@ export async function registerRoutes(app: Express): Promise<Server> {
               completed: false
             }
           ]
+        },
+        {
+          id: 'wealth-mastery',
+          title: 'Wealth Mastery',
+          url: 'https://coaching.miteshkhatri.com/products/wealth-mastery',
+          lessons: [
+            {
+              id: 'wealth-intro',
+              title: 'Intro & Senior Members Result Sharing',
+              url: 'https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2158586243/posts/2191477747',
+              completed: false
+            },
+            {
+              id: 'wealth-lesson-1',
+              title: 'Lesson 1 - Recognizing your Money Blocks',
+              url: 'https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2158586243/posts/2191477745',
+              completed: false
+            },
+            {
+              id: 'wealth-lesson-2',
+              title: 'Lesson 2 - Release Negative Money Frequency with EFT',
+              url: 'https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2158586243/posts/2191477746',
+              completed: false
+            },
+            {
+              id: 'wealth-lesson-3',
+              title: 'Lesson 3 - Changing your Emotional Frequency for Money',
+              url: 'https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2158586243/posts/2191479648',
+              completed: false
+            },
+            {
+              id: 'wealth-lesson-4',
+              title: 'Lesson 4 - Happy Millionaire Emotions',
+              url: 'http://coaching.miteshkhatri.com/products/wealth-mastery/categories/2158586243/posts/2191479647',
+              completed: false
+            },
+            {
+              id: 'wealth-lesson-5',
+              title: 'Lesson 5 - Happy Millionaire Beliefs',
+              url: 'https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2158586243/posts/2191479646',
+              completed: false
+            },
+            {
+              id: 'wealth-lesson-6',
+              title: 'Lesson 6 - Attracting Ultimate Financial Freedom with SDE',
+              url: 'https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2158586243/posts/2191481086',
+              completed: false
+            },
+            {
+              id: 'wealth-precap',
+              title: 'Precap Result Sharing',
+              url: 'https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2158586243/posts/2191491298',
+              completed: false
+            },
+            {
+              id: 'wealth-lesson-7',
+              title: 'Lesson 7 - Happy Millionaire Actions',
+              url: 'https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2158586243/posts/2191491299',
+              completed: false
+            },
+            {
+              id: 'wealth-10-year-success',
+              title: 'How to Achieve 10 year of Success in 1 Year',
+              url: 'https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2158586243/posts/2191491713',
+              completed: false
+            },
+            {
+              id: 'wealth-lesson-8',
+              title: 'Lesson 8 - PMDSPM System to Manage Money',
+              url: 'https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2158586243/posts/2191491702',
+              completed: false
+            },
+            {
+              id: 'wealth-lesson-9',
+              title: 'Lesson 9 - Coherence Breathing',
+              url: 'https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2158586243/posts/2191491661',
+              completed: false
+            },
+            {
+              id: 'wealth-lesson-10',
+              title: 'Lesson 10 - Decision Making',
+              url: 'https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2158586243/posts/2191491650',
+              completed: false
+            },
+            {
+              id: 'wealth-lesson-11',
+              title: 'Lesson 11 - Match your Needs with Your Goals',
+              url: 'https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2158586243/posts/2191491708',
+              completed: false
+            },
+            {
+              id: 'wealth-lesson-12',
+              title: 'Lesson 12 - Multiple Money Making Skills to Create Multiple Sources of Income',
+              url: 'https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2158586243/posts/2191491664',
+              completed: false
+            },
+            {
+              id: 'wealth-lesson-13',
+              title: 'Lesson 13 - How to Write Your 1st Book Fast and Easy',
+              url: 'https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2158586243/posts/2191491667',
+              completed: false
+            },
+            {
+              id: 'wealth-lesson-14',
+              title: 'Lesson 14 - Sell First Make Later Fail Fast',
+              url: 'https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2158586243/posts/2191491666',
+              completed: false
+            },
+            {
+              id: 'wealth-lesson-15',
+              title: 'Lesson 15 - How to Invest & Multiply your Money like a Millionaire',
+              url: 'https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2158586243/posts/2191491669',
+              completed: false
+            },
+            {
+              id: 'wealth-lesson-16',
+              title: 'Lesson 16 - Maintain Millionaire Frequency with 5 Beliefs',
+              url: 'https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2158586243/posts/2191491670',
+              completed: false
+            },
+            {
+              id: 'wealth-lesson-17',
+              title: 'Lesson 17 - Complete Investment Guide by Indu Khatri',
+              url: 'https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2158586243/posts/2191491672',
+              completed: false
+            },
+            {
+              id: 'wealth-bonus-vastu',
+              title: 'BONUS - The Science of Vastu Explained',
+              url: 'https://coaching.miteshkhatri.com/products/wealth-mastery/categories/2158586243/posts/2191491675',
+              completed: false
+            }
+          ]
         }
       ];
       console.log(`[COURSE TRACKING] Returning ${courses.length} hardcoded courses with total lessons: ${courses.reduce((acc, c) => acc + (c.lessons?.length || 0), 0)}`);
