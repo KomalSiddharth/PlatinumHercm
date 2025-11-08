@@ -2129,6 +2129,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }).filter(Boolean);
       
+      // Track courses to remove (we'll remove them at the end to avoid index shifting issues)
+      const coursesToRemoveIds: string[] = [];
+      
       // Merge "Morning Happy Gym Dance Videos" lessons into "Health Mastery"
       const healthMasteryIndex = coursesWithCompletions.findIndex(c => 
         c && normalizeCourseTitle(c.title).includes('health mastery')
@@ -2156,11 +2159,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
             subcategories: []
           });
           
-          // Remove the standalone gym videos course
-          coursesWithCompletions.splice(gymVideosIndex, 1);
+          // Mark for removal
+          coursesToRemoveIds.push(gymVideos.id);
           
           console.log(`[COURSE MERGE] Added ${gymVideos.lessons?.length || 0} gym video lessons to Health Mastery as subcategory`);
         }
+      }
+      
+      // Merge "Relationship Mastery" lessons into "Relationship Mastery with Mitesh Khatri"
+      const relationshipMasteryWithMiteshIndex = coursesWithCompletions.findIndex(c => 
+        c && normalizeCourseTitle(c.title).includes('relationship mastery') && normalizeCourseTitle(c.title).includes('mitesh')
+      );
+      const relationshipMasteryIndex = coursesWithCompletions.findIndex(c => 
+        c && normalizeCourseTitle(c.title) === 'relationship mastery'
+      );
+      
+      if (relationshipMasteryWithMiteshIndex !== -1 && relationshipMasteryIndex !== -1) {
+        const relationshipMasteryWithMitesh = coursesWithCompletions[relationshipMasteryWithMiteshIndex];
+        const relationshipMastery = coursesWithCompletions[relationshipMasteryIndex];
+        
+        if (relationshipMasteryWithMitesh && relationshipMastery) {
+          console.log(`[COURSE MERGE] Merging "${relationshipMastery.title}" lessons into "${relationshipMasteryWithMitesh.title}"`);
+          
+          // Create a subcategory for Relationship Mastery within Relationship Mastery with Mitesh Khatri
+          if (!relationshipMasteryWithMitesh.subcategories) {
+            relationshipMasteryWithMitesh.subcategories = [];
+          }
+          
+          relationshipMasteryWithMitesh.subcategories.push({
+            id: relationshipMastery.id + '-subcategory',
+            title: 'Relationship Mastery',
+            lessons: relationshipMastery.lessons || [],
+            subcategories: []
+          });
+          
+          // Mark for removal
+          coursesToRemoveIds.push(relationshipMastery.id);
+          
+          console.log(`[COURSE MERGE] Added ${relationshipMastery.lessons?.length || 0} Relationship Mastery lessons to Relationship Mastery with Mitesh Khatri as subcategory`);
+        }
+      }
+      
+      // Remove all merged courses by filtering them out (safer than splice)
+      if (coursesToRemoveIds.length > 0) {
+        console.log(`[COURSE MERGE] Removing ${coursesToRemoveIds.length} merged courses: ${coursesToRemoveIds.join(', ')}`);
+        const beforeCount = coursesWithCompletions.length;
+        const filteredCourses = coursesWithCompletions.filter(c => c && !coursesToRemoveIds.includes(c.id));
+        console.log(`[COURSE MERGE] Course count: ${beforeCount} → ${filteredCourses.length}`);
+        // Replace the array contents
+        coursesWithCompletions.length = 0;
+        coursesWithCompletions.push(...filteredCourses);
       }
       
       // Sort courses according to custom order
