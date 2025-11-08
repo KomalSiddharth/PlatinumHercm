@@ -2027,9 +2027,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const courses = await fetchCourseTrackingData(sheetUrl);
       console.log(`[COURSE TRACKING] Fetched ${courses.length} courses from Google Sheets`);
       
-        {
-          id: 'manifest-with-chakra',
-          title: 'Manifest with Chakra by Mitesh Khatri',
+      // Mark lessons as completed with better error handling
+      const coursesWithCompletions = courses.map((course, idx) => {
+        try {
+          // Filter out invalid lessons
+          const validLessons = (course.lessons || []).filter(lesson => {
             if (!lesson.id) {
               console.warn(`[COURSE TRACKING] Found lesson without ID in course "${course.title}": ${JSON.stringify(lesson)}`);
               return false;
