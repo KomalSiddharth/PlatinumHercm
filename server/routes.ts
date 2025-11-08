@@ -3645,6 +3645,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   completed: false
                 }
               ]
+            },
+            {
+              id: 'relationship-batch5',
+              title: 'Relationship Mastery - Batch 5',
+              lessons: [
+                {
+                  id: 'rel-b5-what-is-rm',
+                  title: '1. What is Relationship Mastery',
+                  url: 'https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2152043516/posts/2164436432',
+                  completed: false
+                },
+                {
+                  id: 'rel-b5-practicing-source',
+                  title: '2. Practicing Relationship Skills with your Source',
+                  url: 'https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2152043516/posts/2164436431',
+                  completed: false
+                },
+                {
+                  id: 'rel-b5-rackets-rules',
+                  title: '3. Recognising your Rackets and Rules',
+                  url: 'https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2152097769/posts/2164648243',
+                  completed: false
+                },
+                {
+                  id: 'rel-b5-changing-rules',
+                  title: '4. Changing your Rules Improving your Relationships',
+                  url: 'https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2152097769/posts/2164648244',
+                  completed: false
+                },
+                {
+                  id: 'rel-b5-assignment-1',
+                  title: '5. Assignment Questions',
+                  url: 'https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2152097769/posts/2164648245',
+                  completed: false
+                },
+                {
+                  id: 'rel-b5-practice-reflection',
+                  title: '6. Practice Reflection to Master Acceptance',
+                  url: 'https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2152149530/posts/2164853425',
+                  completed: false
+                },
+                {
+                  id: 'rel-b5-balanced-perspective',
+                  title: '7. Balanced Perspective to Master Acceptance',
+                  url: 'https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2152282484/posts/2165356752',
+                  completed: false
+                },
+                {
+                  id: 'rel-b5-build-trust',
+                  title: '8. How to Build Recover Trust in Relationships Fast',
+                  url: 'https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2152302364/posts/2165433196',
+                  completed: false
+                },
+                {
+                  id: 'rel-b5-assignment-2',
+                  title: '9. Assignment Questions',
+                  url: 'https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2152302364/posts/2165433195',
+                  completed: false
+                },
+                {
+                  id: 'rel-b5-ego-part1',
+                  title: '10. Managing Ego Part 1',
+                  url: 'https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2152351008/posts/2165617733',
+                  completed: false
+                },
+                {
+                  id: 'rel-b5-ego-part2',
+                  title: '11. Managing Ego Part 2',
+                  url: 'https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2152351008/posts/2165617734',
+                  completed: false
+                },
+                {
+                  id: 'rel-b5-assignment-3',
+                  title: '12. Assignment',
+                  url: 'https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2152351008/posts/2165617732',
+                  completed: false
+                },
+                {
+                  id: 'rel-b5-firo-b',
+                  title: '13. Lesson 7 - FIRO-B for Understanding & Accepting your Partner',
+                  url: 'https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2152463856/posts/2166061998',
+                  completed: false
+                }
+              ]
             }
           ]
         }
