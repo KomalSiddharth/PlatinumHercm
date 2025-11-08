@@ -2128,6 +2128,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }).filter(Boolean);
       
+      // Merge "Morning Happy Gym Dance Videos" lessons into "Health Mastery"
+      const healthMasteryIndex = coursesWithCompletions.findIndex(c => 
+        c && normalizeCourseTitle(c.title).includes('health mastery')
+      );
+      const gymVideosIndex = coursesWithCompletions.findIndex(c => 
+        c && normalizeCourseTitle(c.title).includes('morning happy gym')
+      );
+      
+      if (healthMasteryIndex !== -1 && gymVideosIndex !== -1) {
+        const healthMastery = coursesWithCompletions[healthMasteryIndex];
+        const gymVideos = coursesWithCompletions[gymVideosIndex];
+        
+        if (healthMastery && gymVideos) {
+          console.log(`[COURSE MERGE] Merging "${gymVideos.title}" lessons into "${healthMastery.title}"`);
+          
+          // Create a subcategory for gym videos within Health Mastery
+          if (!healthMastery.subcategories) {
+            healthMastery.subcategories = [];
+          }
+          
+          healthMastery.subcategories.push({
+            id: gymVideos.id + '-subcategory',
+            title: 'Morning Happy Gym Dance Videos',
+            lessons: gymVideos.lessons || [],
+            subcategories: []
+          });
+          
+          // Remove the standalone gym videos course
+          coursesWithCompletions.splice(gymVideosIndex, 1);
+          
+          console.log(`[COURSE MERGE] Added ${gymVideos.lessons?.length || 0} gym video lessons to Health Mastery as subcategory`);
+        }
+      }
+      
       // Sort courses according to custom order
       const sortedCourses = [...coursesWithCompletions].sort((a, b) => {
         if (!a || !b) return 0;

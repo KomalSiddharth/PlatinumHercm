@@ -478,6 +478,91 @@ export default function LifeSkillsMap() {
                             </div>
                           </div>
                         ))}
+                        
+                        {/* Render subcategories */}
+                        {course.subcategories && course.subcategories.length > 0 && course.subcategories.map((subcat) => {
+                          const subcatKey = `${course.id}-${subcat.id}`;
+                          const isSubcatOpen = openSubcategories[subcatKey] || false;
+                          const totalSubLessons = subcat.lessons.length;
+                          const completedSubLessons = subcat.lessons.filter(l => l.completed).length;
+                          
+                          return (
+                            <Collapsible
+                              key={subcatKey}
+                              open={isSubcatOpen}
+                              onOpenChange={() => toggleSubcategory(subcatKey)}
+                            >
+                              <CollapsibleTrigger 
+                                className="flex items-center justify-between w-full p-1.5 rounded-md hover:bg-gray-800/30 transition-colors mt-2"
+                                data-testid={`button-subcategory-${subcat.id}`}
+                              >
+                                <div className="flex items-center gap-2 flex-1">
+                                  <ChevronRight 
+                                    className={`h-3 w-3 text-gray-400 transition-transform ${isSubcatOpen ? 'rotate-90' : ''}`}
+                                  />
+                                  <span className="font-medium text-gray-300 text-xs" data-testid={`text-subcategory-title-${subcat.id}`}>
+                                    {subcat.title}
+                                  </span>
+                                </div>
+                                <span className="text-xs text-gray-500" data-testid={`text-subcategory-progress-${subcat.id}`}>
+                                  {completedSubLessons}/{totalSubLessons}
+                                </span>
+                              </CollapsibleTrigger>
+                              
+                              <CollapsibleContent>
+                                <div className="ml-4 mt-1 space-y-1">
+                                  {subcat.lessons.map((lesson) => (
+                                    <div 
+                                      key={lesson.id}
+                                      className="flex items-center justify-between p-1.5 rounded hover:bg-gray-800/20 transition-colors cursor-pointer group"
+                                      data-testid={`container-lesson-${lesson.id}`}
+                                      onClick={() => handleLessonToggle(course.id, lesson.id, lesson.completed, lesson.title, `${course.title} - ${subcat.title}`, lesson.url, course.category)}
+                                    >
+                                      <div className="flex items-center gap-2 flex-1">
+                                        <Checkbox
+                                          checked={lesson.completed}
+                                          onCheckedChange={() => {
+                                            handleLessonToggle(course.id, lesson.id, lesson.completed, lesson.title, `${course.title} - ${subcat.title}`, lesson.url, course.category);
+                                          }}
+                                          className="border-gray-500"
+                                          data-testid={`checkbox-lesson-${lesson.id}`}
+                                          onClick={(e) => e.stopPropagation()}
+                                        />
+                                        <a
+                                          href={lesson.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-sm text-blue-400 hover:text-blue-300 hover:underline"
+                                          data-testid={`link-lesson-${lesson.id}`}
+                                          onClick={(e) => e.stopPropagation()}
+                                        >
+                                          {lesson.title}
+                                        </a>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-xs text-gray-500" data-testid={`text-lesson-points-${lesson.id}`}>
+                                          10 pts
+                                        </span>
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          className="h-6 w-6 p-0"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleAddToAssignment('general', course.id, `${course.title} - ${subcat.title}`, lesson.id, lesson.title, lesson.url);
+                                          }}
+                                          data-testid={`button-add-assignment-${lesson.id}`}
+                                        >
+                                          <Plus className="h-3 w-3" />
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </CollapsibleContent>
+                            </Collapsible>
+                          );
+                        })}
                       </div>
                     </CollapsibleContent>
                   </Collapsible>
