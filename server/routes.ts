@@ -2014,7 +2014,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "ALOA",
     "Wealth Mastery",
     "NLP - Neuro Linguistic Programming",
-    "Ho-Oponopono + EFT Certificationn Course",
+    "Ho'Oponopono + EFT Certification Course",
     "Relationship Mastery with Mitesh Khatri",
     "Practical Spirituality by IMK",
     "Life Coaching",
