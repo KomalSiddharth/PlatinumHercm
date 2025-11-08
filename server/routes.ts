@@ -2017,9 +2017,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userCompletions = await storage.getUserLessonCompletions(userId);
       console.log(`[COURSE TRACKING] User has ${userCompletions.size} lesson completions`);
       
-      // Fetch courses and mark lessons as completed based on user data
-      const courses = await fetchCourseTrackingData(sheetUrl);
-      console.log(`[COURSE TRACKING] Fetched ${courses.length} courses from Google Sheets`);
+      // TEMPORARY: Return empty courses array (user will provide new courses later)
+      const courses: any[] = [];
+      console.log(`[COURSE TRACKING] Returning empty courses array (temporary)`);
       
       if (courses.length > 0 && courses[0]) {
         const firstCourse = courses[0];
