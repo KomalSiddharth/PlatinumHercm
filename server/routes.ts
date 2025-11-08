@@ -2017,9 +2017,131 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userCompletions = await storage.getUserLessonCompletions(userId);
       console.log(`[COURSE TRACKING] User has ${userCompletions.size} lesson completions`);
       
-      // TEMPORARY: Return empty courses array (user will provide new courses later)
-      const courses: any[] = [];
-      console.log(`[COURSE TRACKING] Returning empty courses array (temporary)`);
+      // Hardcoded course: Manifest with Chakra by Mitesh Khatri
+      const courses: any[] = [
+        {
+          id: 'manifest-with-chakra',
+          title: 'Manifest with Chakra by Mitesh Khatri',
+          url: 'https://coaching.miteshkhatri.com/products/manifest-with-chakra-by-mitesh-khatri',
+          lessons: [
+            {
+              id: 'intro-seven-course',
+              title: 'Introduction of Seven Course',
+              url: 'https://coaching.miteshkhatri.com/products/manifest-with-chakra-by-mitesh-khatri/categories/2158540000/posts/2191288595',
+              completed: false
+            },
+            {
+              id: 'lesson-1-root-chakra',
+              title: 'Lesson 1 - Activating of Root Chakra',
+              url: 'https://coaching.miteshkhatri.com/products/manifest-with-chakra-by-mitesh-khatri/categories/2158540000/posts/2191288594',
+              completed: false
+            },
+            {
+              id: 'lesson-2-sacral-chakra',
+              title: 'Lesson 2 - Activating of Sacral Chakra',
+              url: 'https://coaching.miteshkhatri.com/products/manifest-with-chakra-by-mitesh-khatri/categories/2158540000/posts/2191291434',
+              completed: false
+            },
+            {
+              id: 'lesson-3-third-eye-part-1',
+              title: 'Lesson 3 - Activating of Third Eye - Part - 1',
+              url: 'https://coaching.miteshkhatri.com/products/manifest-with-chakra-by-mitesh-khatri/categories/2158540000/posts/2191291437',
+              completed: false
+            },
+            {
+              id: 'lesson-3-third-eye-part-2',
+              title: 'Lesson 3 - Activating of Third Eye - Part - 2',
+              url: 'https://coaching.miteshkhatri.com/products/manifest-with-chakra-by-mitesh-khatri/categories/2158540000/posts/2191291436',
+              completed: false
+            },
+            {
+              id: 'result-sharing-1',
+              title: 'Result Sharing',
+              url: 'https://coaching.miteshkhatri.com/products/manifest-with-chakra-by-mitesh-khatri/categories/2158540000/posts/2191291435',
+              completed: false
+            },
+            {
+              id: 'result-sharing-day-2',
+              title: 'Result Sharing Day 2',
+              url: 'https://coaching.miteshkhatri.com/products/manifest-with-chakra-by-mitesh-khatri/categories/2158540000/posts/2191304126',
+              completed: false
+            },
+            {
+              id: 'lesson-4-science-behind-chakra',
+              title: 'Lesson 4 - The science Behind Chakra Manifestation',
+              url: 'https://coaching.miteshkhatri.com/products/manifest-with-chakra-by-mitesh-khatri/categories/2158540000/posts/2191304125',
+              completed: false
+            },
+            {
+              id: 'lesson-5-pineal-gland-meditation',
+              title: 'Lesson 5 - Pineal Gland Meditation for Third Eye Activation',
+              url: 'https://coaching.miteshkhatri.com/products/manifest-with-chakra-by-mitesh-khatri/categories/2158540000/posts/2191304128',
+              completed: false
+            },
+            {
+              id: 'how-to-achieve-10-year-success',
+              title: 'How to Achive 10 year Success in 1 year',
+              url: 'https://coaching.miteshkhatri.com/products/manifest-with-chakra-by-mitesh-khatri/categories/2158540000/posts/2191304127',
+              completed: false
+            },
+            {
+              id: 'lesson-6-heart-chakra',
+              title: 'Lesson 6 - Activating Heart Chakra',
+              url: 'https://coaching.miteshkhatri.com/products/manifest-with-chakra-by-mitesh-khatri/categories/2158540000/posts/2191306128',
+              completed: false
+            },
+            {
+              id: 'lesson-7-solar-plexus',
+              title: 'Lesson 7 - Activating Solar Plexus',
+              url: 'https://coaching.miteshkhatri.com/products/manifest-with-chakra-by-mitesh-khatri/categories/2158540000/posts/2191306129',
+              completed: false
+            },
+            {
+              id: 'lesson-8-throat-chakra',
+              title: 'Lesson 8 - Activating Throat Chakra',
+              url: 'https://coaching.miteshkhatri.com/products/manifest-with-chakra-by-mitesh-khatri/categories/2158540000/posts/2191306130',
+              completed: false
+            },
+            {
+              id: 'lesson-8-1-throat-chakra-sound',
+              title: 'Lesson 8.1 - Activating Throat Chakra with Sound',
+              url: 'https://coaching.miteshkhatri.com/products/manifest-with-chakra-by-mitesh-khatri/categories/2158540000/posts/2191306131',
+              completed: false
+            },
+            {
+              id: 'lesson-9-quantum-physics',
+              title: 'Lesson 9 - Quantum Physics & Manifestation Explained',
+              url: 'https://coaching.miteshkhatri.com/products/manifest-with-chakra-by-mitesh-khatri/categories/2158540000/posts/2191359688',
+              completed: false
+            },
+            {
+              id: 'assignment-all-7-chakras',
+              title: 'Assignment for all 7 Chakras',
+              url: 'https://coaching.miteshkhatri.com/products/manifest-with-chakra-by-mitesh-khatri/categories/2158540000/posts/2191306255',
+              completed: false
+            },
+            {
+              id: 'lesson-10-crown-chakra',
+              title: 'Lesson 10 - crown Chakra Activation',
+              url: 'https://coaching.miteshkhatri.com/products/manifest-with-chakra-by-mitesh-khatri/categories/2158540000/posts/2191322347',
+              completed: false
+            },
+            {
+              id: 'result-sharing-2',
+              title: 'Result Sharing',
+              url: 'https://coaching.miteshkhatri.com/products/manifest-with-chakra-by-mitesh-khatri/categories/2158540000/posts/2192129710',
+              completed: false
+            },
+            {
+              id: 'lesson-11-oneness-meditation',
+              title: 'Lesson 11 - Oneness Meditation - coming soon',
+              url: 'https://coaching.miteshkhatri.com/products/manifest-with-chakra-by-mitesh-khatri/categories/2158540000/posts/2191322553',
+              completed: false
+            }
+          ]
+        }
+      ];
+      console.log(`[COURSE TRACKING] Returning hardcoded "Manifest with Chakra by Mitesh Khatri" course with ${courses[0].lessons.length} lessons`);
       
       if (courses.length > 0 && courses[0]) {
         const firstCourse = courses[0];
