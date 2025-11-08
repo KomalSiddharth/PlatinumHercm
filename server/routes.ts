@@ -2022,7 +2022,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         {
           id: 'imk-platinum-community',
           title: 'IMK - Platinum Community',
-          url: '',
+          url: 'https://coaching.miteshkhatri.com/products/communities/v2/imk/zoommeetings',
           lessons: []
         },
         {
