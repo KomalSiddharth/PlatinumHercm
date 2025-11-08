@@ -4047,6 +4047,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   completed: false
                 }
               ]
+            },
+            {
+              id: 'ps-batch1-old',
+              title: 'Practical Spirituality - Batch 1 Old',
+              lessons: [
+                {
+                  id: 'ps-b1-lesson-1',
+                  title: 'Practical Spirituality Lesson 1',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2148801629/posts/2152145750',
+                  completed: false
+                },
+                {
+                  id: 'ps-b1-lesson-2',
+                  title: 'Practical Spirituality Lesson 2',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2148801629/posts/2152319533',
+                  completed: false
+                },
+                {
+                  id: 'ps-b1-meditation',
+                  title: 'Practical Spirituality Meditation',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2148801629/posts/2152368852',
+                  completed: false
+                },
+                {
+                  id: 'ps-b1-lesson-3',
+                  title: 'Practical Spirituality Lesson 3',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2148801629/posts/2152502428',
+                  completed: false
+                },
+                {
+                  id: 'ps-b1-lesson-4',
+                  title: 'Practical Spirituality Lesson 4',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2148801629/posts/2152673833',
+                  completed: false
+                },
+                {
+                  id: 'ps-b1-lesson-4-sharing',
+                  title: 'Practical Spirituality Lesson 4 Sharing',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2148801629/posts/2152673811',
+                  completed: false
+                },
+                {
+                  id: 'ps-b1-lesson-5',
+                  title: 'Practical Spirituality Lesson 5',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2148801629/posts/2152851624',
+                  completed: false
+                },
+                {
+                  id: 'ps-b1-lesson-6',
+                  title: 'Practical Spirituality Lesson 6',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2148801629/posts/2153204755',
+                  completed: false
+                },
+                {
+                  id: 'ps-b1-lesson-7',
+                  title: 'Practical Spirituality Lesson 7',
+                  url: 'https://coaching.miteshkhatri.com/products/practical-spirituality-by-imk/categories/2148801629/posts/2153372417',
+                  completed: false
+                }
+              ]
             }
           ]
         }
