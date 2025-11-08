@@ -3027,6 +3027,156 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   completed: false
                 }
               ]
+            },
+            {
+              id: 'hooponopono-may25',
+              title: '31st May- 1st June - Ho\'Oponopono Batch Recording - AI',
+              lessons: [
+                {
+                  id: 'hoopo-may-intro',
+                  title: 'Intro & Senior Members Result Sharing',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2157766400/posts/2188118249',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-may-lesson-1',
+                  title: 'Lesson 1 - Demonstration of Advance Ho Oponpono',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2157766400/posts/2188118245',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-may-lesson-1-1',
+                  title: 'Lesson 1.1 - Understanding Practice of Basic Vs Advance Ho Oponpono',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2157766400/posts/2188118246',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-may-lesson-2',
+                  title: 'Lesson 2 - Ho Oponopono Letting Go Technique',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2157766400/posts/2188118247',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-may-lesson-3',
+                  title: 'Lesson 3 - NLP Balloon Healing Technique',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2157766400/posts/2188118248',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-may-day2-recap',
+                  title: 'Day 2 Recap Sharing',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2157766400/posts/2188136535',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-may-lesson-4',
+                  title: 'Lesson 4 - Emotional Freedom Technique EFT',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2157766400/posts/2188136538',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-may-lesson-5',
+                  title: 'Lesson 5 - Love Ponopono Healing Technique',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2157766400/posts/2188136539',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-may-platinum-invite',
+                  title: 'Invitation to Platinum Membership',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2157766400/posts/2188136537',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-may-lesson-6',
+                  title: 'Lesson 6 - Clarity on How Much Money You Can Make As a Healer',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2157766400/posts/2188136540',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-may-lesson-7',
+                  title: 'Lesson 7 - Ready Script for Inviting People for Free Healing Sessions',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2157766400/posts/2188136541',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-may-lesson-8',
+                  title: 'Lesson 8 - Free Webinar Part 1 - How to Prepare People in your Webinar',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2157766400/posts/2188136542',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-may-lesson-9',
+                  title: 'Lesson 9 - Free Webinar Part 2 - Giving Tears of Joy Experience',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2157766400/posts/2188136543',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-may-lesson-10',
+                  title: 'Lesson 10 - Free Webinar Part 3 - Inviting People for 5 Days Free Healing',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2157766400/posts/2188136544',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-may-lesson-11',
+                  title: 'Lesson 11 - What to Deliver in the 5 Days Free Healing Sessions',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2157766400/posts/2188136545',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-may-lesson-12',
+                  title: 'Lesson 12 - Ready to Script to Sell on Graduation Day',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2157766400/posts/2188136546',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-may-lesson-13',
+                  title: 'Lesson 13 - What to Deliver in 30 Days Paid Healing Sessions',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2157766400/posts/2188136794',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-may-lesson-14',
+                  title: 'Lesson 14 - How to Get Your Certificate',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2157766400/posts/2188136536',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-may-lesson-15',
+                  title: 'Lesson 15 - Remote Healing Technique',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2157773506/posts/2188136938',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-may-lesson-16',
+                  title: 'Lesson 16 - The Best in Me Inviting the Best in You',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2157773506/posts/2188136893',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-may-lesson-17',
+                  title: 'Lesson 17 - Subconscious Programming to Get Comfortable to Charge for Healing',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2157773506/posts/2188136905',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-may-lesson-18',
+                  title: 'Lesson 18 - How to Share Music in Zoom and What Music to Use',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2157773506/posts/2188136908',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-may-lesson-19',
+                  title: 'Lesson 19 - How to Attract Unlimited Students from YouTube',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2157773506/posts/2188136915',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-may-final-qa',
+                  title: 'Final Q & A',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2157773506/posts/2188136923',
+                  completed: false
+                }
+              ]
             }
           ]
         }
