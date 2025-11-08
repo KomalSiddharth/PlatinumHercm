@@ -4109,6 +4109,132 @@ export async function registerRoutes(app: Express): Promise<Server> {
               ]
             }
           ]
+        },
+        {
+          id: 'life-coaching',
+          title: 'Life Coaching',
+          url: '',
+          lessons: []
+        },
+        {
+          id: 'corporate-train-the-trainer',
+          title: 'Corporate Train the Trainer by Mitesh Khatri',
+          url: '',
+          lessons: []
+        },
+        {
+          id: 'loa-dmp-certification',
+          title: 'LOA & DMP Certification',
+          url: '',
+          lessons: []
+        },
+        {
+          id: 'loa-vastu-frequency',
+          title: 'LOA with Vastu Frequency',
+          url: '',
+          lessons: []
+        },
+        {
+          id: 'health-mastery-happy-gym',
+          title: 'Health Mastery & Happy Gym',
+          url: '',
+          lessons: []
+        },
+        {
+          id: 'handwriting-frequency-course',
+          title: 'Handwriting Frequency Course',
+          url: '',
+          lessons: []
+        },
+        {
+          id: 'investing-saving',
+          title: 'Investing & Saving',
+          url: '',
+          lessons: []
+        },
+        {
+          id: 'dr-demartini-breakthrough-followup',
+          title: 'Dr. Demartini Breakthrough Follow Up Session with IMK',
+          url: '',
+          lessons: []
+        },
+        {
+          id: 'dr-john-demartini-values',
+          title: "Dr. John Demartini's Values by Mitesh Khatri",
+          url: '',
+          lessons: []
+        },
+        {
+          id: 'platinum-fitness-standards',
+          title: 'Platinum Fitness Standards',
+          url: '',
+          lessons: []
+        },
+        {
+          id: 'platinum-support-session',
+          title: 'Platinum Support Session by Platinum Facilitator',
+          url: '',
+          lessons: []
+        },
+        {
+          id: 'lead-self',
+          title: 'Lead Self',
+          url: '',
+          lessons: []
+        },
+        {
+          id: 'lead-people',
+          title: 'Lead People',
+          url: '',
+          lessons: []
+        },
+        {
+          id: 'lead-business',
+          title: 'Lead Business',
+          url: '',
+          lessons: []
+        },
+        {
+          id: 'digital-coaching-success-platinum',
+          title: 'Digital Coaching Success - Platinum Session',
+          url: '',
+          lessons: []
+        },
+        {
+          id: 'digital-coaching-system',
+          title: 'Digital Coaching System',
+          url: '',
+          lessons: []
+        },
+        {
+          id: 'canva-graphic-design-mastery',
+          title: 'Canva Graphic Design Mastery',
+          url: '',
+          lessons: []
+        },
+        {
+          id: 'platinum-internship-magicians',
+          title: 'Platinum Internship Magicians',
+          url: '',
+          lessons: []
+        },
+        {
+          id: 'law-of-attraction-basic',
+          title: 'Law of Attraction Basic',
+          url: '',
+          lessons: []
+        },
+        {
+          id: 'podcast-practical-spirituality-guru-gd',
+          title: 'Podcast Practical Spirituality with My Guru GD || Mitesh Khatri',
+          url: '',
+          lessons: []
+        },
+        {
+          id: 'imk-bonuses',
+          title: 'IMK Bonuses',
+          url: '',
+          lessons: []
         }
       ];
       console.log(`[COURSE TRACKING] Returning ${courses.length} hardcoded courses with total lessons: ${courses.reduce((acc, c) => acc + (c.lessons?.length || 0), 0)}`);
