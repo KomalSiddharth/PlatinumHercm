@@ -2877,6 +2877,156 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   completed: false
                 }
               ]
+            },
+            {
+              id: 'hooponopono-sept25',
+              title: '6th&7th Sept \'25 - Ho\'Oponopono Batch Recording',
+              lessons: [
+                {
+                  id: 'hoopo-sept-intro',
+                  title: 'Intro & Senior Members Result Sharing',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2158407468/posts/2190761347',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-sept-lesson-1',
+                  title: 'Lesson 1 - Understanding Practice of Basic Vs Advance Ho Oponpono',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2158407468/posts/2190761346',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-sept-lesson-1-1',
+                  title: 'Lesson 1.1 - Demonstration of Advance Ho Oponpono',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2158407468/posts/2190761345',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-sept-result-lunch',
+                  title: 'Result Sharing after Lunch',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2158407468/posts/2190761344',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-sept-lesson-2',
+                  title: 'Lesson 2 - Ho Oponopono Letting Go Technique',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2158407468/posts/2190761343',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-sept-lesson-3',
+                  title: 'Lesson 3 - NLP Balloon Healing Technique',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2158407468/posts/2190762212',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-sept-lesson-4',
+                  title: 'Lesson 4 - Love Ponopono Healing Technique',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2158407468/posts/2190762211',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-sept-result-day2',
+                  title: 'Result Sharing Day 2',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2158407468/posts/2190771542',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-sept-lesson-5',
+                  title: 'Lesson 5 - Emotional Freedom Technique EFT',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2158407468/posts/2190771544',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-sept-lesson-6',
+                  title: 'Lesson 6 - Remote Healing Technique',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2158407468/posts/2190771543',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-sept-10-year-success',
+                  title: 'How To Achieve 10yr Success in 1 year',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2158407468/posts/2190772791',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-sept-lesson-7',
+                  title: 'Lesson 7 - Clarity on How Much Money You Can Make As a Healer',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2158407468/posts/2190772665',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-sept-lesson-8',
+                  title: 'Lesson 8 - Ready Script for Inviting People for Free Healing Sessions',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2158407468/posts/2190772637',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-sept-lesson-9',
+                  title: 'Lesson 9 - Free Webinar Part 1 - How to Prepare People in your Webinar',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2158407468/posts/2190772635',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-sept-lesson-10',
+                  title: 'Lesson 10 - Free Webinar Part 2 - Giving Tears of Joy Experience',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2158407468/posts/2190772636',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-sept-lesson-11',
+                  title: 'Lesson 11 - Free Webinar Part 3 - Inviting People for 5 Days Free Healing',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2158407468/posts/2190772638',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-sept-lesson-12',
+                  title: 'Lesson 12 - What to Deliver in the 5 Days Free Healing Sessions',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2158407468/posts/2190772639',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-sept-lesson-13',
+                  title: 'Lesson 13 - Ready to Script to Sell on Graduation Day',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2158407468/posts/2190772792',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-sept-lesson-14',
+                  title: 'Lesson 14 - The Best in Me Inviting the Best in You',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2158410541/posts/2190772711',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-sept-lesson-15',
+                  title: 'Lesson 15 - Subconscious Programming to Get Comfortable to Charge for Healing',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2158410541/posts/2190772713',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-sept-lesson-16',
+                  title: 'Lesson 16 - What to Deliver in 30 Days Paid Healing Sessions',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2158407468/posts/2190772716',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-sept-lesson-17',
+                  title: 'Lesson 17 - How to Share Music in Zoom and What Music to Use',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2158410541/posts/2190772718',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-sept-lesson-19',
+                  title: 'Lesson 19 - How to Get Your Certificate',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2158410541/posts/2190772723',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-sept-final-qa',
+                  title: 'Final Q & A',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2158410541/posts/2190772724',
+                  completed: false
+                }
+              ]
             }
           ]
         }
