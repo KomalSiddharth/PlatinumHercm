@@ -526,7 +526,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       ];
       
-      res.json({ beliefs, createdAt: week.createdAt, weekNumber: week.weekNumber });
+      res.json({ 
+        beliefs, 
+        createdAt: week.createdAt, 
+        weekNumber: week.weekNumber,
+        dateString: week.dateString,
+        manualNextWeekMode: week.manualNextWeekMode || false  // 🔥 Include manualNextWeekMode in response
+      });
     } catch (error) {
       console.error("Error fetching HRCM data by date:", error);
       res.status(500).json({ message: "Failed to fetch HRCM data" });
@@ -5369,7 +5375,13 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         }
       ];
       
-      res.json({ beliefs, createdAt: week.createdAt, weekNumber: week.weekNumber });
+      res.json({ 
+        beliefs, 
+        createdAt: week.createdAt, 
+        weekNumber: week.weekNumber,
+        dateString: week.dateString,
+        manualNextWeekMode: week.manualNextWeekMode || false  // 🔥 Include manualNextWeekMode in response
+      });
     } catch (error) {
       console.error("Error fetching admin user HRCM data by date:", error);
       res.status(500).json({ message: "Failed to fetch HRCM data" });
