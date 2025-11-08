@@ -2139,9 +2139,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
               completed: false
             }
           ]
+        },
+        {
+          id: 'ai-course',
+          title: 'AI Course by Mitesh Khatri',
+          url: 'https://coaching.miteshkhatri.com/products/ai-course-by-mitesh-khatri',
+          lessons: [
+            {
+              id: 'ai-intro-course',
+              title: 'Introduction to AI Course',
+              url: 'https://coaching.miteshkhatri.com/products/ai-course-by-mitesh-khatri/categories/2158460359/posts/2190952526',
+              completed: false
+            },
+            {
+              id: 'ai-lesson-1-how-to-start',
+              title: 'Lesson 1 - How to Start Learning AI',
+              url: 'https://coaching.miteshkhatri.com/products/ai-course-by-mitesh-khatri/categories/2158460359/posts/2190952527',
+              completed: false
+            },
+            {
+              id: 'ai-lesson-2-what-is-ai',
+              title: 'Lesson 2 - What is AI and how to Talk to it',
+              url: 'https://coaching.miteshkhatri.com/products/ai-course-by-mitesh-khatri/categories/2158460359/posts/2190952521',
+              completed: false
+            },
+            {
+              id: 'ai-result-sharing-1',
+              title: 'Result Sharing 1',
+              url: 'https://coaching.miteshkhatri.com/products/ai-course-by-mitesh-khatri/categories/2158460359/posts/2190952525',
+              completed: false
+            },
+            {
+              id: 'ai-lesson-3-choosing-tools',
+              title: 'Lesson 3 - Choosing the Right AI Tools for your Needs',
+              url: 'https://coaching.miteshkhatri.com/products/ai-course-by-mitesh-khatri/categories/2158460359/posts/2190952524',
+              completed: false
+            },
+            {
+              id: 'ai-lesson-4-apply-real-life',
+              title: 'Lesson 4 - Where You can Apply AI in Real Life',
+              url: 'https://coaching.miteshkhatri.com/products/ai-course-by-mitesh-khatri/categories/2158460359/posts/2190952523',
+              completed: false
+            },
+            {
+              id: 'ai-lesson-5-genspark',
+              title: 'Lesson 5 - How to use Genspark.AI Effectively',
+              url: 'https://coaching.miteshkhatri.com/products/ai-course-by-mitesh-khatri/categories/2158460359/posts/2190952522',
+              completed: false
+            },
+            {
+              id: 'ai-lesson-6-genspark-build',
+              title: 'Lesson 6 - What People Have Build with Genspark.AI',
+              url: 'https://coaching.miteshkhatri.com/products/ai-course-by-mitesh-khatri/categories/2158460359/posts/2190952528',
+              completed: false
+            },
+            {
+              id: 'ai-lesson-7-chatgpt',
+              title: 'Lesson 7 - Smart Ways to use ChatGPT',
+              url: 'https://coaching.miteshkhatri.com/products/ai-course-by-mitesh-khatri/categories/2158460359/posts/2190952529',
+              completed: false
+            },
+            {
+              id: 'ai-lesson-8-ai-employee',
+              title: 'Lesson 8 - Create your own AI Employee',
+              url: 'https://coaching.miteshkhatri.com/products/ai-course-by-mitesh-khatri/categories/2158460359/posts/2190952520',
+              completed: false
+            }
+          ]
         }
       ];
-      console.log(`[COURSE TRACKING] Returning hardcoded "Manifest with Chakra by Mitesh Khatri" course with ${courses[0].lessons.length} lessons`);
+      console.log(`[COURSE TRACKING] Returning ${courses.length} hardcoded courses: "Manifest with Chakra" (${courses[0].lessons.length} lessons) and "AI Course" (${courses[1].lessons.length} lessons)`);
       
       if (courses.length > 0 && courses[0]) {
         const firstCourse = courses[0];
