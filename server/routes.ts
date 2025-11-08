@@ -2227,6 +2227,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ]
         },
         {
+          id: 'platinum-healing-podcast',
+          title: 'Platinum Healing Podcast',
+          url: '',
+          lessons: []
+        },
+        {
           id: 'basic-loa-level-1',
           title: 'Basic Law of Attraction Level 1',
           url: 'https://coaching.miteshkhatri.com/products/basic-law-of-attraction-level-1',
