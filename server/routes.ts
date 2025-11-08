@@ -2330,6 +2330,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ]
         },
         {
+          id: 'daily-magic-practice',
+          title: 'Daily Magic Practice',
+          url: '',
+          lessons: []
+        },
+        {
           id: 'advance-loa',
           title: 'Advance Law of Attraction',
           url: 'https://coaching.miteshkhatri.com/products/advance-law-of-attraction',
