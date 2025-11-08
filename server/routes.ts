@@ -3315,6 +3315,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   completed: false
                 }
               ]
+            },
+            {
+              id: 'hooponopono-bonus-joevitale',
+              title: 'BONUS - Special Lessons by Dr. Joe Vitale on Ho\'Oponopono',
+              lessons: [
+                {
+                  id: 'hoopo-vitale-lesson-1',
+                  title: 'Lesson 1 - Special Contribution By Dr. Joe Vitale',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2154730360/posts/2175073284',
+                  completed: false
+                },
+                {
+                  id: 'hoopo-vitale-lesson-2',
+                  title: 'Lesson 2 - Special Contribution By Dr. Joe Vitale',
+                  url: 'https://coaching.miteshkhatri.com/products/ho-oponopono-eft-certification-course/categories/2154730360/posts/2175251077',
+                  completed: false
+                }
+              ]
             }
           ]
         }
