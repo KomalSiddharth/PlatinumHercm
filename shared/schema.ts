@@ -193,6 +193,10 @@ export const hercmWeeks = pgTable("hercm_weeks", {
   // Stored explicitly to avoid timezone conversion issues
   dateString: varchar("date_string"),
   
+  // Manual Next Week Mode - tracks if user clicked "Update" button to disable auto-sync
+  // Persists across browser refreshes to maintain user's manual planning state
+  manualNextWeekMode: boolean("manual_next_week_mode").default(false),
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

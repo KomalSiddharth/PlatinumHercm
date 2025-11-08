@@ -857,6 +857,15 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       console.log('[FRONTEND DEBUG] Final updatedBeliefs:', updatedBeliefs);
       setBeliefs(updatedBeliefs);
       
+      // 🔥 RESTORE manualNextWeekMode from database to persist across browser refreshes
+      if (weekData.manualNextWeekMode !== undefined && weekData.manualNextWeekMode !== null) {
+        console.log('[LOAD] 🔄 Restoring manualNextWeekMode from database:', weekData.manualNextWeekMode);
+        setManualNextWeekMode(weekData.manualNextWeekMode);
+      } else {
+        console.log('[LOAD] ℹ️ No manualNextWeekMode in database, using default: false');
+        setManualNextWeekMode(false);
+      }
+      
       // Extract and combine assignments from all categories into unified list
       const combinedAssignments: AssignmentLesson[] = [];
       updatedBeliefs.forEach(belief => {
@@ -1056,11 +1065,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       console.log('[AUTO-SYNC] ✅ Changes detected - updating Next Week Target fields');
       setBeliefs(syncedBeliefs);
       
-      // Auto-save the synced data
+      // Auto-save the synced data with manualNextWeekMode flag
       saveWeekMutation.mutate({
         beliefs: syncedBeliefs,
         weekNumber: weekNumber,
         dateString: currentDateStr,
+        manualNextWeekMode: false, // 🔥 Auto-sync means NOT in manual mode
       });
     } else {
       console.log('[AUTO-SYNC] ⏭️ No changes detected - skipping update');
@@ -1984,11 +1994,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     setBeliefs(clearedBeliefs);
     setManualNextWeekMode(true); // Disable auto-sync
     
-    // Save cleared data to database
+    // Save cleared data to database with manualNextWeekMode flag
     saveWeekMutation.mutate({
       beliefs: clearedBeliefs,
       weekNumber: weekNumber,
       dateString: currentDateStr,
+      manualNextWeekMode: true, // 🔥 PERSIST manual mode to database
     });
     
     toast({
