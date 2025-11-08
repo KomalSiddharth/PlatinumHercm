@@ -3475,6 +3475,50 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                             </Button>
                           )}
                           
+                          {/* Custom Text Assignments - Right below button */}
+                          {customAssignments.length > 0 && (
+                            <div className="space-y-2">
+                              <div className="text-xs font-semibold text-purple-600 dark:text-purple-400 mb-2">
+                                My Custom Goals ({customAssignments.length})
+                              </div>
+                              {customAssignments.map((assignment) => (
+                                <div key={assignment.id} className="flex items-center gap-2 py-1 group/assignment">
+                                  <Checkbox
+                                    checked={assignment.completed}
+                                    onCheckedChange={() => handleUnifiedAssignmentToggle(assignment.id)}
+                                    disabled={isAdminView}
+                                    className="h-4 w-4 mt-0.5 shrink-0"
+                                    data-testid={`checkbox-custom-assignment-${assignment.id}`}
+                                  />
+                                  <span
+                                    className="text-xs flex-1 text-purple-700 dark:text-purple-400 leading-relaxed cursor-pointer hover:underline"
+                                    onClick={() => {
+                                      if (!isAdminView) {
+                                        setEditCustomAssignmentId(assignment.id);
+                                        setCustomAssignmentText(assignment.customText || '');
+                                        setShowCustomAssignmentDialog(true);
+                                      }
+                                    }}
+                                    data-testid={`text-custom-assignment-${assignment.id}`}
+                                  >
+                                    {assignment.customText}
+                                  </span>
+                                  {!isAdminView && (
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => handleRemoveUnifiedAssignment(assignment.id)}
+                                      className="h-4 w-4 p-0 opacity-0 group-hover/assignment:opacity-100 transition-opacity shrink-0"
+                                      data-testid={`button-delete-custom-assignment-${assignment.id}`}
+                                    >
+                                      <Trash2 className="w-3 h-3 text-destructive" />
+                                    </Button>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          
                           {/* User Lessons - Full List */}
                           {userLessons.length > 0 && (
                             <div className="space-y-2">
@@ -3546,50 +3590,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                       onClick={() => handleRemoveUnifiedAssignment(lesson.id)}
                                       className="h-4 w-4 p-0 opacity-0 group-hover/assignment:opacity-100 transition-opacity shrink-0"
                                       data-testid={`button-delete-admin-lesson-${lesson.id}`}
-                                    >
-                                      <Trash2 className="w-3 h-3 text-destructive" />
-                                    </Button>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                          
-                          {/* Custom Text Assignments - Full List */}
-                          {customAssignments.length > 0 && (
-                            <div className="space-y-2">
-                              <div className="text-xs font-semibold text-purple-600 dark:text-purple-400 mb-2">
-                                My Custom Goals ({customAssignments.length})
-                              </div>
-                              {customAssignments.map((assignment) => (
-                                <div key={assignment.id} className="flex items-center gap-2 py-1 group/assignment">
-                                  <Checkbox
-                                    checked={assignment.completed}
-                                    onCheckedChange={() => handleUnifiedAssignmentToggle(assignment.id)}
-                                    disabled={isAdminView}
-                                    className="h-4 w-4 mt-0.5 shrink-0"
-                                    data-testid={`checkbox-custom-assignment-${assignment.id}`}
-                                  />
-                                  <span
-                                    className="text-xs flex-1 text-purple-700 dark:text-purple-400 leading-relaxed cursor-pointer hover:underline"
-                                    onClick={() => {
-                                      if (!isAdminView) {
-                                        setEditCustomAssignmentId(assignment.id);
-                                        setCustomAssignmentText(assignment.customText || '');
-                                        setShowCustomAssignmentDialog(true);
-                                      }
-                                    }}
-                                    data-testid={`text-custom-assignment-${assignment.id}`}
-                                  >
-                                    {assignment.customText}
-                                  </span>
-                                  {!isAdminView && (
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => handleRemoveUnifiedAssignment(assignment.id)}
-                                      className="h-4 w-4 p-0 opacity-0 group-hover/assignment:opacity-100 transition-opacity shrink-0"
-                                      data-testid={`button-delete-custom-assignment-${assignment.id}`}
                                     >
                                       <Trash2 className="w-3 h-3 text-destructive" />
                                     </Button>
