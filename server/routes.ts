@@ -3447,6 +3447,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   completed: false
                 }
               ]
+            },
+            {
+              id: 'relationship-mar25',
+              title: '15th&16th Mar\'25 - Relationship Mastery Batch',
+              lessons: [
+                {
+                  id: 'rel-mar-senior-results',
+                  title: 'Senior Members Result Sharing',
+                  url: 'https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2157266243/posts/2185975338',
+                  completed: false
+                },
+                {
+                  id: 'rel-mar-lesson-1',
+                  title: 'Lesson 1 - The Source of your Relationships - Your Parents',
+                  url: 'https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2157266243/posts/2185975337',
+                  completed: false
+                },
+                {
+                  id: 'rel-mar-lesson-2',
+                  title: 'Lesson 2 - The Skill to Master Loving Accepting Yourself with Reflection',
+                  url: 'https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2157266243/posts/2185975336',
+                  completed: false
+                },
+                {
+                  id: 'rel-mar-lesson-3',
+                  title: 'Lesson 3 - The Skill to Understand Difference Between Men Vs Women',
+                  url: 'https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2157266243/posts/2185975340',
+                  completed: false
+                },
+                {
+                  id: 'rel-mar-lesson-4',
+                  title: 'Lesson 4 - Ritual Of Relating',
+                  url: 'https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2157266243/posts/2185975339',
+                  completed: false
+                },
+                {
+                  id: 'rel-mar-lesson-5',
+                  title: 'Lesson 5 - The skill to understand and accept your partner through FIRO-B',
+                  url: 'https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2157266243/posts/2185997474',
+                  completed: false
+                },
+                {
+                  id: 'rel-mar-10year-success',
+                  title: 'How to Achieve 10 year Of Success in 1 year',
+                  url: 'https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2157266243/posts/2185976650',
+                  completed: false
+                },
+                {
+                  id: 'rel-mar-lesson-6',
+                  title: 'Lesson 6 - Fulfilling Each other\'s Needs',
+                  url: 'https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2157266243/posts/2185997475',
+                  completed: false
+                },
+                {
+                  id: 'rel-mar-lesson-7',
+                  title: 'Lesson 7 - The skill to Trust Bank Account',
+                  url: 'https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2157266243/posts/2185997476',
+                  completed: false
+                },
+                {
+                  id: 'rel-mar-lesson-8',
+                  title: 'Lesson 8 - The Skill to Balance Perspective to Master Acceptance',
+                  url: 'https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2157266243/posts/2185997396',
+                  completed: false
+                },
+                {
+                  id: 'rel-mar-lesson-9',
+                  title: 'Lesson 9 - Rapport Building',
+                  url: 'https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2157266243/posts/2185997400',
+                  completed: false
+                },
+                {
+                  id: 'rel-mar-lesson-10',
+                  title: 'Lesson 10 - The Skill to Break Up Easily Let People Go with Love',
+                  url: 'https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2157266243/posts/2185997411',
+                  completed: false
+                },
+                {
+                  id: 'rel-mar-lesson-11',
+                  title: 'Lesson 11 - How to Manage Conflict bv Managing Categories of Relationships',
+                  url: 'https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2157266243/posts/2185997414',
+                  completed: false
+                },
+                {
+                  id: 'rel-mar-lesson-12',
+                  title: 'Lesson 12 - Master the Skill to Recover from Fights',
+                  url: 'https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2157266243/posts/2185997415',
+                  completed: false
+                },
+                {
+                  id: 'rel-mar-lesson-13',
+                  title: 'Lesson 13- The skill to Managing Ego - Child Adult Parent EGO',
+                  url: 'https://coaching.miteshkhatri.com/products/relationship-mastery-with-mitesh-khatri/categories/2157266243/posts/2185997418',
+                  completed: false
+                }
+              ]
             }
           ]
         }
