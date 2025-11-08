@@ -2328,9 +2328,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
               completed: false
             }
           ]
+        },
+        {
+          id: 'advance-loa',
+          title: 'Advance Law of Attraction',
+          url: 'https://coaching.miteshkhatri.com/products/advance-law-of-attraction',
+          lessons: [
+            {
+              id: 'aloa-intro',
+              title: 'Prepare for Advance Law of Attraction And Result Sharing',
+              url: 'https://coaching.miteshkhatri.com/products/advance-law-of-attraction/categories/2158629183/posts/2191649100',
+              completed: false
+            },
+            {
+              id: 'aloa-lesson-1',
+              title: 'Lesson 1 - Upgrading Your Emotional Frequency',
+              url: 'https://coaching.miteshkhatri.com/products/advance-law-of-attraction/categories/2158629183/posts/2191649099',
+              completed: false
+            },
+            {
+              id: 'aloa-lesson-2',
+              title: 'Lesson 2 - Make Your Positive Emotional Conditions Easy Negative Emotional Conditions Difficult',
+              url: 'https://coaching.miteshkhatri.com/products/advance-law-of-attraction/categories/2158629183/posts/2191649724',
+              completed: false
+            },
+            {
+              id: 'aloa-precap-day2',
+              title: 'Precap Result Sharing Day 2',
+              url: 'https://coaching.miteshkhatri.com/products/advance-law-of-attraction/categories/2158629183/posts/2191659041',
+              completed: false
+            },
+            {
+              id: 'aloa-lesson-3',
+              title: 'Lesson 3 - Balancing your Yin-Yang Frequency',
+              url: 'https://coaching.miteshkhatri.com/products/advance-law-of-attraction/categories/2158629183/posts/2191659042',
+              completed: false
+            },
+            {
+              id: 'aloa-10-year-success',
+              title: 'How to Achieve 10 year of Success in 1 year',
+              url: 'https://coaching.miteshkhatri.com/products/advance-law-of-attraction/categories/2158629183/posts/2191659852',
+              completed: false
+            },
+            {
+              id: 'aloa-lesson-4',
+              title: 'Lesson 4 - Seven Energy Needs - How to Align Your Needs with Wants',
+              url: 'https://coaching.miteshkhatri.com/products/advance-law-of-attraction/categories/2158629183/posts/2191659755',
+              completed: false
+            },
+            {
+              id: 'aloa-lesson-5',
+              title: 'Lesson 5 - Seven Chakras Understanding Energizing Activating',
+              url: 'https://coaching.miteshkhatri.com/products/advance-law-of-attraction/categories/2158629183/posts/2191659762',
+              completed: false
+            },
+            {
+              id: 'aloa-lesson-6',
+              title: 'Lesson 6 - The Source of your Action - Your Values',
+              url: 'https://coaching.miteshkhatri.com/products/advance-law-of-attraction/categories/2158629183/posts/2191659765',
+              completed: false
+            },
+            {
+              id: 'aloa-lesson-7',
+              title: 'Lesson 7 - Match your FTBA Frequency with your Goal',
+              url: 'https://coaching.miteshkhatri.com/products/advance-law-of-attraction/categories/2158629183/posts/2191659769',
+              completed: false
+            },
+            {
+              id: 'aloa-lesson-8',
+              title: 'Lesson 8 - Advance Ho Oponopono',
+              url: 'https://coaching.miteshkhatri.com/products/advance-law-of-attraction/categories/2158629183/posts/2191659772',
+              completed: false
+            },
+            {
+              id: 'aloa-lesson-9',
+              title: 'Lesson 9 - Change your Limiting Beliefs in just 10 Mins',
+              url: 'https://coaching.miteshkhatri.com/products/advance-law-of-attraction/categories/2158629183/posts/2191659760',
+              completed: false
+            },
+            {
+              id: 'aloa-lesson-10',
+              title: 'Lesson 10 - Removing all your Fears in just 1 Hour',
+              url: 'https://coaching.miteshkhatri.com/products/advance-law-of-attraction/categories/2158629183/posts/2191659773',
+              completed: false
+            },
+            {
+              id: 'aloa-lesson-11',
+              title: 'Lesson 11 - Big Small Life Questions to Instantly Change your Frequency',
+              url: 'http://coaching.miteshkhatri.com/products/advance-law-of-attraction/categories/2158629183/posts/2191659774',
+              completed: false
+            },
+            {
+              id: 'aloa-lesson-12',
+              title: 'Lesson 12 - Integration Exercise of ALOA Lessons',
+              url: 'https://coaching.miteshkhatri.com/products/advance-law-of-attraction/categories/2158629183/posts/2191659775',
+              completed: false
+            }
+          ]
         }
       ];
-      console.log(`[COURSE TRACKING] Returning ${courses.length} hardcoded courses: "Manifest with Chakra" (${courses[0].lessons.length} lessons), "AI Course" (${courses[1].lessons.length} lessons), "Depression To Celebration" (${courses[2].lessons.length} lessons), and "Basic Law of Attraction Level 1" (${courses[3].lessons.length} lessons)`);
+      console.log(`[COURSE TRACKING] Returning ${courses.length} hardcoded courses with total lessons: ${courses.reduce((acc, c) => acc + (c.lessons?.length || 0), 0)}`);
       
       if (courses.length > 0 && courses[0]) {
         const firstCourse = courses[0];
