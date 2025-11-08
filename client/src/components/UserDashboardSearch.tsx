@@ -188,10 +188,10 @@ export default function UserDashboardSearch() {
           </Card>
         ) : (
           <>
-            {/* Display latest week's HRCM table (auto-detected) */}
+            {/* Display Week 1 HRCM table (always show Week 1) */}
             <div className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-3 sm:p-4 md:p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
               <UnifiedHRCMTable 
-                weekNumber={latestWeekNumber}
+                weekNumber={1}
                 viewAsUserId={selectedUserId} 
                 isAdminView={true}
               />
