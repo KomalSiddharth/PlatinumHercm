@@ -2004,7 +2004,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "Mitesh - AI",
     "One Day Miracle",
     "Platinum Membership",
-    "Manifest With chakra by Mitesh Khatri",
+    "Chakra Healing",
     "AI Course by Mitesh Khatri",
     "Platinum DMP",
     "Depression to Celebration",
