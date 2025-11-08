@@ -324,9 +324,6 @@ export default function LifeSkillsMap() {
           <div className="space-y-2" data-testid="container-overall-progress">
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-300 font-medium">Overall Progress</span>
-              <span className="text-primary font-bold" data-testid="text-overall-progress-percent">
-                {overallProgress.completed}/{overallProgress.total} lessons ({overallProgress.percent}%)
-              </span>
             </div>
             <Progress 
               value={overallProgress.percent} 
