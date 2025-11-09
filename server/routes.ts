@@ -19,6 +19,9 @@ import rateLimit from "express-rate-limit";
 // WebSocket clients management
 const wsClients = new Map<string, WebSocket>();
 
+// WebSocket server instance - will be set after initialization
+let wssInstance: WebSocketServer | null = null;
+
 const openai = new OpenAI({
   baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY
@@ -2329,6 +2332,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error toggling lesson completion:", error);
       res.status(500).json({ message: "Failed to toggle lesson completion" });
+    }
+  });
+
+  // 🚀 GOOGLE SHEETS WEBHOOK - Instant sync when sheet is edited
+  // This endpoint is called by Google Apps Script whenever the sheet is modified
+  app.post('/api/webhooks/google-sheets-update', async (req, res) => {
+    try {
+      console.log('[WEBHOOK] 📢 Google Sheets update notification received');
+      console.log('[WEBHOOK] Request body:', JSON.stringify(req.body, null, 2));
+      
+      // Broadcast to all connected WebSocket clients to refetch course data
+      if (wssInstance) {
+        wssInstance.clients.forEach((client) => {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({
+              type: 'course_data_changed',
+              timestamp: new Date().toISOString(),
+              message: 'Google Sheets data updated - please refresh'
+            }));
+          }
+        });
+        console.log('[WEBHOOK] ✅ Broadcast sent to all WebSocket clients');
+      } else {
+        console.warn('[WEBHOOK] ⚠️ WebSocket server not initialized yet');
+      }
+      
+      res.json({ success: true, message: 'Notification received and broadcast to clients' });
+    } catch (error) {
+      console.error('[WEBHOOK] ❌ Error processing webhook:', error);
+      res.status(500).json({ success: false, message: 'Failed to process webhook' });
     }
   });
 
@@ -6144,6 +6177,9 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
   
   // Setup WebSocket server for real-time notifications
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  
+  // Store wss instance globally so webhook can broadcast to all clients
+  wssInstance = wss;
   
   wss.on('connection', (ws: WebSocket, req) => {
     console.log('[WebSocket] New client connected');

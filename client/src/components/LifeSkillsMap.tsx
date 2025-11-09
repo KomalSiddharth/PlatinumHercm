@@ -14,6 +14,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
+import { useWebSocket } from "@/hooks/useWebSocket";
+import { useUser } from "@/hooks/use-user";
 
 interface CourseLesson {
   id: string;
@@ -47,6 +49,7 @@ export default function LifeSkillsMap() {
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
   const [openSubcategories, setOpenSubcategories] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
+  const { user } = useUser();
 
   console.log('[LifeSkillsMap] Component mounted/rendering');
   
@@ -57,6 +60,22 @@ export default function LifeSkillsMap() {
     refetchInterval: 30000, // Auto-refresh every 30 seconds for instant Google Sheets updates
     refetchIntervalInBackground: true, // Continue polling even when tab is not focused
   });
+
+  // 🚀 INSTANT GOOGLE SHEETS SYNC - Listen for webhook notifications
+  const { lastMessage } = useWebSocket(user?.id);
+  
+  useEffect(() => {
+    if (lastMessage?.type === 'course_data_changed') {
+      console.log('[LifeSkillsMap] 📢 Received course data change notification from Google Sheets webhook');
+      console.log('[LifeSkillsMap] 🔄 Instantly refetching course data...');
+      queryClient.invalidateQueries({ queryKey: ['/api/courses/tracking'] });
+      toast({
+        title: "📢 Courses Updated",
+        description: "Google Sheets data synced instantly!",
+        duration: 3000,
+      });
+    }
+  }, [lastMessage, toast]);
 
   // Force refetch on mount to clear any cached errors
   useEffect(() => {
