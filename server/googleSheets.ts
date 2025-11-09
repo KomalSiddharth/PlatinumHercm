@@ -367,14 +367,18 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
       const range = `Sheet1!A${startRow}:B${endRow}`;
       
       try {
+        // 🔥 CACHE-BUSTING: Add timestamp to force fresh data from Google Sheets API
+        const cacheBuster = `cache-${Date.now()}`;
+        
         const response = await sheets.spreadsheets.values.get({
           spreadsheetId,
           range,
+          quotaUser: cacheBuster, // Forces Google API to bypass server-side cache
         });
         
         const chunkRows = response.data.values || [];
         if (chunkRows.length > 0) {
-          console.log(`📦 Chunk ${i + 1}: Fetched ${chunkRows.length} rows (${range})`);
+          console.log(`📦 Chunk ${i + 1}: Fetched ${chunkRows.length} rows with cache-buster: ${cacheBuster} (${range})`);
           // Add rows to allRows, maintaining row index
           for (let j = 0; j < chunkRows.length; j++) {
             const actualRowIndex = startRow - 1 + j;
