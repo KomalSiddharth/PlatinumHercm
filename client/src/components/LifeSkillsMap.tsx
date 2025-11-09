@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { useWebSocket } from "@/hooks/useWebSocket";
-import { useUser } from "@/hooks/use-user";
 
 interface CourseLesson {
   id: string;
@@ -49,9 +48,13 @@ export default function LifeSkillsMap() {
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
   const [openSubcategories, setOpenSubcategories] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
-  const { user } = useUser();
 
   console.log('[LifeSkillsMap] Component mounted/rendering');
+  
+  // Get current user for WebSocket
+  const { data: currentUser } = useQuery<{ id: string; email: string }>({
+    queryKey: ['/api/auth/user'],
+  });
   
   const { data: coursesData, isLoading, isError, error, refetch } = useQuery<CourseTrackingData[]>({
     queryKey: ['/api/courses/tracking'],
@@ -62,7 +65,7 @@ export default function LifeSkillsMap() {
   });
 
   // 🚀 INSTANT GOOGLE SHEETS SYNC - Listen for webhook notifications
-  const { lastMessage } = useWebSocket(user?.id);
+  const { lastMessage } = useWebSocket(currentUser?.id);
   
   useEffect(() => {
     if (lastMessage?.type === 'course_data_changed') {
