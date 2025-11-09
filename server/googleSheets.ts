@@ -368,6 +368,12 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
     }
     
     console.log(`📊 Fetched ${rows.length} rows from Google Sheet`);
+    console.log(`🔍 DEBUG: Last 5 rows from API response:`);
+    const lastRows = rows.slice(-5);
+    lastRows.forEach((row, idx) => {
+      const actualIndex = rows.length - 5 + idx;
+      console.log(`   Row ${actualIndex + 1}: Column A = "${row[0] || ''}", Column B = "${row[1] || ''}"`);
+    });
 
     const courses: CourseTrackingData[] = [];
     let currentCourse: CourseTrackingData | null = null;
