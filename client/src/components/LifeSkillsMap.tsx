@@ -60,8 +60,10 @@ export default function LifeSkillsMap() {
     queryKey: ['/api/courses/tracking'],
     retry: 2,
     retryDelay: 1000,
-    refetchInterval: 30000, // Auto-refresh every 30 seconds for instant Google Sheets updates
-    refetchIntervalInBackground: true, // Continue polling even when tab is not focused
+    staleTime: 0, // Always consider data stale
+    gcTime: 0, // Don't cache at all
+    refetchInterval: 30000, // Auto-refresh every 30 seconds as fallback
+    refetchIntervalInBackground: true,
   });
 
   // 🚀 INSTANT GOOGLE SHEETS SYNC - Listen for webhook notifications
@@ -79,9 +81,14 @@ export default function LifeSkillsMap() {
       });
       
       // Wait 10 seconds for Google Sheets API cache to clear
-      setTimeout(() => {
-        console.log('[LifeSkillsMap] 🔄 Refetching course data after cache delay...');
-        queryClient.invalidateQueries({ queryKey: ['/api/courses/tracking'] });
+      setTimeout(async () => {
+        console.log('[LifeSkillsMap] 🔄 Force refetching with cache bypass...');
+        
+        // FORCE fresh fetch - bypass all caches
+        await queryClient.resetQueries({ queryKey: ['/api/courses/tracking'] });
+        await refetch();
+        
+        console.log('[LifeSkillsMap] ✅ Fresh data fetched!');
         toast({
           title: "✅ Courses Updated!",
           description: "Google Sheets data synced successfully!",
@@ -89,7 +96,7 @@ export default function LifeSkillsMap() {
         });
       }, 10000);
     }
-  }, [lastMessage, toast]);
+  }, [lastMessage, toast, refetch]);
 
   // Force refetch on mount to clear any cached errors
   useEffect(() => {
