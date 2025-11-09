@@ -346,21 +346,47 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
     return cachedCourseTracking;
   }
   
-  console.log('🔄 Fetching fresh course data from Google Sheets (simple method)...');
+  console.log('🔄 Fetching fresh course data from Google Sheets (chunk method to skip blanks)...');
 
   try {
     const sheets = await getUncachableGoogleSheetClient();
     const spreadsheetId = extractSpreadsheetId(sheetUrl);
     
-    // Use simple values.get (no formatting needed)
-    // Rows with empty Column B = Course headings
-    // Rows with non-empty Column B = Lessons
-    const response = await sheets.spreadsheets.values.get({
-      spreadsheetId,
-      range: 'Sheet1!A1:B2000',
-    });
-
-    const rows = response.data.values || [];
+    // Fetch data in multiple chunks to skip over empty rows
+    // This ensures we don't miss courses separated by blank rows
+    const CHUNK_SIZE = 500;
+    const NUM_CHUNKS = 4; // Fetch up to row 2000
+    
+    const allRows: any[][] = [];
+    
+    for (let i = 0; i < NUM_CHUNKS; i++) {
+      const startRow = i * CHUNK_SIZE + 1;
+      const endRow = (i + 1) * CHUNK_SIZE;
+      const range = `Sheet1!A${startRow}:B${endRow}`;
+      
+      try {
+        const response = await sheets.spreadsheets.values.get({
+          spreadsheetId,
+          range,
+        });
+        
+        const chunkRows = response.data.values || [];
+        if (chunkRows.length > 0) {
+          console.log(`📦 Chunk ${i + 1}: Fetched ${chunkRows.length} rows (${range})`);
+          // Add rows to allRows, maintaining row index
+          for (let j = 0; j < chunkRows.length; j++) {
+            const actualRowIndex = startRow - 1 + j;
+            allRows[actualRowIndex] = chunkRows[j];
+          }
+        }
+      } catch (error) {
+        console.log(`⏭️ Chunk ${i + 1}: No data or error, skipping (${range})`);
+        // Continue to next chunk even if this one fails
+      }
+    }
+    
+    // Filter out undefined entries (empty rows)
+    const rows = allRows.filter(row => row !== undefined);
     
     if (rows.length === 0) {
       console.warn('No data found in course tracking sheet');
