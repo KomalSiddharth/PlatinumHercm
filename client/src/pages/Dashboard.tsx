@@ -565,7 +565,7 @@ export default function Dashboard() {
     lessons: CourseLesson[];
   }>>([]);
 
-  // Fetch courses from Google Sheets
+  // Fetch courses from Google Sheets with auto-polling for instant updates
   const { data: googleSheetsCourses, isLoading: coursesLoading, error: coursesError } = useQuery<Array<{
     id: string;
     title: string;
@@ -580,7 +580,8 @@ export default function Dashboard() {
   }>>({
     queryKey: ['/api/courses/tracking'],
     enabled: !!currentUser,
-    staleTime: 10 * 60 * 1000, // 10 minutes - matches backend cache
+    refetchInterval: 30000, // Auto-refresh every 30 seconds for instant Google Sheets updates
+    refetchIntervalInBackground: true, // Continue polling even when tab is not focused
   });
 
   // Initialize courses from Google Sheets data

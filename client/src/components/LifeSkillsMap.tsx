@@ -54,6 +54,8 @@ export default function LifeSkillsMap() {
     queryKey: ['/api/courses/tracking'],
     retry: 2,
     retryDelay: 1000,
+    refetchInterval: 30000, // Auto-refresh every 30 seconds for instant Google Sheets updates
+    refetchIntervalInBackground: true, // Continue polling even when tab is not focused
   });
 
   // Force refetch on mount to clear any cached errors
