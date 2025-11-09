@@ -2015,6 +2015,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "Platinum Healing Podcast",
     "Basic Law of Attraction Level 1",
     "Daily Magic Practise",
+    "Advance Law of Attraction",
     "ALOA",
     "Wealth Mastery",
     "NLP - Neuro Linguistic Programming",
