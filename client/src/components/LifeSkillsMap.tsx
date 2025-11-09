@@ -70,15 +70,15 @@ export default function LifeSkillsMap() {
   useEffect(() => {
     if (lastMessage?.type === 'course_data_changed') {
       console.log('[LifeSkillsMap] 📢 Received course data change notification from Google Sheets webhook');
-      console.log('[LifeSkillsMap] ⏳ Waiting 5 seconds for Google Sheets API cache to clear...');
+      console.log('[LifeSkillsMap] ⏳ Waiting 10 seconds for Google Sheets API cache to clear...');
       
       toast({
         title: "📢 Courses Syncing...",
-        description: "Updating from Google Sheets (5 sec delay for API cache)...",
-        duration: 5000,
+        description: "Updating from Google Sheets (10 sec delay for API cache)...",
+        duration: 10000,
       });
       
-      // Wait 5 seconds for Google Sheets API cache to clear
+      // Wait 10 seconds for Google Sheets API cache to clear
       setTimeout(() => {
         console.log('[LifeSkillsMap] 🔄 Refetching course data after cache delay...');
         queryClient.invalidateQueries({ queryKey: ['/api/courses/tracking'] });
@@ -87,7 +87,7 @@ export default function LifeSkillsMap() {
           description: "Google Sheets data synced successfully!",
           duration: 3000,
         });
-      }, 5000);
+      }, 10000);
     }
   }, [lastMessage, toast]);
 
