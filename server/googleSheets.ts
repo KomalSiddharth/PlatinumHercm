@@ -340,13 +340,15 @@ export function clearCourseTrackingCache() {
 }
 
 export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseTrackingData[]> {
+  console.log('🚀🚀🚀 [CHUNK-BASED FETCH v3.0] Function called at:', new Date().toISOString());
+  
   // Check cache
   if (cachedCourseTracking.length > 0 && Date.now() - courseTrackingCacheTimestamp < COURSE_TRACKING_CACHE_TTL) {
-    console.log(`Returning ${cachedCourseTracking.length} cached courses`);
+    console.log(`⚠️ [CACHE HIT] Returning ${cachedCourseTracking.length} cached courses`);
     return cachedCourseTracking;
   }
   
-  console.log('🔄 Fetching fresh course data from Google Sheets (chunk method to skip blanks)...');
+  console.log('🔄 [FRESH FETCH] Fetching course data using CHUNK METHOD to skip blank rows...');
 
   try {
     const sheets = await getUncachableGoogleSheetClient();
