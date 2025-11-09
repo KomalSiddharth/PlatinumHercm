@@ -2200,6 +2200,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      // Merge "June'25 DMP Recordings" lessons into "DMP - Daily magic practice recordings"
+      const dmpRecordingsIndex = coursesWithCompletions.findIndex(c => 
+        c && (normalizeCourseTitle(c.title).includes('dmp') || normalizeCourseTitle(c.title).includes('daily magic practice')) && normalizeCourseTitle(c.title).includes('recording')
+      );
+      const juneRecordingsIndex = coursesWithCompletions.findIndex(c => 
+        c && normalizeCourseTitle(c.title).includes('june') && normalizeCourseTitle(c.title).includes('dmp')
+      );
+      
+      if (dmpRecordingsIndex !== -1 && juneRecordingsIndex !== -1) {
+        const dmpRecordings = coursesWithCompletions[dmpRecordingsIndex];
+        const juneRecordings = coursesWithCompletions[juneRecordingsIndex];
+        
+        if (dmpRecordings && juneRecordings) {
+          console.log(`[COURSE MERGE] Merging "${juneRecordings.title}" lessons into "${dmpRecordings.title}"`);
+          
+          // Create a subcategory for June'25 DMP Recordings within DMP - Daily magic practice recordings
+          if (!dmpRecordings.subcategories) {
+            dmpRecordings.subcategories = [];
+          }
+          
+          dmpRecordings.subcategories.push({
+            id: juneRecordings.id + '-subcategory',
+            title: "June'25 DMP Recordings",
+            lessons: juneRecordings.lessons || [],
+            subcategories: []
+          });
+          
+          // Mark for removal
+          coursesToRemoveIds.push(juneRecordings.id);
+          
+          console.log(`[COURSE MERGE] Added ${juneRecordings.lessons?.length || 0} June'25 DMP Recordings lessons to DMP - Daily magic practice recordings as subcategory`);
+        }
+      }
+      
       // Remove all merged courses by filtering them out (safer than splice)
       if (coursesToRemoveIds.length > 0) {
         console.log(`[COURSE MERGE] Removing ${coursesToRemoveIds.length} merged courses: ${coursesToRemoveIds.join(', ')}`);
