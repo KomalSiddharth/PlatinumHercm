@@ -2259,7 +2259,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`[COURSE TRACKING] Sorted ${sortedCourses.length} courses by custom order`);
       console.log(`[COURSE TRACKING] First 5 courses: ${sortedCourses.slice(0, 5).map(c => c?.title).filter(Boolean).join(', ')}`);
       
-      res.json(sortedCourses);
+      // Filter out courses with 0 lessons
+      const coursesWithLessons = sortedCourses.filter(course => {
+        if (!course) return false;
+        const lessonCount = (course.lessons || []).length;
+        const subcategoryLessonCount = (course.subcategories || []).reduce((total, sub) => {
+          if (!sub) return total;
+          return total + (sub.lessons || []).length;
+        }, 0);
+        const totalLessons = lessonCount + subcategoryLessonCount;
+        
+        if (totalLessons === 0) {
+          console.log(`[COURSE FILTER] Removing empty course: "${course.title}" (0 lessons)`);
+          return false;
+        }
+        return true;
+      });
+      
+      console.log(`[COURSE FILTER] Filtered: ${sortedCourses.length} → ${coursesWithLessons.length} courses (removed ${sortedCourses.length - coursesWithLessons.length} empty courses)`);
+      
+      res.json(coursesWithLessons);
     } catch (error) {
       console.error("[COURSE TRACKING] Error fetching course tracking data:", error);
       if (error instanceof Error) {
