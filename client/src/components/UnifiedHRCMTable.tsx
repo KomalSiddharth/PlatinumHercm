@@ -3451,24 +3451,13 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       const allLessons = [...userLessons, ...adminLessons];
                       const totalCount = allLessons.length;
                       
-                      // Empty state
-                      if (totalCount === 0) {
-                        return (
-                          <div className="space-y-2 py-4">
-                            <p className="text-xs text-muted-foreground italic text-center">
-                              No assignments yet. Check lessons in Course Tracker to add them here.
-                            </p>
-                          </div>
-                        );
-                      }
-                      
                       // Separate custom text assignments
                       const customAssignments = assignmentsToDisplay.filter((l: any) => l.source === 'custom');
                       
                       // Direct display of all assignments without hover card
                       return (
                         <div className="space-y-3 overflow-y-auto max-h-[320px]">
-                          {/* Add Custom Assignment Button - AT THE TOP */}
+                          {/* Add Custom Assignment Button - ALWAYS VISIBLE AT THE TOP */}
                           {!isAdminView && (
                             <Button
                               size="sm"
@@ -3484,6 +3473,13 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                               <Plus className="w-3 h-3 mr-1" />
                               Add Custom Goal
                             </Button>
+                          )}
+                          
+                          {/* Empty state message - shown when no assignments */}
+                          {totalCount === 0 && (
+                            <p className="text-xs text-muted-foreground italic text-center py-2">
+                              No assignments yet. Check lessons in Course Tracker to add them here.
+                            </p>
                           )}
                           
                           {/* Custom Text Assignments - Right below button */}
