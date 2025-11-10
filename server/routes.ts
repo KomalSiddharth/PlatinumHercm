@@ -3920,11 +3920,30 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       // Update status to accepted
       const updatedRecommendation = await storage.updateRecommendationStatus(id, 'accepted');
 
-      // NOTE: Assignment is already created when admin makes the recommendation
-      // We don't need to create it again here - just update the status
-      // This prevents duplicate assignments from being created
+      // Create assignment in user_persistent_assignments table
+      // This adds the course to the Assignment column
+      console.log('[DEBUG] Creating assignment for accepted recommendation:', {
+        userId: user.id,
+        courseName: updatedRecommendation.courseName,
+        courseId: updatedRecommendation.courseId,
+        lessonId: updatedRecommendation.lessonId,
+        lessonName: updatedRecommendation.lessonName
+      });
 
-      console.log('[REALTIME DEBUG] POST /api/user/recommendations/:id/accept - Status updated to accepted');
+      await storage.addPersistentAssignment({
+        userId: user.id,
+        courseId: updatedRecommendation.courseId,
+        courseName: updatedRecommendation.courseName,
+        hrcmArea: updatedRecommendation.hrcmArea,
+        lessonId: updatedRecommendation.lessonId,
+        lessonName: updatedRecommendation.lessonName,
+        lessonUrl: updatedRecommendation.lessonUrl || '',
+        completed: false,
+        points: 0,
+        source: 'admin',
+      });
+
+      console.log('[REALTIME DEBUG] POST /api/user/recommendations/:id/accept - Status updated to accepted and assignment created');
       console.log('[REALTIME DEBUG] Recommendation after update:', {
         id: updatedRecommendation.id,
         status: updatedRecommendation.status,
@@ -3961,6 +3980,65 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     } catch (error) {
       console.error("Error accepting recommendation:", error);
       res.status(500).json({ message: "Failed to accept recommendation" });
+    }
+  });
+
+  // User-facing: Reject a recommendation (changes status to rejected)
+  app.post('/api/user/recommendations/:id/reject', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const { id } = req.params;
+      
+      // Try to get user by ID first, then by email if ID doesn't work
+      let user = await storage.getUser(userId);
+      if (!user && typeof userId === 'string' && userId.includes('@')) {
+        user = await storage.getUserByEmail(userId);
+      }
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Get the recommendation and verify it belongs to this user
+      const recommendations = await storage.getUserRecommendations(user.id);
+      const recommendation = recommendations.find((r: any) => r.id === id);
+      
+      if (!recommendation) {
+        return res.status(404).json({ message: "Recommendation not found" });
+      }
+
+      if (recommendation.userId !== user.id) {
+        return res.status(403).json({ message: "Not authorized to reject this recommendation" });
+      }
+
+      // Update status to rejected
+      const updatedRecommendation = await storage.updateRecommendationStatus(id, 'rejected');
+
+      console.log('[REALTIME DEBUG] POST /api/user/recommendations/:id/reject - Status updated to rejected');
+      
+      // Send real-time notification to admin about status change
+      if (updatedRecommendation.adminId) {
+        console.log('[REALTIME DEBUG] Sending WebSocket to admin:', updatedRecommendation.adminId);
+        
+        notifyUser(updatedRecommendation.adminId, 'recommendation_status_changed', {
+          recommendationId: id,
+          courseName: updatedRecommendation.courseName,
+          status: 'rejected',
+          userId: updatedRecommendation.userId,
+          message: `User rejected course: ${updatedRecommendation.courseName}`,
+        });
+        
+        console.log('[REALTIME DEBUG] WebSocket notification sent successfully!');
+      }
+
+      res.json({ message: "Recommendation rejected", recommendation: updatedRecommendation });
+    } catch (error) {
+      console.error("Error rejecting recommendation:", error);
+      res.status(500).json({ message: "Failed to reject recommendation" });
     }
   });
 

@@ -104,7 +104,7 @@ export function CourseRecommendationNotification({ userId }: CourseRecommendatio
     try {
       if (!recommendation) return;
 
-      // OPTIMISTIC UPDATE: Immediately update admin's cache
+      // OPTIMISTIC UPDATE: Immediately update cache
       queryClient.setQueryData(['/api/admin/recommendations'], (old: any) => {
         if (!old) return old;
         return old.map((rec: any) =>
@@ -112,12 +112,9 @@ export function CourseRecommendationNotification({ userId }: CourseRecommendatio
         );
       });
 
-      // Update recommendation status to accepted
-      // Note: Assignment is already created by backend when admin recommended
-      // We just need to update the status, not create a duplicate assignment
-      await apiRequest('PUT', `/api/admin/recommendation/${recommendation.id}/status`, {
-        status: 'accepted',
-      });
+      // Use the USER endpoint to accept recommendation
+      // This will update status to 'accepted' and add to assignment column
+      await apiRequest(`/api/user/recommendations/${recommendation.id}/accept`, 'POST', {});
 
       toast({
         title: "Course Accepted ✓",
@@ -131,6 +128,7 @@ export function CourseRecommendationNotification({ userId }: CourseRecommendatio
       setShowDialog(false);
       setRecommendation(null);
     } catch (error) {
+      console.error('[Accept Error]', error);
       toast({
         title: "Error",
         description: "Failed to accept recommendation.",
@@ -145,7 +143,7 @@ export function CourseRecommendationNotification({ userId }: CourseRecommendatio
     try {
       if (!recommendation) return;
 
-      // OPTIMISTIC UPDATE: Immediately update admin's cache
+      // OPTIMISTIC UPDATE: Immediately update cache
       queryClient.setQueryData(['/api/admin/recommendations'], (old: any) => {
         if (!old) return old;
         return old.map((rec: any) =>
@@ -153,10 +151,8 @@ export function CourseRecommendationNotification({ userId }: CourseRecommendatio
         );
       });
 
-      // Update recommendation status to rejected (DON'T DELETE - keep permanently)
-      await apiRequest('PUT', `/api/admin/recommendation/${recommendation.id}/status`, {
-        status: 'rejected',
-      });
+      // Use the USER endpoint to reject recommendation
+      await apiRequest(`/api/user/recommendations/${recommendation.id}/reject`, 'POST', {});
 
       toast({
         title: "Course Rejected",
@@ -169,6 +165,7 @@ export function CourseRecommendationNotification({ userId }: CourseRecommendatio
       setShowDialog(false);
       setRecommendation(null);
     } catch (error) {
+      console.error('[Reject Error]', error);
       toast({
         title: "Error",
         description: "Failed to reject recommendation.",

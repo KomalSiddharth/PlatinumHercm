@@ -37,9 +37,19 @@ export function CourseRecommendations({ currentWeek = 1 }: CourseRecommendations
 
   const acceptMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest('POST', `/api/user/recommendations/${id}/accept`, { weekNumber: currentWeek });
+      console.log('[Accept Mutation] Starting accept for recommendation ID:', id);
+      console.log('[Accept Mutation] Current week:', currentWeek);
+      try {
+        const result = await apiRequest(`/api/user/recommendations/${id}/accept`, 'POST', { weekNumber: currentWeek });
+        console.log('[Accept Mutation] Success:', result);
+        return result;
+      } catch (error) {
+        console.error('[Accept Mutation] Error:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
+      console.log('[Accept Mutation] onSuccess called');
       queryClient.invalidateQueries({ queryKey: ['/api/user/recommendations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/hercm/weeks'] });
       queryClient.invalidateQueries({ queryKey: ['/api/hercm/week', currentWeek] });
@@ -49,10 +59,11 @@ export function CourseRecommendations({ currentWeek = 1 }: CourseRecommendations
         description: "The course has been added to your Assignment section" 
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('[Accept Mutation] onError called:', error);
       toast({ 
         title: "Error", 
-        description: "Failed to accept recommendation", 
+        description: error?.message || "Failed to accept recommendation", 
         variant: "destructive" 
       });
     }
@@ -60,7 +71,7 @@ export function CourseRecommendations({ currentWeek = 1 }: CourseRecommendations
 
   const dismissMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest('POST', `/api/user/recommendations/${id}/dismiss`, {});
+      return apiRequest(`/api/user/recommendations/${id}/dismiss`, 'POST', {});
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user/recommendations'] });
