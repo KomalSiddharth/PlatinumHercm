@@ -3999,20 +3999,26 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             </p>
           </DialogHeader>
           <div className="space-y-3 py-4">
-            {platinumStandardsDialog.items.map((item) => (
-              <div key={item.id} className="flex items-start gap-3 py-2 px-3 rounded-lg hover:bg-muted/30 transition-colors">
-                <Checkbox
-                  checked={item.checked}
-                  onCheckedChange={() => handleChecklistToggle(platinumStandardsDialog.category, item.id)}
-                  disabled={(viewingHistory && hasDataForDate) || isAdminView}
-                  data-testid={`checkbox-dialog-standards-${platinumStandardsDialog.category.toLowerCase()}-${item.id}`}
-                  className="h-5 w-5 mt-0.5 shrink-0"
-                />
-                <span className="text-sm leading-relaxed flex-1 break-words">
-                  {item.text}
-                </span>
-              </div>
-            ))}
+            {(() => {
+              // Get LIVE data from beliefs state instead of static dialog items
+              const categoryBelief = beliefs.find(b => b.category === platinumStandardsDialog.category);
+              const liveItems = categoryBelief?.checklist || [];
+              
+              return liveItems.map((item) => (
+                <div key={item.id} className="flex items-start gap-3 py-2 px-3 rounded-lg hover:bg-muted/30 transition-colors">
+                  <Checkbox
+                    checked={item.checked}
+                    onCheckedChange={() => handleChecklistToggle(platinumStandardsDialog.category, item.id)}
+                    disabled={(viewingHistory && hasDataForDate) || isAdminView}
+                    data-testid={`checkbox-dialog-standards-${platinumStandardsDialog.category.toLowerCase()}-${item.id}`}
+                    className="h-5 w-5 mt-0.5 shrink-0"
+                  />
+                  <span className="text-sm leading-relaxed flex-1 break-words">
+                    {item.text}
+                  </span>
+                </div>
+              ));
+            })()}
           </div>
           <div className="flex justify-end pt-3 border-t">
             <Button
