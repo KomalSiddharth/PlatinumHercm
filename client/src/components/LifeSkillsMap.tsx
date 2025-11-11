@@ -154,7 +154,7 @@ export default function LifeSkillsMap() {
             const updateLessons = (lessons: CourseLesson[]): CourseLesson[] => {
               return lessons.map(lesson => 
                 lesson.id === lessonId 
-                  ? { ...lesson, completed: !completed }
+                  ? { ...lesson, completed: completed }
                   : lesson
               );
             };
@@ -180,7 +180,7 @@ export default function LifeSkillsMap() {
       
       // INSTANT POINTS UPDATE: +10 when checking, -10 when unchecking
       if (previousPoints) {
-        const pointsChange = !completed ? 10 : -10; // completed=false means we're checking it now
+        const pointsChange = completed ? 10 : -10;
         queryClient.setQueryData<{ totalPoints: number }>(
           ['/api/user/total-points'],
           { totalPoints: previousPoints.totalPoints + pointsChange }

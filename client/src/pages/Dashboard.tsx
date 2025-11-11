@@ -274,6 +274,42 @@ export default function Dashboard() {
         });
       }
     },
+    onMutate: async ({ id, isCompleted }) => {
+      // Cancel outgoing refetches to avoid overwriting our optimistic update
+      await queryClient.cancelQueries({ queryKey: ['/api/ritual-completions', todayDate] });
+      await queryClient.cancelQueries({ queryKey: ['/api/user/total-points'] });
+      
+      // Snapshot the previous values
+      const previousCompletions = queryClient.getQueryData<RitualCompletion[]>(['/api/ritual-completions', todayDate]);
+      const previousPoints = queryClient.getQueryData<{ totalPoints: number }>(['/api/user/total-points']);
+      
+      // Optimistically update the UI
+      queryClient.setQueryData<RitualCompletion[]>(
+        ['/api/ritual-completions', todayDate],
+        (old = []) => {
+          if (isCompleted) {
+            // Remove completion (unchecking)
+            return old.filter(c => c.ritualId !== id);
+          } else {
+            // Add completion (checking)
+            return [...old, { id: `temp-${id}`, ritualId: id, userId: '', date: todayDate, completedAt: new Date(), createdAt: new Date() }];
+          }
+        }
+      );
+      
+      // INSTANT POINTS UPDATE: +points when checking, -points when unchecking
+      const ritual = rituals.find(r => r.id === id);
+      if (previousPoints && ritual) {
+        const pointsChange = isCompleted ? -ritual.points : ritual.points;
+        queryClient.setQueryData<{ totalPoints: number }>(
+          ['/api/user/total-points'],
+          { totalPoints: previousPoints.totalPoints + pointsChange }
+        );
+        console.log('[Daily Rituals] ⚡ Instant points update:', pointsChange > 0 ? `+${pointsChange}` : pointsChange);
+      }
+      
+      return { previousCompletions, previousPoints };
+    },
     onSuccess: (_, variables) => {
       // Invalidate all ritual completion queries
       queryClient.invalidateQueries({ queryKey: ['/api/ritual-completions'] }); // Base query for ALL completions (history modal)
@@ -292,7 +328,14 @@ export default function Dashboard() {
         });
       }
     },
-    onError: (error: Error) => {
+    onError: (error: Error, variables, context) => {
+      // Rollback to previous state on error
+      if (context?.previousCompletions) {
+        queryClient.setQueryData(['/api/ritual-completions', todayDate], context.previousCompletions);
+      }
+      if (context?.previousPoints) {
+        queryClient.setQueryData(['/api/user/total-points'], context.previousPoints);
+      }
       toast({
         title: 'Error',
         description: error.message || 'Failed to update completion',
