@@ -305,6 +305,17 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   const [showCustomAssignmentDialog, setShowCustomAssignmentDialog] = useState(false);
   const [customAssignmentText, setCustomAssignmentText] = useState('');
   const [editCustomAssignmentId, setEditCustomAssignmentId] = useState<string | null>(null);
+  
+  // Platinum Standards Dialog State (click-based, no hover)
+  const [platinumStandardsDialog, setPlatinumStandardsDialog] = useState<{
+    open: boolean;
+    category: string;
+    items: Array<{ id: string; text: string; checked: boolean }>;
+  }>({
+    open: false,
+    category: '',
+    items: []
+  });
 
   // Real-time WebSocket connection for instant sync
   // When user makes changes, admin panels viewing this user see updates immediately (no delay!)
@@ -3173,62 +3184,43 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   </div>
                 </TableCell>
 
-                {/* Platinum Standards - Compact with Hover Popup */}
+                {/* Platinum Standards - Compact with Click Popup Dialog */}
                 <TableCell className="p-2 bg-soft-lavender/20 dark:bg-soft-lavender/10 align-top">
-                  <HoverCard openDelay={200}>
-                    <HoverCardTrigger asChild>
-                      <div className="cursor-pointer">
-                        {/* Show first 2 standards */}
-                        <div className="space-y-1">
-                          {belief.checklist.slice(0, 2).map((item) => (
-                            <div key={item.id} className="flex items-center gap-2">
-                              <Checkbox
-                                checked={item.checked}
-                                onCheckedChange={() => handleChecklistToggle(belief.category, item.id)}
-                                disabled={(viewingHistory && hasDataForDate) || isAdminView}
-                                data-testid={`checkbox-${belief.category.toLowerCase()}-${item.id}`}
-                                className="h-3 w-3"
-                              />
-                              <span className="text-xs line-clamp-1">
-                                {item.text}
-                              </span>
-                            </div>
-                          ))}
-                          {/* Show "X more items" if more than 2 */}
-                          {belief.checklist.length > 2 && (
-                            <div className="text-xs text-muted-foreground italic pl-5">
-                              + {belief.checklist.length - 2} more items...
-                            </div>
-                          )}
+                  <div>
+                    {/* Show first 2 standards */}
+                    <div className="space-y-1">
+                      {belief.checklist.slice(0, 2).map((item) => (
+                        <div key={item.id} className="flex items-center gap-2">
+                          <Checkbox
+                            checked={item.checked}
+                            onCheckedChange={() => handleChecklistToggle(belief.category, item.id)}
+                            disabled={(viewingHistory && hasDataForDate) || isAdminView}
+                            data-testid={`checkbox-${belief.category.toLowerCase()}-${item.id}`}
+                            className="h-3 w-3"
+                          />
+                          <span className="text-xs line-clamp-1">
+                            {item.text}
+                          </span>
                         </div>
-                      </div>
-                    </HoverCardTrigger>
-                    <HoverCardContent 
-                      side="left" 
-                      align="start" 
-                      className="w-96 max-h-[400px] overflow-y-auto"
-                    >
-                      <div className="space-y-2">
-                        <h4 className="font-semibold text-sm mb-3">
-                          {belief.category} Platinum Standards
-                        </h4>
-                        {belief.checklist.map((item) => (
-                          <div key={item.id} className="flex items-start gap-2 py-1">
-                            <Checkbox
-                              checked={item.checked}
-                              onCheckedChange={() => handleChecklistToggle(belief.category, item.id)}
-                              disabled={(viewingHistory && hasDataForDate) || isAdminView}
-                              data-testid={`checkbox-popup-${belief.category.toLowerCase()}-${item.id}`}
-                              className="h-4 w-4 mt-0.5"
-                            />
-                            <span className="text-xs leading-relaxed">
-                              {item.text}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </HoverCardContent>
-                  </HoverCard>
+                      ))}
+                      {/* Show "X more items" clickable text if more than 2 */}
+                      {belief.checklist.length > 2 && (
+                        <div 
+                          className="text-xs text-primary hover:text-primary/80 font-medium italic pl-5 cursor-pointer transition-colors"
+                          onClick={() => {
+                            setPlatinumStandardsDialog({
+                              open: true,
+                              category: belief.category,
+                              items: belief.checklist
+                            });
+                          }}
+                          data-testid={`text-show-more-standards-${belief.category.toLowerCase()}`}
+                        >
+                          + {belief.checklist.length - 2} more items...
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </TableCell>
 
                 {/* Progress */}
@@ -3611,62 +3603,43 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   </TableCell>
                 )}
 
-                {/* Platinum Standards - Compact with Hover Popup */}
+                {/* Platinum Standards - Compact with Click Popup Dialog */}
                 <TableCell className="p-2 bg-soft-lavender/20 dark:bg-soft-lavender/10 align-top max-h-[85px] overflow-hidden">
-                  <HoverCard openDelay={200}>
-                    <HoverCardTrigger asChild>
-                      <div className="cursor-pointer">
-                        {/* Show first 2 standards */}
-                        <div className="space-y-1">
-                          {belief.checklist.slice(0, 2).map((item) => (
-                            <div key={item.id} className="flex items-center gap-2">
-                              <Checkbox
-                                checked={item.checked}
-                                onCheckedChange={() => handleChecklistToggle(belief.category, item.id)}
-                                disabled={(viewingHistory && hasDataForDate) || isAdminView}
-                                data-testid={`checkbox-next-${belief.category.toLowerCase()}-${item.id}`}
-                                className="h-3 w-3"
-                              />
-                              <span className="text-xs line-clamp-1">
-                                {item.text}
-                              </span>
-                            </div>
-                          ))}
-                          {/* Show "X more items" if more than 2 */}
-                          {belief.checklist.length > 2 && (
-                            <div className="text-xs text-muted-foreground italic pl-5">
-                              + {belief.checklist.length - 2} more items...
-                            </div>
-                          )}
+                  <div>
+                    {/* Show first 2 standards */}
+                    <div className="space-y-1">
+                      {belief.checklist.slice(0, 2).map((item) => (
+                        <div key={item.id} className="flex items-center gap-2">
+                          <Checkbox
+                            checked={item.checked}
+                            onCheckedChange={() => handleChecklistToggle(belief.category, item.id)}
+                            disabled={(viewingHistory && hasDataForDate) || isAdminView}
+                            data-testid={`checkbox-next-${belief.category.toLowerCase()}-${item.id}`}
+                            className="h-3 w-3"
+                          />
+                          <span className="text-xs line-clamp-1">
+                            {item.text}
+                          </span>
                         </div>
-                      </div>
-                    </HoverCardTrigger>
-                    <HoverCardContent 
-                      side="left" 
-                      align="start" 
-                      className="w-96 max-h-[400px] overflow-y-auto"
-                    >
-                      <div className="space-y-2">
-                        <h4 className="font-semibold text-sm mb-3">
-                          {belief.category} Platinum Standards
-                        </h4>
-                        {belief.checklist.map((item) => (
-                          <div key={item.id} className="flex items-start gap-2 py-1">
-                            <Checkbox
-                              checked={item.checked}
-                              onCheckedChange={() => handleChecklistToggle(belief.category, item.id)}
-                              disabled={(viewingHistory && hasDataForDate) || isAdminView}
-                              data-testid={`checkbox-next-popup-${belief.category.toLowerCase()}-${item.id}`}
-                              className="h-4 w-4 mt-0.5"
-                            />
-                            <span className="text-xs leading-relaxed">
-                              {item.text}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </HoverCardContent>
-                  </HoverCard>
+                      ))}
+                      {/* Show "X more items" clickable text if more than 2 */}
+                      {belief.checklist.length > 2 && (
+                        <div 
+                          className="text-xs text-primary hover:text-primary/80 font-medium italic pl-5 cursor-pointer transition-colors"
+                          onClick={() => {
+                            setPlatinumStandardsDialog({
+                              open: true,
+                              category: belief.category,
+                              items: belief.checklist
+                            });
+                          }}
+                          data-testid={`text-show-more-next-standards-${belief.category.toLowerCase()}`}
+                        >
+                          + {belief.checklist.length - 2} more items...
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </TableCell>
 
                 {/* Progress */}
@@ -4007,6 +3980,48 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 {editCustomAssignmentId ? 'Update Goal' : 'Add Goal'}
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Platinum Standards Full Checklist Dialog (Click-based, No Hover) */}
+      <Dialog 
+        open={platinumStandardsDialog.open} 
+        onOpenChange={(open) => setPlatinumStandardsDialog({ ...platinumStandardsDialog, open })}
+      >
+        <DialogContent className="max-w-md max-h-[600px] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent">
+              {platinumStandardsDialog.category} Platinum Standards
+            </DialogTitle>
+            <p className="text-sm text-muted-foreground">
+              All standards for {platinumStandardsDialog.category}
+            </p>
+          </DialogHeader>
+          <div className="space-y-3 py-4">
+            {platinumStandardsDialog.items.map((item) => (
+              <div key={item.id} className="flex items-start gap-3 py-2 px-3 rounded-lg hover:bg-muted/30 transition-colors">
+                <Checkbox
+                  checked={item.checked}
+                  onCheckedChange={() => handleChecklistToggle(platinumStandardsDialog.category, item.id)}
+                  disabled={(viewingHistory && hasDataForDate) || isAdminView}
+                  data-testid={`checkbox-dialog-standards-${platinumStandardsDialog.category.toLowerCase()}-${item.id}`}
+                  className="h-5 w-5 mt-0.5 shrink-0"
+                />
+                <span className="text-sm leading-relaxed flex-1 break-words">
+                  {item.text}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-end pt-3 border-t">
+            <Button
+              variant="outline"
+              onClick={() => setPlatinumStandardsDialog({ open: false, category: '', items: [] })}
+              data-testid="button-close-standards-dialog"
+            >
+              Close
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
