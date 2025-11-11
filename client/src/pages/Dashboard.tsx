@@ -133,7 +133,7 @@ export default function Dashboard() {
   const { data: weeklyCompletions = [] } = useQuery<RitualCompletion[]>({
     queryKey: ['/api/ritual-completions/week', weekStartDate, weekEndDate],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/ritual-completions/week/${weekStartDate}/${weekEndDate}`);
+      const response = await apiRequest(`/api/ritual-completions/week/${weekStartDate}/${weekEndDate}`, 'GET');
       return response.json();
     },
     enabled: !!currentUser,
@@ -265,7 +265,7 @@ export default function Dashboard() {
     mutationFn: async ({ id, isCompleted }: { id: string; isCompleted: boolean }) => {
       if (isCompleted) {
         // Delete completion
-        await apiRequest('DELETE', `/api/ritual-completions/${id}/${todayDate}`);
+        await apiRequest(`/api/ritual-completions/${id}/${todayDate}`, 'DELETE');
       } else {
         // Create completion
         await apiRequest('/api/ritual-completions', 'POST', {
@@ -362,7 +362,7 @@ export default function Dashboard() {
   // Mutation: Delete ritual
   const deleteRitualMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiRequest('DELETE', `/api/rituals/${id}`);
+      await apiRequest(`/api/rituals/${id}`, 'DELETE');
     },
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: ['/api/rituals'] });
