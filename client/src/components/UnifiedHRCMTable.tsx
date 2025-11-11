@@ -3448,6 +3448,24 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       
                       return (
                         <div className="space-y-2">
+                          {/* Add Custom Goal Button - ALWAYS VISIBLE IN COLUMN */}
+                          {!isAdminView && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setEditCustomAssignmentId(null);
+                                setCustomAssignmentText('');
+                                setShowCustomAssignmentDialog(true);
+                              }}
+                              className="w-full h-7 text-xs border-dashed border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30"
+                              data-testid="button-add-custom-assignment-column"
+                            >
+                              <Plus className="w-3 h-3 mr-1" />
+                              Add Custom Goal
+                            </Button>
+                          )}
+                          
                           {/* Show first 1 assignment */}
                           {firstItem && (
                             <div className="flex items-center gap-2">
@@ -3481,15 +3499,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                             </div>
                           )}
                           
-                          {/* Empty state */}
+                          {/* Empty state - show when no assignments exist */}
                           {totalCount === 0 && (
-                            <div 
-                              className="text-xs text-primary hover:text-primary/80 font-medium cursor-pointer transition-colors"
-                              onClick={() => setAssignmentDialog(true)}
-                              data-testid="text-add-first-assignment"
-                            >
-                              Click to add assignments
-                            </div>
+                            <p className="text-xs text-muted-foreground italic text-center py-1">
+                              No assignments yet
+                            </p>
                           )}
                         </div>
                       );
