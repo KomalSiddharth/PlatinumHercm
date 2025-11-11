@@ -316,6 +316,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     category: '',
     items: []
   });
+  
+  // Assignment Dialog State (click-based, no scroll in column)
+  const [assignmentDialog, setAssignmentDialog] = useState(false);
 
   // Real-time WebSocket connection for instant sync
   // When user makes changes, admin panels viewing this user see updates immediately (no delay!)
@@ -3424,177 +3427,68 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   </div>
                 </TableCell>
 
-                {/* Unified Assignment Column - Common column showing ALL assignments (Show only for first row with rowspan) */}
+                {/* Unified Assignment Column - Compact view with click popup */}
                 {belief.category === 'Health' && (
-                  <TableCell rowSpan={4} className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10 align-top max-h-[340px] overflow-hidden">
+                  <TableCell rowSpan={4} className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10 align-top">
                     {(() => {
                       // CRITICAL: Persistent assignments should ALWAYS show across all dates
-                      // - Assignments persist until completed, regardless of date
-                      // - This includes: course tracking additions, recommendations, and user-added assignments
-                      // - Admin view ALSO uses persistent assignments (fetched via admin API endpoint)
-                      // - Both user and admin view use the same persistentAssignments data source
-                      const assignmentsToDisplay = persistentAssignments;  // Always use persistent assignments for all views
+                      const assignmentsToDisplay = persistentAssignments;
                       
-                      // Show ALL assignments (completed + pending) so users can see their progress
-                      // Previously filtered to show only pending, but this caused confusion when clicking checkbox
-                      // Users would click to complete, and assignment would disappear (looked like deletion)
                       const userLessons = assignmentsToDisplay.filter((l: any) => l.source === 'user' || !l.source);
                       const adminLessons = assignmentsToDisplay.filter((l: any) => l.source === 'admin');
-                      const allLessons = [...userLessons, ...adminLessons];
-                      const totalCount = allLessons.length;
-                      
-                      // Separate custom text assignments
                       const customAssignments = assignmentsToDisplay.filter((l: any) => l.source === 'custom');
                       
-                      // Direct display of all assignments without hover card
+                      // Combine all assignments
+                      const allAssignments = [...customAssignments, ...userLessons, ...adminLessons];
+                      const totalCount = allAssignments.length;
+                      
+                      // Show only first 1 item
+                      const firstItem = allAssignments[0];
+                      const hasMoreItems = totalCount > 1;
+                      
                       return (
-                        <div className="space-y-3 overflow-y-auto max-h-[320px]">
-                          {/* Add Custom Assignment Button - ALWAYS VISIBLE AT THE TOP */}
-                          {!isAdminView && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                setEditCustomAssignmentId(null);
-                                setCustomAssignmentText('');
-                                setShowCustomAssignmentDialog(true);
-                              }}
-                              className="w-full h-8 text-xs border-dashed border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30"
-                              data-testid="button-add-custom-assignment"
+                        <div className="space-y-2">
+                          {/* Show first 1 assignment */}
+                          {firstItem && (
+                            <div className="flex items-center gap-2">
+                              <Checkbox
+                                checked={firstItem.completed}
+                                onCheckedChange={() => handleUnifiedAssignmentToggle(firstItem.id)}
+                                disabled={isAdminView}
+                                className="h-3 w-3 shrink-0"
+                                data-testid={`checkbox-assignment-preview-${firstItem.id}`}
+                              />
+                              {firstItem.source === 'custom' ? (
+                                <span className="text-xs line-clamp-1 text-purple-700 dark:text-purple-400">
+                                  {firstItem.customText}
+                                </span>
+                              ) : (
+                                <span className="text-xs line-clamp-1 text-cyan-700 dark:text-cyan-400">
+                                  {firstItem.lessonName || firstItem.courseName}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          
+                          {/* Show "+ X more items..." if more than 1 */}
+                          {hasMoreItems && (
+                            <div 
+                              className="text-xs text-primary hover:text-primary/80 font-medium italic pl-5 cursor-pointer transition-colors"
+                              onClick={() => setAssignmentDialog(true)}
+                              data-testid="text-show-more-assignments"
                             >
-                              <Plus className="w-3 h-3 mr-1" />
-                              Add Custom Goal
-                            </Button>
+                              + {totalCount - 1} more item{totalCount - 1 > 1 ? 's' : ''}...
+                            </div>
                           )}
                           
-                          {/* Empty state message - shown when no assignments */}
+                          {/* Empty state */}
                           {totalCount === 0 && (
-                            <p className="text-xs text-muted-foreground italic text-center py-2">
-                              No assignments yet. Check lessons in Course Tracker to add them here.
-                            </p>
-                          )}
-                          
-                          {/* Custom Text Assignments - Right below button */}
-                          {customAssignments.length > 0 && (
-                            <div className="space-y-2">
-                              <div className="text-xs font-semibold text-purple-600 dark:text-purple-400 mb-2">
-                                My Custom Goals ({customAssignments.length})
-                              </div>
-                              {customAssignments.map((assignment) => (
-                                <div key={assignment.id} className="flex items-center gap-2 py-1 group/assignment">
-                                  <Checkbox
-                                    checked={assignment.completed}
-                                    onCheckedChange={() => handleUnifiedAssignmentToggle(assignment.id)}
-                                    disabled={isAdminView}
-                                    className="h-4 w-4 mt-0.5 shrink-0"
-                                    data-testid={`checkbox-custom-assignment-${assignment.id}`}
-                                  />
-                                  <span
-                                    className="text-xs flex-1 text-purple-700 dark:text-purple-400 leading-relaxed cursor-pointer hover:underline"
-                                    onClick={() => {
-                                      if (!isAdminView) {
-                                        setEditCustomAssignmentId(assignment.id);
-                                        setCustomAssignmentText(assignment.customText || '');
-                                        setShowCustomAssignmentDialog(true);
-                                      }
-                                    }}
-                                    data-testid={`text-custom-assignment-${assignment.id}`}
-                                  >
-                                    {assignment.customText}
-                                  </span>
-                                  {!isAdminView && (
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => handleRemoveUnifiedAssignment(assignment.id)}
-                                      className="h-4 w-4 p-0 opacity-0 group-hover/assignment:opacity-100 transition-opacity shrink-0"
-                                      data-testid={`button-delete-custom-assignment-${assignment.id}`}
-                                    >
-                                      <Trash2 className="w-3 h-3 text-destructive" />
-                                    </Button>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                          
-                          {/* User Lessons - Full List */}
-                          {userLessons.length > 0 && (
-                            <div className="space-y-2">
-                              <div className="text-xs font-semibold text-cyan-600 dark:text-cyan-400 mb-2">
-                                Course Lessons ({userLessons.length})
-                              </div>
-                              {userLessons.map((lesson) => (
-                                <div key={lesson.id} className="flex items-center gap-2 py-1 group/assignment">
-                                  <Checkbox
-                                    checked={lesson.completed}
-                                    onCheckedChange={() => handleUnifiedAssignmentToggle(lesson.id)}
-                                    disabled={isAdminView}
-                                    className="h-4 w-4 mt-0.5 shrink-0"
-                                    data-testid={`checkbox-user-lesson-${lesson.id}`}
-                                  />
-                                  <a
-                                    href={lesson.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-xs hover:underline flex-1 text-cyan-700 dark:text-cyan-400 leading-relaxed"
-                                    data-testid={`link-user-lesson-${lesson.id}`}
-                                  >
-                                    {lesson.lessonName || lesson.courseName}
-                                  </a>
-                                  {!isAdminView && (
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => handleRemoveUnifiedAssignment(lesson.id)}
-                                      className="h-4 w-4 p-0 opacity-0 group-hover/assignment:opacity-100 transition-opacity shrink-0"
-                                      data-testid={`button-delete-user-lesson-${lesson.id}`}
-                                    >
-                                      <Trash2 className="w-3 h-3 text-destructive" />
-                                    </Button>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                          
-                          {/* Admin Lessons - Full List */}
-                          {adminLessons.length > 0 && (
-                            <div className="space-y-2">
-                              <div className="text-xs font-semibold text-pink-600 dark:text-pink-400 mb-2">
-                                Recommended Lessons ({adminLessons.length})
-                              </div>
-                              {adminLessons.map((lesson) => (
-                                <div key={lesson.id} className="flex items-center gap-2 py-1 group/assignment">
-                                  <Checkbox
-                                    checked={lesson.completed}
-                                    onCheckedChange={() => handleUnifiedAssignmentToggle(lesson.id)}
-                                    disabled={isAdminView}
-                                    className="h-4 w-4 mt-0.5 shrink-0"
-                                    data-testid={`checkbox-admin-lesson-${lesson.id}`}
-                                  />
-                                  <a
-                                    href={lesson.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-xs hover:underline flex-1 text-pink-700 dark:text-pink-400 leading-relaxed"
-                                    data-testid={`link-admin-lesson-${lesson.id}`}
-                                  >
-                                    {lesson.lessonName || lesson.courseName}
-                                  </a>
-                                  {!isAdminView && (
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => handleRemoveUnifiedAssignment(lesson.id)}
-                                      className="h-4 w-4 p-0 opacity-0 group-hover/assignment:opacity-100 transition-opacity shrink-0"
-                                      data-testid={`button-delete-admin-lesson-${lesson.id}`}
-                                    >
-                                      <Trash2 className="w-3 h-3 text-destructive" />
-                                    </Button>
-                                  )}
-                                </div>
-                              ))}
+                            <div 
+                              className="text-xs text-primary hover:text-primary/80 font-medium cursor-pointer transition-colors"
+                              onClick={() => setAssignmentDialog(true)}
+                              data-testid="text-add-first-assignment"
+                            >
+                              Click to add assignments
                             </div>
                           )}
                         </div>
@@ -3980,6 +3874,189 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 {editCustomAssignmentId ? 'Update Goal' : 'Add Goal'}
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Assignment Full List Dialog (Click-based, No Scroll in Column) */}
+      <Dialog 
+        open={assignmentDialog} 
+        onOpenChange={setAssignmentDialog}
+      >
+        <DialogContent className="max-w-lg max-h-[700px] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold bg-gradient-to-r from-cyan-600 to-cyan-400 bg-clip-text text-transparent">
+              All Assignments
+            </DialogTitle>
+            <p className="text-sm text-muted-foreground">
+              Your custom goals, course lessons, and recommendations
+            </p>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {/* Add Custom Goal Button - AT THE TOP */}
+            {!isAdminView && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  setEditCustomAssignmentId(null);
+                  setCustomAssignmentText('');
+                  setShowCustomAssignmentDialog(true);
+                }}
+                className="w-full h-9 text-sm border-dashed border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30"
+                data-testid="button-add-custom-assignment-dialog"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Custom Goal
+              </Button>
+            )}
+            
+            {(() => {
+              const assignmentsToDisplay = persistentAssignments;
+              const userLessons = assignmentsToDisplay.filter((l: any) => l.source === 'user' || !l.source);
+              const adminLessons = assignmentsToDisplay.filter((l: any) => l.source === 'admin');
+              const customAssignments = assignmentsToDisplay.filter((l: any) => l.source === 'custom');
+              const totalCount = customAssignments.length + userLessons.length + adminLessons.length;
+              
+              if (totalCount === 0) {
+                return (
+                  <p className="text-sm text-muted-foreground italic text-center py-4">
+                    No assignments yet. Add custom goals or check lessons in Course Tracker.
+                  </p>
+                );
+              }
+              
+              return (
+                <>
+                  {/* Custom Goals */}
+                  {customAssignments.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="text-sm font-semibold text-purple-600 dark:text-purple-400 border-b pb-1">
+                        My Custom Goals ({customAssignments.length})
+                      </div>
+                      {customAssignments.map((assignment) => (
+                        <div key={assignment.id} className="flex items-start gap-3 py-2 px-3 rounded-lg hover:bg-muted/30 transition-colors group/item">
+                          <Checkbox
+                            checked={assignment.completed}
+                            onCheckedChange={() => handleUnifiedAssignmentToggle(assignment.id)}
+                            disabled={isAdminView}
+                            className="h-5 w-5 mt-0.5 shrink-0"
+                            data-testid={`checkbox-dialog-custom-${assignment.id}`}
+                          />
+                          <span
+                            className="text-sm flex-1 text-purple-700 dark:text-purple-400 leading-relaxed break-words cursor-pointer hover:underline"
+                            onClick={() => {
+                              if (!isAdminView) {
+                                setEditCustomAssignmentId(assignment.id);
+                                setCustomAssignmentText(assignment.customText || '');
+                                setShowCustomAssignmentDialog(true);
+                              }
+                            }}
+                          >
+                            {assignment.customText}
+                          </span>
+                          {!isAdminView && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleRemoveUnifiedAssignment(assignment.id)}
+                              className="h-6 w-6 p-0 opacity-0 group-hover/item:opacity-100 transition-opacity shrink-0"
+                            >
+                              <Trash2 className="w-4 h-4 text-destructive" />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Course Lessons */}
+                  {userLessons.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="text-sm font-semibold text-cyan-600 dark:text-cyan-400 border-b pb-1">
+                        Course Lessons ({userLessons.length})
+                      </div>
+                      {userLessons.map((lesson) => (
+                        <div key={lesson.id} className="flex items-start gap-3 py-2 px-3 rounded-lg hover:bg-muted/30 transition-colors group/item">
+                          <Checkbox
+                            checked={lesson.completed}
+                            onCheckedChange={() => handleUnifiedAssignmentToggle(lesson.id)}
+                            disabled={isAdminView}
+                            className="h-5 w-5 mt-0.5 shrink-0"
+                            data-testid={`checkbox-dialog-user-${lesson.id}`}
+                          />
+                          <a
+                            href={lesson.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm hover:underline flex-1 text-cyan-700 dark:text-cyan-400 leading-relaxed break-words"
+                          >
+                            {lesson.lessonName || lesson.courseName}
+                          </a>
+                          {!isAdminView && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleRemoveUnifiedAssignment(lesson.id)}
+                              className="h-6 w-6 p-0 opacity-0 group-hover/item:opacity-100 transition-opacity shrink-0"
+                            >
+                              <Trash2 className="w-4 h-4 text-destructive" />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Recommended Lessons */}
+                  {adminLessons.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="text-sm font-semibold text-pink-600 dark:text-pink-400 border-b pb-1">
+                        Recommended Lessons ({adminLessons.length})
+                      </div>
+                      {adminLessons.map((lesson) => (
+                        <div key={lesson.id} className="flex items-start gap-3 py-2 px-3 rounded-lg hover:bg-muted/30 transition-colors group/item">
+                          <Checkbox
+                            checked={lesson.completed}
+                            onCheckedChange={() => handleUnifiedAssignmentToggle(lesson.id)}
+                            disabled={isAdminView}
+                            className="h-5 w-5 mt-0.5 shrink-0"
+                            data-testid={`checkbox-dialog-admin-${lesson.id}`}
+                          />
+                          <a
+                            href={lesson.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm hover:underline flex-1 text-pink-700 dark:text-pink-400 leading-relaxed break-words"
+                          >
+                            {lesson.lessonName || lesson.courseName}
+                          </a>
+                          {!isAdminView && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleRemoveUnifiedAssignment(lesson.id)}
+                              className="h-6 w-6 p-0 opacity-0 group-hover/item:opacity-100 transition-opacity shrink-0"
+                            >
+                              <Trash2 className="w-4 h-4 text-destructive" />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              );
+            })()}
+          </div>
+          <div className="flex justify-end pt-3 border-t">
+            <Button
+              variant="outline"
+              onClick={() => setAssignmentDialog(false)}
+              data-testid="button-close-assignment-dialog"
+            >
+              Close
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
