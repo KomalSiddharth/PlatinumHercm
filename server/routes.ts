@@ -2003,6 +2003,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Custom course ordering sequence
   const COURSE_ORDER = [
+    "Platinum - Fast Track",
+    "Platinum Fast Track",
     "IMK - Platinum Community",
     "Mitesh - AI",
     "One Day Miracle",
