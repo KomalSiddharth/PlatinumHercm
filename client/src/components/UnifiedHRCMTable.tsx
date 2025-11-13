@@ -276,6 +276,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editDialogData, setEditDialogData] = useState<{ category: string; field: string; value: string; label: string; color: string } | null>(null);
   const [manualNextWeekMode, setManualNextWeekMode] = useState(false); // 🔥 Flag to disable auto-sync when user manually updates Next Week Target
+  const [calendarPopoverOpen, setCalendarPopoverOpen] = useState(false); // Calendar popover state
   
   // Text Block Dialog States (Emotional Tracker Style)
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -2971,7 +2972,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         <div className="px-2 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-b-2 border-coral-red/80 dark:border-coral-red/60 bg-coral-red">
           <div className="flex items-center justify-between">
             {/* Left: Calendar Only */}
-            <Popover>
+            <Popover open={calendarPopoverOpen} onOpenChange={setCalendarPopoverOpen}>
               <PopoverTrigger asChild>
                 <Button
                   variant="ghost"
@@ -2989,6 +2990,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   onSelect={(date) => {
                     if (date) {
                       handleDateChange(date);
+                      setCalendarPopoverOpen(false);
                     }
                   }}
                   initialFocus
@@ -3001,6 +3003,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     className="w-full"
                     onClick={() => {
                       handleDateChange(new Date());
+                      setCalendarPopoverOpen(false);
                     }}
                     data-testid="button-reset-to-today"
                   >
@@ -3010,8 +3013,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               </PopoverContent>
             </Popover>
 
-            {/* Center: Heading - Shows current date */}
-            <h3 className="font-bold text-white text-sm sm:text-base md:text-lg lg:text-xl drop-shadow-md flex items-center gap-1 sm:gap-2">
+            {/* Center: Heading - Shows current date (CLICKABLE) */}
+            <h3 
+              className="font-bold text-white text-sm sm:text-base md:text-lg lg:text-xl drop-shadow-md flex items-center gap-1 sm:gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => setCalendarPopoverOpen(true)}
+              data-testid="button-date-text"
+            >
               <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
               {format(selectedDate, 'MMMM dd, yyyy')}
             </h3>
