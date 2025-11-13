@@ -282,6 +282,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogValue, setDialogValue] = useState('');
   
+  // Read-Only Dialog States (for viewing history)
+  const [readOnlyDialogOpen, setReadOnlyDialogOpen] = useState(false);
+  const [readOnlyDialogContent, setReadOnlyDialogContent] = useState('');
+  const [readOnlyDialogTitle, setReadOnlyDialogTitle] = useState('');
+  
   // State for hover editing
   const [hoverEditingField, setHoverEditingField] = useState<{ category: string; field: string } | null>(null);
   const [hoverEditValue, setHoverEditValue] = useState<string>('');
@@ -3081,16 +3086,20 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
                   <div
                     onClick={() => {
-                      if (!((viewingHistory && hasDataForDate) || isAdminView)) {
+                      if ((viewingHistory && hasDataForDate) || isAdminView) {
+                        // Show read-only popup when viewing history
+                        setReadOnlyDialogTitle(`${belief.category} - Problems`);
+                        setReadOnlyDialogContent(belief.problems || 'No content available');
+                        setReadOnlyDialogOpen(true);
+                      } else {
+                        // Show editable dialog for current date
                         setEditingField({ category: belief.category, field: 'problems', section: 'current' });
                         setDialogValue(belief.problems || '');
                         setDialogOpen(true);
                       }
                     }}
                     style={{ height: '60px', width: '100%' }}
-                    className={`cursor-pointer overflow-hidden rounded px-3 py-2 text-sm bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 hover:border-red-300 dark:hover:border-red-700 transition-colors break-words ${
-                      ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
-                    }`}
+                    className="cursor-pointer overflow-hidden rounded px-3 py-2 text-sm bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 hover:border-red-300 dark:hover:border-red-700 transition-colors break-words"
                     data-testid={`text-block-problems-${belief.category.toLowerCase()}`}
                   >
                     {belief.problems ? (
@@ -3105,16 +3114,18 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 <TableCell className="p-2 bg-emerald-green/5 dark:bg-emerald-green/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
                   <div
                     onClick={() => {
-                      if (!((viewingHistory && hasDataForDate) || isAdminView)) {
+                      if ((viewingHistory && hasDataForDate) || isAdminView) {
+                        setReadOnlyDialogTitle(`${belief.category} - Feelings`);
+                        setReadOnlyDialogContent(belief.currentFeelings || 'No content available');
+                        setReadOnlyDialogOpen(true);
+                      } else {
                         setEditingField({ category: belief.category, field: 'currentFeelings', section: 'current' });
                         setDialogValue(belief.currentFeelings || '');
                         setDialogOpen(true);
                       }
                     }}
                     style={{ height: '60px', width: '100%' }}
-                    className={`cursor-pointer overflow-hidden rounded px-3 py-2 text-sm bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 transition-colors break-words ${
-                      ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
-                    }`}
+                    className="cursor-pointer overflow-hidden rounded px-3 py-2 text-sm bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 transition-colors break-words"
                     data-testid={`text-block-feelings-${belief.category.toLowerCase()}`}
                   >
                     {belief.currentFeelings ? (
@@ -3129,16 +3140,18 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 <TableCell className="p-2 bg-golden-yellow/5 dark:bg-golden-yellow/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
                   <div
                     onClick={() => {
-                      if (!((viewingHistory && hasDataForDate) || isAdminView)) {
+                      if ((viewingHistory && hasDataForDate) || isAdminView) {
+                        setReadOnlyDialogTitle(`${belief.category} - Beliefs`);
+                        setReadOnlyDialogContent(belief.currentBelief || 'No content available');
+                        setReadOnlyDialogOpen(true);
+                      } else {
                         setEditingField({ category: belief.category, field: 'currentBelief', section: 'current' });
                         setDialogValue(belief.currentBelief || '');
                         setDialogOpen(true);
                       }
                     }}
                     style={{ height: '60px', width: '100%' }}
-                    className={`cursor-pointer overflow-hidden rounded px-3 py-2 text-sm bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 hover:border-amber-300 dark:hover:border-amber-700 transition-colors break-words ${
-                      ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
-                    }`}
+                    className="cursor-pointer overflow-hidden rounded px-3 py-2 text-sm bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 hover:border-amber-300 dark:hover:border-amber-700 transition-colors break-words"
                     data-testid={`text-block-beliefs-${belief.category.toLowerCase()}`}
                   >
                     {belief.currentBelief ? (
@@ -3153,16 +3166,18 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 <TableCell className="p-2 bg-soft-lavender/5 dark:bg-soft-lavender/10 border-r align-top w-[180px] min-w-[180px] max-w-[180px]">
                   <div
                     onClick={() => {
-                      if (!((viewingHistory && hasDataForDate) || isAdminView)) {
+                      if ((viewingHistory && hasDataForDate) || isAdminView) {
+                        setReadOnlyDialogTitle(`${belief.category} - Actions`);
+                        setReadOnlyDialogContent(belief.currentActions || 'No content available');
+                        setReadOnlyDialogOpen(true);
+                      } else {
                         setEditingField({ category: belief.category, field: 'currentActions', section: 'current' });
                         setDialogValue(belief.currentActions || '');
                         setDialogOpen(true);
                       }
                     }}
                     style={{ height: '60px', width: '100%' }}
-                    className={`cursor-pointer overflow-hidden rounded px-3 py-2 text-sm bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 hover:border-blue-300 dark:hover:border-blue-700 transition-colors break-words ${
-                      ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
-                    }`}
+                    className="cursor-pointer overflow-hidden rounded px-3 py-2 text-sm bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 hover:border-blue-300 dark:hover:border-blue-700 transition-colors break-words"
                     data-testid={`text-block-actions-${belief.category.toLowerCase()}`}
                   >
                     {belief.currentActions ? (
@@ -3321,16 +3336,18 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
                   <div
                     onClick={() => {
-                      if (!((viewingHistory && hasDataForDate) || isAdminView)) {
+                      if ((viewingHistory && hasDataForDate) || isAdminView) {
+                        setReadOnlyDialogTitle(`${belief.category} - Results`);
+                        setReadOnlyDialogContent(belief.result || 'No content available');
+                        setReadOnlyDialogOpen(true);
+                      } else {
                         setEditingField({ category: belief.category, field: 'result', section: 'next' });
                         setDialogValue(belief.result || '');
                         setDialogOpen(true);
                       }
                     }}
                     style={{ height: '60px', width: '100%' }}
-                    className={`cursor-pointer overflow-hidden rounded px-3 py-2 text-sm bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 hover:border-red-300 dark:hover:border-red-700 transition-colors break-words ${
-                      ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
-                    }`}
+                    className="cursor-pointer overflow-hidden rounded px-3 py-2 text-sm bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 hover:border-red-300 dark:hover:border-red-700 transition-colors break-words"
                     data-testid={`text-block-result-${belief.category.toLowerCase()}`}
                   >
                     {belief.result ? (
@@ -3345,16 +3362,18 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
                   <div
                     onClick={() => {
-                      if (!((viewingHistory && hasDataForDate) || isAdminView)) {
+                      if ((viewingHistory && hasDataForDate) || isAdminView) {
+                        setReadOnlyDialogTitle(`${belief.category} - Next Week Feelings`);
+                        setReadOnlyDialogContent(belief.nextFeelings || 'No content available');
+                        setReadOnlyDialogOpen(true);
+                      } else {
                         setEditingField({ category: belief.category, field: 'nextFeelings', section: 'next' });
                         setDialogValue(belief.nextFeelings || '');
                         setDialogOpen(true);
                       }
                     }}
                     style={{ height: '60px', width: '100%' }}
-                    className={`cursor-pointer overflow-hidden rounded px-3 py-2 text-sm bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 transition-colors break-words ${
-                      ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
-                    }`}
+                    className="cursor-pointer overflow-hidden rounded px-3 py-2 text-sm bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 transition-colors break-words"
                     data-testid={`text-block-next-feelings-${belief.category.toLowerCase()}`}
                   >
                     {belief.nextFeelings ? (
@@ -3369,16 +3388,18 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
                   <div
                     onClick={() => {
-                      if (!((viewingHistory && hasDataForDate) || isAdminView)) {
+                      if ((viewingHistory && hasDataForDate) || isAdminView) {
+                        setReadOnlyDialogTitle(`${belief.category} - Next Week Beliefs/Reasons`);
+                        setReadOnlyDialogContent(belief.nextWeekTarget || 'No content available');
+                        setReadOnlyDialogOpen(true);
+                      } else {
                         setEditingField({ category: belief.category, field: 'nextWeekTarget', section: 'next' });
                         setDialogValue(belief.nextWeekTarget || '');
                         setDialogOpen(true);
                       }
                     }}
                     style={{ height: '60px', width: '100%' }}
-                    className={`cursor-pointer overflow-hidden rounded px-3 py-2 text-sm bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 hover:border-amber-300 dark:hover:border-amber-700 transition-colors break-words ${
-                      ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
-                    }`}
+                    className="cursor-pointer overflow-hidden rounded px-3 py-2 text-sm bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 hover:border-amber-300 dark:hover:border-amber-700 transition-colors break-words"
                     data-testid={`text-block-next-beliefs-${belief.category.toLowerCase()}`}
                   >
                     {belief.nextWeekTarget ? (
@@ -3393,16 +3414,18 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 border-r align-top w-[180px] min-w-[180px] max-w-[180px]">
                   <div
                     onClick={() => {
-                      if (!((viewingHistory && hasDataForDate) || isAdminView)) {
+                      if ((viewingHistory && hasDataForDate) || isAdminView) {
+                        setReadOnlyDialogTitle(`${belief.category} - Next Week Actions`);
+                        setReadOnlyDialogContent(belief.nextActions || 'No content available');
+                        setReadOnlyDialogOpen(true);
+                      } else {
                         setEditingField({ category: belief.category, field: 'nextActions', section: 'next' });
                         setDialogValue(belief.nextActions || '');
                         setDialogOpen(true);
                       }
                     }}
                     style={{ height: '60px', width: '100%' }}
-                    className={`cursor-pointer overflow-hidden rounded px-3 py-2 text-sm bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 hover:border-blue-300 dark:hover:border-blue-700 transition-colors break-words ${
-                      ((viewingHistory && hasDataForDate) || isAdminView) ? 'cursor-not-allowed opacity-60' : ''
-                    }`}
+                    className="cursor-pointer overflow-hidden rounded px-3 py-2 text-sm bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 hover:border-blue-300 dark:hover:border-blue-700 transition-colors break-words"
                     data-testid={`text-block-next-actions-${belief.category.toLowerCase()}`}
                   >
                     {belief.nextActions ? (
@@ -3744,6 +3767,33 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               className="min-h-[200px] text-sm"
               data-testid="textarea-text-block-edit"
             />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Read-Only Text Dialog (for viewing history) */}
+      <Dialog open={readOnlyDialogOpen} onOpenChange={setReadOnlyDialogOpen}>
+        <DialogContent className="sm:max-w-[700px] max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              {readOnlyDialogTitle}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4 max-h-[60vh] overflow-y-auto">
+            <div className="p-4 rounded-lg border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
+              <p className="text-sm whitespace-pre-wrap break-words leading-relaxed text-foreground">
+                {readOnlyDialogContent}
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setReadOnlyDialogOpen(false)}
+              data-testid="button-close-readonly"
+            >
+              Close
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
