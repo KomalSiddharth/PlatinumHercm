@@ -2329,18 +2329,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "lessonId is required" });
       }
 
-      // Frontend sends CURRENT state, we need to toggle it
-      // If completed=false (currently unchecked), mark as complete
-      // If completed=true (currently checked), mark as incomplete
-      if (!completed) {
-        // Currently unchecked, so mark as completed
+      // Frontend sends DESIRED state (toggled state)
+      // If completed=true, mark as complete (add points)
+      // If completed=false, mark as incomplete (subtract points)
+      if (completed) {
+        // Desired state is checked, so mark as completed
         await storage.markLessonComplete(userId, lessonId);
         
         // Add 10 points
         await storage.addPointsToUser(userId, 10);
         console.log(`✅ Added 10 points to user ${userId} for completing lesson: ${lessonName}`);
       } else {
-        // Currently checked, so mark as incomplete (remove completion record)
+        // Desired state is unchecked, so mark as incomplete (remove completion record)
         await storage.markLessonIncomplete(userId, lessonId);
         
         // Subtract 10 points
