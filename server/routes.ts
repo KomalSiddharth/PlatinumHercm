@@ -3819,6 +3819,29 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
+  // Bulk delete platinum standards (admin only)
+  app.post('/api/admin/platinum-standards/bulk-delete', isAdmin, async (req: any, res) => {
+    try {
+      const { ids } = req.body;
+      
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ message: "IDs must be a non-empty array" });
+      }
+
+      // Delete all standards with the provided IDs
+      for (const id of ids) {
+        await storage.deletePlatinumStandard(id);
+      }
+
+      res.json({ 
+        message: `Successfully deleted ${ids.length} platinum standard${ids.length > 1 ? 's' : ''}` 
+      });
+    } catch (error) {
+      console.error("Error bulk deleting platinum standards:", error);
+      res.status(500).json({ message: "Failed to bulk delete platinum standards" });
+    }
+  });
+
   // Reorder platinum standards (admin only)
   app.put('/api/admin/platinum-standards/reorder', isAdmin, async (req: any, res) => {
     try {

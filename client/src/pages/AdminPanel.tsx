@@ -116,6 +116,7 @@ export default function AdminPanel() {
   const [selectedPlatinumCategory, setSelectedPlatinumCategory] = useState<'health' | 'relationship' | 'career' | 'money'>('health');
   const [newStandardText, setNewStandardText] = useState('');
   const [editingStandard, setEditingStandard] = useState<any>(null);
+  const [selectedStandardIds, setSelectedStandardIds] = useState<Set<string>>(new Set());
   
   // Dark/Light mode state
   const [darkMode, setDarkMode] = useState(() => {
@@ -621,6 +622,22 @@ export default function AdminPanel() {
     },
     onError: (error: any) => {
       toast({ title: "Error", description: error.message || "Failed to delete platinum standard", variant: "destructive" });
+    }
+  });
+
+  const bulkDeletePlatinumStandardsMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      return apiRequest('/api/admin/platinum-standards/bulk-delete', 'POST', { ids });
+    },
+    onSuccess: (response: any) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/platinum-standards'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/platinum-standards'] });
+      queryClient.refetchQueries({ queryKey: ['/api/platinum-standards'] });
+      setSelectedStandardIds(new Set());
+      toast({ title: "Success", description: response.message || "Standards deleted successfully" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message || "Failed to delete standards", variant: "destructive" });
     }
   });
 
@@ -2865,6 +2882,13 @@ export default function AdminPanel() {
                       }
                     }[category as 'health' | 'relationship' | 'career' | 'money'];
                     
+                    // Get selected standards for this category
+                    const categorySelectedIds = Array.from(selectedStandardIds).filter(id => 
+                      categoryStandards.some((s: any) => s.id === id)
+                    );
+                    const allCategorySelected = categoryStandards.length > 0 && 
+                      categorySelectedIds.length === categoryStandards.length;
+                    
                     return (
                       <Card key={category} className={`border-2 ${categoryConfig.border} shadow-md`}>
                         <CardHeader className={`pb-3 bg-gradient-to-r ${categoryConfig.gradient}`}>
@@ -2877,6 +2901,45 @@ export default function AdminPanel() {
                               {categoryStandards.length} standards
                             </Badge>
                           </CardTitle>
+                          {categoryStandards.length > 0 && (
+                            <div className="flex items-center gap-2 mt-3">
+                              <div className="flex items-center gap-2">
+                                <Checkbox
+                                  checked={allCategorySelected}
+                                  onCheckedChange={(checked) => {
+                                    const newSelected = new Set(selectedStandardIds);
+                                    if (checked) {
+                                      categoryStandards.forEach((s: any) => newSelected.add(s.id));
+                                    } else {
+                                      categoryStandards.forEach((s: any) => newSelected.delete(s.id));
+                                    }
+                                    setSelectedStandardIds(newSelected);
+                                  }}
+                                  data-testid={`checkbox-select-all-${category}`}
+                                />
+                                <span className="text-sm text-muted-foreground">
+                                  Select All
+                                </span>
+                              </div>
+                              {categorySelectedIds.length > 0 && (
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => {
+                                    if (window.confirm(`Are you sure you want to delete ${categorySelectedIds.length} selected standard${categorySelectedIds.length > 1 ? 's' : ''}? This will affect all users.`)) {
+                                      bulkDeletePlatinumStandardsMutation.mutate(categorySelectedIds);
+                                    }
+                                  }}
+                                  disabled={bulkDeletePlatinumStandardsMutation.isPending}
+                                  className="ml-auto"
+                                  data-testid={`button-delete-selected-${category}`}
+                                >
+                                  <Trash2 className="w-4 h-4 mr-2" />
+                                  Delete Selected ({categorySelectedIds.length})
+                                </Button>
+                              )}
+                            </div>
+                          )}
                         </CardHeader>
                         <CardContent className="space-y-3">
                           {categoryStandards.length === 0 ? (
@@ -2902,6 +2965,19 @@ export default function AdminPanel() {
                                 } shadow-sm transition-colors`}
                                 data-testid={`standard-${category}-${index}`}
                               >
+                                <Checkbox
+                                  checked={selectedStandardIds.has(standard.id)}
+                                  onCheckedChange={(checked) => {
+                                    const newSelected = new Set(selectedStandardIds);
+                                    if (checked) {
+                                      newSelected.add(standard.id);
+                                    } else {
+                                      newSelected.delete(standard.id);
+                                    }
+                                    setSelectedStandardIds(newSelected);
+                                  }}
+                                  data-testid={`checkbox-standard-${standard.id}`}
+                                />
                                 <div className="flex items-center gap-2">
                                   <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
                                     category === 'health' ? 'bg-emerald-200 text-emerald-800 dark:bg-emerald-800 dark:text-emerald-200' :
