@@ -362,30 +362,6 @@ export default function LifeSkillsMap() {
             Manage your learning journey and skill development
           </p>
           
-          {/* External Navigation Links */}
-          <div className="flex flex-wrap gap-3 mb-4">
-            <a
-              href="https://coaching.miteshkhatri.com/products/mitesh-ai"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-sm text-blue-400 hover:text-blue-300 hover:underline transition-colors"
-              data-testid="link-miteshai"
-            >
-              <ExternalLink className="h-3.5 w-3.5" />
-              Click here for MiteshAI
-            </a>
-            <a
-              href="https://coaching.miteshkhatri.com/products/communities/v2/imk/home"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-sm text-blue-400 hover:text-blue-300 hover:underline transition-colors"
-              data-testid="link-imk-platinum"
-            >
-              <ExternalLink className="h-3.5 w-3.5" />
-              Click here to visit IMK - Platinum community
-            </a>
-          </div>
-          
           {/* Overall Progress Bar */}
           <div className="space-y-2" data-testid="container-overall-progress">
             <div className="flex items-center justify-between text-sm">
@@ -398,16 +374,38 @@ export default function LifeSkillsMap() {
             />
           </div>
         </div>
-        <Button
-          variant="default"
-          size="sm"
-          className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white flex items-center gap-1"
-          data-testid="button-skill-map"
-          onClick={() => window.open('https://docs.google.com/spreadsheets/d/13UN1Az5GyUPxj7tKSc26rjvPtNINMkS_C_VoYcuzDHg/edit?usp=sharing', '_blank')}
-        >
-          <Map className="h-4 w-4" />
-          Skill Map
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="default"
+            size="sm"
+            className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white flex items-center gap-1"
+            data-testid="button-miteshai"
+            onClick={() => window.open('https://coaching.miteshkhatri.com/products/mitesh-ai', '_blank')}
+          >
+            <ExternalLink className="h-4 w-4" />
+            MiteshAI
+          </Button>
+          <Button
+            variant="default"
+            size="sm"
+            className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white flex items-center gap-1"
+            data-testid="button-imk-platinum"
+            onClick={() => window.open('https://coaching.miteshkhatri.com/products/communities/v2/imk/home', '_blank')}
+          >
+            <ExternalLink className="h-4 w-4" />
+            IMK - Platinum Community
+          </Button>
+          <Button
+            variant="default"
+            size="sm"
+            className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white flex items-center gap-1"
+            data-testid="button-skill-map"
+            onClick={() => window.open('https://docs.google.com/spreadsheets/d/13UN1Az5GyUPxj7tKSc26rjvPtNINMkS_C_VoYcuzDHg/edit?usp=sharing', '_blank')}
+          >
+            <Map className="h-4 w-4" />
+            Skill Map
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (
