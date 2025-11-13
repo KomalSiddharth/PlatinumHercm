@@ -2894,12 +2894,12 @@ export default function AdminPanel() {
                             categoryStandards.map((standard: any, index: number) => (
                               <div
                                 key={standard.id}
-                                className={`flex items-center gap-3 p-4 rounded-lg group hover-elevate border-l-4 ${
-                                  category === 'health' ? 'border-l-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20' :
-                                  category === 'relationship' ? 'border-l-pink-500 bg-pink-50/50 dark:bg-pink-950/20' :
-                                  category === 'career' ? 'border-l-amber-500 bg-amber-50/50 dark:bg-amber-950/20' :
-                                  'border-l-purple-500 bg-purple-50/50 dark:bg-purple-950/20'
-                                } shadow-sm`}
+                                className={`flex items-center gap-3 p-4 rounded-lg group border-l-4 ${
+                                  category === 'health' ? 'border-l-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20 hover:bg-emerald-100/50 dark:hover:bg-emerald-950/30' :
+                                  category === 'relationship' ? 'border-l-pink-500 bg-pink-50/50 dark:bg-pink-950/20 hover:bg-pink-100/50 dark:hover:bg-pink-950/30' :
+                                  category === 'career' ? 'border-l-amber-500 bg-amber-50/50 dark:bg-amber-950/20 hover:bg-amber-100/50 dark:hover:bg-amber-950/30' :
+                                  'border-l-purple-500 bg-purple-50/50 dark:bg-purple-950/20 hover:bg-purple-100/50 dark:hover:bg-purple-950/30'
+                                } shadow-sm transition-colors`}
                                 data-testid={`standard-${category}-${index}`}
                               >
                                 <div className="flex items-center gap-2">
