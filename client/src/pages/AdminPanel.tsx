@@ -610,7 +610,7 @@ export default function AdminPanel() {
 
   const deletePlatinumStandardMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest('DELETE', `/api/admin/platinum-standards/${id}`);
+      return apiRequest(`/api/admin/platinum-standards/${id}`, 'DELETE');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/platinum-standards'] });
