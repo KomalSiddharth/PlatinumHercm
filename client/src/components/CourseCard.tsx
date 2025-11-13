@@ -120,7 +120,7 @@ function SubcategoryRenderer({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6 text-white/60 hover:text-white hover:bg-white/20"
+                  className="h-6 w-6 text-primary/80 hover:text-primary hover:bg-primary/10"
                   onClick={() => window.open(lesson.url, '_blank')}
                   data-testid={`button-lesson-link-${lesson.id}`}
                 >
@@ -312,7 +312,7 @@ export default function CourseCard({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-6 w-6 text-white/60 hover:text-white hover:bg-white/20"
+                      className="h-6 w-6 text-primary/80 hover:text-primary hover:bg-primary/10"
                       onClick={() => window.open(module.url, '_blank')}
                       data-testid={`button-module-link-${module.id}`}
                     >

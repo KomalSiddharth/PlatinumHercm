@@ -2253,15 +2253,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         coursesWithCompletions.push(...filteredCourses);
       }
       
-      // Sort courses according to custom order
-      const sortedCourses = [...coursesWithCompletions].sort((a, b) => {
-        if (!a || !b) return 0;
-        const indexA = getCourseOrderIndex(a.title);
-        const indexB = getCourseOrderIndex(b.title);
-        return indexA - indexB;
-      });
+      // Use Google Sheet's natural order (no custom sorting)
+      // Courses will appear in the exact order they appear in the spreadsheet
+      const sortedCourses = [...coursesWithCompletions];
       
-      console.log(`[COURSE TRACKING] Sorted ${sortedCourses.length} courses by custom order`);
+      console.log(`[COURSE TRACKING] Using Google Sheet's natural order for ${sortedCourses.length} courses`);
       console.log(`[COURSE TRACKING] First 5 courses: ${sortedCourses.slice(0, 5).map(c => c?.title).filter(Boolean).join(', ')}`);
       
       // Filter out courses with 0 lessons

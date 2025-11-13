@@ -527,7 +527,7 @@ export default function LifeSkillsMap() {
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                className="h-6 w-6 p-0"
+                                className="h-6 w-6 p-0 text-primary/80 hover:text-primary hover:bg-primary/10"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleAddToAssignment('general', course.id, course.title, lesson.id, lesson.title, lesson.url);
@@ -607,7 +607,7 @@ export default function LifeSkillsMap() {
                                         <Button
                                           size="sm"
                                           variant="ghost"
-                                          className="h-6 w-6 p-0"
+                                          className="h-6 w-6 p-0 text-primary/80 hover:text-primary hover:bg-primary/10"
                                           onClick={(e) => {
                                             e.stopPropagation();
                                             handleAddToAssignment('general', course.id, `${course.title} - ${subcat.title}`, lesson.id, lesson.title, lesson.url);
