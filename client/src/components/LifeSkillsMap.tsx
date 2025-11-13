@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronRight, Map, Plus } from "lucide-react";
+import { ChevronRight, Map, Plus, ExternalLink } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -361,6 +361,30 @@ export default function LifeSkillsMap() {
           <p className="text-sm text-gray-400 mb-3" data-testid="text-course-tracker-subtitle">
             Manage your learning journey and skill development
           </p>
+          
+          {/* External Navigation Links */}
+          <div className="flex flex-wrap gap-3 mb-4">
+            <a
+              href="https://coaching.miteshkhatri.com/products/mitesh-ai"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-sm text-blue-400 hover:text-blue-300 hover:underline transition-colors"
+              data-testid="link-miteshai"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              Click here for MiteshAI
+            </a>
+            <a
+              href="https://coaching.miteshkhatri.com/products/communities/v2/imk/home"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-sm text-blue-400 hover:text-blue-300 hover:underline transition-colors"
+              data-testid="link-imk-platinum"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              Click here to visit IMK - Platinum community
+            </a>
+          </div>
           
           {/* Overall Progress Bar */}
           <div className="space-y-2" data-testid="container-overall-progress">
