@@ -378,31 +378,28 @@ export default function LifeSkillsMap() {
           <Button
             variant="default"
             size="sm"
-            className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white flex items-center gap-1"
+            className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white"
             data-testid="button-miteshai"
             onClick={() => window.open('https://coaching.miteshkhatri.com/products/mitesh-ai', '_blank')}
           >
-            <ExternalLink className="h-4 w-4" />
             MiteshAI
           </Button>
           <Button
             variant="default"
             size="sm"
-            className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white flex items-center gap-1"
+            className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white"
             data-testid="button-imk-platinum"
             onClick={() => window.open('https://coaching.miteshkhatri.com/products/communities/v2/imk/home', '_blank')}
           >
-            <ExternalLink className="h-4 w-4" />
             IMK - Platinum Community
           </Button>
           <Button
             variant="default"
             size="sm"
-            className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white flex items-center gap-1"
+            className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white"
             data-testid="button-skill-map"
             onClick={() => window.open('https://docs.google.com/spreadsheets/d/13UN1Az5GyUPxj7tKSc26rjvPtNINMkS_C_VoYcuzDHg/edit?usp=sharing', '_blank')}
           >
-            <Map className="h-4 w-4" />
             Skill Map
           </Button>
         </div>
