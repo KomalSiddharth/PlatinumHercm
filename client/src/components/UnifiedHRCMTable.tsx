@@ -2970,20 +2970,19 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       {/* Current Week Table */}
       <div className="border-2 border-coral-red/70 dark:border-coral-red/50 rounded-lg overflow-x-auto shadow-lg">
         <div className="px-2 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-b-2 border-coral-red/80 dark:border-coral-red/60 bg-coral-red">
-          <div className="flex items-center justify-between">
-            {/* Left: Calendar Only */}
+          <div className="flex items-center justify-center relative">
+            {/* Centered: Clickable Date with Calendar Popup */}
             <Popover open={calendarPopoverOpen} onOpenChange={setCalendarPopoverOpen}>
               <PopoverTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-white hover:bg-white/20 h-7 w-7 sm:h-8 sm:w-8 p-0"
-                  data-testid="button-calendar-picker"
+                <h3 
+                  className="font-bold text-white text-sm sm:text-base md:text-lg lg:text-xl drop-shadow-md flex items-center gap-1 sm:gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+                  data-testid="button-date-text"
                 >
-                  <CalendarIcon className="w-4 h-4 sm:w-5 sm:h-5" />
-                </Button>
+                  <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
+                  {format(selectedDate, 'MMMM dd, yyyy')}
+                </h3>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+              <PopoverContent className="w-auto p-0" align="center">
                 <Calendar
                   mode="single"
                   selected={selectedDate}
@@ -3012,19 +3011,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </div>
               </PopoverContent>
             </Popover>
-
-            {/* Center: Heading - Shows current date (CLICKABLE) */}
-            <h3 
-              className="font-bold text-white text-sm sm:text-base md:text-lg lg:text-xl drop-shadow-md flex items-center gap-1 sm:gap-2 cursor-pointer hover:opacity-80 transition-opacity"
-              onClick={() => setCalendarPopoverOpen(true)}
-              data-testid="button-date-text"
-            >
-              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
-              {format(selectedDate, 'MMMM dd, yyyy')}
-            </h3>
-
-            {/* Right: Spacer for balance */}
-            <div className="w-7 sm:w-8 md:w-10"></div>
           </div>
         </div>
         <Table>
