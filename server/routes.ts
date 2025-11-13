@@ -3537,6 +3537,13 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         // Don't fail the whole request if assignment creation fails
       }
       
+      // Send real-time notification to user
+      console.log('[WebSocket] Sending course recommendation notification to user:', userId);
+      notifyUser(userId, 'course_recommended', {
+        recommendation,
+        message: `New course recommended: ${courseName}`,
+      });
+      
       res.json(recommendation);
     } catch (error) {
       console.error("Error adding course recommendation:", error);
