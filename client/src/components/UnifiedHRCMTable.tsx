@@ -1130,12 +1130,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   ]);
   // Dependencies: Only trigger when Current Week fields change
   // 🔥 UPDATED: Removed viewingHistory from dependencies - auto-sync works on all dates
-
-  // Reset manual mode when date changes (allow auto-sync again on new day)
-  useEffect(() => {
-    setManualNextWeekMode(false);
-    console.log('[AUTO-SYNC] 🔄 Date changed - re-enabling auto-sync');
-  }, [currentDateStr]);
+  // 🔥 REMOVED date change reset useEffect - Smart detection handles manualNextWeekMode correctly
 
   // Calculate weekly average progress across Friday-Thursday (7 days)
   useEffect(() => {
