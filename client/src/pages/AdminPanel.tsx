@@ -353,7 +353,7 @@ export default function AdminPanel() {
 
   const deleteEmailMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest('DELETE', `/api/admin/approved-emails/${id}`);
+      return apiRequest(`/api/admin/approved-emails/${id}`, 'DELETE');
     },
     // Optimistic update - instantly remove from UI
     onMutate: async (id: string) => {
@@ -468,7 +468,7 @@ export default function AdminPanel() {
 
   const updateAdminMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: { name: string; email: string; status?: string } }) => {
-      return apiRequest('PUT', `/api/admin/team/${id}`, data);
+      return apiRequest(`/api/admin/team/${id}`, 'PUT', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/team'] });
@@ -486,7 +486,7 @@ export default function AdminPanel() {
 
   const deleteAdminMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest('DELETE', `/api/admin/team/${id}`);
+      return apiRequest(`/api/admin/team/${id}`, 'DELETE');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/team'] });
@@ -538,7 +538,7 @@ export default function AdminPanel() {
 
   const deleteRecommendationMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest('DELETE', `/api/admin/recommendations/${id}`);
+      return apiRequest(`/api/admin/recommendations/${id}`, 'DELETE');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/recommendations'] });
@@ -593,7 +593,7 @@ export default function AdminPanel() {
 
   const updatePlatinumStandardMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: { standardText?: string; isActive?: boolean; orderIndex?: number } }) => {
-      return apiRequest('PUT', `/api/admin/platinum-standards/${id}`, data);
+      return apiRequest(`/api/admin/platinum-standards/${id}`, 'PUT', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/platinum-standards'] });
@@ -627,7 +627,7 @@ export default function AdminPanel() {
   // User Feedback mutations
   const updateFeedbackMutation = useMutation({
     mutationFn: async ({ id, status, adminResponse }: { id: string; status: string; adminResponse?: string }) => {
-      return apiRequest('PATCH', `/api/admin/feedback/${id}`, { status, adminResponse });
+      return apiRequest(`/api/admin/feedback/${id}`, 'PATCH', { status, adminResponse });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/feedback'] });
@@ -644,7 +644,7 @@ export default function AdminPanel() {
 
   const deleteFeedbackMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest('DELETE', `/api/admin/feedback/${id}`);
+      return apiRequest(`/api/admin/feedback/${id}`, 'DELETE');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/feedback'] });
