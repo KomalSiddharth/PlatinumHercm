@@ -3994,11 +3994,13 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               
               return (
                 <>
-                  <div className="flex items-center gap-3 px-3 pb-2">
+                  <div className="flex items-center gap-3 px-3 pb-2 border-b">
                     <div className="w-16 shrink-0 text-center">
-                      <span className="text-xs font-semibold text-muted-foreground">Days</span>
+                      <span className="text-xs font-semibold text-muted-foreground">Times</span>
                     </div>
-                    <div className="flex-1"></div>
+                    <div className="flex-1">
+                      <span className="text-xs font-medium text-muted-foreground">How many times this week did you follow?</span>
+                    </div>
                   </div>
                   {categoryStandards.map((standard: any) => (
                     <div key={standard.id} className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-muted/30 transition-colors">
