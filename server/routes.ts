@@ -4132,10 +4132,52 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
 
       console.log(`✅ Saved platinum standard rating: user=${user.id}, standard=${standardId}, date=${dateString}, rating=${rating}`);
       
+      // Get the category of the standard to calculate unlock status
+      const standard = await storage.getPlatinumStandardById(standardId);
+      if (standard) {
+        console.log(`[UNLOCK] Triggering unlock calculation for ${standard.category}`);
+        const unlockStatus = await storage.calculateUnlockStatus(user.id, standard.category, dateString);
+        console.log(`[UNLOCK] Unlock status updated:`, unlockStatus);
+      }
+      
       res.json(savedRating);
     } catch (error) {
       console.error("Error saving platinum standard rating:", error);
       res.status(500).json({ message: "Failed to save rating" });
+    }
+  });
+
+  // HRCM Unlock Progress - Get unlock status for a specific area
+  app.get('/api/hrcm-unlock-status/:area', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      let user = await storage.getUser(userId);
+      if (!user && typeof userId === 'string' && userId.includes('@')) {
+        user = await storage.getUserByEmail(userId);
+      }
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const { area } = req.params;
+      const unlockProgress = await storage.getHrcmUnlockProgress(user.id, area);
+      
+      // If no progress exists, return default locked state
+      const response = unlockProgress || {
+        consecutivePerfectDays: 0,
+        isUnlocked: false,
+        lastPerfectDate: null,
+      };
+      
+      res.json(response);
+    } catch (error) {
+      console.error("Error fetching unlock status:", error);
+      res.status(500).json({ message: "Failed to fetch unlock status" });
     }
   });
 
