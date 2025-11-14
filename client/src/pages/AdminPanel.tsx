@@ -63,6 +63,24 @@ import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, L
 import UserDetailView from '@/components/UserDetailView';
 import UserActivitySearch from '@/components/UserActivitySearch';
 import AdminUserDashboardViewer from '@/components/AdminUserDashboardViewer';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { GripVertical } from 'lucide-react';
 
 interface StandardItemProps {
   standard: any;
@@ -73,9 +91,6 @@ interface StandardItemProps {
   setSelectedStandardIds: (ids: Set<string>) => void;
   setEditingStandard: (standard: any) => void;
   deletePlatinumStandardMutation: any;
-  moveUpMutation: any;
-  moveDownMutation: any;
-  totalInCategory: number;
 }
 
 function StandardItem({
@@ -87,45 +102,42 @@ function StandardItem({
   setSelectedStandardIds,
   setEditingStandard,
   deletePlatinumStandardMutation,
-  moveUpMutation,
-  moveDownMutation,
-  totalInCategory,
 }: StandardItemProps) {
-  const isFirst = index === 0;
-  const isLast = index === totalInCategory - 1;
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: standard.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
 
   return (
     <div
+      ref={setNodeRef}
+      style={style}
       className={`flex items-center gap-3 p-4 rounded-lg group border-l-4 ${
         category === 'health' ? 'border-l-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20 hover:bg-emerald-100/50 dark:hover:bg-emerald-950/30' :
         category === 'relationship' ? 'border-l-pink-500 bg-pink-50/50 dark:bg-pink-950/20 hover:bg-pink-100/50 dark:hover:bg-pink-950/30' :
         category === 'career' ? 'border-l-amber-500 bg-amber-50/50 dark:bg-amber-950/20 hover:bg-amber-100/50 dark:hover:bg-amber-950/30' :
         'border-l-purple-500 bg-purple-50/50 dark:bg-purple-950/20 hover:bg-purple-100/50 dark:hover:bg-purple-950/30'
-      } shadow-sm transition-colors`}
+      } shadow-sm transition-colors ${isDragging ? 'z-50 shadow-2xl ring-2 ring-primary' : ''}`}
       data-testid={`standard-${category}-${index}`}
     >
-      {/* Up/Down Arrows */}
-      <div className="flex flex-col gap-1">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => moveUpMutation.mutate(standard.id)}
-          disabled={isFirst || moveUpMutation.isPending}
-          className="h-6 w-6 hover:bg-blue-50 dark:hover:bg-blue-950 disabled:opacity-20"
-          data-testid={`button-move-up-${standard.id}`}
-        >
-          <ChevronUp className="w-4 h-4 text-blue-600" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => moveDownMutation.mutate(standard.id)}
-          disabled={isLast || moveDownMutation.isPending}
-          className="h-6 w-6 hover:bg-blue-50 dark:hover:bg-blue-950 disabled:opacity-20"
-          data-testid={`button-move-down-${standard.id}`}
-        >
-          <ChevronDown className="w-4 h-4 text-blue-600" />
-        </Button>
+      {/* Drag Handle */}
+      <div 
+        {...attributes}
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing hover:bg-primary/10 rounded p-1 transition-colors"
+        data-testid={`drag-handle-${standard.id}`}
+      >
+        <GripVertical className="w-5 h-5 text-muted-foreground hover:text-primary transition-colors" />
       </div>
 
       <Checkbox
@@ -823,6 +835,43 @@ export default function AdminPanel() {
       toast({ title: "Error", description: error.message || "Failed to delete standards", variant: "destructive" });
     }
   });
+
+  const reorderPlatinumStandardsMutation = useMutation({
+    mutationFn: async ({ category, orderedIds }: { category: string; orderedIds: string[] }) => {
+      return apiRequest('/api/admin/platinum-standards/reorder', 'POST', { category, orderedIds });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/platinum-standards'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/platinum-standards'] });
+      toast({ title: "Success", description: "Standards reordered successfully" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message || "Failed to reorder standards", variant: "destructive" });
+    }
+  });
+
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Handle drag end
+  const handleDragEnd = (event: DragEndEvent, category: string, categoryStandards: any[]) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = categoryStandards.findIndex((s: any) => s.id === active.id);
+    const newIndex = categoryStandards.findIndex((s: any) => s.id === over.id);
+
+    const reordered = arrayMove(categoryStandards, oldIndex, newIndex);
+    const orderedIds = reordered.map((s: any) => s.id);
+
+    reorderPlatinumStandardsMutation.mutate({ category, orderedIds });
+  };
 
   // User Feedback mutations
   const updateFeedbackMutation = useMutation({
@@ -3151,24 +3200,32 @@ export default function AdminPanel() {
                               <p className="text-xs text-muted-foreground mt-1">Add your first platinum standard above</p>
                             </div>
                           ) : (
-                            <div className="space-y-3">
-                              {categoryStandards.map((standard: any, index: number) => (
-                                <StandardItem
-                                  key={standard.id}
-                                  standard={standard}
-                                  index={index}
-                                  category={category}
-                                  categoryConfig={categoryConfig}
-                                  selectedStandardIds={selectedStandardIds}
-                                  setSelectedStandardIds={setSelectedStandardIds}
-                                  setEditingStandard={setEditingStandard}
-                                  deletePlatinumStandardMutation={deletePlatinumStandardMutation}
-                                  moveUpMutation={moveUpMutation}
-                                  moveDownMutation={moveDownMutation}
-                                  totalInCategory={categoryStandards.length}
-                                />
-                              ))}
-                            </div>
+                            <DndContext
+                              sensors={sensors}
+                              collisionDetection={closestCenter}
+                              onDragEnd={(event) => handleDragEnd(event, category, categoryStandards)}
+                            >
+                              <SortableContext
+                                items={categoryStandards.map((s: any) => s.id)}
+                                strategy={verticalListSortingStrategy}
+                              >
+                                <div className="space-y-3">
+                                  {categoryStandards.map((standard: any, index: number) => (
+                                    <StandardItem
+                                      key={standard.id}
+                                      standard={standard}
+                                      index={index}
+                                      category={category}
+                                      categoryConfig={categoryConfig}
+                                      selectedStandardIds={selectedStandardIds}
+                                      setSelectedStandardIds={setSelectedStandardIds}
+                                      setEditingStandard={setEditingStandard}
+                                      deletePlatinumStandardMutation={deletePlatinumStandardMutation}
+                                    />
+                                  ))}
+                                </div>
+                              </SortableContext>
+                            </DndContext>
                           )}
                         </CardContent>
                       </Card>

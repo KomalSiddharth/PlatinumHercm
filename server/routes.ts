@@ -4021,7 +4021,35 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
-  // Reorder platinum standards (admin only)
+  // Reorder platinum standards via drag and drop (admin only)
+  app.post('/api/admin/platinum-standards/reorder', isAdmin, async (req: any, res) => {
+    try {
+      const { category, orderedIds } = req.body;
+      
+      if (!category || !orderedIds) {
+        return res.status(400).json({ message: "Category and orderedIds are required" });
+      }
+      
+      if (!Array.isArray(orderedIds)) {
+        return res.status(400).json({ message: "orderedIds must be an array" });
+      }
+
+      // Convert orderedIds to updates with new orderIndex
+      const updates = orderedIds.map((id, index) => ({
+        id,
+        orderIndex: index + 1
+      }));
+      
+      await storage.reorderPlatinumStandards(updates);
+      
+      res.json({ message: "Platinum standards reordered successfully" });
+    } catch (error) {
+      console.error("Error reordering platinum standards:", error);
+      res.status(500).json({ message: "Failed to reorder platinum standards" });
+    }
+  });
+
+  // Reorder platinum standards (legacy endpoint - admin only)
   app.put('/api/admin/platinum-standards/reorder', isAdmin, async (req: any, res) => {
     try {
       console.error('[REORDER] ========== REORDER ENDPOINT HIT ==========');
