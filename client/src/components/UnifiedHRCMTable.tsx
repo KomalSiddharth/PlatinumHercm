@@ -3320,11 +3320,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                 setCustomAssignmentText('');
                                 setShowCustomAssignmentDialog(true);
                               }}
-                              className="w-full h-7 text-xs border-dashed border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30"
+                              className="w-full h-8 text-[10px] sm:text-xs px-2 border-dashed border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30 flex items-center justify-center gap-1"
                               data-testid="button-add-custom-assignment-column"
                             >
-                              <Plus className="w-3 h-3 mr-1" />
-                              Add Custom Goal
+                              <Plus className="w-3 h-3" />
+                              <span>Add Custom</span>
                             </Button>
                           )}
                           
