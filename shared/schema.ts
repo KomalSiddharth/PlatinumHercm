@@ -496,6 +496,26 @@ export const insertPlatinumStandardSchema = createInsertSchema(platinumStandards
 export type InsertPlatinumStandard = z.infer<typeof insertPlatinumStandardSchema>;
 export type PlatinumStandard = typeof platinumStandards.$inferSelect;
 
+// User Platinum Standard Ratings - Store date-specific ratings (0-10) for each platinum standard
+export const userPlatinumStandardRatings = pgTable("user_platinum_standard_ratings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  standardId: varchar("standard_id").notNull().references(() => platinumStandards.id),
+  dateString: varchar("date_string").notNull(), // Format: YYYY-MM-DD (LOCAL timezone)
+  rating: integer("rating").notNull(), // 0-10 scale
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertUserPlatinumStandardRatingSchema = createInsertSchema(userPlatinumStandardRatings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertUserPlatinumStandardRating = z.infer<typeof insertUserPlatinumStandardRatingSchema>;
+export type UserPlatinumStandardRating = typeof userPlatinumStandardRatings.$inferSelect;
+
 // Emotional Habit Tracker - Track emotions throughout the day in 2-hour time slots
 export const emotionalTrackers = pgTable("emotional_trackers", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
