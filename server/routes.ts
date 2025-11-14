@@ -3850,21 +3850,29 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   // Reorder platinum standards (admin only)
   app.put('/api/admin/platinum-standards/reorder', isAdmin, async (req: any, res) => {
     try {
-      console.log('[ROUTE DEBUG] Reorder endpoint called');
+      console.error('[REORDER] ========== REORDER ENDPOINT HIT ==========');
       const { updates } = req.body; // Array of { id, orderIndex }
-      console.log('[ROUTE DEBUG] Received body:', JSON.stringify(req.body, null, 2));
+      console.error('[REORDER] Request body:', JSON.stringify(req.body, null, 2));
+      
+      if (!updates) {
+        console.error('[REORDER] ERROR: No updates field in body');
+        return res.status(400).json({ message: "Updates field is required" });
+      }
       
       if (!Array.isArray(updates)) {
-        console.log('[ROUTE DEBUG] Updates is not an array');
+        console.error('[REORDER] ERROR: Updates is not an array, type:', typeof updates);
         return res.status(400).json({ message: "Updates must be an array" });
       }
 
-      console.log('[ROUTE DEBUG] Calling storage.reorderPlatinumStandards with updates:', updates);
+      console.error('[REORDER] Calling storage with', updates.length, 'updates');
+      console.error('[REORDER] First update:', updates[0]);
+      
       await storage.reorderPlatinumStandards(updates);
-      console.log('[ROUTE DEBUG] Reorder completed successfully');
+      
+      console.error('[REORDER] ✅ Storage method completed successfully');
       res.json({ message: "Platinum standards reordered successfully" });
     } catch (error) {
-      console.error("[ROUTE ERROR] Error reordering platinum standards:", error);
+      console.error("[REORDER] ❌ FATAL ERROR:", error);
       res.status(500).json({ message: "Failed to reorder platinum standards" });
     }
   });
