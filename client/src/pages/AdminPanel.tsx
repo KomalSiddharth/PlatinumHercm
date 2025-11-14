@@ -848,12 +848,12 @@ export default function AdminPanel() {
 
   // User Feedback mutations
   const updateFeedbackMutation = useMutation({
-    mutationFn: async ({ id, status, adminResponse }: { id: string; status: string; adminResponse?: string }) => {
-      return apiRequest(`/api/admin/feedback/${id}`, 'PATCH', { status, adminResponse });
+    mutationFn: async ({ id, status, adminResponse, priority }: { id: string; status: string; adminResponse?: string; priority?: string }) => {
+      return apiRequest(`/api/admin/feedback/${id}`, 'PATCH', { status, adminResponse, priority });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/feedback'] });
-      toast({ title: "Feedback Updated", description: "Feedback status has been updated successfully" });
+      toast({ title: "Feedback Updated", description: "Feedback has been updated successfully" });
     },
     onError: (error: any) => {
       toast({ 
@@ -2051,10 +2051,9 @@ export default function AdminPanel() {
                           <td className="px-6 py-4">
                             <select
                               value={feedback.priority}
-                              onChange={(e) => updateFeedbackMutation.mutate({ id: feedback.id, status: feedback.status, adminResponse: feedback.adminResponse })}
+                              onChange={(e) => updateFeedbackMutation.mutate({ id: feedback.id, status: feedback.status, adminResponse: feedback.adminResponse, priority: e.target.value })}
                               className="text-sm border rounded px-2 py-1 bg-background"
                               data-testid={`select-priority-${feedback.id}`}
-                              disabled
                             >
                               <option value="low">Low</option>
                               <option value="medium">Medium</option>

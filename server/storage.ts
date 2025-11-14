@@ -211,7 +211,7 @@ export interface IStorage {
   getAllFeedback(): Promise<UserFeedback[]>;
   getUserFeedback(userId: string): Promise<UserFeedback[]>;
   createFeedback(feedback: InsertUserFeedback): Promise<UserFeedback>;
-  updateFeedbackStatus(id: string, status: string, adminResponse?: string): Promise<UserFeedback>;
+  updateFeedbackStatus(id: string, status: string, adminResponse?: string, priority?: string): Promise<UserFeedback>;
   deleteFeedback(id: string): Promise<void>;
   clearAllFeedback(): Promise<void>;
   
@@ -1679,7 +1679,7 @@ export class DatabaseStorage implements IStorage {
     return newFeedback;
   }
 
-  async updateFeedbackStatus(id: string, status: string, adminResponse?: string): Promise<UserFeedback> {
+  async updateFeedbackStatus(id: string, status: string, adminResponse?: string, priority?: string): Promise<UserFeedback> {
     const updateData: any = { 
       status, 
       updatedAt: new Date() 
@@ -1687,6 +1687,10 @@ export class DatabaseStorage implements IStorage {
     
     if (adminResponse !== undefined) {
       updateData.adminResponse = adminResponse;
+    }
+    
+    if (priority !== undefined) {
+      updateData.priority = priority;
     }
     
     if (status === 'resolved') {

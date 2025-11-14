@@ -6215,9 +6215,9 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
   app.patch('/api/admin/feedback/:id', isAdmin, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const { status, adminResponse } = req.body;
+      const { status, adminResponse, priority } = req.body;
 
-      const updated = await storage.updateFeedbackStatus(id, status, adminResponse);
+      const updated = await storage.updateFeedbackStatus(id, status, adminResponse, priority);
       res.json(updated);
     } catch (error) {
       console.error("Error updating feedback status:", error);
