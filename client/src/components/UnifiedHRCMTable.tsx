@@ -777,11 +777,38 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           }
         ];
         
-        setBeliefs(convertedBeliefs);
+        // SMART MERGE: Combine saved checklist with fresh platinum standards for historical dates too
+        // This ensures platinum standards persist across dates and new standards are added automatically
+        const mergedBeliefs = convertedBeliefs.map(belief => {
+          // Get fresh platinum standards from database
+          const freshStandards = getPlatinumStandardsForCategory(belief.category);
+          
+          if (belief.checklist && Array.isArray(belief.checklist) && belief.checklist.length > 0) {
+            // SMART MERGE: preserve checked states for existing items, add new items
+            const existingChecklist = belief.checklist;
+            const mergedChecklist = freshStandards.map(freshItem => {
+              const existing = existingChecklist.find(e => e.id === freshItem.id);
+              return existing ? { ...freshItem, checked: existing.checked } : freshItem;
+            });
+            
+            return {
+              ...belief,
+              checklist: mergedChecklist
+            };
+          } else {
+            // No saved checklist - use fresh standards
+            return {
+              ...belief,
+              checklist: freshStandards
+            };
+          }
+        });
+        
+        setBeliefs(mergedBeliefs);
         
         // Extract and combine assignments from all categories into unified list
         const combinedAssignments: AssignmentLesson[] = [];
-        convertedBeliefs.forEach(belief => {
+        mergedBeliefs.forEach(belief => {
           if (belief.assignment && belief.assignment.lessons) {
             belief.assignment.lessons.forEach((lesson: any) => {
               combinedAssignments.push({
