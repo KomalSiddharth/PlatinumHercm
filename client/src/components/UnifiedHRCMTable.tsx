@@ -545,7 +545,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     queryKey: ['/api/rating-progression/status'],
   });
 
-  // Fetch HRCM unlock status for Health area (7-day perfect streak system)
+  // Fetch HRCM unlock status for all areas (7-day perfect streak system)
   const { data: healthUnlockStatus } = useQuery<{
     consecutivePerfectDays: number;
     isUnlocked: boolean;
@@ -553,6 +553,33 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   }>({
     queryKey: ['/api/hrcm-unlock-status/health'],
     refetchInterval: 5000, // Poll every 5 seconds to catch updates
+  });
+
+  const { data: relationshipUnlockStatus } = useQuery<{
+    consecutivePerfectDays: number;
+    isUnlocked: boolean;
+    lastPerfectDate: string | null;
+  }>({
+    queryKey: ['/api/hrcm-unlock-status/relationship'],
+    refetchInterval: 5000,
+  });
+
+  const { data: careerUnlockStatus } = useQuery<{
+    consecutivePerfectDays: number;
+    isUnlocked: boolean;
+    lastPerfectDate: string | null;
+  }>({
+    queryKey: ['/api/hrcm-unlock-status/career'],
+    refetchInterval: 5000,
+  });
+
+  const { data: moneyUnlockStatus } = useQuery<{
+    consecutivePerfectDays: number;
+    isUnlocked: boolean;
+    lastPerfectDate: string | null;
+  }>({
+    queryKey: ['/api/hrcm-unlock-status/money'],
+    refetchInterval: 5000,
   });
 
   // Fetch dynamic platinum standards from database with real-time updates
@@ -3006,13 +3033,18 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         const newRating = parseInt(e.target.value) || 0;
                         const categoryLower = belief.category.toLowerCase();
                         
-                        // Health area: Use unlock status for rating 7
+                        // All HRCM areas: Use unlock status for rating 7
                         let maxRating: number;
                         if (categoryLower === 'health') {
-                          // Unlock status: Max 6 until 7 consecutive perfect days
                           maxRating = healthUnlockStatus?.isUnlocked ? 7 : 6;
+                        } else if (categoryLower === 'relationship') {
+                          maxRating = relationshipUnlockStatus?.isUnlocked ? 7 : 6;
+                        } else if (categoryLower === 'career') {
+                          maxRating = careerUnlockStatus?.isUnlocked ? 7 : 6;
+                        } else if (categoryLower === 'money') {
+                          maxRating = moneyUnlockStatus?.isUnlocked ? 7 : 6;
                         } else {
-                          // Other areas: Use existing rating caps
+                          // Fallback to existing rating caps
                           maxRating = ratingCaps?.[categoryLower as keyof typeof ratingCaps] || 7;
                         }
                         
@@ -3030,10 +3062,22 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     {(() => {
                       const categoryLower = belief.category.toLowerCase();
                       
-                      // Health area: Show unlock progress
-                      if (categoryLower === 'health' && healthUnlockStatus) {
-                        const streak = healthUnlockStatus.consecutivePerfectDays || 0;
-                        const isUnlocked = healthUnlockStatus.isUnlocked;
+                      // Get unlock status based on category
+                      let unlockStatus;
+                      if (categoryLower === 'health') {
+                        unlockStatus = healthUnlockStatus;
+                      } else if (categoryLower === 'relationship') {
+                        unlockStatus = relationshipUnlockStatus;
+                      } else if (categoryLower === 'career') {
+                        unlockStatus = careerUnlockStatus;
+                      } else if (categoryLower === 'money') {
+                        unlockStatus = moneyUnlockStatus;
+                      }
+                      
+                      // Show unlock progress for all HRCM areas
+                      if (unlockStatus) {
+                        const streak = unlockStatus.consecutivePerfectDays || 0;
+                        const isUnlocked = unlockStatus.isUnlocked;
                         
                         if (isUnlocked) {
                           return (
@@ -3056,18 +3100,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         }
                       }
                       
-                      // Other areas: Show existing progression badge
-                      if (ratingProgression) {
-                        const weeksAtMax = ratingProgression[`${categoryLower}WeeksAtMax` as keyof typeof ratingProgression] || 0;
-                        const maxRating = ratingCaps?.[categoryLower as keyof typeof ratingCaps] || 7;
-                        if (belief.currentRating === maxRating && weeksAtMax > 0) {
-                          return (
-                            <Badge variant="secondary" className="text-[10px] px-1 py-0 h-5 justify-center">
-                              {weeksAtMax}/4 weeks {maxRating < 8 ? '→ unlock 8' : ''}
-                            </Badge>
-                          );
-                        }
-                      }
                       return null;
                     })()}
                   </div>
