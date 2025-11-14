@@ -2903,7 +2903,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         <Table>
           <TableHeader>
             <TableRow className="bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-950/30 dark:to-pink-950/30">
-              <TableHead className="text-xs sm:text-sm font-bold border-r min-w-[80px] sm:min-w-[100px] px-1.5 sm:px-2 py-1.5 sm:py-2">HRCM Area</TableHead>
+              <TableHead className="text-xs sm:text-sm font-bold border-r min-w-[80px] sm:min-w-[100px] px-1.5 sm:px-2 py-1.5 sm:py-2">HRCM Standards</TableHead>
               <TableHead className="text-xs sm:text-sm min-w-[50px] sm:min-w-[60px] bg-rose-100 dark:bg-rose-900/40 font-semibold px-1.5 sm:px-2 py-1.5 sm:py-2">Rating</TableHead>
               <TableHead className="text-xs sm:text-sm min-w-[120px] sm:min-w-[140px] bg-rose-100 dark:bg-rose-900/40 font-semibold px-1.5 sm:px-2 py-1.5 sm:py-2">Problems</TableHead>
               <TableHead className="text-xs sm:text-sm min-w-[120px] sm:min-w-[140px] bg-rose-100 dark:bg-rose-900/40 font-semibold px-1.5 sm:px-2 py-1.5 sm:py-2">Feelings</TableHead>
@@ -3159,7 +3159,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         <Table>
           <TableHeader>
             <TableRow className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30">
-              <TableHead className="font-bold border-r min-w-[100px]">HRCM Area</TableHead>
+              <TableHead className="font-bold border-r min-w-[100px]">HRCM Standards</TableHead>
               <TableHead className="min-w-[60px] bg-blue-100 dark:bg-blue-900/40 font-semibold border border-soft-gray dark:border-soft-gray/30">Rating</TableHead>
               <TableHead className="w-[180px] bg-blue-100 dark:bg-blue-900/40 font-semibold border border-soft-gray dark:border-soft-gray/30">Results</TableHead>
               <TableHead className="w-[180px] bg-blue-100 dark:bg-blue-900/40 font-semibold border border-soft-gray dark:border-soft-gray/30">Feelings</TableHead>
