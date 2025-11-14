@@ -212,6 +212,7 @@ export default function AdminPanel() {
   const [newAdminName, setNewAdminName] = useState('');
   const [newAdminEmail, setNewAdminEmail] = useState('');
   const [editingAdmin, setEditingAdmin] = useState<AdminUser | null>(null);
+  const [selectedAdminIds, setSelectedAdminIds] = useState<string[]>([]);
   
   // Analytics states
   const [selectedUserForDetail, setSelectedUserForDetail] = useState<string | null>(null);
@@ -577,6 +578,28 @@ export default function AdminPanel() {
     }
   });
 
+  const bulkDeleteEmailsMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      return apiRequest('/api/admin/approved-emails/bulk-delete', 'POST', { ids });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/approved-emails'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
+      setSelectedEmails([]);
+      toast({ 
+        title: "Selected Emails Deleted", 
+        description: `Successfully deleted ${selectedEmails.length} approved emails` 
+      });
+    },
+    onError: () => {
+      toast({ 
+        title: "Error", 
+        description: "Failed to delete selected emails", 
+        variant: "destructive" 
+      });
+    }
+  });
+
   // Team Management mutations
   const addAdminMutation = useMutation({
     mutationFn: async (data: { name: string; email: string }) => {
@@ -623,6 +646,27 @@ export default function AdminPanel() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/team'] });
       toast({ title: "Admin Deleted", description: "Admin user has been removed" });
+    }
+  });
+
+  const bulkDeleteAdminsMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      return apiRequest('/api/admin/team/bulk-delete', 'POST', { ids });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/team'] });
+      setSelectedAdminIds([]);
+      toast({ 
+        title: "Selected Admins Deleted", 
+        description: `Successfully deleted ${selectedAdminIds.length} admin users` 
+      });
+    },
+    onError: () => {
+      toast({ 
+        title: "Error", 
+        description: "Failed to delete selected admins", 
+        variant: "destructive" 
+      });
     }
   });
 
@@ -1369,6 +1413,21 @@ export default function AdminPanel() {
                     <Download className="w-4 h-4 mr-2" />
                     Export
                   </Button>
+                  {selectedEmails.length > 0 && (
+                    <Button 
+                      variant="destructive" 
+                      onClick={() => {
+                        if (window.confirm(`Are you sure you want to delete ${selectedEmails.length} selected emails?`)) {
+                          bulkDeleteEmailsMutation.mutate(selectedEmails);
+                        }
+                      }}
+                      disabled={bulkDeleteEmailsMutation.isPending}
+                      data-testid="button-delete-selected"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete Selected ({selectedEmails.length})
+                    </Button>
+                  )}
                   <Button 
                     variant="destructive" 
                     onClick={() => deleteAllMutation.mutate()}
@@ -1599,14 +1658,31 @@ export default function AdminPanel() {
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Admin Users</h3>
-                  <Button 
-                    onClick={() => setShowAddAdminDialog(true)}
-                    className="bg-blue-600 hover:bg-blue-700"
-                    data-testid="button-add-admin"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Admin
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    {selectedAdminIds.length > 0 && (
+                      <Button 
+                        variant="destructive"
+                        onClick={() => {
+                          if (window.confirm(`Are you sure you want to delete ${selectedAdminIds.length} selected admin users?`)) {
+                            bulkDeleteAdminsMutation.mutate(selectedAdminIds);
+                          }
+                        }}
+                        disabled={bulkDeleteAdminsMutation.isPending}
+                        data-testid="button-delete-selected-admins"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete Selected ({selectedAdminIds.length})
+                      </Button>
+                    )}
+                    <Button 
+                      onClick={() => setShowAddAdminDialog(true)}
+                      className="bg-blue-600 hover:bg-blue-700"
+                      data-testid="button-add-admin"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Admin
+                    </Button>
+                  </div>
                 </div>
               </div>
 
@@ -1615,6 +1691,19 @@ export default function AdminPanel() {
                 <table className="w-full">
                   <thead className="bg-gray-50 dark:bg-gray-900/50">
                     <tr>
+                      <th className="px-6 py-3 text-left">
+                        <Checkbox
+                          checked={selectedAdminIds.length === paginatedAdmins.length && paginatedAdmins.length > 0}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedAdminIds(paginatedAdmins.map((a: AdminUser) => a.id));
+                            } else {
+                              setSelectedAdminIds([]);
+                            }
+                          }}
+                          data-testid="checkbox-select-all-admins"
+                        />
+                      </th>
                       <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">NAME</th>
                       <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">EMAIL</th>
                       <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">ROLE</th>
@@ -1625,15 +1714,28 @@ export default function AdminPanel() {
                   <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                     {isLoadingAdmins ? (
                       <tr>
-                        <td colSpan={5} className="px-6 py-8 text-center text-gray-500">Loading...</td>
+                        <td colSpan={6} className="px-6 py-8 text-center text-gray-500">Loading...</td>
                       </tr>
                     ) : adminUsers.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="px-6 py-8 text-center text-gray-500">No admin users found</td>
+                        <td colSpan={6} className="px-6 py-8 text-center text-gray-500">No admin users found</td>
                       </tr>
                     ) : (
                       paginatedAdmins.map((admin: AdminUser) => (
                         <tr key={admin.id} className="hover:bg-gray-50 dark:hover:bg-gray-900/30" data-testid={`row-admin-${admin.id}`}>
+                          <td className="px-6 py-4">
+                            <Checkbox
+                              checked={selectedAdminIds.includes(admin.id)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedAdminIds([...selectedAdminIds, admin.id]);
+                                } else {
+                                  setSelectedAdminIds(selectedAdminIds.filter(id => id !== admin.id));
+                                }
+                              }}
+                              data-testid={`checkbox-admin-${admin.id}`}
+                            />
+                          </td>
                           <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">{admin.name}</td>
                           <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{admin.email}</td>
                           <td className="px-6 py-4">
