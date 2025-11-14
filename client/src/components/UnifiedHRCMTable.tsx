@@ -389,7 +389,22 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/platinum-standard-ratings', currentDateStr] });
+      // Invalidate ALL platinum standard rating queries for current date
+      // This ensures BOTH the dialog ratings AND progress calculation update!
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey[0];
+          return typeof key === 'string' && key === '/api/platinum-standard-ratings';
+        }
+      });
+      
+      // Also invalidate unlock status to update streaks
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey[0];
+          return typeof key === 'string' && key.includes('/api/hrcm-unlock-status');
+        }
+      });
     },
   });
 
