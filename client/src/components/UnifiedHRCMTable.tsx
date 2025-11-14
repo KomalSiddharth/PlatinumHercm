@@ -2915,7 +2915,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             {beliefs.map((belief) => (
               <TableRow key={belief.category} className="border-b h-[85px]" data-testid={`row-${belief.category.toLowerCase()}`}>
                 {/* Category Column */}
-                <TableCell className="text-xs sm:text-sm font-semibold border-r bg-muted/20 align-top px-1.5 sm:px-2 py-1.5 sm:py-2" data-testid={`cell-category-${belief.category.toLowerCase()}`}>
+                <TableCell className="text-xs sm:text-sm font-semibold border-r bg-muted/20 align-top px-1.5 sm:px-2 py-1.5 sm:py-2 text-center" data-testid={`cell-category-${belief.category.toLowerCase()}`}>
                   <Badge 
                     variant="outline" 
                     className="font-semibold text-[10px] sm:text-xs px-1 sm:px-2 cursor-pointer hover:bg-primary/10 transition-colors"
@@ -3140,7 +3140,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             {beliefs.map((belief) => (
               <TableRow key={belief.category} className="border-b h-[85px]" data-testid={`row-next-${belief.category.toLowerCase()}`}>
                 {/* Category Column */}
-                <TableCell className="font-semibold border-r bg-muted/20 align-top max-h-[85px] overflow-hidden">
+                <TableCell className="font-semibold border-r bg-muted/20 align-top max-h-[85px] overflow-hidden text-center">
                   <Badge 
                     variant="outline" 
                     className="font-semibold cursor-pointer hover:bg-primary/10 transition-colors"
