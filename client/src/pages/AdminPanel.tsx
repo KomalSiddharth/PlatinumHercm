@@ -8,6 +8,23 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useWebSocket } from '@/hooks/useWebSocket';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { 
   Users, 
   Upload, 
@@ -31,7 +48,8 @@ import {
   Check,
   ChevronsUpDown,
   Moon,
-  Sun
+  Sun,
+  GripVertical
 } from 'lucide-react';
 import type { ApprovedEmail, AdminUser, AccessLog } from '@shared/schema';
 import {
@@ -61,6 +79,129 @@ import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, L
 import UserDetailView from '@/components/UserDetailView';
 import UserActivitySearch from '@/components/UserActivitySearch';
 import AdminUserDashboardViewer from '@/components/AdminUserDashboardViewer';
+
+interface SortableStandardItemProps {
+  standard: any;
+  index: number;
+  category: string;
+  categoryConfig: any;
+  selectedStandardIds: Set<string>;
+  setSelectedStandardIds: (ids: Set<string>) => void;
+  setEditingStandard: (standard: any) => void;
+  deletePlatinumStandardMutation: any;
+}
+
+function SortableStandardItem({
+  standard,
+  index,
+  category,
+  categoryConfig,
+  selectedStandardIds,
+  setSelectedStandardIds,
+  setEditingStandard,
+  deletePlatinumStandardMutation,
+}: SortableStandardItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: standard.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center gap-3 p-4 rounded-lg group border-l-4 ${
+        category === 'health' ? 'border-l-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20 hover:bg-emerald-100/50 dark:hover:bg-emerald-950/30' :
+        category === 'relationship' ? 'border-l-pink-500 bg-pink-50/50 dark:bg-pink-950/20 hover:bg-pink-100/50 dark:hover:bg-pink-950/30' :
+        category === 'career' ? 'border-l-amber-500 bg-amber-50/50 dark:bg-amber-950/20 hover:bg-amber-100/50 dark:hover:bg-amber-950/30' :
+        'border-l-purple-500 bg-purple-50/50 dark:bg-purple-950/20 hover:bg-purple-100/50 dark:hover:bg-purple-950/30'
+      } shadow-sm transition-colors`}
+      data-testid={`standard-${category}-${index}`}
+    >
+      {/* Drag Handle */}
+      <div
+        {...attributes}
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground transition-colors"
+        data-testid={`drag-handle-${standard.id}`}
+      >
+        <GripVertical className="w-5 h-5" />
+      </div>
+
+      <Checkbox
+        checked={selectedStandardIds.has(standard.id)}
+        onCheckedChange={(checked) => {
+          const newSelected = new Set(selectedStandardIds);
+          if (checked) {
+            newSelected.add(standard.id);
+          } else {
+            newSelected.delete(standard.id);
+          }
+          setSelectedStandardIds(newSelected);
+        }}
+        data-testid={`checkbox-standard-${standard.id}`}
+      />
+      <div className="flex items-center gap-2">
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+          category === 'health' ? 'bg-emerald-200 text-emerald-800 dark:bg-emerald-800 dark:text-emerald-200' :
+          category === 'relationship' ? 'bg-pink-200 text-pink-800 dark:bg-pink-800 dark:text-pink-200' :
+          category === 'career' ? 'bg-amber-200 text-amber-800 dark:bg-amber-800 dark:text-amber-200' :
+          'bg-purple-200 text-purple-800 dark:bg-purple-800 dark:text-purple-200'
+        }`}>
+          {standard.orderIndex}
+        </div>
+      </div>
+      <div className="flex-1">
+        <div className="font-medium text-foreground" data-testid={`standard-text-${standard.id}`}>
+          {standard.standardText}
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <Badge 
+          className={standard.isActive 
+            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200 border-emerald-300 dark:border-emerald-700' 
+            : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600'
+          }
+        >
+          {standard.isActive ? "✓ Active" : "○ Inactive"}
+        </Badge>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setEditingStandard(standard)}
+          className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950"
+          data-testid={`button-edit-standard-${standard.id}`}
+        >
+          <Pencil className="w-4 h-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => {
+            if (window.confirm('Are you sure you want to delete this standard? This will affect all users.')) {
+              deletePlatinumStandardMutation.mutate(standard.id);
+            }
+          }}
+          disabled={deletePlatinumStandardMutation.isPending}
+          className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+          data-testid={`button-delete-standard-${standard.id}`}
+        >
+          <Trash2 className="w-4 h-4" />
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 export default function AdminPanel() {
   const [, setLocation] = useLocation();
@@ -117,6 +258,14 @@ export default function AdminPanel() {
   const [newStandardText, setNewStandardText] = useState('');
   const [editingStandard, setEditingStandard] = useState<any>(null);
   const [selectedStandardIds, setSelectedStandardIds] = useState<Set<string>>(new Set());
+  
+  // DnD Kit sensors for drag and drop
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
   
   // Dark/Light mode state
   const [darkMode, setDarkMode] = useState(() => {
@@ -640,6 +789,50 @@ export default function AdminPanel() {
       toast({ title: "Error", description: error.message || "Failed to delete standards", variant: "destructive" });
     }
   });
+
+  const reorderPlatinumStandardsMutation = useMutation({
+    mutationFn: async (updates: Array<{ id: string; orderIndex: number }>) => {
+      return apiRequest('/api/admin/platinum-standards/reorder', 'PUT', { updates });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/platinum-standards'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/platinum-standards'] });
+      queryClient.refetchQueries({ queryKey: ['/api/platinum-standards'] });
+      toast({ title: "Success", description: "Standards reordered successfully" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message || "Failed to reorder standards", variant: "destructive" });
+    }
+  });
+
+  // Handle drag end for reordering standards
+  const handleDragEnd = (event: DragEndEvent, category: string) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const categoryStandards = (platinumStandards || []).filter((s: any) => s.category === category);
+    const oldIndex = categoryStandards.findIndex((s: any) => s.id === active.id);
+    const newIndex = categoryStandards.findIndex((s: any) => s.id === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) {
+      return;
+    }
+
+    // Reorder the array
+    const reorderedStandards = arrayMove(categoryStandards, oldIndex, newIndex);
+
+    // Create updates with new order indices
+    const updates = reorderedStandards.map((standard: any, index: number) => ({
+      id: standard.id,
+      orderIndex: index + 1, // Start from 1
+    }));
+
+    // Call the mutation to persist the changes
+    reorderPlatinumStandardsMutation.mutate(updates);
+  };
 
   // User Feedback mutations
   const updateFeedbackMutation = useMutation({
@@ -2954,80 +3147,32 @@ export default function AdminPanel() {
                               <p className="text-xs text-muted-foreground mt-1">Add your first platinum standard above</p>
                             </div>
                           ) : (
-                            categoryStandards.map((standard: any, index: number) => (
-                              <div
-                                key={standard.id}
-                                className={`flex items-center gap-3 p-4 rounded-lg group border-l-4 ${
-                                  category === 'health' ? 'border-l-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20 hover:bg-emerald-100/50 dark:hover:bg-emerald-950/30' :
-                                  category === 'relationship' ? 'border-l-pink-500 bg-pink-50/50 dark:bg-pink-950/20 hover:bg-pink-100/50 dark:hover:bg-pink-950/30' :
-                                  category === 'career' ? 'border-l-amber-500 bg-amber-50/50 dark:bg-amber-950/20 hover:bg-amber-100/50 dark:hover:bg-amber-950/30' :
-                                  'border-l-purple-500 bg-purple-50/50 dark:bg-purple-950/20 hover:bg-purple-100/50 dark:hover:bg-purple-950/30'
-                                } shadow-sm transition-colors`}
-                                data-testid={`standard-${category}-${index}`}
+                            <DndContext
+                              sensors={sensors}
+                              collisionDetection={closestCenter}
+                              onDragEnd={(event) => handleDragEnd(event, category)}
+                            >
+                              <SortableContext
+                                items={categoryStandards.map((s: any) => s.id)}
+                                strategy={verticalListSortingStrategy}
                               >
-                                <Checkbox
-                                  checked={selectedStandardIds.has(standard.id)}
-                                  onCheckedChange={(checked) => {
-                                    const newSelected = new Set(selectedStandardIds);
-                                    if (checked) {
-                                      newSelected.add(standard.id);
-                                    } else {
-                                      newSelected.delete(standard.id);
-                                    }
-                                    setSelectedStandardIds(newSelected);
-                                  }}
-                                  data-testid={`checkbox-standard-${standard.id}`}
-                                />
-                                <div className="flex items-center gap-2">
-                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-                                    category === 'health' ? 'bg-emerald-200 text-emerald-800 dark:bg-emerald-800 dark:text-emerald-200' :
-                                    category === 'relationship' ? 'bg-pink-200 text-pink-800 dark:bg-pink-800 dark:text-pink-200' :
-                                    category === 'career' ? 'bg-amber-200 text-amber-800 dark:bg-amber-800 dark:text-amber-200' :
-                                    'bg-purple-200 text-purple-800 dark:bg-purple-800 dark:text-purple-200'
-                                  }`}>
-                                    {standard.orderIndex}
-                                  </div>
+                                <div className="space-y-3">
+                                  {categoryStandards.map((standard: any, index: number) => (
+                                    <SortableStandardItem
+                                      key={standard.id}
+                                      standard={standard}
+                                      index={index}
+                                      category={category}
+                                      categoryConfig={categoryConfig}
+                                      selectedStandardIds={selectedStandardIds}
+                                      setSelectedStandardIds={setSelectedStandardIds}
+                                      setEditingStandard={setEditingStandard}
+                                      deletePlatinumStandardMutation={deletePlatinumStandardMutation}
+                                    />
+                                  ))}
                                 </div>
-                                <div className="flex-1">
-                                  <div className="font-medium text-foreground" data-testid={`standard-text-${standard.id}`}>
-                                    {standard.standardText}
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <Badge 
-                                    className={standard.isActive 
-                                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200 border-emerald-300 dark:border-emerald-700' 
-                                      : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600'
-                                    }
-                                  >
-                                    {standard.isActive ? "✓ Active" : "○ Inactive"}
-                                  </Badge>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => setEditingStandard(standard)}
-                                    className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950"
-                                    data-testid={`button-edit-standard-${standard.id}`}
-                                  >
-                                    <Pencil className="w-4 h-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => {
-                                      if (window.confirm('Are you sure you want to delete this standard? This will affect all users.')) {
-                                        deletePlatinumStandardMutation.mutate(standard.id);
-                                      }
-                                    }}
-                                    disabled={deletePlatinumStandardMutation.isPending}
-                                    className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
-                                    data-testid={`button-delete-standard-${standard.id}`}
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            ))
+                              </SortableContext>
+                            </DndContext>
                           )}
                         </CardContent>
                       </Card>
