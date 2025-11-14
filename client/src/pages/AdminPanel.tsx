@@ -763,11 +763,11 @@ export default function AdminPanel() {
       return apiRequest(`/api/admin/platinum-standards/${id}`, 'DELETE');
     },
     onSuccess: () => {
+      // AUTO RE-NUMBER BACKEND: Backend automatically re-numbers after delete
+      // Just invalidate - natural refetch will get fresh re-numbered data
       queryClient.invalidateQueries({ queryKey: ['/api/admin/platinum-standards'] });
       queryClient.invalidateQueries({ queryKey: ['/api/platinum-standards'] });
-      // Force immediate refetch for active dashboard users
-      queryClient.refetchQueries({ queryKey: ['/api/platinum-standards'] });
-      toast({ title: "Success", description: "Platinum standard deleted successfully" });
+      toast({ title: "Success", description: "Platinum standard deleted and re-numbered" });
     },
     onError: (error: any) => {
       toast({ title: "Error", description: error.message || "Failed to delete platinum standard", variant: "destructive" });
@@ -779,11 +779,11 @@ export default function AdminPanel() {
       return apiRequest('/api/admin/platinum-standards/bulk-delete', 'POST', { ids });
     },
     onSuccess: (response: any) => {
+      // AUTO RE-NUMBER BACKEND: Backend automatically re-numbers after bulk delete
       queryClient.invalidateQueries({ queryKey: ['/api/admin/platinum-standards'] });
       queryClient.invalidateQueries({ queryKey: ['/api/platinum-standards'] });
-      queryClient.refetchQueries({ queryKey: ['/api/platinum-standards'] });
       setSelectedStandardIds(new Set());
-      toast({ title: "Success", description: response.message || "Standards deleted successfully" });
+      toast({ title: "Success", description: response.message || "Standards deleted and re-numbered" });
     },
     onError: (error: any) => {
       toast({ title: "Error", description: error.message || "Failed to delete standards", variant: "destructive" });

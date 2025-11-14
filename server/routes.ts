@@ -3823,10 +3823,31 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   // Delete platinum standard (admin only)
   app.delete('/api/admin/platinum-standards/:id', isAdmin, async (req: any, res) => {
     try {
-
       const { id } = req.params;
+      
+      // CRITICAL: Get the category before deletion for re-numbering
+      const standardToDelete = await storage.getPlatinumStandardById(id);
+      if (!standardToDelete) {
+        return res.status(404).json({ message: "Platinum standard not found" });
+      }
+      
+      const deletedCategory = standardToDelete.category;
+      
+      // Delete the standard
       await storage.deletePlatinumStandard(id);
-      res.json({ message: "Platinum standard deleted successfully" });
+      
+      // AUTO RE-NUMBER: Get ALL remaining standards (active AND inactive) and re-number from 1
+      const remainingStandards = await storage.getAllPlatinumStandardsByCategory(deletedCategory);
+      const reorderUpdates = remainingStandards.map((standard, index) => ({
+        id: standard.id,
+        orderIndex: index + 1
+      }));
+      
+      if (reorderUpdates.length > 0) {
+        await storage.reorderPlatinumStandards(reorderUpdates);
+      }
+      
+      res.json({ message: "Platinum standard deleted and re-numbered successfully" });
     } catch (error) {
       console.error("Error deleting platinum standard:", error);
       res.status(500).json({ message: "Failed to delete platinum standard" });
@@ -3842,13 +3863,35 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         return res.status(400).json({ message: "IDs must be a non-empty array" });
       }
 
+      // Get categories before deletion for re-numbering
+      const affectedCategories = new Set<string>();
+      for (const id of ids) {
+        const standard = await storage.getPlatinumStandardById(id);
+        if (standard) {
+          affectedCategories.add(standard.category);
+        }
+      }
+
       // Delete all standards with the provided IDs
       for (const id of ids) {
         await storage.deletePlatinumStandard(id);
       }
 
+      // AUTO RE-NUMBER: Re-number all affected categories (including inactive standards)
+      for (const category of affectedCategories) {
+        const remainingStandards = await storage.getAllPlatinumStandardsByCategory(category);
+        const reorderUpdates = remainingStandards.map((standard, index) => ({
+          id: standard.id,
+          orderIndex: index + 1
+        }));
+        
+        if (reorderUpdates.length > 0) {
+          await storage.reorderPlatinumStandards(reorderUpdates);
+        }
+      }
+
       res.json({ 
-        message: `Successfully deleted ${ids.length} platinum standard${ids.length > 1 ? 's' : ''}` 
+        message: `Successfully deleted ${ids.length} platinum standard${ids.length > 1 ? 's' : ''} and re-numbered` 
       });
     } catch (error) {
       console.error("Error bulk deleting platinum standards:", error);

@@ -188,6 +188,8 @@ export interface IStorage {
   // Platinum Standards operations
   getAllPlatinumStandards(): Promise<PlatinumStandard[]>;
   getActivePlatinumStandards(): Promise<PlatinumStandard[]>;
+  getPlatinumStandardById(id: string): Promise<PlatinumStandard | undefined>;
+  getAllPlatinumStandardsByCategory(category: string): Promise<PlatinumStandard[]>;
   getPlatinumStandardsByCategory(category: string): Promise<PlatinumStandard[]>;
   addPlatinumStandard(standard: InsertPlatinumStandard): Promise<PlatinumStandard>;
   updatePlatinumStandard(id: string, standard: Partial<InsertPlatinumStandard>): Promise<PlatinumStandard>;
@@ -1447,6 +1449,24 @@ export class DatabaseStorage implements IStorage {
       .orderBy(asc(platinumStandards.orderIndex));
   }
 
+  async getPlatinumStandardById(id: string): Promise<PlatinumStandard | undefined> {
+    const [standard] = await db
+      .select()
+      .from(platinumStandards)
+      .where(eq(platinumStandards.id, id))
+      .limit(1);
+    return standard;
+  }
+
+  async getAllPlatinumStandardsByCategory(category: string): Promise<PlatinumStandard[]> {
+    // Returns ALL standards in category (active AND inactive) for re-numbering
+    return await db
+      .select()
+      .from(platinumStandards)
+      .where(eq(platinumStandards.category, category))
+      .orderBy(asc(platinumStandards.orderIndex));
+  }
+
   async addPlatinumStandard(standard: InsertPlatinumStandard): Promise<PlatinumStandard> {
     const [newStandard] = await db
       .insert(platinumStandards)
@@ -1477,11 +1497,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async reorderPlatinumStandards(updates: Array<{ id: string; orderIndex: number }>): Promise<void> {
-    console.log('[DEBUG] reorderPlatinumStandards - received updates:', JSON.stringify(updates, null, 2));
+    console.error('[REORDER STORAGE] ========== reorderPlatinumStandards CALLED ==========');
+    console.error('[REORDER STORAGE] Received', updates.length, 'updates');
+    console.error('[REORDER STORAGE] Full updates payload:', JSON.stringify(updates, null, 2));
     
     // Update all standards in parallel using Promise.all
-    const updatePromises = updates.map(update => {
-      console.log(`[DEBUG] Creating update promise for standard ${update.id} to orderIndex ${update.orderIndex}`);
+    const updatePromises = updates.map((update, idx) => {
+      console.error(`[REORDER STORAGE] [${idx}] Preparing UPDATE for ID: ${update.id} → orderIndex: ${update.orderIndex}`);
       return db
         .update(platinumStandards)
         .set({ 
@@ -1492,15 +1514,25 @@ export class DatabaseStorage implements IStorage {
         .returning();
     });
     
-    console.log(`[DEBUG] Executing ${updatePromises.length} update promises with Promise.all`);
-    const results = await Promise.all(updatePromises);
-    console.log(`[DEBUG] All updates completed. Results count:`, results.length);
-    console.log('[DEBUG] Update results:', results.map((r, i) => ({ 
-      index: i, 
-      id: updates[i].id, 
-      orderIndex: updates[i].orderIndex,
-      updated: r.length > 0 ? 'yes' : 'no'
-    })));
+    console.error(`[REORDER STORAGE] Executing ${updatePromises.length} updates with Promise.all...`);
+    try {
+      const results = await Promise.all(updatePromises);
+      console.error(`[REORDER STORAGE] ✅ Promise.all completed! Results count:`, results.length);
+      
+      // Check each result
+      results.forEach((r, i) => {
+        if (r.length === 0) {
+          console.error(`[REORDER STORAGE] ⚠️  WARNING: Update ${i} (ID: ${updates[i].id}) returned ZERO rows!`);
+        } else {
+          console.error(`[REORDER STORAGE] ✅ Update ${i} (ID: ${updates[i].id}) SUCCESS - orderIndex now: ${r[0].orderIndex}`);
+        }
+      });
+      
+      console.error('[REORDER STORAGE] ========== reorderPlatinumStandards COMPLETE ==========');
+    } catch (error) {
+      console.error('[REORDER STORAGE] ❌ FATAL ERROR in Promise.all:', error);
+      throw error;
+    }
   }
 
   // Emotional Tracker operations
