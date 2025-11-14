@@ -4119,8 +4119,8 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         return res.status(400).json({ message: "Missing required fields" });
       }
 
-      if (rating < 0 || rating > 10) {
-        return res.status(400).json({ message: "Rating must be between 0 and 10" });
+      if (rating < 0 || rating > 7) {
+        return res.status(400).json({ message: "Rating must be between 0 and 7" });
       }
 
       const savedRating = await storage.upsertPlatinumStandardRating({

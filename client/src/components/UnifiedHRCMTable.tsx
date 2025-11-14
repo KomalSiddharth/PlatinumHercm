@@ -370,10 +370,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     },
   });
 
-  // Handler to update platinum standard rating
+  // Handler to update platinum standard rating (max 7)
   const handlePlatinumStandardRatingChange = (standardId: string, rating: number) => {
-    setStandardRatings(prev => ({ ...prev, [standardId]: rating }));
-    saveRatingMutation.mutate({ standardId, rating });
+    // Ensure rating is between 0 and 7
+    const validRating = Math.max(0, Math.min(7, rating));
+    setStandardRatings(prev => ({ ...prev, [standardId]: validRating }));
+    saveRatingMutation.mutate({ standardId, rating: validRating });
   };
   
   // Assignment Dialog State (click-based, no scroll in column)
@@ -3980,7 +3982,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             </DialogTitle>
             <p className="text-sm text-muted-foreground">
               {platinumStandardsDialog.category === 'Health' 
-                ? 'Rate each standard from 0 to 10' 
+                ? 'Rate each standard from 0 to 7' 
                 : `All standards for ${platinumStandardsDialog.category}`}
             </p>
           </DialogHeader>
@@ -3994,33 +3996,28 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 );
                 
                 return healthStandards.map((standard: any) => (
-                  <div key={standard.id} className="flex items-start gap-3 py-2 px-3 rounded-lg hover:bg-muted/30 transition-colors">
-                    <div className="flex-1 space-y-2">
-                      <span className="text-sm leading-relaxed block break-words">
-                        {standard.standardText}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          type="number"
-                          min="0"
-                          max="10"
-                          value={standardRatings[standard.id] || 0}
-                          onChange={(e) => {
-                            const value = parseInt(e.target.value) || 0;
-                            if (value >= 0 && value <= 10) {
-                              handlePlatinumStandardRatingChange(standard.id, value);
-                            }
-                          }}
-                          disabled={isAdminView || isPastDate}
-                          className="w-20 h-8 text-center"
-                          data-testid={`input-rating-${standard.id}`}
-                        />
-                        <span className="text-xs text-muted-foreground">/ 10</span>
-                        {saveRatingMutation.isPending && (
-                          <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
-                        )}
-                      </div>
-                    </div>
+                  <div key={standard.id} className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-muted/30 transition-colors">
+                    <Input
+                      type="number"
+                      min="0"
+                      max="7"
+                      value={standardRatings[standard.id] || 0}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value) || 0;
+                        if (value >= 0 && value <= 7) {
+                          handlePlatinumStandardRatingChange(standard.id, value);
+                        }
+                      }}
+                      disabled={isAdminView || isPastDate}
+                      className="w-16 h-8 text-center shrink-0"
+                      data-testid={`input-rating-${standard.id}`}
+                    />
+                    <span className="text-sm leading-relaxed flex-1 break-words">
+                      {standard.standardText}
+                    </span>
+                    {saveRatingMutation.isPending && (
+                      <Loader2 className="w-4 h-4 animate-spin text-muted-foreground shrink-0" />
+                    )}
                   </div>
                 ));
               } else {
