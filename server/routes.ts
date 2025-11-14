@@ -2929,30 +2929,49 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     try {
       const { ids } = req.body;
       
+      console.log('[BULK DELETE] Received request with body:', req.body);
+      console.log('[BULK DELETE] IDs:', ids);
+      console.log('[BULK DELETE] IDs type:', typeof ids);
+      console.log('[BULK DELETE] Is Array?', Array.isArray(ids));
+      
       if (!Array.isArray(ids) || ids.length === 0) {
+        console.log('[BULK DELETE] Invalid IDs - not array or empty');
         return res.status(400).json({ message: "IDs must be a non-empty array" });
       }
 
-      console.log(`[BULK DELETE] Deleting ${ids.length} approved emails`);
+      console.log(`[BULK DELETE] Starting deletion of ${ids.length} approved emails:`, ids);
       
       // Delete each email with cascade
       for (const id of ids) {
+        console.log(`[BULK DELETE] Processing ID: ${id}`);
         const approvedEmail = await storage.getApprovedEmailById(id);
+        console.log(`[BULK DELETE] Found email:`, approvedEmail);
+        
         if (approvedEmail) {
           const userEmail = approvedEmail.email;
+          console.log(`[BULK DELETE] Deleting all data for: ${userEmail}`);
           await storage.deleteAllUserData(userEmail);
+          console.log(`[BULK DELETE] Deleted user data for: ${userEmail}`);
           await storage.deleteApprovedEmail(id);
-          console.log(`[BULK DELETE] Deleted email and data for: ${userEmail}`);
+          console.log(`[BULK DELETE] Deleted approved email entry for: ${userEmail}`);
+        } else {
+          console.log(`[BULK DELETE] Email with ID ${id} not found`);
         }
       }
 
+      console.log(`[BULK DELETE] Successfully deleted ${ids.length} approved emails`);
       res.json({ 
         success: true, 
         message: `Successfully deleted ${ids.length} approved emails and their data` 
       });
-    } catch (error) {
-      console.error("Error bulk deleting approved emails:", error);
-      res.status(500).json({ message: "Failed to bulk delete approved emails" });
+    } catch (error: any) {
+      console.error("[BULK DELETE] Error bulk deleting approved emails:", error);
+      console.error("[BULK DELETE] Error message:", error?.message);
+      console.error("[BULK DELETE] Error stack:", error?.stack);
+      res.status(500).json({ 
+        message: "Failed to bulk delete approved emails",
+        error: error?.message || "Unknown error"
+      });
     }
   });
 
