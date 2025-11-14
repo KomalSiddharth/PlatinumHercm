@@ -1012,11 +1012,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   // 🔥 REMOVED date change reset useEffect - Smart detection handles manualNextWeekMode correctly
 
   // Calculate weekly average progress across Friday-Thursday (7 days)
+  // Recalculate after date changes OR after data changes
   useEffect(() => {
     const calculateWeeklyAverage = async () => {
       try {
         // Get all 7 dates in the current Friday-Thursday week
         const weekDates = getWeekDateRange(selectedDate);
+        
+        console.log('[WEEKLY AVG] Calculating for week:', weekDates);
         
         // Fetch data for all 7 days in parallel
         const promises = weekDates.map(async (dateStr) => {
@@ -1030,6 +1033,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             });
             
             if (!response.ok) {
+              console.log(`[WEEKLY AVG] No data for ${dateStr}`);
               return 0; // Return 0 for days with no data
             }
             
@@ -1040,9 +1044,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               const dayProgress = data.beliefs.reduce((sum: number, b: HRCMBelief) => {
                 return sum + calculateProgress(b.checklist);
               }, 0) / data.beliefs.length;
+              console.log(`[WEEKLY AVG] ${dateStr}: ${Math.round(dayProgress)}%`);
               return dayProgress;
             }
             
+            console.log(`[WEEKLY AVG] ${dateStr}: No beliefs data`);
             return 0; // No data for this day
           } catch (error) {
             console.error(`[WEEKLY AVG] Error fetching data for ${dateStr}:`, error);
@@ -1056,6 +1062,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         // Calculate average across all 7 days (including 0% for days with no data)
         const weeklyAvg = dailyProgresses.reduce((sum, progress) => sum + progress, 0) / 7;
         
+        console.log('[WEEKLY AVG] Daily progresses:', dailyProgresses.map(p => Math.round(p) + '%'));
+        console.log('[WEEKLY AVG] Final weekly average:', Math.round(weeklyAvg) + '%');
+        
         setWeeklyAverageProgress(Math.round(weeklyAvg));
       } catch (error) {
         console.error('[WEEKLY AVG] Error calculating weekly average:', error);
@@ -1064,7 +1073,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     };
     
     calculateWeeklyAverage();
-  }, [selectedDate, viewAsUserId, isAdminView]); // Only recalculate when date changes (not beliefs to avoid too many API calls)
+  }, [selectedDate, viewAsUserId, isAdminView, dateData]); // Recalculate when date changes OR when dateData changes
 
   const weeklyProgress = weeklyAverageProgress;
 
