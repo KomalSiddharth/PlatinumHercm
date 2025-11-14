@@ -4069,6 +4069,76 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
+  // Platinum Standard Ratings - Get ratings for a specific date
+  app.get('/api/platinum-standard-ratings/:dateString', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      let user = await storage.getUser(userId);
+      if (!user && typeof userId === 'string' && userId.includes('@')) {
+        user = await storage.getUserByEmail(userId);
+      }
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const { dateString } = req.params;
+      const ratings = await storage.getUserPlatinumStandardRatingsByDate(user.id, dateString);
+      
+      res.json(ratings);
+    } catch (error) {
+      console.error("Error fetching platinum standard ratings:", error);
+      res.status(500).json({ message: "Failed to fetch ratings" });
+    }
+  });
+
+  // Platinum Standard Ratings - Upsert a rating
+  app.post('/api/platinum-standard-ratings', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      let user = await storage.getUser(userId);
+      if (!user && typeof userId === 'string' && userId.includes('@')) {
+        user = await storage.getUserByEmail(userId);
+      }
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const { standardId, dateString, rating } = req.body;
+      
+      if (!standardId || !dateString || rating === undefined || rating === null) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      if (rating < 0 || rating > 10) {
+        return res.status(400).json({ message: "Rating must be between 0 and 10" });
+      }
+
+      const savedRating = await storage.upsertPlatinumStandardRating({
+        userId: user.id,
+        standardId,
+        dateString,
+        rating,
+      });
+
+      console.log(`✅ Saved platinum standard rating: user=${user.id}, standard=${standardId}, date=${dateString}, rating=${rating}`);
+      
+      res.json(savedRating);
+    } catch (error) {
+      console.error("Error saving platinum standard rating:", error);
+      res.status(500).json({ message: "Failed to save rating" });
+    }
+  });
+
   // User-facing: Get current user's pending recommendations
   app.get('/api/user/recommendations', isAuthenticated, async (req: any, res) => {
     try {
