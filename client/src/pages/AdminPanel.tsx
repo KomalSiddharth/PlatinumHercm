@@ -197,7 +197,6 @@ export default function AdminPanel() {
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState<'approved' | 'team' | 'logs' | 'analytics' | 'dashboard-viewer' | 'team-analytics' | 'recommendations' | 'platinum-standards' | 'feedback'>('analytics');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showBulkDialog, setShowBulkDialog] = useState(false);
   const [newEmail, setNewEmail] = useState('');
@@ -573,34 +572,7 @@ export default function AdminPanel() {
           return key?.includes('/api/admin/users-analytics') || key?.includes('/api/admin/team-analytics');
         }
       });
-      setSelectedEmails([]);
       toast({ title: "All Emails Deleted", description: "All approved emails have been removed" });
-    }
-  });
-
-  const bulkDeleteEmailsMutation = useMutation({
-    mutationFn: async (ids: string[]) => {
-      console.log('[BULK DELETE] Attempting to delete emails:', ids);
-      const response = await apiRequest('/api/admin/approved-emails/bulk-delete', 'POST', { ids });
-      return response.json();
-    },
-    onSuccess: (data) => {
-      console.log('[BULK DELETE] Success:', data);
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/approved-emails'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
-      setSelectedEmails([]);
-      toast({ 
-        title: "Selected Emails Deleted", 
-        description: `Successfully deleted ${selectedEmails.length} approved emails` 
-      });
-    },
-    onError: (error: any) => {
-      console.error('[BULK DELETE] Error:', error);
-      toast({ 
-        title: "Error", 
-        description: error?.message || "Failed to delete selected emails", 
-        variant: "destructive" 
-      });
     }
   });
 
@@ -1119,14 +1091,6 @@ export default function AdminPanel() {
   const endApprovedIndex = startApprovedIndex + approvedEmailsItemsPerPage;
   const paginatedEmails = filteredEmails.slice(startApprovedIndex, endApprovedIndex);
 
-  const toggleSelectAll = () => {
-    if (selectedEmails.length === filteredEmails.length) {
-      setSelectedEmails([]);
-    } else {
-      setSelectedEmails(filteredEmails.map((e: ApprovedEmail) => e.id));
-    }
-  };
-
   const handleExportEmails = () => {
     if (approvedEmails.length === 0) {
       toast({ title: "No Data", description: "No approved emails to export", variant: "destructive" });
@@ -1421,21 +1385,6 @@ export default function AdminPanel() {
                     <Download className="w-4 h-4 mr-2" />
                     Export
                   </Button>
-                  {selectedEmails.length > 0 && (
-                    <Button 
-                      variant="destructive" 
-                      onClick={() => {
-                        if (window.confirm(`Are you sure you want to delete ${selectedEmails.length} selected emails?`)) {
-                          bulkDeleteEmailsMutation.mutate(selectedEmails);
-                        }
-                      }}
-                      disabled={bulkDeleteEmailsMutation.isPending}
-                      data-testid="button-delete-selected"
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Delete Selected ({selectedEmails.length})
-                    </Button>
-                  )}
                   <Button 
                     variant="destructive" 
                     onClick={() => deleteAllMutation.mutate()}
@@ -1461,13 +1410,6 @@ export default function AdminPanel() {
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-gray-900/50">
                 <tr>
-                  <th className="px-6 py-3 text-left">
-                    <Checkbox
-                      checked={selectedEmails.length === filteredEmails.length && filteredEmails.length > 0}
-                      onCheckedChange={toggleSelectAll}
-                      data-testid="checkbox-select-all"
-                    />
-                  </th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">EMAIL</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">NAME</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">STATUS</th>
@@ -1478,28 +1420,15 @@ export default function AdminPanel() {
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">Loading...</td>
+                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500">Loading...</td>
                   </tr>
                 ) : filteredEmails.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">No approved emails found</td>
+                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500">No approved emails found</td>
                   </tr>
                 ) : (
                   paginatedEmails.map((email: ApprovedEmail) => (
                     <tr key={email.id} className="hover:bg-gray-50 dark:hover:bg-gray-900/30" data-testid={`row-email-${email.id}`}>
-                      <td className="px-6 py-4">
-                        <Checkbox
-                          checked={selectedEmails.includes(email.id)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedEmails([...selectedEmails, email.id]);
-                            } else {
-                              setSelectedEmails(selectedEmails.filter(id => id !== email.id));
-                            }
-                          }}
-                          data-testid={`checkbox-email-${email.id}`}
-                        />
-                      </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
