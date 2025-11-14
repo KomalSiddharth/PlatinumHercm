@@ -56,7 +56,7 @@ import {
   type InsertNextWeekSnapshot,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, or, count, sql, gte, lte } from "drizzle-orm";
+import { eq, desc, asc, and, or, count, sql, gte, lte } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (Required for Replit Auth)
@@ -1425,7 +1425,7 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(platinumStandards)
-      .orderBy(platinumStandards.category, platinumStandards.orderIndex);
+      .orderBy(asc(platinumStandards.category), asc(platinumStandards.orderIndex));
   }
 
   async getActivePlatinumStandards(): Promise<PlatinumStandard[]> {
@@ -1433,7 +1433,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(platinumStandards)
       .where(eq(platinumStandards.isActive, true))
-      .orderBy(platinumStandards.category, platinumStandards.orderIndex);
+      .orderBy(asc(platinumStandards.category), asc(platinumStandards.orderIndex));
   }
 
   async getPlatinumStandardsByCategory(category: string): Promise<PlatinumStandard[]> {
@@ -1444,7 +1444,7 @@ export class DatabaseStorage implements IStorage {
         eq(platinumStandards.category, category),
         eq(platinumStandards.isActive, true)
       ))
-      .orderBy(platinumStandards.orderIndex);
+      .orderBy(asc(platinumStandards.orderIndex));
   }
 
   async addPlatinumStandard(standard: InsertPlatinumStandard): Promise<PlatinumStandard> {
