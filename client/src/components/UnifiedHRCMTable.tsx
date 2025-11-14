@@ -2997,7 +2997,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               <TableHead className="text-xs sm:text-sm w-[150px] bg-rose-100 dark:bg-rose-900/40 font-semibold px-1.5 sm:px-2 py-1.5 sm:py-2">Problems</TableHead>
               <TableHead className="text-xs sm:text-sm w-[150px] bg-rose-100 dark:bg-rose-900/40 font-semibold px-1.5 sm:px-2 py-1.5 sm:py-2">Feelings</TableHead>
               <TableHead className="text-xs sm:text-sm w-[150px] bg-rose-100 dark:bg-rose-900/40 font-semibold px-1.5 sm:px-2 py-1.5 sm:py-2">Beliefs/Reasons</TableHead>
-              <TableHead className="text-xs sm:text-sm w-[150px] bg-rose-100 dark:bg-rose-900/40 font-semibold border-r px-1.5 sm:px-2 py-1.5 sm:py-2">Actions</TableHead>
+              <TableHead className="text-xs sm:text-sm w-[150px] bg-rose-100 dark:bg-rose-900/40 font-semibold px-1.5 sm:px-2 py-1.5 sm:py-2">Actions</TableHead>
+              <TableHead className="text-xs sm:text-sm w-[80px] bg-rose-100 dark:bg-rose-900/40 font-semibold border-r px-1.5 sm:px-2 py-1.5 sm:py-2">Progress</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -3180,7 +3181,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </TableCell>
 
                 {/* Current Week - Actions (Text Block) */}
-                <TableCell className="p-2 bg-soft-lavender/5 dark:bg-soft-lavender/10 border-r align-top w-[180px] min-w-[180px] max-w-[180px]">
+                <TableCell className="p-2 bg-soft-lavender/5 dark:bg-soft-lavender/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
                   <div
                     onClick={() => {
                       if ((viewingHistory && hasDataForDate) || isAdminView) {
@@ -3203,6 +3204,16 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
                     )}
                   </div>
+                </TableCell>
+
+                {/* Current Week - Progress */}
+                <TableCell className="p-2 bg-rose-100 dark:bg-rose-900/40 border-r align-top text-center">
+                  <Badge 
+                    className={`${getProgressColor(calculateProgress(belief.checklist))} font-semibold text-xs`}
+                    data-testid={`badge-progress-${belief.category.toLowerCase()}`}
+                  >
+                    {calculateProgress(belief.checklist)}%
+                  </Badge>
                 </TableCell>
               </TableRow>
             ))}
@@ -3253,7 +3264,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               <TableHead className="text-xs sm:text-sm w-[150px] bg-blue-100 dark:bg-blue-900/40 font-semibold border border-soft-gray dark:border-soft-gray/30 px-1.5 sm:px-2 py-1.5 sm:py-2">Results</TableHead>
               <TableHead className="text-xs sm:text-sm w-[150px] bg-blue-100 dark:bg-blue-900/40 font-semibold border border-soft-gray dark:border-soft-gray/30 px-1.5 sm:px-2 py-1.5 sm:py-2">Feelings</TableHead>
               <TableHead className="text-xs sm:text-sm w-[150px] bg-blue-100 dark:bg-blue-900/40 font-semibold border border-soft-gray dark:border-soft-gray/30 px-1.5 sm:px-2 py-1.5 sm:py-2">Beliefs/Reasons</TableHead>
-              <TableHead className="text-xs sm:text-sm w-[150px] bg-blue-100 dark:bg-blue-900/40 font-semibold border-r border border-soft-gray dark:border-soft-gray/30 px-1.5 sm:px-2 py-1.5 sm:py-2">Actions</TableHead>
+              <TableHead className="text-xs sm:text-sm w-[150px] bg-blue-100 dark:bg-blue-900/40 font-semibold border border-soft-gray dark:border-soft-gray/30 px-1.5 sm:px-2 py-1.5 sm:py-2">Actions</TableHead>
+              <TableHead className="text-xs sm:text-sm w-[80px] bg-blue-100 dark:bg-blue-900/40 font-semibold border-r border border-soft-gray dark:border-soft-gray/30 px-1.5 sm:px-2 py-1.5 sm:py-2">Progress</TableHead>
               
               <TableHead className="text-xs sm:text-sm w-[150px] bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/40 dark:to-blue-900/40 font-semibold px-1.5 sm:px-2 py-1.5 sm:py-2">
                 <div className="flex items-center gap-1">
@@ -3391,7 +3403,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </TableCell>
 
                 {/* Next Week - Actions (Text Block) */}
-                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 border-r align-top w-[180px] min-w-[180px] max-w-[180px]">
+                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
                   <div
                     onClick={() => {
                       if ((viewingHistory && hasDataForDate) || isAdminView) {
@@ -3414,6 +3426,16 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
                     )}
                   </div>
+                </TableCell>
+
+                {/* Next Week - Progress */}
+                <TableCell className="p-2 bg-blue-100 dark:bg-blue-900/40 border-r align-top text-center">
+                  <Badge 
+                    className={`${getProgressColor(calculateProgress(belief.checklist))} font-semibold text-xs`}
+                    data-testid={`badge-progress-next-${belief.category.toLowerCase()}`}
+                  >
+                    {calculateProgress(belief.checklist)}%
+                  </Badge>
                 </TableCell>
 
                 {/* Unified Assignment Column - Compact view with click popup */}
