@@ -370,8 +370,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     },
   });
 
-  // Handler to update rating
-  const handleRatingChange = (standardId: string, rating: number) => {
+  // Handler to update platinum standard rating
+  const handlePlatinumStandardRatingChange = (standardId: string, rating: number) => {
     setStandardRatings(prev => ({ ...prev, [standardId]: rating }));
     saveRatingMutation.mutate({ standardId, rating });
   };
@@ -4008,7 +4008,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                           onChange={(e) => {
                             const value = parseInt(e.target.value) || 0;
                             if (value >= 0 && value <= 10) {
-                              handleRatingChange(standard.id, value);
+                              handlePlatinumStandardRatingChange(standard.id, value);
                             }
                           }}
                           disabled={isAdminView || isPastDate}
