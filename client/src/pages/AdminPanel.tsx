@@ -792,16 +792,28 @@ export default function AdminPanel() {
 
   const reorderPlatinumStandardsMutation = useMutation({
     mutationFn: async (updates: Array<{ id: string; orderIndex: number }>) => {
-      return apiRequest('/api/admin/platinum-standards/reorder', 'PUT', { updates });
+      console.log('[MUTATION] Starting reorder mutation with updates:', updates);
+      try {
+        const result = await apiRequest('/api/admin/platinum-standards/reorder', 'PUT', { updates });
+        console.log('[MUTATION] Reorder mutation SUCCESS, result:', result);
+        return result;
+      } catch (error) {
+        console.error('[MUTATION] Reorder mutation FAILED:', error);
+        throw error;
+      }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('[MUTATION] onSuccess called with data:', data);
       queryClient.invalidateQueries({ queryKey: ['/api/admin/platinum-standards'] });
       queryClient.invalidateQueries({ queryKey: ['/api/platinum-standards'] });
       queryClient.refetchQueries({ queryKey: ['/api/platinum-standards'] });
       toast({ title: "Success", description: "Standards reordered successfully" });
     },
     onError: (error: any) => {
+      console.error('[MUTATION] onError called with error:', error);
       toast({ title: "Error", description: error.message || "Failed to reorder standards", variant: "destructive" });
+      // Refetch to restore original order
+      queryClient.refetchQueries({ queryKey: ['/api/admin/platinum-standards'] });
     }
   });
 
@@ -841,6 +853,29 @@ export default function AdminPanel() {
     }));
 
     console.log('[FRONTEND DEBUG] Calling mutation with updates:', updates);
+    
+    // OPTIMISTIC UPDATE: Immediately update the UI before backend confirms
+    // This prevents the snap-back effect
+    queryClient.setQueryData(['/api/admin/platinum-standards'], (oldData: any) => {
+      if (!oldData) return oldData;
+      
+      console.log('[OPTIMISTIC] Updating query data optimistically');
+      
+      // Replace the category's standards with reordered ones
+      const updatedData = oldData.map((standard: any) => {
+        if (standard.category === category) {
+          const reorderedItem = reorderedStandards.find((r: any) => r.id === standard.id);
+          if (reorderedItem) {
+            const newOrderIndex = updates.find(u => u.id === standard.id)?.orderIndex;
+            return { ...standard, orderIndex: newOrderIndex };
+          }
+        }
+        return standard;
+      });
+      
+      return updatedData;
+    });
+    
     // Call the mutation to persist the changes
     reorderPlatinumStandardsMutation.mutate(updates);
     console.log('[FRONTEND DEBUG] Mutation called');
