@@ -545,6 +545,16 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     queryKey: ['/api/rating-progression/status'],
   });
 
+  // Fetch HRCM unlock status for Health area (7-day perfect streak system)
+  const { data: healthUnlockStatus } = useQuery<{
+    consecutivePerfectDays: number;
+    isUnlocked: boolean;
+    lastPerfectDate: string | null;
+  }>({
+    queryKey: ['/api/hrcm-unlock-status/health'],
+    refetchInterval: 5000, // Poll every 5 seconds to catch updates
+  });
+
   // Fetch dynamic platinum standards from database with real-time updates
   const { data: platinumStandardsData = [] } = useQuery<any[]>({
     queryKey: ['/api/platinum-standards'],
@@ -2995,11 +3005,20 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       onChange={(e) => {
                         const newRating = parseInt(e.target.value) || 0;
                         const categoryLower = belief.category.toLowerCase();
-                        const maxRating = ratingCaps?.[categoryLower as keyof typeof ratingCaps] || 7;
+                        
+                        // Health area: Use unlock status for rating 7
+                        let maxRating: number;
+                        if (categoryLower === 'health') {
+                          // Unlock status: Max 6 until 7 consecutive perfect days
+                          maxRating = healthUnlockStatus?.isUnlocked ? 7 : 6;
+                        } else {
+                          // Other areas: Use existing rating caps
+                          maxRating = ratingCaps?.[categoryLower as keyof typeof ratingCaps] || 7;
+                        }
                         
                         // Hard cap at 8 - never allow 9 or 10
                         const hardCappedRating = Math.min(newRating, 8);
-                        // Apply progressive cap (7 or 8 based on weeks at max)
+                        // Apply progressive cap
                         const finalRating = Math.min(hardCappedRating, maxRating);
                         
                         handleRatingChange(belief.category, finalRating);
@@ -3008,16 +3027,46 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       className="w-16 h-9 text-center font-semibold"
                       data-testid={`input-${belief.category.toLowerCase()}-rating`}
                     />
-                    {ratingProgression && (() => {
+                    {(() => {
                       const categoryLower = belief.category.toLowerCase();
-                      const weeksAtMax = ratingProgression[`${categoryLower}WeeksAtMax` as keyof typeof ratingProgression] || 0;
-                      const maxRating = ratingCaps?.[categoryLower as keyof typeof ratingCaps] || 7;
-                      if (belief.currentRating === maxRating && weeksAtMax > 0) {
-                        return (
-                          <Badge variant="secondary" className="text-[10px] px-1 py-0 h-5 justify-center">
-                            {weeksAtMax}/4 weeks {maxRating < 8 ? '→ unlock 8' : ''}
-                          </Badge>
-                        );
+                      
+                      // Health area: Show unlock progress
+                      if (categoryLower === 'health' && healthUnlockStatus) {
+                        const streak = healthUnlockStatus.consecutivePerfectDays || 0;
+                        const isUnlocked = healthUnlockStatus.isUnlocked;
+                        
+                        if (isUnlocked) {
+                          return (
+                            <Badge variant="default" className="text-[10px] px-1 py-0 h-5 justify-center bg-green-600">
+                              ✓ Rating 7 Unlocked!
+                            </Badge>
+                          );
+                        } else if (streak > 0) {
+                          return (
+                            <Badge variant="secondary" className="text-[10px] px-1 py-0 h-5 justify-center">
+                              {streak}/7 days → unlock 7
+                            </Badge>
+                          );
+                        } else {
+                          return (
+                            <Badge variant="outline" className="text-[10px] px-1 py-0 h-5 justify-center">
+                              Max: 6 (unlock 7)
+                            </Badge>
+                          );
+                        }
+                      }
+                      
+                      // Other areas: Show existing progression badge
+                      if (ratingProgression) {
+                        const weeksAtMax = ratingProgression[`${categoryLower}WeeksAtMax` as keyof typeof ratingProgression] || 0;
+                        const maxRating = ratingCaps?.[categoryLower as keyof typeof ratingCaps] || 7;
+                        if (belief.currentRating === maxRating && weeksAtMax > 0) {
+                          return (
+                            <Badge variant="secondary" className="text-[10px] px-1 py-0 h-5 justify-center">
+                              {weeksAtMax}/4 weeks {maxRating < 8 ? '→ unlock 8' : ''}
+                            </Badge>
+                          );
+                        }
                       }
                       return null;
                     })()}
