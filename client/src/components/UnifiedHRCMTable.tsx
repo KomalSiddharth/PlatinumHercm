@@ -325,6 +325,56 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     category: '',
     items: []
   });
+
+  // Platinum Standard Ratings State (for Health category)
+  const [standardRatings, setStandardRatings] = useState<Record<string, number>>({});
+  
+  // Fetch platinum standards from API
+  const { data: platinumStandards = [] } = useQuery({
+    queryKey: ['/api/platinum-standards'],
+    enabled: true,
+  });
+
+  // Fetch platinum standard ratings for current date
+  const { data: savedRatings = [], refetch: refetchRatings } = useQuery({
+    queryKey: ['/api/platinum-standard-ratings', currentDateStr],
+    enabled: !!currentDateStr,
+  });
+
+  // Update local ratings state when saved ratings are loaded
+  useEffect(() => {
+    if (savedRatings.length > 0) {
+      const ratingsMap: Record<string, number> = {};
+      savedRatings.forEach((r: any) => {
+        ratingsMap[r.standardId] = r.rating;
+      });
+      setStandardRatings(ratingsMap);
+    }
+  }, [savedRatings]);
+
+  // Mutation to save platinum standard rating
+  const saveRatingMutation = useMutation({
+    mutationFn: async ({ standardId, rating }: { standardId: string; rating: number }) => {
+      return await apiRequest('/api/platinum-standard-ratings', {
+        method: 'POST',
+        body: JSON.stringify({
+          standardId,
+          dateString: currentDateStr,
+          rating,
+        }),
+        headers: { 'Content-Type': 'application/json' },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/platinum-standard-ratings', currentDateStr] });
+    },
+  });
+
+  // Handler to update rating
+  const handleRatingChange = (standardId: string, rating: number) => {
+    setStandardRatings(prev => ({ ...prev, [standardId]: rating }));
+    saveRatingMutation.mutate({ standardId, rating });
+  };
   
   // Assignment Dialog State (click-based, no scroll in column)
   const [assignmentDialog, setAssignmentDialog] = useState(false);
@@ -3929,29 +3979,70 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               {platinumStandardsDialog.category} Platinum Standards
             </DialogTitle>
             <p className="text-sm text-muted-foreground">
-              All standards for {platinumStandardsDialog.category}
+              {platinumStandardsDialog.category === 'Health' 
+                ? 'Rate each standard from 0 to 10' 
+                : `All standards for ${platinumStandardsDialog.category}`}
             </p>
           </DialogHeader>
           <div className="space-y-3 py-4">
             {(() => {
-              // Get LIVE data from beliefs state instead of static dialog items
-              const categoryBelief = beliefs.find(b => b.category === platinumStandardsDialog.category);
-              const liveItems = categoryBelief?.checklist || [];
-              
-              return liveItems.map((item) => (
-                <div key={item.id} className="flex items-start gap-3 py-2 px-3 rounded-lg hover:bg-muted/30 transition-colors">
-                  <Checkbox
-                    checked={item.checked}
-                    onCheckedChange={() => handleChecklistToggle(platinumStandardsDialog.category, item.id)}
-                    disabled={isAdminView || isPastDate}
-                    data-testid={`checkbox-dialog-standards-${platinumStandardsDialog.category.toLowerCase()}-${item.id}`}
-                    className="h-5 w-5 mt-0.5 shrink-0"
-                  />
-                  <span className="text-sm leading-relaxed flex-1 break-words">
-                    {item.text}
-                  </span>
-                </div>
-              ));
+              // For Health category, show ratings from API. For others, show checkboxes from beliefs state
+              if (platinumStandardsDialog.category === 'Health') {
+                // Get Health platinum standards from API
+                const healthStandards = (platinumStandards as any[]).filter(
+                  (s: any) => s.category === 'health' && s.isActive
+                );
+                
+                return healthStandards.map((standard: any) => (
+                  <div key={standard.id} className="flex items-start gap-3 py-2 px-3 rounded-lg hover:bg-muted/30 transition-colors">
+                    <div className="flex-1 space-y-2">
+                      <span className="text-sm leading-relaxed block break-words">
+                        {standard.standardText}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          min="0"
+                          max="10"
+                          value={standardRatings[standard.id] || 0}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value) || 0;
+                            if (value >= 0 && value <= 10) {
+                              handleRatingChange(standard.id, value);
+                            }
+                          }}
+                          disabled={isAdminView || isPastDate}
+                          className="w-20 h-8 text-center"
+                          data-testid={`input-rating-${standard.id}`}
+                        />
+                        <span className="text-xs text-muted-foreground">/ 10</span>
+                        {saveRatingMutation.isPending && (
+                          <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ));
+              } else {
+                // For other categories, show checkboxes as before
+                const categoryBelief = beliefs.find(b => b.category === platinumStandardsDialog.category);
+                const liveItems = categoryBelief?.checklist || [];
+                
+                return liveItems.map((item) => (
+                  <div key={item.id} className="flex items-start gap-3 py-2 px-3 rounded-lg hover:bg-muted/30 transition-colors">
+                    <Checkbox
+                      checked={item.checked}
+                      onCheckedChange={() => handleChecklistToggle(platinumStandardsDialog.category, item.id)}
+                      disabled={isAdminView || isPastDate}
+                      data-testid={`checkbox-dialog-standards-${platinumStandardsDialog.category.toLowerCase()}-${item.id}`}
+                      className="h-5 w-5 mt-0.5 shrink-0"
+                    />
+                    <span className="text-sm leading-relaxed flex-1 break-words">
+                      {item.text}
+                    </span>
+                  </div>
+                ));
+              }
             })()}
           </div>
           <div className="flex justify-end pt-3 border-t">
