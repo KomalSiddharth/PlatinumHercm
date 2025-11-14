@@ -1244,114 +1244,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // If specific week requested, return that week only. Otherwise return last 5 weeks
         res.json({ weeklyData: selectedWeekNumber ? weeklyData : weeklyData.slice(-5) });
       } else if (viewType === 'monthly') {
-        // WEEK-WISE PLATINUM STANDARDS PROGRESS FOR SELECTED MONTH
-        const selectedYear = year ? parseInt(year as string) : new Date().getFullYear();
-        const selectedMonth = month ? parseInt(month as string) - 1 : new Date().getMonth(); // 0-indexed
-        
-        console.log(`[ANALYTICS MONTHLY] Fetching week-wise data for ${selectedYear}-${selectedMonth + 1}`);
-        
-        // Get all platinum standards
-        const platinumStandards = await storage.getAllPlatinumStandards();
-        
-        // Helper to get week dates (Friday-Thursday)
-        const getWeekDates = (date: Date) => {
-          const current = new Date(date);
-          const dayOfWeek = current.getDay();
-          const diff = dayOfWeek >= 5 ? dayOfWeek - 5 : dayOfWeek + 2;
-          current.setDate(current.getDate() - diff);
-          
-          const dates = [];
-          for (let i = 0; i < 7; i++) {
-            const d = new Date(current);
-            d.setDate(current.getDate() + i);
-            dates.push(d.toISOString().split('T')[0]);
+        // Use Progress column values (checklist completion %) for monthly view too
+        const monthlyData: Array<{ month: string; Health: number; Relationship: number; Career: number; Money: number }> = [];
+        const monthMap = new Map();
+
+        weeks.forEach((w: any) => {
+          const createdDate = new Date(w.createdAt);
+          const monthKey = `${createdDate.getFullYear()}-${createdDate.getMonth()}`;
+          if (!monthMap.has(monthKey)) {
+            monthMap.set(monthKey, []);
           }
-          return dates;
+          monthMap.get(monthKey).push(w);
+        });
+
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        
+        // Calculate progress from checklist completion
+        const calculateProgress = (checklistData: any) => {
+          if (!checklistData) return 0;
+          const checklist = typeof checklistData === 'string' ? JSON.parse(checklistData) : checklistData;
+          if (!Array.isArray(checklist) || checklist.length === 0) return 0;
+          const checked = checklist.filter((c: any) => c.checked).length;
+          return (checked / checklist.length) * 100;
         };
         
-        // Helper to calculate platinum standards progress for an area
-        const calculateStandardsProgress = (area: string, standards: any[], ratings: any[]) => {
-          const areaStandards = standards.filter(s => s.hrcmArea.toLowerCase() === area.toLowerCase());
-          if (areaStandards.length === 0) return 0;
+        Array.from(monthMap.entries()).forEach(([monthKey, monthWeeks]) => {
+          const [year, month] = monthKey.split('-');
           
-          const rated7Count = areaStandards.filter(std => {
-            const rating = ratings.find(r => r.standardId === std.id);
-            return rating && rating.rating === 7;
-          }).length;
-          
-          return Math.round((rated7Count / areaStandards.length) * 100);
-        };
-        
-        // Get all Fridays in the selected month
-        const firstDay = new Date(selectedYear, selectedMonth, 1);
-        const lastDay = new Date(selectedYear, selectedMonth + 1, 0);
-        
-        const weeklyData: Array<{ week: string; Health: number; Relationship: number; Career: number; Money: number }> = [];
-        
-        // Find all Fridays in the month
-        let currentDate = new Date(firstDay);
-        while (currentDate <= lastDay) {
-          if (currentDate.getDay() === 5) { // Friday
-            const weekDates = getWeekDates(currentDate);
-            const fridayDate = weekDates[0]; // First date is Friday
-            
-            console.log(`[ANALYTICS] Processing week starting ${fridayDate}`);
-            
-            // Fetch ratings for all 7 days in this week
-            const weekRatingsPromises = weekDates.map(async (dateStr) => {
-              try {
-                const ratings = await storage.getPlatinumStandardRatingsByDate(userId, dateStr);
-                return ratings || [];
-              } catch (error) {
-                console.error(`[ANALYTICS] Error fetching ratings for ${dateStr}:`, error);
-                return [];
-              }
-            });
-            
-            const allWeekRatings = await Promise.all(weekRatingsPromises);
-            
-            // Calculate daily progress for each HRCM area across the week
-            const dailyProgresses = allWeekRatings.map((dayRatings) => {
-              if (!dayRatings || dayRatings.length === 0) return 0;
-              
-              const hProgress = calculateStandardsProgress('health', platinumStandards, dayRatings);
-              const rProgress = calculateStandardsProgress('relationship', platinumStandards, dayRatings);
-              const cProgress = calculateStandardsProgress('career', platinumStandards, dayRatings);
-              const mProgress = calculateStandardsProgress('money', platinumStandards, dayRatings);
-              
-              return (hProgress + rProgress + cProgress + mProgress) / 4;
-            });
-            
-            // Calculate average for the week (across all 7 days)
-            const weekAverage = dailyProgresses.reduce((sum, p) => sum + p, 0) / 7;
-            
-            // Calculate individual area averages
-            const healthAvg = Math.round(allWeekRatings.reduce((sum, dayRatings) => 
-              sum + calculateStandardsProgress('health', platinumStandards, dayRatings), 0) / 7);
-            const relationshipAvg = Math.round(allWeekRatings.reduce((sum, dayRatings) => 
-              sum + calculateStandardsProgress('relationship', platinumStandards, dayRatings), 0) / 7);
-            const careerAvg = Math.round(allWeekRatings.reduce((sum, dayRatings) => 
-              sum + calculateStandardsProgress('career', platinumStandards, dayRatings), 0) / 7);
-            const moneyAvg = Math.round(allWeekRatings.reduce((sum, dayRatings) => 
-              sum + calculateStandardsProgress('money', platinumStandards, dayRatings), 0) / 7);
-            
-            const weekLabel = `Week ${Math.ceil(currentDate.getDate() / 7)}`;
-            
-            console.log(`[ANALYTICS] ${weekLabel} (${fridayDate}): H=${healthAvg}% R=${relationshipAvg}% C=${careerAvg}% M=${moneyAvg}% → Avg=${Math.round(weekAverage)}%`);
-            
-            weeklyData.push({
-              week: weekLabel,
-              Health: healthAvg,
-              Relationship: relationshipAvg,
-              Career: careerAvg,
-              Money: moneyAvg,
-            });
-          }
-          currentDate.setDate(currentDate.getDate() + 1);
-        }
-        
-        console.log('[ANALYTICS MONTHLY] Week-wise data:', weeklyData);
-        res.json({ monthlyData: weeklyData });
+          // Calculate average progress for each area
+          const avgHealth = Math.round(monthWeeks.reduce((sum: number, w: any) => {
+            return sum + calculateProgress(w.healthChecklist);
+          }, 0) / monthWeeks.length);
+
+          const avgRelationship = Math.round(monthWeeks.reduce((sum: number, w: any) => {
+            return sum + calculateProgress(w.relationshipChecklist);
+          }, 0) / monthWeeks.length);
+
+          const avgCareer = Math.round(monthWeeks.reduce((sum: number, w: any) => {
+            return sum + calculateProgress(w.careerChecklist);
+          }, 0) / monthWeeks.length);
+
+          const avgMoney = Math.round(monthWeeks.reduce((sum: number, w: any) => {
+            return sum + calculateProgress(w.moneyChecklist);
+          }, 0) / monthWeeks.length);
+
+          monthlyData.push({
+            month: monthNames[parseInt(month)],
+            Health: avgHealth,
+            Relationship: avgRelationship,
+            Career: avgCareer,
+            Money: avgMoney,
+          });
+        });
+
+        res.json({ monthlyData: monthlyData.slice(-12) }); // Last 12 months
       } else {
         res.json({ weeklyData: [], monthlyData: [] });
       }
