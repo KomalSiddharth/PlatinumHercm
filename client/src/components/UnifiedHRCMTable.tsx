@@ -3275,7 +3275,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             <div className="flex-1"></div>
             <h3 className="font-bold text-white text-xl drop-shadow-md flex items-center gap-2">
               <TrendingUp className="w-5 h-5" />
-              {format(selectedDate, 'MMMM dd, yyyy')}
+              {format(new Date(selectedDate.getTime() + 7 * 24 * 60 * 60 * 1000), 'MMMM dd, yyyy')}
             </h3>
             <div className="flex-1 flex justify-end items-center gap-2">
               {!isAdminView && (
