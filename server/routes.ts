@@ -2924,6 +2924,38 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
+  // Bulk delete approved emails
+  app.post('/api/admin/approved-emails/bulk-delete', isAdmin, async (req, res) => {
+    try {
+      const { ids } = req.body;
+      
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ message: "IDs must be a non-empty array" });
+      }
+
+      console.log(`[BULK DELETE] Deleting ${ids.length} approved emails`);
+      
+      // Delete each email with cascade
+      for (const id of ids) {
+        const approvedEmail = await storage.getApprovedEmailById(id);
+        if (approvedEmail) {
+          const userEmail = approvedEmail.email;
+          await storage.deleteAllUserData(userEmail);
+          await storage.deleteApprovedEmail(id);
+          console.log(`[BULK DELETE] Deleted email and data for: ${userEmail}`);
+        }
+      }
+
+      res.json({ 
+        success: true, 
+        message: `Successfully deleted ${ids.length} approved emails and their data` 
+      });
+    } catch (error) {
+      console.error("Error bulk deleting approved emails:", error);
+      res.status(500).json({ message: "Failed to bulk delete approved emails" });
+    }
+  });
+
   app.put('/api/admin/approved-emails/:id', isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
@@ -3007,6 +3039,33 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     } catch (error) {
       console.error("Error deleting admin user:", error);
       res.status(500).json({ message: "Failed to delete admin user" });
+    }
+  });
+
+  // Bulk delete team members
+  app.post('/api/admin/team/bulk-delete', isAdmin, async (req, res) => {
+    try {
+      const { ids } = req.body;
+      
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ message: "IDs must be a non-empty array" });
+      }
+
+      console.log(`[BULK DELETE] Deleting ${ids.length} admin users`);
+      
+      // Delete each admin user
+      for (const id of ids) {
+        await storage.deleteAdminUser(id);
+        console.log(`[BULK DELETE] Deleted admin user with ID: ${id}`);
+      }
+
+      res.json({ 
+        success: true, 
+        message: `Successfully deleted ${ids.length} admin users` 
+      });
+    } catch (error) {
+      console.error("Error bulk deleting admin users:", error);
+      res.status(500).json({ message: "Failed to bulk delete admin users" });
     }
   });
 
