@@ -1477,16 +1477,30 @@ export class DatabaseStorage implements IStorage {
   }
 
   async reorderPlatinumStandards(updates: Array<{ id: string; orderIndex: number }>): Promise<void> {
-    // Update each standard's order index
-    for (const update of updates) {
-      await db
+    console.log('[DEBUG] reorderPlatinumStandards - received updates:', JSON.stringify(updates, null, 2));
+    
+    // Update all standards in parallel using Promise.all
+    const updatePromises = updates.map(update => {
+      console.log(`[DEBUG] Creating update promise for standard ${update.id} to orderIndex ${update.orderIndex}`);
+      return db
         .update(platinumStandards)
         .set({ 
           orderIndex: update.orderIndex,
           updatedAt: new Date(),
         })
-        .where(eq(platinumStandards.id, update.id));
-    }
+        .where(eq(platinumStandards.id, update.id))
+        .returning();
+    });
+    
+    console.log(`[DEBUG] Executing ${updatePromises.length} update promises with Promise.all`);
+    const results = await Promise.all(updatePromises);
+    console.log(`[DEBUG] All updates completed. Results count:`, results.length);
+    console.log('[DEBUG] Update results:', results.map((r, i) => ({ 
+      index: i, 
+      id: updates[i].id, 
+      orderIndex: updates[i].orderIndex,
+      updated: r.length > 0 ? 'yes' : 'no'
+    })));
   }
 
   // Emotional Tracker operations

@@ -3850,17 +3850,21 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   // Reorder platinum standards (admin only)
   app.put('/api/admin/platinum-standards/reorder', isAdmin, async (req: any, res) => {
     try {
-
+      console.log('[ROUTE DEBUG] Reorder endpoint called');
       const { updates } = req.body; // Array of { id, orderIndex }
+      console.log('[ROUTE DEBUG] Received body:', JSON.stringify(req.body, null, 2));
       
       if (!Array.isArray(updates)) {
+        console.log('[ROUTE DEBUG] Updates is not an array');
         return res.status(400).json({ message: "Updates must be an array" });
       }
 
+      console.log('[ROUTE DEBUG] Calling storage.reorderPlatinumStandards with updates:', updates);
       await storage.reorderPlatinumStandards(updates);
+      console.log('[ROUTE DEBUG] Reorder completed successfully');
       res.json({ message: "Platinum standards reordered successfully" });
     } catch (error) {
-      console.error("Error reordering platinum standards:", error);
+      console.error("[ROUTE ERROR] Error reordering platinum standards:", error);
       res.status(500).json({ message: "Failed to reorder platinum standards" });
     }
   });

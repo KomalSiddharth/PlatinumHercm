@@ -807,22 +807,32 @@ export default function AdminPanel() {
 
   // Handle drag end for reordering standards
   const handleDragEnd = (event: DragEndEvent, category: string) => {
+    console.log('[FRONTEND DEBUG] handleDragEnd called with category:', category);
+    console.log('[FRONTEND DEBUG] DragEndEvent:', event);
+    
     const { active, over } = event;
 
     if (!over || active.id === over.id) {
+      console.log('[FRONTEND DEBUG] No drag change detected, returning early');
       return;
     }
 
     const categoryStandards = (platinumStandards || []).filter((s: any) => s.category === category);
+    console.log('[FRONTEND DEBUG] Category standards:', categoryStandards.length);
+    
     const oldIndex = categoryStandards.findIndex((s: any) => s.id === active.id);
     const newIndex = categoryStandards.findIndex((s: any) => s.id === over.id);
 
+    console.log('[FRONTEND DEBUG] oldIndex:', oldIndex, 'newIndex:', newIndex);
+
     if (oldIndex === -1 || newIndex === -1) {
+      console.log('[FRONTEND DEBUG] Invalid indices, returning early');
       return;
     }
 
     // Reorder the array
     const reorderedStandards = arrayMove(categoryStandards, oldIndex, newIndex);
+    console.log('[FRONTEND DEBUG] Reordered standards:', reorderedStandards.map((s: any) => ({ id: s.id, text: s.standardText })));
 
     // Create updates with new order indices
     const updates = reorderedStandards.map((standard: any, index: number) => ({
@@ -830,8 +840,10 @@ export default function AdminPanel() {
       orderIndex: index + 1, // Start from 1
     }));
 
+    console.log('[FRONTEND DEBUG] Calling mutation with updates:', updates);
     // Call the mutation to persist the changes
     reorderPlatinumStandardsMutation.mutate(updates);
+    console.log('[FRONTEND DEBUG] Mutation called');
   };
 
   // User Feedback mutations
