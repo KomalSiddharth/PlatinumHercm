@@ -668,7 +668,15 @@ export class DatabaseStorage implements IStorage {
     await db.delete(ratingProgression).where(eq(ratingProgression.userId, userId));
     console.log(`[CASCADE DELETE] Deleted rating progressions`);
     
-    // 10. Finally, delete the user record itself
+    // 10. Delete user persistent assignments
+    await db.delete(userPersistentAssignments).where(eq(userPersistentAssignments.userId, userId));
+    console.log(`[CASCADE DELETE] Deleted user persistent assignments`);
+    
+    // 11. Delete user feedback
+    await db.delete(userFeedback).where(eq(userFeedback.userId, userId));
+    console.log(`[CASCADE DELETE] Deleted user feedback submissions`);
+    
+    // 12. Finally, delete the user record itself
     await db.delete(users).where(eq(users.id, userId));
     console.log(`[CASCADE DELETE] Deleted user record`);
     
