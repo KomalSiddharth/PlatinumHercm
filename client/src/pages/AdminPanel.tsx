@@ -2005,7 +2005,7 @@ export default function AdminPanel() {
                           <td className="px-6 py-4">
                             <select
                               value={feedback.priority}
-                              onChange={(e) => updateFeedbackMutation.mutate({ id: feedback.id, status: feedback.status, adminResponse: feedback.adminResponse, priority: e.target.value })}
+                              onChange={(e) => updateFeedbackMutation.mutate({ id: feedback.id, status: feedback.status, priority: e.target.value })}
                               className="text-sm border rounded px-2 py-1 bg-background"
                               data-testid={`select-priority-${feedback.id}`}
                             >
