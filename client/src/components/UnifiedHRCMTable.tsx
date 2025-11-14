@@ -3995,31 +3995,41 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   (s: any) => s.category === 'health' && s.isActive
                 );
                 
-                return healthStandards.map((standard: any) => (
-                  <div key={standard.id} className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-muted/30 transition-colors">
-                    <Input
-                      type="number"
-                      min="0"
-                      max="7"
-                      value={standardRatings[standard.id] || 0}
-                      onChange={(e) => {
-                        const value = parseInt(e.target.value) || 0;
-                        if (value >= 0 && value <= 7) {
-                          handlePlatinumStandardRatingChange(standard.id, value);
-                        }
-                      }}
-                      disabled={isAdminView || isPastDate}
-                      className="w-16 h-8 text-center shrink-0"
-                      data-testid={`input-rating-${standard.id}`}
-                    />
-                    <span className="text-sm leading-relaxed flex-1 break-words">
-                      {standard.standardText}
-                    </span>
-                    {saveRatingMutation.isPending && (
-                      <Loader2 className="w-4 h-4 animate-spin text-muted-foreground shrink-0" />
-                    )}
-                  </div>
-                ));
+                return (
+                  <>
+                    <div className="flex items-center gap-3 px-3 pb-2">
+                      <div className="w-16 shrink-0 text-center">
+                        <span className="text-xs font-semibold text-muted-foreground">Days</span>
+                      </div>
+                      <div className="flex-1"></div>
+                    </div>
+                    {healthStandards.map((standard: any) => (
+                      <div key={standard.id} className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-muted/30 transition-colors">
+                        <Input
+                          type="number"
+                          min="0"
+                          max="7"
+                          value={standardRatings[standard.id] || 0}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value) || 0;
+                            if (value >= 0 && value <= 7) {
+                              handlePlatinumStandardRatingChange(standard.id, value);
+                            }
+                          }}
+                          disabled={isAdminView || isPastDate}
+                          className="w-16 h-8 text-center shrink-0"
+                          data-testid={`input-rating-${standard.id}`}
+                        />
+                        <span className="text-sm leading-relaxed flex-1 break-words">
+                          {standard.standardText}
+                        </span>
+                        {saveRatingMutation.isPending && (
+                          <Loader2 className="w-4 h-4 animate-spin text-muted-foreground shrink-0" />
+                        )}
+                      </div>
+                    ))}
+                  </>
+                );
               } else {
                 // For other categories, show checkboxes as before
                 const categoryBelief = beliefs.find(b => b.category === platinumStandardsDialog.category);
