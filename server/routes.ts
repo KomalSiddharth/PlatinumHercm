@@ -4099,30 +4099,50 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   // Platinum Standard Ratings - Upsert a rating
   app.post('/api/platinum-standard-ratings', isAuthenticated, async (req: any, res) => {
     try {
+      console.log('[RATING SAVE] ========== POST /api/platinum-standard-ratings ==========');
+      console.log('[RATING SAVE] Request body:', JSON.stringify(req.body));
+      
       const userId = req.user?.claims?.sub || req.session.userEmail;
+      console.log('[RATING SAVE] Extracted userId:', userId);
+      
       if (!userId) {
+        console.log('[RATING SAVE] ❌ No userId - returning 401');
         return res.status(401).json({ message: "User not authenticated" });
       }
 
       let user = await storage.getUser(userId);
       if (!user && typeof userId === 'string' && userId.includes('@')) {
+        console.log('[RATING SAVE] User not found by ID, trying by email:', userId);
         user = await storage.getUserByEmail(userId);
       }
+      
+      console.log('[RATING SAVE] Found user:', user ? `${user.id} (${user.email})` : 'NOT FOUND');
 
       if (!user) {
+        console.log('[RATING SAVE] ❌ User not found - returning 404');
         return res.status(404).json({ message: "User not found" });
       }
 
       const { standardId, dateString, rating } = req.body;
+      console.log('[RATING SAVE] Parameters: standardId=%s, dateString=%s, rating=%s', standardId, dateString, rating);
       
       if (!standardId || !dateString || rating === undefined || rating === null) {
+        console.log('[RATING SAVE] ❌ Missing required fields');
         return res.status(400).json({ message: "Missing required fields" });
       }
 
       if (rating < 0 || rating > 7) {
+        console.log('[RATING SAVE] ❌ Invalid rating value:', rating);
         return res.status(400).json({ message: "Rating must be between 0 and 7" });
       }
 
+      console.log('[RATING SAVE] Calling storage.upsertPlatinumStandardRating with:', {
+        userId: user.id,
+        standardId,
+        dateString,
+        rating
+      });
+      
       const savedRating = await storage.upsertPlatinumStandardRating({
         userId: user.id,
         standardId,
@@ -4130,6 +4150,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         rating,
       });
 
+      console.log('[RATING SAVE] ✅ Successfully saved! Returned:', savedRating);
       console.log(`✅ Saved platinum standard rating: user=${user.id}, standard=${standardId}, date=${dateString}, rating=${rating}`);
       
       // Get the category of the standard to calculate unlock status
@@ -4140,9 +4161,10 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         console.log(`[UNLOCK] Unlock status updated:`, unlockStatus);
       }
       
+      console.log('[RATING SAVE] ========== END ==========');
       res.json(savedRating);
     } catch (error) {
-      console.error("Error saving platinum standard rating:", error);
+      console.error("[RATING SAVE] ❌ FATAL ERROR:", error);
       res.status(500).json({ message: "Failed to save rating" });
     }
   });

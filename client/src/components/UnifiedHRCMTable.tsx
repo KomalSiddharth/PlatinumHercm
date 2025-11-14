@@ -327,8 +327,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   const [hasDataForDate, setHasDataForDate] = useState(false); // 🔥 Track if data exists for current date
   const [weeklyAverageProgress, setWeeklyAverageProgress] = useState<number>(0);
   
+  // CRITICAL FIX: Compute dateString from selectedDate (single source of truth)
+  const dateString = format(selectedDate, 'yyyy-MM-dd');
+  
   // Check if viewing a PAST date (previous dates are read-only, current & future are editable)
-  const isPastDate = currentDateStr < today;
+  const isPastDate = dateString < today;
   const lastFocusedButton = useRef<HTMLButtonElement | null>(null);
   const hasAutoProgressed = useRef<Set<number>>(new Set()); // Track which weeks have been auto-progressed
   const { toast} = useToast();
@@ -358,38 +361,38 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     enabled: true,
   });
 
-  // Fetch platinum standard ratings for current date
+  // Fetch platinum standard ratings for current date (for BOTH dialog AND progress)
+  // dateString is defined above (line 334) - single source of truth!
   const { data: savedRatings = [], refetch: refetchRatings } = useQuery({
-    queryKey: ['/api/platinum-standard-ratings', currentDateStr],
-    enabled: !!currentDateStr,
+    queryKey: ['/api/platinum-standard-ratings', dateString],
+    enabled: !!dateString,
+    refetchInterval: 5000, // Poll to catch updates from other tabs/devices
   });
 
   // Update local ratings state when saved ratings are loaded
+  // CRITICAL FIX: Always sync state with savedRatings (even if empty!)
   useEffect(() => {
-    if (savedRatings.length > 0) {
-      const ratingsMap: Record<string, number> = {};
-      savedRatings.forEach((r: any) => {
-        ratingsMap[r.standardId] = r.rating;
-      });
-      setStandardRatings(ratingsMap);
-    }
+    const ratingsMap: Record<string, number> = {};
+    savedRatings.forEach((r: any) => {
+      ratingsMap[r.standardId] = r.rating;
+    });
+    setStandardRatings(ratingsMap); // This clears state if savedRatings is empty
   }, [savedRatings]);
 
   // Mutation to save platinum standard rating
   const saveRatingMutation = useMutation({
     mutationFn: async ({ standardId, rating }: { standardId: string; rating: number }) => {
-      return await apiRequest('/api/platinum-standard-ratings', {
-        method: 'POST',
-        body: JSON.stringify({
-          standardId,
-          dateString: currentDateStr,
-          rating,
-        }),
-        headers: { 'Content-Type': 'application/json' },
+      console.log(`[RATING SAVE] Saving rating for standard ${standardId} on ${dateString}: ${rating}`);
+      // CRITICAL FIX: apiRequest takes 3 params (url, method, data), not options object!
+      return await apiRequest('/api/platinum-standard-ratings', 'POST', {
+        standardId,
+        dateString: dateString,
+        rating,
       });
     },
     onSuccess: () => {
-      // Invalidate ALL platinum standard rating queries for current date
+      console.log(`[RATING SAVE] Success! Invalidating queries for ${dateString}`);
+      // Invalidate ALL platinum standard rating queries
       // This ensures BOTH the dialog ratings AND progress calculation update!
       queryClient.invalidateQueries({ 
         predicate: (query) => {
@@ -630,19 +633,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     refetchIntervalInBackground: true, // Keep refetching even when tab is not focused
   });
 
-  // Fetch platinum standard ratings for the current date (for progress calculation)
-  const dateString = format(selectedDate, 'yyyy-MM-dd');
-  const { data: platinumStandardRatings = [] } = useQuery<any[]>({
-    queryKey: ['/api/platinum-standard-ratings', dateString],
-    queryFn: async () => {
-      const response = await fetch(`/api/platinum-standard-ratings/${dateString}`, {
-        credentials: 'include',
-      });
-      if (!response.ok) return [];
-      return response.json();
-    },
-    refetchInterval: 5000, // Poll every 5 seconds to catch updates
-  });
+  // REMOVED DUPLICATE QUERY: Now using savedRatings for BOTH dialog AND progress
+  // This ensures perfect synchronization between dialog display and progress calculation
 
   // Fetch persistent assignments (user-level, date-independent)
   // In admin view, fetch for the specific user being viewed
@@ -3261,10 +3253,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 {/* Current Week - Progress */}
                 <TableCell className="p-2 bg-rose-100 dark:bg-rose-900/40 border-r align-top text-center">
                   <Badge 
-                    className={`${getProgressColor(calculateStandardsProgress(belief.category, platinumStandardsData, platinumStandardRatings))} font-semibold text-xs`}
+                    className={`${getProgressColor(calculateStandardsProgress(belief.category, platinumStandardsData, savedRatings))} font-semibold text-xs`}
                     data-testid={`badge-progress-${belief.category.toLowerCase()}`}
                   >
-                    {calculateStandardsProgress(belief.category, platinumStandardsData, platinumStandardRatings)}%
+                    {calculateStandardsProgress(belief.category, platinumStandardsData, savedRatings)}%
                   </Badge>
                 </TableCell>
               </TableRow>
