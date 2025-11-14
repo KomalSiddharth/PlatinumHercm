@@ -804,10 +804,11 @@ export default function AdminPanel() {
     },
     onSuccess: (data) => {
       console.log('[MUTATION] onSuccess called with data:', data);
+      // SMOOTH UX FIX: Don't refetch immediately - let optimistic update stay
+      // Just invalidate queries so next natural fetch will get fresh data
       queryClient.invalidateQueries({ queryKey: ['/api/admin/platinum-standards'] });
       queryClient.invalidateQueries({ queryKey: ['/api/platinum-standards'] });
-      queryClient.refetchQueries({ queryKey: ['/api/platinum-standards'] });
-      toast({ title: "Success", description: "Standards reordered successfully" });
+      // No toast - keep it silent for smooth drag-drop experience
     },
     onError: (error: any) => {
       console.error('[MUTATION] onError called with error:', error);

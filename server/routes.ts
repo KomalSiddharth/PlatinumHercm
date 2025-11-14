@@ -3733,6 +3733,15 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   // Get all platinum standards (admin view)
   app.get('/api/admin/platinum-standards', isAdmin, async (req, res) => {
     try {
+      // CRITICAL FIX: Disable HTTP caching to prevent 304 responses after reordering
+      res.set({
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'Surrogate-Control': 'no-store',
+        'ETag': `"plat-${Date.now()}"` // Unique ETag to bust cache
+      });
+      
       const standards = await storage.getAllPlatinumStandards();
       res.json(standards);
     } catch (error) {
