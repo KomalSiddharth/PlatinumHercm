@@ -199,6 +199,29 @@ const calculateProgress = (checklist: ChecklistItem[]): number => {
   return Math.round(checklistProgress);
 };
 
+// Calculate progress based on platinum standards rated 7
+const calculateStandardsProgress = (
+  category: string,
+  platinumStandards: any[],
+  ratings: any[]
+): number => {
+  // Filter standards for this category
+  const categoryStandards = platinumStandards.filter(
+    (s) => s.category.toLowerCase() === category.toLowerCase()
+  );
+  
+  if (categoryStandards.length === 0) return 0;
+  
+  // Count how many standards are rated 7
+  const perfectRatings = categoryStandards.filter((standard) => {
+    const rating = ratings.find((r) => r.standardId === standard.id);
+    return rating && rating.rating === 7;
+  }).length;
+  
+  // Calculate percentage
+  return Math.round((perfectRatings / categoryStandards.length) * 100);
+};
+
 const getProgressColor = (progress: number) => {
   if (progress >= 80) return 'bg-gradient-to-r from-emerald-green to-golden-yellow text-white emerald-glow smooth-transition';
   if (progress >= 50) return 'bg-gradient-to-r from-golden-yellow to-coral-red text-white golden-glow smooth-transition';
@@ -590,6 +613,20 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     refetchInterval: 5000, // Auto-refresh every 5 seconds for instant admin updates
     refetchOnMount: true, // Always refetch when component mounts
     refetchIntervalInBackground: true, // Keep refetching even when tab is not focused
+  });
+
+  // Fetch platinum standard ratings for the current date (for progress calculation)
+  const dateString = format(selectedDate, 'yyyy-MM-dd');
+  const { data: platinumStandardRatings = [] } = useQuery<any[]>({
+    queryKey: ['/api/platinum-standard-ratings', dateString],
+    queryFn: async () => {
+      const response = await fetch(`/api/platinum-standard-ratings/${dateString}`, {
+        credentials: 'include',
+      });
+      if (!response.ok) return [];
+      return response.json();
+    },
+    refetchInterval: 5000, // Poll every 5 seconds to catch updates
   });
 
   // Fetch persistent assignments (user-level, date-independent)
@@ -3209,10 +3246,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 {/* Current Week - Progress */}
                 <TableCell className="p-2 bg-rose-100 dark:bg-rose-900/40 border-r align-top text-center">
                   <Badge 
-                    className={`${getProgressColor(calculateProgress(belief.checklist))} font-semibold text-xs`}
+                    className={`${getProgressColor(calculateStandardsProgress(belief.category, platinumStandardsData, platinumStandardRatings))} font-semibold text-xs`}
                     data-testid={`badge-progress-${belief.category.toLowerCase()}`}
                   >
-                    {calculateProgress(belief.checklist)}%
+                    {calculateStandardsProgress(belief.category, platinumStandardsData, platinumStandardRatings)}%
                   </Badge>
                 </TableCell>
               </TableRow>
@@ -3431,10 +3468,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 {/* Next Week - Progress */}
                 <TableCell className="p-2 bg-blue-100 dark:bg-blue-900/40 border-r align-top text-center">
                   <Badge 
-                    className={`${getProgressColor(calculateProgress(belief.checklist))} font-semibold text-xs`}
+                    className={`${getProgressColor(calculateStandardsProgress(belief.category, platinumStandardsData, platinumStandardRatings))} font-semibold text-xs`}
                     data-testid={`badge-progress-next-${belief.category.toLowerCase()}`}
                   >
-                    {calculateProgress(belief.checklist)}%
+                    {calculateStandardsProgress(belief.category, platinumStandardsData, platinumStandardRatings)}%
                   </Badge>
                 </TableCell>
 
