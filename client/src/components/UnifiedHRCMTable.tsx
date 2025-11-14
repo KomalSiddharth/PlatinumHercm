@@ -2914,22 +2914,47 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           <TableBody>
             {beliefs.map((belief) => (
               <TableRow key={belief.category} className="border-b h-[85px]" data-testid={`row-${belief.category.toLowerCase()}`}>
-                {/* Category Column */}
-                <TableCell className="text-xs sm:text-sm font-semibold border-r bg-muted/20 align-top px-1.5 sm:px-2 py-1.5 sm:py-2 text-center" data-testid={`cell-category-${belief.category.toLowerCase()}`}>
-                  <Badge 
-                    variant="outline" 
-                    className="font-semibold text-[10px] sm:text-xs px-1 sm:px-2 cursor-pointer hover:bg-primary/10 transition-colors"
-                    onClick={() => {
-                      setPlatinumStandardsDialog({
-                        open: true,
-                        category: belief.category,
-                        items: belief.checklist
-                      });
-                    }}
-                    data-testid={`badge-category-${belief.category.toLowerCase()}`}
-                  >
-                    {belief.category}
-                  </Badge>
+                {/* HRCM Standards Column - Days Rating */}
+                <TableCell className="font-semibold border-r bg-muted/20 align-top px-1.5 sm:px-2 py-1.5 sm:py-2" data-testid={`cell-category-${belief.category.toLowerCase()}`}>
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="text-[10px] sm:text-xs font-bold text-muted-foreground mb-1">Days</div>
+                    <div className="flex gap-0.5 flex-wrap justify-center">
+                      {[0, 1, 2, 3, 4, 5, 6, 7].map((rating) => (
+                        <button
+                          key={rating}
+                          onClick={() => {
+                            // Handle days rating change
+                            console.log(`Days rating for ${belief.category}: ${rating}`);
+                          }}
+                          disabled={isPastDate || isAdminView}
+                          className={`
+                            w-6 h-6 sm:w-7 sm:h-7 text-[10px] sm:text-xs font-semibold rounded border transition-all
+                            ${(belief.currentRating || 0) >= rating 
+                              ? 'bg-primary text-primary-foreground border-primary' 
+                              : 'bg-background border-muted-foreground/30 hover:border-primary/50'}
+                            ${isPastDate || isAdminView ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
+                          `}
+                          data-testid={`button-days-${belief.category.toLowerCase()}-${rating}`}
+                        >
+                          {rating}
+                        </button>
+                      ))}
+                    </div>
+                    <Badge 
+                      variant="outline" 
+                      className="font-semibold text-[9px] sm:text-[10px] px-1 py-0 cursor-pointer hover:bg-primary/10 transition-colors mt-1"
+                      onClick={() => {
+                        setPlatinumStandardsDialog({
+                          open: true,
+                          category: belief.category,
+                          items: belief.checklist
+                        });
+                      }}
+                      data-testid={`badge-category-${belief.category.toLowerCase()}`}
+                    >
+                      {belief.category}
+                    </Badge>
+                  </div>
                 </TableCell>
 
                 {/* Current Week - Rating */}
@@ -3139,22 +3164,47 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           <TableBody>
             {beliefs.map((belief) => (
               <TableRow key={belief.category} className="border-b h-[85px]" data-testid={`row-next-${belief.category.toLowerCase()}`}>
-                {/* Category Column */}
-                <TableCell className="font-semibold border-r bg-muted/20 align-top max-h-[85px] overflow-hidden text-center">
-                  <Badge 
-                    variant="outline" 
-                    className="font-semibold cursor-pointer hover:bg-primary/10 transition-colors"
-                    onClick={() => {
-                      setPlatinumStandardsDialog({
-                        open: true,
-                        category: belief.category,
-                        items: belief.checklist
-                      });
-                    }}
-                    data-testid={`badge-next-category-${belief.category.toLowerCase()}`}
-                  >
-                    {belief.category}
-                  </Badge>
+                {/* HRCM Standards Column - Days Rating */}
+                <TableCell className="font-semibold border-r bg-muted/20 align-top px-1.5 sm:px-2 py-1.5 sm:py-2" data-testid={`cell-next-category-${belief.category.toLowerCase()}`}>
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="text-[10px] sm:text-xs font-bold text-muted-foreground mb-1">Days</div>
+                    <div className="flex gap-0.5 flex-wrap justify-center">
+                      {[0, 1, 2, 3, 4, 5, 6, 7].map((rating) => (
+                        <button
+                          key={rating}
+                          onClick={() => {
+                            // Handle days rating change
+                            console.log(`Next Week Days rating for ${belief.category}: ${rating}`);
+                          }}
+                          disabled={isPastDate || isAdminView}
+                          className={`
+                            w-6 h-6 sm:w-7 sm:h-7 text-[10px] sm:text-xs font-semibold rounded border transition-all
+                            ${(belief.targetRating || 0) >= rating 
+                              ? 'bg-primary text-primary-foreground border-primary' 
+                              : 'bg-background border-muted-foreground/30 hover:border-primary/50'}
+                            ${isPastDate || isAdminView ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
+                          `}
+                          data-testid={`button-next-days-${belief.category.toLowerCase()}-${rating}`}
+                        >
+                          {rating}
+                        </button>
+                      ))}
+                    </div>
+                    <Badge 
+                      variant="outline" 
+                      className="font-semibold text-[9px] sm:text-[10px] px-1 py-0 cursor-pointer hover:bg-primary/10 transition-colors mt-1"
+                      onClick={() => {
+                        setPlatinumStandardsDialog({
+                          open: true,
+                          category: belief.category,
+                          items: belief.checklist
+                        });
+                      }}
+                      data-testid={`badge-next-category-${belief.category.toLowerCase()}`}
+                    >
+                      {belief.category}
+                    </Badge>
+                  </div>
                 </TableCell>
 
                 {/* Next Week - Rating (Auto-calculated: Current + 1, Locked) */}
