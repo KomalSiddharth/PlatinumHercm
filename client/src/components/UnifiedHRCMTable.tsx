@@ -671,166 +671,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
   const historicalSnapshot = getSnapshotForDate();
 
-  useEffect(() => {
-    console.log('[HISTORY EFFECT] viewingHistory:', viewingHistory, 'historicalSnapshot:', !!historicalSnapshot);
-    
-    // ONLY run this effect when viewing history (NOT today)
-    if (!viewingHistory) {
-      console.log('[HISTORY EFFECT] ⏸️ Not viewing history - skipping');
-      return;
-    }
-    
-    // If snapshot exists, convert database fields to beliefs array format
-    if (historicalSnapshot) {
-      const convertedBeliefs: HRCMBelief[] = [
-          {
-            category: 'Health',
-            currentRating: historicalSnapshot.currentH || 0,
-            problems: historicalSnapshot.healthProblems || '',
-            currentFeelings: historicalSnapshot.healthCurrentFeelings || '',
-            currentBelief: historicalSnapshot.healthCurrentBelief || '',
-            currentActions: historicalSnapshot.healthCurrentActions || '',
-            targetRating: historicalSnapshot.targetH || 0,
-            result: historicalSnapshot.healthResult || '',
-            nextFeelings: historicalSnapshot.healthNextFeelings || '',
-            nextWeekTarget: historicalSnapshot.healthNextWeekTarget || '',
-            nextActions: historicalSnapshot.healthNextActions || '',
-            problemsChecklist: historicalSnapshot.healthProblemsChecklist || [],
-            feelingsCurrentChecklist: historicalSnapshot.healthFeelingsCurrentChecklist || [],
-            beliefsCurrentChecklist: historicalSnapshot.healthBeliefsCurrentChecklist || [],
-            actionsCurrentChecklist: historicalSnapshot.healthActionsCurrentChecklist || [],
-            resultChecklist: historicalSnapshot.healthResultChecklist || [],
-            feelingsChecklist: historicalSnapshot.healthFeelingsChecklist || [],
-            beliefsChecklist: historicalSnapshot.healthBeliefsChecklist || [],
-            actionsChecklist: historicalSnapshot.healthActionsChecklist || [],
-            checklist: historicalSnapshot.healthChecklist || [],
-            assignment: historicalSnapshot.healthAssignment || { courses: [], lessons: [] }
-          },
-          {
-            category: 'Relationship',
-            currentRating: historicalSnapshot.currentE || 0,
-            problems: historicalSnapshot.relationshipProblems || '',
-            currentFeelings: historicalSnapshot.relationshipCurrentFeelings || '',
-            currentBelief: historicalSnapshot.relationshipCurrentBelief || '',
-            currentActions: historicalSnapshot.relationshipCurrentActions || '',
-            targetRating: historicalSnapshot.targetE || 0,
-            result: historicalSnapshot.relationshipResult || '',
-            nextFeelings: historicalSnapshot.relationshipNextFeelings || '',
-            nextWeekTarget: historicalSnapshot.relationshipNextWeekTarget || '',
-            nextActions: historicalSnapshot.relationshipNextActions || '',
-            problemsChecklist: historicalSnapshot.relationshipProblemsChecklist || [],
-            feelingsCurrentChecklist: historicalSnapshot.relationshipFeelingsCurrentChecklist || [],
-            beliefsCurrentChecklist: historicalSnapshot.relationshipBeliefsCurrentChecklist || [],
-            actionsCurrentChecklist: historicalSnapshot.relationshipActionsCurrentChecklist || [],
-            resultChecklist: historicalSnapshot.relationshipResultChecklist || [],
-            feelingsChecklist: historicalSnapshot.relationshipFeelingsChecklist || [],
-            beliefsChecklist: historicalSnapshot.relationshipBeliefsChecklist || [],
-            actionsChecklist: historicalSnapshot.relationshipActionsChecklist || [],
-            checklist: historicalSnapshot.relationshipChecklist || [],
-            assignment: historicalSnapshot.relationshipAssignment || { courses: [], lessons: [] }
-          },
-          {
-            category: 'Career',
-            currentRating: historicalSnapshot.currentR || 0,
-            problems: historicalSnapshot.careerProblems || '',
-            currentFeelings: historicalSnapshot.careerCurrentFeelings || '',
-            currentBelief: historicalSnapshot.careerCurrentBelief || '',
-            currentActions: historicalSnapshot.careerCurrentActions || '',
-            targetRating: historicalSnapshot.targetR || 0,
-            result: historicalSnapshot.careerResult || '',
-            nextFeelings: historicalSnapshot.careerNextFeelings || '',
-            nextWeekTarget: historicalSnapshot.careerNextWeekTarget || '',
-            nextActions: historicalSnapshot.careerNextActions || '',
-            problemsChecklist: historicalSnapshot.careerProblemsChecklist || [],
-            feelingsCurrentChecklist: historicalSnapshot.careerFeelingsCurrentChecklist || [],
-            beliefsCurrentChecklist: historicalSnapshot.careerBeliefsCurrentChecklist || [],
-            actionsCurrentChecklist: historicalSnapshot.careerActionsCurrentChecklist || [],
-            resultChecklist: historicalSnapshot.careerResultChecklist || [],
-            feelingsChecklist: historicalSnapshot.careerFeelingsChecklist || [],
-            beliefsChecklist: historicalSnapshot.careerBeliefsChecklist || [],
-            actionsChecklist: historicalSnapshot.careerActionsChecklist || [],
-            checklist: historicalSnapshot.careerChecklist || [],
-            assignment: historicalSnapshot.careerAssignment || { courses: [], lessons: [] }
-          },
-          {
-            category: 'Money',
-            currentRating: historicalSnapshot.currentC || 0,
-            problems: historicalSnapshot.moneyProblems || '',
-            currentFeelings: historicalSnapshot.moneyCurrentFeelings || '',
-            currentBelief: historicalSnapshot.moneyCurrentBelief || '',
-            currentActions: historicalSnapshot.moneyCurrentActions || '',
-            targetRating: historicalSnapshot.targetC || 0,
-            result: historicalSnapshot.moneyResult || '',
-            nextFeelings: historicalSnapshot.moneyNextFeelings || '',
-            nextWeekTarget: historicalSnapshot.moneyNextWeekTarget || '',
-            nextActions: historicalSnapshot.moneyNextActions || '',
-            problemsChecklist: historicalSnapshot.moneyProblemsChecklist || [],
-            feelingsCurrentChecklist: historicalSnapshot.moneyFeelingsCurrentChecklist || [],
-            beliefsCurrentChecklist: historicalSnapshot.moneyBeliefsCurrentChecklist || [],
-            actionsCurrentChecklist: historicalSnapshot.moneyActionsCurrentChecklist || [],
-            resultChecklist: historicalSnapshot.moneyResultChecklist || [],
-            feelingsChecklist: historicalSnapshot.moneyFeelingsChecklist || [],
-            beliefsChecklist: historicalSnapshot.moneyBeliefsChecklist || [],
-            actionsChecklist: historicalSnapshot.moneyActionsChecklist || [],
-            checklist: historicalSnapshot.moneyChecklist || [],
-            assignment: historicalSnapshot.moneyAssignment || { courses: [], lessons: [] }
-          }
-        ];
-        
-        // SMART MERGE: Combine saved checklist with fresh platinum standards for historical dates too
-        // This ensures platinum standards persist across dates and new standards are added automatically
-        const mergedBeliefs = convertedBeliefs.map(belief => {
-          // Get fresh platinum standards from database
-          const freshStandards = getPlatinumStandardsForCategory(belief.category);
-          
-          if (belief.checklist && Array.isArray(belief.checklist) && belief.checklist.length > 0) {
-            // SMART MERGE: preserve checked states for existing items, add new items
-            const existingChecklist = belief.checklist;
-            const mergedChecklist = freshStandards.map(freshItem => {
-              const existing = existingChecklist.find(e => e.id === freshItem.id);
-              return existing ? { ...freshItem, checked: existing.checked } : freshItem;
-            });
-            
-            return {
-              ...belief,
-              checklist: mergedChecklist
-            };
-          } else {
-            // No saved checklist - use fresh standards
-            return {
-              ...belief,
-              checklist: freshStandards
-            };
-          }
-        });
-        
-        setBeliefs(mergedBeliefs);
-        
-        // Extract and combine assignments from all categories into unified list
-        const combinedAssignments: AssignmentLesson[] = [];
-        mergedBeliefs.forEach(belief => {
-          if (belief.assignment && belief.assignment.lessons) {
-            belief.assignment.lessons.forEach((lesson: any) => {
-              combinedAssignments.push({
-                id: lesson.id,
-                courseId: lesson.courseId,
-                courseName: lesson.courseName,
-                lessonName: lesson.lessonName,
-                url: lesson.url,
-                completed: lesson.completed || false,
-                source: lesson.source || 'user',
-                hrcmArea: belief.category.toLowerCase()
-              });
-            });
-          }
-        });
-        setUnifiedAssignment(combinedAssignments);
-    } else {
-      // No snapshot found (future date or no data for this date) - show blank
-      setBeliefs(getBlankBeliefs());
-      setUnifiedAssignment([]);
-    }
-  }, [viewingHistory, historicalSnapshot, selectedHistoryDate, allWeeksData]);
+  // 🔥 REMOVED OLD FRIDAY SNAPSHOT EFFECT - Was overwriting date-specific platinum standards!
+  // The weekData effect below now handles ALL dates (both current AND historical) correctly
+  // This fixes the bug where platinum standards weren't showing checked state for previous dates
 
   useEffect(() => {
     console.log('[WEEKDATA EFFECT] weekData:', weekData);
@@ -3225,7 +3068,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                           <Checkbox
                             checked={item.checked}
                             onCheckedChange={() => handleChecklistToggle(belief.category, item.id)}
-                            disabled={(viewingHistory && hasDataForDate) || isAdminView}
+                            disabled={isAdminView}
                             data-testid={`checkbox-${belief.category.toLowerCase()}-${item.id}`}
                             className="h-3 w-3"
                           />
@@ -3557,7 +3400,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                           <Checkbox
                             checked={item.checked}
                             onCheckedChange={() => handleChecklistToggle(belief.category, item.id)}
-                            disabled={(viewingHistory && hasDataForDate) || isAdminView}
+                            disabled={isAdminView}
                             data-testid={`checkbox-next-${belief.category.toLowerCase()}-${item.id}`}
                             className="h-3 w-3"
                           />
@@ -4163,7 +4006,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   <Checkbox
                     checked={item.checked}
                     onCheckedChange={() => handleChecklistToggle(platinumStandardsDialog.category, item.id)}
-                    disabled={(viewingHistory && hasDataForDate) || isAdminView}
+                    disabled={isAdminView}
                     data-testid={`checkbox-dialog-standards-${platinumStandardsDialog.category.toLowerCase()}-${item.id}`}
                     className="h-5 w-5 mt-0.5 shrink-0"
                   />
