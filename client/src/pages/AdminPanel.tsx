@@ -8,23 +8,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useWebSocket } from '@/hooks/useWebSocket';
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { 
   Users, 
   Upload, 
@@ -45,11 +28,12 @@ import {
   Pencil,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
+  ChevronDown,
   Check,
   ChevronsUpDown,
   Moon,
-  Sun,
-  GripVertical
+  Sun
 } from 'lucide-react';
 import type { ApprovedEmail, AdminUser, AccessLog } from '@shared/schema';
 import {
@@ -80,7 +64,7 @@ import UserDetailView from '@/components/UserDetailView';
 import UserActivitySearch from '@/components/UserActivitySearch';
 import AdminUserDashboardViewer from '@/components/AdminUserDashboardViewer';
 
-interface SortableStandardItemProps {
+interface StandardItemProps {
   standard: any;
   index: number;
   category: string;
@@ -89,9 +73,12 @@ interface SortableStandardItemProps {
   setSelectedStandardIds: (ids: Set<string>) => void;
   setEditingStandard: (standard: any) => void;
   deletePlatinumStandardMutation: any;
+  moveUpMutation: any;
+  moveDownMutation: any;
+  totalInCategory: number;
 }
 
-function SortableStandardItem({
+function StandardItem({
   standard,
   index,
   category,
@@ -100,26 +87,15 @@ function SortableStandardItem({
   setSelectedStandardIds,
   setEditingStandard,
   deletePlatinumStandardMutation,
-}: SortableStandardItemProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: standard.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
+  moveUpMutation,
+  moveDownMutation,
+  totalInCategory,
+}: StandardItemProps) {
+  const isFirst = index === 0;
+  const isLast = index === totalInCategory - 1;
 
   return (
     <div
-      ref={setNodeRef}
-      style={style}
       className={`flex items-center gap-3 p-4 rounded-lg group border-l-4 ${
         category === 'health' ? 'border-l-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20 hover:bg-emerald-100/50 dark:hover:bg-emerald-950/30' :
         category === 'relationship' ? 'border-l-pink-500 bg-pink-50/50 dark:bg-pink-950/20 hover:bg-pink-100/50 dark:hover:bg-pink-950/30' :
@@ -128,14 +104,28 @@ function SortableStandardItem({
       } shadow-sm transition-colors`}
       data-testid={`standard-${category}-${index}`}
     >
-      {/* Drag Handle */}
-      <div
-        {...attributes}
-        {...listeners}
-        className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground transition-colors"
-        data-testid={`drag-handle-${standard.id}`}
-      >
-        <GripVertical className="w-5 h-5" />
+      {/* Up/Down Arrows */}
+      <div className="flex flex-col gap-1">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => moveUpMutation.mutate(standard.id)}
+          disabled={isFirst || moveUpMutation.isPending}
+          className="h-6 w-6 hover:bg-blue-50 dark:hover:bg-blue-950 disabled:opacity-20"
+          data-testid={`button-move-up-${standard.id}`}
+        >
+          <ChevronUp className="w-4 h-4 text-blue-600" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => moveDownMutation.mutate(standard.id)}
+          disabled={isLast || moveDownMutation.isPending}
+          className="h-6 w-6 hover:bg-blue-50 dark:hover:bg-blue-950 disabled:opacity-20"
+          data-testid={`button-move-down-${standard.id}`}
+        >
+          <ChevronDown className="w-4 h-4 text-blue-600" />
+        </Button>
       </div>
 
       <Checkbox
@@ -258,14 +248,6 @@ export default function AdminPanel() {
   const [newStandardText, setNewStandardText] = useState('');
   const [editingStandard, setEditingStandard] = useState<any>(null);
   const [selectedStandardIds, setSelectedStandardIds] = useState<Set<string>>(new Set());
-  
-  // DnD Kit sensors for drag and drop
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
   
   // Dark/Light mode state
   const [darkMode, setDarkMode] = useState(() => {
@@ -774,6 +756,34 @@ export default function AdminPanel() {
     }
   });
 
+  const moveUpMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return apiRequest(`/api/admin/platinum-standards/${id}/move-up`, 'POST');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/platinum-standards'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/platinum-standards'] });
+      toast({ title: "Success", description: "Standard moved up" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message || "Failed to move standard", variant: "destructive" });
+    }
+  });
+
+  const moveDownMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return apiRequest(`/api/admin/platinum-standards/${id}/move-down`, 'POST');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/platinum-standards'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/platinum-standards'] });
+      toast({ title: "Success", description: "Standard moved down" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message || "Failed to move standard", variant: "destructive" });
+    }
+  });
+
   const bulkDeletePlatinumStandardsMutation = useMutation({
     mutationFn: async (ids: string[]) => {
       return apiRequest('/api/admin/platinum-standards/bulk-delete', 'POST', { ids });
@@ -789,106 +799,6 @@ export default function AdminPanel() {
       toast({ title: "Error", description: error.message || "Failed to delete standards", variant: "destructive" });
     }
   });
-
-  const reorderPlatinumStandardsMutation = useMutation({
-    mutationFn: async (updates: Array<{ id: string; orderIndex: number }>) => {
-      console.log('[MUTATION] Starting reorder mutation with updates:', updates);
-      try {
-        const result = await apiRequest('/api/admin/platinum-standards/reorder', 'PUT', { updates });
-        console.log('[MUTATION] Reorder mutation SUCCESS, result:', result);
-        return result;
-      } catch (error) {
-        console.error('[MUTATION] Reorder mutation FAILED:', error);
-        throw error;
-      }
-    },
-    onSuccess: (data) => {
-      console.log('[MUTATION] onSuccess called with data:', data);
-      // SMOOTH UX FIX: Don't refetch immediately - let optimistic update stay
-      // Just invalidate queries so next natural fetch will get fresh data
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/platinum-standards'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/platinum-standards'] });
-      // No toast - keep it silent for smooth drag-drop experience
-    },
-    onError: (error: any) => {
-      console.error('[MUTATION] onError called with error:', error);
-      toast({ title: "Error", description: error.message || "Failed to reorder standards", variant: "destructive" });
-      // Refetch to restore original order
-      queryClient.refetchQueries({ queryKey: ['/api/admin/platinum-standards'] });
-    }
-  });
-
-  // Handle drag end for reordering standards
-  const handleDragEnd = (event: DragEndEvent, category: string) => {
-    console.log('[FRONTEND DEBUG] handleDragEnd called with category:', category);
-    console.log('[FRONTEND DEBUG] DragEndEvent:', event);
-    
-    const { active, over } = event;
-
-    if (!over || active.id === over.id) {
-      console.log('[FRONTEND DEBUG] No drag change detected, returning early');
-      return;
-    }
-
-    const categoryStandards = (platinumStandards || []).filter((s: any) => s.category === category);
-    console.log('[FRONTEND DEBUG] Category standards:', categoryStandards.length);
-    
-    const oldIndex = categoryStandards.findIndex((s: any) => s.id === active.id);
-    const newIndex = categoryStandards.findIndex((s: any) => s.id === over.id);
-
-    console.log('[FRONTEND DEBUG] oldIndex:', oldIndex, 'newIndex:', newIndex);
-
-    if (oldIndex === -1 || newIndex === -1) {
-      console.log('[FRONTEND DEBUG] Invalid indices, returning early');
-      return;
-    }
-
-    // Reorder the array
-    const reorderedStandards = arrayMove(categoryStandards, oldIndex, newIndex);
-    console.log('[FRONTEND DEBUG] Reordered standards:', reorderedStandards.map((s: any) => ({ id: s.id, text: s.standardText })));
-
-    // Create updates with new order indices
-    const updates = reorderedStandards.map((standard: any, index: number) => ({
-      id: standard.id,
-      orderIndex: index + 1, // Start from 1
-    }));
-
-    console.log('[FRONTEND DEBUG] Calling mutation with updates:', updates);
-    
-    // OPTIMISTIC UPDATE: Actually reorder the items in the array
-    queryClient.setQueryData(['/api/admin/platinum-standards'], (oldData: any) => {
-      if (!oldData) return oldData;
-      
-      console.log('[OPTIMISTIC] Updating query data optimistically');
-      
-      // Step 1: Remove all items of this category from the array
-      const otherCategories = oldData.filter((s: any) => s.category !== category);
-      
-      // Step 2: Add the reordered items with updated orderIndex
-      const updatedReorderedItems = reorderedStandards.map((standard: any, index: number) => ({
-        ...standard,
-        orderIndex: index + 1
-      }));
-      
-      // Step 3: Combine and sort by category and orderIndex
-      const combined = [...otherCategories, ...updatedReorderedItems];
-      const sorted = combined.sort((a: any, b: any) => {
-        // First sort by category
-        if (a.category !== b.category) {
-          return a.category.localeCompare(b.category);
-        }
-        // Then by orderIndex within category
-        return (a.orderIndex || 0) - (b.orderIndex || 0);
-      });
-      
-      console.log('[OPTIMISTIC] Array reordered successfully!');
-      return sorted;
-    });
-    
-    // Call the mutation to persist the changes
-    reorderPlatinumStandardsMutation.mutate(updates);
-    console.log('[FRONTEND DEBUG] Mutation called');
-  };
 
   // User Feedback mutations
   const updateFeedbackMutation = useMutation({
@@ -3202,32 +3112,24 @@ export default function AdminPanel() {
                               <p className="text-xs text-muted-foreground mt-1">Add your first platinum standard above</p>
                             </div>
                           ) : (
-                            <DndContext
-                              sensors={sensors}
-                              collisionDetection={closestCenter}
-                              onDragEnd={(event) => handleDragEnd(event, category)}
-                            >
-                              <SortableContext
-                                items={categoryStandards.map((s: any) => s.id)}
-                                strategy={verticalListSortingStrategy}
-                              >
-                                <div className="space-y-3">
-                                  {categoryStandards.map((standard: any, index: number) => (
-                                    <SortableStandardItem
-                                      key={standard.id}
-                                      standard={standard}
-                                      index={index}
-                                      category={category}
-                                      categoryConfig={categoryConfig}
-                                      selectedStandardIds={selectedStandardIds}
-                                      setSelectedStandardIds={setSelectedStandardIds}
-                                      setEditingStandard={setEditingStandard}
-                                      deletePlatinumStandardMutation={deletePlatinumStandardMutation}
-                                    />
-                                  ))}
-                                </div>
-                              </SortableContext>
-                            </DndContext>
+                            <div className="space-y-3">
+                              {categoryStandards.map((standard: any, index: number) => (
+                                <StandardItem
+                                  key={standard.id}
+                                  standard={standard}
+                                  index={index}
+                                  category={category}
+                                  categoryConfig={categoryConfig}
+                                  selectedStandardIds={selectedStandardIds}
+                                  setSelectedStandardIds={setSelectedStandardIds}
+                                  setEditingStandard={setEditingStandard}
+                                  deletePlatinumStandardMutation={deletePlatinumStandardMutation}
+                                  moveUpMutation={moveUpMutation}
+                                  moveDownMutation={moveDownMutation}
+                                  totalInCategory={categoryStandards.length}
+                                />
+                              ))}
+                            </div>
                           )}
                         </CardContent>
                       </Card>

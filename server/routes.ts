@@ -3791,10 +3791,19 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         return res.status(400).json({ message: "Missing required fields: category, standardText" });
       }
 
+      // AUTO-ASSIGN orderIndex: If not provided, set to max+1 for this category
+      let finalOrderIndex = orderIndex;
+      if (!finalOrderIndex) {
+        const existingStandards = await storage.getAllPlatinumStandardsByCategory(category);
+        const maxOrder = existingStandards.reduce((max, std) => Math.max(max, std.orderIndex || 0), 0);
+        finalOrderIndex = maxOrder + 1;
+        console.log(`[ADD STANDARD] Auto-assigned orderIndex ${finalOrderIndex} for category ${category}`);
+      }
+
       const newStandard = await storage.addPlatinumStandard({
         category,
         standardText,
-        orderIndex: orderIndex || 0,
+        orderIndex: finalOrderIndex,
         isActive: isActive !== undefined ? isActive : true,
       });
 
@@ -3926,6 +3935,68 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     } catch (error) {
       console.error("[REORDER] ❌ FATAL ERROR:", error);
       res.status(500).json({ message: "Failed to reorder platinum standards" });
+    }
+  });
+
+  // Move platinum standard up (admin only)
+  app.post('/api/admin/platinum-standards/:id/move-up', isAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      
+      const standard = await storage.getPlatinumStandardById(id);
+      if (!standard) {
+        return res.status(404).json({ message: "Standard not found" });
+      }
+
+      const allInCategory = await storage.getAllPlatinumStandardsByCategory(standard.category);
+      const currentIndex = allInCategory.findIndex(s => s.id === id);
+      
+      if (currentIndex <= 0) {
+        return res.status(400).json({ message: "Already at the top" });
+      }
+
+      const previousStandard = allInCategory[currentIndex - 1];
+      
+      await storage.reorderPlatinumStandards([
+        { id: standard.id, orderIndex: previousStandard.orderIndex },
+        { id: previousStandard.id, orderIndex: standard.orderIndex }
+      ]);
+
+      res.json({ message: "Standard moved up successfully" });
+    } catch (error) {
+      console.error("Error moving standard up:", error);
+      res.status(500).json({ message: "Failed to move standard up" });
+    }
+  });
+
+  // Move platinum standard down (admin only)
+  app.post('/api/admin/platinum-standards/:id/move-down', isAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      
+      const standard = await storage.getPlatinumStandardById(id);
+      if (!standard) {
+        return res.status(404).json({ message: "Standard not found" });
+      }
+
+      const allInCategory = await storage.getAllPlatinumStandardsByCategory(standard.category);
+      const currentIndex = allInCategory.findIndex(s => s.id === id);
+      
+      if (currentIndex >= allInCategory.length - 1) {
+        return res.status(400).json({ message: "Already at the bottom" });
+      }
+
+      const nextStandard = allInCategory[currentIndex + 1];
+      
+      await storage.reorderPlatinumStandards([
+        { id: standard.id, orderIndex: nextStandard.orderIndex },
+        { id: nextStandard.id, orderIndex: standard.orderIndex }
+      ]);
+
+      res.json({ message: "Standard moved down successfully" });
+    } catch (error) {
+      console.error("Error moving standard down:", error);
+      res.status(500).json({ message: "Failed to move standard down" });
     }
   });
 
