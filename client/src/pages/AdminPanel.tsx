@@ -580,9 +580,11 @@ export default function AdminPanel() {
 
   const bulkDeleteEmailsMutation = useMutation({
     mutationFn: async (ids: string[]) => {
+      console.log('[BULK DELETE] Attempting to delete emails:', ids);
       return apiRequest('/api/admin/approved-emails/bulk-delete', 'POST', { ids });
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('[BULK DELETE] Success:', data);
       queryClient.invalidateQueries({ queryKey: ['/api/admin/approved-emails'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
       setSelectedEmails([]);
@@ -591,10 +593,11 @@ export default function AdminPanel() {
         description: `Successfully deleted ${selectedEmails.length} approved emails` 
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('[BULK DELETE] Error:', error);
       toast({ 
         title: "Error", 
-        description: "Failed to delete selected emails", 
+        description: error?.message || "Failed to delete selected emails", 
         variant: "destructive" 
       });
     }
