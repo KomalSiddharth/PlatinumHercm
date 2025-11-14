@@ -581,7 +581,8 @@ export default function AdminPanel() {
   const bulkDeleteEmailsMutation = useMutation({
     mutationFn: async (ids: string[]) => {
       console.log('[BULK DELETE] Attempting to delete emails:', ids);
-      return apiRequest('/api/admin/approved-emails/bulk-delete', 'POST', { ids });
+      const response = await apiRequest('/api/admin/approved-emails/bulk-delete', 'POST', { ids });
+      return response.json();
     },
     onSuccess: (data) => {
       console.log('[BULK DELETE] Success:', data);
@@ -654,9 +655,12 @@ export default function AdminPanel() {
 
   const bulkDeleteAdminsMutation = useMutation({
     mutationFn: async (ids: string[]) => {
-      return apiRequest('/api/admin/team/bulk-delete', 'POST', { ids });
+      console.log('[BULK DELETE ADMINS] Attempting to delete admin users:', ids);
+      const response = await apiRequest('/api/admin/team/bulk-delete', 'POST', { ids });
+      return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('[BULK DELETE ADMINS] Success:', data);
       queryClient.invalidateQueries({ queryKey: ['/api/admin/team'] });
       setSelectedAdminIds([]);
       toast({ 
@@ -664,10 +668,11 @@ export default function AdminPanel() {
         description: `Successfully deleted ${selectedAdminIds.length} admin users` 
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('[BULK DELETE ADMINS] Error:', error);
       toast({ 
         title: "Error", 
-        description: "Failed to delete selected admins", 
+        description: error?.message || "Failed to delete selected admins", 
         variant: "destructive" 
       });
     }
