@@ -3091,12 +3091,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                               {streak}/7 days → unlock 7
                             </Badge>
                           );
-                        } else {
-                          return (
-                            <Badge variant="outline" className="text-[10px] px-1 py-0 h-5 justify-center">
-                              Max: 6 (unlock 7)
-                            </Badge>
-                          );
                         }
                       }
                       
