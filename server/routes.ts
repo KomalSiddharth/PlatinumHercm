@@ -1244,58 +1244,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // If specific week requested, return that week only. Otherwise return last 5 weeks
         res.json({ weeklyData: selectedWeekNumber ? weeklyData : weeklyData.slice(-5) });
       } else if (viewType === 'monthly') {
-        // Use Progress column values (checklist completion %) for monthly view too
+        // Use platinum standards ratings (Progress column from Current Week table)
         const monthlyData: Array<{ month: string; Health: number; Relationship: number; Career: number; Money: number }> = [];
-        const monthMap = new Map();
-
-        weeks.forEach((w: any) => {
-          const createdDate = new Date(w.createdAt);
-          const monthKey = `${createdDate.getFullYear()}-${createdDate.getMonth()}`;
-          if (!monthMap.has(monthKey)) {
-            monthMap.set(monthKey, []);
-          }
-          monthMap.get(monthKey).push(w);
-        });
-
-        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         
-        // Calculate progress from checklist completion
-        const calculateProgress = (checklistData: any) => {
-          if (!checklistData) return 0;
-          const checklist = typeof checklistData === 'string' ? JSON.parse(checklistData) : checklistData;
-          if (!Array.isArray(checklist) || checklist.length === 0) return 0;
-          const checked = checklist.filter((c: any) => c.checked).length;
-          return (checked / checklist.length) * 100;
+        // Get all platinum standards for the user
+        const platinumStandards = await storage.getPlatinumStandards();
+        
+        // Count standards per area
+        const standardCounts: Record<string, number> = {
+          health: 0,
+          relationship: 0,
+          career: 0,
+          money: 0
         };
         
-        Array.from(monthMap.entries()).forEach(([monthKey, monthWeeks]) => {
+        platinumStandards.forEach((std: any) => {
+          standardCounts[std.area] = (standardCounts[std.area] || 0) + 1;
+        });
+        
+        console.log('[ANALYTICS MONTHLY] Standard counts:', standardCounts);
+        
+        // Get all weeks data to extract unique dates
+        const allWeeks = weeks;
+        
+        // Extract unique dates and group by month
+        const monthMap = new Map<string, Set<string>>();
+        
+        allWeeks.forEach((week: any) => {
+          if (week.dateString) {
+            const date = new Date(week.dateString);
+            const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            
+            if (!monthMap.has(monthKey)) {
+              monthMap.set(monthKey, new Set());
+            }
+            monthMap.get(monthKey)!.add(week.dateString);
+          }
+        });
+        
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        
+        // Calculate monthly averages based on platinum standards
+        for (const [monthKey, dateSet] of monthMap.entries()) {
           const [year, month] = monthKey.split('-');
+          const dates = Array.from(dateSet);
           
-          // Calculate average progress for each area
-          const avgHealth = Math.round(monthWeeks.reduce((sum: number, w: any) => {
-            return sum + calculateProgress(w.healthChecklist);
-          }, 0) / monthWeeks.length);
-
-          const avgRelationship = Math.round(monthWeeks.reduce((sum: number, w: any) => {
-            return sum + calculateProgress(w.relationshipChecklist);
-          }, 0) / monthWeeks.length);
-
-          const avgCareer = Math.round(monthWeeks.reduce((sum: number, w: any) => {
-            return sum + calculateProgress(w.careerChecklist);
-          }, 0) / monthWeeks.length);
-
-          const avgMoney = Math.round(monthWeeks.reduce((sum: number, w: any) => {
-            return sum + calculateProgress(w.moneyChecklist);
-          }, 0) / monthWeeks.length);
-
+          // For each date in the month, calculate HRCM progress
+          const dailyProgresses = await Promise.all(dates.map(async (dateStr: string) => {
+            // Get platinum standard ratings for this date
+            const ratings = await storage.getPlatinumStandardRatings(userId, dateStr);
+            
+            if (!ratings || ratings.length === 0) {
+              return { health: 0, relationship: 0, career: 0, money: 0 };
+            }
+            
+            // Calculate progress for each area
+            const calculateAreaProgress = (area: string): number => {
+              const totalStandards = standardCounts[area] || 1;
+              const rated7Count = ratings.filter((r: any) => r.area === area && r.rating === 7).length;
+              return Math.round((rated7Count / totalStandards) * 100);
+            };
+            
+            return {
+              health: calculateAreaProgress('health'),
+              relationship: calculateAreaProgress('relationship'),
+              career: calculateAreaProgress('career'),
+              money: calculateAreaProgress('money')
+            };
+          }));
+          
+          // Average all days in the month
+          const avgHealth = dailyProgresses.length > 0
+            ? Math.round(dailyProgresses.reduce((sum, d) => sum + d.health, 0) / dailyProgresses.length)
+            : 0;
+            
+          const avgRelationship = dailyProgresses.length > 0
+            ? Math.round(dailyProgresses.reduce((sum, d) => sum + d.relationship, 0) / dailyProgresses.length)
+            : 0;
+            
+          const avgCareer = dailyProgresses.length > 0
+            ? Math.round(dailyProgresses.reduce((sum, d) => sum + d.career, 0) / dailyProgresses.length)
+            : 0;
+            
+          const avgMoney = dailyProgresses.length > 0
+            ? Math.round(dailyProgresses.reduce((sum, d) => sum + d.money, 0) / dailyProgresses.length)
+            : 0;
+          
+          console.log(`[ANALYTICS MONTHLY] ${monthNames[parseInt(month) - 1]} ${year}: H=${avgHealth}% R=${avgRelationship}% C=${avgCareer}% M=${avgMoney}%`);
+          
           monthlyData.push({
-            month: monthNames[parseInt(month)],
+            month: monthNames[parseInt(month) - 1],
             Health: avgHealth,
             Relationship: avgRelationship,
             Career: avgCareer,
             Money: avgMoney,
           });
-        });
+        }
 
         res.json({ monthlyData: monthlyData.slice(-12) }); // Last 12 months
       } else {
