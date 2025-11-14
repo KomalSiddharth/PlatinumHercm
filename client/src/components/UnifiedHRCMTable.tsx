@@ -303,6 +303,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   const [viewingHistory, setViewingHistory] = useState(false);
   const [hasDataForDate, setHasDataForDate] = useState(false); // 🔥 Track if data exists for current date
   const [weeklyAverageProgress, setWeeklyAverageProgress] = useState<number>(0);
+  
+  // Check if viewing a PAST date (previous dates are read-only, current & future are editable)
+  const isPastDate = currentDateStr < today;
   const lastFocusedButton = useRef<HTMLButtonElement | null>(null);
   const hasAutoProgressed = useRef<Set<number>>(new Set()); // Track which weeks have been auto-progressed
   const { toast} = useToast();
@@ -2932,7 +2935,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         
                         handleRatingChange(belief.category, finalRating);
                       }}
-                      disabled={(viewingHistory && hasDataForDate) || isAdminView}
+                      disabled={isPastDate || isAdminView}
                       className="w-16 h-9 text-center font-semibold"
                       data-testid={`input-${belief.category.toLowerCase()}-rating`}
                     />
@@ -3068,7 +3071,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                           <Checkbox
                             checked={item.checked}
                             onCheckedChange={() => handleChecklistToggle(belief.category, item.id)}
-                            disabled={isAdminView}
+                            disabled={isAdminView || isPastDate}
                             data-testid={`checkbox-${belief.category.toLowerCase()}-${item.id}`}
                             className="h-3 w-3"
                           />
@@ -3400,7 +3403,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                           <Checkbox
                             checked={item.checked}
                             onCheckedChange={() => handleChecklistToggle(belief.category, item.id)}
-                            disabled={isAdminView}
+                            disabled={isAdminView || isPastDate}
                             data-testid={`checkbox-next-${belief.category.toLowerCase()}-${item.id}`}
                             className="h-3 w-3"
                           />
@@ -4006,7 +4009,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   <Checkbox
                     checked={item.checked}
                     onCheckedChange={() => handleChecklistToggle(platinumStandardsDialog.category, item.id)}
-                    disabled={isAdminView}
+                    disabled={isAdminView || isPastDate}
                     data-testid={`checkbox-dialog-standards-${platinumStandardsDialog.category.toLowerCase()}-${item.id}`}
                     className="h-5 w-5 mt-0.5 shrink-0"
                   />
