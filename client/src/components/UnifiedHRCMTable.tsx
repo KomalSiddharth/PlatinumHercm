@@ -4155,9 +4155,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       <span className="text-sm leading-relaxed flex-1 break-words">
                         {standard.standardText}
                       </span>
-                      {saveRatingMutation.isPending && (
-                        <Loader2 className="w-4 h-4 animate-spin text-muted-foreground shrink-0" />
-                      )}
                     </div>
                   ))}
                 </>
