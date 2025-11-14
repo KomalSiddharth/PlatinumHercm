@@ -1144,47 +1144,50 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   // 🔥 UPDATED: Removed viewingHistory from dependencies - auto-sync works on all dates
   // 🔥 REMOVED date change reset useEffect - Smart detection handles manualNextWeekMode correctly
 
-  // Calculate weekly average progress across Friday-Thursday (7 days)
-  // Recalculate after date changes OR after data changes
+  // Calculate weekly average progress based on platinum standards across 7 days
+  // Progress = Average of all 4 HRCM areas (Health, Relationship, Career, Money) for each day
+  // Weekly Progress = Average of all 7 days' progress
   useEffect(() => {
     const calculateWeeklyAverage = async () => {
       try {
         // Get all 7 dates in the current Friday-Thursday week
         const weekDates = getWeekDateRange(selectedDate);
         
-        console.log('[WEEKLY AVG] Calculating for week:', weekDates);
+        console.log('[WEEKLY PROGRESS] Calculating for week:', weekDates);
         
-        // Fetch data for all 7 days in parallel
+        // Fetch platinum standards and ratings for all 7 days in parallel
         const promises = weekDates.map(async (dateStr) => {
           try {
-            const endpoint = isAdminView && viewAsUserId
-              ? `/api/admin/user/${viewAsUserId}/hercm/by-date/${dateStr}`
-              : `/api/hercm/by-date/${dateStr}`;
-            
-            const response = await fetch(endpoint, {
+            // Fetch platinum standard ratings for this date
+            const ratingsResponse = await fetch(`/api/platinum-standard-ratings/${dateStr}`, {
               credentials: 'include',
             });
             
-            if (!response.ok) {
-              console.log(`[WEEKLY AVG] No data for ${dateStr}`);
-              return 0; // Return 0 for days with no data
+            if (!ratingsResponse.ok) {
+              console.log(`[WEEKLY PROGRESS] No ratings for ${dateStr}`);
+              return 0; // Return 0 for days with no ratings
             }
             
-            const data = await response.json();
+            const ratings = await ratingsResponse.json();
             
-            // Calculate progress for this day
-            if (data && data.beliefs && data.beliefs.length > 0) {
-              const dayProgress = data.beliefs.reduce((sum: number, b: HRCMBelief) => {
-                return sum + calculateProgress(b.checklist);
-              }, 0) / data.beliefs.length;
-              console.log(`[WEEKLY AVG] ${dateStr}: ${Math.round(dayProgress)}%`);
-              return dayProgress;
+            if (!ratings || ratings.length === 0) {
+              console.log(`[WEEKLY PROGRESS] ${dateStr}: No ratings data`);
+              return 0;
             }
             
-            console.log(`[WEEKLY AVG] ${dateStr}: No beliefs data`);
-            return 0; // No data for this day
+            // Calculate progress for all 4 HRCM areas
+            const hrcmAreas = ['health', 'relationship', 'career', 'money'];
+            const areaProgresses = hrcmAreas.map(area => {
+              return calculateStandardsProgress(area, platinumStandardsData, ratings);
+            });
+            
+            // Average progress across all 4 areas for this day
+            const dayProgress = areaProgresses.reduce((sum, prog) => sum + prog, 0) / 4;
+            
+            console.log(`[WEEKLY PROGRESS] ${dateStr}: H=${areaProgresses[0]}% R=${areaProgresses[1]}% C=${areaProgresses[2]}% M=${areaProgresses[3]}% → Avg=${Math.round(dayProgress)}%`);
+            return dayProgress;
           } catch (error) {
-            console.error(`[WEEKLY AVG] Error fetching data for ${dateStr}:`, error);
+            console.error(`[WEEKLY PROGRESS] Error fetching data for ${dateStr}:`, error);
             return 0; // Return 0 on error
           }
         });
@@ -1195,18 +1198,18 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         // Calculate average across all 7 days (including 0% for days with no data)
         const weeklyAvg = dailyProgresses.reduce((sum, progress) => sum + progress, 0) / 7;
         
-        console.log('[WEEKLY AVG] Daily progresses:', dailyProgresses.map(p => Math.round(p) + '%'));
-        console.log('[WEEKLY AVG] Final weekly average:', Math.round(weeklyAvg) + '%');
+        console.log('[WEEKLY PROGRESS] Daily averages:', dailyProgresses.map(p => Math.round(p) + '%'));
+        console.log('[WEEKLY PROGRESS] Final weekly average:', Math.round(weeklyAvg) + '%');
         
         setWeeklyAverageProgress(Math.round(weeklyAvg));
       } catch (error) {
-        console.error('[WEEKLY AVG] Error calculating weekly average:', error);
+        console.error('[WEEKLY PROGRESS] Error calculating weekly average:', error);
         setWeeklyAverageProgress(0);
       }
     };
     
     calculateWeeklyAverage();
-  }, [selectedDate, viewAsUserId, isAdminView, dateData]); // Recalculate when date changes OR when dateData changes
+  }, [selectedDate, viewAsUserId, isAdminView, dateData, platinumStandardsData]); // Recalculate when date changes OR when data changes
 
   const weeklyProgress = weeklyAverageProgress;
 
