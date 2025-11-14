@@ -1440,9 +1440,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       // Show "saved" status briefly
       setTimeout(() => setSaveStatus('idle'), 2000);
       
-      // Invalidate and refetch to ensure UI updates immediately
-      await queryClient.invalidateQueries({ queryKey: ['/api/hercm/weeks'] });
-      await queryClient.refetchQueries({ queryKey: ['/api/hercm/weeks'] });
+      // Only invalidate queries - let React Query handle background refetch
+      // This prevents flickering by not forcing immediate re-renders
       await queryClient.invalidateQueries({ queryKey: ['/api/rating-progression/caps'] });
       await queryClient.invalidateQueries({ queryKey: ['/api/rating-progression/status'] });
       // Invalidate ALL analytics queries regardless of parameters (prefix matching)
@@ -3051,18 +3050,21 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           <TableBody>
             {beliefs.map((belief) => (
               <TableRow key={belief.category} className="border-b h-[85px]" data-testid={`row-${belief.category.toLowerCase()}`}>
-                {/* Category Column */}
-                <TableCell className="text-xs sm:text-sm font-semibold border-r bg-muted/20 align-top px-1.5 sm:px-2 py-1.5 sm:py-2 text-center" data-testid={`cell-category-${belief.category.toLowerCase()}`}>
+                {/* Category Column - Entire cell clickable */}
+                <TableCell 
+                  className="text-xs sm:text-sm font-semibold border-r bg-muted/20 align-top px-1.5 sm:px-2 py-1.5 sm:py-2 text-center cursor-pointer hover:bg-primary/5 transition-colors" 
+                  onClick={() => {
+                    setPlatinumStandardsDialog({
+                      open: true,
+                      category: belief.category,
+                      items: belief.checklist
+                    });
+                  }}
+                  data-testid={`cell-category-${belief.category.toLowerCase()}`}
+                >
                   <Badge 
                     variant="outline" 
-                    className="font-semibold text-[10px] sm:text-xs px-1 sm:px-2 cursor-pointer hover:bg-primary/10 transition-colors"
-                    onClick={() => {
-                      setPlatinumStandardsDialog({
-                        open: true,
-                        category: belief.category,
-                        items: belief.checklist
-                      });
-                    }}
+                    className="font-semibold text-[10px] sm:text-xs px-1 sm:px-2 pointer-events-none"
                     data-testid={`badge-category-${belief.category.toLowerCase()}`}
                   >
                     {belief.category}
@@ -3324,18 +3326,21 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           <TableBody>
             {beliefs.map((belief) => (
               <TableRow key={belief.category} className="border-b h-[85px]" data-testid={`row-next-${belief.category.toLowerCase()}`}>
-                {/* Category Column */}
-                <TableCell className="font-semibold border-r bg-muted/20 align-top max-h-[85px] overflow-hidden text-center">
+                {/* Category Column - Entire cell clickable */}
+                <TableCell 
+                  className="font-semibold border-r bg-muted/20 align-top max-h-[85px] overflow-hidden text-center cursor-pointer hover:bg-primary/5 transition-colors"
+                  onClick={() => {
+                    setPlatinumStandardsDialog({
+                      open: true,
+                      category: belief.category,
+                      items: belief.checklist
+                    });
+                  }}
+                  data-testid={`cell-next-category-${belief.category.toLowerCase()}`}
+                >
                   <Badge 
                     variant="outline" 
-                    className="font-semibold cursor-pointer hover:bg-primary/10 transition-colors"
-                    onClick={() => {
-                      setPlatinumStandardsDialog({
-                        open: true,
-                        category: belief.category,
-                        items: belief.checklist
-                      });
-                    }}
+                    className="font-semibold pointer-events-none"
                     data-testid={`badge-next-category-${belief.category.toLowerCase()}`}
                   >
                     {belief.category}
