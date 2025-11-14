@@ -14,6 +14,7 @@ import {
   courseVideoCompletions,
   adminCourseRecommendations,
   platinumStandards,
+  userPlatinumStandardRatings,
   emotionalTrackers,
   userPersistentAssignments,
   type User,
@@ -44,6 +45,8 @@ import {
   type InsertAdminCourseRecommendation,
   type PlatinumStandard,
   type InsertPlatinumStandard,
+  type UserPlatinumStandardRating,
+  type InsertUserPlatinumStandardRating,
   type EmotionalTracker,
   type InsertEmotionalTracker,
   type UserPersistentAssignment,
@@ -195,6 +198,10 @@ export interface IStorage {
   updatePlatinumStandard(id: string, standard: Partial<InsertPlatinumStandard>): Promise<PlatinumStandard>;
   deletePlatinumStandard(id: string): Promise<void>;
   reorderPlatinumStandards(updates: Array<{ id: string; orderIndex: number }>): Promise<void>;
+  
+  // User Platinum Standard Ratings operations
+  getUserPlatinumStandardRatingsByDate(userId: string, dateString: string): Promise<UserPlatinumStandardRating[]>;
+  upsertPlatinumStandardRating(rating: InsertUserPlatinumStandardRating): Promise<UserPlatinumStandardRating>;
   
   // Emotional Tracker operations
   getEmotionalTrackersByDate(userId: string, date: string): Promise<EmotionalTracker[]>;
@@ -1540,6 +1547,49 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('[REORDER STORAGE] ❌ FATAL ERROR in Promise.all:', error);
       throw error;
+    }
+  }
+
+  // User Platinum Standard Ratings operations
+  async getUserPlatinumStandardRatingsByDate(userId: string, dateString: string): Promise<UserPlatinumStandardRating[]> {
+    return await db
+      .select()
+      .from(userPlatinumStandardRatings)
+      .where(and(
+        eq(userPlatinumStandardRatings.userId, userId),
+        eq(userPlatinumStandardRatings.dateString, dateString)
+      ));
+  }
+
+  async upsertPlatinumStandardRating(rating: InsertUserPlatinumStandardRating): Promise<UserPlatinumStandardRating> {
+    // Check if entry exists for this user, standard, and date
+    const [existing] = await db
+      .select()
+      .from(userPlatinumStandardRatings)
+      .where(and(
+        eq(userPlatinumStandardRatings.userId, rating.userId),
+        eq(userPlatinumStandardRatings.standardId, rating.standardId),
+        eq(userPlatinumStandardRatings.dateString, rating.dateString)
+      ));
+
+    if (existing) {
+      // Update existing entry
+      const [updated] = await db
+        .update(userPlatinumStandardRatings)
+        .set({
+          rating: rating.rating,
+          updatedAt: new Date(),
+        })
+        .where(eq(userPlatinumStandardRatings.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      // Create new entry
+      const [created] = await db
+        .insert(userPlatinumStandardRatings)
+        .values(rating)
+        .returning();
+      return created;
     }
   }
 
