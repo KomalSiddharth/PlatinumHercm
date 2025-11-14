@@ -516,6 +516,27 @@ export const insertUserPlatinumStandardRatingSchema = createInsertSchema(userPla
 export type InsertUserPlatinumStandardRating = z.infer<typeof insertUserPlatinumStandardRatingSchema>;
 export type UserPlatinumStandardRating = typeof userPlatinumStandardRatings.$inferSelect;
 
+// User HRCM Unlock Progress - Track consecutive perfect days to unlock rating 7
+export const userHrcmUnlockProgress = pgTable("user_hrcm_unlock_progress", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  hrcmArea: varchar("hrcm_area").notNull(), // 'health', 'relationship', 'career', 'money'
+  consecutivePerfectDays: integer("consecutive_perfect_days").notNull().default(0), // Count of days with all standards = 7
+  lastPerfectDate: varchar("last_perfect_date"), // Format: YYYY-MM-DD (last date all standards were 7)
+  isUnlocked: boolean("is_unlocked").default(false).notNull(), // true if >= 7 consecutive days
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertUserHrcmUnlockProgressSchema = createInsertSchema(userHrcmUnlockProgress).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertUserHrcmUnlockProgress = z.infer<typeof insertUserHrcmUnlockProgressSchema>;
+export type UserHrcmUnlockProgress = typeof userHrcmUnlockProgress.$inferSelect;
+
 // Emotional Habit Tracker - Track emotions throughout the day in 2-hour time slots
 export const emotionalTrackers = pgTable("emotional_trackers", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

@@ -15,6 +15,7 @@ import {
   adminCourseRecommendations,
   platinumStandards,
   userPlatinumStandardRatings,
+  userHrcmUnlockProgress,
   emotionalTrackers,
   userPersistentAssignments,
   type User,
@@ -47,6 +48,8 @@ import {
   type InsertPlatinumStandard,
   type UserPlatinumStandardRating,
   type InsertUserPlatinumStandardRating,
+  type UserHrcmUnlockProgress,
+  type InsertUserHrcmUnlockProgress,
   type EmotionalTracker,
   type InsertEmotionalTracker,
   type UserPersistentAssignment,
@@ -202,6 +205,11 @@ export interface IStorage {
   // User Platinum Standard Ratings operations
   getUserPlatinumStandardRatingsByDate(userId: string, dateString: string): Promise<UserPlatinumStandardRating[]>;
   upsertPlatinumStandardRating(rating: InsertUserPlatinumStandardRating): Promise<UserPlatinumStandardRating>;
+  
+  // HRCM Unlock Progress operations
+  getHrcmUnlockProgress(userId: string, hrcmArea: string): Promise<UserHrcmUnlockProgress | undefined>;
+  upsertHrcmUnlockProgress(progress: InsertUserHrcmUnlockProgress): Promise<UserHrcmUnlockProgress>;
+  calculateUnlockStatus(userId: string, hrcmArea: string, dateString: string): Promise<UserHrcmUnlockProgress>;
   
   // Emotional Tracker operations
   getEmotionalTrackersByDate(userId: string, date: string): Promise<EmotionalTracker[]>;
@@ -1591,6 +1599,117 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return created;
     }
+  }
+
+  // HRCM Unlock Progress operations
+  async getHrcmUnlockProgress(userId: string, hrcmArea: string): Promise<UserHrcmUnlockProgress | undefined> {
+    const [progress] = await db
+      .select()
+      .from(userHrcmUnlockProgress)
+      .where(and(
+        eq(userHrcmUnlockProgress.userId, userId),
+        eq(userHrcmUnlockProgress.hrcmArea, hrcmArea)
+      ));
+    return progress;
+  }
+
+  async upsertHrcmUnlockProgress(progress: InsertUserHrcmUnlockProgress): Promise<UserHrcmUnlockProgress> {
+    const existing = await this.getHrcmUnlockProgress(progress.userId, progress.hrcmArea);
+
+    if (existing) {
+      // Update existing entry
+      const [updated] = await db
+        .update(userHrcmUnlockProgress)
+        .set({
+          consecutivePerfectDays: progress.consecutivePerfectDays,
+          lastPerfectDate: progress.lastPerfectDate,
+          isUnlocked: progress.isUnlocked,
+          updatedAt: new Date(),
+        })
+        .where(eq(userHrcmUnlockProgress.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      // Create new entry
+      const [created] = await db
+        .insert(userHrcmUnlockProgress)
+        .values(progress)
+        .returning();
+      return created;
+    }
+  }
+
+  async calculateUnlockStatus(userId: string, hrcmArea: string, dateString: string): Promise<UserHrcmUnlockProgress> {
+    console.log(`[UNLOCK] Calculating unlock status for user ${userId}, area ${hrcmArea}, date ${dateString}`);
+    
+    // Get all standards for this category
+    const categoryStandards = await this.getPlatinumStandardsByCategory(hrcmArea);
+    console.log(`[UNLOCK] Found ${categoryStandards.length} standards for ${hrcmArea}`);
+    
+    // Get ratings for today
+    const todayRatings = await this.getUserPlatinumStandardRatingsByDate(userId, dateString);
+    console.log(`[UNLOCK] Found ${todayRatings.length} ratings for date ${dateString}`);
+    
+    // Check if all standards have rating of 7 for today
+    const allPerfectToday = categoryStandards.every(standard => {
+      const rating = todayRatings.find(r => r.standardId === standard.id);
+      return rating && rating.rating === 7;
+    });
+    
+    console.log(`[UNLOCK] All standards perfect today? ${allPerfectToday}`);
+    
+    // Get current unlock progress
+    const currentProgress = await this.getHrcmUnlockProgress(userId, hrcmArea);
+    
+    if (!allPerfectToday) {
+      // Reset streak if any standard is not 7
+      console.log(`[UNLOCK] Resetting streak to 0 (not all standards are 7)`);
+      return await this.upsertHrcmUnlockProgress({
+        userId,
+        hrcmArea,
+        consecutivePerfectDays: 0,
+        lastPerfectDate: null,
+        isUnlocked: false,
+      });
+    }
+    
+    // All standards are 7 today - check if consecutive
+    let newStreak = 1;
+    
+    if (currentProgress && currentProgress.lastPerfectDate) {
+      // Calculate date difference
+      const lastDate = new Date(currentProgress.lastPerfectDate);
+      const currentDate = new Date(dateString);
+      const diffTime = currentDate.getTime() - lastDate.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      
+      console.log(`[UNLOCK] Last perfect date: ${currentProgress.lastPerfectDate}, Diff: ${diffDays} days`);
+      
+      if (diffDays === 1) {
+        // Consecutive day - increment streak
+        newStreak = currentProgress.consecutivePerfectDays + 1;
+        console.log(`[UNLOCK] Consecutive day! New streak: ${newStreak}`);
+      } else if (diffDays === 0) {
+        // Same day - keep current streak
+        newStreak = currentProgress.consecutivePerfectDays;
+        console.log(`[UNLOCK] Same day, keeping streak: ${newStreak}`);
+      } else {
+        // Gap detected - reset streak to 1
+        console.log(`[UNLOCK] Gap detected (${diffDays} days), resetting to 1`);
+        newStreak = 1;
+      }
+    }
+    
+    const isUnlocked = newStreak >= 7;
+    console.log(`[UNLOCK] Final streak: ${newStreak}, Unlocked: ${isUnlocked}`);
+    
+    return await this.upsertHrcmUnlockProgress({
+      userId,
+      hrcmArea,
+      consecutivePerfectDays: newStreak,
+      lastPerfectDate: dateString,
+      isUnlocked,
+    });
   }
 
   // Emotional Tracker operations
