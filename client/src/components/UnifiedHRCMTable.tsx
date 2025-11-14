@@ -2909,9 +2909,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               <TableHead className="text-xs sm:text-sm min-w-[120px] sm:min-w-[140px] bg-rose-100 dark:bg-rose-900/40 font-semibold px-1.5 sm:px-2 py-1.5 sm:py-2">Feelings</TableHead>
               <TableHead className="text-xs sm:text-sm min-w-[120px] sm:min-w-[140px] bg-rose-100 dark:bg-rose-900/40 font-semibold px-1.5 sm:px-2 py-1.5 sm:py-2">Beliefs/Reasons</TableHead>
               <TableHead className="text-xs sm:text-sm min-w-[120px] sm:min-w-[140px] bg-rose-100 dark:bg-rose-900/40 font-semibold border-r px-1.5 sm:px-2 py-1.5 sm:py-2">Actions</TableHead>
-              
-              <TableHead className="text-xs sm:text-sm min-w-[130px] sm:min-w-[150px] bg-gradient-to-r from-soft-lavender/40 to-soft-lavender/60 dark:from-soft-lavender/20 dark:to-soft-lavender/30 font-semibold lavender-glow px-1.5 sm:px-2 py-1.5 sm:py-2">Platinum Standards</TableHead>
-              <TableHead className="text-xs sm:text-sm min-w-[60px] sm:min-w-[70px] bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 font-semibold text-center px-1.5 sm:px-2 py-1.5 sm:py-2">Progress</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -3080,52 +3077,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     )}
                   </div>
                 </TableCell>
-
-                {/* Platinum Standards - Compact with Click Popup Dialog */}
-                <TableCell className="p-2 bg-soft-lavender/20 dark:bg-soft-lavender/10 align-top">
-                  <div>
-                    {/* Show first 2 standards */}
-                    <div className="space-y-1">
-                      {belief.checklist.slice(0, 2).map((item) => (
-                        <div key={item.id} className="flex items-center gap-2">
-                          <Checkbox
-                            checked={item.checked}
-                            onCheckedChange={() => handleChecklistToggle(belief.category, item.id)}
-                            disabled={isAdminView || isPastDate}
-                            data-testid={`checkbox-${belief.category.toLowerCase()}-${item.id}`}
-                            className="h-3 w-3"
-                          />
-                          <span className="text-xs line-clamp-1">
-                            {item.text}
-                          </span>
-                        </div>
-                      ))}
-                      {/* Show "X more items" clickable text if more than 2 */}
-                      {belief.checklist.length > 2 && (
-                        <div 
-                          className="text-xs text-primary hover:text-primary/80 font-medium italic pl-5 cursor-pointer transition-colors"
-                          onClick={() => {
-                            setPlatinumStandardsDialog({
-                              open: true,
-                              category: belief.category,
-                              items: belief.checklist
-                            });
-                          }}
-                          data-testid={`text-show-more-standards-${belief.category.toLowerCase()}`}
-                        >
-                          + {belief.checklist.length - 2} more items...
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </TableCell>
-
-                {/* Progress */}
-                <TableCell className="p-2 text-center bg-emerald-50/30 dark:bg-emerald-950/10 align-top">
-                  <Badge className={getProgressColor(calculateProgress(belief.checklist))} data-testid={`badge-progress-${belief.category.toLowerCase()}`}>
-                    {calculateProgress(belief.checklist)}%
-                  </Badge>
-                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -3183,8 +3134,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   Assignment
                 </div>
               </TableHead>
-              <TableHead className="min-w-[150px] bg-gradient-to-r from-soft-lavender/40 to-soft-lavender/60 dark:from-soft-lavender/20 dark:to-soft-lavender/30 font-semibold lavender-glow">Platinum Standards</TableHead>
-              <TableHead className="min-w-[70px] bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 font-semibold text-center">Progress</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -3423,52 +3372,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     })()}
                   </TableCell>
                 )}
-
-                {/* Platinum Standards - Compact with Click Popup Dialog */}
-                <TableCell className="p-2 bg-soft-lavender/20 dark:bg-soft-lavender/10 align-top max-h-[85px] overflow-hidden">
-                  <div>
-                    {/* Show first 2 standards */}
-                    <div className="space-y-1">
-                      {belief.checklist.slice(0, 2).map((item) => (
-                        <div key={item.id} className="flex items-center gap-2">
-                          <Checkbox
-                            checked={item.checked}
-                            onCheckedChange={() => handleChecklistToggle(belief.category, item.id)}
-                            disabled={isAdminView || isPastDate}
-                            data-testid={`checkbox-next-${belief.category.toLowerCase()}-${item.id}`}
-                            className="h-3 w-3"
-                          />
-                          <span className="text-xs line-clamp-1">
-                            {item.text}
-                          </span>
-                        </div>
-                      ))}
-                      {/* Show "X more items" clickable text if more than 2 */}
-                      {belief.checklist.length > 2 && (
-                        <div 
-                          className="text-xs text-primary hover:text-primary/80 font-medium italic pl-5 cursor-pointer transition-colors"
-                          onClick={() => {
-                            setPlatinumStandardsDialog({
-                              open: true,
-                              category: belief.category,
-                              items: belief.checklist
-                            });
-                          }}
-                          data-testid={`text-show-more-next-standards-${belief.category.toLowerCase()}`}
-                        >
-                          + {belief.checklist.length - 2} more items...
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </TableCell>
-
-                {/* Progress */}
-                <TableCell className="p-2 text-center bg-emerald-50/30 dark:bg-emerald-950/10 align-top max-h-[85px] overflow-hidden">
-                  <Badge className={getProgressColor(calculateProgress(belief.checklist))} data-testid={`badge-next-progress-${belief.category.toLowerCase()}`}>
-                    {calculateProgress(belief.checklist)}%
-                  </Badge>
-                </TableCell>
               </TableRow>
             ))}
           </TableBody>
