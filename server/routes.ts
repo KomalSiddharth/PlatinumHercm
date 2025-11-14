@@ -1247,10 +1247,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Use platinum standards ratings (Progress column from Current Week table)
         const monthlyData: Array<{ month: string; Health: number; Relationship: number; Career: number; Money: number }> = [];
         
-        // Get all platinum standards for the user
-        const platinumStandards = await storage.getPlatinumStandards();
+        // Get all active platinum standards
+        const platinumStandards = await storage.getActivePlatinumStandards();
         
-        // Count standards per area
+        // Count standards per category (not area!)
         const standardCounts: Record<string, number> = {
           health: 0,
           relationship: 0,
@@ -1259,7 +1259,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
         
         platinumStandards.forEach((std: any) => {
-          standardCounts[std.area] = (standardCounts[std.area] || 0) + 1;
+          standardCounts[std.category] = (standardCounts[std.category] || 0) + 1;
         });
         
         console.log('[ANALYTICS MONTHLY] Standard counts:', standardCounts);
@@ -1292,24 +1292,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // For each date in the month, calculate HRCM progress
           const dailyProgresses = await Promise.all(dates.map(async (dateStr: string) => {
             // Get platinum standard ratings for this date
-            const ratings = await storage.getPlatinumStandardRatings(userId, dateStr);
+            const ratings = await storage.getUserPlatinumStandardRatingsByDate(userId, dateStr);
             
             if (!ratings || ratings.length === 0) {
               return { health: 0, relationship: 0, career: 0, money: 0 };
             }
             
-            // Calculate progress for each area
-            const calculateAreaProgress = (area: string): number => {
-              const totalStandards = standardCounts[area] || 1;
-              const rated7Count = ratings.filter((r: any) => r.area === area && r.rating === 7).length;
-              return Math.round((rated7Count / totalStandards) * 100);
+            // Create a map of standardId -> rating
+            const ratingMap = new Map<string, number>();
+            ratings.forEach((r: any) => {
+              ratingMap.set(r.standardId, r.rating);
+            });
+            
+            // Calculate progress for each category: (standards rated 7 ÷ total standards) × 100%
+            const calculateCategoryProgress = (category: string): number => {
+              const standardsInCategory = platinumStandards.filter((s: any) => s.category === category);
+              if (standardsInCategory.length === 0) return 0;
+              
+              const rated7Count = standardsInCategory.filter((s: any) => ratingMap.get(s.id) === 7).length;
+              return Math.round((rated7Count / standardsInCategory.length) * 100);
             };
             
             return {
-              health: calculateAreaProgress('health'),
-              relationship: calculateAreaProgress('relationship'),
-              career: calculateAreaProgress('career'),
-              money: calculateAreaProgress('money')
+              health: calculateCategoryProgress('health'),
+              relationship: calculateCategoryProgress('relationship'),
+              career: calculateCategoryProgress('career'),
+              money: calculateCategoryProgress('money')
             };
           }));
           
