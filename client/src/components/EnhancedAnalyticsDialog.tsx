@@ -29,7 +29,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
   // Fetch analytics data - no week filtering
   const { data: analyticsData, isLoading } = useQuery<{
     weeklyData?: Array<{ week: string; Health: number; Relationship: number; Career: number; Money: number }>;
-    monthlyData?: Array<{ month: string; Health: number; Relationship: number; Career: number; Money: number }>;
+    monthlyData?: Array<{ week: string; Health: number; Relationship: number; Career: number; Money: number }>;
   }>({
     queryKey: [`/api/analytics/progress?viewType=${viewType}&year=${selectedDate.getFullYear()}&month=${selectedDate.getMonth() + 1}`],
     enabled: open,
@@ -114,7 +114,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={currentData}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
+                      <XAxis dataKey="week" />
                       <YAxis domain={[0, 100]} />
                       <Tooltip />
                       <Legend />
@@ -128,7 +128,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
               )}
             </TabsContent>
 
-            {/* Line Chart - Monthly Progress Trend */}
+            {/* Line Chart - Week-wise Progress Trend */}
             <TabsContent value="line" className="space-y-4">
               {isLoading ? (
                 <div className="h-96 flex items-center justify-center">
@@ -150,7 +150,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={currentData}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
+                      <XAxis dataKey="week" />
                       <YAxis domain={[0, 100]} />
                       <Tooltip />
                       <Legend />
@@ -215,10 +215,14 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                     {['Health', 'Relationship', 'Career', 'Money'].map((category, idx) => {
                       const colors = ['from-red-500 to-orange-500', 'from-blue-500 to-cyan-500', 'from-purple-500 to-pink-500', 'from-green-500 to-emerald-500'];
                       
-                      // Show monthly data only
+                      // Calculate average across all weeks in the month
                       let progress = 0;
-                      const monthData = currentData.find((d: any) => d.month === monthNames[selectedDate.getMonth()].substring(0, 3));
-                      progress = monthData ? (monthData[category as keyof typeof monthData] as number) : 0;
+                      if (currentData.length > 0) {
+                        const total = currentData.reduce((sum: number, week: any) => {
+                          return sum + (week[category] || 0);
+                        }, 0);
+                        progress = total / currentData.length;
+                      }
                       
                       return (
                         <div key={category} className="p-6 bg-muted/30 rounded-lg space-y-3">
@@ -233,7 +237,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                             />
                           </div>
                           <p className="text-xs text-muted-foreground">
-                            {monthNames[selectedDate.getMonth()]} Progress
+                            {monthNames[selectedDate.getMonth()]} Avg
                           </p>
                         </div>
                       );
@@ -245,22 +249,22 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                     <div className="text-center p-4 bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg">
                       <div className="text-2xl font-bold text-primary">
                         {(() => {
-                          let total = 0;
-                          const monthData = currentData.find((d: any) => d.month === monthNames[selectedDate.getMonth()].substring(0, 3));
-                          if (monthData) {
-                            total = Math.round(((monthData.Health as number) + (monthData.Relationship as number) + (monthData.Career as number) + (monthData.Money as number)) / 4);
-                          }
-                          return total;
+                          if (currentData.length === 0) return 0;
+                          const totalProgress = currentData.reduce((sum: number, week: any) => {
+                            const weekAvg = (week.Health + week.Relationship + week.Career + week.Money) / 4;
+                            return sum + weekAvg;
+                          }, 0);
+                          return Math.round(totalProgress / currentData.length);
                         })()}%
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">Overall Progress</p>
                     </div>
                     <div className="text-center p-4 bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg">
                       <div className="text-2xl font-bold text-accent flex items-center justify-center gap-1">
-                        <TrendingUp className="w-5 h-5" />
-                        +12%
+                        <BarChart3 className="w-5 h-5" />
+                        {currentData.length}
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">Growth</p>
+                      <p className="text-xs text-muted-foreground mt-1">Weeks Tracked</p>
                     </div>
                     <div className="text-center p-4 bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg">
                       <div className="text-2xl font-bold text-primary">
