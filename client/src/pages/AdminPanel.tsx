@@ -855,26 +855,34 @@ export default function AdminPanel() {
 
     console.log('[FRONTEND DEBUG] Calling mutation with updates:', updates);
     
-    // OPTIMISTIC UPDATE: Immediately update the UI before backend confirms
-    // This prevents the snap-back effect
+    // OPTIMISTIC UPDATE: Actually reorder the items in the array
     queryClient.setQueryData(['/api/admin/platinum-standards'], (oldData: any) => {
       if (!oldData) return oldData;
       
       console.log('[OPTIMISTIC] Updating query data optimistically');
       
-      // Replace the category's standards with reordered ones
-      const updatedData = oldData.map((standard: any) => {
-        if (standard.category === category) {
-          const reorderedItem = reorderedStandards.find((r: any) => r.id === standard.id);
-          if (reorderedItem) {
-            const newOrderIndex = updates.find(u => u.id === standard.id)?.orderIndex;
-            return { ...standard, orderIndex: newOrderIndex };
-          }
+      // Step 1: Remove all items of this category from the array
+      const otherCategories = oldData.filter((s: any) => s.category !== category);
+      
+      // Step 2: Add the reordered items with updated orderIndex
+      const updatedReorderedItems = reorderedStandards.map((standard: any, index: number) => ({
+        ...standard,
+        orderIndex: index + 1
+      }));
+      
+      // Step 3: Combine and sort by category and orderIndex
+      const combined = [...otherCategories, ...updatedReorderedItems];
+      const sorted = combined.sort((a: any, b: any) => {
+        // First sort by category
+        if (a.category !== b.category) {
+          return a.category.localeCompare(b.category);
         }
-        return standard;
+        // Then by orderIndex within category
+        return (a.orderIndex || 0) - (b.orderIndex || 0);
       });
       
-      return updatedData;
+      console.log('[OPTIMISTIC] Array reordered successfully!');
+      return sorted;
     });
     
     // Call the mutation to persist the changes
