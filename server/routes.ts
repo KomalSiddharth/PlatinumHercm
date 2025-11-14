@@ -3516,24 +3516,9 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
 
       console.log('[DEBUG] POST /api/admin/recommendations - Created recommendation:', recommendation);
       
-      // Also create a persistent assignment so user can see it immediately in their dashboard
-      try {
-        const persistentAssignment = await storage.addPersistentAssignment({
-          userId: userId,
-          courseId: courseName.toLowerCase().replace(/\s+/g, '-'),
-          courseName,
-          hrcmArea: hrcmArea, // Include HRCM area from recommendation
-          lessonName: null, // Course-level assignment, not lesson-specific
-          url: null,
-          completed: false,
-          source: 'admin',
-          recommendationId: recommendation.id,
-        });
-        console.log('[DEBUG] POST /api/admin/recommendations - Created persistent assignment:', persistentAssignment);
-      } catch (assignmentError) {
-        console.error('[DEBUG] POST /api/admin/recommendations - Failed to create persistent assignment:', assignmentError);
-        // Don't fail the whole request if assignment creation fails
-      }
+      // DUPLICATE FIX: Don't create assignment here!
+      // Assignment will be created when user accepts the recommendation
+      // This prevents duplicate assignments
       
       // Send real-time notification to user
       console.log('[WebSocket] Sending course recommendation notification to user:', userId);
@@ -3555,22 +3540,25 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       // First get all recommendations to find related persistent assignments
       const recommendations = await storage.getAllCourseRecommendations();
       
-      // Delete all related persistent assignments
+      // Delete related persistent assignments (only for accepted recommendations)
       for (const recommendation of recommendations) {
-        try {
-          const assignments = await storage.getUserPersistentAssignments(recommendation.userId);
-          const relatedAssignment = assignments.find((a: any) => 
-            a.source === 'admin' &&
-            (a.recommendationId === recommendation.id || a.courseName === recommendation.courseName)
-          );
-          
-          if (relatedAssignment) {
-            console.log('[DEBUG] Deleting related persistent assignment for:', recommendation.courseName);
-            await storage.deletePersistentAssignment(relatedAssignment.id, recommendation.userId);
+        // Only delete assignment if recommendation was accepted
+        if (recommendation.status === 'accepted') {
+          try {
+            const assignments = await storage.getUserPersistentAssignments(recommendation.userId);
+            const relatedAssignment = assignments.find((a: any) => 
+              a.source === 'admin' &&
+              (a.recommendationId === recommendation.id || a.courseName === recommendation.courseName)
+            );
+            
+            if (relatedAssignment) {
+              console.log('[DEBUG] Deleting accepted recommendation assignment for:', recommendation.courseName);
+              await storage.deletePersistentAssignment(relatedAssignment.id, recommendation.userId);
+            }
+          } catch (error) {
+            console.error('[DEBUG] Failed to delete related assignment:', error);
+            // Continue with other deletions even if one fails
           }
-        } catch (error) {
-          console.error('[DEBUG] Failed to delete related assignment:', error);
-          // Continue with other deletions even if one fails
         }
       }
       
@@ -3593,16 +3581,19 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       const recommendation = recommendations.find((r: any) => r.id === id);
       
       if (recommendation) {
-        // Find and delete the related persistent assignment
-        const assignments = await storage.getUserPersistentAssignments(recommendation.userId);
-        const relatedAssignment = assignments.find((a: any) => 
-          a.source === 'admin' &&
-          (a.recommendationId === recommendation.id || a.courseName === recommendation.courseName)
-        );
-        
-        if (relatedAssignment) {
-          console.log('[DEBUG] Deleting related persistent assignment:', relatedAssignment.id);
-          await storage.deletePersistentAssignment(relatedAssignment.id, recommendation.userId);
+        // Only delete assignment if recommendation was accepted
+        if (recommendation.status === 'accepted') {
+          // Find and delete the related persistent assignment
+          const assignments = await storage.getUserPersistentAssignments(recommendation.userId);
+          const relatedAssignment = assignments.find((a: any) => 
+            a.source === 'admin' &&
+            (a.recommendationId === recommendation.id || a.courseName === recommendation.courseName)
+          );
+          
+          if (relatedAssignment) {
+            console.log('[DEBUG] Deleting accepted recommendation assignment:', relatedAssignment.id);
+            await storage.deletePersistentAssignment(relatedAssignment.id, recommendation.userId);
+          }
         }
         
         // Send real-time notification to user about deletion

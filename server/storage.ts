@@ -1598,10 +1598,38 @@ export class DatabaseStorage implements IStorage {
   }
 
   async addPersistentAssignment(assignment: InsertUserPersistentAssignment): Promise<UserPersistentAssignment> {
+    // DUPLICATE PREVENTION: Check for existing assignment with same userId, courseId, and lessonId
+    const [existing] = await db
+      .select()
+      .from(userPersistentAssignments)
+      .where(and(
+        eq(userPersistentAssignments.userId, assignment.userId),
+        eq(userPersistentAssignments.courseId, assignment.courseId),
+        eq(userPersistentAssignments.lessonId, assignment.lessonId)
+      ))
+      .limit(1);
+
+    if (existing) {
+      console.log('[DUPLICATE PREVENTION] Assignment already exists, returning existing:', {
+        userId: assignment.userId,
+        courseName: assignment.courseName,
+        lessonName: assignment.lessonName
+      });
+      return existing;
+    }
+
+    // No duplicate found, insert new assignment
     const [newAssignment] = await db
       .insert(userPersistentAssignments)
       .values(assignment)
       .returning();
+    
+    console.log('[NEW ASSIGNMENT] Created:', {
+      userId: assignment.userId,
+      courseName: assignment.courseName,
+      lessonName: assignment.lessonName
+    });
+    
     return newAssignment;
   }
 
