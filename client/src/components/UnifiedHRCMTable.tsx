@@ -512,7 +512,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     ? [`/api/admin/user/${viewAsUserId}/hercm/by-date`, currentDateStr]
     : ['/api/hercm/by-date', currentDateStr];
   
-  const { data: dateData, isLoading } = useQuery<{ beliefs?: HRCMBelief[]; createdAt?: string; weekNumber?: number }>({
+  const { data: dateData, isLoading, isFetching } = useQuery<{ beliefs?: HRCMBelief[]; createdAt?: string; weekNumber?: number }>({
     queryKey: dateDataQueryKey,
     queryFn: async () => {
       const endpoint = isAdminView && viewAsUserId
@@ -532,7 +532,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     },
     enabled: isAdminView ? !!viewAsUserId : true, // Only fetch when we have a user ID in admin view
     staleTime: 0,  // Always fetch fresh data
-    gcTime: 0,  // Immediately garbage collect old cache (was cacheTime in v4)
+    gcTime: 5000,  // Keep cache for 5 seconds to prevent blank flicker during navigation
     refetchOnMount: true,  // Refetch when component mounts
     refetchOnWindowFocus: false,  // Don't refetch on window focus
   });
@@ -826,6 +826,13 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     console.log('[WEEKDATA EFFECT] weekData?.beliefs:', weekData?.beliefs);
     console.log('[WEEKDATA EFFECT] viewingHistory:', viewingHistory);
     console.log('[WEEKDATA EFFECT] currentDateStr:', currentDateStr);
+    console.log('[WEEKDATA EFFECT] isFetching:', isFetching);
+    
+    // 🔥 CRITICAL FIX: Don't process data while fetching to prevent blank template flicker
+    if (isFetching) {
+      console.log('[WEEKDATA EFFECT] ⏸️ Skipping - query is fetching, keeping current state');
+      return;
+    }
     
     // Process weekData for BOTH today and history dates
     // The /api/hercm/by-date endpoint returns data for any date (not just today)
@@ -1086,8 +1093,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       // weekData is undefined (still loading) - don't change anything
       console.log('[WEEKDATA EFFECT] ⏳ weekData is undefined - still loading, keeping current state');
     }
-  }, [weekData, platinumStandardsData]);
+  }, [weekData, platinumStandardsData, isFetching]);
   // FIXED: Added platinumStandardsData to deps to auto-update when admin adds new standards
+  // FIXED: Added isFetching to prevent blank template flicker during date navigation
 
   // 🔥 AUTO-SYNC: Real-time sync from Current Week to Next Week Target
   useEffect(() => {
