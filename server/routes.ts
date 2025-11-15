@@ -1245,7 +1245,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json({ weeklyData: selectedWeekNumber ? weeklyData : weeklyData.slice(-5) });
       } else if (viewType === 'monthly') {
         // Use platinum standards ratings (Progress column from Current Week table)
-        // Return DAILY data instead of monthly aggregates
+        // Return BOTH daily data AND monthly averages
         const dailyData: Array<{ date: string; Health: number; Relationship: number; Career: number; Money: number }> = [];
         
         // Get all active platinum standards
@@ -1345,7 +1345,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
-        res.json({ monthlyData: dailyData }); // Return daily data (renamed for compatibility)
+        // Calculate monthly averages
+        const monthlyAverage = dailyData.length > 0 ? {
+          month: new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'short' }),
+          Health: Math.round(dailyData.reduce((sum, d) => sum + d.Health, 0) / dailyData.length),
+          Relationship: Math.round(dailyData.reduce((sum, d) => sum + d.Relationship, 0) / dailyData.length),
+          Career: Math.round(dailyData.reduce((sum, d) => sum + d.Career, 0) / dailyData.length),
+          Money: Math.round(dailyData.reduce((sum, d) => sum + d.Money, 0) / dailyData.length),
+        } : null;
+
+        res.json({ 
+          monthlyData: dailyData, // Daily data for line chart
+          monthlyAverage: monthlyAverage ? [monthlyAverage] : [] // Monthly average for bar chart
+        });
       } else {
         res.json({ weeklyData: [], monthlyData: [] });
       }
