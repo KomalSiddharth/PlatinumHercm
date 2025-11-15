@@ -38,14 +38,22 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
   const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
   // Use REAL data from API - no fake fallback data
-  const monthlyData = analyticsData?.monthlyData || [];
-  const currentData = monthlyData;
+  const dailyData = analyticsData?.monthlyData || [];
+
+  // Calculate monthly averages for bar chart
+  const barChartData = dailyData.length > 0 ? [{
+    category: monthNames[selectedDate.getMonth()],
+    Health: Math.round(dailyData.reduce((sum: number, d: any) => sum + (d.Health || 0), 0) / dailyData.length),
+    Relationship: Math.round(dailyData.reduce((sum: number, d: any) => sum + (d.Relationship || 0), 0) / dailyData.length),
+    Career: Math.round(dailyData.reduce((sum: number, d: any) => sum + (d.Career || 0), 0) / dailyData.length),
+    Money: Math.round(dailyData.reduce((sum: number, d: any) => sum + (d.Money || 0), 0) / dailyData.length),
+  }] : [];
 
   // Debug logging
   console.log('[ANALYTICS DIALOG] isLoading:', isLoading);
   console.log('[ANALYTICS DIALOG] analyticsData:', analyticsData);
-  console.log('[ANALYTICS DIALOG] monthlyData:', monthlyData);
-  console.log('[ANALYTICS DIALOG] currentData:', currentData);
+  console.log('[ANALYTICS DIALOG] dailyData:', dailyData);
+  console.log('[ANALYTICS DIALOG] barChartData:', barChartData);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -92,7 +100,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
               <TabsTrigger value="summary" data-testid="tab-summary">Summary</TabsTrigger>
             </TabsList>
 
-            {/* Bar Chart */}
+            {/* Bar Chart - Monthly Averages */}
             <TabsContent value="bar" className="space-y-4">
               {isLoading ? (
                 <div className="h-96 flex items-center justify-center">
@@ -101,7 +109,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                     <p className="text-sm text-muted-foreground">Loading analytics...</p>
                   </div>
                 </div>
-              ) : currentData.length === 0 ? (
+              ) : barChartData.length === 0 ? (
                 <div className="h-96 flex items-center justify-center">
                   <div className="text-center space-y-2">
                     <BarChart3 className="w-16 h-16 text-muted-foreground mx-auto opacity-50" />
@@ -112,9 +120,9 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
               ) : (
                 <div className="h-96">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={currentData}>
+                    <BarChart data={barChartData}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" label={{ value: 'Day of Month', position: 'insideBottom', offset: -5 }} />
+                      <XAxis dataKey="category" />
                       <YAxis domain={[0, 100]} />
                       <Tooltip />
                       <Legend />
@@ -128,7 +136,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
               )}
             </TabsContent>
 
-            {/* Line Chart - Monthly Progress Trend */}
+            {/* Line Chart - Daily Progress Trend */}
             <TabsContent value="line" className="space-y-4">
               {isLoading ? (
                 <div className="h-96 flex items-center justify-center">
@@ -137,7 +145,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                     <p className="text-sm text-muted-foreground">Loading analytics...</p>
                   </div>
                 </div>
-              ) : currentData.length === 0 ? (
+              ) : dailyData.length === 0 ? (
                 <div className="h-96 flex items-center justify-center">
                   <div className="text-center space-y-2">
                     <TrendingUp className="w-16 h-16 text-muted-foreground mx-auto opacity-50" />
@@ -148,7 +156,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
               ) : (
                 <div className="h-96">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={currentData}>
+                    <LineChart data={dailyData}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="date" label={{ value: 'Day of Month', position: 'insideBottom', offset: -5 }} />
                       <YAxis domain={[0, 100]} />
@@ -201,7 +209,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                     <p className="text-sm text-muted-foreground">Loading analytics...</p>
                   </div>
                 </div>
-              ) : currentData.length === 0 ? (
+              ) : dailyData.length === 0 ? (
                 <div className="h-96 flex items-center justify-center">
                   <div className="text-center space-y-2">
                     <BarChart3 className="w-16 h-16 text-muted-foreground mx-auto opacity-50" />
@@ -217,9 +225,9 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                       
                       // Calculate average progress for the selected month
                       let progress = 0;
-                      if (currentData.length > 0) {
-                        const categorySum = currentData.reduce((sum: number, d: any) => sum + (d[category] || 0), 0);
-                        progress = categorySum / currentData.length;
+                      if (dailyData.length > 0) {
+                        const categorySum = dailyData.reduce((sum: number, d: any) => sum + (d[category] || 0), 0);
+                        progress = categorySum / dailyData.length;
                       }
                       
                       return (
@@ -247,12 +255,12 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                     <div className="text-center p-4 bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg">
                       <div className="text-2xl font-bold text-primary">
                         {(() => {
-                          let total = 0;
-                          const monthData = currentData.find((d: any) => d.month === monthNames[selectedDate.getMonth()].substring(0, 3));
-                          if (monthData) {
-                            total = Math.round(((monthData.Health as number) + (monthData.Relationship as number) + (monthData.Career as number) + (monthData.Money as number)) / 4);
-                          }
-                          return total;
+                          if (dailyData.length === 0) return 0;
+                          const avgHealth = dailyData.reduce((sum: number, d: any) => sum + (d.Health || 0), 0) / dailyData.length;
+                          const avgRelationship = dailyData.reduce((sum: number, d: any) => sum + (d.Relationship || 0), 0) / dailyData.length;
+                          const avgCareer = dailyData.reduce((sum: number, d: any) => sum + (d.Career || 0), 0) / dailyData.length;
+                          const avgMoney = dailyData.reduce((sum: number, d: any) => sum + (d.Money || 0), 0) / dailyData.length;
+                          return Math.round((avgHealth + avgRelationship + avgCareer + avgMoney) / 4);
                         })()}%
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">Overall Progress</p>
@@ -260,9 +268,9 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                     <div className="text-center p-4 bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg">
                       <div className="text-2xl font-bold text-accent flex items-center justify-center gap-1">
                         <TrendingUp className="w-5 h-5" />
-                        +12%
+                        {dailyData.length}
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">Growth</p>
+                      <p className="text-xs text-muted-foreground mt-1">Days Tracked</p>
                     </div>
                     <div className="text-center p-4 bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg">
                       <div className="text-2xl font-bold text-primary">
