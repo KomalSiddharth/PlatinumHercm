@@ -1266,6 +1266,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Get all weeks data to extract unique dates
         const allWeeks = weeks;
+        console.log('[ANALYTICS MONTHLY] Total weeks found:', allWeeks.length);
         
         // Extract unique dates and group by month
         const monthMap = new Map<string, Set<string>>();
@@ -1282,6 +1283,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         });
         
+        console.log('[ANALYTICS MONTHLY] Months found:', Array.from(monthMap.keys()));
+        console.log('[ANALYTICS MONTHLY] Dates per month:', Array.from(monthMap.entries()).map(([month, dates]) => `${month}: ${Array.from(dates).join(', ')}`));
+        
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         
         // Calculate monthly averages based on platinum standards
@@ -1293,6 +1297,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const dailyProgresses = await Promise.all(dates.map(async (dateStr: string) => {
             // Get platinum standard ratings for this date
             const ratings = await storage.getUserPlatinumStandardRatingsByDate(userId, dateStr);
+            
+            console.log(`[ANALYTICS DAILY] ${dateStr}: Found ${ratings?.length || 0} ratings`);
             
             if (!ratings || ratings.length === 0) {
               return { health: 0, relationship: 0, career: 0, money: 0 };
@@ -1310,15 +1316,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
               if (standardsInCategory.length === 0) return 0;
               
               const rated7Count = standardsInCategory.filter((s: any) => ratingMap.get(s.id) === 7).length;
-              return Math.round((rated7Count / standardsInCategory.length) * 100);
+              const progress = Math.round((rated7Count / standardsInCategory.length) * 100);
+              
+              console.log(`[ANALYTICS DAILY] ${dateStr} ${category}: ${rated7Count}/${standardsInCategory.length} = ${progress}%`);
+              return progress;
             };
             
-            return {
+            const result = {
               health: calculateCategoryProgress('health'),
               relationship: calculateCategoryProgress('relationship'),
               career: calculateCategoryProgress('career'),
               money: calculateCategoryProgress('money')
             };
+            
+            console.log(`[ANALYTICS DAILY] ${dateStr} totals:`, result);
+            return result;
           }));
           
           // Average all days in the month
