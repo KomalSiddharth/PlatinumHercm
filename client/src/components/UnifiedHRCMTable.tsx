@@ -328,7 +328,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   const [selectedHistoryDate, setSelectedHistoryDate] = useState<Date | undefined>(undefined);
   const [viewingHistory, setViewingHistory] = useState(false);
   const [hasDataForDate, setHasDataForDate] = useState(false); // 🔥 Track if data exists for current date
-  const [weeklyAverageProgress, setWeeklyAverageProgress] = useState<number>(0);
   
   // CRITICAL FIX: Compute dateString from selectedDate (single source of truth)
   const dateString = format(selectedDate, 'yyyy-MM-dd');
@@ -401,6 +400,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         predicate: (query) => {
           const key = query.queryKey[0];
           return typeof key === 'string' && key === '/api/platinum-standard-ratings';
+        }
+      });
+      
+      // Invalidate weekly progress for instant visibility
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey[0];
+          return typeof key === 'string' && key === '/api/weekly-progress';
         }
       });
       
@@ -1147,15 +1154,15 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   // 🔥 UPDATED: Removed viewingHistory from dependencies - auto-sync works on all dates
   // 🔥 REMOVED date change reset useEffect - Smart detection handles manualNextWeekMode correctly
 
-  // Calculate weekly average progress based on platinum standards across 7 days
+  // Calculate weekly average progress using React Query for instant visibility
   // Progress = Average of all 4 HRCM areas (Health, Relationship, Career, Money) for each day
   // Weekly Progress = Average of all 7 days' progress
-  useEffect(() => {
-    const calculateWeeklyAverage = async () => {
+  const weekDates = getWeekDateRange(selectedDate);
+  
+  const { data: weeklyProgressData } = useQuery({
+    queryKey: ['/api/weekly-progress', selectedDate.toISOString(), viewAsUserId, platinumStandardsData?.length],
+    queryFn: async () => {
       try {
-        // Get all 7 dates in the current Friday-Thursday week
-        const weekDates = getWeekDateRange(selectedDate);
-        
         console.log('[WEEKLY PROGRESS] Calculating for week:', weekDates);
         
         // Fetch platinum standards and ratings for all 7 days in parallel
@@ -1204,17 +1211,30 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         console.log('[WEEKLY PROGRESS] Daily averages:', dailyProgresses.map(p => Math.round(p) + '%'));
         console.log('[WEEKLY PROGRESS] Final weekly average:', Math.round(weeklyAvg) + '%');
         
-        setWeeklyAverageProgress(Math.round(weeklyAvg));
+        const roundedWeeklyAvg = Math.round(weeklyAvg);
+        console.log('[WEEKLY PROGRESS] Setting state to:', roundedWeeklyAvg + '%');
+        return roundedWeeklyAvg;
       } catch (error) {
         console.error('[WEEKLY PROGRESS] Error calculating weekly average:', error);
-        setWeeklyAverageProgress(0);
+        return 0;
       }
-    };
-    
-    calculateWeeklyAverage();
-  }, [selectedDate, viewAsUserId, isAdminView, dateData, platinumStandardsData, savedRatings]); // Recalculate when date changes OR when data/ratings change
+    },
+    enabled: !!platinumStandardsData && platinumStandardsData.length > 0,
+    staleTime: 30000, // Cache for 30 seconds for instant visibility
+    gcTime: 300000, // Keep in cache for 5 minutes
+  });
+  
+  const weeklyAverageProgress = weeklyProgressData ?? 0;
 
+  // Use the calculated weekly average, or show a more accurate initial state
   const weeklyProgress = weeklyAverageProgress;
+  
+  // Log the current value being displayed
+  if (weeklyProgress !== 0) {
+    console.log('[WEEKLY PROGRESS] ✓ Displaying:', weeklyProgress + '%');
+  } else {
+    console.log('[WEEKLY PROGRESS] ⚠️ Displaying 0% - calculation may be pending');
+  }
 
   const handleChecklistToggle = (category: string, itemId: string) => {
     setBeliefs(prev => {
