@@ -1212,7 +1212,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     };
     
     calculateWeeklyAverage();
-  }, [selectedDate, viewAsUserId, isAdminView, dateData, platinumStandardsData]); // Recalculate when date changes OR when data changes
+  }, [selectedDate, viewAsUserId, isAdminView, dateData, platinumStandardsData, savedRatings]); // Recalculate when date changes OR when data/ratings change
 
   const weeklyProgress = weeklyAverageProgress;
 
