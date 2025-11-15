@@ -96,7 +96,174 @@ export function setupScheduledTasks() {
     timezone: 'Asia/Kolkata'
   });
 
+  // 🔥 NEW: Daily auto-copy data for all users - Every day at 12:01 AM IST
+  cron.schedule('1 0 * * *', async () => {
+    try {
+      console.log('[DAILY AUTO-COPY] Starting daily data copy job at midnight...');
+      
+      const now = new Date();
+      const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      
+      console.log(`[DAILY AUTO-COPY] Current date: ${todayStr}`);
+      
+      const allUsers = await storage.getAllUsers();
+      console.log(`[DAILY AUTO-COPY] Processing ${allUsers.length} users...`);
+      
+      let copiedCount = 0;
+      let skippedCount = 0;
+      let errorCount = 0;
+      
+      for (const user of allUsers) {
+        try {
+          // Check if today's data already exists
+          const allWeeks = await storage.getAllHercmWeeksByUserWithDates(user.id);
+          const todayData = allWeeks?.filter((w: any) => w.dateString === todayStr);
+          
+          if (todayData && todayData.length > 0) {
+            console.log(`[DAILY AUTO-COPY] User ${user.email}: Today's data already exists, skipping`);
+            skippedCount++;
+            continue;
+          }
+          
+          // Find last available data (search backward up to 7 days)
+          let sourceData = null;
+          let sourceDate = '';
+          
+          for (let i = 1; i <= 7; i++) {
+            const searchDateTime = new Date(todayStr);
+            searchDateTime.setDate(searchDateTime.getDate() - i);
+            const searchDate = `${searchDateTime.getFullYear()}-${String(searchDateTime.getMonth() + 1).padStart(2, '0')}-${String(searchDateTime.getDate()).padStart(2, '0')}`;
+            
+            const previousData = allWeeks?.filter((w: any) => w.dateString === searchDate);
+            
+            if (previousData && previousData.length > 0) {
+              sourceData = previousData.sort((a: any, b: any) => 
+                new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+              )[0];
+              sourceDate = searchDate;
+              break;
+            }
+          }
+          
+          if (!sourceData) {
+            console.log(`[DAILY AUTO-COPY] User ${user.email}: No previous data found in last 7 days, skipping`);
+            skippedCount++;
+            continue;
+          }
+          
+          console.log(`[DAILY AUTO-COPY] User ${user.email}: Copying data from ${sourceDate} to ${todayStr}`);
+          
+          // Create new record with today's date
+          const newWeekData = {
+            userId: user.id,
+            weekNumber: sourceData.weekNumber,
+            dateString: todayStr,
+            currentH: sourceData.currentH,
+            currentE: sourceData.currentE,
+            currentR: sourceData.currentR,
+            currentC: sourceData.currentC,
+            targetH: sourceData.targetH,
+            targetE: sourceData.targetE,
+            targetR: sourceData.targetR,
+            targetC: sourceData.targetC,
+            healthProblems: sourceData.healthProblems,
+            healthCurrentFeelings: sourceData.healthCurrentFeelings,
+            healthCurrentBelief: sourceData.healthCurrentBelief,
+            healthCurrentActions: sourceData.healthCurrentActions,
+            healthResult: sourceData.healthResult,
+            healthNextFeelings: sourceData.healthNextFeelings,
+            healthNextTarget: sourceData.healthNextTarget,
+            healthNextActions: sourceData.healthNextActions,
+            healthChecklist: sourceData.healthChecklist,
+            healthAssignment: sourceData.healthAssignment,
+            healthProblemsChecklist: sourceData.healthProblemsChecklist,
+            healthFeelingsCurrentChecklist: sourceData.healthFeelingsCurrentChecklist,
+            healthBeliefsCurrentChecklist: sourceData.healthBeliefsCurrentChecklist,
+            healthActionsCurrentChecklist: sourceData.healthActionsCurrentChecklist,
+            healthResultChecklist: sourceData.healthResultChecklist,
+            healthFeelingsChecklist: sourceData.healthFeelingsChecklist,
+            healthBeliefsChecklist: sourceData.healthBeliefsChecklist,
+            healthActionsChecklist: sourceData.healthActionsChecklist,
+            relationshipProblems: sourceData.relationshipProblems,
+            relationshipCurrentFeelings: sourceData.relationshipCurrentFeelings,
+            relationshipCurrentBelief: sourceData.relationshipCurrentBelief,
+            relationshipCurrentActions: sourceData.relationshipCurrentActions,
+            relationshipResult: sourceData.relationshipResult,
+            relationshipNextFeelings: sourceData.relationshipNextFeelings,
+            relationshipNextTarget: sourceData.relationshipNextTarget,
+            relationshipNextActions: sourceData.relationshipNextActions,
+            relationshipChecklist: sourceData.relationshipChecklist,
+            relationshipAssignment: sourceData.relationshipAssignment,
+            relationshipProblemsChecklist: sourceData.relationshipProblemsChecklist,
+            relationshipFeelingsCurrentChecklist: sourceData.relationshipFeelingsCurrentChecklist,
+            relationshipBeliefsCurrentChecklist: sourceData.relationshipBeliefsCurrentChecklist,
+            relationshipActionsCurrentChecklist: sourceData.relationshipActionsCurrentChecklist,
+            relationshipResultChecklist: sourceData.relationshipResultChecklist,
+            relationshipFeelingsChecklist: sourceData.relationshipFeelingsChecklist,
+            relationshipBeliefsChecklist: sourceData.relationshipBeliefsChecklist,
+            relationshipActionsChecklist: sourceData.relationshipActionsChecklist,
+            careerProblems: sourceData.careerProblems,
+            careerCurrentFeelings: sourceData.careerCurrentFeelings,
+            careerCurrentBelief: sourceData.careerCurrentBelief,
+            careerCurrentActions: sourceData.careerCurrentActions,
+            careerResult: sourceData.careerResult,
+            careerNextFeelings: sourceData.careerNextFeelings,
+            careerNextTarget: sourceData.careerNextTarget,
+            careerNextActions: sourceData.careerNextActions,
+            careerChecklist: sourceData.careerChecklist,
+            careerAssignment: sourceData.careerAssignment,
+            careerProblemsChecklist: sourceData.careerProblemsChecklist,
+            careerFeelingsCurrentChecklist: sourceData.careerFeelingsCurrentChecklist,
+            careerBeliefsCurrentChecklist: sourceData.careerBeliefsCurrentChecklist,
+            careerActionsCurrentChecklist: sourceData.careerActionsCurrentChecklist,
+            careerResultChecklist: sourceData.careerResultChecklist,
+            careerFeelingsChecklist: sourceData.careerFeelingsChecklist,
+            careerBeliefsChecklist: sourceData.careerBeliefsChecklist,
+            careerActionsChecklist: sourceData.careerActionsChecklist,
+            moneyProblems: sourceData.moneyProblems,
+            moneyCurrentFeelings: sourceData.moneyCurrentFeelings,
+            moneyCurrentBelief: sourceData.moneyCurrentBelief,
+            moneyCurrentActions: sourceData.moneyCurrentActions,
+            moneyResult: sourceData.moneyResult,
+            moneyNextFeelings: sourceData.moneyNextFeelings,
+            moneyNextTarget: sourceData.moneyNextTarget,
+            moneyNextActions: sourceData.moneyNextActions,
+            moneyChecklist: sourceData.moneyChecklist,
+            moneyAssignment: sourceData.moneyAssignment,
+            moneyProblemsChecklist: sourceData.moneyProblemsChecklist,
+            moneyFeelingsCurrentChecklist: sourceData.moneyFeelingsCurrentChecklist,
+            moneyBeliefsCurrentChecklist: sourceData.moneyBeliefsCurrentChecklist,
+            moneyActionsCurrentChecklist: sourceData.moneyActionsCurrentChecklist,
+            moneyResultChecklist: sourceData.moneyResultChecklist,
+            moneyFeelingsChecklist: sourceData.moneyFeelingsChecklist,
+            moneyBeliefsChecklist: sourceData.moneyBeliefsChecklist,
+            moneyActionsChecklist: sourceData.moneyActionsChecklist,
+            unifiedAssignment: sourceData.unifiedAssignment,
+            manualNextWeekMode: sourceData.manualNextWeekMode
+          };
+          
+          // Save the new record
+          await storage.createOrUpdateHercmWeek(newWeekData);
+          
+          console.log(`[DAILY AUTO-COPY] ✅ User ${user.email}: Successfully copied data from ${sourceDate} to ${todayStr}`);
+          copiedCount++;
+          
+        } catch (error) {
+          console.error(`[DAILY AUTO-COPY] ❌ Error processing user ${user.email}:`, error);
+          errorCount++;
+        }
+      }
+      
+      console.log(`[DAILY AUTO-COPY] Job completed: ${copiedCount} copied, ${skippedCount} skipped, ${errorCount} errors`);
+    } catch (error) {
+      console.error('[DAILY AUTO-COPY] Error in daily auto-copy job:', error);
+    }
+  }, {
+    timezone: 'Asia/Kolkata'
+  });
+
   console.log('Scheduled tasks initialized:');
   console.log('  - Weekly HRCM reminders: Every Monday 9:00 AM IST');
   console.log('  - Platinum badge check: Every Sunday 11:59 PM IST');
+  console.log('  - Daily auto-copy data: Every day at 12:01 AM IST');
 }
