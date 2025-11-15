@@ -750,13 +750,9 @@ export default function Dashboard() {
     );
   }
   
-  // Don't render dashboard if not authenticated - show loading while redirecting
+  // Don't render dashboard if not authenticated
   if (!currentUser) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Skeleton className="h-12 w-64" />
-      </div>
-    );
+    return null;
   }
 
   return (

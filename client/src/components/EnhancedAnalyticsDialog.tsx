@@ -30,7 +30,6 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
   const { data: analyticsData, isLoading } = useQuery<{
     weeklyData?: Array<{ week: string; Health: number; Relationship: number; Career: number; Money: number }>;
     monthlyData?: Array<{ date: string; Health: number; Relationship: number; Career: number; Money: number }>;
-    monthlyAverage?: Array<{ month: string; Health: number; Relationship: number; Career: number; Money: number }>;
   }>({
     queryKey: [`/api/analytics/progress?viewType=${viewType}&year=${selectedDate.getFullYear()}&month=${selectedDate.getMonth() + 1}`],
     enabled: open,
@@ -39,14 +38,14 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
   const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
   // Use REAL data from API - no fake fallback data
-  const dailyData = analyticsData?.monthlyData || []; // Daily data for line chart
-  const monthlyAverage = analyticsData?.monthlyAverage || []; // Monthly average for bar chart
+  const monthlyData = analyticsData?.monthlyData || [];
+  const currentData = monthlyData;
 
   // Debug logging
   console.log('[ANALYTICS DIALOG] isLoading:', isLoading);
   console.log('[ANALYTICS DIALOG] analyticsData:', analyticsData);
-  console.log('[ANALYTICS DIALOG] dailyData:', dailyData);
-  console.log('[ANALYTICS DIALOG] monthlyAverage:', monthlyAverage);
+  console.log('[ANALYTICS DIALOG] monthlyData:', monthlyData);
+  console.log('[ANALYTICS DIALOG] currentData:', currentData);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -93,7 +92,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
               <TabsTrigger value="summary" data-testid="tab-summary">Summary</TabsTrigger>
             </TabsList>
 
-            {/* Bar Chart - Monthly Average */}
+            {/* Bar Chart */}
             <TabsContent value="bar" className="space-y-4">
               {isLoading ? (
                 <div className="h-96 flex items-center justify-center">
@@ -102,7 +101,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                     <p className="text-sm text-muted-foreground">Loading analytics...</p>
                   </div>
                 </div>
-              ) : monthlyAverage.length === 0 ? (
+              ) : currentData.length === 0 ? (
                 <div className="h-96 flex items-center justify-center">
                   <div className="text-center space-y-2">
                     <BarChart3 className="w-16 h-16 text-muted-foreground mx-auto opacity-50" />
@@ -113,9 +112,9 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
               ) : (
                 <div className="h-96">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={monthlyAverage}>
+                    <BarChart data={currentData}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" label={{ value: 'Monthly Average', position: 'insideBottom', offset: -5 }} />
+                      <XAxis dataKey="date" label={{ value: 'Day of Month', position: 'insideBottom', offset: -5 }} />
                       <YAxis domain={[0, 100]} />
                       <Tooltip />
                       <Legend />
@@ -129,7 +128,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
               )}
             </TabsContent>
 
-            {/* Line Chart - Daily Progress Trend */}
+            {/* Line Chart - Monthly Progress Trend */}
             <TabsContent value="line" className="space-y-4">
               {isLoading ? (
                 <div className="h-96 flex items-center justify-center">
@@ -138,7 +137,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                     <p className="text-sm text-muted-foreground">Loading analytics...</p>
                   </div>
                 </div>
-              ) : dailyData.length === 0 ? (
+              ) : currentData.length === 0 ? (
                 <div className="h-96 flex items-center justify-center">
                   <div className="text-center space-y-2">
                     <TrendingUp className="w-16 h-16 text-muted-foreground mx-auto opacity-50" />
@@ -149,7 +148,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
               ) : (
                 <div className="h-96">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={dailyData}>
+                    <LineChart data={currentData}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="date" label={{ value: 'Day of Month', position: 'insideBottom', offset: -5 }} />
                       <YAxis domain={[0, 100]} />
@@ -216,10 +215,11 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                     {['Health', 'Relationship', 'Career', 'Money'].map((category, idx) => {
                       const colors = ['from-red-500 to-orange-500', 'from-blue-500 to-cyan-500', 'from-purple-500 to-pink-500', 'from-green-500 to-emerald-500'];
                       
-                      // Use monthly average data
+                      // Calculate average progress for the selected month
                       let progress = 0;
-                      if (monthlyAverage.length > 0) {
-                        progress = monthlyAverage[0][category as keyof typeof monthlyAverage[0]] as number || 0;
+                      if (currentData.length > 0) {
+                        const categorySum = currentData.reduce((sum: number, d: any) => sum + (d[category] || 0), 0);
+                        progress = categorySum / currentData.length;
                       }
                       
                       return (

@@ -1161,24 +1161,17 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         // Fetch platinum standards and ratings for all 7 days in parallel
         const promises = weekDates.map(async (dateStr) => {
           try {
-            // For current date, use local savedRatings for instant update
-            let ratings;
-            if (dateStr === dateString) {
-              console.log(`[WEEKLY PROGRESS] ${dateStr}: Using local savedRatings (instant)`);
-              ratings = savedRatings;
-            } else {
-              // For other dates, fetch from API
-              const ratingsResponse = await fetch(`/api/platinum-standard-ratings/${dateStr}`, {
-                credentials: 'include',
-              });
-              
-              if (!ratingsResponse.ok) {
-                console.log(`[WEEKLY PROGRESS] No ratings for ${dateStr}`);
-                return 0; // Return 0 for days with no ratings
-              }
-              
-              ratings = await ratingsResponse.json();
+            // Fetch platinum standard ratings for this date
+            const ratingsResponse = await fetch(`/api/platinum-standard-ratings/${dateStr}`, {
+              credentials: 'include',
+            });
+            
+            if (!ratingsResponse.ok) {
+              console.log(`[WEEKLY PROGRESS] No ratings for ${dateStr}`);
+              return 0; // Return 0 for days with no ratings
             }
+            
+            const ratings = await ratingsResponse.json();
             
             if (!ratings || ratings.length === 0) {
               console.log(`[WEEKLY PROGRESS] ${dateStr}: No ratings data`);
@@ -1219,7 +1212,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     };
     
     calculateWeeklyAverage();
-  }, [selectedDate, viewAsUserId, isAdminView, dateData, platinumStandardsData, savedRatings, dateString]); // Recalculate when date changes OR when data/ratings change
+  }, [selectedDate, viewAsUserId, isAdminView, dateData, platinumStandardsData, savedRatings]); // Recalculate when date changes OR when data/ratings change
 
   const weeklyProgress = weeklyAverageProgress;
 
