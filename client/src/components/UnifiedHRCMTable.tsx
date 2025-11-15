@@ -1000,12 +1000,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       if (!viewingHistory && !isAdminView) {
         console.log('[AUTO-COPY] 🚀 Fetching previous day data to auto-copy...');
         
-        // Fetch previous day's data
+        // Fetch previous day's data (backend will search last 7 days)
         fetch(`/api/hercm/previous-day/${currentDateStr}`)
           .then(res => res.json())
           .then(previousDayData => {
             if (previousDayData && previousDayData.beliefs) {
-              console.log('[AUTO-COPY] ✅ Previous day data found, copying to current date...');
+              // Extract source date from previousDayData if available
+              const sourceDate = previousDayData.dateString || 'previous day';
+              console.log(`[AUTO-COPY] ✅ Found data from ${sourceDate}, copying to current date...`);
               
               // 🔥 SMART AUTO-SYNC DETECTION
               // Check if previous day had Current Week == Next Week Target
@@ -1025,10 +1027,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               });
               
               if (hadAutoSync) {
-                console.log('[AUTO-COPY] 🔄 Previous day had auto-sync enabled → Enabling auto-sync for today');
+                console.log('[AUTO-COPY] 🔄 Previous data had auto-sync enabled → Enabling auto-sync for today');
                 setManualNextWeekMode(false); // Enable auto-sync
               } else {
-                console.log('[AUTO-COPY] 📝 Previous day had manual planning → Preserving separate Next Week Target');
+                console.log('[AUTO-COPY] 📝 Previous data had manual planning → Preserving separate Next Week Target');
                 setManualNextWeekMode(true); // Disable auto-sync, preserve manual planning
               }
               
@@ -1056,10 +1058,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 onSuccess: () => {
                   console.log('[AUTO-COPY] ✅ Data successfully copied and saved!');
                   toast({
-                    title: "📋 Previous Day Data Copied",
+                    title: "📋 Data Auto-Copied",
                     description: hadAutoSync 
-                      ? "Previous day data copied with auto-sync enabled."
-                      : "Previous day data copied with manual planning preserved.",
+                      ? `Last available data from ${sourceDate} copied with auto-sync enabled.`
+                      : `Last available data from ${sourceDate} copied with manual planning preserved.`,
                   });
                 },
                 onError: (error) => {
@@ -1067,7 +1069,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 }
               });
             } else {
-              console.log('[AUTO-COPY] ⚠️ No previous day data found - showing blank template');
+              console.log('[AUTO-COPY] ⚠️ No data found in last 7 days - showing blank template');
               showBlankTemplate();
             }
           })

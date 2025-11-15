@@ -142,6 +142,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // 🆕 Get previous day's HRCM data for daily auto-copy feature
+  // 🔥 ENHANCED: Look for last available data within 7 days (not just immediate previous day)
   app.get('/api/hercm/previous-day/:date', isAuthenticated, async (req: any, res) => {
     try {
       res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
@@ -164,12 +165,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const currentDate = req.params.date;
       
-      // Calculate previous day's date
-      const currentDateTime = new Date(currentDate);
-      currentDateTime.setDate(currentDateTime.getDate() - 1);
-      const previousDate = `${currentDateTime.getFullYear()}-${String(currentDateTime.getMonth() + 1).padStart(2, '0')}-${String(currentDateTime.getDate()).padStart(2, '0')}`;
-      
-      console.log(`[PREVIOUS DAY] Current: ${currentDate}, Previous: ${previousDate}`);
+      console.log(`[PREVIOUS DAY] Current date: ${currentDate}, searching for last available data...`);
       
       // Get ALL weeks for user
       const allWeeks = await storage.getAllHercmWeeksByUserWithDates(user.id);
@@ -179,39 +175,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json(null);
       }
       
-      // Try exact dateString match for previous day
-      const exactMatchWeeks = allWeeks.filter((week: any) => week.dateString === previousDate);
+      // 🔥 NEW LOGIC: Search backward up to 7 days to find last available data
+      let week = null;
+      let daysSearched = 0;
+      const maxDaysToSearch = 7;
       
-      let week;
-      
-      if (exactMatchWeeks.length > 0) {
-        console.log(`[PREVIOUS DAY] ✅ Found data for ${previousDate}`);
-        week = exactMatchWeeks.sort((a: any, b: any) => 
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        )[0];
-      } else {
+      for (let i = 1; i <= maxDaysToSearch; i++) {
+        const searchDateTime = new Date(currentDate);
+        searchDateTime.setDate(searchDateTime.getDate() - i);
+        const searchDate = `${searchDateTime.getFullYear()}-${String(searchDateTime.getMonth() + 1).padStart(2, '0')}-${String(searchDateTime.getDate()).padStart(2, '0')}`;
+        
+        daysSearched = i;
+        
+        // Try exact dateString match
+        const exactMatchWeeks = allWeeks.filter((w: any) => w.dateString === searchDate);
+        
+        if (exactMatchWeeks.length > 0) {
+          console.log(`[PREVIOUS DAY] ✅ Found data for ${searchDate} (${i} days ago)`);
+          week = exactMatchWeeks.sort((a: any, b: any) => 
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          )[0];
+          break;
+        }
+        
         // Fallback: Try createdAt match
-        const previousDateStart = new Date(previousDate);
-        previousDateStart.setHours(0, 0, 0, 0);
+        const searchDateStart = new Date(searchDate);
+        searchDateStart.setHours(0, 0, 0, 0);
         
-        const previousDateEnd = new Date(previousDate);
-        previousDateEnd.setHours(23, 59, 59, 999);
+        const searchDateEnd = new Date(searchDate);
+        searchDateEnd.setHours(23, 59, 59, 999);
         
-        const createdAtMatches = allWeeks.filter((week: any) => {
-          if (!week.createdAt) return false;
-          const createdDate = new Date(week.createdAt);
-          return createdDate >= previousDateStart && createdDate <= previousDateEnd;
+        const createdAtMatches = allWeeks.filter((w: any) => {
+          if (!w.createdAt) return false;
+          const createdDate = new Date(w.createdAt);
+          return createdDate >= searchDateStart && createdDate <= searchDateEnd;
         });
         
         if (createdAtMatches.length > 0) {
-          console.log(`[PREVIOUS DAY] ✅ Found data via createdAt for ${previousDate}`);
+          console.log(`[PREVIOUS DAY] ✅ Found data via createdAt for ${searchDate} (${i} days ago)`);
           week = createdAtMatches.sort((a: any, b: any) => 
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           )[0];
-        } else {
-          console.log(`[PREVIOUS DAY] ❌ No data found for ${previousDate}`);
-          return res.json(null);
+          break;
         }
+      }
+      
+      if (!week) {
+        console.log(`[PREVIOUS DAY] ❌ No data found in last ${daysSearched} days`);
+        return res.json(null);
       }
       
       // Transform to beliefs format
@@ -314,7 +325,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         beliefs,
         weekNumber: week.weekNumber,
         createdAt: week.createdAt,
-        dateString: week.dateString
+        dateString: week.dateString,
+        unifiedAssignment: week.unifiedAssignment || []
       });
     } catch (error) {
       console.error("Error fetching previous day data:", error);
