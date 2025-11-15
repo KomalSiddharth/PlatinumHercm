@@ -245,6 +245,32 @@ export function setupScheduledTasks() {
           // Save the new record
           await storage.createOrUpdateHercmWeek(newWeekData);
           
+          // 🔥 COPY PLATINUM STANDARDS RATINGS from source date to today
+          try {
+            const sourcePlatinumRatings = await storage.getUserPlatinumStandardRatingsByDate(user.id, sourceDate);
+            
+            if (sourcePlatinumRatings && sourcePlatinumRatings.length > 0) {
+              console.log(`[DAILY AUTO-COPY] Copying ${sourcePlatinumRatings.length} platinum standard ratings from ${sourceDate} to ${todayStr}`);
+              
+              for (const rating of sourcePlatinumRatings) {
+                // Copy each rating to today's date
+                await storage.upsertPlatinumStandardRating({
+                  userId: user.id,
+                  standardId: rating.standardId,
+                  dateString: todayStr,
+                  rating: rating.rating
+                });
+              }
+              
+              console.log(`[DAILY AUTO-COPY] ✅ Platinum standards ratings copied successfully`);
+            } else {
+              console.log(`[DAILY AUTO-COPY] No platinum standards ratings found for ${sourceDate}`);
+            }
+          } catch (error) {
+            console.error(`[DAILY AUTO-COPY] Error copying platinum standards ratings:`, error);
+            // Don't fail the entire job if ratings copy fails
+          }
+          
           console.log(`[DAILY AUTO-COPY] ✅ User ${user.email}: Successfully copied data from ${sourceDate} to ${todayStr}`);
           copiedCount++;
           
