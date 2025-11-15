@@ -1245,7 +1245,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json({ weeklyData: selectedWeekNumber ? weeklyData : weeklyData.slice(-5) });
       } else if (viewType === 'monthly') {
         // Use platinum standards ratings (Progress column from Current Week table)
-        const monthlyData: Array<{ month: string; Health: number; Relationship: number; Career: number; Money: number }> = [];
+        // Return DAILY data instead of monthly aggregates
+        const dailyData: Array<{ date: string; Health: number; Relationship: number; Career: number; Money: number }> = [];
         
         // Get all active platinum standards
         const platinumStandards = await storage.getActivePlatinumStandards();
@@ -1262,112 +1263,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
           standardCounts[std.category] = (standardCounts[std.category] || 0) + 1;
         });
         
-        console.log('[ANALYTICS MONTHLY] Standard counts:', standardCounts);
+        console.log('[ANALYTICS DAILY] Standard counts:', standardCounts);
         
         // Get all weeks data to extract unique dates
         const allWeeks = weeks;
-        console.log('[ANALYTICS MONTHLY] Total weeks found:', allWeeks.length);
+        console.log('[ANALYTICS DAILY] Total weeks found:', allWeeks.length);
         
-        // Extract unique dates and group by month
-        const monthMap = new Map<string, Set<string>>();
+        // Extract unique dates, filter by selected month, and sort chronologically
+        const uniqueDates = new Set<string>();
+        const selectedMonth = month ? parseInt(month as string) : new Date().getMonth() + 1;
+        const selectedYear = year ? parseInt(year as string) : new Date().getFullYear();
         
         allWeeks.forEach((week: any) => {
           if (week.dateString) {
             const date = new Date(week.dateString);
-            const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            const dateMonth = date.getMonth() + 1;
+            const dateYear = date.getFullYear();
             
-            if (!monthMap.has(monthKey)) {
-              monthMap.set(monthKey, new Set());
+            // Only include dates from the selected month and year
+            if (dateMonth === selectedMonth && dateYear === selectedYear) {
+              uniqueDates.add(week.dateString);
             }
-            monthMap.get(monthKey)!.add(week.dateString);
           }
         });
         
-        console.log('[ANALYTICS MONTHLY] Months found:', Array.from(monthMap.keys()));
-        console.log('[ANALYTICS MONTHLY] Dates per month:', Array.from(monthMap.entries()).map(([month, dates]) => `${month}: ${Array.from(dates).join(', ')}`));
+        // Sort dates chronologically
+        const sortedDates = Array.from(uniqueDates).sort();
         
-        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        console.log('[ANALYTICS DAILY] Dates found for month:', sortedDates);
         
-        // Calculate monthly averages based on platinum standards
-        for (const [monthKey, dateSet] of monthMap.entries()) {
-          const [year, month] = monthKey.split('-');
-          const dates = Array.from(dateSet);
+        // Calculate daily progress based on platinum standards
+        for (const dateStr of sortedDates) {
+          // Get platinum standard ratings for this date
+          const ratings = await storage.getUserPlatinumStandardRatingsByDate(userId, dateStr);
           
-          // For each date in the month, calculate HRCM progress
-          const dailyProgresses = await Promise.all(dates.map(async (dateStr: string) => {
-            // Get platinum standard ratings for this date
-            const ratings = await storage.getUserPlatinumStandardRatingsByDate(userId, dateStr);
-            
-            console.log(`[ANALYTICS DAILY] ${dateStr}: Found ${ratings?.length || 0} ratings`);
-            
-            if (!ratings || ratings.length === 0) {
-              return { health: 0, relationship: 0, career: 0, money: 0 };
-            }
-            
-            // Create a map of standardId -> rating
-            const ratingMap = new Map<string, number>();
+          console.log(`[ANALYTICS DAILY] ${dateStr}: Found ${ratings?.length || 0} ratings`);
+          
+          // Create a map of standardId -> rating
+          const ratingMap = new Map<string, number>();
+          if (ratings && ratings.length > 0) {
             ratings.forEach((r: any) => {
               ratingMap.set(r.standardId, r.rating);
             });
-            
-            // Calculate progress for each category: (average of all ratings ÷ 7) × 100%
-            const calculateCategoryProgress = (category: string): number => {
-              const standardsInCategory = platinumStandards.filter((s: any) => s.category === category);
-              if (standardsInCategory.length === 0) return 0;
-              
-              // Get all ratings for standards in this category (0 if not rated)
-              const ratings = standardsInCategory.map((s: any) => ratingMap.get(s.id) || 0);
-              
-              // Calculate average rating
-              const avgRating = ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
-              
-              // Convert to percentage (out of 7)
-              const progress = Math.round((avgRating / 7) * 100);
-              
-              console.log(`[ANALYTICS DAILY] ${dateStr} ${category}: avg rating ${avgRating.toFixed(2)}/7 = ${progress}%`);
-              return progress;
-            };
-            
-            const result = {
-              health: calculateCategoryProgress('health'),
-              relationship: calculateCategoryProgress('relationship'),
-              career: calculateCategoryProgress('career'),
-              money: calculateCategoryProgress('money')
-            };
-            
-            console.log(`[ANALYTICS DAILY] ${dateStr} totals:`, result);
-            return result;
-          }));
+          }
           
-          // Average all days in the month
-          const avgHealth = dailyProgresses.length > 0
-            ? Math.round(dailyProgresses.reduce((sum, d) => sum + d.health, 0) / dailyProgresses.length)
-            : 0;
+          // Calculate progress for each category: (average of all ratings ÷ 7) × 100%
+          const calculateCategoryProgress = (category: string): number => {
+            const standardsInCategory = platinumStandards.filter((s: any) => s.category === category);
+            if (standardsInCategory.length === 0) return 0;
             
-          const avgRelationship = dailyProgresses.length > 0
-            ? Math.round(dailyProgresses.reduce((sum, d) => sum + d.relationship, 0) / dailyProgresses.length)
-            : 0;
+            // Get all ratings for standards in this category (0 if not rated)
+            const ratings = standardsInCategory.map((s: any) => ratingMap.get(s.id) || 0);
             
-          const avgCareer = dailyProgresses.length > 0
-            ? Math.round(dailyProgresses.reduce((sum, d) => sum + d.career, 0) / dailyProgresses.length)
-            : 0;
+            // Calculate average rating
+            const avgRating = ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
             
-          const avgMoney = dailyProgresses.length > 0
-            ? Math.round(dailyProgresses.reduce((sum, d) => sum + d.money, 0) / dailyProgresses.length)
-            : 0;
+            // Convert to percentage (out of 7)
+            const progress = Math.round((avgRating / 7) * 100);
+            
+            console.log(`[ANALYTICS DAILY] ${dateStr} ${category}: avg rating ${avgRating.toFixed(2)}/7 = ${progress}%`);
+            return progress;
+          };
           
-          console.log(`[ANALYTICS MONTHLY] ${monthNames[parseInt(month) - 1]} ${year}: H=${avgHealth}% R=${avgRelationship}% C=${avgCareer}% M=${avgMoney}%`);
+          const health = calculateCategoryProgress('health');
+          const relationship = calculateCategoryProgress('relationship');
+          const career = calculateCategoryProgress('career');
+          const money = calculateCategoryProgress('money');
           
-          monthlyData.push({
-            month: monthNames[parseInt(month) - 1],
-            Health: avgHealth,
-            Relationship: avgRelationship,
-            Career: avgCareer,
-            Money: avgMoney,
+          console.log(`[ANALYTICS DAILY] ${dateStr} totals: H=${health}% R=${relationship}% C=${career}% M=${money}%`);
+          
+          // Format date as "Nov 15" or "15"
+          const date = new Date(dateStr);
+          const formattedDate = `${date.getDate()}`; // Just day number for x-axis
+          
+          dailyData.push({
+            date: formattedDate,
+            Health: health,
+            Relationship: relationship,
+            Career: career,
+            Money: money,
           });
         }
 
-        res.json({ monthlyData: monthlyData.slice(-12) }); // Last 12 months
+        res.json({ monthlyData: dailyData }); // Return daily data (renamed for compatibility)
       } else {
         res.json({ weeklyData: [], monthlyData: [] });
       }

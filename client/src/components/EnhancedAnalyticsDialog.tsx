@@ -29,7 +29,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
   // Fetch analytics data - no week filtering
   const { data: analyticsData, isLoading } = useQuery<{
     weeklyData?: Array<{ week: string; Health: number; Relationship: number; Career: number; Money: number }>;
-    monthlyData?: Array<{ month: string; Health: number; Relationship: number; Career: number; Money: number }>;
+    monthlyData?: Array<{ date: string; Health: number; Relationship: number; Career: number; Money: number }>;
   }>({
     queryKey: [`/api/analytics/progress?viewType=${viewType}&year=${selectedDate.getFullYear()}&month=${selectedDate.getMonth() + 1}`],
     enabled: open,
@@ -114,7 +114,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={currentData}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
+                      <XAxis dataKey="date" label={{ value: 'Day of Month', position: 'insideBottom', offset: -5 }} />
                       <YAxis domain={[0, 100]} />
                       <Tooltip />
                       <Legend />
@@ -150,7 +150,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={currentData}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
+                      <XAxis dataKey="date" label={{ value: 'Day of Month', position: 'insideBottom', offset: -5 }} />
                       <YAxis domain={[0, 100]} />
                       <Tooltip />
                       <Legend />
@@ -215,10 +215,12 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                     {['Health', 'Relationship', 'Career', 'Money'].map((category, idx) => {
                       const colors = ['from-red-500 to-orange-500', 'from-blue-500 to-cyan-500', 'from-purple-500 to-pink-500', 'from-green-500 to-emerald-500'];
                       
-                      // Show monthly data only
+                      // Calculate average progress for the selected month
                       let progress = 0;
-                      const monthData = currentData.find((d: any) => d.month === monthNames[selectedDate.getMonth()].substring(0, 3));
-                      progress = monthData ? (monthData[category as keyof typeof monthData] as number) : 0;
+                      if (currentData.length > 0) {
+                        const categorySum = currentData.reduce((sum: number, d: any) => sum + (d[category] || 0), 0);
+                        progress = categorySum / currentData.length;
+                      }
                       
                       return (
                         <div key={category} className="p-6 bg-muted/30 rounded-lg space-y-3">
