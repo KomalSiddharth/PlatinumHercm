@@ -199,7 +199,7 @@ const calculateProgress = (checklist: ChecklistItem[]): number => {
   return Math.round(checklistProgress);
 };
 
-// Calculate progress based on platinum standards rated 7
+// Calculate progress based on average rating (Average Rating Progress formula)
 const calculateStandardsProgress = (
   category: string,
   platinumStandards: any[],
@@ -212,14 +212,17 @@ const calculateStandardsProgress = (
   
   if (categoryStandards.length === 0) return 0;
   
-  // Count how many standards are rated 7
-  const perfectRatings = categoryStandards.filter((standard) => {
+  // Get all ratings for standards in this category (0 if not rated)
+  const allRatings = categoryStandards.map((standard) => {
     const rating = ratings.find((r) => r.standardId === standard.id);
-    return rating && rating.rating === 7;
-  }).length;
+    return rating ? rating.rating : 0;
+  });
   
-  // Calculate percentage
-  return Math.round((perfectRatings / categoryStandards.length) * 100);
+  // Calculate average rating
+  const avgRating = allRatings.reduce((sum, rating) => sum + rating, 0) / allRatings.length;
+  
+  // Convert to percentage (out of 7)
+  return Math.round((avgRating / 7) * 100);
 };
 
 const getProgressColor = (progress: number) => {
