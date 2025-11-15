@@ -1310,15 +1310,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
               ratingMap.set(r.standardId, r.rating);
             });
             
-            // Calculate progress for each category: (standards rated 7 ÷ total standards) × 100%
+            // Calculate progress for each category: (average of all ratings ÷ 7) × 100%
             const calculateCategoryProgress = (category: string): number => {
               const standardsInCategory = platinumStandards.filter((s: any) => s.category === category);
               if (standardsInCategory.length === 0) return 0;
               
-              const rated7Count = standardsInCategory.filter((s: any) => ratingMap.get(s.id) === 7).length;
-              const progress = Math.round((rated7Count / standardsInCategory.length) * 100);
+              // Get all ratings for standards in this category (0 if not rated)
+              const ratings = standardsInCategory.map((s: any) => ratingMap.get(s.id) || 0);
               
-              console.log(`[ANALYTICS DAILY] ${dateStr} ${category}: ${rated7Count}/${standardsInCategory.length} = ${progress}%`);
+              // Calculate average rating
+              const avgRating = ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
+              
+              // Convert to percentage (out of 7)
+              const progress = Math.round((avgRating / 7) * 100);
+              
+              console.log(`[ANALYTICS DAILY] ${dateStr} ${category}: avg rating ${avgRating.toFixed(2)}/7 = ${progress}%`);
               return progress;
             };
             
