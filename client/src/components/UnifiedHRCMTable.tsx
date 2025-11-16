@@ -381,7 +381,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     setStandardRatings(ratingsMap); // This clears state if savedRatings is empty
   }, [savedRatings]);
 
-  // Mutation to save platinum standard rating
+  // Mutation to save platinum standard rating with INSTANT optimistic updates
   const saveRatingMutation = useMutation({
     mutationFn: async ({ standardId, rating }: { standardId: string; rating: number }) => {
       console.log(`[RATING SAVE] Saving rating for standard ${standardId} on ${dateString}: ${rating}`);
@@ -392,10 +392,39 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         rating,
       });
     },
+    onMutate: async ({ standardId, rating }) => {
+      console.log(`[OPTIMISTIC UPDATE] 🚀 Instantly updating rating for ${standardId} to ${rating}`);
+      
+      // Cancel outgoing refetches (to prevent overwriting optimistic update)
+      await queryClient.cancelQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey[0];
+          return typeof key === 'string' && key === '/api/platinum-standard-ratings';
+        }
+      });
+      
+      // Snapshot previous values for rollback
+      const previousRatings = queryClient.getQueryData(['/api/platinum-standard-ratings', dateString]);
+      
+      // Optimistically update cache
+      queryClient.setQueryData(['/api/platinum-standard-ratings', dateString], (old: any) => {
+        if (!old) return old;
+        // Update the rating in the cached data
+        return old.map((r: any) => 
+          r.standardId === standardId 
+            ? { ...r, rating } 
+            : r
+        );
+      });
+      
+      console.log(`[OPTIMISTIC UPDATE] ✅ Cache updated instantly!`);
+      
+      // Return context for rollback
+      return { previousRatings };
+    },
     onSuccess: () => {
       console.log(`[RATING SAVE] Success! Invalidating queries for ${dateString}`);
-      // Invalidate ALL platinum standard rating queries
-      // This ensures BOTH the dialog ratings AND progress calculation update!
+      // Invalidate ALL platinum standard rating queries for fresh data
       queryClient.invalidateQueries({ 
         predicate: (query) => {
           const key = query.queryKey[0];
@@ -417,6 +446,21 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           const key = query.queryKey[0];
           return typeof key === 'string' && key.includes('/api/hrcm-unlock-status');
         }
+      });
+    },
+    onError: (error, { standardId }, context: any) => {
+      console.error(`[OPTIMISTIC UPDATE] ❌ Error saving rating for ${standardId}:`, error);
+      
+      // Rollback to previous state on error
+      if (context?.previousRatings) {
+        console.log(`[OPTIMISTIC UPDATE] 🔄 Rolling back to previous state`);
+        queryClient.setQueryData(['/api/platinum-standard-ratings', dateString], context.previousRatings);
+      }
+      
+      toast({
+        title: "Failed to Save Rating",
+        description: "Your changes have been reverted. Please try again.",
+        variant: "destructive"
       });
     },
   });
