@@ -1573,21 +1573,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Name parameter required" });
       }
 
-      const users = await storage.getAllUsers();
-      const matchedUsers = users.filter(u => {
+      const searchTerm = name.toLowerCase();
+      console.log('[TEAM SEARCH] Searching for:', searchTerm);
+
+      // 🔥 FIX: Include approved emails who haven't logged in yet (placeholder users)
+      // Get ALL approved emails (same logic as admin endpoint)
+      const approvedEmailsList = await storage.getAllApprovedEmails();
+      const activeApprovedEmails = approvedEmailsList.filter(ae => ae.status === 'active');
+      console.log('[TEAM SEARCH] Total approved emails:', activeApprovedEmails.length);
+      
+      // Get all registered users
+      const allUsers = await storage.getAllUsers();
+      console.log('[TEAM SEARCH] Total registered users:', allUsers.length);
+      
+      // Create a map: email -> user data (for approved emails)
+      const usersByEmail = new Map<string, any>();
+      
+      // Start with ALL approved emails (even if they haven't logged in)
+      for (const approvedEmail of activeApprovedEmails) {
+        const nameParts = approvedEmail.name ? approvedEmail.name.trim().split(' ') : [];
+        usersByEmail.set(approvedEmail.email, {
+          id: approvedEmail.email, // Use email as ID placeholder
+          email: approvedEmail.email,
+          firstName: nameParts[0] || '',
+          lastName: nameParts.slice(1).join(' ') || '',
+          isPlaceholder: true,
+        });
+      }
+      
+      // Overlay actual user data from users table
+      for (const user of allUsers) {
+        const emailKey = user.email || user.id;
+        if (usersByEmail.has(emailKey)) {
+          usersByEmail.set(emailKey, user);
+        }
+      }
+      
+      // Search through all users (both registered and placeholder)
+      const allUsersArray = Array.from(usersByEmail.values());
+      const matchedUsers = allUsersArray.filter(u => {
         const fullName = `${u.firstName || ''} ${u.lastName || ''}`.toLowerCase();
         const email = (u.email || '').toLowerCase();
-        const searchTerm = name.toLowerCase();
         return fullName.includes(searchTerm) || email.includes(searchTerm);
       });
 
       if (matchedUsers.length === 0) {
+        console.log('[TEAM SEARCH] No users found for:', searchTerm);
         return res.status(404).json({ message: "No users found" });
       }
+
+      console.log('[TEAM SEARCH] Found matching users:', matchedUsers.length);
 
       // Get compact activity for each matched user
       const usersWithActivity = await Promise.all(
         matchedUsers.map(async (user) => {
+          // Skip database queries for placeholder users (approved but not logged in)
+          if (user.isPlaceholder) {
+            console.log('[TEAM SEARCH] Placeholder user found:', user.email);
+            return {
+              id: user.id,
+              email: user.email,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              latestWeek: null,
+              totalWeeks: 0,
+              isPlaceholder: true,
+            };
+          }
+
           // 🔥 FIX: Add error handling for database fetch failures
           let weeks: any[] = [];
           try {
@@ -1617,10 +1670,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
               overallScore: latestWeek.overallScore || 0,
             } : null,
             totalWeeks: weeks.length,
+            isPlaceholder: false,
           };
         })
       );
 
+      console.log('[TEAM SEARCH] Returning users with activity:', usersWithActivity.length);
       res.json(usersWithActivity);
     } catch (error) {
       console.error("Error searching team users:", error);
