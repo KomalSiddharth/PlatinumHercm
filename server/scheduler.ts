@@ -153,6 +153,53 @@ export function setupScheduledTasks() {
           
           console.log(`[DAILY AUTO-COPY] User ${user.email}: Copying data from ${sourceDate} to ${todayStr}`);
           
+          // 🔥 SMART AUTO-DETECTION: Check if previous data had auto-sync enabled
+          const hadAutoSync = (
+            // Check if CW == NWT for all 4 HRCM areas
+            sourceData.healthProblems === sourceData.healthResult &&
+            sourceData.healthCurrentFeelings === sourceData.healthNextFeelings &&
+            sourceData.healthCurrentBelief === sourceData.healthNextTarget &&
+            sourceData.healthCurrentActions === sourceData.healthNextActions &&
+            sourceData.relationshipProblems === sourceData.relationshipResult &&
+            sourceData.relationshipCurrentFeelings === sourceData.relationshipNextFeelings &&
+            sourceData.relationshipCurrentBelief === sourceData.relationshipNextTarget &&
+            sourceData.relationshipCurrentActions === sourceData.relationshipNextActions &&
+            sourceData.careerProblems === sourceData.careerResult &&
+            sourceData.careerCurrentFeelings === sourceData.careerNextFeelings &&
+            sourceData.careerCurrentBelief === sourceData.careerNextTarget &&
+            sourceData.careerCurrentActions === sourceData.careerNextActions &&
+            sourceData.moneyProblems === sourceData.moneyResult &&
+            sourceData.moneyCurrentFeelings === sourceData.moneyNextFeelings &&
+            sourceData.moneyCurrentBelief === sourceData.moneyNextTarget &&
+            sourceData.moneyCurrentActions === sourceData.moneyNextActions &&
+            // Check if checklists also match
+            JSON.stringify(sourceData.healthProblemsChecklist || []) === JSON.stringify(sourceData.healthResultChecklist || []) &&
+            JSON.stringify(sourceData.healthFeelingsCurrentChecklist || []) === JSON.stringify(sourceData.healthFeelingsChecklist || []) &&
+            JSON.stringify(sourceData.healthBeliefsCurrentChecklist || []) === JSON.stringify(sourceData.healthBeliefsChecklist || []) &&
+            JSON.stringify(sourceData.healthActionsCurrentChecklist || []) === JSON.stringify(sourceData.healthActionsChecklist || []) &&
+            JSON.stringify(sourceData.relationshipProblemsChecklist || []) === JSON.stringify(sourceData.relationshipResultChecklist || []) &&
+            JSON.stringify(sourceData.relationshipFeelingsCurrentChecklist || []) === JSON.stringify(sourceData.relationshipFeelingsChecklist || []) &&
+            JSON.stringify(sourceData.relationshipBeliefsCurrentChecklist || []) === JSON.stringify(sourceData.relationshipBeliefsChecklist || []) &&
+            JSON.stringify(sourceData.relationshipActionsCurrentChecklist || []) === JSON.stringify(sourceData.relationshipActionsChecklist || []) &&
+            JSON.stringify(sourceData.careerProblemsChecklist || []) === JSON.stringify(sourceData.careerResultChecklist || []) &&
+            JSON.stringify(sourceData.careerFeelingsCurrentChecklist || []) === JSON.stringify(sourceData.careerFeelingsChecklist || []) &&
+            JSON.stringify(sourceData.careerBeliefsCurrentChecklist || []) === JSON.stringify(sourceData.careerBeliefsChecklist || []) &&
+            JSON.stringify(sourceData.careerActionsCurrentChecklist || []) === JSON.stringify(sourceData.careerActionsChecklist || []) &&
+            JSON.stringify(sourceData.moneyProblemsChecklist || []) === JSON.stringify(sourceData.moneyResultChecklist || []) &&
+            JSON.stringify(sourceData.moneyFeelingsCurrentChecklist || []) === JSON.stringify(sourceData.moneyFeelingsChecklist || []) &&
+            JSON.stringify(sourceData.moneyBeliefsCurrentChecklist || []) === JSON.stringify(sourceData.moneyBeliefsChecklist || []) &&
+            JSON.stringify(sourceData.moneyActionsCurrentChecklist || []) === JSON.stringify(sourceData.moneyActionsChecklist || [])
+          );
+          
+          // Set manualNextWeekMode based on smart detection
+          const detectedManualMode = !hadAutoSync;
+          
+          if (hadAutoSync) {
+            console.log(`[DAILY AUTO-COPY] 🔄 Previous data had auto-sync enabled (CW == NWT) → Enabling auto-sync for ${todayStr}`);
+          } else {
+            console.log(`[DAILY AUTO-COPY] 📝 Previous data had manual planning (CW != NWT) → Preserving separate Next Week Target for ${todayStr}`);
+          }
+          
           // Create new record with today's date
           const newWeekData = {
             userId: user.id,
@@ -239,7 +286,7 @@ export function setupScheduledTasks() {
             moneyBeliefsChecklist: sourceData.moneyBeliefsChecklist,
             moneyActionsChecklist: sourceData.moneyActionsChecklist,
             unifiedAssignment: sourceData.unifiedAssignment,
-            manualNextWeekMode: sourceData.manualNextWeekMode
+            manualNextWeekMode: detectedManualMode  // 🔥 SMART DETECTION: Set based on previous day's CW==NWT comparison
           };
           
           // Save the new record
