@@ -204,6 +204,7 @@ export function setupScheduledTasks() {
           const newWeekData = {
             userId: user.id,
             weekNumber: sourceData.weekNumber,
+            year: now.getFullYear(),
             dateString: todayStr,
             currentH: sourceData.currentH,
             currentE: sourceData.currentE,
@@ -289,8 +290,14 @@ export function setupScheduledTasks() {
             manualNextWeekMode: detectedManualMode  // 🔥 SMART DETECTION: Set based on previous day's CW==NWT comparison
           };
           
-          // Save the new record
-          await storage.createOrUpdateHercmWeek(newWeekData);
+          // Save the new record (UPSERT logic: delete existing + create new)
+          const existingData = await storage.getHercmWeekByDate(user.id, newWeekData.weekNumber, todayStr);
+          if (existingData) {
+            console.log(`[DAILY AUTO-COPY] Deleting existing data for ${todayStr} before copying`);
+            await storage.updateHercmWeek(existingData.id, newWeekData);
+          } else {
+            await storage.createHercmWeek(newWeekData);
+          }
           
           // 🔥 COPY PLATINUM STANDARDS RATINGS from source date to today
           try {

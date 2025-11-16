@@ -1142,7 +1142,28 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   // FIXED: Added isFetching to prevent blank template flicker during date navigation
 
   // 🔥 AUTO-SYNC: Real-time sync from Current Week to Next Week Target
+  // Track if data is being initially loaded to prevent premature auto-sync
+  const [initialDataLoaded, setInitialDataLoaded] = useState(false);
+  
   useEffect(() => {
+    // Reset on date change to allow proper loading of new date's data
+    setInitialDataLoaded(false);
+  }, [currentDateStr]);
+  
+  useEffect(() => {
+    // Mark initial data as loaded after weekData is processed
+    if (weekData !== undefined) {
+      setInitialDataLoaded(true);
+    }
+  }, [weekData]);
+  
+  useEffect(() => {
+    // Skip auto-sync during initial data load to preserve database state
+    if (!initialDataLoaded) {
+      console.log('[AUTO-SYNC] ⏸️ Skipping auto-sync (initial data loading...)');
+      return;
+    }
+    
     // Only skip auto-sync for admin view or when manual mode is ON
     // 🔥 UPDATED: Auto-sync now works on ALL dates (including history)
     if (isAdminView || manualNextWeekMode) {
@@ -1203,10 +1224,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     beliefs.map(b => JSON.stringify(b.actionsCurrentChecklist || [])).join('|'),
     isAdminView,
     manualNextWeekMode,
+    initialDataLoaded,
   ]);
   // Dependencies: Only trigger when Current Week fields change
   // 🔥 UPDATED: Removed viewingHistory from dependencies - auto-sync works on all dates
-  // 🔥 REMOVED date change reset useEffect - Smart detection handles manualNextWeekMode correctly
+  // 🔥 SMART DETECTION FIX: Added initialDataLoaded to prevent premature auto-sync during data load
 
   // Calculate weekly average progress using React Query for instant visibility
   // Progress = Average of all 4 HRCM areas (Health, Relationship, Career, Money) for each day
