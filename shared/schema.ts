@@ -195,7 +195,8 @@ export const hercmWeeks = pgTable("hercm_weeks", {
   
   // Manual Next Week Mode - tracks if user clicked "Update" button to disable auto-sync
   // Persists across browser refreshes to maintain user's manual planning state
-  manualNextWeekMode: boolean("manual_next_week_mode").default(false),
+  // DEFAULT TRUE: Safer default that preserves separate planning when cron job misses
+  manualNextWeekMode: boolean("manual_next_week_mode").default(true),
   
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
