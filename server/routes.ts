@@ -1894,6 +1894,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Team: Get emotional tracker data for a specific user and date
+  app.get('/api/team/user/:userId/emotional-trackers/:date', isAuthenticated, async (req, res) => {
+    try {
+      const { userId, date } = req.params;
+      const trackers = await storage.getEmotionalTrackersByDate(userId, date);
+      res.json(trackers);
+    } catch (error) {
+      console.error("Error fetching team user emotional trackers:", error);
+      res.status(500).json({ message: "Failed to fetch emotional trackers" });
+    }
+  });
+
   app.get('/api/admin/user/:userId/weeks', isAdmin, async (req, res) => {
     try {
       const { userId } = req.params;

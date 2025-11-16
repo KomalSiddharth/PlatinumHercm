@@ -49,17 +49,35 @@ export default function AdminEmotionalTrackerView({ userId }: AdminEmotionalTrac
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const currentDateStr = getLocalDateString(selectedDate);
 
+  // 🔥 FIX: Fetch current user to determine admin status
+  const { data: currentUser } = useQuery({
+    queryKey: ['/api/user'],
+  });
+
+  const isActualAdmin = currentUser?.isAdmin === true;
+
   // Fetch emotional tracker data for the selected user and date
+  // Use team endpoints for regular users, admin endpoints for admins
+  const emotionalTrackerEndpoint = userId
+    ? (isActualAdmin
+        ? `/api/admin/emotional-trackers/${userId}/${currentDateStr}`
+        : `/api/team/user/${userId}/emotional-trackers/${currentDateStr}`)
+    : `/api/emotional-trackers/${currentDateStr}`;
+
   const { data: existingTrackers, isLoading } = useQuery<EmotionalTrackerData[]>({
-    queryKey: [`/api/admin/emotional-trackers/${userId}`, currentDateStr],
+    queryKey: userId
+      ? (isActualAdmin
+          ? [`/api/admin/emotional-trackers/${userId}`, currentDateStr]
+          : [`/api/team/user/${userId}/emotional-trackers`, currentDateStr])
+      : [`/api/emotional-trackers`, currentDateStr],
     queryFn: async () => {
-      const response = await fetch(`/api/admin/emotional-trackers/${userId}/${currentDateStr}`, {
+      const response = await fetch(emotionalTrackerEndpoint, {
         credentials: 'include',
       });
       if (!response.ok) throw new Error('Failed to fetch emotional trackers');
       return response.json();
     },
-    enabled: !!userId,
+    enabled: userId ? (!!userId && currentUser !== undefined) : true,
   });
 
   const trackerData: Record<string, EmotionalTrackerData> = {};
