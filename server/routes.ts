@@ -1683,6 +1683,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Team: Get specific user's dashboard (accessible to all authenticated users)
+  app.get('/api/team/user/:userId/dashboard', isAuthenticated, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      console.log('[TEAM DASHBOARD] Fetching dashboard for user:', userId);
+      
+      // 🔥 FIX: Check if user exists first (prevent placeholder user issues)
+      const user = await storage.getUser(userId);
+      if (!user) {
+        console.log(`[TEAM DASHBOARD] User not found: ${userId} (may be placeholder user)`);
+        return res.status(404).json({ message: "User not found or hasn't logged in yet" });
+      }
+      
+      console.log('[TEAM DASHBOARD] User found, fetching dashboard data...');
+      const dashboardData = await storage.getUserDashboardData(userId);
+      console.log('[TEAM DASHBOARD] Dashboard data fetched successfully');
+      res.json(dashboardData);
+    } catch (error) {
+      console.error("[TEAM DASHBOARD] Error fetching user dashboard data:", error);
+      res.status(500).json({ message: "Failed to fetch user dashboard data" });
+    }
+  });
+
   app.get('/api/admin/user/:userId/weeks', isAdmin, async (req, res) => {
     try {
       const { userId } = req.params;

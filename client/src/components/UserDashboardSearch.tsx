@@ -65,7 +65,7 @@ export default function UserDashboardSearch({ isAdmin = false }: UserDashboardSe
 
   // 🔥 FIX: Use correct endpoint based on admin status
   const searchEndpoint = isAdmin ? '/api/admin/search-user-by-name' : '/api/team/search-users';
-  const dashboardEndpoint = isAdmin ? '/api/admin/user' : '/api/admin/user'; // Same for now
+  const dashboardEndpointBase = isAdmin ? '/api/admin/user' : '/api/team/user';
 
   // Search users by name or email (live search as user types)
   const { data: searchResults, isLoading: isSearching, error: searchError } = useQuery<UserSearchResult[]>({
@@ -92,7 +92,7 @@ export default function UserDashboardSearch({ isAdmin = false }: UserDashboardSe
 
   // Get selected user's dashboard data
   const { data: dashboardData, isLoading: isDashboardLoading, error: dashboardError } = useQuery<UserDashboardData>({
-    queryKey: [`/api/admin/user/${selectedUserId}/dashboard`],
+    queryKey: [`${dashboardEndpointBase}/${selectedUserId}/dashboard`],
     enabled: !!selectedUserId,
     retry: false, // Don't retry on 404 errors
   });
