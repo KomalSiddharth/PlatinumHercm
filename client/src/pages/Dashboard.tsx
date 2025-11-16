@@ -920,7 +920,7 @@ export default function Dashboard() {
               <p className="text-muted-foreground mt-1">Search and view team members' complete dashboards</p>
             </div>
 
-            <UserDashboardSearch />
+            <UserDashboardSearch isAdmin={currentUser?.isAdmin || false} />
           </div>
         </section>
       </main>

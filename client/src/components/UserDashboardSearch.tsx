@@ -48,9 +48,13 @@ interface UserDashboardData {
   platinumBadges: any[];
 }
 
-export default function UserDashboardSearch() {
-  // 🔥 NEW DROPDOWN VERSION - v2.0
-  console.log('🔥 UserDashboardSearch v2.0 - DROPDOWN VERSION LOADED');
+interface UserDashboardSearchProps {
+  isAdmin?: boolean; // Optional prop to determine endpoint
+}
+
+export default function UserDashboardSearch({ isAdmin = false }: UserDashboardSearchProps) {
+  // 🔥 NEW DROPDOWN VERSION - v3.0 (Admin/Team endpoint support)
+  console.log('🔥 UserDashboardSearch v3.0 - isAdmin:', isAdmin);
   
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -59,18 +63,23 @@ export default function UserDashboardSearch() {
   const [selectedRitual, setSelectedRitual] = useState<any | null>(null);
   const { toast } = useToast();
 
+  // 🔥 FIX: Use correct endpoint based on admin status
+  const searchEndpoint = isAdmin ? '/api/admin/search-user-by-name' : '/api/team/search-users';
+  const dashboardEndpoint = isAdmin ? '/api/admin/user' : '/api/admin/user'; // Same for now
+
   // Search users by name or email (live search as user types)
   const { data: searchResults, isLoading: isSearching, error: searchError } = useQuery<UserSearchResult[]>({
-    queryKey: [`/api/admin/search-user-by-name`, searchQuery],
+    queryKey: [searchEndpoint, searchQuery],
     queryFn: async () => {
       if (searchQuery.length < 2) return [];
-      console.log('🔍 Searching for:', searchQuery);
-      const response = await fetch(`/api/admin/search-user-by-name?name=${encodeURIComponent(searchQuery)}`);
+      console.log(`🔍 Searching for: "${searchQuery}" using endpoint: ${searchEndpoint}`);
+      const response = await fetch(`${searchEndpoint}?name=${encodeURIComponent(searchQuery)}`);
       if (!response.ok) {
         if (response.status === 404) {
           console.log('❌ No users found for:', searchQuery);
           return []; // Return empty array instead of throwing error
         }
+        console.error('❌ Search failed:', response.status, response.statusText);
         throw new Error('Search failed');
       }
       const data = await response.json();
