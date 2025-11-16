@@ -572,7 +572,13 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         : [`/api/team/user/${viewAsUserId}/hercm/by-date`, currentDateStr])
     : ['/api/hercm/by-date', currentDateStr];
   
-  console.log('🔍 [QUERY ENABLED CHECK] viewAsUserId:', viewAsUserId, 'currentUser:', currentUser, 'enabled will be:', viewAsUserId ? (!!viewAsUserId && currentUser !== undefined) : true);
+  // 🔥 FIX: Enable query based on isAdminView prop, not currentUser state
+  // isAdminView tells us if we're in team/admin viewing mode
+  const shouldEnableQuery = viewAsUserId 
+    ? (!!viewAsUserId && (isAdminView || currentUser !== undefined)) 
+    : true;
+  
+  console.log('🔍 [QUERY ENABLED CHECK] viewAsUserId:', viewAsUserId, 'currentUser:', currentUser, 'isAdminView:', isAdminView, 'shouldEnableQuery:', shouldEnableQuery);
   
   const { data: dateData, isLoading, isFetching } = useQuery<{ beliefs?: HRCMBelief[]; createdAt?: string; weekNumber?: number }>({
     queryKey: dateDataQueryKey,
@@ -594,7 +600,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       console.log(`[FRONTEND] ✅ Received HRCM data for ${currentDateStr}:`, data ? 'Data found' : 'No data', data);
       return data;
     },
-    enabled: viewAsUserId ? (!!viewAsUserId && currentUser !== undefined) : true, // Wait for user data when viewing another user
+    enabled: shouldEnableQuery, // 🔥 Use computed shouldEnableQuery
     staleTime: 0,  // Always fetch fresh data
     gcTime: 5000,  // Keep cache for 5 seconds to prevent blank flicker during navigation
     refetchOnMount: true,  // Refetch when component mounts
@@ -640,7 +646,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       console.log(`[FRONTEND] Received all weeks data:`, data);
       return data;
     },
-    enabled: isAdminView ? !!viewAsUserId : true, // Only fetch when we have a user ID in admin view
+    enabled: shouldEnableQuery, // 🔥 Use same enable logic as dateData query
   });
 
   // Fetch rating caps and progression status
