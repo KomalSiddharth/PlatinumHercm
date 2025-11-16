@@ -3194,6 +3194,14 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   app.get('/api/admin/user/:userId/dashboard', isAdmin, async (req, res) => {
     try {
       const { userId } = req.params;
+      
+      // 🔥 FIX: Check if user exists first (prevent placeholder user issues)
+      const user = await storage.getUser(userId);
+      if (!user) {
+        console.log(`[DASHBOARD] User not found: ${userId} (may be placeholder user)`);
+        return res.status(404).json({ message: "User not found or hasn't logged in yet" });
+      }
+      
       const dashboardData = await storage.getUserDashboardData(userId);
       res.json(dashboardData);
     } catch (error) {

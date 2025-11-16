@@ -82,9 +82,10 @@ export default function UserDashboardSearch() {
   });
 
   // Get selected user's dashboard data
-  const { data: dashboardData, isLoading: isDashboardLoading } = useQuery<UserDashboardData>({
+  const { data: dashboardData, isLoading: isDashboardLoading, error: dashboardError } = useQuery<UserDashboardData>({
     queryKey: [`/api/admin/user/${selectedUserId}/dashboard`],
     enabled: !!selectedUserId,
+    retry: false, // Don't retry on 404 errors
   });
 
   // Auto-detect latest week (no manual selection needed)
@@ -120,6 +121,40 @@ export default function UserDashboardSearch() {
     setHistoryOpen(true);
   };
 
+  // 🔥 Handle placeholder users (approved but not logged in)
+  if (selectedUserId && dashboardError) {
+    const selectedUserInfo = searchResults?.find(u => u.id === selectedUserId);
+    return (
+      <div className="space-y-4">
+        <Button 
+          variant="outline" 
+          onClick={handleBackToSearch}
+          data-testid="button-back-to-search-user"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Search
+        </Button>
+        
+        <Card className="border-amber-300 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800">
+          <CardHeader>
+            <CardTitle className="text-amber-700 dark:text-amber-400 flex items-center gap-2">
+              <User className="w-5 h-5" />
+              User Not Available
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              <strong>{selectedUserInfo?.email || 'This user'}</strong> is approved to access the platform but hasn't logged in yet.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Once they log in and start using the dashboard, their progress will be available here.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+  
   // If viewing a user's dashboard
   if (selectedUserId && dashboardData) {
     const user = dashboardData.user;
