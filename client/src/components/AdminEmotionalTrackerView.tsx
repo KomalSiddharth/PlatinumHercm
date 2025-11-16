@@ -21,6 +21,7 @@ interface EmotionalTrackerData {
 
 interface AdminEmotionalTrackerViewProps {
   userId: string;
+  isAdminView?: boolean; // 🔥 Add isAdminView prop to determine if we're in team/admin view
 }
 
 const TIME_SLOTS = [
@@ -44,7 +45,7 @@ const getLocalDateString = (date: Date): string => {
   return `${year}-${month}-${day}`;
 };
 
-export default function AdminEmotionalTrackerView({ userId }: AdminEmotionalTrackerViewProps) {
+export default function AdminEmotionalTrackerView({ userId, isAdminView = false }: AdminEmotionalTrackerViewProps) {
   const today = getLocalDateString(new Date());
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const currentDateStr = getLocalDateString(selectedDate);
@@ -52,6 +53,7 @@ export default function AdminEmotionalTrackerView({ userId }: AdminEmotionalTrac
   // 🔥 FIX: Fetch current user to determine admin status
   const { data: currentUser } = useQuery({
     queryKey: ['/api/user'],
+    // Always fetch - needed for both personal view and team view
   });
 
   const isActualAdmin = currentUser?.isAdmin === true;
@@ -64,6 +66,13 @@ export default function AdminEmotionalTrackerView({ userId }: AdminEmotionalTrac
         : `/api/team/user/${userId}/emotional-trackers/${currentDateStr}`)
     : `/api/emotional-trackers/${currentDateStr}`;
 
+  // 🔥 FIX: Enable query based on isAdminView prop, not currentUser state
+  const shouldEnableQuery = userId 
+    ? (!!userId && (isAdminView || currentUser !== undefined)) 
+    : true;
+
+  console.log('🔍 [EMOTIONAL TRACKER QUERY] userId:', userId, 'currentUser:', currentUser, 'isAdminView:', isAdminView, 'shouldEnableQuery:', shouldEnableQuery);
+
   const { data: existingTrackers, isLoading } = useQuery<EmotionalTrackerData[]>({
     queryKey: userId
       ? (isActualAdmin
@@ -71,13 +80,19 @@ export default function AdminEmotionalTrackerView({ userId }: AdminEmotionalTrac
           : [`/api/team/user/${userId}/emotional-trackers`, currentDateStr])
       : [`/api/emotional-trackers`, currentDateStr],
     queryFn: async () => {
+      console.log(`🚀 [EMOTIONAL TRACKER] Fetching data for userId: ${userId}, date: ${currentDateStr}, endpoint: ${emotionalTrackerEndpoint}`);
       const response = await fetch(emotionalTrackerEndpoint, {
         credentials: 'include',
       });
-      if (!response.ok) throw new Error('Failed to fetch emotional trackers');
-      return response.json();
+      if (!response.ok) {
+        console.error(`❌ [EMOTIONAL TRACKER] Failed to fetch: ${response.status} ${response.statusText}`);
+        throw new Error('Failed to fetch emotional trackers');
+      }
+      const data = await response.json();
+      console.log(`✅ [EMOTIONAL TRACKER] Received data:`, data);
+      return data;
     },
-    enabled: userId ? (!!userId && currentUser !== undefined) : true,
+    enabled: shouldEnableQuery, // 🔥 Use computed shouldEnableQuery
   });
 
   const trackerData: Record<string, EmotionalTrackerData> = {};
