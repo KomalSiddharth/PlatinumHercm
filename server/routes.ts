@@ -1706,6 +1706,194 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Team: Get HRCM data by specific date for viewing other user's dashboard
+  app.get('/api/team/user/:userId/hercm/by-date/:date', isAuthenticated, async (req, res) => {
+    try {
+      // CRITICAL: Disable ALL caching to prevent showing wrong date's data
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      
+      const { userId, date: requestedDate } = req.params;
+      
+      console.log(`[TEAM HERCM BY-DATE] Team member requesting data for userId: ${userId}, date: ${requestedDate}`);
+      
+      // Get all weeks for the specified user
+      const allWeeks = await storage.getAllHercmWeeksByUserWithDates(userId);
+      
+      console.log(`[TEAM HERCM BY-DATE] Found ${allWeeks?.length || 0} weeks for user ${userId}`);
+      
+      if (!allWeeks || allWeeks.length === 0) {
+        return res.json(null);
+      }
+      
+      // Try exact dateString match (fastest, most accurate)
+      const exactMatchWeeks = allWeeks.filter((week: any) => week.dateString === requestedDate);
+      
+      let week;
+      
+      if (exactMatchWeeks.length > 0) {
+        // Found exact match - return most recent entry for that date
+        console.log(`[TEAM HERCM BY-DATE] ✅ Exact dateString match found for ${requestedDate}`);
+        week = exactMatchWeeks.sort((a: any, b: any) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )[0];
+      } else {
+        // FALLBACK - Use createdAt to find data created on the requested date
+        console.log(`[TEAM HERCM BY-DATE] No exact dateString match, trying createdAt fallback...`);
+        
+        const requestedDateStart = new Date(requestedDate);
+        requestedDateStart.setHours(0, 0, 0, 0);
+        
+        const requestedDateEnd = new Date(requestedDate);
+        requestedDateEnd.setHours(23, 59, 59, 999);
+        
+        const createdAtMatches = allWeeks.filter((week: any) => {
+          if (!week.createdAt) return false;
+          const createdDate = new Date(week.createdAt);
+          return createdDate >= requestedDateStart && createdDate <= requestedDateEnd;
+        });
+        
+        if (createdAtMatches.length > 0) {
+          // Found data created on this date - return most recent
+          console.log(`[TEAM HERCM BY-DATE] ✅ Found ${createdAtMatches.length} entries via createdAt for ${requestedDate}`);
+          week = createdAtMatches.sort((a: any, b: any) => 
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          )[0];
+        } else {
+          // No data found for this date - return null (blank table)
+          console.log(`[TEAM HERCM BY-DATE] ❌ No data found for ${requestedDate}`);
+          return res.json(null);
+        }
+      }
+      
+      // Transform to beliefs format (same as admin endpoint)
+      const beliefs = [
+        {
+          category: 'Health',
+          currentRating: week.currentH || 0,
+          targetRating: week.targetH || 0,
+          problems: week.healthProblems || '',
+          currentFeelings: week.healthCurrentFeelings || '',
+          currentBelief: week.healthCurrentBelief || '',
+          currentActions: week.healthCurrentActions || '',
+          result: week.healthResult || '',
+          nextFeelings: week.healthNextFeelings || '',
+          nextWeekTarget: week.healthNextTarget || '',
+          nextActions: week.healthNextActions || '',
+          checklist: week.healthChecklist || [],
+          assignment: week.healthAssignment || { courses: [], lessons: [] },
+          resultChecklist: week.healthResultChecklist || [],
+          feelingsChecklist: week.healthFeelingsChecklist || [],
+          beliefsChecklist: week.healthBeliefsChecklist || [],
+          actionsChecklist: week.healthActionsChecklist || [],
+          problemsChecklist: week.healthProblemsChecklist || [],
+          feelingsCurrentChecklist: week.healthFeelingsCurrentChecklist || [],
+          beliefsCurrentChecklist: week.healthBeliefsCurrentChecklist || [],
+          actionsCurrentChecklist: week.healthActionsCurrentChecklist || []
+        },
+        {
+          category: 'Relationship',
+          currentRating: week.currentE || 0,
+          targetRating: week.targetE || 0,
+          problems: week.relationshipProblems || '',
+          currentFeelings: week.relationshipCurrentFeelings || '',
+          currentBelief: week.relationshipCurrentBelief || '',
+          currentActions: week.relationshipCurrentActions || '',
+          result: week.relationshipResult || '',
+          nextFeelings: week.relationshipNextFeelings || '',
+          nextWeekTarget: week.relationshipNextTarget || '',
+          nextActions: week.relationshipNextActions || '',
+          checklist: week.relationshipChecklist || [],
+          assignment: week.relationshipAssignment || { courses: [], lessons: [] },
+          resultChecklist: week.relationshipResultChecklist || [],
+          feelingsChecklist: week.relationshipFeelingsChecklist || [],
+          beliefsChecklist: week.relationshipBeliefsChecklist || [],
+          actionsChecklist: week.relationshipActionsChecklist || [],
+          problemsChecklist: week.relationshipProblemsChecklist || [],
+          feelingsCurrentChecklist: week.relationshipFeelingsCurrentChecklist || [],
+          beliefsCurrentChecklist: week.relationshipBeliefsCurrentChecklist || [],
+          actionsCurrentChecklist: week.relationshipActionsCurrentChecklist || []
+        },
+        {
+          category: 'Career',
+          currentRating: week.currentR || 0,
+          targetRating: week.targetR || 0,
+          problems: week.careerProblems || '',
+          currentFeelings: week.careerCurrentFeelings || '',
+          currentBelief: week.careerCurrentBelief || '',
+          currentActions: week.careerCurrentActions || '',
+          result: week.careerResult || '',
+          nextFeelings: week.careerNextFeelings || '',
+          nextWeekTarget: week.careerNextTarget || '',
+          nextActions: week.careerNextActions || '',
+          checklist: week.careerChecklist || [],
+          assignment: week.careerAssignment || { courses: [], lessons: [] },
+          resultChecklist: week.careerResultChecklist || [],
+          feelingsChecklist: week.careerFeelingsChecklist || [],
+          beliefsChecklist: week.careerBeliefsChecklist || [],
+          actionsChecklist: week.careerActionsChecklist || [],
+          problemsChecklist: week.careerProblemsChecklist || [],
+          feelingsCurrentChecklist: week.careerFeelingsCurrentChecklist || [],
+          beliefsCurrentChecklist: week.careerBeliefsCurrentChecklist || [],
+          actionsCurrentChecklist: week.careerActionsCurrentChecklist || []
+        },
+        {
+          category: 'Money',
+          currentRating: week.currentC || 0,
+          targetRating: week.targetC || 0,
+          problems: week.moneyProblems || '',
+          currentFeelings: week.moneyCurrentFeelings || '',
+          currentBelief: week.moneyCurrentBelief || '',
+          currentActions: week.moneyCurrentActions || '',
+          result: week.moneyResult || '',
+          nextFeelings: week.moneyNextFeelings || '',
+          nextWeekTarget: week.moneyNextTarget || '',
+          nextActions: week.moneyNextActions || '',
+          checklist: week.moneyChecklist || [],
+          assignment: week.moneyAssignment || { courses: [], lessons: [] },
+          resultChecklist: week.moneyResultChecklist || [],
+          feelingsChecklist: week.moneyFeelingsChecklist || [],
+          beliefsChecklist: week.moneyBeliefsChecklist || [],
+          actionsChecklist: week.moneyActionsChecklist || [],
+          problemsChecklist: week.moneyProblemsChecklist || [],
+          feelingsCurrentChecklist: week.moneyFeelingsCurrentChecklist || [],
+          beliefsCurrentChecklist: week.moneyBeliefsCurrentChecklist || [],
+          actionsCurrentChecklist: week.moneyActionsCurrentChecklist || []
+        }
+      ];
+      
+      res.json({ ...week, beliefs });
+    } catch (error) {
+      console.error("Error fetching team user HRCM data by date:", error);
+      res.status(500).json({ message: "Failed to fetch HRCM data" });
+    }
+  });
+
+  // Team: Get all weeks for a specific user
+  app.get('/api/team/user/:userId/hercm/weeks', isAuthenticated, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const weeks = await storage.getHercmWeeksByUser(userId);
+      res.json(weeks);
+    } catch (error) {
+      console.error("Error fetching team user all HRCM weeks:", error);
+      res.status(500).json({ message: "Failed to fetch weeks data" });
+    }
+  });
+
+  // Team: Get persistent assignments for a specific user
+  app.get('/api/team/user/:userId/persistent-assignments', isAuthenticated, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const assignments = await storage.getPersistentAssignmentsByUser(userId);
+      res.json(assignments);
+    } catch (error) {
+      console.error("Error fetching team user persistent assignments:", error);
+      res.status(500).json({ message: "Failed to fetch assignments" });
+    }
+  });
+
   app.get('/api/admin/user/:userId/weeks', isAdmin, async (req, res) => {
     try {
       const { userId } = req.params;

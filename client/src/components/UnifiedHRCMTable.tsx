@@ -297,6 +297,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [currentDateStr, setCurrentDateStr] = useState<string>(today);
   const [beliefs, setBeliefs] = useState<HRCMBelief[]>([]);
+  
+  // 🔥 FIX: Fetch current user to determine if they're admin (for correct endpoint selection)
+  const { data: currentUser } = useQuery<{ isAdmin: boolean }>({
+    queryKey: ['/api/user'],
+    enabled: !!viewAsUserId, // Only fetch when viewing another user's dashboard
+  });
   const [editingField, setEditingField] = useState<{ category: string; field: string; section?: string } | null>(null);
   const [editValue, setEditValue] = useState('');
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -523,14 +529,20 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     setViewingHistory(dateStr !== todayStr);
     
     // Force immediate refetch for the new date (don't just invalidate, actually refetch!)
-    const endpoint = isAdminView && viewAsUserId
-      ? `/api/admin/user/${viewAsUserId}/hercm/by-date/${dateStr}`
+    // 🔥 FIX: Use team endpoints for regular users viewing other users
+    const isActualAdmin = currentUser?.isAdmin === true;
+    const endpoint = viewAsUserId
+      ? (isActualAdmin 
+          ? `/api/admin/user/${viewAsUserId}/hercm/by-date/${dateStr}`
+          : `/api/team/user/${viewAsUserId}/hercm/by-date/${dateStr}`)
       : `/api/hercm/by-date/${dateStr}`;
     
     try {
       await queryClient.refetchQueries({
-        queryKey: isAdminView && viewAsUserId
-          ? [`/api/admin/user/${viewAsUserId}/hercm/by-date`, dateStr]
+        queryKey: viewAsUserId
+          ? (isActualAdmin
+              ? [`/api/admin/user/${viewAsUserId}/hercm/by-date`, dateStr]
+              : [`/api/team/user/${viewAsUserId}/hercm/by-date`, dateStr])
           : ['/api/hercm/by-date', dateStr],
         exact: true,
       });
@@ -552,19 +564,25 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   };
 
   // Fetch HRCM data for the selected date (admin-aware)
-  const dateDataQueryKey = isAdminView && viewAsUserId
-    ? [`/api/admin/user/${viewAsUserId}/hercm/by-date`, currentDateStr]
+  // 🔥 FIX: Use team endpoints for regular users viewing other users
+  const isActualAdminForQuery = currentUser?.isAdmin === true;
+  const dateDataQueryKey = viewAsUserId
+    ? (isActualAdminForQuery
+        ? [`/api/admin/user/${viewAsUserId}/hercm/by-date`, currentDateStr]
+        : [`/api/team/user/${viewAsUserId}/hercm/by-date`, currentDateStr])
     : ['/api/hercm/by-date', currentDateStr];
   
   const { data: dateData, isLoading, isFetching } = useQuery<{ beliefs?: HRCMBelief[]; createdAt?: string; weekNumber?: number }>({
     queryKey: dateDataQueryKey,
     queryFn: async () => {
-      const endpoint = isAdminView && viewAsUserId
-        ? `/api/admin/user/${viewAsUserId}/hercm/by-date/${currentDateStr}`
+      const endpoint = viewAsUserId
+        ? (isActualAdminForQuery
+            ? `/api/admin/user/${viewAsUserId}/hercm/by-date/${currentDateStr}`
+            : `/api/team/user/${viewAsUserId}/hercm/by-date/${currentDateStr}`)
         : `/api/hercm/by-date/${currentDateStr}`;
-      console.log(`[FRONTEND] Fetching HRCM data for date: ${currentDateStr}, endpoint: ${endpoint}, isAdminView: ${isAdminView}, viewAsUserId: ${viewAsUserId}`);
+      console.log(`[FRONTEND] Fetching HRCM data for date: ${currentDateStr}, endpoint: ${endpoint}, isActualAdmin: ${isActualAdminForQuery}, viewAsUserId: ${viewAsUserId}`);
       const response = await fetch(endpoint, {
-        credentials: 'include', // Required for admin authentication
+        credentials: 'include', // Required for authentication
       });
       if (!response.ok) {
         console.error(`[FRONTEND] Failed to fetch HRCM data: ${response.status} ${response.statusText}`);
@@ -574,7 +592,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       console.log(`[FRONTEND] Received HRCM data for ${currentDateStr}:`, data ? 'Data found' : 'No data', data);
       return data;
     },
-    enabled: isAdminView ? !!viewAsUserId : true, // Only fetch when we have a user ID in admin view
+    enabled: viewAsUserId ? (!!viewAsUserId && currentUser !== undefined) : true, // Wait for user data when viewing another user
     staleTime: 0,  // Always fetch fresh data
     gcTime: 5000,  // Keep cache for 5 seconds to prevent blank flicker during navigation
     refetchOnMount: true,  // Refetch when component mounts
@@ -591,20 +609,24 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   });
 
   // Fetch all weeks data (needed for auto-progression and comparison)
-  // In admin view, fetch all weeks for the specific user being viewed
-  const allWeeksQueryKey = isAdminView && viewAsUserId
-    ? [`/api/admin/user/${viewAsUserId}/hercm/weeks`]
+  // 🔥 FIX: Use team endpoints for regular users viewing other users
+  const allWeeksQueryKey = viewAsUserId
+    ? (isActualAdminForQuery
+        ? [`/api/admin/user/${viewAsUserId}/hercm/weeks`]
+        : [`/api/team/user/${viewAsUserId}/hercm/weeks`])
     : ['/api/hercm/weeks'];
   
   const { data: allWeeksData } = useQuery({
     queryKey: allWeeksQueryKey,
     queryFn: async () => {
-      const endpoint = isAdminView && viewAsUserId
-        ? `/api/admin/user/${viewAsUserId}/hercm/weeks`
+      const endpoint = viewAsUserId
+        ? (isActualAdminForQuery
+            ? `/api/admin/user/${viewAsUserId}/hercm/weeks`
+            : `/api/team/user/${viewAsUserId}/hercm/weeks`)
         : `/api/hercm/weeks`;
-      console.log(`[FRONTEND] Fetching all weeks data, endpoint: ${endpoint}, isAdminView: ${isAdminView}, viewAsUserId: ${viewAsUserId}`);
+      console.log(`[FRONTEND] Fetching all weeks data, endpoint: ${endpoint}, isActualAdmin: ${isActualAdminForQuery}, viewAsUserId: ${viewAsUserId}`);
       const response = await fetch(endpoint, {
-        credentials: 'include', // Required for admin authentication
+        credentials: 'include', // Required for authentication
       });
       if (!response.ok) {
         console.error(`[FRONTEND] Failed to fetch all weeks data: ${response.status} ${response.statusText}`);
@@ -692,15 +714,20 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
   // Fetch persistent assignments (user-level, date-independent)
   // In admin view, fetch for the specific user being viewed
-  const persistentAssignmentsQueryKey = isAdminView && viewAsUserId
-    ? [`/api/admin/user/${viewAsUserId}/persistent-assignments`]
+  // 🔥 FIX: Use team endpoints for regular users viewing other users
+  const persistentAssignmentsQueryKey = viewAsUserId
+    ? (isActualAdminForQuery
+        ? [`/api/admin/user/${viewAsUserId}/persistent-assignments`]
+        : [`/api/team/user/${viewAsUserId}/persistent-assignments`])
     : ['/api/persistent-assignments'];
   
   const { data: persistentAssignments = [], refetch: refetchAssignments } = useQuery<any[]>({
     queryKey: persistentAssignmentsQueryKey,
     queryFn: async () => {
-      const endpoint = isAdminView && viewAsUserId
-        ? `/api/admin/user/${viewAsUserId}/persistent-assignments`
+      const endpoint = viewAsUserId
+        ? (isActualAdminForQuery
+            ? `/api/admin/user/${viewAsUserId}/persistent-assignments`
+            : `/api/team/user/${viewAsUserId}/persistent-assignments`)
         : `/api/persistent-assignments`;
       const response = await fetch(endpoint, {
         credentials: 'include',
@@ -708,8 +735,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       if (!response.ok) throw new Error('Failed to fetch persistent assignments');
       return response.json();
     },
-    enabled: isAdminView ? !!viewAsUserId : true, // Enable when we have a user ID in admin view, or always in normal view
-    refetchInterval: 5000, // Poll every 5 seconds for instant admin updates
+    enabled: viewAsUserId ? (!!viewAsUserId && currentUser !== undefined) : true, // Wait for user data when viewing another user
+    refetchInterval: 5000, // Poll every 5 seconds for instant updates
     refetchIntervalInBackground: true, // Continue polling in background
   });
 
