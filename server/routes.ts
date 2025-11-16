@@ -1521,7 +1521,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get compact activity for each matched user
       const usersWithActivity = await Promise.all(
         matchedUsers.map(async (user) => {
-          const weeks = await storage.getHercmWeeksByUser(user.id);
+          // 🔥 FIX: Skip fetching data for placeholder users (approved but not logged in)
+          let weeks: any[] = [];
+          if (!user.isPlaceholder) {
+            try {
+              weeks = await storage.getHercmWeeksByUser(user.id);
+            } catch (error) {
+              console.log(`[SEARCH] Failed to fetch weeks for user ${user.id}:`, error);
+              weeks = []; // Return empty array if fetch fails
+            }
+          }
+          
           const latestWeek = weeks.length > 0 ? weeks[weeks.length - 1] : null;
           
           return {
@@ -1542,6 +1552,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               overallScore: latestWeek.overallScore || 0,
             } : null,
             totalWeeks: weeks.length,
+            isPlaceholder: user.isPlaceholder || false, // Track if user hasn't logged in
           };
         })
       );
@@ -1577,7 +1588,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get compact activity for each matched user
       const usersWithActivity = await Promise.all(
         matchedUsers.map(async (user) => {
-          const weeks = await storage.getHercmWeeksByUser(user.id);
+          // 🔥 FIX: Add error handling for database fetch failures
+          let weeks: any[] = [];
+          try {
+            weeks = await storage.getHercmWeeksByUser(user.id);
+          } catch (error) {
+            console.log(`[TEAM SEARCH] Failed to fetch weeks for user ${user.id}:`, error);
+            weeks = []; // Return empty array if fetch fails
+          }
+          
           const latestWeek = weeks.length > 0 ? weeks[weeks.length - 1] : null;
           
           return {
