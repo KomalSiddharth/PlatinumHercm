@@ -301,7 +301,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   // 🔥 FIX: Fetch current user to determine if they're admin (for correct endpoint selection)
   const { data: currentUser } = useQuery<{ isAdmin: boolean }>({
     queryKey: ['/api/user'],
-    enabled: !!viewAsUserId, // Only fetch when viewing another user's dashboard
+    // Always fetch - needed for both personal view and team view
   });
   const [editingField, setEditingField] = useState<{ category: string; field: string; section?: string } | null>(null);
   const [editValue, setEditValue] = useState('');
@@ -572,6 +572,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         : [`/api/team/user/${viewAsUserId}/hercm/by-date`, currentDateStr])
     : ['/api/hercm/by-date', currentDateStr];
   
+  console.log('🔍 [QUERY ENABLED CHECK] viewAsUserId:', viewAsUserId, 'currentUser:', currentUser, 'enabled will be:', viewAsUserId ? (!!viewAsUserId && currentUser !== undefined) : true);
+  
   const { data: dateData, isLoading, isFetching } = useQuery<{ beliefs?: HRCMBelief[]; createdAt?: string; weekNumber?: number }>({
     queryKey: dateDataQueryKey,
     queryFn: async () => {
@@ -580,16 +582,16 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             ? `/api/admin/user/${viewAsUserId}/hercm/by-date/${currentDateStr}`
             : `/api/team/user/${viewAsUserId}/hercm/by-date/${currentDateStr}`)
         : `/api/hercm/by-date/${currentDateStr}`;
-      console.log(`[FRONTEND] Fetching HRCM data for date: ${currentDateStr}, endpoint: ${endpoint}, isActualAdmin: ${isActualAdminForQuery}, viewAsUserId: ${viewAsUserId}`);
+      console.log(`[FRONTEND] 🚀 Fetching HRCM data for date: ${currentDateStr}, endpoint: ${endpoint}, isActualAdmin: ${isActualAdminForQuery}, viewAsUserId: ${viewAsUserId}`);
       const response = await fetch(endpoint, {
         credentials: 'include', // Required for authentication
       });
       if (!response.ok) {
-        console.error(`[FRONTEND] Failed to fetch HRCM data: ${response.status} ${response.statusText}`);
+        console.error(`[FRONTEND] ❌ Failed to fetch HRCM data: ${response.status} ${response.statusText}`);
         throw new Error('Failed to fetch HRCM data');
       }
       const data = await response.json();
-      console.log(`[FRONTEND] Received HRCM data for ${currentDateStr}:`, data ? 'Data found' : 'No data', data);
+      console.log(`[FRONTEND] ✅ Received HRCM data for ${currentDateStr}:`, data ? 'Data found' : 'No data', data);
       return data;
     },
     enabled: viewAsUserId ? (!!viewAsUserId && currentUser !== undefined) : true, // Wait for user data when viewing another user
@@ -598,6 +600,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     refetchOnMount: true,  // Refetch when component mounts
     refetchOnWindowFocus: false,  // Don't refetch on window focus
   });
+  
+  console.log('🔍 [QUERY RESULT] dateData:', dateData, 'isLoading:', isLoading, 'isFetching:', isFetching);
 
   // Use dateData as weekData for consistency with existing code
   const weekData = dateData;
