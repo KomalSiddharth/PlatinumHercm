@@ -893,11 +893,15 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   // This fixes the bug where platinum standards weren't showing checked state for previous dates
 
   useEffect(() => {
+    console.log('🔍 [WEEKDATA EFFECT] ========= START =========');
     console.log('[WEEKDATA EFFECT] weekData:', weekData);
     console.log('[WEEKDATA EFFECT] weekData?.beliefs:', weekData?.beliefs);
+    console.log('[WEEKDATA EFFECT] weekData?.beliefs?.length:', weekData?.beliefs?.length);
     console.log('[WEEKDATA EFFECT] viewingHistory:', viewingHistory);
     console.log('[WEEKDATA EFFECT] currentDateStr:', currentDateStr);
     console.log('[WEEKDATA EFFECT] isFetching:', isFetching);
+    console.log('[WEEKDATA EFFECT] viewAsUserId:', viewAsUserId);
+    console.log('[WEEKDATA EFFECT] isAdminView:', isAdminView);
     
     // 🔥 CRITICAL FIX: Don't process data while fetching to prevent blank template flicker
     if (isFetching) {
@@ -908,7 +912,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     // Process weekData for BOTH today and history dates
     // The /api/hercm/by-date endpoint returns data for any date (not just today)
     if (weekData?.beliefs) {
-      console.log('[FRONTEND DEBUG] Processing beliefs from weekData');
+      console.log('[FRONTEND DEBUG] ✅ Processing beliefs from weekData, count:', weekData.beliefs.length);
       
       // 🔥 Check if data exists for this date (has non-empty fields)
       const hasData = weekData.beliefs.some((b: any) => 
@@ -969,7 +973,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       });
       
       console.log('[FRONTEND DEBUG] Final updatedBeliefs:', updatedBeliefs);
+      console.log('[FRONTEND DEBUG] 🔥 SETTING BELIEFS STATE with', updatedBeliefs.length, 'items');
       setBeliefs(updatedBeliefs);
+      console.log('[FRONTEND DEBUG] ✅ Beliefs state updated successfully');
       
       // 🔥 RESTORE manualNextWeekMode from database to persist across browser refreshes
       if (weekData.manualNextWeekMode !== undefined && weekData.manualNextWeekMode !== null) {
@@ -3174,6 +3180,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             </TableRow>
           </TableHeader>
           <TableBody>
+            {console.log('🔥 [RENDER] Current Week Table - beliefs.length:', beliefs.length, 'beliefs:', beliefs)}
             {beliefs.map((belief) => (
               <TableRow key={belief.category} className="border-b h-[85px]" data-testid={`row-${belief.category.toLowerCase()}`}>
                 {/* Category Column - Entire cell clickable */}
@@ -3450,6 +3457,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             </TableRow>
           </TableHeader>
           <TableBody>
+            {console.log('🔥 [RENDER] Next Week Table - beliefs.length:', beliefs.length, 'beliefs:', beliefs)}
             {beliefs.map((belief) => (
               <TableRow key={belief.category} className="border-b h-[85px]" data-testid={`row-next-${belief.category.toLowerCase()}`}>
                 {/* Category Column - Entire cell clickable */}
