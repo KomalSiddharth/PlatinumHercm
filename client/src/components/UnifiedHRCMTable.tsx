@@ -3252,43 +3252,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       className="w-16 h-9 text-center font-semibold"
                       data-testid={`input-${belief.category.toLowerCase()}-rating`}
                     />
-                    {(() => {
-                      const categoryLower = belief.category.toLowerCase();
-                      
-                      // Get unlock status based on category
-                      let unlockStatus;
-                      if (categoryLower === 'health') {
-                        unlockStatus = healthUnlockStatus;
-                      } else if (categoryLower === 'relationship') {
-                        unlockStatus = relationshipUnlockStatus;
-                      } else if (categoryLower === 'career') {
-                        unlockStatus = careerUnlockStatus;
-                      } else if (categoryLower === 'money') {
-                        unlockStatus = moneyUnlockStatus;
-                      }
-                      
-                      // Show unlock progress for all HRCM areas
-                      if (unlockStatus) {
-                        const streak = unlockStatus.consecutivePerfectDays || 0;
-                        const isUnlocked = unlockStatus.isUnlocked;
-                        
-                        if (isUnlocked) {
-                          return (
-                            <Badge variant="default" className="text-[10px] px-1 py-0 h-5 justify-center bg-green-600">
-                              ✓ Rating 7 Unlocked!
-                            </Badge>
-                          );
-                        } else if (streak > 0) {
-                          return (
-                            <Badge variant="secondary" className="text-[10px] px-1 py-0 h-5 justify-center">
-                              {streak}/7 days → unlock 7
-                            </Badge>
-                          );
-                        }
-                      }
-                      
-                      return null;
-                    })()}
                   </div>
                 </TableCell>
 
