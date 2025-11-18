@@ -1689,16 +1689,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { userId } = req.params;
       console.log('[TEAM DASHBOARD] Fetching dashboard for user:', userId);
       
-      // 🔥 FIX: Check if user exists first (prevent placeholder user issues)
-      const user = await storage.getUser(userId);
-      if (!user) {
-        console.log(`[TEAM DASHBOARD] User not found: ${userId} (may be placeholder user)`);
-        return res.status(404).json({ message: "User not found or hasn't logged in yet" });
+      // 🔥 FIX: Always return dashboard data, even if user hasn't logged in yet
+      // This allows viewing approved users before their first login
+      const dashboardData = await storage.getUserDashboardData(userId);
+      
+      if (!dashboardData.user) {
+        console.log(`[TEAM DASHBOARD] User hasn't logged in yet: ${userId}, returning empty dashboard`);
+      } else {
+        console.log('[TEAM DASHBOARD] User found, dashboard data fetched successfully');
       }
       
-      console.log('[TEAM DASHBOARD] User found, fetching dashboard data...');
-      const dashboardData = await storage.getUserDashboardData(userId);
-      console.log('[TEAM DASHBOARD] Dashboard data fetched successfully');
       res.json(dashboardData);
     } catch (error) {
       console.error("[TEAM DASHBOARD] Error fetching user dashboard data:", error);
