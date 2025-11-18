@@ -3267,6 +3267,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         unlockStatus = moneyUnlockStatus;
                       }
                       
+                      // Check if all platinum standards for this category are rated 7 today
+                      const allStandardsAre7 = platinumStandardsData
+                        .filter((s: any) => s.category === categoryLower)
+                        .every((standard: any) => {
+                          const rating = standardRatings.find((r: any) => r.standardId === standard.id)?.rating || 0;
+                          return rating === 7;
+                        });
+                      
                       // Show unlock progress for all HRCM areas
                       if (unlockStatus) {
                         const streak = unlockStatus.consecutivePerfectDays || 0;
@@ -3278,7 +3286,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                               ✓ Rating 7 Unlocked!
                             </Badge>
                           );
-                        } else if (streak > 0) {
+                        } else if (streak > 0 && !allStandardsAre7) {
+                          // Only show progress if not all standards are 7
                           return (
                             <Badge variant="secondary" className="text-[10px] px-1 py-0 h-5 justify-center">
                               {streak}/7 days → unlock 7
