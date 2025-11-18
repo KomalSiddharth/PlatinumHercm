@@ -154,48 +154,105 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                   </div>
                 </div>
               ) : (
-                <div className="h-96">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={dailyData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" label={{ value: 'Day of Month', position: 'insideBottom', offset: -5 }} />
-                      <YAxis domain={[0, 100]} />
-                      <Tooltip />
-                      <Legend />
-                      <Line 
-                        type="monotone" 
-                        dataKey="Health" 
-                        stroke="#ef4444" 
-                        strokeWidth={2}
-                        dot={{ r: 4, fill: "#ef4444" }}
-                        name="Health"
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="Relationship" 
-                        stroke="#3b82f6" 
-                        strokeWidth={2}
-                        dot={{ r: 4, fill: "#3b82f6" }}
-                        name="Relationship"
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="Career" 
-                        stroke="#a855f7" 
-                        strokeWidth={2}
-                        dot={{ r: 4, fill: "#a855f7" }}
-                        name="Career"
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="Money" 
-                        stroke="#10b981" 
-                        strokeWidth={2}
-                        dot={{ r: 4, fill: "#10b981" }}
-                        name="Money"
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
+                <div className="space-y-3">
+                  {/* Scroll instruction */}
+                  <div className="flex items-center justify-between px-4 py-2 bg-muted/30 rounded-md">
+                    <p className="text-sm text-muted-foreground flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4" />
+                      <span className="font-medium">Monthly Progress Trend</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Scroll horizontally to view complete month →
+                    </p>
+                  </div>
+                  
+                  {/* Scrollable chart container */}
+                  <div className="h-96 overflow-x-auto overflow-y-hidden border rounded-lg bg-background">
+                    <div style={{ width: `${Math.max(1200, dailyData.length * 40)}px`, height: '100%' }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart 
+                          data={dailyData}
+                          margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
+                          <XAxis 
+                            dataKey="date" 
+                            label={{ 
+                              value: 'Day of Month', 
+                              position: 'insideBottom', 
+                              offset: -10,
+                              style: { fontSize: '14px', fontWeight: 500 }
+                            }}
+                            tick={{ fontSize: 12 }}
+                            interval={Math.floor(dailyData.length / 15)} // Show ~15 labels max
+                            angle={0}
+                            height={60}
+                          />
+                          <YAxis 
+                            domain={[0, 100]} 
+                            label={{ 
+                              value: 'Progress %', 
+                              angle: -90, 
+                              position: 'insideLeft',
+                              style: { fontSize: '14px', fontWeight: 500 }
+                            }}
+                            tick={{ fontSize: 12 }}
+                          />
+                          <Tooltip 
+                            contentStyle={{
+                              backgroundColor: 'hsl(var(--background))',
+                              border: '1px solid hsl(var(--border))',
+                              borderRadius: '8px',
+                              padding: '12px'
+                            }}
+                            labelStyle={{ fontWeight: 600, marginBottom: '4px' }}
+                            formatter={(value: any) => [`${value}%`, '']}
+                            labelFormatter={(label) => `Day ${label}`}
+                          />
+                          <Legend 
+                            wrapperStyle={{ paddingTop: '20px' }}
+                            iconType="line"
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="Health" 
+                            stroke="#ef4444" 
+                            strokeWidth={3}
+                            dot={{ r: 3, fill: "#ef4444", strokeWidth: 2, stroke: "#fff" }}
+                            activeDot={{ r: 6, strokeWidth: 2 }}
+                            name="Health"
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="Relationship" 
+                            stroke="#3b82f6" 
+                            strokeWidth={3}
+                            dot={{ r: 3, fill: "#3b82f6", strokeWidth: 2, stroke: "#fff" }}
+                            activeDot={{ r: 6, strokeWidth: 2 }}
+                            name="Relationship"
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="Career" 
+                            stroke="#a855f7" 
+                            strokeWidth={3}
+                            dot={{ r: 3, fill: "#a855f7", strokeWidth: 2, stroke: "#fff" }}
+                            activeDot={{ r: 6, strokeWidth: 2 }}
+                            name="Career"
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="Money" 
+                            stroke="#10b981" 
+                            strokeWidth={3}
+                            dot={{ r: 3, fill: "#10b981", strokeWidth: 2, stroke: "#fff" }}
+                            activeDot={{ r: 6, strokeWidth: 2 }}
+                            name="Money"
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
                 </div>
               )}
             </TabsContent>
