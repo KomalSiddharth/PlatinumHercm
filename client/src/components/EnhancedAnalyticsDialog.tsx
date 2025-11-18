@@ -44,26 +44,6 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
 
   // Use REAL data from API - no fake fallback data
   const dailyData = analyticsData?.monthlyData || [];
-  const previousMonthData = analyticsData?.previousMonthData || [];
-  const previousMonthName = analyticsData?.previousMonthName || 'Previous Month';
-
-  // 🔥 Merge current and previous month data for comparison view
-  const mergedData = dailyData.map((current: any) => {
-    const previous = previousMonthData.find((prev: any) => prev.date === current.date);
-    return {
-      date: current.date,
-      // Current month (solid lines)
-      Health: current.Health,
-      Relationship: current.Relationship,
-      Career: current.Career,
-      Money: current.Money,
-      // Previous month (dashed lines) - prefixed with "Prev"
-      PrevHealth: previous?.Health || 0,
-      PrevRelationship: previous?.Relationship || 0,
-      PrevCareer: previous?.Career || 0,
-      PrevMoney: previous?.Money || 0,
-    };
-  });
 
   // Calculate monthly averages for bar chart
   const barChartData = dailyData.length > 0 ? [{
@@ -91,8 +71,8 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {/* Controls - Month Selector + Comparison Toggle */}
-          <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-muted/30 rounded-lg">
+          {/* Controls - Month Selector Only */}
+          <div className="flex flex-wrap items-center gap-4 p-4 bg-muted/30 rounded-lg">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">Select Month:</span>
               <Select 
@@ -114,20 +94,6 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-            
-            {/* 🔥 Comparison Mode Toggle */}
-            <div className="flex items-center gap-3 px-3 py-2 bg-background rounded-md border">
-              <GitCompare className="w-4 h-4 text-muted-foreground" />
-              <Label htmlFor="comparison-mode" className="text-sm font-medium cursor-pointer">
-                Compare with previous month
-              </Label>
-              <Switch
-                id="comparison-mode"
-                checked={comparisonMode}
-                onCheckedChange={setComparisonMode}
-                data-testid="toggle-comparison-mode"
-              />
             </div>
           </div>
 
@@ -210,7 +176,7 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                     <div style={{ width: `${Math.max(1200, dailyData.length * 40)}px`, height: '100%' }}>
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart 
-                          data={comparisonMode ? mergedData : dailyData}
+                          data={dailyData}
                           margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
                         >
                           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
@@ -244,27 +210,14 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                               borderRadius: '8px',
                               padding: '12px'
                             }}
-                            labelStyle={{ fontWeight: 600, marginBottom: '8px' }}
-                            formatter={(value: any, name: any) => {
-                              const isPrev = name.startsWith('Prev');
-                              const displayName = isPrev ? name.replace('Prev', '') : name;
-                              const monthLabel = isPrev ? ` (${previousMonthName})` : '';
-                              return [`${value}%`, `${displayName}${monthLabel}`];
-                            }}
+                            labelStyle={{ fontWeight: 600, marginBottom: '4px' }}
+                            formatter={(value: any) => [`${value}%`, '']}
                             labelFormatter={(label) => `Day ${label}`}
                           />
                           <Legend 
                             wrapperStyle={{ paddingTop: '20px' }}
                             iconType="line"
-                            formatter={(value) => {
-                              if (value.startsWith('Prev')) {
-                                return `${value.replace('Prev', '')} (${previousMonthName})`;
-                              }
-                              return `${value} (Current)`;
-                            }}
                           />
-                          
-                          {/* Current Month Lines (Solid) */}
                           <Line 
                             type="monotone" 
                             dataKey="Health" 
@@ -301,52 +254,6 @@ export function EnhancedAnalyticsDialog({ open, onOpenChange, currentWeek }: Enh
                             activeDot={{ r: 6, strokeWidth: 2 }}
                             name="Money"
                           />
-                          
-                          {/* Previous Month Lines (Dashed) - Only shown when comparison mode is ON */}
-                          {comparisonMode && (
-                            <>
-                              <Line 
-                                type="monotone" 
-                                dataKey="PrevHealth" 
-                                stroke="#ef4444" 
-                                strokeWidth={2}
-                                strokeDasharray="5 5"
-                                dot={{ r: 2, fill: "#ef4444", opacity: 0.6 }}
-                                opacity={0.6}
-                                name="PrevHealth"
-                              />
-                              <Line 
-                                type="monotone" 
-                                dataKey="PrevRelationship" 
-                                stroke="#3b82f6" 
-                                strokeWidth={2}
-                                strokeDasharray="5 5"
-                                dot={{ r: 2, fill: "#3b82f6", opacity: 0.6 }}
-                                opacity={0.6}
-                                name="PrevRelationship"
-                              />
-                              <Line 
-                                type="monotone" 
-                                dataKey="PrevCareer" 
-                                stroke="#a855f7" 
-                                strokeWidth={2}
-                                strokeDasharray="5 5"
-                                dot={{ r: 2, fill: "#a855f7", opacity: 0.6 }}
-                                opacity={0.6}
-                                name="PrevCareer"
-                              />
-                              <Line 
-                                type="monotone" 
-                                dataKey="PrevMoney" 
-                                stroke="#10b981" 
-                                strokeWidth={2}
-                                strokeDasharray="5 5"
-                                dot={{ r: 2, fill: "#10b981", opacity: 0.6 }}
-                                opacity={0.6}
-                                name="PrevMoney"
-                              />
-                            </>
-                          )}
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
