@@ -1900,6 +1900,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 🔥 Team: Get platinum standard ratings for a specific user and date
+  app.get('/api/team/user/:userId/platinum-standard-ratings/:dateString', isAuthenticated, async (req, res) => {
+    try {
+      const { userId, dateString } = req.params;
+      console.log(`[TEAM PLATINUM RATINGS] Fetching ratings for user: ${userId}, date: ${dateString}`);
+      
+      const ratings = await storage.getUserPlatinumStandardRatingsByDate(userId, dateString);
+      console.log(`[TEAM PLATINUM RATINGS] Found ${ratings.length} ratings for user ${userId}`);
+      
+      res.json(ratings);
+    } catch (error) {
+      console.error("Error fetching team user platinum standard ratings:", error);
+      res.status(500).json({ message: "Failed to fetch platinum standard ratings" });
+    }
+  });
+
   app.get('/api/admin/user/:userId/weeks', isAdmin, async (req, res) => {
     try {
       const { userId } = req.params;
@@ -1908,6 +1924,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching user weeks:", error);
       res.status(500).json({ message: "Failed to fetch user weeks" });
+    }
+  });
+
+  // 🔥 Admin: Get platinum standard ratings for a specific user and date
+  app.get('/api/admin/user/:userId/platinum-standard-ratings/:dateString', isAdmin, async (req, res) => {
+    try {
+      const { userId, dateString } = req.params;
+      console.log(`[ADMIN PLATINUM RATINGS] Fetching ratings for user: ${userId}, date: ${dateString}`);
+      
+      const ratings = await storage.getUserPlatinumStandardRatingsByDate(userId, dateString);
+      console.log(`[ADMIN PLATINUM RATINGS] Found ${ratings.length} ratings for user ${userId}`);
+      
+      res.json(ratings);
+    } catch (error) {
+      console.error("Error fetching admin user platinum standard ratings:", error);
+      res.status(500).json({ message: "Failed to fetch platinum standard ratings" });
     }
   });
 
