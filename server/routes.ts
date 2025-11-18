@@ -1167,7 +1167,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "User not authenticated" });
       }
 
-      const { viewType, year, month, week } = req.query;
+      const { viewType, year, month, week, comparison } = req.query;
+      const isComparisonMode = comparison === 'true';
       const weeks = await storage.getHercmWeeksByUser(userId);
 
       if (viewType === 'weekly') {
@@ -1351,7 +1352,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         console.log(`[ANALYTICS DAILY] Complete month data generated: ${dailyData.length} dates`);
 
-        res.json({ monthlyData: dailyData }); // Return daily data (renamed for compatibility)
+        // 🔥 Comparison Mode: Fetch previous month data
+        let previousMonthData: Array<{ date: string; Health: number; Relationship: number; Career: number; Money: number }> = [];
+        let previousMonthName = '';
+        
+        if (isComparisonMode) {
+          const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+          
+          // Calculate previous month
+          const prevMonth = selectedMonth === 1 ? 12 : selectedMonth - 1;
+          const prevYear = selectedMonth === 1 ? selectedYear - 1 : selectedYear;
+          const daysInPrevMonth = new Date(prevYear, prevMonth, 0).getDate();
+          
+          previousMonthName = monthNames[prevMonth - 1]; // For display
+          
+          console.log(`[ANALYTICS COMPARISON] Fetching previous month: ${previousMonthName} ${prevYear} (${daysInPrevMonth} days)`);
+          
+          // Generate all dates for previous month
+          for (let day = 1; day <= daysInPrevMonth; day++) {
+            const dateStr = `${prevYear}-${String(prevMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            
+            // Get platinum standard ratings for this date
+            const ratings = await storage.getUserPlatinumStandardRatingsByDate(userId, dateStr);
+            
+            // Create a map of standardId -> rating
+            const ratingMap = new Map<string, number>();
+            if (ratings && ratings.length > 0) {
+              ratings.forEach((r: any) => {
+                ratingMap.set(r.standardId, r.rating);
+              });
+            }
+            
+            // Calculate progress for each category
+            const calculateCategoryProgress = (category: string): number => {
+              const standardsInCategory = platinumStandards.filter((s: any) => s.category === category);
+              if (standardsInCategory.length === 0) return 0;
+              
+              const ratings = standardsInCategory.map((s: any) => ratingMap.get(s.id) || 0);
+              const avgRating = ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
+              const progress = Math.round((avgRating / 7) * 100);
+              
+              return progress;
+            };
+            
+            const health = calculateCategoryProgress('health');
+            const relationship = calculateCategoryProgress('relationship');
+            const career = calculateCategoryProgress('career');
+            const money = calculateCategoryProgress('money');
+            
+            // Format date as day number (matching current month format)
+            const date = new Date(dateStr);
+            const formattedDate = `${date.getDate()}`;
+            
+            previousMonthData.push({
+              date: formattedDate,
+              Health: health,
+              Relationship: relationship,
+              Career: career,
+              Money: money,
+            });
+          }
+          
+          console.log(`[ANALYTICS COMPARISON] Previous month data generated: ${previousMonthData.length} dates`);
+        }
+
+        res.json({ 
+          monthlyData: dailyData,
+          previousMonthData: isComparisonMode ? previousMonthData : undefined,
+          previousMonthName: isComparisonMode ? previousMonthName : undefined
+        });
       } else {
         res.json({ weeklyData: [], monthlyData: [] });
       }
