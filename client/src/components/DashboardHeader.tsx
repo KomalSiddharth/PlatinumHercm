@@ -23,25 +23,16 @@ export default function DashboardHeader({
   onProfileClick = () => {}
 }: DashboardHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(() => {
-    // Load theme preference from localStorage on initial mount
-    const savedTheme = localStorage.getItem('theme');
-    return savedTheme === 'dark';
-  });
+  const [darkMode, setDarkMode] = useState(false); // Force light mode
   
   // Safety check: Ensure userName is never null/undefined
   const displayName = userName || 'User';
 
-  // Apply saved theme on component mount
+  // Force light mode - remove dark class
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-      setDarkMode(true);
-    } else {
-      document.documentElement.classList.remove('dark');
-      setDarkMode(false);
-    }
+    document.documentElement.classList.remove('dark');
+    localStorage.setItem('theme', 'light'); // Override any saved dark theme
+    setDarkMode(false);
   }, []);
 
   const toggleDarkMode = () => {
