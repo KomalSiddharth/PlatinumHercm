@@ -369,12 +369,18 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     enabled: true,
   });
 
-  // Fetch platinum standard ratings for current date (for BOTH dialog AND progress)
-  // dateString is defined above (line 334) - single source of truth!
+  // 🔥 FIX: Fetch platinum standard ratings for current date (for BOTH dialog AND progress)
+  // Use correct endpoint based on whether viewing another user's dashboard
+  const ratingsEndpoint = viewAsUserId
+    ? (isAdminView 
+        ? `/api/admin/user/${viewAsUserId}/platinum-standard-ratings/${dateString}`
+        : `/api/team/user/${viewAsUserId}/platinum-standard-ratings/${dateString}`)
+    : `/api/platinum-standard-ratings/${dateString}`;
+  
   const { data: savedRatings = [], refetch: refetchRatings } = useQuery({
-    queryKey: ['/api/platinum-standard-ratings', dateString],
+    queryKey: [ratingsEndpoint],
     enabled: !!dateString,
-    refetchInterval: 5000, // Poll to catch updates from other tabs/devices
+    refetchInterval: viewAsUserId ? false : 5000, // Only poll for own dashboard, not when viewing others
   });
 
   // Update local ratings state when saved ratings are loaded
@@ -403,17 +409,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       
       // Cancel outgoing refetches (to prevent overwriting optimistic update)
       await queryClient.cancelQueries({ 
-        predicate: (query) => {
-          const key = query.queryKey[0];
-          return typeof key === 'string' && key === '/api/platinum-standard-ratings';
-        }
+        queryKey: [ratingsEndpoint]
       });
       
       // Snapshot previous values for rollback
-      const previousRatings = queryClient.getQueryData(['/api/platinum-standard-ratings', dateString]);
+      const previousRatings = queryClient.getQueryData([ratingsEndpoint]);
       
       // Optimistically update cache
-      queryClient.setQueryData(['/api/platinum-standard-ratings', dateString], (old: any) => {
+      queryClient.setQueryData([ratingsEndpoint], (old: any) => {
         if (!old) return old;
         // Update the rating in the cached data
         return old.map((r: any) => 
@@ -430,12 +433,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     },
     onSuccess: () => {
       console.log(`[RATING SAVE] Success! Invalidating queries for ${dateString}`);
-      // Invalidate ALL platinum standard rating queries for fresh data
+      // Invalidate the specific ratings query for fresh data
       queryClient.invalidateQueries({ 
-        predicate: (query) => {
-          const key = query.queryKey[0];
-          return typeof key === 'string' && key === '/api/platinum-standard-ratings';
-        }
+        queryKey: [ratingsEndpoint]
       });
       
       // Invalidate weekly progress for instant visibility
@@ -460,7 +460,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       // Rollback to previous state on error
       if (context?.previousRatings) {
         console.log(`[OPTIMISTIC UPDATE] 🔄 Rolling back to previous state`);
-        queryClient.setQueryData(['/api/platinum-standard-ratings', dateString], context.previousRatings);
+        queryClient.setQueryData([ratingsEndpoint], context.previousRatings);
       }
       
       toast({
