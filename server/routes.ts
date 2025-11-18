@@ -1277,39 +1277,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         console.log('[ANALYTICS DAILY] Standard counts:', standardCounts);
         
-        // Get all weeks data to extract unique dates
-        const allWeeks = weeks;
-        console.log('[ANALYTICS DAILY] Total weeks found:', allWeeks.length);
-        
-        // Extract unique dates, filter by selected month, and sort chronologically
-        const uniqueDates = new Set<string>();
+        // 🔥 NEW: Generate ALL dates for the selected month (complete month view)
         const selectedMonth = month ? parseInt(month as string) : new Date().getMonth() + 1;
         const selectedYear = year ? parseInt(year as string) : new Date().getFullYear();
         
-        allWeeks.forEach((week: any) => {
-          if (week.dateString) {
-            const date = new Date(week.dateString);
-            const dateMonth = date.getMonth() + 1;
-            const dateYear = date.getFullYear();
-            
-            // Only include dates from the selected month and year
-            if (dateMonth === selectedMonth && dateYear === selectedYear) {
-              uniqueDates.add(week.dateString);
-            }
-          }
-        });
+        // Calculate number of days in the selected month
+        const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
         
-        // Sort dates chronologically
-        const sortedDates = Array.from(uniqueDates).sort();
+        console.log(`[ANALYTICS DAILY] Generating complete month view for ${selectedYear}-${selectedMonth} (${daysInMonth} days)`);
         
-        console.log('[ANALYTICS DAILY] Dates found for month:', sortedDates);
+        // Generate all dates for the month (1st to last day)
+        const allDatesInMonth: string[] = [];
+        for (let day = 1; day <= daysInMonth; day++) {
+          const dateStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          allDatesInMonth.push(dateStr);
+        }
         
-        // Calculate daily progress based on platinum standards
-        for (const dateStr of sortedDates) {
+        console.log(`[ANALYTICS DAILY] Processing ${allDatesInMonth.length} dates for complete month view`);
+        
+        // Calculate daily progress for ALL dates in month
+        for (const dateStr of allDatesInMonth) {
           // Get platinum standard ratings for this date
           const ratings = await storage.getUserPlatinumStandardRatingsByDate(userId, dateStr);
-          
-          console.log(`[ANALYTICS DAILY] ${dateStr}: Found ${ratings?.length || 0} ratings`);
           
           // Create a map of standardId -> rating
           const ratingMap = new Map<string, number>();
@@ -1333,7 +1322,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Convert to percentage (out of 7)
             const progress = Math.round((avgRating / 7) * 100);
             
-            console.log(`[ANALYTICS DAILY] ${dateStr} ${category}: avg rating ${avgRating.toFixed(2)}/7 = ${progress}%`);
             return progress;
           };
           
@@ -1342,12 +1330,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const career = calculateCategoryProgress('career');
           const money = calculateCategoryProgress('money');
           
-          console.log(`[ANALYTICS DAILY] ${dateStr} totals: H=${health}% R=${relationship}% C=${career}% M=${money}%`);
-          
-          // Format date as "Nov 15" or "15"
+          // Format date as day number (1, 2, 3, ... 30)
           const date = new Date(dateStr);
-          const formattedDate = `${date.getDate()}`; // Just day number for x-axis
+          const formattedDate = `${date.getDate()}`;
           
+          // Always add date to dailyData (even if all values are 0)
           dailyData.push({
             date: formattedDate,
             Health: health,
@@ -1355,7 +1342,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             Career: career,
             Money: money,
           });
+          
+          // Log only non-zero entries to reduce console noise
+          if (health > 0 || relationship > 0 || career > 0 || money > 0) {
+            console.log(`[ANALYTICS DAILY] ${dateStr}: H=${health}% R=${relationship}% C=${career}% M=${money}%`);
+          }
         }
+        
+        console.log(`[ANALYTICS DAILY] Complete month data generated: ${dailyData.length} dates`);
 
         res.json({ monthlyData: dailyData }); // Return daily data (renamed for compatibility)
       } else {
