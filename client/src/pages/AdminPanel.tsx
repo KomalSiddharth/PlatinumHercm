@@ -261,16 +261,24 @@ export default function AdminPanel() {
   const [editingStandard, setEditingStandard] = useState<any>(null);
   const [selectedStandardIds, setSelectedStandardIds] = useState<Set<string>>(new Set());
   
-  // Dark/Light mode state - Force light mode
-  const [darkMode, setDarkMode] = useState(false);
+  // Dark/Light mode state
+  const [darkMode, setDarkMode] = useState(() => {
+    const savedTheme = localStorage.getItem('theme');
+    return savedTheme === 'dark';
+  });
   
   const { toast } = useToast();
   
-  // Force light mode - remove dark class
+  // Apply saved theme on component mount
   useEffect(() => {
-    document.documentElement.classList.remove('dark');
-    localStorage.setItem('theme', 'light'); // Override any saved dark theme
-    setDarkMode(false);
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+      setDarkMode(true);
+    } else {
+      document.documentElement.classList.remove('dark');
+      setDarkMode(false);
+    }
   }, []);
   
   const toggleDarkMode = () => {

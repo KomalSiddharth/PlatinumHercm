@@ -129,8 +129,7 @@
   --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 }
 
-/* DARK MODE PERMANENTLY DISABLED - Force light mode only */
-.dark-mode-permanently-disabled {
+.dark {
   --button-outline: rgba(255,255,255, .10);
   --badge-outline: rgba(255,255,255, .05);
 

@@ -8,49 +8,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script>
-      // AGGRESSIVE LIGHT MODE ENFORCEMENT - Permanently disable dark mode
-      (function() {
-        // Immediately remove dark class
-        document.documentElement.classList.remove('dark');
-        
-        // Clear localStorage theme
-        localStorage.setItem('theme', 'light');
-        
-        // Continuously monitor and remove dark class if it gets added
-        const observer = new MutationObserver(function(mutations) {
-          mutations.forEach(function(mutation) {
-            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-              if (document.documentElement.classList.contains('dark')) {
-                console.log('[ANTI-DARK] Removing dark class automatically');
-                document.documentElement.classList.remove('dark');
-                localStorage.setItem('theme', 'light');
-              }
-            }
-          });
-        });
-        
-        // Start observing the html element for class changes
-        observer.observe(document.documentElement, {
-          attributes: true,
-          attributeFilter: ['class']
-        });
-        
-        // Backup: check every 100ms for first 5 seconds
-        let counter = 0;
-        const interval = setInterval(function() {
-          if (document.documentElement.classList.contains('dark')) {
-            console.log('[ANTI-DARK] Removing dark class via interval check');
-            document.documentElement.classList.remove('dark');
-            localStorage.setItem('theme', 'light');
-          }
-          counter++;
-          if (counter > 50) { // Stop after 5 seconds
-            clearInterval(interval);
-          }
-        }, 100);
-      })();
-    </script>
   </head>
   <body>
     <div id="root"></div>
