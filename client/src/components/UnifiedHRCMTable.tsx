@@ -1287,8 +1287,15 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         // Fetch platinum standards and ratings for all 7 days in parallel
         const promises = weekDates.map(async (dateStr) => {
           try {
+            // 🔥 FIX: Use correct endpoint based on viewAsUserId
+            const ratingsUrl = viewAsUserId
+              ? (isAdminView 
+                  ? `/api/admin/user/${viewAsUserId}/platinum-standard-ratings/${dateStr}`
+                  : `/api/team/user/${viewAsUserId}/platinum-standard-ratings/${dateStr}`)
+              : `/api/platinum-standard-ratings/${dateStr}`;
+            
             // Fetch platinum standard ratings for this date
-            const ratingsResponse = await fetch(`/api/platinum-standard-ratings/${dateStr}`, {
+            const ratingsResponse = await fetch(ratingsUrl, {
               credentials: 'include',
             });
             
