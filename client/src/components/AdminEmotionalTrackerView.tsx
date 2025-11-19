@@ -53,7 +53,8 @@ export default function AdminEmotionalTrackerView({ userId, isAdminView = false 
   // 🔥 FIX: Fetch current user to determine admin status
   const { data: currentUser } = useQuery({
     queryKey: ['/api/user'],
-    // Always fetch - needed for both personal view and team view
+    staleTime: 0, // Always fetch fresh - override default Infinity
+    retry: 1, // Retry once on failure
   });
 
   const isActualAdmin = currentUser?.isAdmin === true;

@@ -301,7 +301,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   // 🔥 FIX: Fetch current user to determine if they're admin (for correct endpoint selection)
   const { data: currentUser } = useQuery<{ isAdmin: boolean }>({
     queryKey: ['/api/user'],
-    // Always fetch - needed for both personal view and team view
+    staleTime: 0, // Always fetch fresh - override default Infinity
+    retry: 1, // Retry once on failure
   });
   const [editingField, setEditingField] = useState<{ category: string; field: string; section?: string } | null>(null);
   const [editValue, setEditValue] = useState('');
