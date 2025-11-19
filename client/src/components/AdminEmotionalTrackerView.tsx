@@ -52,7 +52,7 @@ export default function AdminEmotionalTrackerView({ userId, isAdminView = false 
 
   // 🔥 FIX: Fetch current user to determine admin status
   const { data: currentUser } = useQuery({
-    queryKey: ['/api/user'],
+    queryKey: ['/api/auth/user'],  // ✅ Correct endpoint path
     staleTime: 0, // Always fetch fresh - override default Infinity
     retry: 1, // Retry once on failure
   });

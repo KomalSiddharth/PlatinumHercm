@@ -300,7 +300,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   
   // 🔥 FIX: Fetch current user to determine if they're admin (for correct endpoint selection)
   const { data: currentUser } = useQuery<{ isAdmin: boolean }>({
-    queryKey: ['/api/user'],
+    queryKey: ['/api/auth/user'],  // ✅ Correct endpoint path
     staleTime: 0, // Always fetch fresh - override default Infinity
     retry: 1, // Retry once on failure
   });
