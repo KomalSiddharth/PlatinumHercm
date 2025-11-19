@@ -184,8 +184,13 @@ export async function backupAllData(): Promise<BackupResult> {
         .from('user_persistent_assignments')
         .upsert(transformedAssignments, { onConflict: 'id' });
       
-      if (assignmentsError) throw new Error(`Assignments backup failed: ${assignmentsError.message}`);
-      stats.assignments = allAssignments.length;
+      if (assignmentsError) {
+        // Log warning but continue backup (column mismatch shouldn't stop entire backup)
+        console.warn(`[BACKUP] Assignments backup warning: ${assignmentsError.message}`);
+        console.warn('[BACKUP] Tip: Ensure Supabase user_persistent_assignments table matches current schema');
+      } else {
+        stats.assignments = allAssignments.length;
+      }
     }
 
     // 7. Backup Platinum Standards (auto-transform to snake_case)
