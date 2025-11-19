@@ -3255,7 +3255,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         
                         handleRatingChange(belief.category, finalRating);
                       }}
-                      disabled={isPastDate || isAdminView}
+                      disabled={isAdminView || (isPastDate && !viewAsUserId)}
                       className="w-16 h-9 text-center font-semibold"
                       data-testid={`input-${belief.category.toLowerCase()}-rating`}
                     />
@@ -4262,7 +4262,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                             handlePlatinumStandardRatingChange(standard.id, value);
                           }
                         }}
-                        disabled={isAdminView || isPastDate}
+                        disabled={isAdminView || (isPastDate && !viewAsUserId)}
                         className="w-16 h-8 text-center shrink-0"
                         data-testid={`input-rating-${standard.id}`}
                       />
