@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -70,6 +70,9 @@ export function CourseRecommendationNotification({ userId }: CourseRecommendatio
   const [showDialog, setShowDialog] = useState(false);
   const { lastMessage } = useWebSocket(userId);
   const { toast } = useToast();
+  
+  // Track which recommendation IDs have been shown to prevent duplicates
+  const shownRecommendationIds = useRef<Set<string>>(new Set());
 
   // Fetch pending recommendations on mount and poll every 10 seconds
   const { data: pendingRecommendations = [] } = useQuery<any[]>({
@@ -79,13 +82,21 @@ export function CourseRecommendationNotification({ userId }: CourseRecommendatio
     staleTime: 0, // Always consider data stale for instant updates
   });
 
-  // Show first pending recommendation if exists and no dialog is currently open
+  // Show first pending recommendation if exists and hasn't been shown yet
   useEffect(() => {
     if (pendingRecommendations.length > 0 && !showDialog && !recommendation) {
-      console.log('[CourseRecommendation] Found pending recommendations, showing first one:', pendingRecommendations[0]);
-      playNotificationSound();
-      setRecommendation(pendingRecommendations[0]);
-      setShowDialog(true);
+      // Find first recommendation that hasn't been shown
+      const unshownRecommendation = pendingRecommendations.find(
+        rec => !shownRecommendationIds.current.has(rec.id)
+      );
+      
+      if (unshownRecommendation) {
+        console.log('[CourseRecommendation] Found new pending recommendation, showing:', unshownRecommendation);
+        shownRecommendationIds.current.add(unshownRecommendation.id);
+        playNotificationSound();
+        setRecommendation(unshownRecommendation);
+        setShowDialog(true);
+      }
     }
   }, [pendingRecommendations, showDialog, recommendation]);
 
@@ -96,10 +107,21 @@ export function CourseRecommendationNotification({ userId }: CourseRecommendatio
 
     // Handle new course recommendation
     if (lastMessage.type === 'course_recommended') {
-      console.log('[CourseRecommendation] New recommendation received, playing sound');
-      playNotificationSound();
-      setRecommendation(lastMessage.data.recommendation);
-      setShowDialog(true);
+      const newRec = lastMessage.data.recommendation;
+      
+      // Only show if not already shown
+      if (!shownRecommendationIds.current.has(newRec.id)) {
+        console.log('[CourseRecommendation] New recommendation received via WebSocket, showing:', newRec);
+        shownRecommendationIds.current.add(newRec.id);
+        playNotificationSound();
+        setRecommendation(newRec);
+        setShowDialog(true);
+        
+        // Invalidate query to keep polling in sync
+        queryClient.invalidateQueries({ queryKey: ['/api/user/recommendations'] });
+      } else {
+        console.log('[CourseRecommendation] Recommendation already shown, skipping:', newRec.id);
+      }
     }
 
     // Handle course recommendation deletion
