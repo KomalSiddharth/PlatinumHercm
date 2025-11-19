@@ -237,7 +237,7 @@ export default function UserDashboardSearch({ isAdmin = false }: UserDashboardSe
               <UnifiedHRCMTable 
                 weekNumber={1}
                 viewAsUserId={selectedUserId} 
-                isAdminView={true}
+                isAdminView={isAdmin}
               />
             </div>
             
@@ -317,7 +317,7 @@ export default function UserDashboardSearch({ isAdmin = false }: UserDashboardSe
             </section>
 
             {/* Daily Emotional Tracker - Team View */}
-            <AdminEmotionalTrackerView userId={selectedUserId} isAdminView={true} />
+            <AdminEmotionalTrackerView userId={selectedUserId} isAdminView={isAdmin} />
 
             {/* Badges Section */}
             <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20 border-yellow-200 dark:border-yellow-800">
