@@ -770,8 +770,8 @@ export default function Dashboard() {
       <CourseRecommendationNotification userId={currentUser?.id} />
 
       <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 space-y-6 sm:space-y-8 md:space-y-12">
-        {/* Course Recommendations */}
-        <CourseRecommendations currentWeek={currentWeek} />
+        {/* Course Recommendations Card - REMOVED: User wants ONLY popup dialog, not this card */}
+        {/* <CourseRecommendations currentWeek={currentWeek} /> */}
         
         <section ref={hrcmRef} id="hrcm" className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-3 sm:p-4 md:p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
           <UnifiedHRCMTable 
