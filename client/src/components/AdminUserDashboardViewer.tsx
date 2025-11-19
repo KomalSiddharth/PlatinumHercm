@@ -1,15 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, User, ArrowLeft, TrendingUp, AlertCircle, Loader2, Trophy, History as HistoryIcon, Trash2, Pause, ChevronDown, Check, ChevronsUpDown } from 'lucide-react';
+import { Search, User, ArrowLeft, TrendingUp, AlertCircle, Loader2, Trophy, History as HistoryIcon, Trash2, Pause, Check, ChevronsUpDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import UnifiedHRCMTable from './UnifiedHRCMTable';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import AdminEmotionalTrackerView from './AdminEmotionalTrackerView';
@@ -75,7 +73,6 @@ export default function AdminUserDashboardViewer({ approvedEmails }: AdminUserDa
   const [selectedUserEmail, setSelectedUserEmail] = useState('');
   const [userPopoverOpen, setUserPopoverOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const [selectedWeekNumber, setSelectedWeekNumber] = useState<number>(1);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [selectedRitual, setSelectedRitual] = useState<any | null>(null);
   const { toast } = useToast();
@@ -85,14 +82,6 @@ export default function AdminUserDashboardViewer({ approvedEmails }: AdminUserDa
     queryKey: [`/api/admin/user/${selectedUserId}/dashboard`],
     enabled: !!selectedUserId,
   });
-
-  // Auto-select latest week when dashboard data loads
-  useEffect(() => {
-    if (dashboardData?.allWeeks && dashboardData.allWeeks.length > 0) {
-      const latestWeek = Math.max(...dashboardData.allWeeks.map((w: any) => w.weekNumber));
-      setSelectedWeekNumber(latestWeek);
-    }
-  }, [dashboardData]);
 
   const handleViewDashboard = () => {
     if (!selectedUserEmail) {
@@ -225,77 +214,6 @@ export default function AdminUserDashboardViewer({ approvedEmails }: AdminUserDa
                   />
                 </div>
 
-                {/* Additional Week Selector (Optional) */}
-                <Collapsible>
-                  <Card className="bg-amber-50 dark:bg-amber-950/30">
-                    <CardContent className="pt-4">
-                      <CollapsibleTrigger asChild>
-                        <Button variant="outline" className="w-full justify-between" data-testid="button-toggle-custom-week">
-                          <span className="flex items-center gap-2">
-                            <HistoryIcon className="w-4 h-4" />
-                            View Other Weeks (Optional)
-                          </span>
-                          <ChevronDown className="w-4 h-4" />
-                        </Button>
-                      </CollapsibleTrigger>
-                    </CardContent>
-                  </Card>
-                  
-                  <CollapsibleContent className="mt-4">
-                    <Card className="bg-amber-50 dark:bg-amber-950/30">
-                      <CardContent className="pt-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-                          <div>
-                            <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
-                              Custom Week Selection
-                            </p>
-                            <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
-                              Select any specific week to view detailed data
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <label className="text-sm font-medium whitespace-nowrap">Select Week:</label>
-                            <Select 
-                              value={selectedWeekNumber.toString()} 
-                              onValueChange={(value) => setSelectedWeekNumber(parseInt(value))}
-                            >
-                              <SelectTrigger className="w-[140px]" data-testid="select-week-number">
-                                <SelectValue placeholder="Select week" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {dashboardData.allWeeks
-                                  .sort((a: any, b: any) => b.weekNumber - a.weekNumber)
-                                  .map((week: any) => (
-                                    <SelectItem 
-                                      key={week.id} 
-                                      value={week.weekNumber.toString()}
-                                      data-testid={`option-week-${week.weekNumber}`}
-                                    >
-                                      Week {week.weekNumber} {week.weekNumber === Math.max(...dashboardData.allWeeks.map((w: any) => w.weekNumber)) ? '(Latest)' : ''}
-                                    </SelectItem>
-                                  ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-
-                        {/* Display custom selected week */}
-                        <div className="scroll-mt-20 bg-amber-100 dark:bg-amber-950/60 p-3 sm:p-4 md:p-6 rounded-lg border-2 border-amber-300 dark:border-amber-700">
-                          <div className="flex items-center gap-2 mb-3">
-                            <Badge className="bg-amber-600 text-white" data-testid="badge-custom-week">
-                              Week {selectedWeekNumber} - Custom View
-                            </Badge>
-                          </div>
-                          <UnifiedHRCMTable 
-                            weekNumber={selectedWeekNumber}
-                            viewAsUserId={selectedUserId} 
-                            isAdminView={true}
-                          />
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </CollapsibleContent>
-                </Collapsible>
               </>
             )}
             
