@@ -1346,7 +1346,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       }
     },
     enabled: !!platinumStandardsData && platinumStandardsData.length > 0,
-    staleTime: 30000, // Cache for 30 seconds for instant visibility
+    staleTime: 0, // 🔥 INSTANT UPDATES: No cache, refetch immediately on invalidation
     gcTime: 300000, // Keep in cache for 5 minutes
   });
   
