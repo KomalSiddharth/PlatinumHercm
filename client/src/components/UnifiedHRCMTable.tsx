@@ -3255,7 +3255,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         
                         handleRatingChange(belief.category, finalRating);
                       }}
-                      disabled={isPastDate || isAdminView}
+                      disabled={isAdminView}
                       className="w-16 h-9 text-center font-semibold"
                       data-testid={`input-${belief.category.toLowerCase()}-rating`}
                     />
@@ -3266,13 +3266,13 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
                   <div
                     onClick={() => {
-                      if ((viewingHistory && hasDataForDate) || isAdminView) {
-                        // Show read-only popup when viewing history
+                      if (isAdminView) {
+                        // Show read-only popup for admin view
                         setReadOnlyDialogTitle(`${belief.category} - Problems`);
                         setReadOnlyDialogContent(belief.problems || 'No content available');
                         setReadOnlyDialogOpen(true);
                       } else {
-                        // Show editable dialog for current date
+                        // Show editable dialog (including for previous dates)
                         setEditingField({ category: belief.category, field: 'problems', section: 'current' });
                         setDialogValue(belief.problems || '');
                         setDialogOpen(true);
@@ -3294,7 +3294,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 <TableCell className="p-2 bg-emerald-green/5 dark:bg-emerald-green/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
                   <div
                     onClick={() => {
-                      if ((viewingHistory && hasDataForDate) || isAdminView) {
+                      if (isAdminView) {
                         setReadOnlyDialogTitle(`${belief.category} - Feelings`);
                         setReadOnlyDialogContent(belief.currentFeelings || 'No content available');
                         setReadOnlyDialogOpen(true);
@@ -3320,7 +3320,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 <TableCell className="p-2 bg-golden-yellow/5 dark:bg-golden-yellow/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
                   <div
                     onClick={() => {
-                      if ((viewingHistory && hasDataForDate) || isAdminView) {
+                      if (isAdminView) {
                         setReadOnlyDialogTitle(`${belief.category} - Beliefs`);
                         setReadOnlyDialogContent(belief.currentBelief || 'No content available');
                         setReadOnlyDialogOpen(true);
@@ -3346,7 +3346,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 <TableCell className="p-2 bg-soft-lavender/5 dark:bg-soft-lavender/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
                   <div
                     onClick={() => {
-                      if ((viewingHistory && hasDataForDate) || isAdminView) {
+                      if (isAdminView) {
                         setReadOnlyDialogTitle(`${belief.category} - Actions`);
                         setReadOnlyDialogContent(belief.currentActions || 'No content available');
                         setReadOnlyDialogOpen(true);
@@ -3493,7 +3493,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
                   <div
                     onClick={() => {
-                      if ((viewingHistory && hasDataForDate) || isAdminView) {
+                      if (isAdminView) {
                         setReadOnlyDialogTitle(`${belief.category} - Results`);
                         setReadOnlyDialogContent(belief.result || 'No content available');
                         setReadOnlyDialogOpen(true);
@@ -3519,7 +3519,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
                   <div
                     onClick={() => {
-                      if ((viewingHistory && hasDataForDate) || isAdminView) {
+                      if (isAdminView) {
                         setReadOnlyDialogTitle(`${belief.category} - Next Week Feelings`);
                         setReadOnlyDialogContent(belief.nextFeelings || 'No content available');
                         setReadOnlyDialogOpen(true);
@@ -3545,7 +3545,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
                   <div
                     onClick={() => {
-                      if ((viewingHistory && hasDataForDate) || isAdminView) {
+                      if (isAdminView) {
                         setReadOnlyDialogTitle(`${belief.category} - Next Week Beliefs/Reasons`);
                         setReadOnlyDialogContent(belief.nextWeekTarget || 'No content available');
                         setReadOnlyDialogOpen(true);
@@ -3571,7 +3571,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
                   <div
                     onClick={() => {
-                      if ((viewingHistory && hasDataForDate) || isAdminView) {
+                      if (isAdminView) {
                         setReadOnlyDialogTitle(`${belief.category} - Next Week Actions`);
                         setReadOnlyDialogContent(belief.nextActions || 'No content available');
                         setReadOnlyDialogOpen(true);
@@ -4262,7 +4262,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                             handlePlatinumStandardRatingChange(standard.id, value);
                           }
                         }}
-                        disabled={isAdminView || isPastDate}
+                        disabled={isAdminView}
                         className="w-16 h-8 text-center shrink-0"
                         data-testid={`input-rating-${standard.id}`}
                       />
