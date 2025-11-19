@@ -12,6 +12,7 @@ import {
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useToast } from '@/hooks/use-toast';
 import { queryClient, apiRequest } from '@/lib/queryClient';
+import { useQuery } from '@tanstack/react-query';
 
 interface CourseRecommendationNotificationProps {
   userId: string | undefined;
@@ -70,6 +71,24 @@ export function CourseRecommendationNotification({ userId }: CourseRecommendatio
   const { lastMessage } = useWebSocket(userId);
   const { toast } = useToast();
 
+  // Fetch pending recommendations on mount and poll every 10 seconds
+  const { data: pendingRecommendations = [] } = useQuery<any[]>({
+    queryKey: ['/api/user/recommendations'],
+    enabled: !!userId,
+    refetchInterval: 10000, // Poll every 10 seconds
+    staleTime: 0, // Always consider data stale for instant updates
+  });
+
+  // Show first pending recommendation if exists and no dialog is currently open
+  useEffect(() => {
+    if (pendingRecommendations.length > 0 && !showDialog && !recommendation) {
+      console.log('[CourseRecommendation] Found pending recommendations, showing first one:', pendingRecommendations[0]);
+      playNotificationSound();
+      setRecommendation(pendingRecommendations[0]);
+      setShowDialog(true);
+    }
+  }, [pendingRecommendations, showDialog, recommendation]);
+
   useEffect(() => {
     if (!lastMessage) return;
 
@@ -124,6 +143,7 @@ export function CourseRecommendationNotification({ userId }: CourseRecommendatio
       // Refresh data to confirm the update
       queryClient.invalidateQueries({ queryKey: ['/api/persistent-assignments'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/recommendations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/recommendations'] });
 
       setShowDialog(false);
       setRecommendation(null);
@@ -161,6 +181,7 @@ export function CourseRecommendationNotification({ userId }: CourseRecommendatio
 
       // Refresh recommendations to confirm
       queryClient.invalidateQueries({ queryKey: ['/api/admin/recommendations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/recommendations'] });
 
       setShowDialog(false);
       setRecommendation(null);
