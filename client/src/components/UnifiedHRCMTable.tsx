@@ -572,10 +572,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         : [`/api/team/user/${viewAsUserId}/hercm/by-date`, currentDateStr])
     : ['/api/hercm/by-date', currentDateStr];
   
-  // 🔥 FIX: Enable query based on isAdminView prop, not currentUser state
-  // isAdminView tells us if we're in team/admin viewing mode
+  // 🔥 FIX: Wait for currentUser to load before enabling query (needed to determine correct endpoint)
   const shouldEnableQuery = viewAsUserId 
-    ? (!!viewAsUserId && (isAdminView || currentUser !== undefined)) 
+    ? (!!viewAsUserId && currentUser !== undefined) 
     : true;
   
   console.log('🔍 [QUERY ENABLED CHECK] viewAsUserId:', viewAsUserId, 'currentUser:', currentUser, 'isAdminView:', isAdminView, 'shouldEnableQuery:', shouldEnableQuery);

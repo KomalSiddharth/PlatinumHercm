@@ -66,9 +66,9 @@ export default function AdminEmotionalTrackerView({ userId, isAdminView = false 
         : `/api/team/user/${userId}/emotional-trackers/${currentDateStr}`)
     : `/api/emotional-trackers/${currentDateStr}`;
 
-  // 🔥 FIX: Enable query based on isAdminView prop, not currentUser state
+  // 🔥 FIX: Wait for currentUser to load before enabling query (needed to determine correct endpoint)
   const shouldEnableQuery = userId 
-    ? (!!userId && (isAdminView || currentUser !== undefined)) 
+    ? (!!userId && currentUser !== undefined) 
     : true;
 
   console.log('🔍 [EMOTIONAL TRACKER QUERY] userId:', userId, 'currentUser:', currentUser, 'isAdminView:', isAdminView, 'shouldEnableQuery:', shouldEnableQuery);
