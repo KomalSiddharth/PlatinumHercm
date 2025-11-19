@@ -3891,7 +3891,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   // Admin course recommendations - Create recommendation
   app.post('/api/admin/recommendations', isAdmin, async (req: any, res) => {
     try {
-      const adminEmail = req.user?.claims?.sub || req.session.userEmail;
+      const adminEmail = req.user?.claims?.sub || (req.session as any).userEmail;
       console.log('[DEBUG] POST /api/admin/recommendations - adminEmail:', adminEmail);
       
       if (!adminEmail) {
