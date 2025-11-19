@@ -163,25 +163,35 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
 };
 
 export const isAdmin: RequestHandler = async (req, res, next) => {
+  console.log('[isAdmin MIDDLEWARE] Checking authorization...');
+  console.log('[isAdmin MIDDLEWARE] Session isAdmin:', (req.session as any).isAdmin);
+  console.log('[isAdmin MIDDLEWARE] Session userEmail:', (req.session as any).userEmail);
+  
   // Check for session-based admin authentication first
   if ((req.session as any).isAdmin && (req.session as any).userEmail) {
     const userEmail = (req.session as any).userEmail;
+    console.log('[isAdmin MIDDLEWARE] Checking user:', userEmail);
     
     // Check admin users table first
     const adminUser = await storage.getAdminUser(userEmail);
     if (adminUser && adminUser.status === 'active') {
+      console.log('[isAdmin MIDDLEWARE] ✅ Authorized via admin_users table');
       return next();
     }
     
     // If not in admin users table, check regular users table for isAdmin flag
     const regularUser = await storage.getUserByEmail(userEmail);
     if (regularUser?.isAdmin) {
+      console.log('[isAdmin MIDDLEWARE] ✅ Authorized via users.isAdmin flag');
       return next();
     }
     
+    console.log('[isAdmin MIDDLEWARE] ❌ User found but not admin');
     // Session claims to be admin but neither check passed - deny access
     return res.status(403).json({ message: "Forbidden - Admin access required" });
   }
+  
+  console.log('[isAdmin MIDDLEWARE] ❌ Missing session data - isAdmin:', (req.session as any).isAdmin, 'userEmail:', (req.session as any).userEmail);
 
   // Fall back to OIDC-based admin authentication
   const user = req.user as any;

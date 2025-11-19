@@ -157,10 +157,8 @@ export function CourseRecommendationNotification({ userId }: CourseRecommendatio
       // This will update status to 'accepted' and add to assignment column
       await apiRequest(`/api/user/recommendations/${recommendation.id}/accept`, 'POST', {});
 
-      toast({
-        title: "Course Accepted ✓",
-        description: `${recommendation.courseName} added to your assignments.`,
-      });
+      // NO TOAST - User wants only popup dialog, no separate notification
+      // Silently update and close the dialog
 
       // Refresh data to confirm the update
       queryClient.invalidateQueries({ queryKey: ['/api/persistent-assignments'] });
@@ -196,10 +194,8 @@ export function CourseRecommendationNotification({ userId }: CourseRecommendatio
       // Use the USER endpoint to reject recommendation
       await apiRequest(`/api/user/recommendations/${recommendation.id}/reject`, 'POST', {});
 
-      toast({
-        title: "Course Rejected",
-        description: `You rejected ${recommendation.courseName}.`,
-      });
+      // NO TOAST - User wants only popup dialog, no separate notification
+      // Silently update and close the dialog
 
       // Refresh recommendations to confirm
       queryClient.invalidateQueries({ queryKey: ['/api/admin/recommendations'] });

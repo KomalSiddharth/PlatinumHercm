@@ -3892,9 +3892,12 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   app.post('/api/admin/recommendations', isAdmin, async (req: any, res) => {
     try {
       const adminEmail = req.user?.claims?.sub || (req.session as any).userEmail;
-      console.log('[DEBUG] POST /api/admin/recommendations - adminEmail:', adminEmail);
+      console.log('[COURSE RECOMMEND] Admin email from session:', adminEmail);
+      console.log('[COURSE RECOMMEND] Session isAdmin flag:', (req.session as any).isAdmin);
+      console.log('[COURSE RECOMMEND] Full session:', JSON.stringify(req.session));
       
       if (!adminEmail) {
+        console.error('[COURSE RECOMMEND] ❌ 401 - Admin not authenticated');
         return res.status(401).json({ message: "Admin not authenticated" });
       }
 
