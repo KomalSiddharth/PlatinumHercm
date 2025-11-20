@@ -1555,6 +1555,22 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         beliefs: updated,
       });
       
+      // Update popup state if open
+      if (currentWeekCheckpointPopup.open && currentWeekCheckpointPopup.category === category && currentWeekCheckpointPopup.type === type) {
+        const updatedBeliefData = updated.find(b => b.category === category);
+        if (updatedBeliefData) {
+          const newItems = type === 'problems' ? updatedBeliefData.problemsChecklist || [] :
+                          type === 'currentFeelings' ? updatedBeliefData.feelingsCurrentChecklist || [] :
+                          type === 'currentBeliefs' ? updatedBeliefData.beliefsCurrentChecklist || [] :
+                          updatedBeliefData.actionsCurrentChecklist || [];
+          
+          setCurrentWeekCheckpointPopup({
+            ...currentWeekCheckpointPopup,
+            items: newItems
+          });
+        }
+      }
+      
       return updated;
     });
   };
@@ -5336,7 +5352,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     size="sm"
                     variant="ghost"
                     onClick={() => handleCurrentWeekCheckpointDelete(currentWeekCheckpointPopup.category, currentWeekCheckpointPopup.type, item.id)}
-                    className="h-6 w-6 p-0 opacity-0 hover:opacity-100 transition-opacity shrink-0"
+                    className="h-6 w-6 p-0 shrink-0"
                     data-testid={`button-delete-current-week-${currentWeekCheckpointPopup.type}-${index}`}
                   >
                     <Trash2 className="w-4 h-4 text-destructive" />
