@@ -4966,7 +4966,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                               size="sm"
                               variant="ghost"
                               onClick={() => handleRemoveUnifiedAssignment(assignment.id)}
-                              className="h-6 w-6 p-0 opacity-0 group-hover/item:opacity-100 transition-opacity shrink-0"
+                              className="h-6 w-6 p-0 shrink-0"
                             >
                               <Trash2 className="w-4 h-4 text-destructive" />
                             </Button>
@@ -5004,7 +5004,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                               size="sm"
                               variant="ghost"
                               onClick={() => handleRemoveUnifiedAssignment(lesson.id)}
-                              className="h-6 w-6 p-0 opacity-0 group-hover/item:opacity-100 transition-opacity shrink-0"
+                              className="h-6 w-6 p-0 shrink-0"
                             >
                               <Trash2 className="w-4 h-4 text-destructive" />
                             </Button>
@@ -5042,7 +5042,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                               size="sm"
                               variant="ghost"
                               onClick={() => handleRemoveUnifiedAssignment(lesson.id)}
-                              className="h-6 w-6 p-0 opacity-0 group-hover/item:opacity-100 transition-opacity shrink-0"
+                              className="h-6 w-6 p-0 shrink-0"
                             >
                               <Trash2 className="w-4 h-4 text-destructive" />
                             </Button>
