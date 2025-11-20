@@ -362,6 +362,19 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     items: []
   });
 
+  // Checkpoint Popup Dialog State (for viewing all checkboxes in Next Week Target boxes)
+  const [checkpointPopup, setCheckpointPopup] = useState<{
+    open: boolean;
+    category: string;
+    type: 'result' | 'feelings' | 'beliefs' | 'actions';
+    items: ChecklistItem[];
+  }>({
+    open: false,
+    category: '',
+    type: 'result',
+    items: []
+  });
+
   // Platinum Standard Ratings State (for Health category)
   const [standardRatings, setStandardRatings] = useState<Record<string, number>>({});
   
@@ -3532,108 +3545,312 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   </div>
                 </TableCell>
 
-                {/* Next Week - Results (Text Block) */}
+                {/* Next Week - Results (Checkbox-based) */}
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
-                  <div
-                    onClick={() => {
-                      if (viewAsUserId || isAdminView || isPastDate) {
-                        setReadOnlyDialogTitle(`${belief.category} - Results`);
-                        setReadOnlyDialogContent(belief.result || 'No content available');
-                        setReadOnlyDialogOpen(true);
-                      } else {
-                        setEditingField({ category: belief.category, field: 'result', section: 'next' });
-                        setDialogValue(belief.result || '');
-                        setDialogOpen(true);
-                      }
-                    }}
-                    style={{ height: '60px', width: '100%' }}
-                    className="cursor-pointer overflow-hidden rounded px-3 py-2 text-sm bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 hover:border-red-300 dark:hover:border-red-700 transition-colors break-words"
-                    data-testid={`text-block-result-${belief.category.toLowerCase()}`}
-                  >
-                    {belief.result ? (
-                      <div className="overflow-hidden line-clamp-3 text-red-700 dark:text-red-300 text-xs leading-tight break-words">{belief.result}</div>
-                    ) : (
-                      <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
-                    )}
-                  </div>
+                  {(() => {
+                    const checklist = belief.resultChecklist || [];
+                    const totalCount = checklist.length;
+                    const firstItem = checklist[0];
+                    const hasMoreItems = totalCount > 1;
+                    
+                    return (
+                      <div className="space-y-1.5" style={{ height: '60px', width: '100%' }}>
+                        {/* Add Button - ALWAYS VISIBLE */}
+                        {!isAdminView && !viewingHistory && !viewAsUserId && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setFirstCheckpointData({
+                                category: belief.category,
+                                checklistType: 'result',
+                                text: ''
+                              });
+                              setShowFirstCheckpointDialog(true);
+                            }}
+                            className="w-full h-6 text-[10px] px-2 border-dashed border-coral-red/30 text-coral-red hover:bg-coral-red/10 flex items-center justify-center gap-1"
+                            data-testid={`button-add-result-${belief.category.toLowerCase()}`}
+                          >
+                            <Plus className="w-3 h-3" />
+                            <span>Add</span>
+                          </Button>
+                        )}
+                        
+                        {/* Show first checkbox item */}
+                        {firstItem && (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-semibold text-coral-red shrink-0">1.</span>
+                            <Checkbox
+                              checked={firstItem.checked}
+                              onCheckedChange={() => handleCheckpointToggle(belief.category, 'result', firstItem.id)}
+                              disabled={isAdminView || viewingHistory || !!viewAsUserId}
+                              className="h-3 w-3 shrink-0"
+                              data-testid={`checkbox-result-${belief.category.toLowerCase()}-${firstItem.id}`}
+                            />
+                            <span className="text-[10px] line-clamp-1 text-coral-red">
+                              {firstItem.text}
+                            </span>
+                          </div>
+                        )}
+                        
+                        {/* Show "+ X more items..." if more than 1 */}
+                        {hasMoreItems && (
+                          <div 
+                            className="text-[10px] text-coral-red hover:text-coral-red/80 font-medium italic pl-5 cursor-pointer transition-colors"
+                            onClick={() => {
+                              setCheckpointPopup({
+                                open: true,
+                                category: belief.category,
+                                type: 'result',
+                                items: checklist
+                              });
+                            }}
+                            data-testid={`text-more-results-${belief.category.toLowerCase()}`}
+                          >
+                            + {totalCount - 1} more item{totalCount - 1 > 1 ? 's' : ''}...
+                          </div>
+                        )}
+                        
+                        {/* Empty state */}
+                        {totalCount === 0 && (
+                          <p className="text-[10px] text-muted-foreground italic text-center py-1">
+                            No items yet
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </TableCell>
 
-                {/* Next Week - Feelings (Text Block) */}
+                {/* Next Week - Feelings (Checkbox-based) */}
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
-                  <div
-                    onClick={() => {
-                      if (viewAsUserId || isAdminView || isPastDate) {
-                        setReadOnlyDialogTitle(`${belief.category} - Next Week Feelings`);
-                        setReadOnlyDialogContent(belief.nextFeelings || 'No content available');
-                        setReadOnlyDialogOpen(true);
-                      } else {
-                        setEditingField({ category: belief.category, field: 'nextFeelings', section: 'next' });
-                        setDialogValue(belief.nextFeelings || '');
-                        setDialogOpen(true);
-                      }
-                    }}
-                    style={{ height: '60px', width: '100%' }}
-                    className="cursor-pointer overflow-hidden rounded px-3 py-2 text-sm bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 transition-colors break-words"
-                    data-testid={`text-block-next-feelings-${belief.category.toLowerCase()}`}
-                  >
-                    {belief.nextFeelings ? (
-                      <div className="overflow-hidden line-clamp-3 text-green-700 dark:text-green-300 text-xs leading-tight break-words">{belief.nextFeelings}</div>
-                    ) : (
-                      <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
-                    )}
-                  </div>
+                  {(() => {
+                    const checklist = belief.feelingsChecklist || [];
+                    const totalCount = checklist.length;
+                    const firstItem = checklist[0];
+                    const hasMoreItems = totalCount > 1;
+                    
+                    return (
+                      <div className="space-y-1.5" style={{ height: '60px', width: '100%' }}>
+                        {/* Add Button - ALWAYS VISIBLE */}
+                        {!isAdminView && !viewingHistory && !viewAsUserId && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setFirstCheckpointData({
+                                category: belief.category,
+                                checklistType: 'feelings',
+                                text: ''
+                              });
+                              setShowFirstCheckpointDialog(true);
+                            }}
+                            className="w-full h-6 text-[10px] px-2 border-dashed border-emerald-green/30 text-emerald-green hover:bg-emerald-green/10 flex items-center justify-center gap-1"
+                            data-testid={`button-add-feelings-${belief.category.toLowerCase()}`}
+                          >
+                            <Plus className="w-3 h-3" />
+                            <span>Add</span>
+                          </Button>
+                        )}
+                        
+                        {/* Show first checkbox item */}
+                        {firstItem && (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-semibold text-emerald-green shrink-0">1.</span>
+                            <Checkbox
+                              checked={firstItem.checked}
+                              onCheckedChange={() => handleCheckpointToggle(belief.category, 'feelings', firstItem.id)}
+                              disabled={isAdminView || viewingHistory || !!viewAsUserId}
+                              className="h-3 w-3 shrink-0"
+                              data-testid={`checkbox-feelings-${belief.category.toLowerCase()}-${firstItem.id}`}
+                            />
+                            <span className="text-[10px] line-clamp-1 text-emerald-green">
+                              {firstItem.text}
+                            </span>
+                          </div>
+                        )}
+                        
+                        {/* Show "+ X more items..." if more than 1 */}
+                        {hasMoreItems && (
+                          <div 
+                            className="text-[10px] text-emerald-green hover:text-emerald-green/80 font-medium italic pl-5 cursor-pointer transition-colors"
+                            onClick={() => {
+                              setCheckpointPopup({
+                                open: true,
+                                category: belief.category,
+                                type: 'feelings',
+                                items: checklist
+                              });
+                            }}
+                            data-testid={`text-more-feelings-${belief.category.toLowerCase()}`}
+                          >
+                            + {totalCount - 1} more item{totalCount - 1 > 1 ? 's' : ''}...
+                          </div>
+                        )}
+                        
+                        {/* Empty state */}
+                        {totalCount === 0 && (
+                          <p className="text-[10px] text-muted-foreground italic text-center py-1">
+                            No items yet
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </TableCell>
 
-                {/* Next Week - Beliefs/Reasons (Text Block) */}
+                {/* Next Week - Beliefs/Reasons (Checkbox-based) */}
                 <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
-                  <div
-                    onClick={() => {
-                      if (viewAsUserId || isAdminView || isPastDate) {
-                        setReadOnlyDialogTitle(`${belief.category} - Next Week Beliefs/Reasons`);
-                        setReadOnlyDialogContent(belief.nextWeekTarget || 'No content available');
-                        setReadOnlyDialogOpen(true);
-                      } else {
-                        setEditingField({ category: belief.category, field: 'nextWeekTarget', section: 'next' });
-                        setDialogValue(belief.nextWeekTarget || '');
-                        setDialogOpen(true);
-                      }
-                    }}
-                    style={{ height: '60px', width: '100%' }}
-                    className="cursor-pointer overflow-hidden rounded px-3 py-2 text-sm bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 hover:border-amber-300 dark:hover:border-amber-700 transition-colors break-words"
-                    data-testid={`text-block-next-beliefs-${belief.category.toLowerCase()}`}
-                  >
-                    {belief.nextWeekTarget ? (
-                      <div className="overflow-hidden line-clamp-3 text-amber-700 dark:text-amber-300 text-xs leading-tight break-words">{belief.nextWeekTarget}</div>
-                    ) : (
-                      <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
-                    )}
-                  </div>
+                  {(() => {
+                    const checklist = belief.beliefsChecklist || [];
+                    const totalCount = checklist.length;
+                    const firstItem = checklist[0];
+                    const hasMoreItems = totalCount > 1;
+                    
+                    return (
+                      <div className="space-y-1.5" style={{ height: '60px', width: '100%' }}>
+                        {/* Add Button - ALWAYS VISIBLE */}
+                        {!isAdminView && !viewingHistory && !viewAsUserId && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setFirstCheckpointData({
+                                category: belief.category,
+                                checklistType: 'beliefs',
+                                text: ''
+                              });
+                              setShowFirstCheckpointDialog(true);
+                            }}
+                            className="w-full h-6 text-[10px] px-2 border-dashed border-golden-yellow/30 text-golden-yellow hover:bg-golden-yellow/10 flex items-center justify-center gap-1"
+                            data-testid={`button-add-beliefs-${belief.category.toLowerCase()}`}
+                          >
+                            <Plus className="w-3 h-3" />
+                            <span>Add</span>
+                          </Button>
+                        )}
+                        
+                        {/* Show first checkbox item */}
+                        {firstItem && (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-semibold text-golden-yellow shrink-0">1.</span>
+                            <Checkbox
+                              checked={firstItem.checked}
+                              onCheckedChange={() => handleCheckpointToggle(belief.category, 'beliefs', firstItem.id)}
+                              disabled={isAdminView || viewingHistory || !!viewAsUserId}
+                              className="h-3 w-3 shrink-0"
+                              data-testid={`checkbox-beliefs-${belief.category.toLowerCase()}-${firstItem.id}`}
+                            />
+                            <span className="text-[10px] line-clamp-1 text-golden-yellow">
+                              {firstItem.text}
+                            </span>
+                          </div>
+                        )}
+                        
+                        {/* Show "+ X more items..." if more than 1 */}
+                        {hasMoreItems && (
+                          <div 
+                            className="text-[10px] text-golden-yellow hover:text-golden-yellow/80 font-medium italic pl-5 cursor-pointer transition-colors"
+                            onClick={() => {
+                              setCheckpointPopup({
+                                open: true,
+                                category: belief.category,
+                                type: 'beliefs',
+                                items: checklist
+                              });
+                            }}
+                            data-testid={`text-more-beliefs-${belief.category.toLowerCase()}`}
+                          >
+                            + {totalCount - 1} more item{totalCount - 1 > 1 ? 's' : ''}...
+                          </div>
+                        )}
+                        
+                        {/* Empty state */}
+                        {totalCount === 0 && (
+                          <p className="text-[10px] text-muted-foreground italic text-center py-1">
+                            No items yet
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </TableCell>
 
-                {/* Next Week - Actions (Text Block) */}
-                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
-                  <div
-                    onClick={() => {
-                      if (viewAsUserId || isAdminView || isPastDate) {
-                        setReadOnlyDialogTitle(`${belief.category} - Next Week Actions`);
-                        setReadOnlyDialogContent(belief.nextActions || 'No content available');
-                        setReadOnlyDialogOpen(true);
-                      } else {
-                        setEditingField({ category: belief.category, field: 'nextActions', section: 'next' });
-                        setDialogValue(belief.nextActions || '');
-                        setDialogOpen(true);
-                      }
-                    }}
-                    style={{ height: '60px', width: '100%' }}
-                    className="cursor-pointer overflow-hidden rounded px-3 py-2 text-sm bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 hover:border-blue-300 dark:hover:border-blue-700 transition-colors break-words"
-                    data-testid={`text-block-next-actions-${belief.category.toLowerCase()}`}
-                  >
-                    {belief.nextActions ? (
-                      <div className="overflow-hidden line-clamp-3 text-blue-700 dark:text-blue-300 text-xs leading-tight break-words">{belief.nextActions}</div>
-                    ) : (
-                      <span className="text-gray-400 dark:text-gray-500 italic text-xs">Click to add...</span>
-                    )}
-                  </div>
+                {/* Next Week - Actions (Checkbox-based) */}
+                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px] border-r">
+                  {(() => {
+                    const checklist = belief.actionsChecklist || [];
+                    const totalCount = checklist.length;
+                    const firstItem = checklist[0];
+                    const hasMoreItems = totalCount > 1;
+                    
+                    return (
+                      <div className="space-y-1.5" style={{ height: '60px', width: '100%' }}>
+                        {/* Add Button - ALWAYS VISIBLE */}
+                        {!isAdminView && !viewingHistory && !viewAsUserId && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setFirstCheckpointData({
+                                category: belief.category,
+                                checklistType: 'actions',
+                                text: ''
+                              });
+                              setShowFirstCheckpointDialog(true);
+                            }}
+                            className="w-full h-6 text-[10px] px-2 border-dashed border-blue-500/30 text-blue-500 hover:bg-blue-500/10 flex items-center justify-center gap-1"
+                            data-testid={`button-add-actions-${belief.category.toLowerCase()}`}
+                          >
+                            <Plus className="w-3 h-3" />
+                            <span>Add</span>
+                          </Button>
+                        )}
+                        
+                        {/* Show first checkbox item */}
+                        {firstItem && (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-semibold text-blue-500 shrink-0">1.</span>
+                            <Checkbox
+                              checked={firstItem.checked}
+                              onCheckedChange={() => handleCheckpointToggle(belief.category, 'actions', firstItem.id)}
+                              disabled={isAdminView || viewingHistory || !!viewAsUserId}
+                              className="h-3 w-3 shrink-0"
+                              data-testid={`checkbox-actions-${belief.category.toLowerCase()}-${firstItem.id}`}
+                            />
+                            <span className="text-[10px] line-clamp-1 text-blue-500">
+                              {firstItem.text}
+                            </span>
+                          </div>
+                        )}
+                        
+                        {/* Show "+ X more items..." if more than 1 */}
+                        {hasMoreItems && (
+                          <div 
+                            className="text-[10px] text-blue-500 hover:text-blue-500/80 font-medium italic pl-5 cursor-pointer transition-colors"
+                            onClick={() => {
+                              setCheckpointPopup({
+                                open: true,
+                                category: belief.category,
+                                type: 'actions',
+                                items: checklist
+                              });
+                            }}
+                            data-testid={`text-more-actions-${belief.category.toLowerCase()}`}
+                          >
+                            + {totalCount - 1} more item{totalCount - 1 > 1 ? 's' : ''}...
+                          </div>
+                        )}
+                        
+                        {/* Empty state */}
+                        {totalCount === 0 && (
+                          <p className="text-[10px] text-muted-foreground italic text-center py-1">
+                            No items yet
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </TableCell>
 
                 {/* Unified Assignment Column - Compact view with click popup */}
