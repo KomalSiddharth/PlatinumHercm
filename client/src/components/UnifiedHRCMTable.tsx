@@ -2760,6 +2760,22 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     };
 
     const colorScheme = getColorScheme(checklistType);
+    
+    // Get column-specific button label
+    const getButtonLabel = () => {
+      switch(checklistType) {
+        case 'result': return 'Result';
+        case 'feelings': return 'Feeling';
+        case 'beliefs': return 'Belief';
+        case 'actions': return 'Action';
+        case 'problems': return 'Problem';
+        case 'feelingsCurrent': return 'Feeling';
+        case 'beliefsCurrent': return 'Belief';
+        case 'actionsCurrent': return 'Action';
+        default: return 'Checkpoint';
+      }
+    };
+    const buttonLabel = getButtonLabel();
 
     const handleAddCheckpointClick = () => {
       setNewCheckpointText('');
@@ -2841,7 +2857,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </div>
               )}
               
-              {/* Add Checkpoint button when items exist */}
+              {/* Add button when items exist */}
               {items.length > 0 && !disabled && (
                 <Button
                   size="sm"
@@ -2851,7 +2867,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   data-testid={`button-add-checkpoint-inline-${checklistType}-${category.toLowerCase()}`}
                 >
                   <Plus className="w-3 h-3" />
-                  Add Checkpoint
+                  Add {buttonLabel}
                 </Button>
               )}
             </div>
@@ -2903,7 +2919,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           </HoverCardContent>
         </HoverCard>
         
-        {/* Add Checkpoint Button - Outside HoverCard to prevent layout shift */}
+        {/* Add Button - Outside HoverCard to prevent layout shift */}
         {!disabled && items.length === 0 && (
           <Button
             size="sm"
@@ -2913,7 +2929,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             data-testid={`button-add-checkpoint-${checklistType}-${category.toLowerCase()}`}
           >
             <Plus className="w-3 h-3" />
-            Add Checkpoint
+            Add {buttonLabel}
           </Button>
         )}
 
@@ -2967,7 +2983,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   className="bg-gradient-to-r from-primary to-accent text-white hover:opacity-90"
                   data-testid={`button-save-checkpoint-${checklistType}-${category.toLowerCase()}`}
                 >
-                  Add Checkpoint
+                  Add {buttonLabel}
                 </Button>
               </div>
             </div>
@@ -4772,7 +4788,16 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 className="bg-gradient-to-r from-primary to-accent text-white hover:opacity-90"
                 data-testid="button-save-first-checkpoint"
               >
-                Add Checkpoint
+                Add {
+                  firstCheckpointData?.checklistType === 'result' ? 'Result' :
+                  firstCheckpointData?.checklistType === 'feelings' ? 'Feeling' :
+                  firstCheckpointData?.checklistType === 'beliefs' ? 'Belief' :
+                  firstCheckpointData?.checklistType === 'actions' ? 'Action' :
+                  firstCheckpointData?.checklistType === 'problems' ? 'Problem' :
+                  firstCheckpointData?.checklistType === 'feelingsCurrent' ? 'Feeling' :
+                  firstCheckpointData?.checklistType === 'beliefsCurrent' ? 'Belief' :
+                  firstCheckpointData?.checklistType === 'actionsCurrent' ? 'Action' : 'Checkpoint'
+                }
               </Button>
             </div>
           </div>
@@ -5227,7 +5252,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 className="bg-gradient-to-r from-primary to-accent text-white hover:opacity-90"
                 data-testid="button-save-current-week-checkpoint"
               >
-                Add Checkpoint
+                Add {
+                  currentWeekCheckpointData?.checklistType === 'problems' ? 'Problem' :
+                  currentWeekCheckpointData?.checklistType === 'currentFeelings' ? 'Feeling' :
+                  currentWeekCheckpointData?.checklistType === 'currentBeliefs' ? 'Belief' :
+                  currentWeekCheckpointData?.checklistType === 'currentActions' ? 'Action' : 'Checkpoint'
+                }
               </Button>
             </div>
           </div>
