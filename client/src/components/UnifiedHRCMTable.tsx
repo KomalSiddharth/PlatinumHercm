@@ -4547,6 +4547,72 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         </DialogContent>
       </Dialog>
 
+      {/* Checkpoint Popup Dialog (for Next Week Target boxes) */}
+      <Dialog 
+        open={checkpointPopup.open} 
+        onOpenChange={(open) => setCheckpointPopup({ ...checkpointPopup, open })}
+      >
+        <DialogContent className="max-w-md max-h-[600px] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">
+              {checkpointPopup.category} - {checkpointPopup.type === 'result' ? 'Results' : checkpointPopup.type === 'feelings' ? 'Feelings' : checkpointPopup.type === 'beliefs' ? 'Beliefs/Reasons' : 'Actions'}
+            </DialogTitle>
+            <p className="text-sm text-muted-foreground">
+              {checkpointPopup.items.length} item{checkpointPopup.items.length > 1 ? 's' : ''}
+            </p>
+          </DialogHeader>
+          <div className="space-y-2 py-4">
+            {checkpointPopup.items.map((item, index) => (
+              <div key={item.id} className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/30 transition-colors">
+                <span className={`text-sm font-semibold shrink-0 ${
+                  checkpointPopup.type === 'result' ? 'text-coral-red' :
+                  checkpointPopup.type === 'feelings' ? 'text-emerald-green' :
+                  checkpointPopup.type === 'beliefs' ? 'text-golden-yellow' :
+                  'text-blue-500'
+                }`}>
+                  {index + 1}.
+                </span>
+                <Checkbox
+                  checked={item.checked}
+                  onCheckedChange={() => handleCheckpointToggle(checkpointPopup.category, checkpointPopup.type, item.id)}
+                  disabled={isAdminView || viewingHistory || !!viewAsUserId}
+                  className="h-4 w-4 shrink-0"
+                  data-testid={`checkbox-popup-${checkpointPopup.type}-${item.id}`}
+                />
+                <span className={`text-sm flex-1 leading-relaxed break-words ${
+                  checkpointPopup.type === 'result' ? 'text-coral-red' :
+                  checkpointPopup.type === 'feelings' ? 'text-emerald-green' :
+                  checkpointPopup.type === 'beliefs' ? 'text-golden-yellow' :
+                  'text-blue-500'
+                }`}>
+                  {item.text}
+                </span>
+                {!isAdminView && !viewingHistory && !viewAsUserId && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleCheckpointDelete(checkpointPopup.category, checkpointPopup.type, item.id)}
+                    className="h-6 w-6 p-0 opacity-0 hover:opacity-100 transition-opacity shrink-0"
+                    data-testid={`button-delete-${checkpointPopup.type}-${item.id}`}
+                  >
+                    <Trash2 className="w-4 h-4 text-destructive" />
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-end pt-3 border-t">
+            <Button
+              variant="outline"
+              onClick={() => setCheckpointPopup({ open: false, category: '', type: 'result', items: [] })}
+              data-testid="button-close-checkpoint-popup"
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
