@@ -309,7 +309,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editDialogData, setEditDialogData] = useState<{ category: string; field: string; value: string; label: string; color: string } | null>(null);
   const [manualNextWeekMode, setManualNextWeekMode] = useState(false); // 🔥 Flag to disable auto-sync when user manually updates Next Week Target
-  const [calendarPopoverOpen, setCalendarPopoverOpen] = useState(false); // Calendar popover state
+  const [calendarPopoverOpen, setCalendarPopoverOpen] = useState(false); // Calendar popover state for Current Week
+  const [nextWeekCalendarPopoverOpen, setNextWeekCalendarPopoverOpen] = useState(false); // Calendar popover state for Next Week
   
   // Text Block Dialog States (Emotional Tracker Style)
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -3388,10 +3389,52 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         <div className="bg-emerald-green dark:bg-emerald-green/90 py-3 border-b-2 border-emerald-green/80 dark:border-emerald-green/60 px-4">
           <div className="flex items-center justify-between">
             <div className="flex-1"></div>
-            <h3 className="font-bold text-white text-xl drop-shadow-md flex items-center gap-2">
-              <TrendingUp className="w-5 h-5" />
-              {format(new Date(selectedDate.getTime() + 7 * 24 * 60 * 60 * 1000), 'MMMM dd, yyyy')}
-            </h3>
+            {/* Clickable Date with Calendar Popup for Next Week */}
+            <Popover open={nextWeekCalendarPopoverOpen} onOpenChange={setNextWeekCalendarPopoverOpen}>
+              <PopoverTrigger asChild>
+                <h3 
+                  className="font-bold text-white text-xl drop-shadow-md flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+                  data-testid="button-next-week-date-text"
+                >
+                  <TrendingUp className="w-5 h-5" />
+                  {format(new Date(selectedDate.getTime() + 7 * 24 * 60 * 60 * 1000), 'MMMM dd, yyyy')}
+                </h3>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="center">
+                <Calendar
+                  mode="single"
+                  selected={new Date(selectedDate.getTime() + 7 * 24 * 60 * 60 * 1000)}
+                  onSelect={(date) => {
+                    if (date) {
+                      // Calculate the corresponding Current Week date (7 days before selected Next Week date)
+                      const newCurrentWeekDate = new Date(date.getTime() - 7 * 24 * 60 * 60 * 1000);
+                      handleDateChange(newCurrentWeekDate);
+                      setNextWeekCalendarPopoverOpen(false);
+                    }
+                  }}
+                  initialFocus
+                  data-testid="calendar-next-week-date-picker"
+                />
+                <div className="p-3 border-t">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => {
+                      // Reset to next week from today (today + 7 days)
+                      const nextWeek = new Date();
+                      nextWeek.setDate(nextWeek.getDate() + 7);
+                      const currentWeekFromNextWeek = new Date(nextWeek.getTime() - 7 * 24 * 60 * 60 * 1000);
+                      handleDateChange(currentWeekFromNextWeek);
+                      setNextWeekCalendarPopoverOpen(false);
+                    }}
+                    data-testid="button-reset-to-next-week"
+                  >
+                    Reset to Next Week
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
             <div className="flex-1 flex justify-end items-center gap-2">
               {!isAdminView && (
                 <Button
