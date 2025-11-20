@@ -2907,7 +2907,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       size="sm"
                       variant="ghost"
                       onClick={() => onDeleteCheckpoint(item.id)}
-                      className="h-5 w-5 p-0 opacity-0 group-hover/hover-item:opacity-100 transition-opacity shrink-0"
+                      className="h-5 w-5 p-0 shrink-0"
                       data-testid={`button-delete-hover-${checklistType}-${category.toLowerCase()}-${item.id}`}
                     >
                       <Trash2 className="w-3 h-3 text-destructive" />
@@ -5192,7 +5192,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     size="sm"
                     variant="ghost"
                     onClick={() => handleCheckpointDelete(checkpointPopup.category, checkpointPopup.type, item.id)}
-                    className="h-6 w-6 p-0 opacity-0 hover:opacity-100 transition-opacity shrink-0"
+                    className="h-6 w-6 p-0 shrink-0"
                     data-testid={`button-delete-${checkpointPopup.type}-${index}`}
                   >
                     <Trash2 className="w-4 h-4 text-destructive" />
