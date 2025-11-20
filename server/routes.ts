@@ -4725,10 +4725,10 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         hrcmArea: updatedRecommendation.hrcmArea,
         lessonId: updatedRecommendation.lessonId,
         lessonName: updatedRecommendation.lessonName,
-        lessonUrl: updatedRecommendation.lessonUrl || '',
+        url: updatedRecommendation.lessonUrl || '',
         completed: false,
-        points: 0,
         source: 'admin',
+        recommendationId: id,
       });
 
       console.log('[REALTIME DEBUG] POST /api/user/recommendations/:id/accept - Status updated to accepted and assignment created');

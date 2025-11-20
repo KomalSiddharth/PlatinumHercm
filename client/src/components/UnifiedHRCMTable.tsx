@@ -4425,7 +4425,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       const assignmentsToDisplay = persistentAssignments;
                       
                       const userLessons = assignmentsToDisplay.filter((l: any) => l.source === 'user' || !l.source);
-                      const adminLessons = assignmentsToDisplay.filter((l: any) => l.source === 'admin');
+                      const adminLessons = assignmentsToDisplay.filter((l: any) => l.source === 'admin' || l.source === 'admin_recommendation');
                       const customAssignments = assignmentsToDisplay.filter((l: any) => l.source === 'custom');
                       
                       // Combine all assignments
