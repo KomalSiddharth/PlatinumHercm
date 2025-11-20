@@ -4432,9 +4432,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       const allAssignments = [...customAssignments, ...userLessons, ...adminLessons];
                       const totalCount = allAssignments.length;
                       
-                      // Show only first 1 item
-                      const firstItem = allAssignments[0];
-                      const hasMoreItems = totalCount > 1;
+                      // Show first 6 items to fill the column height
+                      const maxVisibleItems = 6;
+                      const visibleItems = allAssignments.slice(0, maxVisibleItems);
+                      const hiddenCount = totalCount - maxVisibleItems;
+                      const hasMoreItems = hiddenCount > 0;
                       
                       return (
                         <div className="space-y-2">
@@ -4456,36 +4458,36 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                             </Button>
                           )}
                           
-                          {/* Show first 1 assignment */}
-                          {firstItem && (
-                            <div className="flex items-center gap-2">
+                          {/* Show multiple assignments until column end */}
+                          {visibleItems.map((assignment, index) => (
+                            <div key={assignment.id} className="flex items-center gap-2">
                               <Checkbox
-                                checked={firstItem.completed}
-                                onCheckedChange={() => handleUnifiedAssignmentToggle(firstItem.id)}
+                                checked={assignment.completed}
+                                onCheckedChange={() => handleUnifiedAssignmentToggle(assignment.id)}
                                 disabled={isAdminView}
                                 className="h-3 w-3 shrink-0"
-                                data-testid={`checkbox-assignment-preview-${firstItem.id}`}
+                                data-testid={`checkbox-assignment-preview-${assignment.id}`}
                               />
-                              {firstItem.source === 'custom' ? (
+                              {assignment.source === 'custom' ? (
                                 <span className="text-xs line-clamp-1 text-purple-700 dark:text-purple-400">
-                                  {firstItem.customText}
+                                  {assignment.customText}
                                 </span>
                               ) : (
                                 <span className="text-xs line-clamp-1 text-cyan-700 dark:text-cyan-400">
-                                  {firstItem.lessonName || firstItem.courseName}
+                                  {assignment.lessonName || assignment.courseName}
                                 </span>
                               )}
                             </div>
-                          )}
+                          ))}
                           
-                          {/* Show "+ X more items..." if more than 1 */}
+                          {/* Show "+ X more items..." if there are hidden items */}
                           {hasMoreItems && (
                             <div 
                               className="text-xs text-primary hover:text-primary/80 font-medium italic pl-5 cursor-pointer transition-colors"
                               onClick={() => setAssignmentDialog(true)}
                               data-testid="text-show-more-assignments"
                             >
-                              + {totalCount - 1} more item{totalCount - 1 > 1 ? 's' : ''}...
+                              + {hiddenCount} more item{hiddenCount > 1 ? 's' : ''}...
                             </div>
                           )}
                           
