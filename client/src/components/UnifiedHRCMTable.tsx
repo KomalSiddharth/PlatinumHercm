@@ -1405,6 +1405,100 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     });
   };
 
+  // Handle Next Week Target checkbox toggle
+  const handleCheckpointToggle = (category: string, type: 'result' | 'feelings' | 'beliefs' | 'actions', itemId: string) => {
+    setBeliefs(prev => {
+      const updated = prev.map(belief => {
+        if (belief.category === category) {
+          let updatedBelief = { ...belief };
+          
+          // Update the appropriate checklist based on type
+          if (type === 'result' && belief.resultChecklist) {
+            updatedBelief.resultChecklist = belief.resultChecklist.map(item =>
+              item.id === itemId ? { ...item, checked: !item.checked } : item
+            );
+          } else if (type === 'feelings' && belief.feelingsChecklist) {
+            updatedBelief.feelingsChecklist = belief.feelingsChecklist.map(item =>
+              item.id === itemId ? { ...item, checked: !item.checked } : item
+            );
+          } else if (type === 'beliefs' && belief.beliefsChecklist) {
+            updatedBelief.beliefsChecklist = belief.beliefsChecklist.map(item =>
+              item.id === itemId ? { ...item, checked: !item.checked } : item
+            );
+          } else if (type === 'actions' && belief.actionsChecklist) {
+            updatedBelief.actionsChecklist = belief.actionsChecklist.map(item =>
+              item.id === itemId ? { ...item, checked: !item.checked } : item
+            );
+          }
+          
+          return updatedBelief;
+        }
+        return belief;
+      });
+      
+      // Auto-save changes to database immediately
+      saveWeekMutation.mutate({
+        weekNumber,
+        year: new Date().getFullYear(),
+        dateString: currentDateStr,
+        beliefs: updated,
+      });
+      
+      return updated;
+    });
+  };
+
+  // Handle Next Week Target checkpoint delete
+  const handleCheckpointDelete = (category: string, type: 'result' | 'feelings' | 'beliefs' | 'actions', itemId: string) => {
+    setBeliefs(prev => {
+      const updated = prev.map(belief => {
+        if (belief.category === category) {
+          let updatedBelief = { ...belief };
+          
+          // Remove item from the appropriate checklist based on type
+          if (type === 'result' && belief.resultChecklist) {
+            updatedBelief.resultChecklist = belief.resultChecklist.filter(item => item.id !== itemId);
+          } else if (type === 'feelings' && belief.feelingsChecklist) {
+            updatedBelief.feelingsChecklist = belief.feelingsChecklist.filter(item => item.id !== itemId);
+          } else if (type === 'beliefs' && belief.beliefsChecklist) {
+            updatedBelief.beliefsChecklist = belief.beliefsChecklist.filter(item => item.id !== itemId);
+          } else if (type === 'actions' && belief.actionsChecklist) {
+            updatedBelief.actionsChecklist = belief.actionsChecklist.filter(item => item.id !== itemId);
+          }
+          
+          return updatedBelief;
+        }
+        return belief;
+      });
+      
+      // Auto-save changes to database immediately
+      saveWeekMutation.mutate({
+        weekNumber,
+        year: new Date().getFullYear(),
+        dateString: currentDateStr,
+        beliefs: updated,
+      });
+      
+      // Update popup state if open
+      if (checkpointPopup.open && checkpointPopup.category === category && checkpointPopup.type === type) {
+        const updatedBeliefData = updated.find(b => b.category === category);
+        if (updatedBeliefData) {
+          const newItems = type === 'result' ? updatedBeliefData.resultChecklist || [] :
+                          type === 'feelings' ? updatedBeliefData.feelingsChecklist || [] :
+                          type === 'beliefs' ? updatedBeliefData.beliefsChecklist || [] :
+                          updatedBeliefData.actionsChecklist || [];
+          
+          setCheckpointPopup({
+            ...checkpointPopup,
+            items: newItems
+          });
+        }
+      }
+      
+      return updated;
+    });
+  };
+
   const handleRatingChange = (category: string, newRating: number) => {
     setBeliefs(prev => {
       const updated = prev.map(belief => {
@@ -3587,7 +3681,20 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                               className="h-3 w-3 shrink-0"
                               data-testid={`checkbox-result-${belief.category.toLowerCase()}-${firstItem.id}`}
                             />
-                            <span className="text-[10px] line-clamp-1 text-coral-red">
+                            <span 
+                              className="text-[10px] line-clamp-1 text-coral-red cursor-pointer hover:underline"
+                              onClick={() => {
+                                if (!isAdminView && !viewingHistory && !viewAsUserId) {
+                                  setFirstCheckpointData({
+                                    category: belief.category,
+                                    checklistType: 'result',
+                                    text: firstItem.text
+                                  });
+                                  setShowFirstCheckpointDialog(true);
+                                }
+                              }}
+                              data-testid={`text-edit-result-${belief.category.toLowerCase()}-${firstItem.id}`}
+                            >
                               {firstItem.text}
                             </span>
                           </div>
@@ -3664,7 +3771,20 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                               className="h-3 w-3 shrink-0"
                               data-testid={`checkbox-feelings-${belief.category.toLowerCase()}-${firstItem.id}`}
                             />
-                            <span className="text-[10px] line-clamp-1 text-emerald-green">
+                            <span 
+                              className="text-[10px] line-clamp-1 text-emerald-green cursor-pointer hover:underline"
+                              onClick={() => {
+                                if (!isAdminView && !viewingHistory && !viewAsUserId) {
+                                  setFirstCheckpointData({
+                                    category: belief.category,
+                                    checklistType: 'feelings',
+                                    text: firstItem.text
+                                  });
+                                  setShowFirstCheckpointDialog(true);
+                                }
+                              }}
+                              data-testid={`text-edit-feelings-${belief.category.toLowerCase()}-${firstItem.id}`}
+                            >
                               {firstItem.text}
                             </span>
                           </div>
@@ -3741,7 +3861,20 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                               className="h-3 w-3 shrink-0"
                               data-testid={`checkbox-beliefs-${belief.category.toLowerCase()}-${firstItem.id}`}
                             />
-                            <span className="text-[10px] line-clamp-1 text-golden-yellow">
+                            <span 
+                              className="text-[10px] line-clamp-1 text-golden-yellow cursor-pointer hover:underline"
+                              onClick={() => {
+                                if (!isAdminView && !viewingHistory && !viewAsUserId) {
+                                  setFirstCheckpointData({
+                                    category: belief.category,
+                                    checklistType: 'beliefs',
+                                    text: firstItem.text
+                                  });
+                                  setShowFirstCheckpointDialog(true);
+                                }
+                              }}
+                              data-testid={`text-edit-beliefs-${belief.category.toLowerCase()}-${firstItem.id}`}
+                            >
                               {firstItem.text}
                             </span>
                           </div>
@@ -3818,7 +3951,20 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                               className="h-3 w-3 shrink-0"
                               data-testid={`checkbox-actions-${belief.category.toLowerCase()}-${firstItem.id}`}
                             />
-                            <span className="text-[10px] line-clamp-1 text-blue-500">
+                            <span 
+                              className="text-[10px] line-clamp-1 text-blue-500 cursor-pointer hover:underline"
+                              onClick={() => {
+                                if (!isAdminView && !viewingHistory && !viewAsUserId) {
+                                  setFirstCheckpointData({
+                                    category: belief.category,
+                                    checklistType: 'actions',
+                                    text: firstItem.text
+                                  });
+                                  setShowFirstCheckpointDialog(true);
+                                }
+                              }}
+                              data-testid={`text-edit-actions-${belief.category.toLowerCase()}-${firstItem.id}`}
+                            >
                               {firstItem.text}
                             </span>
                           </div>
@@ -4577,14 +4723,29 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   onCheckedChange={() => handleCheckpointToggle(checkpointPopup.category, checkpointPopup.type, item.id)}
                   disabled={isAdminView || viewingHistory || !!viewAsUserId}
                   className="h-4 w-4 shrink-0"
-                  data-testid={`checkbox-popup-${checkpointPopup.type}-${item.id}`}
+                  data-testid={`checkbox-popup-${checkpointPopup.type}-${index}`}
                 />
-                <span className={`text-sm flex-1 leading-relaxed break-words ${
-                  checkpointPopup.type === 'result' ? 'text-coral-red' :
-                  checkpointPopup.type === 'feelings' ? 'text-emerald-green' :
-                  checkpointPopup.type === 'beliefs' ? 'text-golden-yellow' :
-                  'text-blue-500'
-                }`}>
+                <span 
+                  className={`text-sm flex-1 leading-relaxed break-words cursor-pointer hover:underline ${
+                    checkpointPopup.type === 'result' ? 'text-coral-red' :
+                    checkpointPopup.type === 'feelings' ? 'text-emerald-green' :
+                    checkpointPopup.type === 'beliefs' ? 'text-golden-yellow' :
+                    'text-blue-500'
+                  }`}
+                  onClick={() => {
+                    if (!isAdminView && !viewingHistory && !viewAsUserId) {
+                      setFirstCheckpointData({
+                        category: checkpointPopup.category,
+                        checklistType: checkpointPopup.type,
+                        text: item.text
+                      });
+                      setShowFirstCheckpointDialog(true);
+                      // Close the popup
+                      setCheckpointPopup({ open: false, category: '', type: 'result', items: [] });
+                    }
+                  }}
+                  data-testid={`text-edit-popup-${checkpointPopup.type}-${index}`}
+                >
                   {item.text}
                 </span>
                 {!isAdminView && !viewingHistory && !viewAsUserId && (
@@ -4593,7 +4754,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     variant="ghost"
                     onClick={() => handleCheckpointDelete(checkpointPopup.category, checkpointPopup.type, item.id)}
                     className="h-6 w-6 p-0 opacity-0 hover:opacity-100 transition-opacity shrink-0"
-                    data-testid={`button-delete-${checkpointPopup.type}-${item.id}`}
+                    data-testid={`button-delete-${checkpointPopup.type}-${index}`}
                   >
                     <Trash2 className="w-4 h-4 text-destructive" />
                   </Button>
