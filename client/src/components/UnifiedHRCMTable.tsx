@@ -4432,8 +4432,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       const allAssignments = [...customAssignments, ...userLessons, ...adminLessons];
                       const totalCount = allAssignments.length;
                       
-                      // Show first 6 items to fill the column height
-                      const maxVisibleItems = 6;
+                      // Show first 12 items to fill the column height
+                      const maxVisibleItems = 12;
                       const visibleItems = allAssignments.slice(0, maxVisibleItems);
                       const hiddenCount = totalCount - maxVisibleItems;
                       const hasMoreItems = hiddenCount > 0;
@@ -4469,7 +4469,17 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                 data-testid={`checkbox-assignment-preview-${assignment.id}`}
                               />
                               {assignment.source === 'custom' ? (
-                                <span className="text-xs line-clamp-1 text-purple-700 dark:text-purple-400">
+                                <span 
+                                  className="text-xs line-clamp-1 text-purple-700 dark:text-purple-400 cursor-pointer hover:underline"
+                                  onClick={() => {
+                                    if (!isAdminView) {
+                                      setEditCustomAssignmentId(assignment.id);
+                                      setCustomAssignmentText(assignment.customText || '');
+                                      setShowCustomAssignmentDialog(true);
+                                    }
+                                  }}
+                                  data-testid={`text-edit-custom-assignment-${assignment.id}`}
+                                >
                                   {assignment.customText}
                                 </span>
                               ) : (
@@ -4910,7 +4920,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             {(() => {
               const assignmentsToDisplay = persistentAssignments;
               const userLessons = assignmentsToDisplay.filter((l: any) => l.source === 'user' || !l.source);
-              const adminLessons = assignmentsToDisplay.filter((l: any) => l.source === 'admin');
+              const adminLessons = assignmentsToDisplay.filter((l: any) => l.source === 'admin' || l.source === 'admin_recommendation');
               const customAssignments = assignmentsToDisplay.filter((l: any) => l.source === 'custom');
               const totalCount = customAssignments.length + userLessons.length + adminLessons.length;
               
