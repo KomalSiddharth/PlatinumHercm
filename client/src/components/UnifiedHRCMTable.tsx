@@ -2973,24 +2973,31 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       if (newItemText.trim()) {
         onAddCheckpoint(newItemText.trim());
         setNewItemText(''); // Clear input, stay ready for next
-        // Keep isAddingNew = true so input stays visible
+        // Explicitly keep isAddingNew = true so input stays visible
+        setIsAddingNew(true);
         setTimeout(() => {
           inputRef.current?.focus();
         }, 0);
       }
     };
 
-    const handleStartAddingNew = () => {
+    const handleStartAddingNew = (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
       // If input is already open and has content, save it first
       if (isAddingNew && newItemText.trim()) {
         handleAddNewItem();
         // Input stays open and will focus automatically after save
-      } else {
+      } else if (!isAddingNew) {
         // Input not open yet, open it now
         setIsAddingNew(true);
         setTimeout(() => {
           inputRef.current?.focus();
         }, 0);
+      } else {
+        // Input is open but empty, just focus it
+        inputRef.current?.focus();
       }
     };
 
@@ -3162,7 +3169,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         value={newItemText}
                         onChange={(e) => setNewItemText(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        onBlur={handleAddNewItem}
                         placeholder={`Type your ${colorScheme.label.toLowerCase()}...`}
                         className="text-sm"
                         data-testid={`input-new-checkpoint-inline-${checklistType}`}
