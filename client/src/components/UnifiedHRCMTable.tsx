@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -2710,10 +2711,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     checklistType: string;
     disabled?: boolean;
   }) => {
-    const [showAddDialog, setShowAddDialog] = useState(false);
-    const [newCheckpointText, setNewCheckpointText] = useState('');
-    const [showEditCheckpointDialog, setShowEditCheckpointDialog] = useState(false);
-    const [editCheckpointData, setEditCheckpointData] = useState<{ itemId: string; text: string; category: string } | null>(null);
+    // 🔥 NEW: Single master dialog for all operations
+    const [showMasterDialog, setShowMasterDialog] = useState(false);
+    const [newItemText, setNewItemText] = useState('');
+    const [isAddingNew, setIsAddingNew] = useState(false);
+    const [editingItemId, setEditingItemId] = useState<string | null>(null);
+    const [editingText, setEditingText] = useState('');
     const visibleItems = items.slice(0, 1);
     const hiddenCount = items.length - 1;
     const hasMoreItems = items.length > 1;
@@ -2825,154 +2828,112 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     };
     const buttonLabel = getButtonLabel();
 
-    const handleAddCheckpointClick = () => {
-      setNewCheckpointText('');
-      setShowAddDialog(true);
+    // 🔥 NEW: Simplified handlers for master dialog
+    const openMasterDialog = () => {
+      setShowMasterDialog(true);
+      setIsAddingNew(false);
+      setEditingItemId(null);
+      setNewItemText('');
     };
 
-    const handleSaveNewCheckpoint = () => {
-      if (newCheckpointText.trim()) {
-        onAddCheckpoint(newCheckpointText.trim());
-        setShowAddDialog(false);
-        setNewCheckpointText('');
+    const handleAddNewItem = () => {
+      if (newItemText.trim()) {
+        onAddCheckpoint(newItemText.trim());
+        setNewItemText('');
+        setIsAddingNew(false); // Keep dialog open for more additions
       }
     };
-    
-    // Handle dialog close with auto-save (click-outside-to-save)
-    const handleDialogClose = (open: boolean) => {
-      if (!open) {
-        // Dialog is closing - save if there's text
-        if (newCheckpointText.trim()) {
-          onAddCheckpoint(newCheckpointText.trim());
-          setNewCheckpointText('');
-        }
+
+    const handleStartEdit = (itemId: string, text: string) => {
+      setEditingItemId(itemId);
+      setEditingText(text);
+    };
+
+    const handleSaveEdit = (itemId: string) => {
+      if (editingText.trim()) {
+        onUpdateText(itemId, editingText.trim());
       }
-      setShowAddDialog(open);
+      setEditingItemId(null);
+      setEditingText('');
     };
-    
-    // Open edit checkpoint dialog
-    const handleOpenEditCheckpointDialog = (itemId: string, text: string) => {
-      setEditCheckpointData({ itemId, text, category });
-      setShowEditCheckpointDialog(true);
-    };
-    
-    // Save edited checkpoint
-    const handleSaveEditedCheckpoint = () => {
-      if (editCheckpointData && editCheckpointData.text.trim()) {
-        onUpdateText(editCheckpointData.itemId, editCheckpointData.text.trim());
-        setShowEditCheckpointDialog(false);
-        setEditCheckpointData(null);
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleAddNewItem();
+      }
+      if (e.key === 'Escape') {
+        setIsAddingNew(false);
+        setNewItemText('');
       }
     };
-    
-    // Handle edit checkpoint dialog close with auto-save (click-outside-to-save)
-    const handleEditCheckpointDialogClose = (open: boolean) => {
-      if (!open) {
-        // Dialog is closing - save if text changed
-        if (editCheckpointData && editCheckpointData.text.trim()) {
-          onUpdateText(editCheckpointData.itemId, editCheckpointData.text.trim());
-          setEditCheckpointData(null);
-        }
+
+    const handleEditKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, itemId: string) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSaveEdit(itemId);
       }
-      setShowEditCheckpointDialog(open);
+      if (e.key === 'Escape') {
+        setEditingItemId(null);
+        setEditingText('');
+      }
     };
     
     return (
       <>
-        <HoverCard openDelay={200}>
-          <HoverCardTrigger asChild>
-            <div className="space-y-1 cursor-pointer max-w-full max-h-full overflow-hidden">
-              {/* Compact View - Fixed Height, No Inline Editing (Exactly like Platinum Standards) */}
-              {visibleItems.map((item) => (
-                <div key={item.id} className="flex items-center gap-2 min-w-0">
-                  <Checkbox
-                    checked={item.checked}
-                    onCheckedChange={() => !disabled && onToggle(item.id)}
-                    disabled={disabled}
-                    className="h-3 w-3 shrink-0"
-                    data-testid={`checkbox-${checklistType}-${category.toLowerCase()}-${item.id}`}
-                  />
-                  <span className="text-xs line-clamp-1 break-all min-w-0">
-                    {item.text}
-                  </span>
-                </div>
-              ))}
-              
-              {/* Show "X more items" if more than 2 */}
-              {hasMoreItems && (
-                <div className="text-xs text-muted-foreground italic pl-5">
-                  + {hiddenCount} more item{hiddenCount > 1 ? 's' : ''}...
-                </div>
-              )}
-              
-              {/* Add button when items exist */}
-              {items.length > 0 && !disabled && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={handleAddCheckpointClick}
-                  className="h-6 w-full text-xs text-muted-foreground hover:text-foreground gap-1 mt-1"
-                  data-testid={`button-add-checkpoint-inline-${checklistType}-${category.toLowerCase()}`}
-                >
-                  <Plus className="w-3 h-3" />
-                  Add {buttonLabel}
-                </Button>
-              )}
+        {/* 🔥 NEW: Clickable preview that opens master dialog */}
+        <div 
+          onClick={!disabled ? openMasterDialog : undefined}
+          className={`space-y-1 max-w-full max-h-full overflow-hidden ${!disabled ? 'cursor-pointer' : 'cursor-not-allowed'}`}
+        >
+          {/* Compact View - Shows only first item */}
+          {visibleItems.map((item) => (
+            <div key={item.id} className="flex items-center gap-2 min-w-0">
+              <Checkbox
+                checked={item.checked}
+                onCheckedChange={() => !disabled && onToggle(item.id)}
+                disabled={disabled}
+                className="h-3 w-3 shrink-0"
+                onClick={(e) => e.stopPropagation()}
+                data-testid={`checkbox-${checklistType}-${category.toLowerCase()}-${item.id}`}
+              />
+              <span className="text-xs line-clamp-1 break-all min-w-0">
+                {item.text}
+              </span>
             </div>
-          </HoverCardTrigger>
+          ))}
           
-          <HoverCardContent 
-            side="left" 
-            align="start" 
-            className={`w-96 max-h-[400px] overflow-y-auto bg-gradient-to-br ${colorScheme.gradient} border-2 ${colorScheme.border} z-[100]`}
-          >
-            <div className="space-y-2">
-              <h4 className="font-semibold text-sm mb-3">
-                {category} - {colorScheme.label} ({items.length} items)
-              </h4>
-              {items.map((item) => (
-                <div key={item.id} className="flex items-start gap-2 py-1 group/hover-item">
-                  <Checkbox
-                    checked={item.checked}
-                    onCheckedChange={() => !disabled && onToggle(item.id)}
-                    disabled={disabled}
-                    className="h-4 w-4 mt-0.5 shrink-0"
-                    data-testid={`checkbox-hover-${checklistType}-${category.toLowerCase()}-${item.id}`}
-                  />
-                  <span
-                    onClick={() => {
-                      if (!disabled) {
-                        handleOpenEditCheckpointDialog(item.id, item.text);
-                      }
-                    }}
-                    className={`flex-1 text-left text-xs py-0.5 px-1 rounded ${!disabled ? 'cursor-pointer hover:bg-muted/30' : 'cursor-not-allowed'} transition-colors min-h-[20px] break-words`}
-                    data-testid={`text-hover-${checklistType}-${category.toLowerCase()}-${item.id}`}
-                  >
-                    {item.text || <span className="text-muted-foreground italic">Click to edit...</span>}
-                  </span>
-                  {!disabled && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => onDeleteCheckpoint(item.id)}
-                      className="h-5 w-5 p-0 shrink-0"
-                      data-testid={`button-delete-hover-${checklistType}-${category.toLowerCase()}-${item.id}`}
-                    >
-                      <Trash2 className="w-3 h-3 text-destructive" />
-                    </Button>
-                  )}
-                </div>
-              ))}
+          {/* Show "X more items" if more than 1 */}
+          {hasMoreItems && (
+            <div className="text-xs text-muted-foreground italic pl-5">
+              + {hiddenCount} more item{hiddenCount > 1 ? 's' : ''}...
             </div>
-          </HoverCardContent>
-        </HoverCard>
+          )}
+          
+          {/* Add button when items exist */}
+          {items.length > 0 && !disabled && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={(e) => {
+                e.stopPropagation();
+                openMasterDialog();
+              }}
+              className="h-6 w-full text-xs text-muted-foreground hover:text-foreground gap-1 mt-1"
+              data-testid={`button-add-checkpoint-inline-${checklistType}-${category.toLowerCase()}`}
+            >
+              <Plus className="w-3 h-3" />
+              Add {buttonLabel}
+            </Button>
+          )}
+        </div>
         
-        {/* Add Button - Outside HoverCard to prevent layout shift */}
+        {/* Add Button - When no items exist */}
         {!disabled && items.length === 0 && (
           <Button
             size="sm"
             variant="ghost"
-            onClick={handleAddCheckpointClick}
+            onClick={openMasterDialog}
             className="h-6 w-full text-xs text-muted-foreground hover:text-foreground gap-1"
             data-testid={`button-add-checkpoint-${checklistType}-${category.toLowerCase()}`}
           >
@@ -2981,110 +2942,128 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           </Button>
         )}
 
-        {/* Add Checkpoint Dialog */}
-        <Dialog open={showAddDialog} onOpenChange={handleDialogClose}>
-          <DialogContent className="max-w-md">
+        {/* 🔥 NEW: Master Dialog - All-in-One Interface */}
+        <Dialog open={showMasterDialog} onOpenChange={setShowMasterDialog}>
+          <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
             <DialogHeader>
-              <DialogTitle className={`text-base font-semibold ${colorScheme.text}`}>
-                Add New {colorScheme.label} Checkpoint
+              <DialogTitle className={`text-lg font-semibold ${colorScheme.text}`}>
+                {category} - {colorScheme.label} ({items.length} {items.length === 1 ? 'item' : 'items'})
               </DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className={`p-4 rounded-lg border-2 ${colorScheme.border} bg-gradient-to-br ${colorScheme.gradient} ${colorScheme.glow}`}>
-                <div className="flex items-start gap-2 mb-3">
-                  <div className={`w-1 h-full ${colorScheme.bar} rounded-full`}></div>
-                  <p className={`text-sm font-medium ${colorScheme.text}`}>{category} - {colorScheme.label}</p>
+            
+            {/* Scrollable list of all items */}
+            <ScrollArea className="flex-1 pr-4">
+              <div className="space-y-2 py-2">
+                {items.map((item, index) => (
+                  <div key={item.id} className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/30 transition-colors group/item">
+                    {/* Checkbox */}
+                    <Checkbox
+                      checked={item.checked}
+                      onCheckedChange={() => onToggle(item.id)}
+                      className="h-5 w-5 mt-0.5 shrink-0"
+                      data-testid={`checkbox-master-${checklistType}-${item.id}`}
+                    />
+                    
+                    {/* Numbered text */}
+                    <div className="flex-1 min-w-0">
+                      {editingItemId === item.id ? (
+                        <Input
+                          value={editingText}
+                          onChange={(e) => setEditingText(e.target.value)}
+                          onKeyDown={(e) => handleEditKeyDown(e, item.id)}
+                          onBlur={() => handleSaveEdit(item.id)}
+                          className="text-sm"
+                          autoFocus
+                          data-testid={`input-edit-${checklistType}-${item.id}`}
+                        />
+                      ) : (
+                        <p
+                          onClick={() => handleStartEdit(item.id, item.text)}
+                          className="text-sm cursor-pointer hover:bg-muted/30 p-1 rounded break-words"
+                          data-testid={`text-master-${checklistType}-${item.id}`}
+                        >
+                          <span className="font-semibold text-muted-foreground mr-2">{index + 1}.</span>
+                          {item.text}
+                        </p>
+                      )}
+                    </div>
+                    
+                    {/* Delete button */}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => onDeleteCheckpoint(item.id)}
+                      className="h-8 w-8 p-0 shrink-0"
+                      data-testid={`button-delete-master-${checklistType}-${item.id}`}
+                    >
+                      <Trash2 className="w-4 h-4 text-destructive" />
+                    </Button>
+                  </div>
+                ))}
+                
+                {items.length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-8">
+                    No {colorScheme.label.toLowerCase()} checkpoints yet. Add your first one below!
+                  </p>
+                )}
+              </div>
+            </ScrollArea>
+            
+            {/* Add new item section at bottom */}
+            <div className="pt-4 border-t space-y-3">
+              {isAddingNew ? (
+                <div className="flex gap-2">
+                  <Input
+                    value={newItemText}
+                    onChange={(e) => setNewItemText(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder={`Type your ${colorScheme.label.toLowerCase()} and press Enter...`}
+                    className="flex-1 text-sm"
+                    autoFocus
+                    data-testid={`input-new-checkpoint-${checklistType}-${category.toLowerCase()}`}
+                  />
+                  <Button
+                    onClick={handleAddNewItem}
+                    disabled={!newItemText.trim()}
+                    size="sm"
+                    data-testid={`button-save-new-checkpoint-${checklistType}`}
+                  >
+                    Add
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setIsAddingNew(false);
+                      setNewItemText('');
+                    }}
+                    size="sm"
+                    variant="outline"
+                    data-testid={`button-cancel-new-checkpoint-${checklistType}`}
+                  >
+                    Cancel
+                  </Button>
                 </div>
-                <Textarea
-                  value={newCheckpointText}
-                  onChange={(e) => setNewCheckpointText(e.target.value)}
-                  onFocus={(e) => {
-                    const length = e.target.value.length;
-                    e.target.setSelectionRange(length, length);
-                  }}
-                  onKeyDown={(e) => {
-                    // Save on Enter key (without Shift for new line)
-                    if (e.key === 'Enter' && !e.shiftKey && newCheckpointText.trim()) {
-                      e.preventDefault();
-                      handleSaveNewCheckpoint();
-                    }
-                    // Prevent event propagation for all keys to avoid closing dialog
-                    e.stopPropagation();
-                  }}
-                  placeholder={`Enter your ${colorScheme.label.toLowerCase()} checkpoint...`}
-                  className="min-h-[100px] text-sm bg-white dark:bg-gray-950 border-muted"
-                  autoFocus
-                  data-testid={`textarea-new-checkpoint-${checklistType}-${category.toLowerCase()}`}
-                />
-              </div>
-              <div className="flex gap-2 justify-end">
+              ) : (
                 <Button
+                  onClick={() => setIsAddingNew(true)}
                   variant="outline"
-                  onClick={() => setShowAddDialog(false)}
-                  data-testid={`button-cancel-checkpoint-${checklistType}-${category.toLowerCase()}`}
+                  className="w-full gap-2"
+                  data-testid={`button-add-new-checkpoint-${checklistType}-${category.toLowerCase()}`}
                 >
-                  Cancel
+                  <Plus className="w-4 h-4" />
+                  Add New {buttonLabel}
                 </Button>
-                <Button
-                  onClick={handleSaveNewCheckpoint}
-                  disabled={!newCheckpointText.trim()}
-                  className="bg-gradient-to-r from-primary to-accent text-white hover:opacity-90"
-                  data-testid={`button-save-checkpoint-${checklistType}-${category.toLowerCase()}`}
-                >
-                  Add {buttonLabel}
-                </Button>
-              </div>
+              )}
             </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* Edit Checkpoint Dialog */}
-        <Dialog open={showEditCheckpointDialog} onOpenChange={handleEditCheckpointDialogClose}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle className={`text-base font-semibold ${colorScheme.text}`}>
-                Edit {colorScheme.label} Checkpoint
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className={`p-4 rounded-lg border-2 ${colorScheme.border} bg-gradient-to-br ${colorScheme.gradient} ${colorScheme.glow}`}>
-                <div className="flex items-start gap-2 mb-3">
-                  <div className={`w-1 h-full ${colorScheme.bar} rounded-full`}></div>
-                  <p className={`text-sm font-medium ${colorScheme.text}`}>{category} - {colorScheme.label}</p>
-                </div>
-                <Textarea
-                  value={editCheckpointData?.text || ''}
-                  onChange={(e) => setEditCheckpointData(prev => prev ? { ...prev, text: e.target.value } : null)}
-                  onFocus={(e) => {
-                    const length = e.target.value.length;
-                    e.target.setSelectionRange(length, length);
-                  }}
-                  placeholder="Edit your checkpoint..."
-                  className="min-h-[100px] text-sm bg-white dark:bg-gray-950 border-muted"
-                  autoFocus
-                  data-testid={`textarea-edit-checkpoint-${checklistType}`}
-                />
-              </div>
-              <div className="flex gap-2 justify-end">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setShowEditCheckpointDialog(false);
-                    setEditCheckpointData(null);
-                  }}
-                  data-testid="button-cancel-edit-checkpoint"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleSaveEditedCheckpoint}
-                  disabled={!editCheckpointData?.text.trim()}
-                  className="bg-gradient-to-r from-primary to-accent text-white hover:opacity-90"
-                  data-testid="button-save-edit-checkpoint"
-                >
-                  Save Changes
-                </Button>
-              </div>
+            
+            {/* Close button */}
+            <div className="flex justify-end pt-2">
+              <Button
+                onClick={() => setShowMasterDialog(false)}
+                variant="default"
+                data-testid={`button-close-master-dialog-${checklistType}`}
+              >
+                Close
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
