@@ -2714,8 +2714,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     // 🔥 NEW: Single master dialog for all operations
     const [showMasterDialog, setShowMasterDialog] = useState(false);
     const [newItemText, setNewItemText] = useState('');
+    const [isAddingNew, setIsAddingNew] = useState(false);
     const [editingItemId, setEditingItemId] = useState<string | null>(null);
     const [editingText, setEditingText] = useState('');
+    const inputRef = useRef<HTMLInputElement>(null);
     const visibleItems = items.slice(0, 1);
     const hiddenCount = items.length - 1;
     const hasMoreItems = items.length > 1;
@@ -2831,6 +2833,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     const openMasterDialog = () => {
       setShowMasterDialog(true);
       setEditingItemId(null);
+      setIsAddingNew(false);
       setNewItemText('');
     };
 
@@ -2838,7 +2841,18 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       if (newItemText.trim()) {
         onAddCheckpoint(newItemText.trim());
         setNewItemText(''); // Clear input, stay ready for next
+        // Keep isAddingNew = true so input stays visible
+        setTimeout(() => {
+          inputRef.current?.focus();
+        }, 0);
       }
+    };
+
+    const handleStartAddingNew = () => {
+      setIsAddingNew(true);
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 0);
     };
 
     const handleStartEdit = (itemId: string, text: string) => {
@@ -2935,7 +2949,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           </Button>
         )}
 
-        {/* 🔥 NEW: Master Dialog - All-in-One Interface */}
+        {/* 🔥 NEW: Master Dialog - Inline Input Design */}
         <Dialog open={showMasterDialog} onOpenChange={setShowMasterDialog}>
           <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
             <DialogHeader>
@@ -2944,7 +2958,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               </DialogTitle>
             </DialogHeader>
             
-            {/* Scrollable list of all items */}
+            {/* Scrollable list of all items with INLINE input field */}
             <ScrollArea className="flex-1 pr-4">
               <div className="space-y-2 py-2">
                 {items.map((item, index) => (
@@ -2994,40 +3008,50 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   </div>
                 ))}
                 
-                {items.length === 0 && (
+                {items.length === 0 && !isAddingNew && (
                   <p className="text-sm text-muted-foreground text-center py-8">
-                    No {colorScheme.label.toLowerCase()} checkpoints yet. Add your first one below!
+                    No {colorScheme.label.toLowerCase()} checkpoints yet. Click + to add your first one!
                   </p>
+                )}
+                
+                {/* Inline input field - appears in list */}
+                {isAddingNew && (
+                  <div className="flex items-start gap-3 p-2 rounded-lg bg-muted/20">
+                    <Checkbox
+                      checked={false}
+                      disabled
+                      className="h-5 w-5 mt-0.5 shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <Input
+                        ref={inputRef}
+                        value={newItemText}
+                        onChange={(e) => setNewItemText(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder={`Type your ${colorScheme.label.toLowerCase()}...`}
+                        className="text-sm"
+                        data-testid={`input-new-checkpoint-inline-${checklistType}`}
+                      />
+                    </div>
+                  </div>
+                )}
+                
+                {/* + Icon to start adding - shows at bottom of list */}
+                {!isAddingNew && (
+                  <button
+                    onClick={handleStartAddingNew}
+                    className="flex items-center gap-2 p-2 w-full text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/20"
+                    data-testid={`button-start-add-checkpoint-${checklistType}`}
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span className="text-sm">Add {buttonLabel}</span>
+                  </button>
                 )}
               </div>
             </ScrollArea>
             
-            {/* Persistent add new item section at bottom */}
-            <div className="pt-4 border-t space-y-3">
-              <div className="flex gap-2">
-                <Input
-                  value={newItemText}
-                  onChange={(e) => setNewItemText(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder={`Type your ${colorScheme.label.toLowerCase()}...`}
-                  className="flex-1 text-sm"
-                  data-testid={`input-new-checkpoint-${checklistType}-${category.toLowerCase()}`}
-                />
-                <Button
-                  onClick={handleAddNewItem}
-                  disabled={!newItemText.trim()}
-                  size="sm"
-                  className="gap-2 shrink-0"
-                  data-testid={`button-add-new-checkpoint-${checklistType}`}
-                >
-                  <Plus className="w-4 h-4" />
-                  Add {buttonLabel}
-                </Button>
-              </div>
-            </div>
-            
             {/* Close button */}
-            <div className="flex justify-end pt-2">
+            <div className="flex justify-end pt-4 border-t">
               <Button
                 onClick={() => setShowMasterDialog(false)}
                 variant="default"
