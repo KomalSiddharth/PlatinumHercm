@@ -3694,10 +3694,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       <div className="border-2 border-coral-red/70 dark:border-coral-red/50 rounded-lg overflow-x-auto shadow-lg">
         <div className="px-2 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-b-2 border-coral-red/80 dark:border-coral-red/60 bg-coral-red">
           <div className="flex items-center justify-between">
-            {/* Left Side: Weekly Performance Dropdown */}
-            <div className="flex-1 flex items-center">
-              <WeeklyPerformanceDropdown />
-            </div>
+            <div className="flex-1"></div>
             {/* Centered: Clickable Date with Calendar Popup */}
             <Popover open={calendarPopoverOpen} onOpenChange={setCalendarPopoverOpen}>
               <PopoverTrigger asChild>
@@ -3912,7 +3909,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       <div className="border-2 border-emerald-green/70 dark:border-emerald-green/50 rounded-lg overflow-x-auto shadow-lg">
         <div className="bg-emerald-green dark:bg-emerald-green/90 py-3 border-b-2 border-emerald-green/80 dark:border-emerald-green/60 px-4">
           <div className="flex items-center justify-between">
-            <div className="flex-1"></div>
+            {/* Left Side: Weekly Performance Dropdown */}
+            <div className="flex-1 flex items-center">
+              <WeeklyPerformanceDropdown />
+            </div>
             {/* Clickable Date with Calendar Popup for Next Week */}
             <Popover open={nextWeekCalendarPopoverOpen} onOpenChange={setNextWeekCalendarPopoverOpen}>
               <PopoverTrigger asChild>
