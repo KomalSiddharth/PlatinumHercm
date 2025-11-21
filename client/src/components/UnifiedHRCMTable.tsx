@@ -3000,7 +3000,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             </DialogHeader>
             
             {/* Scrollable list of all items with INLINE input field */}
-            <ScrollArea className="flex-1 pr-4 min-h-0">
+            <ScrollArea className="flex-1 pr-4 min-h-0 max-h-[60vh] overflow-y-auto">
               <div className="space-y-2 py-2">
                 {items.map((item, index) => (
                   <div key={item.id} className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/30 transition-colors group/item">
