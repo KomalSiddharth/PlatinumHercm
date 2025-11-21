@@ -2868,8 +2868,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           {hasData ? (
             weeklyScores.map((week: any) => {
               const isCurrent = currentWeek && week.weekNumber === currentWeek.weekNumber && week.year === currentWeek.year;
-              const colorIndicator = getScoreColor(week.percentage);
-              const label = getScoreLabel(week.percentage);
               
               return (
                 <SelectItem 
@@ -2888,7 +2886,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     <span className="text-xs text-muted-foreground">
                       ({week.percentage}%)
                     </span>
-                    <span title={label}>{colorIndicator}</span>
                   </div>
                 </SelectItem>
               );
