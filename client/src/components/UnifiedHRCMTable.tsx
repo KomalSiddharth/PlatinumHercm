@@ -1950,12 +1950,54 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       
       return result;
     },
-    onSuccess: async () => {
+    onSuccess: async (data, variables) => {
       setSaveStatus('saved');
       setRetryCount(0); // Reset retry count on success
       
       // Show "saved" status briefly
       setTimeout(() => setSaveStatus('idle'), 2000);
+      
+      // ⚡ INSTANT UPDATE: Optimistically update weekly scores dropdown
+      const currentWeeklyScores = queryClient.getQueryData(['/api/hercm/weekly-scores']) as any[];
+      if (currentWeeklyScores && variables.beliefs) {
+        // Calculate new checkpoint stats from updated beliefs
+        let totalCheckpoints = 0;
+        let checkedCheckpoints = 0;
+        
+        variables.beliefs.forEach((belief: any) => {
+          const checklists = [
+            belief.problemsChecklist || [],
+            belief.feelingsCurrentChecklist || [],
+            belief.beliefsCurrentChecklist || [],
+            belief.actionsCurrentChecklist || []
+          ];
+          
+          checklists.forEach(checklist => {
+            if (Array.isArray(checklist)) {
+              totalCheckpoints += checklist.length;
+              checkedCheckpoints += checklist.filter((item: any) => item.checked).length;
+            }
+          });
+        });
+        
+        // Update the current week's checkpoint data instantly
+        const updatedScores = currentWeeklyScores.map((week: any) => {
+          if (week.weekNumber === weekNumber && week.year === new Date().getFullYear()) {
+            return {
+              ...week,
+              checkpoints: {
+                total: totalCheckpoints,
+                checked: checkedCheckpoints
+              }
+            };
+          }
+          return week;
+        });
+        
+        // Set updated data instantly (no waiting for API)
+        queryClient.setQueryData(['/api/hercm/weekly-scores'], updatedScores);
+        console.log('[SAVE] ⚡ Weekly scores updated instantly (optimistic):', { totalCheckpoints, checkedCheckpoints });
+      }
       
       // Only invalidate queries - let React Query handle background refetch
       // This prevents flickering by not forcing immediate re-renders
@@ -1968,7 +2010,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           return typeof key === 'string' && key.includes('/api/analytics/progress');
         }
       });
-      // 📊 Invalidate weekly scores dropdown data when checkpoints change
+      // 📊 Invalidate weekly scores for background sync (after optimistic update)
       await queryClient.invalidateQueries({ queryKey: ['/api/hercm/weekly-scores'] });
       
       console.log('[SAVE] ✅ Data saved successfully and cache invalidated (including weekly scores)');
