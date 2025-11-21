@@ -1423,78 +1423,30 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     });
   };
 
-  // Helper function to calculate checkpoint counts
-  const getCheckpointCounts = (category: string, type: 'result' | 'feelings' | 'beliefs' | 'actions') => {
-    const belief = beliefs.find(b => b.category === category);
-    if (!belief) return { checked: 0, total: 0 };
-    
-    let checklist: ChecklistItem[] = [];
-    if (type === 'result') checklist = belief.resultChecklist || [];
-    else if (type === 'feelings') checklist = belief.feelingsChecklist || [];
-    else if (type === 'beliefs') checklist = belief.beliefsChecklist || [];
-    else if (type === 'actions') checklist = belief.actionsChecklist || [];
-    
-    const checked = checklist.filter(item => item.checked).length;
-    return { checked, total: checklist.length };
-  };
-
   // Handle Next Week Target checkbox toggle
   const handleCheckpointToggle = (category: string, type: 'result' | 'feelings' | 'beliefs' | 'actions', itemId: string) => {
     setBeliefs(prev => {
       const updated = prev.map(belief => {
         if (belief.category === category) {
           let updatedBelief = { ...belief };
-          let wasChecked = false;
           
           // Update the appropriate checklist based on type
           if (type === 'result' && belief.resultChecklist) {
-            updatedBelief.resultChecklist = belief.resultChecklist.map(item => {
-              if (item.id === itemId) {
-                wasChecked = item.checked;
-                return { ...item, checked: !item.checked };
-              }
-              return item;
-            });
+            updatedBelief.resultChecklist = belief.resultChecklist.map(item =>
+              item.id === itemId ? { ...item, checked: !item.checked } : item
+            );
           } else if (type === 'feelings' && belief.feelingsChecklist) {
-            updatedBelief.feelingsChecklist = belief.feelingsChecklist.map(item => {
-              if (item.id === itemId) {
-                wasChecked = item.checked;
-                return { ...item, checked: !item.checked };
-              }
-              return item;
-            });
+            updatedBelief.feelingsChecklist = belief.feelingsChecklist.map(item =>
+              item.id === itemId ? { ...item, checked: !item.checked } : item
+            );
           } else if (type === 'beliefs' && belief.beliefsChecklist) {
-            updatedBelief.beliefsChecklist = belief.beliefsChecklist.map(item => {
-              if (item.id === itemId) {
-                wasChecked = item.checked;
-                return { ...item, checked: !item.checked };
-              }
-              return item;
-            });
+            updatedBelief.beliefsChecklist = belief.beliefsChecklist.map(item =>
+              item.id === itemId ? { ...item, checked: !item.checked } : item
+            );
           } else if (type === 'actions' && belief.actionsChecklist) {
-            updatedBelief.actionsChecklist = belief.actionsChecklist.map(item => {
-              if (item.id === itemId) {
-                wasChecked = item.checked;
-                return { ...item, checked: !item.checked };
-              }
-              return item;
-            });
-          }
-          
-          // Show congratulatory message when checking (not unchecking)
-          if (!wasChecked) {
-            const checklist = type === 'result' ? updatedBelief.resultChecklist || [] :
-                            type === 'feelings' ? updatedBelief.feelingsChecklist || [] :
-                            type === 'beliefs' ? updatedBelief.beliefsChecklist || [] :
-                            updatedBelief.actionsChecklist || [];
-            const checked = checklist.filter(item => item.checked).length;
-            const total = checklist.length;
-            const remaining = total - checked;
-            
-            toast({
-              title: '🎉 Congratulation!',
-              description: `One more milestone completed. Keep going, ${remaining} more to get all done!`,
-            });
+            updatedBelief.actionsChecklist = belief.actionsChecklist.map(item =>
+              item.id === itemId ? { ...item, checked: !item.checked } : item
+            );
           }
           
           return updatedBelief;
@@ -3823,38 +3775,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             <TableRow className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30">
               <TableHead className="text-xs sm:text-sm font-bold border-r w-[100px] px-1.5 sm:px-2 py-1.5 sm:py-2">HRCM Standards</TableHead>
               <TableHead className="text-xs sm:text-sm w-[80px] bg-blue-100 dark:bg-blue-900/40 font-semibold border border-soft-gray dark:border-soft-gray/30 px-1.5 sm:px-2 py-1.5 sm:py-2">Rating</TableHead>
-              <TableHead className="text-xs sm:text-sm w-[150px] bg-blue-100 dark:bg-blue-900/40 font-semibold border border-soft-gray dark:border-soft-gray/30 px-1.5 sm:px-2 py-1.5 sm:py-2">
-                <div className="flex flex-col gap-0.5">
-                  <span>Results</span>
-                  <span className="text-[10px] font-normal text-coral-red">
-                    {beliefs.reduce((total, b) => total + (b.resultChecklist?.filter(i => i.checked).length || 0), 0)}/{beliefs.reduce((total, b) => total + (b.resultChecklist?.length || 0), 0)}
-                  </span>
-                </div>
-              </TableHead>
-              <TableHead className="text-xs sm:text-sm w-[150px] bg-blue-100 dark:bg-blue-900/40 font-semibold border border-soft-gray dark:border-soft-gray/30 px-1.5 sm:px-2 py-1.5 sm:py-2">
-                <div className="flex flex-col gap-0.5">
-                  <span>Feelings</span>
-                  <span className="text-[10px] font-normal text-emerald-green">
-                    {beliefs.reduce((total, b) => total + (b.feelingsChecklist?.filter(i => i.checked).length || 0), 0)}/{beliefs.reduce((total, b) => total + (b.feelingsChecklist?.length || 0), 0)}
-                  </span>
-                </div>
-              </TableHead>
-              <TableHead className="text-xs sm:text-sm w-[150px] bg-blue-100 dark:bg-blue-900/40 font-semibold border border-soft-gray dark:border-soft-gray/30 px-1.5 sm:px-2 py-1.5 sm:py-2">
-                <div className="flex flex-col gap-0.5">
-                  <span>Beliefs/Reasons</span>
-                  <span className="text-[10px] font-normal text-golden-yellow">
-                    {beliefs.reduce((total, b) => total + (b.beliefsChecklist?.filter(i => i.checked).length || 0), 0)}/{beliefs.reduce((total, b) => total + (b.beliefsChecklist?.length || 0), 0)}
-                  </span>
-                </div>
-              </TableHead>
-              <TableHead className="text-xs sm:text-sm w-[150px] bg-blue-100 dark:bg-blue-900/40 font-semibold border-r border border-soft-gray dark:border-soft-gray/30 px-1.5 sm:px-2 py-1.5 sm:py-2">
-                <div className="flex flex-col gap-0.5">
-                  <span>Actions</span>
-                  <span className="text-[10px] font-normal text-soft-lavender">
-                    {beliefs.reduce((total, b) => total + (b.actionsChecklist?.filter(i => i.checked).length || 0), 0)}/{beliefs.reduce((total, b) => total + (b.actionsChecklist?.length || 0), 0)}
-                  </span>
-                </div>
-              </TableHead>
+              <TableHead className="text-xs sm:text-sm w-[150px] bg-blue-100 dark:bg-blue-900/40 font-semibold border border-soft-gray dark:border-soft-gray/30 px-1.5 sm:px-2 py-1.5 sm:py-2">Results</TableHead>
+              <TableHead className="text-xs sm:text-sm w-[150px] bg-blue-100 dark:bg-blue-900/40 font-semibold border border-soft-gray dark:border-soft-gray/30 px-1.5 sm:px-2 py-1.5 sm:py-2">Feelings</TableHead>
+              <TableHead className="text-xs sm:text-sm w-[150px] bg-blue-100 dark:bg-blue-900/40 font-semibold border border-soft-gray dark:border-soft-gray/30 px-1.5 sm:px-2 py-1.5 sm:py-2">Beliefs/Reasons</TableHead>
+              <TableHead className="text-xs sm:text-sm w-[150px] bg-blue-100 dark:bg-blue-900/40 font-semibold border-r border border-soft-gray dark:border-soft-gray/30 px-1.5 sm:px-2 py-1.5 sm:py-2">Actions</TableHead>
               
               <TableHead className="text-xs sm:text-sm w-[150px] bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/40 dark:to-blue-900/40 font-semibold px-1.5 sm:px-2 py-1.5 sm:py-2">
                 <div className="flex items-center gap-1">
