@@ -1550,6 +1550,20 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
   // Handle Current Week checkbox toggle
   const handleCurrentWeekCheckpointToggle = (category: string, type: 'problems' | 'currentFeelings' | 'currentBeliefs' | 'currentActions', itemId: string) => {
+    // Find the current item to check if it's being checked or unchecked
+    const currentBelief = beliefs.find(b => b.category === category);
+    let isBeingChecked = false;
+    
+    if (currentBelief) {
+      const currentChecklist = type === 'problems' ? currentBelief.problemsChecklist :
+                               type === 'currentFeelings' ? currentBelief.feelingsCurrentChecklist :
+                               type === 'currentBeliefs' ? currentBelief.beliefsCurrentChecklist :
+                               currentBelief.actionsCurrentChecklist;
+      
+      const item = currentChecklist?.find(i => i.id === itemId);
+      isBeingChecked = item ? !item.checked : false;
+    }
+    
     setBeliefs(prev => {
       const updated = prev.map(belief => {
         if (belief.category === category) {
@@ -1578,6 +1592,40 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         }
         return belief;
       });
+      
+      // Calculate total and remaining checkpoints after update
+      let totalCheckpoints = 0;
+      let checkedCheckpoints = 0;
+      
+      updated.forEach(belief => {
+        // Count all checkpoints from all 4 columns
+        [belief.problemsChecklist, belief.feelingsCurrentChecklist, belief.beliefsCurrentChecklist, belief.actionsCurrentChecklist].forEach(checklist => {
+          if (checklist) {
+            totalCheckpoints += checklist.length;
+            checkedCheckpoints += checklist.filter(item => item.checked).length;
+          }
+        });
+      });
+      
+      const remainingCheckpoints = totalCheckpoints - checkedCheckpoints;
+      
+      // Show motivational toast notification
+      if (isBeingChecked) {
+        // Checkbox was checked
+        if (remainingCheckpoints === 0) {
+          toast({
+            title: "🎉 All Checkpoints Completed!",
+            description: "Congratulations! You've achieved all your milestones. Keep up the excellent work!",
+            duration: 4000,
+          });
+        } else {
+          toast({
+            title: "✅ Milestone Achieved!",
+            description: `Congratulations! One more milestone achieved, keep going! ${remainingCheckpoints} ${remainingCheckpoints === 1 ? 'checkpoint' : 'checkpoints'} to go to complete this.`,
+            duration: 4000,
+          });
+        }
+      }
       
       // Auto-save changes to database immediately
       saveWeekMutation.mutate({
