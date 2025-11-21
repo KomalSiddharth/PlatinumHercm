@@ -3079,13 +3079,17 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
     const handleAddNewItem = () => {
       if (newItemText.trim()) {
-        onAddCheckpoint(newItemText.trim());
-        setNewItemText(''); // Clear input, stay ready for next
-        // Explicitly keep isAddingNew = true so input stays visible
-        setIsAddingNew(true);
-        setTimeout(() => {
-          inputRef.current?.focus();
-        }, 0);
+        if (editingItemId) {
+          // Editing existing item
+          onUpdateText(editingItemId, newItemText.trim());
+          setEditingItemId(null);
+        } else {
+          // Adding new item
+          onAddCheckpoint(newItemText.trim());
+        }
+        // Close the add dialog
+        setNewItemText('');
+        setIsAddingNew(false);
       }
     };
 
@@ -3191,19 +3195,63 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           </Button>
         )}
 
-        {/* 🔥 NEW: Clean Dialog - Assignment Style */}
+        {/* Add/Edit Item Dialog - Separate popup like Assignment column */}
         <Dialog 
-          open={showMasterDialog} 
+          open={isAddingNew} 
           onOpenChange={(open) => {
-            setShowMasterDialog(open);
             if (!open) {
-              // Cleanup when dialog closes
               setIsAddingNew(false);
               setNewItemText('');
               setEditingItemId(null);
-              setEditingText('');
             }
           }}
+        >
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-base font-semibold">
+                {editingItemId ? `Edit ${buttonLabel}` : `Add ${buttonLabel}`}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className={`p-4 rounded-lg border-2 ${colorScheme.bg} ${colorScheme.border}`}>
+                <Textarea
+                  value={newItemText}
+                  onChange={(e) => setNewItemText(e.target.value)}
+                  placeholder={`Enter your ${buttonLabel.toLowerCase()}...`}
+                  className="min-h-[100px] text-sm bg-white dark:bg-gray-950 border-muted"
+                  autoFocus
+                  data-testid={`textarea-new-checkpoint-${checklistType}`}
+                />
+              </div>
+              <div className="flex gap-2 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsAddingNew(false);
+                    setNewItemText('');
+                    setEditingItemId(null);
+                  }}
+                  data-testid={`button-cancel-checkpoint-${checklistType}`}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleAddNewItem}
+                  disabled={!newItemText.trim()}
+                  className={`${colorScheme.bg} text-white hover:opacity-90`}
+                  data-testid={`button-save-checkpoint-${checklistType}`}
+                >
+                  {editingItemId ? `Update ${buttonLabel}` : `Add ${buttonLabel}`}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Main List Dialog - Assignment Style */}
+        <Dialog 
+          open={showMasterDialog} 
+          onOpenChange={setShowMasterDialog}
         >
           <DialogContent className="max-w-lg max-h-[700px] overflow-y-auto">
             <DialogHeader>
@@ -3216,13 +3264,15 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             </DialogHeader>
             
             <div className="space-y-4 py-4">
-              {/* Add New Button - AT THE TOP */}
+              {/* Add Button - Opens separate dialog */}
               {!disabled && (
                 <Button
-                  type="button"
                   size="sm"
                   variant="outline"
-                  onClick={handleStartAddingNew}
+                  onClick={() => {
+                    setNewItemText('');
+                    setIsAddingNew(true);
+                  }}
                   className={`w-full h-9 text-sm border-dashed ${colorScheme.border} ${colorScheme.text} hover:bg-muted/30`}
                   data-testid={`button-add-checkpoint-dialog-${checklistType}`}
                 >
@@ -3231,95 +3281,56 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </Button>
               )}
               
-              {/* Inline input field when adding */}
-              {isAddingNew && (
-                <form 
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleAddNewItem();
-                    return false;
-                  }}
-                  className="flex items-start gap-3 p-3 rounded-lg bg-muted/20 border-2 border-dashed border-primary"
-                >
-                  <Checkbox checked={false} disabled className="h-5 w-5 mt-0.5 shrink-0" />
-                  <Input
-                    ref={inputRef}
-                    value={newItemText}
-                    onChange={(e) => setNewItemText(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder={`Enter ${buttonLabel.toLowerCase()}...`}
-                    className="flex-1 text-sm"
-                    autoFocus
-                    data-testid={`input-new-checkpoint-${checklistType}`}
-                  />
-                  <Button
-                    type="submit"
-                    size="sm"
-                    disabled={!newItemText.trim()}
-                    className="h-8 shrink-0"
-                    data-testid={`button-save-checkpoint-${checklistType}`}
-                  >
-                    Add
-                  </Button>
-                </form>
-              )}
-              
-              {/* List of all items */}
-              <div className="space-y-2">
-                {items.map((item, index) => (
-                  <div key={item.id} className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/30 transition-colors group/item">
-                    {/* Checkbox */}
-                    <Checkbox
-                      checked={item.checked}
-                      onCheckedChange={() => onToggle(item.id)}
-                      className="h-5 w-5 mt-0.5 shrink-0"
-                      data-testid={`checkbox-master-${checklistType}-${item.id}`}
-                    />
-                    
-                    {/* Numbered text */}
-                    <div className="flex-1 min-w-0">
-                      {editingItemId === item.id ? (
-                        <Input
-                          value={editingText}
-                          onChange={(e) => setEditingText(e.target.value)}
-                          onKeyDown={(e) => handleEditKeyDown(e, item.id)}
-                          onBlur={() => handleSaveEdit(item.id)}
-                          className="text-sm"
-                          autoFocus
-                          data-testid={`input-edit-${checklistType}-${item.id}`}
-                        />
-                      ) : (
-                        <p
-                          onClick={() => handleStartEdit(item.id, item.text)}
-                          className="text-sm cursor-pointer hover:bg-muted/30 p-1 rounded break-words"
-                          data-testid={`text-master-${checklistType}-${item.id}`}
-                        >
-                          <span className="font-semibold text-muted-foreground mr-2">{index + 1}.</span>
-                          {item.text}
-                        </p>
-                      )}
-                    </div>
-                    
-                    {/* Delete button */}
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => onDeleteCheckpoint(item.id)}
-                      className="h-8 w-8 p-0 shrink-0"
-                      data-testid={`button-delete-master-${checklistType}-${item.id}`}
-                    >
-                      <Trash2 className="w-4 h-4 text-destructive" />
-                    </Button>
-                  </div>
-                ))}
+              {/* List of items */}
+              {(() => {
+                if (items.length === 0) {
+                  return (
+                    <p className="text-sm text-muted-foreground italic text-center py-4">
+                      No {colorScheme.label.toLowerCase()} yet. Click "+ Add {buttonLabel}" to create your first one!
+                    </p>
+                  );
+                }
                 
-                {items.length === 0 && !isAddingNew && (
-                  <p className="text-sm text-muted-foreground italic text-center py-4">
-                    No {colorScheme.label.toLowerCase()} yet. Click "+ Add {buttonLabel}" to create your first one!
-                  </p>
-                )}
-              </div>
+                return (
+                  <div className="space-y-2">
+                    {items.map((item, index) => (
+                      <div key={item.id} className="flex items-start gap-3 py-2 px-3 rounded-lg hover:bg-muted/30 transition-colors group/item">
+                        <Checkbox
+                          checked={item.checked}
+                          onCheckedChange={() => onToggle(item.id)}
+                          disabled={disabled}
+                          className="h-5 w-5 mt-0.5 shrink-0"
+                          data-testid={`checkbox-dialog-${checklistType}-${item.id}`}
+                        />
+                        <span
+                          className={`text-sm flex-1 ${colorScheme.text} leading-relaxed break-words cursor-pointer hover:underline`}
+                          onClick={() => {
+                            if (!disabled) {
+                              setEditingItemId(item.id);
+                              setEditingText(item.text);
+                              setIsAddingNew(true);
+                            }
+                          }}
+                          data-testid={`text-dialog-${checklistType}-${item.id}`}
+                        >
+                          {item.text}
+                        </span>
+                        {!disabled && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => onDeleteCheckpoint(item.id)}
+                            className="h-6 w-6 p-0 shrink-0"
+                            data-testid={`button-delete-dialog-${checklistType}-${item.id}`}
+                          >
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
           </DialogContent>
         </Dialog>
