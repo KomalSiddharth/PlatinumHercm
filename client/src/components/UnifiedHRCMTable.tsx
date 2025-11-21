@@ -2488,6 +2488,38 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     });
   };
 
+  // 🔥 UPDATE BUTTON: Clear Current Week data
+  const handleClearCurrentWeek = () => {
+    console.log('[UPDATE BTN] 🗑️ Clearing Current Week data...');
+    
+    // Clear all Current Week fields
+    const clearedBeliefs = beliefs.map(belief => ({
+      ...belief,
+      problems: '',
+      currentFeelings: '',
+      currentBelief: '',
+      currentActions: '',
+      problemsChecklist: [],
+      feelingsCurrentChecklist: [],
+      beliefsCurrentChecklist: [],
+      actionsCurrentChecklist: [],
+    }));
+    
+    setBeliefs(clearedBeliefs);
+    
+    // Save cleared data to database
+    saveWeekMutation.mutate({
+      beliefs: clearedBeliefs,
+      weekNumber: weekNumber,
+      dateString: currentDateStr,
+    });
+    
+    toast({
+      title: 'Current Week Cleared',
+      description: 'All Current Week data has been cleared.',
+    });
+  };
+
   // Helper function to sync Current Week checkpoints to Next Week Target (replace mode)
   const syncCurrentToNextWeek = (updatedBeliefs: HRCMBelief[]) => {
     return updatedBeliefs.map(belief => ({
@@ -3429,7 +3461,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       {/* Current Week Table */}
       <div className="border-2 border-coral-red/70 dark:border-coral-red/50 rounded-lg overflow-x-auto shadow-lg">
         <div className="px-2 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-b-2 border-coral-red/80 dark:border-coral-red/60 bg-coral-red">
-          <div className="flex items-center justify-center relative">
+          <div className="flex items-center justify-between">
+            <div className="flex-1"></div>
             {/* Centered: Clickable Date with Calendar Popup */}
             <Popover open={calendarPopoverOpen} onOpenChange={setCalendarPopoverOpen}>
               <PopoverTrigger asChild>
@@ -3470,6 +3503,25 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </div>
               </PopoverContent>
             </Popover>
+            <div className="flex-1 flex justify-end items-center gap-2">
+              {!isAdminView && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleClearCurrentWeek}
+                  disabled={saveWeekMutation.isPending}
+                  data-testid="button-update-current-week"
+                  className="bg-orange-500 border-orange-600 text-white hover:bg-orange-600 hover:border-orange-700 shadow-lg h-8 font-semibold"
+                >
+                  {saveWeekMutation.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="w-4 h-4" />
+                  )}
+                  <span className="ml-1.5">Update</span>
+                </Button>
+              )}
+            </div>
           </div>
         </div>
         <Table>
