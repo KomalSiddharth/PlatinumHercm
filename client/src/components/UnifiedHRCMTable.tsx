@@ -2823,6 +2823,81 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     });
   };
 
+  // 📊 Weekly Performance Dropdown Component
+  const WeeklyPerformanceDropdown = () => {
+    // Fetch weekly scores
+    const { data: weeklyScores, isLoading } = useQuery({
+      queryKey: ['/api/hercm/weekly-scores'],
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    });
+
+    // Get color indicator based on score percentage
+    const getScoreColor = (percentage: number) => {
+      if (percentage >= 85) return '🟢'; // Green - Excellent
+      if (percentage >= 64) return '🟡'; // Yellow - Good
+      if (percentage >= 43) return '🟠'; // Orange - Fair
+      return '🔴'; // Red - Poor
+    };
+
+    // Get score label
+    const getScoreLabel = (percentage: number) => {
+      if (percentage >= 85) return 'Excellent';
+      if (percentage >= 64) return 'Good';
+      if (percentage >= 43) return 'Fair';
+      return 'Poor';
+    };
+
+    if (isLoading || !weeklyScores || weeklyScores.length === 0) {
+      return null; // Don't show anything while loading or if no data
+    }
+
+    // Find current week (week with highest weekNumber)
+    const currentWeek = weeklyScores[0]; // Already sorted by most recent first
+
+    return (
+      <Select>
+        <SelectTrigger 
+          className="w-auto min-w-[240px] h-7 bg-white/95 border-white/60 text-xs font-medium shadow-sm hover:bg-white transition-colors"
+          data-testid="select-weekly-performance"
+          onClick={(e) => e.stopPropagation()} // Prevent calendar popup from opening
+        >
+          <SelectValue 
+            placeholder="View Weekly Performance" 
+          />
+        </SelectTrigger>
+        <SelectContent className="max-h-[300px]">
+          {weeklyScores.map((week: any) => {
+            const isCurrent = week.weekNumber === currentWeek.weekNumber && week.year === currentWeek.year;
+            const colorIndicator = getScoreColor(week.percentage);
+            const label = getScoreLabel(week.percentage);
+            
+            return (
+              <SelectItem 
+                key={`week-${week.year}-${week.weekNumber}`}
+                value={`week-${week.year}-${week.weekNumber}`}
+                data-testid={`option-week-${week.weekNumber}`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold">
+                    Week {week.weekNumber} {isCurrent && '(Current)'}
+                  </span>
+                  <span className="text-muted-foreground">-</span>
+                  <span className="font-medium">
+                    {week.totalScore}/{week.maxScore}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    ({week.percentage}%)
+                  </span>
+                  <span title={label}>{colorIndicator}</span>
+                </div>
+              </SelectItem>
+            );
+          })}
+        </SelectContent>
+      </Select>
+    );
+  };
+
   // Compact Checklist View Component - Matches Platinum Standards Style
   const CompactChecklistView = ({ 
     items, 
@@ -3833,7 +3908,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             {/* Clickable Date with Calendar Popup for Next Week */}
             <Popover open={nextWeekCalendarPopoverOpen} onOpenChange={setNextWeekCalendarPopoverOpen}>
               <PopoverTrigger asChild>
-                <div className="flex flex-col items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity">
+                <div className="flex flex-col items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
                   <h3 
                     className="font-bold text-white text-xl drop-shadow-md flex items-center gap-2"
                     data-testid="button-next-week-date-text"
@@ -3841,6 +3916,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     <TrendingUp className="w-5 h-5" />
                     {format(new Date(selectedDate.getTime() + 7 * 24 * 60 * 60 * 1000), 'MMMM dd, yyyy')}
                   </h3>
+                  
+                  {/* 📊 NEW: Weekly Performance Dropdown */}
+                  <WeeklyPerformanceDropdown />
+                  
                   {currentWeekCheckpointStats.totalCheckpoints > 0 && (
                     <Badge 
                       variant="outline" 
