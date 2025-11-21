@@ -2896,7 +2896,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             placeholder={isLoading ? "Loading..." : !hasData ? "No weekly data yet" : "View Weekly Performance"} 
           />
         </SelectTrigger>
-        <SelectContent className="max-h-[300px]">
+        <SelectContent className="max-h-[300px] bg-white">
           {hasData ? (
             meaningfulWeeks.map((week: any) => {
               const isCurrent = currentWeek && week.weekNumber === currentWeek.weekNumber && week.year === currentWeek.year;
@@ -2907,8 +2907,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   key={`week-${week.year}-${week.weekNumber}`}
                   value={`week-${week.year}-${week.weekNumber}`}
                   data-testid={`option-week-${week.weekNumber}`}
+                  className="hover:bg-blue-500 hover:text-white bg-white text-black"
                 >
-                  <div className="flex items-center gap-2 text-black">
+                  <div className="flex items-center gap-2">
                     <span className="font-semibold">
                       Week {week.weekNumber} {isCurrent && '(Current)'}
                     </span>
