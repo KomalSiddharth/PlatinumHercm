@@ -1184,7 +1184,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               
               // Auto-save copied data to current date
               const savePayload = {
-                actualWeekNumber,
+                weekNumber: actualWeekNumber,
                 dateString: currentDateStr, // 🔥 CRITICAL: Save to current date!
                 beliefs: copiedBeliefs,
                 unifiedAssignment: previousDayData.unifiedAssignment || []
@@ -1455,7 +1455,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       
       // Auto-save changes to database immediately
       saveWeekMutation.mutate({
-        actualWeekNumber,
+        weekNumber: actualWeekNumber,
         year: new Date().getFullYear(),
         dateString: currentDateStr, // Use selected calendar date, not today's date
         beliefs: updated,
@@ -1498,7 +1498,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       
       // Auto-save changes to database immediately
       saveWeekMutation.mutate({
-        actualWeekNumber,
+        weekNumber: actualWeekNumber,
         year: new Date().getFullYear(),
         dateString: currentDateStr,
         beliefs: updated,
@@ -1533,7 +1533,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       
       // Auto-save changes to database immediately
       saveWeekMutation.mutate({
-        actualWeekNumber,
+        weekNumber: actualWeekNumber,
         year: new Date().getFullYear(),
         dateString: currentDateStr,
         beliefs: updated,
@@ -1640,7 +1640,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       
       // Auto-save changes to database immediately
       saveWeekMutation.mutate({
-        actualWeekNumber,
+        weekNumber: actualWeekNumber,
         year: new Date().getFullYear(),
         dateString: currentDateStr,
         beliefs: updated,
@@ -1691,7 +1691,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       
       // Auto-save changes to database immediately
       saveWeekMutation.mutate({
-        actualWeekNumber,
+        weekNumber: actualWeekNumber,
         year: new Date().getFullYear(),
         dateString: currentDateStr,
         beliefs: updated,
@@ -1792,7 +1792,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       
       // Auto-save changes to database immediately
       saveWeekMutation.mutate({
-        actualWeekNumber,
+        weekNumber: actualWeekNumber,
         year: new Date().getFullYear(),
         dateString: currentDateStr, // Use selected calendar date, not today's date
         beliefs: updated,
@@ -1821,7 +1821,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         
         // Auto-save changes to database
         saveWeekMutation.mutate({
-          actualWeekNumber,
+          weekNumber: actualWeekNumber,
           year: new Date().getFullYear(),
           dateString: currentDateStr,
           beliefs: updated,
@@ -1866,7 +1866,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     
     // Auto-save the updated standards
     saveWeekMutation.mutate({
-      actualWeekNumber,
+      weekNumber: actualWeekNumber,
       year: new Date().getFullYear(),
       beliefs: updatedBeliefs,
     });
@@ -1907,7 +1907,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       
       // Auto-save changes to database immediately
       saveWeekMutation.mutate({
-        actualWeekNumber,
+        weekNumber: actualWeekNumber,
         year: new Date().getFullYear(),
         dateString: currentDateStr, // Use selected calendar date, not today's date
         beliefs: updated,
@@ -2156,7 +2156,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         );
         
         saveWeekMutation.mutate({
-          actualWeekNumber,
+          weekNumber: actualWeekNumber,
           year: new Date().getFullYear(),
           dateString: currentDateStr, // Use selected calendar date, not today's date
           beliefs: updated
@@ -2207,7 +2207,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       });
       
       saveWeekMutation.mutate({
-        actualWeekNumber,
+        weekNumber: actualWeekNumber,
         beliefs: updated
       });
       
@@ -2236,7 +2236,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       });
       
       saveWeekMutation.mutate({
-        actualWeekNumber,
+        weekNumber: actualWeekNumber,
         beliefs: updated
       });
       
@@ -3393,7 +3393,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       const performAutoProgression = async () => {
         try {
           await apiRequest('/api/hercm/save-with-comparison', 'POST', {
-            actualWeekNumber,
+            weekNumber: actualWeekNumber,
             year: new Date().getFullYear(),
             beliefs,
           });
@@ -3594,7 +3594,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     
     // Save to database with complete updated beliefs including checklist
     saveWeekMutation.mutate({
-      actualWeekNumber,
+      weekNumber: actualWeekNumber,
       year: new Date().getFullYear(),
       beliefs: updatedBeliefs,
     });
@@ -4374,7 +4374,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         setShowStandardsDialog(false);
                         // Save the updated data
                         saveWeekMutation.mutate({
-                          actualWeekNumber,
+                          weekNumber: actualWeekNumber,
                           year: new Date().getFullYear(),
                           dateString: currentDateStr, // 🔥 CRITICAL FIX: Use selected calendar date
                           beliefs,
