@@ -2992,7 +2992,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
         {/* 🔥 NEW: Master Dialog - Inline Input Design */}
         <Dialog open={showMasterDialog} onOpenChange={setShowMasterDialog}>
-          <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
+          <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
             <DialogHeader>
               <DialogTitle className={`text-lg font-semibold ${colorScheme.text}`}>
                 {category} - {colorScheme.label} ({items.length} {items.length === 1 ? 'item' : 'items'})
@@ -3000,7 +3000,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             </DialogHeader>
             
             {/* Scrollable list of all items with INLINE input field */}
-            <ScrollArea className="flex-1 pr-4">
+            <ScrollArea className="flex-1 pr-4 min-h-0">
               <div className="space-y-2 py-2">
                 {items.map((item, index) => (
                   <div key={item.id} className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/30 transition-colors group/item">
@@ -3086,26 +3086,25 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     </div>
                   </div>
                 )}
-                
-                {/* + Icon to start adding - shows at bottom of list */}
-                {!isAddingNew && (
-                  <button
-                    onClick={handleStartAddingNew}
-                    className="flex items-center gap-2 p-2 w-full text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/20"
-                    data-testid={`button-start-add-checkpoint-${checklistType}`}
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span className="text-sm">Add {buttonLabel}</span>
-                  </button>
-                )}
               </div>
             </ScrollArea>
             
-            {/* Close button */}
-            <div className="flex justify-end pt-4 border-t">
+            {/* Footer with Add button and Close button */}
+            <div className="flex justify-between items-center pt-4 border-t gap-2">
+              {!isAddingNew && (
+                <button
+                  onClick={handleStartAddingNew}
+                  className="flex items-center gap-2 px-3 py-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/20"
+                  data-testid={`button-start-add-checkpoint-${checklistType}`}
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="text-sm">Add {buttonLabel}</span>
+                </button>
+              )}
               <Button
                 onClick={() => setShowMasterDialog(false)}
                 variant="default"
+                className="ml-auto"
                 data-testid={`button-close-master-dialog-${checklistType}`}
               >
                 Close
