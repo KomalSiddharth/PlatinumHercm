@@ -4528,7 +4528,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                           
                           {/* Show multiple assignments until column end */}
                           {visibleItems.map((assignment, index) => (
-                            <div key={assignment.id} className="flex items-center gap-2">
+                            <div key={assignment.id} className="flex items-center gap-2 group/assignment">
                               <Checkbox
                                 checked={assignment.completed}
                                 onCheckedChange={() => handleUnifiedAssignmentToggle(assignment.id)}
@@ -4538,7 +4538,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                               />
                               {assignment.source === 'custom' ? (
                                 <span 
-                                  className="text-xs line-clamp-1 text-purple-700 dark:text-purple-400 cursor-pointer hover:underline"
+                                  className="text-xs line-clamp-1 text-purple-700 dark:text-purple-400 cursor-pointer hover:underline flex-1 min-w-0"
                                   onClick={() => {
                                     if (!isAdminView) {
                                       setEditCustomAssignmentId(assignment.id);
@@ -4555,11 +4555,22 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                   href={assignment.url}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-xs line-clamp-1 text-cyan-700 dark:text-cyan-400 hover:underline"
+                                  className="text-xs line-clamp-1 text-cyan-700 dark:text-cyan-400 hover:underline flex-1 min-w-0"
                                   data-testid={`link-assignment-preview-${assignment.id}`}
                                 >
                                   {assignment.lessonName || assignment.courseName}
                                 </a>
+                              )}
+                              {!isAdminView && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleRemoveUnifiedAssignment(assignment.id)}
+                                  className="h-4 w-4 p-0 shrink-0"
+                                  data-testid={`button-remove-assignment-preview-${assignment.id}`}
+                                >
+                                  <Trash2 className="w-3 h-3 text-destructive" />
+                                </Button>
                               )}
                             </div>
                           ))}
