@@ -3084,18 +3084,36 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         )}
 
         {/* 🔥 NEW: Master Dialog - Inline Input Design */}
-        <Dialog open={showMasterDialog} onOpenChange={(open) => {
-          // Only allow closing, never from internal clicks
-          if (!open) {
-            setShowMasterDialog(false);
-            setIsAddingNew(false);
-            setNewItemText('');
-          }
-        }}>
-          <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col" onInteractOutside={(e) => {
-            // Prevent closing when clicking inside
-            e.preventDefault();
-          }}>
+        <Dialog 
+          open={showMasterDialog} 
+          onOpenChange={(open) => {
+            // CRITICAL: Only allow dialog to close via explicit button click
+            // Do NOT close on any other interaction
+            if (!open) {
+              // User clicked Close button or ESC
+              setShowMasterDialog(false);
+              setIsAddingNew(false);
+              setNewItemText('');
+            }
+          }}
+        >
+          <DialogContent 
+            className="max-w-2xl max-h-[85vh] flex flex-col" 
+            onPointerDownOutside={(e) => {
+              // Prevent dialog from closing when clicking outside
+              e.preventDefault();
+            }}
+            onInteractOutside={(e) => {
+              // Prevent dialog from closing on any outside interaction
+              e.preventDefault();
+            }}
+            onEscapeKeyDown={(e) => {
+              // Allow ESC key to close
+              setShowMasterDialog(false);
+              setIsAddingNew(false);
+              setNewItemText('');
+            }}
+          >
             <DialogHeader>
               <DialogTitle className={`text-lg font-semibold ${colorScheme.text}`}>
                 {category} - {colorScheme.label} ({items.length} {items.length === 1 ? 'item' : 'items'})
@@ -3193,7 +3211,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             <div className="flex justify-between items-center pt-4 border-t gap-2">
               <button
                 type="button"
-                onClick={handleStartAddingNew}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleStartAddingNew(e);
+                }}
                 className="flex items-center gap-2 px-3 py-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/20"
                 data-testid={`button-start-add-checkpoint-${checklistType}`}
               >
@@ -3202,7 +3224,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               </button>
               <Button
                 type="button"
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   setShowMasterDialog(false);
                   setIsAddingNew(false);
                   setNewItemText('');
