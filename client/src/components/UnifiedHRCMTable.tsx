@@ -1968,8 +1968,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           return typeof key === 'string' && key.includes('/api/analytics/progress');
         }
       });
+      // 📊 Invalidate weekly scores dropdown data when checkpoints change
+      await queryClient.invalidateQueries({ queryKey: ['/api/hercm/weekly-scores'] });
       
-      console.log('[SAVE] ✅ Data saved successfully and cache invalidated');
+      console.log('[SAVE] ✅ Data saved successfully and cache invalidated (including weekly scores)');
     },
     onError: (error) => {
       console.error('[SAVE] ❌ Save failed:', error);
