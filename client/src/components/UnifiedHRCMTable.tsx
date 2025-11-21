@@ -2714,7 +2714,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     // 🔥 NEW: Single master dialog for all operations
     const [showMasterDialog, setShowMasterDialog] = useState(false);
     const [newItemText, setNewItemText] = useState('');
-    const [isAddingNew, setIsAddingNew] = useState(false);
     const [editingItemId, setEditingItemId] = useState<string | null>(null);
     const [editingText, setEditingText] = useState('');
     const visibleItems = items.slice(0, 1);
@@ -2831,7 +2830,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     // 🔥 NEW: Simplified handlers for master dialog
     const openMasterDialog = () => {
       setShowMasterDialog(true);
-      setIsAddingNew(false);
       setEditingItemId(null);
       setNewItemText('');
     };
@@ -2839,8 +2837,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     const handleAddNewItem = () => {
       if (newItemText.trim()) {
         onAddCheckpoint(newItemText.trim());
-        setNewItemText('');
-        setIsAddingNew(false); // Keep dialog open for more additions
+        setNewItemText(''); // Clear input, stay ready for next
       }
     };
 
@@ -2861,10 +2858,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         handleAddNewItem();
-      }
-      if (e.key === 'Escape') {
-        setIsAddingNew(false);
-        setNewItemText('');
       }
     };
 
@@ -3009,50 +3002,28 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               </div>
             </ScrollArea>
             
-            {/* Add new item section at bottom */}
+            {/* Persistent add new item section at bottom */}
             <div className="pt-4 border-t space-y-3">
-              {isAddingNew ? (
-                <div className="flex gap-2">
-                  <Input
-                    value={newItemText}
-                    onChange={(e) => setNewItemText(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder={`Type your ${colorScheme.label.toLowerCase()} and press Enter...`}
-                    className="flex-1 text-sm"
-                    autoFocus
-                    data-testid={`input-new-checkpoint-${checklistType}-${category.toLowerCase()}`}
-                  />
-                  <Button
-                    onClick={handleAddNewItem}
-                    disabled={!newItemText.trim()}
-                    size="sm"
-                    data-testid={`button-save-new-checkpoint-${checklistType}`}
-                  >
-                    Add
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      setIsAddingNew(false);
-                      setNewItemText('');
-                    }}
-                    size="sm"
-                    variant="outline"
-                    data-testid={`button-cancel-new-checkpoint-${checklistType}`}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              ) : (
+              <div className="flex gap-2">
+                <Input
+                  value={newItemText}
+                  onChange={(e) => setNewItemText(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder={`Type your ${colorScheme.label.toLowerCase()}...`}
+                  className="flex-1 text-sm"
+                  data-testid={`input-new-checkpoint-${checklistType}-${category.toLowerCase()}`}
+                />
                 <Button
-                  onClick={() => setIsAddingNew(true)}
-                  variant="outline"
-                  className="w-full gap-2"
-                  data-testid={`button-add-new-checkpoint-${checklistType}-${category.toLowerCase()}`}
+                  onClick={handleAddNewItem}
+                  disabled={!newItemText.trim()}
+                  size="sm"
+                  className="gap-2 shrink-0"
+                  data-testid={`button-add-new-checkpoint-${checklistType}`}
                 >
                   <Plus className="w-4 h-4" />
-                  Add New {buttonLabel}
+                  Add {buttonLabel}
                 </Button>
-              )}
+              </div>
             </div>
             
             {/* Close button */}
