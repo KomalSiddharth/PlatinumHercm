@@ -4499,9 +4499,15 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                   {assignment.customText}
                                 </span>
                               ) : (
-                                <span className="text-xs line-clamp-1 text-cyan-700 dark:text-cyan-400">
+                                <a
+                                  href={assignment.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs line-clamp-1 text-cyan-700 dark:text-cyan-400 hover:underline"
+                                  data-testid={`link-assignment-preview-${assignment.id}`}
+                                >
                                   {assignment.lessonName || assignment.courseName}
-                                </span>
+                                </a>
                               )}
                             </div>
                           ))}
@@ -4875,26 +4881,47 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 data-testid="textarea-custom-assignment"
               />
             </div>
-            <div className="flex gap-2 justify-end">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setShowCustomAssignmentDialog(false);
-                  setCustomAssignmentText('');
-                  setEditCustomAssignmentId(null);
-                }}
-                data-testid="button-cancel-custom-assignment"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleSaveCustomAssignment}
-                disabled={!customAssignmentText.trim() || createCustomAssignmentMutation.isPending || updateCustomAssignmentMutation.isPending}
-                className="bg-gradient-to-r from-purple-600 to-purple-500 text-white hover:opacity-90"
-                data-testid="button-save-custom-assignment"
-              >
-                {editCustomAssignmentId ? 'Update Goal' : 'Add Goal'}
-              </Button>
+            <div className="flex gap-2 justify-between">
+              <div className="flex gap-2">
+                {editCustomAssignmentId && (
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      if (editCustomAssignmentId) {
+                        handleRemoveUnifiedAssignment(editCustomAssignmentId);
+                        setShowCustomAssignmentDialog(false);
+                        setCustomAssignmentText('');
+                        setEditCustomAssignmentId(null);
+                      }
+                    }}
+                    data-testid="button-delete-custom-assignment"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete
+                  </Button>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowCustomAssignmentDialog(false);
+                    setCustomAssignmentText('');
+                    setEditCustomAssignmentId(null);
+                  }}
+                  data-testid="button-cancel-custom-assignment"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSaveCustomAssignment}
+                  disabled={!customAssignmentText.trim() || createCustomAssignmentMutation.isPending || updateCustomAssignmentMutation.isPending}
+                  className="bg-gradient-to-r from-purple-600 to-purple-500 text-white hover:opacity-90"
+                  data-testid="button-save-custom-assignment"
+                >
+                  {editCustomAssignmentId ? 'Update Goal' : 'Add Goal'}
+                </Button>
+              </div>
             </div>
           </div>
         </DialogContent>
