@@ -4153,7 +4153,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
                 {/* Unified Assignment Column - Compact view with click popup */}
                 {belief.category === 'Health' && (
-                  <TableCell rowSpan={4} className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10 align-top">
+                  <TableCell rowSpan={3} className="p-2 bg-cyan-50/30 dark:bg-cyan-950/10 align-top">
                     {(() => {
                       // CRITICAL: Persistent assignments should ALWAYS show across all dates
                       const assignmentsToDisplay = persistentAssignments;
@@ -4166,8 +4166,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       const allAssignments = [...customAssignments, ...userLessons, ...adminLessons];
                       const totalCount = allAssignments.length;
                       
-                      // Show first 3 items only - compact column with "+more items" popup
-                      const maxVisibleItems = 3;
+                      // Show items until column reaches Money section start (3 rows: Health, Relationship, Career)
+                      const maxVisibleItems = 6;
                       const visibleItems = allAssignments.slice(0, maxVisibleItems);
                       const hiddenCount = totalCount - maxVisibleItems;
                       const hasMoreItems = hiddenCount > 0;
