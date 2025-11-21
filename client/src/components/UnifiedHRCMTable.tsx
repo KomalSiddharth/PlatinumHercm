@@ -3057,7 +3057,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 
                 {/* Inline input field - appears in list */}
                 {isAddingNew && (
-                  <div className="flex items-start gap-3 p-2 rounded-lg bg-muted/20">
+                  <form 
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleAddNewItem();
+                    }}
+                    className="flex items-start gap-3 p-2 rounded-lg bg-muted/20"
+                  >
                     <Checkbox
                       checked={false}
                       disabled
@@ -3068,13 +3075,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         ref={inputRef}
                         value={newItemText}
                         onChange={(e) => setNewItemText(e.target.value)}
-                        onKeyDown={handleKeyDown}
                         placeholder={`Type your ${colorScheme.label.toLowerCase()}...`}
                         className="text-sm"
                         data-testid={`input-new-checkpoint-inline-${checklistType}`}
                       />
                     </div>
-                  </div>
+                  </form>
                 )}
               </div>
             </ScrollArea>
