@@ -158,15 +158,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
       
-      // Get all weeks for user
-      const allWeeks = await storage.getHercmWeeksByUser(user.id);
+      // Get all date-specific entries for user (not week-level summary)
+      const allWeeks = await storage.getAllHercmWeeksByUserWithDates(user.id);
       
       if (!allWeeks || allWeeks.length === 0) {
         return res.json([]);
       }
       
-      // Calculate scores AND checkpoint stats for each week
-      const weeklyScores = allWeeks.map((week: any) => {
+      // Group entries by week number and year, then get the most recent entry for each week
+      const weekMap = new Map();
+      allWeeks.forEach((entry: any) => {
+        const key = `${entry.year}-${entry.weekNumber}`;
+        if (!weekMap.has(key)) {
+          weekMap.set(key, entry);
+        } else {
+          // Keep the most recent entry for this week
+          const existing = weekMap.get(key);
+          const existingDate = new Date(existing.createdAt || existing.dateString);
+          const newDate = new Date(entry.createdAt || entry.dateString);
+          if (newDate > existingDate) {
+            weekMap.set(key, entry);
+          }
+        }
+      });
+      
+      // Calculate scores AND checkpoint stats for each week using most recent date's data
+      const weeklyScores = Array.from(weekMap.values()).map((week: any) => {
         // Get current ratings for all 4 HRCM areas (1-7 scale each)
         const healthRating = week.currentH || 0;
         const relationshipRating = week.currentE || 0; // Emotion/Relationship
@@ -177,18 +194,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const maxScore = 28; // 7 × 4 areas
         const percentage = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
         
-        // 📊 Calculate checkpoint stats (Current Week checkpoints from 4 columns: Problems, Feelings, Beliefs, Actions)
+        // 📊 Calculate checkpoint stats from most recent date's Current Week checkpoints
+        // (4 columns: Problems, Feelings, Beliefs, Actions × 4 HRCM areas)
         let totalCheckpoints = 0;
         let checkedCheckpoints = 0;
         
         // Count checkpoints for all 4 HRCM areas
         const areas = ['health', 'relationship', 'career', 'money'];
         areas.forEach(area => {
-          // Count from 4 columns: Problems, Feelings, Beliefs, Actions
+          // Count from 4 columns: Problems, Feelings, Beliefs, Actions (Current Week data)
           const problemsChecklist = week[`${area}ProblemsChecklist`] || [];
           const feelingsChecklist = week[`${area}FeelingsCurrentChecklist`] || [];
           const beliefsChecklist = week[`${area}BeliefsCurrentChecklist`] || [];
           const actionsChecklist = week[`${area}ActionsCurrentChecklist`] || [];
+          
+          console.log(`[WEEKLY-SCORES] Week ${week.weekNumber} (${week.dateString || week.createdAt}) - ${area}:`);
+          console.log(`  Problems: ${problemsChecklist.length}, Feelings: ${feelingsChecklist.length}, Beliefs: ${beliefsChecklist.length}, Actions: ${actionsChecklist.length}`);
           
           [problemsChecklist, feelingsChecklist, beliefsChecklist, actionsChecklist].forEach(checklist => {
             if (Array.isArray(checklist)) {
