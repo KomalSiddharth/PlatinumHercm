@@ -22,6 +22,19 @@ const wsClients = new Map<string, WebSocket>();
 // WebSocket server instance - will be set after initialization
 let wssInstance: WebSocketServer | null = null;
 
+/**
+ * Calculate current week number based on user's creation date
+ * Week 1 = Day 0-6, Week 2 = Day 7-13, Week 3 = Day 14-20, etc.
+ * @param userCreatedAt User's account creation date
+ * @returns Current week number (1-based)
+ */
+function getCurrentWeekNumber(userCreatedAt: Date): number {
+  const now = new Date();
+  const daysSinceCreation = Math.floor((now.getTime() - userCreatedAt.getTime()) / (1000 * 60 * 60 * 24));
+  const weekNumber = Math.floor(daysSinceCreation / 7) + 1; // Week 1 starts on day 0
+  return Math.max(1, weekNumber); // Always at least Week 1
+}
+
 const openai = new OpenAI({
   baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY
@@ -141,6 +154,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 🆕 Get current week number based on user's join date
+  app.get('/api/hercm/current-week', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      let user = await storage.getUser(userId);
+      if (!user && typeof userId === 'string' && userId.includes('@')) {
+        user = await storage.getUserByEmail(userId);
+      }
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      const currentWeekNumber = getCurrentWeekNumber(user.createdAt || new Date());
+      
+      res.json({ 
+        weekNumber: currentWeekNumber,
+        userJoinDate: user.createdAt,
+        message: `Week ${currentWeekNumber} (joined ${user.createdAt})`
+      });
+    } catch (error) {
+      console.error("Error fetching current week:", error);
+      res.status(500).json({ message: "Failed to fetch current week" });
+    }
+  });
+
   // 📊 NEW: Get weekly scores summary for performance dropdown
   app.get('/api/hercm/weekly-scores', isAuthenticated, async (req: any, res) => {
     try {
@@ -157,6 +200,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
+      
+      // 🔥 Calculate current week number based on user's join date
+      const currentWeekNumber = getCurrentWeekNumber(user.createdAt || new Date());
+      const currentYear = new Date().getFullYear();
+      
+      console.log(`[WEEKLY-SCORES] User ${user.id} joined on ${user.createdAt}, current week: ${currentWeekNumber}`);
       
       // Get all date-specific entries for user (not week-level summary)
       const allWeeks = await storage.getAllHercmWeeksByUserWithDates(user.id);
@@ -238,13 +287,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       });
       
-      // Sort by year and week number (most recent first)
-      weeklyScores.sort((a, b) => {
-        if (a.year !== b.year) return b.year - a.year;
-        return b.weekNumber - a.weekNumber;
-      });
+      // 🔥 Generate entries for ALL weeks from 1 to current week (including empty ones)
+      const allWeekEntries = [];
+      for (let week = 1; week <= currentWeekNumber; week++) {
+        const existingWeek = weeklyScores.find(w => w.weekNumber === week && w.year === currentYear);
+        
+        if (existingWeek) {
+          // Use existing data
+          allWeekEntries.push(existingWeek);
+        } else {
+          // Create empty week entry
+          allWeekEntries.push({
+            weekNumber: week,
+            year: currentYear,
+            totalScore: 0,
+            maxScore: 28,
+            percentage: 0,
+            breakdown: {
+              health: 0,
+              relationship: 0,
+              career: 0,
+              money: 0
+            },
+            checkpoints: {
+              total: 0,
+              checked: 0
+            }
+          });
+        }
+      }
       
-      res.json(weeklyScores);
+      // Sort by week number (most recent first)
+      allWeekEntries.sort((a, b) => b.weekNumber - a.weekNumber);
+      
+      console.log(`[WEEKLY-SCORES] Returning ${allWeekEntries.length} weeks (1 to ${currentWeekNumber})`);
+      
+      res.json(allWeekEntries);
     } catch (error) {
       console.error("Error fetching weekly scores:", error);
       res.status(500).json({ message: "Failed to fetch weekly scores" });
