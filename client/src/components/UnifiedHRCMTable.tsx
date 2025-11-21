@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -1393,6 +1393,37 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   } else {
     console.log('[WEEKLY PROGRESS] ⚠️ Displaying 0% - calculation may be pending');
   }
+
+  // Calculate Current Week checkpoint statistics
+  const currentWeekCheckpointStats = useMemo(() => {
+    let totalCheckpoints = 0;
+    let checkedCheckpoints = 0;
+    
+    beliefs.forEach(belief => {
+      // Count Problems checkpoints
+      if (belief.problemsChecklist) {
+        totalCheckpoints += belief.problemsChecklist.length;
+        checkedCheckpoints += belief.problemsChecklist.filter(item => item.checked).length;
+      }
+      // Count Feelings checkpoints
+      if (belief.feelingsCurrentChecklist) {
+        totalCheckpoints += belief.feelingsCurrentChecklist.length;
+        checkedCheckpoints += belief.feelingsCurrentChecklist.filter(item => item.checked).length;
+      }
+      // Count Beliefs checkpoints
+      if (belief.beliefsCurrentChecklist) {
+        totalCheckpoints += belief.beliefsCurrentChecklist.length;
+        checkedCheckpoints += belief.beliefsCurrentChecklist.filter(item => item.checked).length;
+      }
+      // Count Actions checkpoints
+      if (belief.actionsCurrentChecklist) {
+        totalCheckpoints += belief.actionsCurrentChecklist.length;
+        checkedCheckpoints += belief.actionsCurrentChecklist.filter(item => item.checked).length;
+      }
+    });
+    
+    return { totalCheckpoints, checkedCheckpoints };
+  }, [beliefs]);
 
   const handleChecklistToggle = (category: string, itemId: string) => {
     setBeliefs(prev => {
@@ -3701,13 +3732,24 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             {/* Clickable Date with Calendar Popup for Next Week */}
             <Popover open={nextWeekCalendarPopoverOpen} onOpenChange={setNextWeekCalendarPopoverOpen}>
               <PopoverTrigger asChild>
-                <h3 
-                  className="font-bold text-white text-xl drop-shadow-md flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
-                  data-testid="button-next-week-date-text"
-                >
-                  <TrendingUp className="w-5 h-5" />
-                  {format(new Date(selectedDate.getTime() + 7 * 24 * 60 * 60 * 1000), 'MMMM dd, yyyy')}
-                </h3>
+                <div className="flex flex-col items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity">
+                  <h3 
+                    className="font-bold text-white text-xl drop-shadow-md flex items-center gap-2"
+                    data-testid="button-next-week-date-text"
+                  >
+                    <TrendingUp className="w-5 h-5" />
+                    {format(new Date(selectedDate.getTime() + 7 * 24 * 60 * 60 * 1000), 'MMMM dd, yyyy')}
+                  </h3>
+                  {currentWeekCheckpointStats.totalCheckpoints > 0 && (
+                    <Badge 
+                      variant="outline" 
+                      className="bg-white/20 border-white/40 text-white text-xs font-semibold"
+                      data-testid="badge-current-week-checkpoint-stats"
+                    >
+                      Current Week: {currentWeekCheckpointStats.checkedCheckpoints}/{currentWeekCheckpointStats.totalCheckpoints} Checkpoints ✓
+                    </Badge>
+                  )}
+                </div>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="center">
                 <Calendar
