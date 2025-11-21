@@ -3233,7 +3233,15 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               
               {/* Inline input field when adding */}
               {isAddingNew && (
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/20 border-2 border-dashed border-primary">
+                <form 
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleAddNewItem();
+                    return false;
+                  }}
+                  className="flex items-start gap-3 p-3 rounded-lg bg-muted/20 border-2 border-dashed border-primary"
+                >
                   <Checkbox checked={false} disabled className="h-5 w-5 mt-0.5 shrink-0" />
                   <Input
                     ref={inputRef}
@@ -3246,20 +3254,15 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     data-testid={`input-new-checkpoint-${checklistType}`}
                   />
                   <Button
-                    type="button"
+                    type="submit"
                     size="sm"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleAddNewItem();
-                    }}
                     disabled={!newItemText.trim()}
                     className="h-8 shrink-0"
                     data-testid={`button-save-checkpoint-${checklistType}`}
                   >
                     Add
                   </Button>
-                </div>
+                </form>
               )}
               
               {/* List of all items */}
