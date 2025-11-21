@@ -2826,10 +2826,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   // 📊 Weekly Performance Dropdown Component
   const WeeklyPerformanceDropdown = () => {
     // Fetch weekly scores
-    const { data: weeklyScores, isLoading } = useQuery({
+    const { data: weeklyScores, isLoading, error } = useQuery({
       queryKey: ['/api/hercm/weekly-scores'],
       staleTime: 5 * 60 * 1000, // 5 minutes
     });
+
+    console.log('📊 [WEEKLY DROPDOWN] isLoading:', isLoading, 'weeklyScores:', weeklyScores, 'error:', error);
 
     // Get color indicator based on score percentage
     const getScoreColor = (percentage: number) => {
@@ -2847,52 +2849,55 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       return 'Poor';
     };
 
-    if (isLoading || !weeklyScores || weeklyScores.length === 0) {
-      return null; // Don't show anything while loading or if no data
-    }
-
-    // Find current week (week with highest weekNumber)
-    const currentWeek = weeklyScores[0]; // Already sorted by most recent first
+    // Always render the dropdown, even if loading or no data
+    const hasData = weeklyScores && weeklyScores.length > 0;
+    const currentWeek = hasData ? weeklyScores[0] : null; // Already sorted by most recent first
 
     return (
-      <Select>
+      <Select disabled={isLoading || !hasData}>
         <SelectTrigger 
           className="w-auto min-w-[240px] h-7 bg-white/95 border-white/60 text-xs font-medium shadow-sm hover:bg-white transition-colors"
           data-testid="select-weekly-performance"
           onClick={(e) => e.stopPropagation()} // Prevent calendar popup from opening
         >
           <SelectValue 
-            placeholder="View Weekly Performance" 
+            placeholder={isLoading ? "Loading..." : !hasData ? "No weekly data yet" : "View Weekly Performance"} 
           />
         </SelectTrigger>
         <SelectContent className="max-h-[300px]">
-          {weeklyScores.map((week: any) => {
-            const isCurrent = week.weekNumber === currentWeek.weekNumber && week.year === currentWeek.year;
-            const colorIndicator = getScoreColor(week.percentage);
-            const label = getScoreLabel(week.percentage);
-            
-            return (
-              <SelectItem 
-                key={`week-${week.year}-${week.weekNumber}`}
-                value={`week-${week.year}-${week.weekNumber}`}
-                data-testid={`option-week-${week.weekNumber}`}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold">
-                    Week {week.weekNumber} {isCurrent && '(Current)'}
-                  </span>
-                  <span className="text-muted-foreground">-</span>
-                  <span className="font-medium">
-                    {week.totalScore}/{week.maxScore}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    ({week.percentage}%)
-                  </span>
-                  <span title={label}>{colorIndicator}</span>
-                </div>
-              </SelectItem>
-            );
-          })}
+          {hasData ? (
+            weeklyScores.map((week: any) => {
+              const isCurrent = currentWeek && week.weekNumber === currentWeek.weekNumber && week.year === currentWeek.year;
+              const colorIndicator = getScoreColor(week.percentage);
+              const label = getScoreLabel(week.percentage);
+              
+              return (
+                <SelectItem 
+                  key={`week-${week.year}-${week.weekNumber}`}
+                  value={`week-${week.year}-${week.weekNumber}`}
+                  data-testid={`option-week-${week.weekNumber}`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold">
+                      Week {week.weekNumber} {isCurrent && '(Current)'}
+                    </span>
+                    <span className="text-muted-foreground">-</span>
+                    <span className="font-medium">
+                      {week.totalScore}/{week.maxScore}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      ({week.percentage}%)
+                    </span>
+                    <span title={label}>{colorIndicator}</span>
+                  </div>
+                </SelectItem>
+              );
+            })
+          ) : (
+            <SelectItem value="no-data" disabled>
+              No weekly data available
+            </SelectItem>
+          )}
         </SelectContent>
       </Select>
     );
@@ -3689,7 +3694,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       <div className="border-2 border-coral-red/70 dark:border-coral-red/50 rounded-lg overflow-x-auto shadow-lg">
         <div className="px-2 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-b-2 border-coral-red/80 dark:border-coral-red/60 bg-coral-red">
           <div className="flex items-center justify-between">
-            <div className="flex-1"></div>
+            {/* Left Side: Weekly Performance Dropdown */}
+            <div className="flex-1 flex items-center">
+              <WeeklyPerformanceDropdown />
+            </div>
             {/* Centered: Clickable Date with Calendar Popup */}
             <Popover open={calendarPopoverOpen} onOpenChange={setCalendarPopoverOpen}>
               <PopoverTrigger asChild>
@@ -3908,7 +3916,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             {/* Clickable Date with Calendar Popup for Next Week */}
             <Popover open={nextWeekCalendarPopoverOpen} onOpenChange={setNextWeekCalendarPopoverOpen}>
               <PopoverTrigger asChild>
-                <div className="flex flex-col items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
+                <div className="flex flex-col items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity">
                   <h3 
                     className="font-bold text-white text-xl drop-shadow-md flex items-center gap-2"
                     data-testid="button-next-week-date-text"
@@ -3916,10 +3924,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     <TrendingUp className="w-5 h-5" />
                     {format(new Date(selectedDate.getTime() + 7 * 24 * 60 * 60 * 1000), 'MMMM dd, yyyy')}
                   </h3>
-                  
-                  {/* 📊 NEW: Weekly Performance Dropdown */}
-                  <WeeklyPerformanceDropdown />
-                  
                   {currentWeekCheckpointStats.totalCheckpoints > 0 && (
                     <Badge 
                       variant="outline" 
