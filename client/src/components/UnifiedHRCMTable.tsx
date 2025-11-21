@@ -2981,10 +2981,17 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     };
 
     const handleStartAddingNew = () => {
-      setIsAddingNew(true);
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 0);
+      // If input is already open and has content, save it first
+      if (isAddingNew && newItemText.trim()) {
+        handleAddNewItem();
+        // Input stays open and will focus automatically after save
+      } else {
+        // Input not open yet, open it now
+        setIsAddingNew(true);
+        setTimeout(() => {
+          inputRef.current?.focus();
+        }, 0);
+      }
     };
 
     const handleStartEdit = (itemId: string, text: string) => {
@@ -3168,16 +3175,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             
             {/* Footer with Add button and Close button */}
             <div className="flex justify-between items-center pt-4 border-t gap-2">
-              {!isAddingNew && (
-                <button
-                  onClick={handleStartAddingNew}
-                  className="flex items-center gap-2 px-3 py-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/20"
-                  data-testid={`button-start-add-checkpoint-${checklistType}`}
-                >
-                  <Plus className="w-4 h-4" />
-                  <span className="text-sm">Add {buttonLabel}</span>
-                </button>
-              )}
+              <button
+                onClick={handleStartAddingNew}
+                className="flex items-center gap-2 px-3 py-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/20"
+                data-testid={`button-start-add-checkpoint-${checklistType}`}
+              >
+                <Plus className="w-4 h-4" />
+                <span className="text-sm">{isAddingNew && newItemText.trim() ? 'Save & Add Next' : `Add ${buttonLabel}`}</span>
+              </button>
               <Button
                 onClick={() => setShowMasterDialog(false)}
                 variant="default"
