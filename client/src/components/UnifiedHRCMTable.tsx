@@ -2924,7 +2924,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
+        e.stopPropagation(); // Prevent any parent handlers
         handleAddNewItem();
+        // Keep focus on input for next entry
+        setTimeout(() => {
+          inputRef.current?.focus();
+        }, 0);
       }
     };
 
@@ -3064,6 +3069,16 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         value={newItemText}
                         onChange={(e) => setNewItemText(e.target.value)}
                         onKeyDown={handleKeyDown}
+                        onBlur={() => {
+                          // Auto-save on blur (click outside input but inside dialog)
+                          if (newItemText.trim()) {
+                            handleAddNewItem();
+                          }
+                          // Keep isAddingNew = true so input stays visible
+                          setTimeout(() => {
+                            inputRef.current?.focus();
+                          }, 50);
+                        }}
                         placeholder={`Type your ${colorScheme.label.toLowerCase()}...`}
                         className="text-sm"
                         data-testid={`input-new-checkpoint-inline-${checklistType}`}
