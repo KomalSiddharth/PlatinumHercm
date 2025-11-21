@@ -2965,26 +2965,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           
           {/* Show "X more items" if more than 1 */}
           {hasMoreItems && (
-            <div className="text-xs text-muted-foreground italic pl-5">
+            <div className="text-xs text-muted-foreground italic pl-5 cursor-pointer hover:underline">
               + {hiddenCount} more item{hiddenCount > 1 ? 's' : ''}...
             </div>
-          )}
-          
-          {/* Add button when items exist */}
-          {items.length > 0 && !disabled && (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={(e) => {
-                e.stopPropagation();
-                openMasterDialog();
-              }}
-              className="h-6 w-full text-xs text-muted-foreground hover:text-foreground gap-1 mt-1"
-              data-testid={`button-add-checkpoint-inline-${checklistType}-${category.toLowerCase()}`}
-            >
-              <Plus className="w-3 h-3" />
-              Add {buttonLabel}
-            </Button>
           )}
         </div>
         
