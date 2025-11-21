@@ -3084,8 +3084,18 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         )}
 
         {/* 🔥 NEW: Master Dialog - Inline Input Design */}
-        <Dialog open={showMasterDialog} onOpenChange={setShowMasterDialog}>
-          <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
+        <Dialog open={showMasterDialog} onOpenChange={(open) => {
+          // Only allow closing, never from internal clicks
+          if (!open) {
+            setShowMasterDialog(false);
+            setIsAddingNew(false);
+            setNewItemText('');
+          }
+        }}>
+          <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col" onInteractOutside={(e) => {
+            // Prevent closing when clicking inside
+            e.preventDefault();
+          }}>
             <DialogHeader>
               <DialogTitle className={`text-lg font-semibold ${colorScheme.text}`}>
                 {category} - {colorScheme.label} ({items.length} {items.length === 1 ? 'item' : 'items'})
@@ -3182,6 +3192,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             {/* Footer with Add button and Close button */}
             <div className="flex justify-between items-center pt-4 border-t gap-2">
               <button
+                type="button"
                 onClick={handleStartAddingNew}
                 className="flex items-center gap-2 px-3 py-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/20"
                 data-testid={`button-start-add-checkpoint-${checklistType}`}
@@ -3190,7 +3201,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 <span className="text-sm">{isAddingNew && newItemText.trim() ? 'Save & Add Next' : `Add ${buttonLabel}`}</span>
               </button>
               <Button
-                onClick={() => setShowMasterDialog(false)}
+                type="button"
+                onClick={() => {
+                  setShowMasterDialog(false);
+                  setIsAddingNew(false);
+                  setNewItemText('');
+                }}
                 variant="default"
                 className="ml-auto"
                 data-testid={`button-close-master-dialog-${checklistType}`}
