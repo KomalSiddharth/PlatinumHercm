@@ -3195,7 +3195,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           </Button>
         )}
 
-        {/* Add/Edit Item Dialog - Separate popup like Assignment column */}
+        {/* Add/Edit Item Dialog - Separate popup (renders on top) */}
         <Dialog 
           open={isAddingNew} 
           onOpenChange={(open) => {
@@ -3206,7 +3206,13 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             }
           }}
         >
-          <DialogContent className="max-w-md">
+          <DialogContent 
+            className="max-w-md"
+            onInteractOutside={(e) => {
+              // Prevent closing main dialog when interacting with add dialog
+              e.stopPropagation();
+            }}
+          >
             <DialogHeader>
               <DialogTitle className="text-base font-semibold">
                 {editingItemId ? `Edit ${buttonLabel}` : `Add ${buttonLabel}`}
@@ -3226,7 +3232,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               <div className="flex gap-2 justify-end">
                 <Button
                   variant="outline"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setIsAddingNew(false);
                     setNewItemText('');
                     setEditingItemId(null);
@@ -3236,7 +3243,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   Cancel
                 </Button>
                 <Button
-                  onClick={handleAddNewItem}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleAddNewItem();
+                  }}
                   disabled={!newItemText.trim()}
                   className={`${colorScheme.bg} text-white hover:opacity-90`}
                   data-testid={`button-save-checkpoint-${checklistType}`}
@@ -3251,7 +3261,13 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         {/* Main List Dialog - Assignment Style */}
         <Dialog 
           open={showMasterDialog} 
-          onOpenChange={setShowMasterDialog}
+          onOpenChange={(open) => {
+            // Only close main dialog when user explicitly clicks outside
+            // Keep open when add dialog is being used
+            if (!open && !isAddingNew) {
+              setShowMasterDialog(false);
+            }
+          }}
         >
           <DialogContent className="max-w-lg max-h-[700px] overflow-y-auto">
             <DialogHeader>
