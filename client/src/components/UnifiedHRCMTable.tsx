@@ -3191,46 +3191,63 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           </Button>
         )}
 
-        {/* 🔥 NEW: Master Dialog - Inline Input Design */}
+        {/* 🔥 NEW: Clean Dialog - Assignment Style */}
         <Dialog 
           open={showMasterDialog} 
-          onOpenChange={(open) => {
-            // CRITICAL: Only allow dialog to close via explicit button click
-            // Do NOT close on any other interaction
-            if (!open) {
-              // User clicked Close button or ESC
-              setShowMasterDialog(false);
-              setIsAddingNew(false);
-              setNewItemText('');
-            }
-          }}
+          onOpenChange={setShowMasterDialog}
         >
-          <DialogContent 
-            className="max-w-2xl max-h-[85vh] flex flex-col" 
-            onPointerDownOutside={(e) => {
-              // Prevent dialog from closing when clicking outside
-              e.preventDefault();
-            }}
-            onInteractOutside={(e) => {
-              // Prevent dialog from closing on any outside interaction
-              e.preventDefault();
-            }}
-            onEscapeKeyDown={(e) => {
-              // Allow ESC key to close
-              setShowMasterDialog(false);
-              setIsAddingNew(false);
-              setNewItemText('');
-            }}
-          >
+          <DialogContent className="max-w-lg max-h-[700px] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className={`text-lg font-semibold ${colorScheme.text}`}>
-                {category} - {colorScheme.label} ({items.length} {items.length === 1 ? 'item' : 'items'})
+              <DialogTitle className={`text-lg font-bold ${colorScheme.text}`}>
+                {category} - {colorScheme.label}
               </DialogTitle>
+              <p className="text-sm text-muted-foreground">
+                {items.length} {items.length === 1 ? 'item' : 'items'} 
+              </p>
             </DialogHeader>
             
-            {/* Scrollable list of all items with INLINE input field */}
-            <ScrollArea className="flex-1 pr-4 min-h-0 max-h-[60vh] overflow-y-auto">
-              <div className="space-y-2 py-2">
+            <div className="space-y-4 py-4">
+              {/* Add New Button - AT THE TOP */}
+              {!disabled && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleStartAddingNew}
+                  className={`w-full h-9 text-sm border-dashed ${colorScheme.border} ${colorScheme.text} hover:bg-muted/30`}
+                  data-testid={`button-add-checkpoint-dialog-${checklistType}`}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add {buttonLabel}
+                </Button>
+              )}
+              
+              {/* Inline input field when adding */}
+              {isAddingNew && (
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/20 border-2 border-dashed border-primary">
+                  <Checkbox checked={false} disabled className="h-5 w-5 mt-0.5 shrink-0" />
+                  <Input
+                    ref={inputRef}
+                    value={newItemText}
+                    onChange={(e) => setNewItemText(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder={`Enter ${buttonLabel.toLowerCase()}...`}
+                    className="flex-1 text-sm"
+                    autoFocus
+                    data-testid={`input-new-checkpoint-${checklistType}`}
+                  />
+                  <Button
+                    size="sm"
+                    onClick={handleAddNewItem}
+                    disabled={!newItemText.trim()}
+                    className="h-8 shrink-0"
+                  >
+                    Add
+                  </Button>
+                </div>
+              )}
+              
+              {/* List of all items */}
+              <div className="space-y-2">
                 {items.map((item, index) => (
                   <div key={item.id} className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/30 transition-colors group/item">
                     {/* Checkbox */}
@@ -3279,69 +3296,23 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 ))}
                 
                 {items.length === 0 && !isAddingNew && (
-                  <p className="text-sm text-muted-foreground text-center py-8">
-                    No {colorScheme.label.toLowerCase()} checkpoints yet. Click + to add your first one!
+                  <p className="text-sm text-muted-foreground italic text-center py-4">
+                    No {colorScheme.label.toLowerCase()} yet. Click "+ Add {buttonLabel}" to create your first one!
                   </p>
                 )}
-                
-                {/* Inline input field - appears in list */}
-                {isAddingNew && (
-                  <form 
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleAddNewItem();
-                    }}
-                    className="flex items-start gap-3 p-2 rounded-lg bg-muted/20"
-                  >
-                    <Checkbox
-                      checked={false}
-                      disabled
-                      className="h-5 w-5 mt-0.5 shrink-0"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <Input
-                        ref={inputRef}
-                        value={newItemText}
-                        onChange={(e) => setNewItemText(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        placeholder={`Type your ${colorScheme.label.toLowerCase()}...`}
-                        className="text-sm"
-                        data-testid={`input-new-checkpoint-inline-${checklistType}`}
-                      />
-                    </div>
-                  </form>
-                )}
               </div>
-            </ScrollArea>
+            </div>
             
-            {/* Footer with Add button and Close button */}
-            <div className="flex justify-between items-center pt-4 border-t gap-2">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleStartAddingNew(e);
-                }}
-                className="flex items-center gap-2 px-3 py-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/20"
-                data-testid={`button-start-add-checkpoint-${checklistType}`}
-              >
-                <Plus className="w-4 h-4" />
-                <span className="text-sm">{isAddingNew && newItemText.trim() ? 'Save & Add Next' : `Add ${buttonLabel}`}</span>
-              </button>
+            {/* Footer with Close button */}
+            <div className="flex justify-end pt-3 border-t">
               <Button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
+                variant="outline"
+                onClick={() => {
                   setShowMasterDialog(false);
                   setIsAddingNew(false);
                   setNewItemText('');
                 }}
-                variant="default"
-                className="ml-auto"
-                data-testid={`button-close-master-dialog-${checklistType}`}
+                data-testid={`button-close-checkpoint-dialog-${checklistType}`}
               >
                 Close
               </Button>
