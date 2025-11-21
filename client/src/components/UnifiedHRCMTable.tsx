@@ -4166,8 +4166,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       const allAssignments = [...customAssignments, ...userLessons, ...adminLessons];
                       const totalCount = allAssignments.length;
                       
-                      // Show first 12 items to fill the column height
-                      const maxVisibleItems = 12;
+                      // Show first 3 items only - compact column with "+more items" popup
+                      const maxVisibleItems = 3;
                       const visibleItems = allAssignments.slice(0, maxVisibleItems);
                       const hiddenCount = totalCount - maxVisibleItems;
                       const hasMoreItems = hiddenCount > 0;
