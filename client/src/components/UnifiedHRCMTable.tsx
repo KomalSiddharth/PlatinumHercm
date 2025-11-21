@@ -1627,6 +1627,59 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     });
   };
 
+  // Handle Current Week checkpoint add
+  const handleCurrentWeekCheckpointAdd = (category: string, type: 'problems' | 'currentFeelings' | 'currentBeliefs' | 'currentActions', text: string) => {
+    setBeliefs(prev => {
+      const updated = prev.map(belief => {
+        if (belief.category === category) {
+          const newItem: ChecklistItem = { id: Date.now().toString(), text, checked: false };
+          let updatedBelief = { ...belief };
+          
+          if (type === 'problems' && belief.problemsChecklist) {
+            updatedBelief.problemsChecklist = [...belief.problemsChecklist, newItem];
+          } else if (type === 'currentFeelings' && belief.feelingsCurrentChecklist) {
+            updatedBelief.feelingsCurrentChecklist = [...belief.feelingsCurrentChecklist, newItem];
+          } else if (type === 'currentBeliefs' && belief.beliefsCurrentChecklist) {
+            updatedBelief.beliefsCurrentChecklist = [...belief.beliefsCurrentChecklist, newItem];
+          } else if (type === 'currentActions' && belief.actionsCurrentChecklist) {
+            updatedBelief.actionsCurrentChecklist = [...belief.actionsCurrentChecklist, newItem];
+          }
+          return updatedBelief;
+        }
+        return belief;
+      });
+      
+      saveWeekMutation.mutate({ weekNumber, year: new Date().getFullYear(), dateString: currentDateStr, beliefs: updated });
+      return updated;
+    });
+  };
+
+  // Handle Current Week checkpoint update text
+  const handleCurrentWeekCheckpointUpdateText = (category: string, type: 'problems' | 'currentFeelings' | 'currentBeliefs' | 'currentActions', itemId: string, text: string) => {
+    setBeliefs(prev => {
+      const updated = prev.map(belief => {
+        if (belief.category === category) {
+          let updatedBelief = { ...belief };
+          
+          if (type === 'problems' && belief.problemsChecklist) {
+            updatedBelief.problemsChecklist = belief.problemsChecklist.map(item => item.id === itemId ? { ...item, text } : item);
+          } else if (type === 'currentFeelings' && belief.feelingsCurrentChecklist) {
+            updatedBelief.feelingsCurrentChecklist = belief.feelingsCurrentChecklist.map(item => item.id === itemId ? { ...item, text } : item);
+          } else if (type === 'currentBeliefs' && belief.beliefsCurrentChecklist) {
+            updatedBelief.beliefsCurrentChecklist = belief.beliefsCurrentChecklist.map(item => item.id === itemId ? { ...item, text } : item);
+          } else if (type === 'currentActions' && belief.actionsCurrentChecklist) {
+            updatedBelief.actionsCurrentChecklist = belief.actionsCurrentChecklist.map(item => item.id === itemId ? { ...item, text } : item);
+          }
+          return updatedBelief;
+        }
+        return belief;
+      });
+      
+      saveWeekMutation.mutate({ weekNumber, year: new Date().getFullYear(), dateString: currentDateStr, beliefs: updated });
+      return updated;
+    });
+  };
+
   const handleRatingChange = (category: string, newRating: number) => {
     setBeliefs(prev => {
       const updated = prev.map(belief => {
@@ -3576,364 +3629,60 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   </div>
                 </TableCell>
 
-                {/* Current Week - Problems (Checkbox-based) */}
+                {/* Current Week - Problems */}
                 <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
-                  {(() => {
-                    const checklist = belief.problemsChecklist || [];
-                    const totalCount = checklist.length;
-                    const firstItem = checklist[0];
-                    const hasMoreItems = totalCount > 1;
-                    
-                    return (
-                      <div className="space-y-1.5" style={{ height: '60px', width: '100%' }}>
-                        {/* Add Button - ALWAYS VISIBLE */}
-                        {!isAdminView && !viewingHistory && !viewAsUserId && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              setCurrentWeekCheckpointData({
-                                category: belief.category,
-                                checklistType: 'problems',
-                                text: ''
-                              });
-                              setShowCurrentWeekCheckpointDialog(true);
-                            }}
-                            className="w-full h-6 text-[10px] px-2 border-dashed border-coral-red/30 text-coral-red hover:bg-coral-red/10 flex items-center justify-center gap-1"
-                            data-testid={`button-add-problems-${belief.category.toLowerCase()}`}
-                          >
-                            <Plus className="w-3 h-3" />
-                            <span>Add</span>
-                          </Button>
-                        )}
-                        
-                        {/* Show first checkbox item */}
-                        {firstItem && (
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] font-semibold text-coral-red shrink-0">1.</span>
-                            <Checkbox
-                              checked={firstItem.checked}
-                              onCheckedChange={() => handleCurrentWeekCheckpointToggle(belief.category, 'problems', firstItem.id)}
-                              disabled={isAdminView || viewingHistory || !!viewAsUserId}
-                              className="h-3 w-3 shrink-0"
-                              data-testid={`checkbox-problems-${belief.category.toLowerCase()}-${firstItem.id}`}
-                            />
-                            <span 
-                              className="text-[10px] line-clamp-1 text-coral-red cursor-pointer hover:underline"
-                              onClick={() => {
-                                if (!isAdminView && !viewingHistory && !viewAsUserId) {
-                                  setCurrentWeekCheckpointData({
-                                    category: belief.category,
-                                    checklistType: 'problems',
-                                    text: firstItem.text
-                                  });
-                                  setShowCurrentWeekCheckpointDialog(true);
-                                }
-                              }}
-                              data-testid={`text-edit-problems-${belief.category.toLowerCase()}-${firstItem.id}`}
-                            >
-                              {firstItem.text}
-                            </span>
-                          </div>
-                        )}
-                        
-                        {/* Show "+ X more items..." if more than 1 */}
-                        {hasMoreItems && (
-                          <div 
-                            className="text-[10px] text-coral-red hover:text-coral-red/80 font-medium italic pl-5 cursor-pointer transition-colors"
-                            onClick={() => {
-                              setCurrentWeekCheckpointPopup({
-                                open: true,
-                                category: belief.category,
-                                type: 'problems',
-                                items: checklist
-                              });
-                            }}
-                            data-testid={`text-more-problems-${belief.category.toLowerCase()}`}
-                          >
-                            + {totalCount - 1} more item{totalCount - 1 > 1 ? 's' : ''}...
-                          </div>
-                        )}
-                        
-                        {/* Empty state */}
-                        {totalCount === 0 && (
-                          <p className="text-[10px] text-muted-foreground italic text-center py-1">
-                            No items yet
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })()}
+                  <CompactChecklistView
+                    items={belief.problemsChecklist || []}
+                    onToggle={(id) => handleCurrentWeekCheckpointToggle(belief.category as string, 'problems', id)}
+                    onUpdateText={(id, text) => handleCurrentWeekCheckpointUpdateText(belief.category as string, 'problems', id, text)}
+                    onAddCheckpoint={(text) => handleCurrentWeekCheckpointAdd(belief.category as string, 'problems', text)}
+                    onDeleteCheckpoint={(id) => handleCurrentWeekCheckpointDelete(belief.category as string, 'problems', id)}
+                    category={belief.category}
+                    checklistType="problems"
+                    disabled={isAdminView || viewingHistory || !!viewAsUserId}
+                  />
                 </TableCell>
 
-                {/* Current Week - Feelings (Checkbox-based) */}
+                {/* Current Week - Feelings */}
                 <TableCell className="p-2 bg-emerald-green/5 dark:bg-emerald-green/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
-                  {(() => {
-                    const checklist = belief.feelingsCurrentChecklist || [];
-                    const totalCount = checklist.length;
-                    const firstItem = checklist[0];
-                    const hasMoreItems = totalCount > 1;
-                    
-                    return (
-                      <div className="space-y-1.5" style={{ height: '60px', width: '100%' }}>
-                        {/* Add Button - ALWAYS VISIBLE */}
-                        {!isAdminView && !viewingHistory && !viewAsUserId && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              setCurrentWeekCheckpointData({
-                                category: belief.category,
-                                checklistType: 'currentFeelings',
-                                text: ''
-                              });
-                              setShowCurrentWeekCheckpointDialog(true);
-                            }}
-                            className="w-full h-6 text-[10px] px-2 border-dashed border-emerald-green/30 text-emerald-green hover:bg-emerald-green/10 flex items-center justify-center gap-1"
-                            data-testid={`button-add-current-feelings-${belief.category.toLowerCase()}`}
-                          >
-                            <Plus className="w-3 h-3" />
-                            <span>Add</span>
-                          </Button>
-                        )}
-                        
-                        {/* Show first checkbox item */}
-                        {firstItem && (
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] font-semibold text-emerald-green shrink-0">1.</span>
-                            <Checkbox
-                              checked={firstItem.checked}
-                              onCheckedChange={() => handleCurrentWeekCheckpointToggle(belief.category, 'currentFeelings', firstItem.id)}
-                              disabled={isAdminView || viewingHistory || !!viewAsUserId}
-                              className="h-3 w-3 shrink-0"
-                              data-testid={`checkbox-current-feelings-${belief.category.toLowerCase()}-${firstItem.id}`}
-                            />
-                            <span 
-                              className="text-[10px] line-clamp-1 text-emerald-green cursor-pointer hover:underline"
-                              onClick={() => {
-                                if (!isAdminView && !viewingHistory && !viewAsUserId) {
-                                  setCurrentWeekCheckpointData({
-                                    category: belief.category,
-                                    checklistType: 'currentFeelings',
-                                    text: firstItem.text
-                                  });
-                                  setShowCurrentWeekCheckpointDialog(true);
-                                }
-                              }}
-                              data-testid={`text-edit-current-feelings-${belief.category.toLowerCase()}-${firstItem.id}`}
-                            >
-                              {firstItem.text}
-                            </span>
-                          </div>
-                        )}
-                        
-                        {/* Show "+ X more items..." if more than 1 */}
-                        {hasMoreItems && (
-                          <div 
-                            className="text-[10px] text-emerald-green hover:text-emerald-green/80 font-medium italic pl-5 cursor-pointer transition-colors"
-                            onClick={() => {
-                              setCurrentWeekCheckpointPopup({
-                                open: true,
-                                category: belief.category,
-                                type: 'currentFeelings',
-                                items: checklist
-                              });
-                            }}
-                            data-testid={`text-more-current-feelings-${belief.category.toLowerCase()}`}
-                          >
-                            + {totalCount - 1} more item{totalCount - 1 > 1 ? 's' : ''}...
-                          </div>
-                        )}
-                        
-                        {/* Empty state */}
-                        {totalCount === 0 && (
-                          <p className="text-[10px] text-muted-foreground italic text-center py-1">
-                            No items yet
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })()}
+                  <CompactChecklistView
+                    items={belief.feelingsCurrentChecklist || []}
+                    onToggle={(id) => handleCurrentWeekCheckpointToggle(belief.category as string, 'currentFeelings', id)}
+                    onUpdateText={(id, text) => handleCurrentWeekCheckpointUpdateText(belief.category as string, 'currentFeelings', id, text)}
+                    onAddCheckpoint={(text) => handleCurrentWeekCheckpointAdd(belief.category as string, 'currentFeelings', text)}
+                    onDeleteCheckpoint={(id) => handleCurrentWeekCheckpointDelete(belief.category as string, 'currentFeelings', id)}
+                    category={belief.category}
+                    checklistType="feelingsCurrent"
+                    disabled={isAdminView || viewingHistory || !!viewAsUserId}
+                  />
                 </TableCell>
 
-                {/* Current Week - Beliefs (Checkbox-based) */}
+                {/* Current Week - Beliefs */}
                 <TableCell className="p-2 bg-golden-yellow/5 dark:bg-golden-yellow/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
-                  {(() => {
-                    const checklist = belief.beliefsCurrentChecklist || [];
-                    const totalCount = checklist.length;
-                    const firstItem = checklist[0];
-                    const hasMoreItems = totalCount > 1;
-                    
-                    return (
-                      <div className="space-y-1.5" style={{ height: '60px', width: '100%' }}>
-                        {/* Add Button - ALWAYS VISIBLE */}
-                        {!isAdminView && !viewingHistory && !viewAsUserId && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              setCurrentWeekCheckpointData({
-                                category: belief.category,
-                                checklistType: 'currentBeliefs',
-                                text: ''
-                              });
-                              setShowCurrentWeekCheckpointDialog(true);
-                            }}
-                            className="w-full h-6 text-[10px] px-2 border-dashed border-golden-yellow/30 text-golden-yellow hover:bg-golden-yellow/10 flex items-center justify-center gap-1"
-                            data-testid={`button-add-current-beliefs-${belief.category.toLowerCase()}`}
-                          >
-                            <Plus className="w-3 h-3" />
-                            <span>Add</span>
-                          </Button>
-                        )}
-                        
-                        {/* Show first checkbox item */}
-                        {firstItem && (
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] font-semibold text-golden-yellow shrink-0">1.</span>
-                            <Checkbox
-                              checked={firstItem.checked}
-                              onCheckedChange={() => handleCurrentWeekCheckpointToggle(belief.category, 'currentBeliefs', firstItem.id)}
-                              disabled={isAdminView || viewingHistory || !!viewAsUserId}
-                              className="h-3 w-3 shrink-0"
-                              data-testid={`checkbox-current-beliefs-${belief.category.toLowerCase()}-${firstItem.id}`}
-                            />
-                            <span 
-                              className="text-[10px] line-clamp-1 text-golden-yellow cursor-pointer hover:underline"
-                              onClick={() => {
-                                if (!isAdminView && !viewingHistory && !viewAsUserId) {
-                                  setCurrentWeekCheckpointData({
-                                    category: belief.category,
-                                    checklistType: 'currentBeliefs',
-                                    text: firstItem.text
-                                  });
-                                  setShowCurrentWeekCheckpointDialog(true);
-                                }
-                              }}
-                              data-testid={`text-edit-current-beliefs-${belief.category.toLowerCase()}-${firstItem.id}`}
-                            >
-                              {firstItem.text}
-                            </span>
-                          </div>
-                        )}
-                        
-                        {/* Show "+ X more items..." if more than 1 */}
-                        {hasMoreItems && (
-                          <div 
-                            className="text-[10px] text-golden-yellow hover:text-golden-yellow/80 font-medium italic pl-5 cursor-pointer transition-colors"
-                            onClick={() => {
-                              setCurrentWeekCheckpointPopup({
-                                open: true,
-                                category: belief.category,
-                                type: 'currentBeliefs',
-                                items: checklist
-                              });
-                            }}
-                            data-testid={`text-more-current-beliefs-${belief.category.toLowerCase()}`}
-                          >
-                            + {totalCount - 1} more item{totalCount - 1 > 1 ? 's' : ''}...
-                          </div>
-                        )}
-                        
-                        {/* Empty state */}
-                        {totalCount === 0 && (
-                          <p className="text-[10px] text-muted-foreground italic text-center py-1">
-                            No items yet
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })()}
+                  <CompactChecklistView
+                    items={belief.beliefsCurrentChecklist || []}
+                    onToggle={(id) => handleCurrentWeekCheckpointToggle(belief.category as string, 'currentBeliefs', id)}
+                    onUpdateText={(id, text) => handleCurrentWeekCheckpointUpdateText(belief.category as string, 'currentBeliefs', id, text)}
+                    onAddCheckpoint={(text) => handleCurrentWeekCheckpointAdd(belief.category as string, 'currentBeliefs', text)}
+                    onDeleteCheckpoint={(id) => handleCurrentWeekCheckpointDelete(belief.category as string, 'currentBeliefs', id)}
+                    category={belief.category}
+                    checklistType="beliefsCurrent"
+                    disabled={isAdminView || viewingHistory || !!viewAsUserId}
+                  />
                 </TableCell>
 
-                {/* Current Week - Actions (Checkbox-based) */}
+                {/* Current Week - Actions */}
                 <TableCell className="p-2 bg-soft-lavender/5 dark:bg-soft-lavender/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
-                  {(() => {
-                    const checklist = belief.actionsCurrentChecklist || [];
-                    const totalCount = checklist.length;
-                    const firstItem = checklist[0];
-                    const hasMoreItems = totalCount > 1;
-                    
-                    return (
-                      <div className="space-y-1.5" style={{ height: '60px', width: '100%' }}>
-                        {/* Add Button - ALWAYS VISIBLE */}
-                        {!isAdminView && !viewingHistory && !viewAsUserId && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              setCurrentWeekCheckpointData({
-                                category: belief.category,
-                                checklistType: 'currentActions',
-                                text: ''
-                              });
-                              setShowCurrentWeekCheckpointDialog(true);
-                            }}
-                            className="w-full h-6 text-[10px] px-2 border-dashed border-blue-500/30 text-blue-500 hover:bg-blue-500/10 flex items-center justify-center gap-1"
-                            data-testid={`button-add-current-actions-${belief.category.toLowerCase()}`}
-                          >
-                            <Plus className="w-3 h-3" />
-                            <span>Add</span>
-                          </Button>
-                        )}
-                        
-                        {/* Show first checkbox item */}
-                        {firstItem && (
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] font-semibold text-blue-500 shrink-0">1.</span>
-                            <Checkbox
-                              checked={firstItem.checked}
-                              onCheckedChange={() => handleCurrentWeekCheckpointToggle(belief.category, 'currentActions', firstItem.id)}
-                              disabled={isAdminView || viewingHistory || !!viewAsUserId}
-                              className="h-3 w-3 shrink-0"
-                              data-testid={`checkbox-current-actions-${belief.category.toLowerCase()}-${firstItem.id}`}
-                            />
-                            <span 
-                              className="text-[10px] line-clamp-1 text-blue-500 cursor-pointer hover:underline"
-                              onClick={() => {
-                                if (!isAdminView && !viewingHistory && !viewAsUserId) {
-                                  setCurrentWeekCheckpointData({
-                                    category: belief.category,
-                                    checklistType: 'currentActions',
-                                    text: firstItem.text
-                                  });
-                                  setShowCurrentWeekCheckpointDialog(true);
-                                }
-                              }}
-                              data-testid={`text-edit-current-actions-${belief.category.toLowerCase()}-${firstItem.id}`}
-                            >
-                              {firstItem.text}
-                            </span>
-                          </div>
-                        )}
-                        
-                        {/* Show "+ X more items..." if more than 1 */}
-                        {hasMoreItems && (
-                          <div 
-                            className="text-[10px] text-blue-500 hover:text-blue-500/80 font-medium italic pl-5 cursor-pointer transition-colors"
-                            onClick={() => {
-                              setCurrentWeekCheckpointPopup({
-                                open: true,
-                                category: belief.category,
-                                type: 'currentActions',
-                                items: checklist
-                              });
-                            }}
-                            data-testid={`text-more-current-actions-${belief.category.toLowerCase()}`}
-                          >
-                            + {totalCount - 1} more item{totalCount - 1 > 1 ? 's' : ''}...
-                          </div>
-                        )}
-                        
-                        {/* Empty state */}
-                        {totalCount === 0 && (
-                          <p className="text-[10px] text-muted-foreground italic text-center py-1">
-                            No items yet
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })()}
+                  <CompactChecklistView
+                    items={belief.actionsCurrentChecklist || []}
+                    onToggle={(id) => handleCurrentWeekCheckpointToggle(belief.category as string, 'currentActions', id)}
+                    onUpdateText={(id, text) => handleCurrentWeekCheckpointUpdateText(belief.category as string, 'currentActions', id, text)}
+                    onAddCheckpoint={(text) => handleCurrentWeekCheckpointAdd(belief.category as string, 'currentActions', text)}
+                    onDeleteCheckpoint={(id) => handleCurrentWeekCheckpointDelete(belief.category as string, 'currentActions', id)}
+                    category={belief.category}
+                    checklistType="actionsCurrent"
+                    disabled={isAdminView || viewingHistory || !!viewAsUserId}
+                  />
                 </TableCell>
 
                 {/* Current Week - Progress */}
