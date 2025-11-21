@@ -165,7 +165,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json([]);
       }
       
-      // Calculate scores for each week
+      // Calculate scores AND checkpoint stats for each week
       const weeklyScores = allWeeks.map((week: any) => {
         // Get current ratings for all 4 HRCM areas (1-7 scale each)
         const healthRating = week.currentH || 0;
@@ -176,6 +176,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const totalScore = healthRating + relationshipRating + careerRating + moneyRating;
         const maxScore = 28; // 7 × 4 areas
         const percentage = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
+        
+        // 📊 Calculate checkpoint stats (Current Week checkpoints from 4 columns: Problems, Feelings, Beliefs, Actions)
+        let totalCheckpoints = 0;
+        let checkedCheckpoints = 0;
+        
+        // Count checkpoints for all 4 HRCM areas
+        const areas = ['health', 'relationship', 'career', 'money'];
+        areas.forEach(area => {
+          // Count from 4 columns: Problems, Feelings, Beliefs, Actions
+          const problemsChecklist = week[`${area}ProblemsChecklist`] || [];
+          const feelingsChecklist = week[`${area}FeelingsCurrentChecklist`] || [];
+          const beliefsChecklist = week[`${area}BeliefsCurrentChecklist`] || [];
+          const actionsChecklist = week[`${area}ActionsCurrentChecklist`] || [];
+          
+          [problemsChecklist, feelingsChecklist, beliefsChecklist, actionsChecklist].forEach(checklist => {
+            if (Array.isArray(checklist)) {
+              totalCheckpoints += checklist.length;
+              checkedCheckpoints += checklist.filter((item: any) => item.checked).length;
+            }
+          });
+        });
         
         return {
           weekNumber: week.weekNumber,
@@ -188,6 +209,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             relationship: relationshipRating,
             career: careerRating,
             money: moneyRating
+          },
+          checkpoints: {
+            total: totalCheckpoints,
+            checked: checkedCheckpoints
           }
         };
       });

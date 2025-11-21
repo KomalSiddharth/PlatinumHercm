@@ -2856,6 +2856,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           {hasData ? (
             meaningfulWeeks.map((week: any) => {
               const isCurrent = currentWeek && week.weekNumber === currentWeek.weekNumber && week.year === currentWeek.year;
+              const checkpoints = week.checkpoints || { total: 0, checked: 0 };
               
               return (
                 <SelectItem 
@@ -2869,11 +2870,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     </span>
                     <span className="text-muted-foreground">-</span>
                     <span className="font-medium">
-                      {week.totalScore}/{week.maxScore}
+                      {checkpoints.checked}/{checkpoints.total} Checkpoints
                     </span>
-                    <span className="text-xs text-muted-foreground">
-                      ({week.percentage}%)
-                    </span>
+                    <span className="text-xs text-muted-foreground">✓</span>
                   </div>
                 </SelectItem>
               );
