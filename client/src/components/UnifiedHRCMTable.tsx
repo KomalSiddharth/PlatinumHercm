@@ -2771,9 +2771,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     const [editingItemId, setEditingItemId] = useState<string | null>(null);
     const [editingText, setEditingText] = useState('');
     const inputRef = useRef<HTMLInputElement>(null);
-    const visibleItems = items.slice(0, 2);
-    const hiddenCount = items.length - 2;
-    const hasMoreItems = items.length > 2;
+    const visibleItems = items.slice(0, 3);
+    const hiddenCount = items.length - 3;
+    const hasMoreItems = items.length > 3;
     
     // Get color scheme based on checklistType
     const getColorScheme = (type: string) => {
