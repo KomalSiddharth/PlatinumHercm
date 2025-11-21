@@ -3958,7 +3958,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       className="bg-white/20 border-white/40 text-white text-xs font-semibold"
                       data-testid="badge-current-week-checkpoint-stats"
                     >
-                      Current Week: {currentWeekCheckpointStats.checkedCheckpoints}/{currentWeekCheckpointStats.totalCheckpoints} Checkpoints ✓
+                      Target: {currentWeekCheckpointStats.checkedCheckpoints}/{currentWeekCheckpointStats.totalCheckpoints} Points
                     </Badge>
                   )}
                 </div>
