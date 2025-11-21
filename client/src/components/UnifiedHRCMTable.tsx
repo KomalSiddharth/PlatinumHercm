@@ -3194,7 +3194,16 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         {/* 🔥 NEW: Clean Dialog - Assignment Style */}
         <Dialog 
           open={showMasterDialog} 
-          onOpenChange={setShowMasterDialog}
+          onOpenChange={(open) => {
+            setShowMasterDialog(open);
+            if (!open) {
+              // Cleanup when dialog closes
+              setIsAddingNew(false);
+              setNewItemText('');
+              setEditingItemId(null);
+              setEditingText('');
+            }
+          }}
         >
           <DialogContent className="max-w-lg max-h-[700px] overflow-y-auto">
             <DialogHeader>
@@ -3308,21 +3317,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   </p>
                 )}
               </div>
-            </div>
-            
-            {/* Footer with Close button */}
-            <div className="flex justify-end pt-3 border-t">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setShowMasterDialog(false);
-                  setIsAddingNew(false);
-                  setNewItemText('');
-                }}
-                data-testid={`button-close-checkpoint-dialog-${checklistType}`}
-              >
-                Close
-              </Button>
             </div>
           </DialogContent>
         </Dialog>
