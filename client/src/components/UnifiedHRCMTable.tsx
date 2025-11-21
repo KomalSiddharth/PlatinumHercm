@@ -2833,25 +2833,13 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
     console.log('📊 [WEEKLY DROPDOWN] isLoading:', isLoading, 'weeklyScores:', weeklyScores, 'error:', error);
 
-    // Get color indicator based on score percentage
-    const getScoreColor = (percentage: number) => {
-      if (percentage >= 85) return '🟢'; // Green - Excellent
-      if (percentage >= 64) return '🟡'; // Yellow - Good
-      if (percentage >= 43) return '🟠'; // Orange - Fair
-      return '🔴'; // Red - Poor
-    };
-
-    // Get score label
-    const getScoreLabel = (percentage: number) => {
-      if (percentage >= 85) return 'Excellent';
-      if (percentage >= 64) return 'Good';
-      if (percentage >= 43) return 'Fair';
-      return 'Poor';
-    };
+    // Filter out weeks with minimal data (score < 5 indicates barely initialized week)
+    const meaningfulWeeks = weeklyScores ? weeklyScores.filter((week: any) => week.totalScore >= 5) : [];
+    console.log('📊 [WEEKLY DROPDOWN] Filtered meaningful weeks:', meaningfulWeeks);
 
     // Always render the dropdown, even if loading or no data
-    const hasData = weeklyScores && weeklyScores.length > 0;
-    const currentWeek = hasData ? weeklyScores[0] : null; // Already sorted by most recent first
+    const hasData = meaningfulWeeks && meaningfulWeeks.length > 0;
+    const currentWeek = hasData ? meaningfulWeeks[0] : null; // Already sorted by most recent first
 
     return (
       <Select disabled={isLoading || !hasData}>
@@ -2866,7 +2854,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         </SelectTrigger>
         <SelectContent className="max-h-[300px]">
           {hasData ? (
-            weeklyScores.map((week: any) => {
+            meaningfulWeeks.map((week: any) => {
               const isCurrent = currentWeek && week.weekNumber === currentWeek.weekNumber && week.year === currentWeek.year;
               
               return (
