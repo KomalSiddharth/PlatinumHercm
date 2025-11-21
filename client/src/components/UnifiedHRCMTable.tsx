@@ -4528,7 +4528,23 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   const length = e.target.value.length;
                   e.target.setSelectionRange(length, length);
                 }}
-                placeholder="Enter your checkpoint..."
+                onKeyDown={(e) => {
+                  // Ctrl+Enter or Cmd+Enter to add and keep dialog open
+                  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    if (firstCheckpointData?.text.trim()) {
+                      // Save checkpoint
+                      handleAddCheckpoint(
+                        firstCheckpointData.category, 
+                        firstCheckpointData.checklistType, 
+                        firstCheckpointData.text.trim()
+                      );
+                      // Reset text field but keep dialog open
+                      setFirstCheckpointData(prev => prev ? { ...prev, text: '' } : null);
+                    }
+                  }
+                }}
+                placeholder="Enter your checkpoint... (Ctrl+Enter to add more)"
                 className="min-h-[100px] text-sm bg-white dark:bg-gray-950 border-muted"
                 autoFocus
                 data-testid="textarea-first-checkpoint"
@@ -5013,7 +5029,28 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   const length = e.target.value.length;
                   e.target.setSelectionRange(length, length);
                 }}
-                placeholder="Enter your checkpoint..."
+                onKeyDown={(e) => {
+                  // Ctrl+Enter or Cmd+Enter to add and keep dialog open
+                  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    if (currentWeekCheckpointData?.text.trim()) {
+                      // Map checklistType to correct format
+                      const mappedType = currentWeekCheckpointData.checklistType === 'currentFeelings' ? 'feelingsCurrent' :
+                                        currentWeekCheckpointData.checklistType === 'currentBeliefs' ? 'beliefsCurrent' :
+                                        currentWeekCheckpointData.checklistType === 'currentActions' ? 'actionsCurrent' :
+                                        'problems';
+                      // Save checkpoint
+                      handleAddCheckpoint(
+                        currentWeekCheckpointData.category, 
+                        mappedType, 
+                        currentWeekCheckpointData.text.trim()
+                      );
+                      // Reset text field but keep dialog open
+                      setCurrentWeekCheckpointData(prev => prev ? { ...prev, text: '' } : null);
+                    }
+                  }
+                }}
+                placeholder="Enter your checkpoint... (Ctrl+Enter to add more)"
                 className="min-h-[100px] text-sm bg-white dark:bg-gray-950 border-muted"
                 autoFocus
                 data-testid="textarea-current-week-checkpoint"
