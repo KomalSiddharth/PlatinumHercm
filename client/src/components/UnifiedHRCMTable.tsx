@@ -2888,13 +2888,13 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
     console.log('📊 [WEEKLY DROPDOWN] isLoading:', isLoading, 'weeklyScores:', weeklyScores, 'error:', error);
 
-    // Filter out weeks with minimal data (score < 5 indicates barely initialized week)
-    const meaningfulWeeks = weeklyScores ? weeklyScores.filter((week: any) => week.totalScore >= 5) : [];
-    console.log('📊 [WEEKLY DROPDOWN] Filtered meaningful weeks:', meaningfulWeeks);
+    // 🔥 Show ALL weeks from API (no filtering - backend already generates Week 1 to current week)
+    const allWeeks = weeklyScores || [];
+    console.log('📊 [WEEKLY DROPDOWN] All weeks from API:', allWeeks);
 
     // Always render the dropdown, even if loading or no data
-    const hasData = meaningfulWeeks && meaningfulWeeks.length > 0;
-    const currentWeek = hasData ? meaningfulWeeks[0] : null; // Already sorted by most recent first
+    const hasData = allWeeks && allWeeks.length > 0;
+    const currentWeek = hasData ? allWeeks[0] : null; // Already sorted by most recent first (current week)
 
     return (
       <Select disabled={isLoading || !hasData}>
@@ -2909,7 +2909,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         </SelectTrigger>
         <SelectContent className="max-h-[300px] bg-white">
           {hasData ? (
-            meaningfulWeeks.map((week: any) => {
+            allWeeks.map((week: any) => {
               const isCurrent = currentWeek && week.weekNumber === currentWeek.weekNumber && week.year === currentWeek.year;
               const checkpoints = week.checkpoints || { total: 0, checked: 0 };
               
