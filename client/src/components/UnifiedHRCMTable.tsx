@@ -2893,7 +2893,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           onClick={(e) => e.stopPropagation()} // Prevent calendar popup from opening
         >
           <SelectValue 
-            placeholder={isLoading ? "Loading..." : !hasData ? "No weekly data yet" : currentWeek ? `${currentWeek.checkpoints?.checked || 0} Points` : "View Weekly Performance"} 
+            placeholder={isLoading ? "Loading..." : !hasData ? "No weekly data yet" : "View Weekly Performance"} 
           />
         </SelectTrigger>
         <SelectContent className="max-h-[300px]">
