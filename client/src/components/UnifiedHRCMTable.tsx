@@ -3064,12 +3064,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         value={newItemText}
                         onChange={(e) => setNewItemText(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        onBlur={() => {
-                          // Auto-save when clicking outside input (but inside dialog)
-                          if (newItemText.trim()) {
-                            handleAddNewItem();
-                          }
-                        }}
                         placeholder={`Type your ${colorScheme.label.toLowerCase()}...`}
                         className="text-sm"
                         data-testid={`input-new-checkpoint-inline-${checklistType}`}
