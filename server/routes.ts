@@ -141,6 +141,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 📊 NEW: Get weekly scores summary for performance dropdown
+  app.get('/api/hercm/weekly-scores', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      let user = await storage.getUser(userId);
+      if (!user && typeof userId === 'string' && userId.includes('@')) {
+        user = await storage.getUserByEmail(userId);
+      }
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Get all weeks for user
+      const allWeeks = await storage.getHercmWeeksByUser(user.id);
+      
+      if (!allWeeks || allWeeks.length === 0) {
+        return res.json([]);
+      }
+      
+      // Calculate scores for each week
+      const weeklyScores = allWeeks.map((week: any) => {
+        // Get current ratings for all 4 HRCM areas (1-7 scale each)
+        const healthRating = week.currentH || 0;
+        const relationshipRating = week.currentE || 0; // Emotion/Relationship
+        const careerRating = week.currentR || 0; // Respect/Career
+        const moneyRating = week.currentC || 0; // Courage/Money
+        
+        const totalScore = healthRating + relationshipRating + careerRating + moneyRating;
+        const maxScore = 28; // 7 × 4 areas
+        const percentage = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
+        
+        return {
+          weekNumber: week.weekNumber,
+          year: week.year,
+          totalScore,
+          maxScore,
+          percentage,
+          breakdown: {
+            health: healthRating,
+            relationship: relationshipRating,
+            career: careerRating,
+            money: moneyRating
+          }
+        };
+      });
+      
+      // Sort by year and week number (most recent first)
+      weeklyScores.sort((a, b) => {
+        if (a.year !== b.year) return b.year - a.year;
+        return b.weekNumber - a.weekNumber;
+      });
+      
+      res.json(weeklyScores);
+    } catch (error) {
+      console.error("Error fetching weekly scores:", error);
+      res.status(500).json({ message: "Failed to fetch weekly scores" });
+    }
+  });
+
   // 🆕 Get previous day's HRCM data for daily auto-copy feature
   // 🔥 ENHANCED: Look for last available data within 7 days (not just immediate previous day)
   app.get('/api/hercm/previous-day/:date', isAuthenticated, async (req: any, res) => {
