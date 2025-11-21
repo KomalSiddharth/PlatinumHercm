@@ -2888,12 +2888,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     return (
       <Select disabled={isLoading || !hasData}>
         <SelectTrigger 
-          className="w-auto min-w-[240px] h-7 bg-white/95 border-white/60 text-xs font-medium shadow-sm hover:bg-white transition-colors"
+          className="w-auto min-w-[240px] h-7 bg-white/95 border-white/60 text-xs font-medium shadow-sm hover:bg-white transition-colors text-black"
           data-testid="select-weekly-performance"
           onClick={(e) => e.stopPropagation()} // Prevent calendar popup from opening
         >
           <SelectValue 
-            placeholder={isLoading ? "Loading..." : !hasData ? "No weekly data yet" : "View Weekly Performance"} 
+            placeholder={isLoading ? "Loading..." : !hasData ? "No weekly data yet" : currentWeek ? `${currentWeek.checkpoints?.checked || 0} Points` : "View Weekly Performance"} 
           />
         </SelectTrigger>
         <SelectContent className="max-h-[300px]">
@@ -2908,15 +2908,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   value={`week-${week.year}-${week.weekNumber}`}
                   data-testid={`option-week-${week.weekNumber}`}
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 text-black">
                     <span className="font-semibold">
                       Week {week.weekNumber} {isCurrent && '(Current)'}
                     </span>
                     <span className="text-muted-foreground">-</span>
                     <span className="font-medium">
-                      {checkpoints.checked}/{checkpoints.total} Checkpoints
+                      {checkpoints.checked} Points
                     </span>
-                    <span className="text-xs text-muted-foreground">✓</span>
                   </div>
                 </SelectItem>
               );
