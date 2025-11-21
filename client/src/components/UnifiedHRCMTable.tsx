@@ -3210,6 +3210,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               {/* Add New Button - AT THE TOP */}
               {!disabled && (
                 <Button
+                  type="button"
                   size="sm"
                   variant="outline"
                   onClick={handleStartAddingNew}
@@ -3236,10 +3237,16 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     data-testid={`input-new-checkpoint-${checklistType}`}
                   />
                   <Button
+                    type="button"
                     size="sm"
-                    onClick={handleAddNewItem}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleAddNewItem();
+                    }}
                     disabled={!newItemText.trim()}
                     className="h-8 shrink-0"
+                    data-testid={`button-save-checkpoint-${checklistType}`}
                   >
                     Add
                   </Button>
