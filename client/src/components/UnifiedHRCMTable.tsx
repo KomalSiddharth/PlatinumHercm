@@ -3199,20 +3199,17 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         <Dialog 
           open={isAddingNew} 
           onOpenChange={(open) => {
+            // Only handle closing - don't propagate to main dialog
             if (!open) {
-              setIsAddingNew(false);
-              setNewItemText('');
-              setEditingItemId(null);
+              setTimeout(() => {
+                setIsAddingNew(false);
+                setNewItemText('');
+                setEditingItemId(null);
+              }, 50); // Small delay to prevent main dialog closure
             }
           }}
         >
-          <DialogContent 
-            className="max-w-md"
-            onInteractOutside={(e) => {
-              // Prevent closing main dialog when interacting with add dialog
-              e.stopPropagation();
-            }}
-          >
+          <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle className="text-base font-semibold">
                 {editingItemId ? `Edit ${buttonLabel}` : `Add ${buttonLabel}`}
@@ -3262,10 +3259,17 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         <Dialog 
           open={showMasterDialog} 
           onOpenChange={(open) => {
-            // Only close main dialog when user explicitly clicks outside
-            // Keep open when add dialog is being used
-            if (!open && !isAddingNew) {
-              setShowMasterDialog(false);
+            // Prevent closing if add dialog is currently open
+            if (!open) {
+              // Add slight delay to check if add dialog just closed
+              setTimeout(() => {
+                // Double check - only close if add dialog is not opening
+                if (!isAddingNew) {
+                  setShowMasterDialog(false);
+                }
+              }, 100);
+            } else {
+              setShowMasterDialog(true);
             }
           }}
         >
@@ -3323,7 +3327,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                           onClick={() => {
                             if (!disabled) {
                               setEditingItemId(item.id);
-                              setEditingText(item.text);
+                              setNewItemText(item.text); // Set text for textarea
                               setIsAddingNew(true);
                             }
                           }}
