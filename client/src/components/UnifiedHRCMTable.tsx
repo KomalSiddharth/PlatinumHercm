@@ -2677,8 +2677,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   // Handle current week checkpoint dialog close with auto-save (click-outside-to-save)
   const handleCurrentWeekCheckpointDialogClose = (open: boolean) => {
     if (!open) {
-      // Dialog is closing - save if there's text
+      // Dialog is closing - save if there's text (click-outside-to-save)
+      // Note: Enter key handlers clear currentWeekCheckpointData BEFORE closing,
+      // so this won't create duplicates when using Enter/Ctrl+Enter
       if (currentWeekCheckpointData && currentWeekCheckpointData.text.trim()) {
+        const textToSave = currentWeekCheckpointData.text.trim();
         // Map to existing checkpoint types
         const typeMap: Record<string, 'result' | 'feelings' | 'beliefs' | 'actions' | 'problems' | 'feelingsCurrent' | 'beliefsCurrent' | 'actionsCurrent'> = {
           'problems': 'problems',
@@ -2687,25 +2690,28 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           'currentActions': 'actionsCurrent'
         };
         const mappedType = typeMap[currentWeekCheckpointData.checklistType];
-        handleAddCheckpoint(currentWeekCheckpointData.category, mappedType, currentWeekCheckpointData.text.trim());
         
-        // ✅ UPDATE POPUP LIST IN REAL-TIME: Add new checkpoint to popup items
+        // ✅ INSTANT ADD: Create new item immediately
+        const newItem: ChecklistItem = {
+          id: `${currentWeekCheckpointData.category}-${mappedType}-${Date.now()}`,
+          text: textToSave,
+          checked: false
+        };
+        
+        // Update popup list INSTANTLY (optimistic update)
         if (currentWeekCheckpointPopup.open && 
             currentWeekCheckpointPopup.category === currentWeekCheckpointData.category &&
             currentWeekCheckpointPopup.type === currentWeekCheckpointData.checklistType) {
-          const newItem: ChecklistItem = {
-            id: `${currentWeekCheckpointData.category}-${mappedType}-${Date.now()}`,
-            text: currentWeekCheckpointData.text.trim(),
-            checked: false
-          };
           setCurrentWeekCheckpointPopup(prev => ({
             ...prev,
             items: [newItem, ...prev.items] // Add at start for visibility
           }));
         }
         
-        setCurrentWeekCheckpointData(null);
+        // Save to backend
+        handleAddCheckpoint(currentWeekCheckpointData.category, mappedType, textToSave);
       }
+      setCurrentWeekCheckpointData(null);
     }
     setShowCurrentWeekCheckpointDialog(open);
   };
@@ -5291,6 +5297,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
                     e.preventDefault();
                     if (currentWeekCheckpointData?.text.trim()) {
+                      const textToSave = currentWeekCheckpointData.text.trim();
                       // Map checklistType to correct format
                       const mappedType = currentWeekCheckpointData.checklistType === 'currentFeelings' ? 'feelingsCurrent' :
                                         currentWeekCheckpointData.checklistType === 'currentBeliefs' ? 'beliefsCurrent' :
@@ -5300,7 +5307,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       // ✅ INSTANT ADD: Create new item immediately
                       const newItem: ChecklistItem = {
                         id: `${currentWeekCheckpointData.category}-${mappedType}-${Date.now()}`,
-                        text: currentWeekCheckpointData.text.trim(),
+                        text: textToSave,
                         checked: false
                       };
                       
@@ -5314,12 +5321,13 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       handleAddCheckpoint(
                         currentWeekCheckpointData.category, 
                         mappedType, 
-                        currentWeekCheckpointData.text.trim()
+                        textToSave
                       );
                       
-                      // Close the add dialog
-                      setShowCurrentWeekCheckpointDialog(false);
+                      // ✅ CRITICAL: Clear text FIRST to prevent double-add from dialog close handler
                       setCurrentWeekCheckpointData(null);
+                      // Then close the add dialog
+                      setShowCurrentWeekCheckpointDialog(false);
                     }
                   }
                   // Ctrl+Enter or Cmd+Enter to add and keep dialog open
