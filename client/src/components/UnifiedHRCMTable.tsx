@@ -1740,29 +1740,65 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     });
   };
 
-  // Handle Current Week checkpoint add
+  // 🔥 ADD CHECKPOINT: Assignment Column Pattern - Instant & No Duplicates!
   const handleCurrentWeekCheckpointAdd = (category: string, type: 'problems' | 'currentFeelings' | 'currentBeliefs' | 'currentActions', text: string) => {
-    const updated = beliefs.map(belief => {
+    // Get FRESH data from cache (not stale state!)
+    const currentBeliefs = queryClient.getQueryData<HRCMBelief[]>(['/api/hrcm/date', currentDateStr, viewAsUserId]) || [];
+    
+    const newItem: ChecklistItem = { 
+      id: `${category}-${type}-${Date.now()}`, 
+      text, 
+      checked: false 
+    };
+    
+    const updated = currentBeliefs.map(belief => {
       if (belief.category === category) {
-        const newItem: ChecklistItem = { id: Date.now().toString(), text, checked: false };
         let updatedBelief = { ...belief };
         
-        if (type === 'problems' && belief.problemsChecklist) {
-          updatedBelief.problemsChecklist = [...belief.problemsChecklist, newItem];
-        } else if (type === 'currentFeelings' && belief.feelingsCurrentChecklist) {
-          updatedBelief.feelingsCurrentChecklist = [...belief.feelingsCurrentChecklist, newItem];
-        } else if (type === 'currentBeliefs' && belief.beliefsCurrentChecklist) {
-          updatedBelief.beliefsCurrentChecklist = [...belief.beliefsCurrentChecklist, newItem];
-        } else if (type === 'currentActions' && belief.actionsCurrentChecklist) {
-          updatedBelief.actionsCurrentChecklist = [...belief.actionsCurrentChecklist, newItem];
+        if (type === 'problems') {
+          updatedBelief.problemsChecklist = [...(belief.problemsChecklist || []), newItem];
+        } else if (type === 'currentFeelings') {
+          updatedBelief.feelingsCurrentChecklist = [...(belief.feelingsCurrentChecklist || []), newItem];
+        } else if (type === 'currentBeliefs') {
+          updatedBelief.beliefsCurrentChecklist = [...(belief.beliefsCurrentChecklist || []), newItem];
+        } else if (type === 'currentActions') {
+          updatedBelief.actionsCurrentChecklist = [...(belief.actionsCurrentChecklist || []), newItem];
         }
         return updatedBelief;
       }
       return belief;
     });
     
-    updateBeliefsCache(updated);
-    saveWeekMutation.mutate({ weekNumber: actualWeekNumber, year: new Date().getFullYear(), dateString: currentDateStr, beliefs: updated });
+    // ✅ INSTANT UPDATE: Update cache immediately
+    queryClient.setQueryData(['/api/hrcm/date', currentDateStr, viewAsUserId], updated);
+    
+    // ✅ INSTANT POPUP UPDATE: Update popup list if it's open
+    if (currentWeekCheckpointPopup.open && currentWeekCheckpointPopup.category === category && currentWeekCheckpointPopup.type === type) {
+      const updatedBeliefData = updated.find(b => b.category === category);
+      if (updatedBeliefData) {
+        const newItems = type === 'problems' ? updatedBeliefData.problemsChecklist || [] :
+                        type === 'currentFeelings' ? updatedBeliefData.feelingsCurrentChecklist || [] :
+                        type === 'currentBeliefs' ? updatedBeliefData.beliefsCurrentChecklist || [] :
+                        updatedBeliefData.actionsCurrentChecklist || [];
+        
+        setCurrentWeekCheckpointPopup({
+          ...currentWeekCheckpointPopup,
+          items: newItems
+        });
+      }
+    }
+    
+    // ✅ BACKEND SAVE: Save changes to database (background)
+    apiRequest(`/api/hercm/save-with-comparison`, 'POST', {
+      weekNumber: actualWeekNumber,
+      year: new Date().getFullYear(),
+      dateString: currentDateStr,
+      beliefs: updated
+    }).catch(error => {
+      console.error('[ADD ERROR] Failed to save addition:', error);
+      // Rollback on error
+      queryClient.refetchQueries({ queryKey: ['/api/hrcm/date', currentDateStr, viewAsUserId] });
+    });
   };
 
   // Handle Current Week checkpoint update text
@@ -5304,34 +5340,20 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     if (currentWeekCheckpointData?.text.trim()) {
                       const textToSave = currentWeekCheckpointData.text.trim();
                       // Map checklistType to correct format
-                      const mappedType = currentWeekCheckpointData.checklistType === 'currentFeelings' ? 'feelingsCurrent' :
-                                        currentWeekCheckpointData.checklistType === 'currentBeliefs' ? 'beliefsCurrent' :
-                                        currentWeekCheckpointData.checklistType === 'currentActions' ? 'actionsCurrent' :
+                      const mappedType = currentWeekCheckpointData.checklistType === 'currentFeelings' ? 'currentFeelings' :
+                                        currentWeekCheckpointData.checklistType === 'currentBeliefs' ? 'currentBeliefs' :
+                                        currentWeekCheckpointData.checklistType === 'currentActions' ? 'currentActions' :
                                         'problems';
                       
-                      // ✅ INSTANT ADD: Create new item immediately
-                      const newItem: ChecklistItem = {
-                        id: `${currentWeekCheckpointData.category}-${mappedType}-${Date.now()}`,
-                        text: textToSave,
-                        checked: false
-                      };
-                      
-                      // Update popup list INSTANTLY (optimistic update)
-                      setCurrentWeekCheckpointPopup(prev => ({
-                        ...prev,
-                        items: [newItem, ...prev.items] // Add at start for visibility
-                      }));
-                      
-                      // Save to backend
-                      handleAddCheckpoint(
+                      // ✅ Let handleCurrentWeekCheckpointAdd do EVERYTHING (cache + popup + save)
+                      handleCurrentWeekCheckpointAdd(
                         currentWeekCheckpointData.category, 
                         mappedType, 
                         textToSave
                       );
                       
-                      // ✅ CRITICAL: Clear text FIRST to prevent double-add from dialog close handler
+                      // Clear and close
                       setCurrentWeekCheckpointData(null);
-                      // Then close the add dialog
                       setShowCurrentWeekCheckpointDialog(false);
                     }
                   }
@@ -5339,32 +5361,21 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                     e.preventDefault();
                     if (currentWeekCheckpointData?.text.trim()) {
+                      const textToSave = currentWeekCheckpointData.text.trim();
                       // Map checklistType to correct format
-                      const mappedType = currentWeekCheckpointData.checklistType === 'currentFeelings' ? 'feelingsCurrent' :
-                                        currentWeekCheckpointData.checklistType === 'currentBeliefs' ? 'beliefsCurrent' :
-                                        currentWeekCheckpointData.checklistType === 'currentActions' ? 'actionsCurrent' :
+                      const mappedType = currentWeekCheckpointData.checklistType === 'currentFeelings' ? 'currentFeelings' :
+                                        currentWeekCheckpointData.checklistType === 'currentBeliefs' ? 'currentBeliefs' :
+                                        currentWeekCheckpointData.checklistType === 'currentActions' ? 'currentActions' :
                                         'problems';
                       
-                      // ✅ INSTANT ADD: Create new item immediately
-                      const newItem: ChecklistItem = {
-                        id: `${currentWeekCheckpointData.category}-${mappedType}-${Date.now()}`,
-                        text: currentWeekCheckpointData.text.trim(),
-                        checked: false
-                      };
-                      
-                      // Update popup list INSTANTLY (optimistic update)
-                      setCurrentWeekCheckpointPopup(prev => ({
-                        ...prev,
-                        items: [newItem, ...prev.items]
-                      }));
-                      
-                      // Save checkpoint
-                      handleAddCheckpoint(
+                      // ✅ Let handleCurrentWeekCheckpointAdd do EVERYTHING (cache + popup + save)
+                      handleCurrentWeekCheckpointAdd(
                         currentWeekCheckpointData.category, 
                         mappedType, 
-                        currentWeekCheckpointData.text.trim()
+                        textToSave
                       );
-                      // Reset text field but keep dialog open
+                      
+                      // Reset text field but keep dialog open (for batch entry)
                       setCurrentWeekCheckpointData(prev => prev ? { ...prev, text: '' } : null);
                     }
                   }
