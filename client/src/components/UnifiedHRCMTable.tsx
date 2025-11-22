@@ -4059,58 +4059,30 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
                 {/* Current Week - Problems */}
                 <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
-                  <CompactChecklistView
-                    items={belief.problemsChecklist || []}
-                    onToggle={(id) => handleCurrentWeekCheckpointToggle(belief.category as string, 'problems', id)}
-                    onUpdateText={(id, text) => handleCurrentWeekCheckpointUpdateText(belief.category as string, 'problems', id, text)}
-                    onAddCheckpoint={(text) => handleCurrentWeekCheckpointAdd(belief.category as string, 'problems', text)}
-                    onDeleteCheckpoint={(id) => handleCurrentWeekCheckpointDelete(belief.category as string, 'problems', id)}
-                    category={belief.category}
-                    checklistType="problems"
-                    disabled={isAdminView || viewingHistory || !!viewAsUserId}
-                  />
+                  <div className="text-sm whitespace-pre-wrap text-gray-700 dark:text-gray-300">
+                    {belief.problems || '—'}
+                  </div>
                 </TableCell>
 
                 {/* Current Week - Feelings */}
                 <TableCell className="p-2 bg-emerald-green/5 dark:bg-emerald-green/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
-                  <CompactChecklistView
-                    items={belief.feelingsCurrentChecklist || []}
-                    onToggle={(id) => handleCurrentWeekCheckpointToggle(belief.category as string, 'currentFeelings', id)}
-                    onUpdateText={(id, text) => handleCurrentWeekCheckpointUpdateText(belief.category as string, 'currentFeelings', id, text)}
-                    onAddCheckpoint={(text) => handleCurrentWeekCheckpointAdd(belief.category as string, 'currentFeelings', text)}
-                    onDeleteCheckpoint={(id) => handleCurrentWeekCheckpointDelete(belief.category as string, 'currentFeelings', id)}
-                    category={belief.category}
-                    checklistType="feelingsCurrent"
-                    disabled={isAdminView || viewingHistory || !!viewAsUserId}
-                  />
+                  <div className="text-sm whitespace-pre-wrap text-gray-700 dark:text-gray-300">
+                    {belief.currentFeelings || '—'}
+                  </div>
                 </TableCell>
 
                 {/* Current Week - Beliefs */}
                 <TableCell className="p-2 bg-golden-yellow/5 dark:bg-golden-yellow/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
-                  <CompactChecklistView
-                    items={belief.beliefsCurrentChecklist || []}
-                    onToggle={(id) => handleCurrentWeekCheckpointToggle(belief.category as string, 'currentBeliefs', id)}
-                    onUpdateText={(id, text) => handleCurrentWeekCheckpointUpdateText(belief.category as string, 'currentBeliefs', id, text)}
-                    onAddCheckpoint={(text) => handleCurrentWeekCheckpointAdd(belief.category as string, 'currentBeliefs', text)}
-                    onDeleteCheckpoint={(id) => handleCurrentWeekCheckpointDelete(belief.category as string, 'currentBeliefs', id)}
-                    category={belief.category}
-                    checklistType="beliefsCurrent"
-                    disabled={isAdminView || viewingHistory || !!viewAsUserId}
-                  />
+                  <div className="text-sm whitespace-pre-wrap text-gray-700 dark:text-gray-300">
+                    {belief.currentBelief || '—'}
+                  </div>
                 </TableCell>
 
                 {/* Current Week - Actions */}
                 <TableCell className="p-2 bg-soft-lavender/5 dark:bg-soft-lavender/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
-                  <CompactChecklistView
-                    items={belief.actionsCurrentChecklist || []}
-                    onToggle={(id) => handleCurrentWeekCheckpointToggle(belief.category as string, 'currentActions', id)}
-                    onUpdateText={(id, text) => handleCurrentWeekCheckpointUpdateText(belief.category as string, 'currentActions', id, text)}
-                    onAddCheckpoint={(text) => handleCurrentWeekCheckpointAdd(belief.category as string, 'currentActions', text)}
-                    onDeleteCheckpoint={(id) => handleCurrentWeekCheckpointDelete(belief.category as string, 'currentActions', id)}
-                    category={belief.category}
-                    checklistType="actionsCurrent"
-                    disabled={isAdminView || viewingHistory || !!viewAsUserId}
-                  />
+                  <div className="text-sm whitespace-pre-wrap text-gray-700 dark:text-gray-300">
+                    {belief.currentActions || '—'}
+                  </div>
                 </TableCell>
 
                 {/* Current Week - Progress */}
