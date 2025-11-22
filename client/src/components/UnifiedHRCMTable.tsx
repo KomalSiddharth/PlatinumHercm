@@ -2927,6 +2927,50 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     });
   };
 
+  // Helper: Open Current Week checkpoint popup with FRESH data from cache
+  const openCurrentWeekCheckpointPopup = (category: string, type: 'problems' | 'currentFeelings' | 'currentBeliefs' | 'currentActions') => {
+    const cacheData = queryClient.getQueryData<HRCMBelief[]>(['/api/hrcm/date', currentDateStr, viewAsUserId]);
+    const currentBeliefs = Array.isArray(cacheData) ? cacheData : beliefs;
+    const belief = currentBeliefs.find(b => b.category === category);
+    
+    let items: ChecklistItem[] = [];
+    if (belief) {
+      items = type === 'problems' ? belief.problemsChecklist || [] :
+              type === 'currentFeelings' ? belief.feelingsCurrentChecklist || [] :
+              type === 'currentBeliefs' ? belief.beliefsCurrentChecklist || [] :
+              belief.actionsCurrentChecklist || [];
+    }
+    
+    setCurrentWeekCheckpointPopup({
+      open: true,
+      category: category,
+      type: type,
+      items: items
+    });
+  };
+
+  // Helper: Open Next Week checkpoint popup with FRESH data from cache
+  const openNextWeekCheckpointPopup = (category: string, type: 'result' | 'feelings' | 'beliefs' | 'actions') => {
+    const cacheData = queryClient.getQueryData<HRCMBelief[]>(['/api/hrcm/date', currentDateStr, viewAsUserId]);
+    const currentBeliefs = Array.isArray(cacheData) ? cacheData : beliefs;
+    const belief = currentBeliefs.find(b => b.category === category);
+    
+    let items: ChecklistItem[] = [];
+    if (belief) {
+      items = type === 'result' ? belief.resultChecklist || [] :
+              type === 'feelings' ? belief.feelingsChecklist || [] :
+              type === 'beliefs' ? belief.beliefsChecklist || [] :
+              belief.actionsChecklist || [];
+    }
+    
+    setNextWeekCheckpointPopup({
+      open: true,
+      category: category,
+      type: type,
+      items: items
+    });
+  };
+
   // Show dialog for first checkpoint
   const handleShowFirstCheckpointDialog = (category: string, checklistType: 'result' | 'feelings' | 'beliefs' | 'actions' | 'problems' | 'feelingsCurrent' | 'beliefsCurrent' | 'actionsCurrent') => {
     setFirstCheckpointData({ category, checklistType, text: '' });
@@ -4376,12 +4420,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top w-[180px] min-w-[180px] max-w-[180px] cursor-pointer hover-elevate active-elevate-2 transition-all"
                   onClick={() => {
                     if (!isAdminView && !viewAsUserId) {
-                      setCurrentWeekCheckpointPopup({
-                        open: true,
-                        category: belief.category,
-                        type: 'problems',
-                        items: belief.problemsChecklist || []
-                      });
+                      openCurrentWeekCheckpointPopup(belief.category, 'problems');
                     }
                   }}
                   data-testid={`cell-current-week-problems-${belief.category.toLowerCase()}`}
@@ -4415,12 +4454,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   className="p-2 bg-emerald-green/5 dark:bg-emerald-green/10 align-top w-[180px] min-w-[180px] max-w-[180px] cursor-pointer hover-elevate active-elevate-2 transition-all"
                   onClick={() => {
                     if (!isAdminView && !viewAsUserId) {
-                      setCurrentWeekCheckpointPopup({
-                        open: true,
-                        category: belief.category,
-                        type: 'currentFeelings',
-                        items: belief.feelingsCurrentChecklist || []
-                      });
+                      openCurrentWeekCheckpointPopup(belief.category, 'currentFeelings');
                     }
                   }}
                   data-testid={`cell-current-week-feelings-${belief.category.toLowerCase()}`}
@@ -4454,12 +4488,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   className="p-2 bg-golden-yellow/5 dark:bg-golden-yellow/10 align-top w-[180px] min-w-[180px] max-w-[180px] cursor-pointer hover-elevate active-elevate-2 transition-all"
                   onClick={() => {
                     if (!isAdminView && !viewAsUserId) {
-                      setCurrentWeekCheckpointPopup({
-                        open: true,
-                        category: belief.category,
-                        type: 'currentBeliefs',
-                        items: belief.beliefsCurrentChecklist || []
-                      });
+                      openCurrentWeekCheckpointPopup(belief.category, 'currentBeliefs');
                     }
                   }}
                   data-testid={`cell-current-week-beliefs-${belief.category.toLowerCase()}`}
@@ -4493,12 +4522,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   className="p-2 bg-soft-lavender/5 dark:bg-soft-lavender/10 align-top w-[180px] min-w-[180px] max-w-[180px] cursor-pointer hover-elevate active-elevate-2 transition-all"
                   onClick={() => {
                     if (!isAdminView && !viewAsUserId) {
-                      setCurrentWeekCheckpointPopup({
-                        open: true,
-                        category: belief.category,
-                        type: 'currentActions',
-                        items: belief.actionsCurrentChecklist || []
-                      });
+                      openCurrentWeekCheckpointPopup(belief.category, 'currentActions');
                     }
                   }}
                   data-testid={`cell-current-week-actions-${belief.category.toLowerCase()}`}
@@ -4708,12 +4732,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 <TableCell 
                   className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px] cursor-pointer hover-elevate active-elevate-2 transition-all"
                   onClick={() => {
-                    setNextWeekCheckpointPopup({
-                      open: true,
-                      category: belief.category,
-                      type: 'result',
-                      items: belief.resultChecklist || []
-                    });
+                    openNextWeekCheckpointPopup(belief.category, 'result');
                   }}
                   data-testid={`cell-next-result-${belief.category.toLowerCase()}`}
                 >
@@ -4745,12 +4764,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 <TableCell 
                   className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px] cursor-pointer hover-elevate active-elevate-2 transition-all"
                   onClick={() => {
-                    setNextWeekCheckpointPopup({
-                      open: true,
-                      category: belief.category,
-                      type: 'feelings',
-                      items: belief.feelingsChecklist || []
-                    });
+                    openNextWeekCheckpointPopup(belief.category, 'feelings');
                   }}
                   data-testid={`cell-next-feelings-${belief.category.toLowerCase()}`}
                 >
@@ -4782,12 +4796,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 <TableCell 
                   className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px] cursor-pointer hover-elevate active-elevate-2 transition-all"
                   onClick={() => {
-                    setNextWeekCheckpointPopup({
-                      open: true,
-                      category: belief.category,
-                      type: 'beliefs',
-                      items: belief.beliefsChecklist || []
-                    });
+                    openNextWeekCheckpointPopup(belief.category, 'beliefs');
                   }}
                   data-testid={`cell-next-beliefs-${belief.category.toLowerCase()}`}
                 >
@@ -4819,12 +4828,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 <TableCell 
                   className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px] border-r cursor-pointer hover-elevate active-elevate-2 transition-all"
                   onClick={() => {
-                    setNextWeekCheckpointPopup({
-                      open: true,
-                      category: belief.category,
-                      type: 'actions',
-                      items: belief.actionsChecklist || []
-                    });
+                    openNextWeekCheckpointPopup(belief.category, 'actions');
                   }}
                   data-testid={`cell-next-actions-${belief.category.toLowerCase()}`}
                 >
