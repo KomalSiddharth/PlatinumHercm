@@ -3395,7 +3395,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           open={showMasterDialog} 
           onOpenChange={setShowMasterDialog}
         >
-          <DialogContent className="max-w-lg max-h-[700px] overflow-y-auto transition-opacity duration-150">
+          <DialogContent className="max-w-lg max-h-[700px] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className={`text-lg font-bold ${colorScheme.text}`}>
                 {category} - {colorScheme.label}
@@ -3437,9 +3437,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 return (
                   <div className="space-y-2">
                     {items.map((item, index) => (
-                      <div key={item.id} className="flex items-start gap-3 py-2 px-3 rounded-lg hover:bg-muted/30 transition-colors group/item">
+                      <div 
+                        key={item.id} 
+                        className="flex items-start gap-3 py-2 px-3 rounded-lg hover:bg-muted/30 transition-all duration-200 ease-in-out group/item animate-in fade-in slide-in-from-top-2"
+                      >
                         {/* 🔢 Auto-numbering */}
-                        <span className="text-sm font-semibold text-muted-foreground min-w-[24px] mt-0.5 shrink-0">
+                        <span className="text-sm font-semibold text-muted-foreground min-w-[24px] mt-0.5 shrink-0 transition-all duration-200">
                           {index + 1}.
                         </span>
                         <Checkbox
@@ -3447,11 +3450,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                           onCheckedChange={() => onToggle(item.id)}
                           onClick={(e) => e.stopPropagation()} // ✅ Prevent main dialog close
                           disabled={disabled}
-                          className="h-5 w-5 mt-0.5 shrink-0"
+                          className="h-5 w-5 mt-0.5 shrink-0 transition-all duration-200"
                           data-testid={`checkbox-dialog-${checklistType}-${item.id}`}
                         />
                         <span
-                          className={`text-sm flex-1 ${colorScheme.text} leading-relaxed break-words`}
+                          className={`text-sm flex-1 ${colorScheme.text} leading-relaxed break-words transition-all duration-200`}
                           data-testid={`text-dialog-${checklistType}-${item.id}`}
                         >
                           {item.text}
