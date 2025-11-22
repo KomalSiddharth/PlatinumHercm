@@ -1440,35 +1440,41 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     console.log('[WEEKLY PROGRESS] ⚠️ Displaying 0% - calculation may be pending');
   }
 
-  // Calculate Current Week checkpoint statistics
+  // Calculate Current Week + Next Week Target checkpoint statistics (combined)
   const currentWeekCheckpointStats = useMemo(() => {
-    let totalCheckpoints = 0;
-    let checkedCheckpoints = 0;
+    let checkedCheckpoints = 0; // Only count checked items (each check = 1 point)
     
     beliefs.forEach(belief => {
-      // Count Problems checkpoints
+      // Count Current Week checkpoints
       if (belief.problemsChecklist) {
-        totalCheckpoints += belief.problemsChecklist.length;
         checkedCheckpoints += belief.problemsChecklist.filter(item => item.checked).length;
       }
-      // Count Feelings checkpoints
       if (belief.feelingsCurrentChecklist) {
-        totalCheckpoints += belief.feelingsCurrentChecklist.length;
         checkedCheckpoints += belief.feelingsCurrentChecklist.filter(item => item.checked).length;
       }
-      // Count Beliefs checkpoints
       if (belief.beliefsCurrentChecklist) {
-        totalCheckpoints += belief.beliefsCurrentChecklist.length;
         checkedCheckpoints += belief.beliefsCurrentChecklist.filter(item => item.checked).length;
       }
-      // Count Actions checkpoints
       if (belief.actionsCurrentChecklist) {
-        totalCheckpoints += belief.actionsCurrentChecklist.length;
         checkedCheckpoints += belief.actionsCurrentChecklist.filter(item => item.checked).length;
+      }
+      
+      // Count Next Week Target checkpoints
+      if (belief.resultChecklist) {
+        checkedCheckpoints += belief.resultChecklist.filter(item => item.checked).length;
+      }
+      if (belief.feelingsChecklist) {
+        checkedCheckpoints += belief.feelingsChecklist.filter(item => item.checked).length;
+      }
+      if (belief.beliefsChecklist) {
+        checkedCheckpoints += belief.beliefsChecklist.filter(item => item.checked).length;
+      }
+      if (belief.actionsChecklist) {
+        checkedCheckpoints += belief.actionsChecklist.filter(item => item.checked).length;
       }
     });
     
-    return { totalCheckpoints, checkedCheckpoints };
+    return { checkedCheckpoints };
   }, [beliefs]);
 
   const handleChecklistToggle = (category: string, itemId: string) => {
@@ -2328,21 +2334,34 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       // ⚡ INSTANT UPDATE: Optimistically update weekly scores dropdown
       const currentWeeklyScores = queryClient.getQueryData(['/api/hercm/weekly-scores']) as any[];
       if (currentWeeklyScores && variables.beliefs) {
-        // Calculate new checkpoint stats from updated beliefs
-        let totalCheckpoints = 0;
-        let checkedCheckpoints = 0;
+        // Calculate new checkpoint stats from BOTH Current Week + Next Week Target
+        let checkedCheckpoints = 0; // Only count checked items (each check = 1 point)
         
         variables.beliefs.forEach((belief: any) => {
-          const checklists = [
+          // Current Week checklists
+          const currentChecklists = [
             belief.problemsChecklist || [],
             belief.feelingsCurrentChecklist || [],
             belief.beliefsCurrentChecklist || [],
             belief.actionsCurrentChecklist || []
           ];
           
-          checklists.forEach(checklist => {
+          currentChecklists.forEach(checklist => {
             if (Array.isArray(checklist)) {
-              totalCheckpoints += checklist.length;
+              checkedCheckpoints += checklist.filter((item: any) => item.checked).length;
+            }
+          });
+          
+          // Next Week Target checklists
+          const nextWeekChecklists = [
+            belief.resultChecklist || [],
+            belief.feelingsChecklist || [],
+            belief.beliefsChecklist || [],
+            belief.actionsChecklist || []
+          ];
+          
+          nextWeekChecklists.forEach(checklist => {
+            if (Array.isArray(checklist)) {
               checkedCheckpoints += checklist.filter((item: any) => item.checked).length;
             }
           });
@@ -2354,8 +2373,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             return {
               ...week,
               checkpoints: {
-                total: totalCheckpoints,
-                checked: checkedCheckpoints
+                checked: checkedCheckpoints // Each checked item = 1 point
               }
             };
           }
@@ -2364,7 +2382,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         
         // Set updated data instantly (no waiting for API)
         queryClient.setQueryData(['/api/hercm/weekly-scores'], updatedScores);
-        console.log('[SAVE] ⚡ Weekly scores updated instantly (optimistic):', { totalCheckpoints, checkedCheckpoints });
+        console.log('[SAVE] ⚡ Weekly scores updated instantly (optimistic - Current + Next Week):', { checkedCheckpoints });
       }
       
       // ✅ ZERO FLICKER: No refetch needed - optimistic updates already applied!
