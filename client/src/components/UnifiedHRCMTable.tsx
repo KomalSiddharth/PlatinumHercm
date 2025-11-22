@@ -407,6 +407,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     items: []
   });
 
+  // Inline editing state for Current Week Checkpoint Popup
+  const [inlineEditingId, setInlineEditingId] = useState<string | null>(null);
+  const [inlineEditText, setInlineEditText] = useState('');
+
   // Platinum Standard Ratings State (for Health category)
   const [standardRatings, setStandardRatings] = useState<Record<string, number>>({});
   
@@ -5400,29 +5404,56 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   className="h-4 w-4 shrink-0"
                   data-testid={`checkbox-popup-current-week-${currentWeekCheckpointPopup.type}-${index}`}
                 />
-                <span 
-                  className={`text-sm flex-1 leading-relaxed break-words cursor-pointer hover:underline ${
-                    currentWeekCheckpointPopup.type === 'problems' ? 'text-coral-red' :
-                    currentWeekCheckpointPopup.type === 'currentFeelings' ? 'text-emerald-green' :
-                    currentWeekCheckpointPopup.type === 'currentBeliefs' ? 'text-golden-yellow' :
-                    'text-blue-500'
-                  }`}
-                  onClick={() => {
-                    if (!isAdminView && !viewingHistory && !viewAsUserId) {
-                      setCurrentWeekCheckpointData({
-                        category: currentWeekCheckpointPopup.category,
-                        checklistType: currentWeekCheckpointPopup.type,
-                        text: item.text
-                      });
-                      setShowCurrentWeekCheckpointDialog(true);
-                      // Close the popup
-                      setCurrentWeekCheckpointPopup({ open: false, category: '', type: 'problems', items: [] });
-                    }
-                  }}
-                  data-testid={`text-edit-popup-current-week-${currentWeekCheckpointPopup.type}-${index}`}
-                >
-                  {item.text}
-                </span>
+                {inlineEditingId === item.id ? (
+                  <textarea
+                    value={inlineEditText}
+                    onChange={(e) => setInlineEditText(e.target.value)}
+                    onBlur={() => {
+                      if (inlineEditText.trim() && inlineEditText !== item.text) {
+                        handleCurrentWeekCheckpointUpdateText(
+                          currentWeekCheckpointPopup.category,
+                          currentWeekCheckpointPopup.type,
+                          item.id,
+                          inlineEditText
+                        );
+                      }
+                      setInlineEditingId(null);
+                      setInlineEditText('');
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        e.currentTarget.blur();
+                      }
+                      if (e.key === 'Escape') {
+                        setInlineEditingId(null);
+                        setInlineEditText('');
+                      }
+                    }}
+                    autoFocus
+                    className="flex-1 text-sm p-2 border rounded resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                    rows={2}
+                    data-testid={`textarea-inline-edit-${currentWeekCheckpointPopup.type}-${index}`}
+                  />
+                ) : (
+                  <span 
+                    className={`text-sm flex-1 leading-relaxed break-words cursor-pointer hover:underline ${
+                      currentWeekCheckpointPopup.type === 'problems' ? 'text-coral-red' :
+                      currentWeekCheckpointPopup.type === 'currentFeelings' ? 'text-emerald-green' :
+                      currentWeekCheckpointPopup.type === 'currentBeliefs' ? 'text-golden-yellow' :
+                      'text-blue-500'
+                    }`}
+                    onClick={() => {
+                      if (!isAdminView && !viewingHistory && !viewAsUserId) {
+                        setInlineEditingId(item.id);
+                        setInlineEditText(item.text);
+                      }
+                    }}
+                    data-testid={`text-edit-popup-current-week-${currentWeekCheckpointPopup.type}-${index}`}
+                  >
+                    {item.text}
+                  </span>
+                )}
                 {!isAdminView && !viewingHistory && !viewAsUserId && (
                   <Button
                     size="sm"
