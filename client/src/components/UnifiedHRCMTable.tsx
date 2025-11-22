@@ -2791,7 +2791,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   // 🔥 INSTANT CHECKPOINT MUTATION with OPTIMISTIC UPDATES (Assignment Column pattern)
   const checkpointMutation = useMutation({
     mutationFn: async (updatedBeliefs: HRCMBelief[]) => {
-      return await apiRequest(`/api/hrcm/save`, 'POST', {
+      return await apiRequest(`/api/hercm/save-with-comparison`, 'POST', {
         weekNumber: actualWeekNumber,
         year: new Date().getFullYear(),
         dateString: currentDateStr,
