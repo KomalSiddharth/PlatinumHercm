@@ -342,6 +342,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   const [collapsedCourses, setCollapsedCourses] = useState<Set<string>>(new Set());
   const [showFirstCheckpointDialog, setShowFirstCheckpointDialog] = useState(false);
   const [firstCheckpointData, setFirstCheckpointData] = useState<{ category: string; checklistType: 'result' | 'feelings' | 'beliefs' | 'actions' | 'problems' | 'feelingsCurrent' | 'beliefsCurrent' | 'actionsCurrent'; text: string } | null>(null);
+  
+  // 🔥 FIXED: Checkpoint popup state at parent level (prevents reset on mutations)
+  const [openCheckpointPopup, setOpenCheckpointPopup] = useState<string | null>(null); // Format: "category-checklistType" e.g. "Health-problems"
   const [unifiedAssignment, setUnifiedAssignment] = useState<AssignmentLesson[]>([]);
   const [progressOpen, setProgressOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -3070,8 +3073,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     checklistType: string;
     disabled?: boolean;
   }) => {
-    // 🔥 NEW: Single master dialog for all operations
-    const [showMasterDialog, setShowMasterDialog] = useState(false);
+    // 🔥 FIXED: Use parent-level state (prevents reset on mutations)
+    const popupKey = `${category}-${checklistType}`;
+    const showMasterDialog = openCheckpointPopup === popupKey;
+    const setShowMasterDialog = (open: boolean) => {
+      setOpenCheckpointPopup(open ? popupKey : null);
+    };
     const [newItemText, setNewItemText] = useState('');
     const [isAddingNew, setIsAddingNew] = useState(false);
     const [editingItemId, setEditingItemId] = useState<string | null>(null);
