@@ -1744,9 +1744,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       return belief;
     });
     
-    // ✅ INSTANT UPDATE: Update cache AND local state immediately (column display + popup)
+    // ✅ INSTANT UPDATE: Update cache immediately (just like Assignment Column!)
     queryClient.setQueryData(['/api/hrcm/date', currentDateStr, viewAsUserId], updated);
-    setBeliefs(updated);
     
     // ✅ INSTANT POPUP UPDATE: Update popup list immediately
     if (currentWeekCheckpointPopup.open && currentWeekCheckpointPopup.category === category && currentWeekCheckpointPopup.type === type) {
@@ -1807,9 +1806,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       return belief;
     });
     
-    // ✅ INSTANT UPDATE: Update cache AND local state immediately (column display + popup)
+    // ✅ INSTANT UPDATE: Update cache immediately
     queryClient.setQueryData(['/api/hrcm/date', currentDateStr, viewAsUserId], updated);
-    setBeliefs(updated);
     
     // ✅ INSTANT POPUP UPDATE: Update popup list if it's open
     if (currentWeekCheckpointPopup.open && currentWeekCheckpointPopup.category === category && currentWeekCheckpointPopup.type === type) {
@@ -1864,9 +1862,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       return belief;
     });
     
-    // ✅ INSTANT UPDATE: Update cache AND local state immediately (column display + popup)
+    // ✅ INSTANT UPDATE: Update cache immediately
     queryClient.setQueryData(['/api/hrcm/date', currentDateStr, viewAsUserId], updated);
-    setBeliefs(updated);
     
     // ✅ INSTANT POPUP UPDATE: Update popup list if it's open
     if (currentWeekCheckpointPopup.open && currentWeekCheckpointPopup.category === category && currentWeekCheckpointPopup.type === type) {
