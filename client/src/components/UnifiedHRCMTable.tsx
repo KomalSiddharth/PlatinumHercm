@@ -2073,30 +2073,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     }
   });
 
-  // ✅ DEBOUNCED AUTO-SAVE: Checkpoint changes automatically save after 500ms
-  useEffect(() => {
-    // Skip if viewing another user's data (read-only mode)
-    if (viewAsUserId && !isOwnDashboard) return;
-    
-    // Skip initial load
-    if (!beliefs || beliefs.length === 0) return;
-    
-    // Set up debounced save
-    const timeoutId = setTimeout(() => {
-      console.log('[CHECKPOINT AUTO-SAVE] Saving checkpoint changes after debounce...');
-      saveWeekMutation.mutate({
-        weekNumber: actualWeekNumber,
-        year: new Date().getFullYear(),
-        dateString: currentDateStr,
-        beliefs: beliefs
-      });
-    }, 500); // 500ms debounce - batches rapid operations smoothly
-    
-    // Cleanup timeout on new changes
-    return () => clearTimeout(timeoutId);
-  }, [beliefs]); // Trigger on beliefs changes
-
-
   // Update mutation - Archive snapshot and blank Next Week Target table
   const updateSnapshotMutation = useMutation({
     mutationFn: async () => {
@@ -2861,8 +2837,17 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         updated = syncCurrentToNextWeek(updated);
       }
       
-      // ✅ REMOVED: Immediate mutation call (causes flickering)
-      // Will be handled by debounced auto-save useEffect
+      // ✅ INSTANT SAVE: Direct mutation with onSuccess that does NOTHING
+      // This prevents background refetch = No flickering!
+      saveWeekMutation.mutate(
+        { weekNumber: actualWeekNumber, year: new Date().getFullYear(), dateString: currentDateStr, beliefs: updated },
+        { 
+          onSuccess: () => {
+            // DO NOTHING - UI already updated via local state
+            // No background refetch = Zero flickering!
+          }
+        }
+      );
       
       // ✅ UPDATE CURRENT WEEK POPUP if open
       if (isCurrentWeekCheckpoint && currentWeekCheckpointPopup.open && currentWeekCheckpointPopup.category === category) {
@@ -2970,8 +2955,18 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         updated = syncCurrentToNextWeek(updated);
       }
       
-      // ✅ REMOVED: Immediate mutation call (causes flickering)
-      // Will be handled by debounced auto-save useEffect
+      // ✅ INSTANT SAVE: Direct mutation with onSuccess that does NOTHING
+      // This prevents background refetch = No flickering!
+      saveWeekMutation.mutate(
+        { weekNumber: actualWeekNumber, year: new Date().getFullYear(), dateString: currentDateStr, beliefs: updated },
+        { 
+          onSuccess: () => {
+            // DO NOTHING - UI already updated via local state
+            // No background refetch = Zero flickering!
+          }
+        }
+      );
+      
       return updated;
     });
   };
@@ -3019,8 +3014,18 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         updated = syncCurrentToNextWeek(updated);
       }
       
-      // ✅ REMOVED: Immediate mutation call (causes flickering)
-      // Will be handled by debounced auto-save useEffect
+      // ✅ INSTANT SAVE: Direct mutation with onSuccess that does NOTHING
+      // This prevents background refetch = No flickering!
+      saveWeekMutation.mutate(
+        { weekNumber: actualWeekNumber, year: new Date().getFullYear(), dateString: currentDateStr, beliefs: updated },
+        { 
+          onSuccess: () => {
+            // DO NOTHING - UI already updated via local state
+            // No background refetch = Zero flickering!
+          }
+        }
+      );
+      
       return updated;
     });
   };
