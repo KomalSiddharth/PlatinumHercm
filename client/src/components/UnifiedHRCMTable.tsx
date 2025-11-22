@@ -2588,6 +2588,22 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   const handleSaveFirstCheckpoint = () => {
     if (firstCheckpointData && firstCheckpointData.text.trim()) {
       handleAddCheckpoint(firstCheckpointData.category, firstCheckpointData.checklistType, firstCheckpointData.text.trim());
+      
+      // ✅ UPDATE POPUP LIST IN REAL-TIME: Add new checkpoint to popup items
+      if (checkpointPopup.open && 
+          checkpointPopup.category === firstCheckpointData.category &&
+          checkpointPopup.type === firstCheckpointData.checklistType) {
+        const newItem: ChecklistItem = {
+          id: `${firstCheckpointData.category}-${firstCheckpointData.checklistType}-${Date.now()}`,
+          text: firstCheckpointData.text.trim(),
+          checked: false
+        };
+        setCheckpointPopup(prev => ({
+          ...prev,
+          items: [newItem, ...prev.items] // Add at start for visibility
+        }));
+      }
+      
       setShowFirstCheckpointDialog(false);
       setFirstCheckpointData(null);
     }
@@ -2599,6 +2615,22 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       // Dialog is closing - save if there's text
       if (firstCheckpointData && firstCheckpointData.text.trim()) {
         handleAddCheckpoint(firstCheckpointData.category, firstCheckpointData.checklistType, firstCheckpointData.text.trim());
+        
+        // ✅ UPDATE POPUP LIST IN REAL-TIME: Add new checkpoint to popup items
+        if (checkpointPopup.open && 
+            checkpointPopup.category === firstCheckpointData.category &&
+            checkpointPopup.type === firstCheckpointData.checklistType) {
+          const newItem: ChecklistItem = {
+            id: `${firstCheckpointData.category}-${firstCheckpointData.checklistType}-${Date.now()}`,
+            text: firstCheckpointData.text.trim(),
+            checked: false
+          };
+          setCheckpointPopup(prev => ({
+            ...prev,
+            items: [newItem, ...prev.items] // Add at start for visibility
+          }));
+        }
+        
         setFirstCheckpointData(null);
       }
     }
@@ -2617,6 +2649,22 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       };
       const mappedType = typeMap[currentWeekCheckpointData.checklistType];
       handleAddCheckpoint(currentWeekCheckpointData.category, mappedType, currentWeekCheckpointData.text.trim());
+      
+      // ✅ UPDATE POPUP LIST IN REAL-TIME: Add new checkpoint to popup items
+      if (currentWeekCheckpointPopup.open && 
+          currentWeekCheckpointPopup.category === currentWeekCheckpointData.category &&
+          currentWeekCheckpointPopup.type === currentWeekCheckpointData.checklistType) {
+        const newItem: ChecklistItem = {
+          id: `${currentWeekCheckpointData.category}-${mappedType}-${Date.now()}`,
+          text: currentWeekCheckpointData.text.trim(),
+          checked: false
+        };
+        setCurrentWeekCheckpointPopup(prev => ({
+          ...prev,
+          items: [newItem, ...prev.items] // Add at start for visibility
+        }));
+      }
+      
       setShowCurrentWeekCheckpointDialog(false);
       setCurrentWeekCheckpointData(null);
     }
@@ -2636,6 +2684,22 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         };
         const mappedType = typeMap[currentWeekCheckpointData.checklistType];
         handleAddCheckpoint(currentWeekCheckpointData.category, mappedType, currentWeekCheckpointData.text.trim());
+        
+        // ✅ UPDATE POPUP LIST IN REAL-TIME: Add new checkpoint to popup items
+        if (currentWeekCheckpointPopup.open && 
+            currentWeekCheckpointPopup.category === currentWeekCheckpointData.category &&
+            currentWeekCheckpointPopup.type === currentWeekCheckpointData.checklistType) {
+          const newItem: ChecklistItem = {
+            id: `${currentWeekCheckpointData.category}-${mappedType}-${Date.now()}`,
+            text: currentWeekCheckpointData.text.trim(),
+            checked: false
+          };
+          setCurrentWeekCheckpointPopup(prev => ({
+            ...prev,
+            items: [newItem, ...prev.items] // Add at start for visibility
+          }));
+        }
+        
         setCurrentWeekCheckpointData(null);
       }
     }
