@@ -411,6 +411,23 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   const [inlineEditingId, setInlineEditingId] = useState<string | null>(null);
   const [inlineEditText, setInlineEditText] = useState('');
 
+  // Next Week Target Checkpoint Dialog State
+  const [showNextWeekCheckpointDialog, setShowNextWeekCheckpointDialog] = useState(false);
+  const [nextWeekCheckpointData, setNextWeekCheckpointData] = useState<{ category: string; checklistType: 'result' | 'feelings' | 'beliefs' | 'actions'; text: string } | null>(null);
+
+  // Next Week Target Checkpoint Popup Dialog State
+  const [nextWeekCheckpointPopup, setNextWeekCheckpointPopup] = useState<{
+    open: boolean;
+    category: string;
+    type: 'result' | 'feelings' | 'beliefs' | 'actions';
+    items: ChecklistItem[];
+  }>({
+    open: false,
+    category: '',
+    type: 'result',
+    items: []
+  });
+
   // Platinum Standard Ratings State (for Health category)
   const [standardRatings, setStandardRatings] = useState<Record<string, number>>({});
   
@@ -1857,6 +1874,253 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       // Rollback on error
       queryClient.refetchQueries({ queryKey: ['/api/hrcm/date', currentDateStr, viewAsUserId] });
     });
+  };
+
+  // 🔥 NEXT WEEK TARGET HANDLERS (Same pattern as Current Week)
+  
+  // TOGGLE checkbox in Next Week Target popup
+  const handleNextWeekCheckpointToggle = (category: string, type: 'result' | 'feelings' | 'beliefs' | 'actions', itemId: string) => {
+    const cacheData = queryClient.getQueryData<HRCMBelief[]>(['/api/hrcm/date', currentDateStr, viewAsUserId]);
+    const currentBeliefs = Array.isArray(cacheData) ? cacheData : beliefs;
+    
+    const updated = currentBeliefs.map(belief => {
+      if (belief.category === category) {
+        let updatedBelief = { ...belief };
+        
+        if (type === 'result' && belief.resultChecklist) {
+          updatedBelief.resultChecklist = belief.resultChecklist.map(item => item.id === itemId ? { ...item, checked: !item.checked } : item);
+        } else if (type === 'feelings' && belief.feelingsChecklist) {
+          updatedBelief.feelingsChecklist = belief.feelingsChecklist.map(item => item.id === itemId ? { ...item, checked: !item.checked } : item);
+        } else if (type === 'beliefs' && belief.beliefsChecklist) {
+          updatedBelief.beliefsChecklist = belief.beliefsChecklist.map(item => item.id === itemId ? { ...item, checked: !item.checked } : item);
+        } else if (type === 'actions' && belief.actionsChecklist) {
+          updatedBelief.actionsChecklist = belief.actionsChecklist.map(item => item.id === itemId ? { ...item, checked: !item.checked } : item);
+        }
+        return updatedBelief;
+      }
+      return belief;
+    });
+    
+    queryClient.setQueryData(['/api/hrcm/date', currentDateStr, viewAsUserId], updated);
+    
+    if (nextWeekCheckpointPopup.open && nextWeekCheckpointPopup.category === category && nextWeekCheckpointPopup.type === type) {
+      const updatedBeliefData = updated.find(b => b.category === category);
+      if (updatedBeliefData) {
+        const newItems = type === 'result' ? updatedBeliefData.resultChecklist || [] :
+                        type === 'feelings' ? updatedBeliefData.feelingsChecklist || [] :
+                        type === 'beliefs' ? updatedBeliefData.beliefsChecklist || [] :
+                        updatedBeliefData.actionsChecklist || [];
+        
+        setNextWeekCheckpointPopup({
+          ...nextWeekCheckpointPopup,
+          items: newItems
+        });
+      }
+    }
+    
+    apiRequest(`/api/hercm/save-with-comparison`, 'POST', {
+      weekNumber: actualWeekNumber,
+      year: new Date().getFullYear(),
+      dateString: currentDateStr,
+      beliefs: updated
+    }).catch(error => {
+      console.error('[UPDATE ERROR] Failed to save toggle:', error);
+      queryClient.refetchQueries({ queryKey: ['/api/hrcm/date', currentDateStr, viewAsUserId] });
+    });
+  };
+
+  // DELETE checkpoint from Next Week Target
+  const handleNextWeekCheckpointDelete = (category: string, type: 'result' | 'feelings' | 'beliefs' | 'actions', itemId: string) => {
+    const cacheData = queryClient.getQueryData<HRCMBelief[]>(['/api/hrcm/date', currentDateStr, viewAsUserId]);
+    const currentBeliefs = Array.isArray(cacheData) ? cacheData : beliefs;
+    
+    const updated = currentBeliefs.map(belief => {
+      if (belief.category === category) {
+        let updatedBelief = { ...belief };
+        
+        if (type === 'result' && belief.resultChecklist) {
+          updatedBelief.resultChecklist = belief.resultChecklist.filter(item => item.id !== itemId);
+        } else if (type === 'feelings' && belief.feelingsChecklist) {
+          updatedBelief.feelingsChecklist = belief.feelingsChecklist.filter(item => item.id !== itemId);
+        } else if (type === 'beliefs' && belief.beliefsChecklist) {
+          updatedBelief.beliefsChecklist = belief.beliefsChecklist.filter(item => item.id !== itemId);
+        } else if (type === 'actions' && belief.actionsChecklist) {
+          updatedBelief.actionsChecklist = belief.actionsChecklist.filter(item => item.id !== itemId);
+        }
+        return updatedBelief;
+      }
+      return belief;
+    });
+    
+    queryClient.setQueryData(['/api/hrcm/date', currentDateStr, viewAsUserId], updated);
+    
+    if (nextWeekCheckpointPopup.open && nextWeekCheckpointPopup.category === category && nextWeekCheckpointPopup.type === type) {
+      const updatedBeliefData = updated.find(b => b.category === category);
+      if (updatedBeliefData) {
+        const newItems = type === 'result' ? updatedBeliefData.resultChecklist || [] :
+                        type === 'feelings' ? updatedBeliefData.feelingsChecklist || [] :
+                        type === 'beliefs' ? updatedBeliefData.beliefsChecklist || [] :
+                        updatedBeliefData.actionsChecklist || [];
+        
+        setNextWeekCheckpointPopup({
+          ...nextWeekCheckpointPopup,
+          items: newItems
+        });
+      }
+    }
+    
+    apiRequest(`/api/hercm/save-with-comparison`, 'POST', {
+      weekNumber: actualWeekNumber,
+      year: new Date().getFullYear(),
+      dateString: currentDateStr,
+      beliefs: updated
+    }).catch(error => {
+      console.error('[UPDATE ERROR] Failed to save delete:', error);
+      queryClient.refetchQueries({ queryKey: ['/api/hrcm/date', currentDateStr, viewAsUserId] });
+    });
+  };
+
+  // ADD checkpoint to Next Week Target
+  const handleNextWeekCheckpointAdd = (category: string, type: 'result' | 'feelings' | 'beliefs' | 'actions', text: string) => {
+    const cacheData = queryClient.getQueryData<HRCMBelief[]>(['/api/hrcm/date', currentDateStr, viewAsUserId]);
+    const currentBeliefs = Array.isArray(cacheData) ? cacheData : beliefs;
+    
+    const newItem: ChecklistItem = { 
+      id: `${category}-${type}-${Date.now()}`, 
+      text, 
+      checked: false 
+    };
+    
+    const updated = currentBeliefs.map(belief => {
+      if (belief.category === category) {
+        let updatedBelief = { ...belief };
+        
+        if (type === 'result') {
+          const existingChecklist = belief.resultChecklist || [];
+          if (!existingChecklist.some(item => item.text === text)) {
+            updatedBelief.resultChecklist = [...existingChecklist, newItem];
+          }
+        } else if (type === 'feelings') {
+          const existingChecklist = belief.feelingsChecklist || [];
+          if (!existingChecklist.some(item => item.text === text)) {
+            updatedBelief.feelingsChecklist = [...existingChecklist, newItem];
+          }
+        } else if (type === 'beliefs') {
+          const existingChecklist = belief.beliefsChecklist || [];
+          if (!existingChecklist.some(item => item.text === text)) {
+            updatedBelief.beliefsChecklist = [...existingChecklist, newItem];
+          }
+        } else if (type === 'actions') {
+          const existingChecklist = belief.actionsChecklist || [];
+          if (!existingChecklist.some(item => item.text === text)) {
+            updatedBelief.actionsChecklist = [...existingChecklist, newItem];
+          }
+        }
+        return updatedBelief;
+      }
+      return belief;
+    });
+    
+    queryClient.setQueryData(['/api/hrcm/date', currentDateStr, viewAsUserId], updated);
+    
+    if (nextWeekCheckpointPopup.open && nextWeekCheckpointPopup.category === category && nextWeekCheckpointPopup.type === type) {
+      const updatedBeliefData = updated.find(b => b.category === category);
+      if (updatedBeliefData) {
+        const newItems = type === 'result' ? updatedBeliefData.resultChecklist || [] :
+                        type === 'feelings' ? updatedBeliefData.feelingsChecklist || [] :
+                        type === 'beliefs' ? updatedBeliefData.beliefsChecklist || [] :
+                        updatedBeliefData.actionsChecklist || [];
+        
+        setNextWeekCheckpointPopup({
+          ...nextWeekCheckpointPopup,
+          items: newItems
+        });
+      }
+    }
+    
+    apiRequest(`/api/hercm/save-with-comparison`, 'POST', {
+      weekNumber: actualWeekNumber,
+      year: new Date().getFullYear(),
+      dateString: currentDateStr,
+      beliefs: updated
+    }).catch(error => {
+      console.error('[UPDATE ERROR] Failed to save add:', error);
+      queryClient.refetchQueries({ queryKey: ['/api/hrcm/date', currentDateStr, viewAsUserId] });
+    });
+  };
+
+  // UPDATE checkpoint text in Next Week Target
+  const handleNextWeekCheckpointUpdateText = (category: string, type: 'result' | 'feelings' | 'beliefs' | 'actions', itemId: string, text: string) => {
+    const cacheData = queryClient.getQueryData<HRCMBelief[]>(['/api/hrcm/date', currentDateStr, viewAsUserId]);
+    const currentBeliefs = Array.isArray(cacheData) ? cacheData : beliefs;
+    
+    const updated = currentBeliefs.map(belief => {
+      if (belief.category === category) {
+        let updatedBelief = { ...belief };
+        
+        if (type === 'result' && belief.resultChecklist) {
+          updatedBelief.resultChecklist = belief.resultChecklist.map(item => item.id === itemId ? { ...item, text } : item);
+        } else if (type === 'feelings' && belief.feelingsChecklist) {
+          updatedBelief.feelingsChecklist = belief.feelingsChecklist.map(item => item.id === itemId ? { ...item, text } : item);
+        } else if (type === 'beliefs' && belief.beliefsChecklist) {
+          updatedBelief.beliefsChecklist = belief.beliefsChecklist.map(item => item.id === itemId ? { ...item, text } : item);
+        } else if (type === 'actions' && belief.actionsChecklist) {
+          updatedBelief.actionsChecklist = belief.actionsChecklist.map(item => item.id === itemId ? { ...item, text } : item);
+        }
+        return updatedBelief;
+      }
+      return belief;
+    });
+    
+    queryClient.setQueryData(['/api/hrcm/date', currentDateStr, viewAsUserId], updated);
+    
+    if (nextWeekCheckpointPopup.open && nextWeekCheckpointPopup.category === category && nextWeekCheckpointPopup.type === type) {
+      const updatedBeliefData = updated.find(b => b.category === category);
+      if (updatedBeliefData) {
+        const newItems = type === 'result' ? updatedBeliefData.resultChecklist || [] :
+                        type === 'feelings' ? updatedBeliefData.feelingsChecklist || [] :
+                        type === 'beliefs' ? updatedBeliefData.beliefsChecklist || [] :
+                        updatedBeliefData.actionsChecklist || [];
+        
+        setNextWeekCheckpointPopup({
+          ...nextWeekCheckpointPopup,
+          items: newItems
+        });
+      }
+    }
+    
+    apiRequest(`/api/hercm/save-with-comparison`, 'POST', {
+      weekNumber: actualWeekNumber,
+      year: new Date().getFullYear(),
+      dateString: currentDateStr,
+      beliefs: updated
+    }).catch(error => {
+      console.error('[UPDATE ERROR] Failed to save update:', error);
+      queryClient.refetchQueries({ queryKey: ['/api/hrcm/date', currentDateStr, viewAsUserId] });
+    });
+  };
+
+  // Handle saving Next Week Target checkpoint from Add Dialog
+  const handleSaveNextWeekCheckpoint = () => {
+    if (nextWeekCheckpointData?.text.trim()) {
+      const textToSave = nextWeekCheckpointData.text.trim();
+      const mappedType = nextWeekCheckpointData.checklistType;
+      
+      handleNextWeekCheckpointAdd(
+        nextWeekCheckpointData.category, 
+        mappedType, 
+        textToSave
+      );
+      
+      setShowNextWeekCheckpointDialog(false);
+      setNextWeekCheckpointData(null);
+    }
+  };
+
+  // Handle Next Week Target checkpoint dialog close
+  const handleNextWeekCheckpointDialogClose = () => {
+    setShowNextWeekCheckpointDialog(false);
+    setNextWeekCheckpointData(null);
   };
 
   const handleRatingChange = (category: string, newRating: number) => {
@@ -4366,60 +4630,76 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   </div>
                 </TableCell>
 
-                {/* Next Week - Results (Checkbox-based) */}
-                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
-                  <CompactChecklistView
-                    items={belief.resultChecklist || []}
-                    onToggle={(id) => handleCheckpointToggle(belief.category, 'result', id)}
-                    onUpdateText={(id, text) => handleUpdateCheckpointText(belief.category, id, text, 'result')}
-                    onAddCheckpoint={(text) => handleAddCheckpoint(belief.category, 'result', text)}
-                    onDeleteCheckpoint={(id) => handleDeleteCheckpoint(belief.category, 'result', id)}
-                    category={belief.category}
-                    checklistType="result"
-                    disabled={isAdminView || viewingHistory || !!viewAsUserId}
-                  />
+                {/* Next Week - Results (Clickable popup cell) */}
+                <TableCell 
+                  className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px] cursor-pointer hover:bg-blue-100/30 dark:hover:bg-blue-900/20 transition-colors"
+                  onClick={() => {
+                    setNextWeekCheckpointPopup({
+                      open: true,
+                      category: belief.category,
+                      type: 'result',
+                      items: belief.resultChecklist || []
+                    });
+                  }}
+                  data-testid={`cell-next-result-${belief.category.toLowerCase()}`}
+                >
+                  <Badge variant="outline" className="font-semibold pointer-events-none">
+                    {(belief.resultChecklist || []).length}
+                  </Badge>
                 </TableCell>
 
-                {/* Next Week - Feelings (Checkbox-based) */}
-                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
-                  <CompactChecklistView
-                    items={belief.feelingsChecklist || []}
-                    onToggle={(id) => handleCheckpointToggle(belief.category, 'feelings', id)}
-                    onUpdateText={(id, text) => handleUpdateCheckpointText(belief.category, id, text, 'feelings')}
-                    onAddCheckpoint={(text) => handleAddCheckpoint(belief.category, 'feelings', text)}
-                    onDeleteCheckpoint={(id) => handleDeleteCheckpoint(belief.category, 'feelings', id)}
-                    category={belief.category}
-                    checklistType="feelings"
-                    disabled={isAdminView || viewingHistory || !!viewAsUserId}
-                  />
+                {/* Next Week - Feelings (Clickable popup cell) */}
+                <TableCell 
+                  className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px] cursor-pointer hover:bg-blue-100/30 dark:hover:bg-blue-900/20 transition-colors"
+                  onClick={() => {
+                    setNextWeekCheckpointPopup({
+                      open: true,
+                      category: belief.category,
+                      type: 'feelings',
+                      items: belief.feelingsChecklist || []
+                    });
+                  }}
+                  data-testid={`cell-next-feelings-${belief.category.toLowerCase()}`}
+                >
+                  <Badge variant="outline" className="font-semibold pointer-events-none">
+                    {(belief.feelingsChecklist || []).length}
+                  </Badge>
                 </TableCell>
 
-                {/* Next Week - Beliefs/Reasons (Checkbox-based) */}
-                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
-                  <CompactChecklistView
-                    items={belief.beliefsChecklist || []}
-                    onToggle={(id) => handleCheckpointToggle(belief.category, 'beliefs', id)}
-                    onUpdateText={(id, text) => handleUpdateCheckpointText(belief.category, id, text, 'beliefs')}
-                    onAddCheckpoint={(text) => handleAddCheckpoint(belief.category, 'beliefs', text)}
-                    onDeleteCheckpoint={(id) => handleDeleteCheckpoint(belief.category, 'beliefs', id)}
-                    category={belief.category}
-                    checklistType="beliefs"
-                    disabled={isAdminView || viewingHistory || !!viewAsUserId}
-                  />
+                {/* Next Week - Beliefs/Reasons (Clickable popup cell) */}
+                <TableCell 
+                  className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px] cursor-pointer hover:bg-blue-100/30 dark:hover:bg-blue-900/20 transition-colors"
+                  onClick={() => {
+                    setNextWeekCheckpointPopup({
+                      open: true,
+                      category: belief.category,
+                      type: 'beliefs',
+                      items: belief.beliefsChecklist || []
+                    });
+                  }}
+                  data-testid={`cell-next-beliefs-${belief.category.toLowerCase()}`}
+                >
+                  <Badge variant="outline" className="font-semibold pointer-events-none">
+                    {(belief.beliefsChecklist || []).length}
+                  </Badge>
                 </TableCell>
 
-                {/* Next Week - Actions (Checkbox-based) */}
-                <TableCell className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px] border-r">
-                  <CompactChecklistView
-                    items={belief.actionsChecklist || []}
-                    onToggle={(id) => handleCheckpointToggle(belief.category, 'actions', id)}
-                    onUpdateText={(id, text) => handleUpdateCheckpointText(belief.category, id, text, 'actions')}
-                    onAddCheckpoint={(text) => handleAddCheckpoint(belief.category, 'actions', text)}
-                    onDeleteCheckpoint={(id) => handleDeleteCheckpoint(belief.category, 'actions', id)}
-                    category={belief.category}
-                    checklistType="actions"
-                    disabled={isAdminView || viewingHistory || !!viewAsUserId}
-                  />
+                {/* Next Week - Actions (Clickable popup cell) */}
+                <TableCell 
+                  className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px] border-r cursor-pointer hover:bg-blue-100/30 dark:hover:bg-blue-900/20 transition-colors"
+                  onClick={() => {
+                    setNextWeekCheckpointPopup({
+                      open: true,
+                      category: belief.category,
+                      type: 'actions',
+                      items: belief.actionsChecklist || []
+                    });
+                  }}
+                  data-testid={`cell-next-actions-${belief.category.toLowerCase()}`}
+                >
+                  <Badge variant="outline" className="font-semibold pointer-events-none">
+                    {(belief.actionsChecklist || []).length}
+                  </Badge>
                 </TableCell>
 
                 {/* Unified Assignment Column - Compact view with click popup */}
@@ -5539,6 +5819,231 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               variant="outline"
               onClick={() => setCurrentWeekCheckpointPopup({ open: false, category: '', type: 'problems', items: [] })}
               data-testid="button-close-current-week-checkpoint-popup"
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Next Week Target Checkpoint Dialog */}
+      <Dialog open={showNextWeekCheckpointDialog} onOpenChange={handleNextWeekCheckpointDialogClose}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base font-semibold">
+              Add Next Week Checkpoint
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="p-4 rounded-lg border-2 bg-gradient-to-br from-primary/10 to-accent/10">
+              <div className="flex items-start gap-2 mb-3">
+                <div className="w-1 h-full bg-gradient-to-b from-primary to-accent rounded-full"></div>
+                <p className="text-sm font-medium">
+                  {nextWeekCheckpointData?.category} - {
+                    nextWeekCheckpointData?.checklistType === 'result' ? 'Results' : 
+                    nextWeekCheckpointData?.checklistType === 'feelings' ? 'Feelings' : 
+                    nextWeekCheckpointData?.checklistType === 'beliefs' ? 'Beliefs/Reasons' : 
+                    nextWeekCheckpointData?.checklistType === 'actions' ? 'Actions' : 'Checkpoint'
+                  }
+                </p>
+              </div>
+              <Textarea
+                value={nextWeekCheckpointData?.text || ''}
+                onChange={(e) => setNextWeekCheckpointData(prev => prev ? { ...prev, text: e.target.value } : null)}
+                onFocus={(e) => {
+                  const length = e.target.value.length;
+                  e.target.setSelectionRange(length, length);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+                    e.preventDefault();
+                    if (nextWeekCheckpointData?.text.trim()) {
+                      const textToSave = nextWeekCheckpointData.text.trim();
+                      handleNextWeekCheckpointAdd(
+                        nextWeekCheckpointData.category, 
+                        nextWeekCheckpointData.checklistType, 
+                        textToSave
+                      );
+                      setNextWeekCheckpointData(null);
+                      setShowNextWeekCheckpointDialog(false);
+                    }
+                  }
+                  else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    if (nextWeekCheckpointData?.text.trim()) {
+                      const textToSave = nextWeekCheckpointData.text.trim();
+                      handleNextWeekCheckpointAdd(
+                        nextWeekCheckpointData.category, 
+                        nextWeekCheckpointData.checklistType, 
+                        textToSave
+                      );
+                      setNextWeekCheckpointData(prev => prev ? { ...prev, text: '' } : null);
+                    }
+                  }
+                }}
+                placeholder="Enter your checkpoint... (Ctrl+Enter to add more)"
+                className="min-h-[100px] text-sm bg-white dark:bg-gray-950 border-muted"
+                autoFocus
+                data-testid="textarea-next-week-checkpoint"
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowNextWeekCheckpointDialog(false);
+                  setNextWeekCheckpointData(null);
+                }}
+                data-testid="button-cancel-next-week-checkpoint"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSaveNextWeekCheckpoint}
+                disabled={!nextWeekCheckpointData?.text.trim()}
+                className="bg-gradient-to-r from-primary to-accent text-white hover:opacity-90"
+                data-testid="button-save-next-week-checkpoint"
+              >
+                Add {
+                  nextWeekCheckpointData?.checklistType === 'result' ? 'Result' :
+                  nextWeekCheckpointData?.checklistType === 'feelings' ? 'Feeling' :
+                  nextWeekCheckpointData?.checklistType === 'beliefs' ? 'Belief' :
+                  nextWeekCheckpointData?.checklistType === 'actions' ? 'Action' : 'Checkpoint'
+                }
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Next Week Target Checkpoint Popup Dialog */}
+      <Dialog 
+        open={nextWeekCheckpointPopup.open} 
+        onOpenChange={(open) => setNextWeekCheckpointPopup({ ...nextWeekCheckpointPopup, open })}
+      >
+        <DialogContent className="max-w-md max-h-[600px] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">
+              {nextWeekCheckpointPopup.category} - {nextWeekCheckpointPopup.type === 'result' ? 'Results' : nextWeekCheckpointPopup.type === 'feelings' ? 'Feelings' : nextWeekCheckpointPopup.type === 'beliefs' ? 'Beliefs/Reasons' : 'Actions'}
+            </DialogTitle>
+            <p className="text-sm text-muted-foreground">
+              {nextWeekCheckpointPopup.items.length} item{nextWeekCheckpointPopup.items.length > 1 ? 's' : ''}
+            </p>
+          </DialogHeader>
+          
+          {/* Add New Checkpoint Button */}
+          {!isAdminView && !viewingHistory && !viewAsUserId && (
+            <div className="pt-4 pb-2 border-b">
+              <Button
+                onClick={() => {
+                  setNextWeekCheckpointData({
+                    category: nextWeekCheckpointPopup.category,
+                    checklistType: nextWeekCheckpointPopup.type,
+                    text: ''
+                  });
+                  setShowNextWeekCheckpointDialog(true);
+                }}
+                className="w-full bg-gradient-to-r from-primary to-accent text-white hover:opacity-90"
+                data-testid="button-add-checkpoint-from-next-week-popup"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add {
+                  nextWeekCheckpointPopup.type === 'result' ? 'Result' :
+                  nextWeekCheckpointPopup.type === 'feelings' ? 'Feeling' :
+                  nextWeekCheckpointPopup.type === 'beliefs' ? 'Belief' :
+                  'Action'
+                }
+              </Button>
+            </div>
+          )}
+          
+          <div className="space-y-2 py-4">
+            {nextWeekCheckpointPopup.items.map((item, index) => (
+              <div key={item.id} className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/30 transition-colors">
+                <span className={`text-sm font-semibold shrink-0 ${
+                  nextWeekCheckpointPopup.type === 'result' ? 'text-teal-600 dark:text-teal-400' :
+                  nextWeekCheckpointPopup.type === 'feelings' ? 'text-emerald-green' :
+                  nextWeekCheckpointPopup.type === 'beliefs' ? 'text-golden-yellow' :
+                  'text-blue-500'
+                }`}>
+                  {index + 1}.
+                </span>
+                <Checkbox
+                  checked={item.checked}
+                  onCheckedChange={() => handleNextWeekCheckpointToggle(nextWeekCheckpointPopup.category, nextWeekCheckpointPopup.type, item.id)}
+                  disabled={isAdminView || viewingHistory || !!viewAsUserId}
+                  className="h-4 w-4 shrink-0"
+                  data-testid={`checkbox-popup-next-week-${nextWeekCheckpointPopup.type}-${index}`}
+                />
+                {inlineEditingId === item.id ? (
+                  <textarea
+                    value={inlineEditText}
+                    onChange={(e) => setInlineEditText(e.target.value)}
+                    onBlur={() => {
+                      if (inlineEditText.trim() && inlineEditText !== item.text) {
+                        handleNextWeekCheckpointUpdateText(
+                          nextWeekCheckpointPopup.category,
+                          nextWeekCheckpointPopup.type,
+                          item.id,
+                          inlineEditText
+                        );
+                      }
+                      setInlineEditingId(null);
+                      setInlineEditText('');
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        e.currentTarget.blur();
+                      }
+                      if (e.key === 'Escape') {
+                        setInlineEditingId(null);
+                        setInlineEditText('');
+                      }
+                    }}
+                    autoFocus
+                    className="flex-1 text-sm p-2 border rounded resize-none focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                    rows={2}
+                    data-testid={`textarea-inline-edit-next-week-${nextWeekCheckpointPopup.type}-${index}`}
+                  />
+                ) : (
+                  <span 
+                    className={`text-sm flex-1 leading-relaxed break-words cursor-pointer hover:underline ${
+                      nextWeekCheckpointPopup.type === 'result' ? 'text-teal-600 dark:text-teal-400' :
+                      nextWeekCheckpointPopup.type === 'feelings' ? 'text-emerald-green' :
+                      nextWeekCheckpointPopup.type === 'beliefs' ? 'text-golden-yellow' :
+                      'text-blue-500'
+                    }`}
+                    onClick={() => {
+                      if (!isAdminView && !viewingHistory && !viewAsUserId) {
+                        setInlineEditingId(item.id);
+                        setInlineEditText(item.text);
+                      }
+                    }}
+                    data-testid={`text-edit-popup-next-week-${nextWeekCheckpointPopup.type}-${index}`}
+                  >
+                    {item.text}
+                  </span>
+                )}
+                {!isAdminView && !viewingHistory && !viewAsUserId && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleNextWeekCheckpointDelete(nextWeekCheckpointPopup.category, nextWeekCheckpointPopup.type, item.id)}
+                    className="h-6 w-6 p-0 shrink-0"
+                    data-testid={`button-delete-next-week-${nextWeekCheckpointPopup.type}-${index}`}
+                  >
+                    <Trash2 className="w-4 h-4 text-destructive" />
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-end pt-3 border-t">
+            <Button
+              variant="outline"
+              onClick={() => setNextWeekCheckpointPopup({ open: false, category: '', type: 'result', items: [] })}
+              data-testid="button-close-next-week-checkpoint-popup"
             >
               Close
             </Button>
