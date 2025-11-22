@@ -3325,8 +3325,19 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         <Dialog 
           open={isAddingNew} 
           onOpenChange={(open) => {
-            // ✅ CLEAN SEPARATION - Just close/open add dialog, main stays independent
+            // 🔥 AUTO-SAVE: When closing dialog (backdrop click), save data if textarea has content
             if (!open) {
+              // Check if there's unsaved content
+              if (newItemText.trim()) {
+                if (editingItemId) {
+                  // Editing existing item - save it
+                  onUpdateText(editingItemId, newItemText.trim());
+                } else {
+                  // Adding new item - save it
+                  onAddCheckpoint(newItemText.trim());
+                }
+              }
+              // Clear state after save
               setIsAddingNew(false);
               setNewItemText('');
               setEditingItemId(null);
