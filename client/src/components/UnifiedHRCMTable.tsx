@@ -4951,6 +4951,34 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               {checkpointPopup.items.length} item{checkpointPopup.items.length > 1 ? 's' : ''}
             </p>
           </DialogHeader>
+          
+          {/* Add New Checkpoint Button */}
+          {!isAdminView && !viewingHistory && !viewAsUserId && (
+            <div className="pt-4 pb-2 border-b">
+              <Button
+                onClick={() => {
+                  setFirstCheckpointData({
+                    category: checkpointPopup.category,
+                    checklistType: checkpointPopup.type,
+                    text: ''
+                  });
+                  setShowFirstCheckpointDialog(true);
+                  // Keep popup open - don't close it
+                }}
+                className="w-full bg-gradient-to-r from-primary to-accent text-white hover:opacity-90"
+                data-testid="button-add-next-week-checkpoint-from-popup"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add {
+                  checkpointPopup.type === 'result' ? 'Result' :
+                  checkpointPopup.type === 'feelings' ? 'Feeling' :
+                  checkpointPopup.type === 'beliefs' ? 'Belief' :
+                  'Action'
+                }
+              </Button>
+            </div>
+          )}
+          
           <div className="space-y-2 py-4">
             {checkpointPopup.items.map((item, index) => (
               <div key={item.id} className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/30 transition-colors">
@@ -5116,6 +5144,34 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               {currentWeekCheckpointPopup.items.length} item{currentWeekCheckpointPopup.items.length > 1 ? 's' : ''}
             </p>
           </DialogHeader>
+          
+          {/* Add New Checkpoint Button */}
+          {!isAdminView && !viewingHistory && !viewAsUserId && (
+            <div className="pt-4 pb-2 border-b">
+              <Button
+                onClick={() => {
+                  setCurrentWeekCheckpointData({
+                    category: currentWeekCheckpointPopup.category,
+                    checklistType: currentWeekCheckpointPopup.type,
+                    text: ''
+                  });
+                  setShowCurrentWeekCheckpointDialog(true);
+                  // Keep popup open - don't close it
+                }}
+                className="w-full bg-gradient-to-r from-primary to-accent text-white hover:opacity-90"
+                data-testid="button-add-checkpoint-from-popup"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add {
+                  currentWeekCheckpointPopup.type === 'problems' ? 'Problem' :
+                  currentWeekCheckpointPopup.type === 'currentFeelings' ? 'Feeling' :
+                  currentWeekCheckpointPopup.type === 'currentBeliefs' ? 'Belief' :
+                  'Action'
+                }
+              </Button>
+            </div>
+          )}
+          
           <div className="space-y-2 py-4">
             {currentWeekCheckpointPopup.items.map((item, index) => (
               <div key={item.id} className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/30 transition-colors">
