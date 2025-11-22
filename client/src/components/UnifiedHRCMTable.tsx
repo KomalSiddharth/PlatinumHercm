@@ -1684,8 +1684,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     });
   };
 
-  // Handle Current Week checkpoint delete
-  // 🔥 DELETE CHECKPOINT: Pure React Query pattern (no setBeliefs dependency)
+  // 🔥 DELETE CHECKPOINT: Assignment Column Pattern - Instant & Simple!
   const handleCurrentWeekCheckpointDelete = (category: string, type: 'problems' | 'currentFeelings' | 'currentBeliefs' | 'currentActions', itemId: string) => {
     const currentBeliefs = queryClient.getQueryData<HRCMBelief[]>(['/api/hrcm/date', currentDateStr, viewAsUserId]) || [];
     
@@ -1709,10 +1708,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       return belief;
     });
     
-    // ✅ Update cache immediately (optimistic update)
+    // ✅ INSTANT UPDATE: Update cache immediately (just like Assignment Column!)
     queryClient.setQueryData(['/api/hrcm/date', currentDateStr, viewAsUserId], updated);
     
-    // Update popup state if open
+    // ✅ INSTANT POPUP UPDATE: Update popup list immediately
     if (currentWeekCheckpointPopup.open && currentWeekCheckpointPopup.category === category && currentWeekCheckpointPopup.type === type) {
       const updatedBeliefData = updated.find(b => b.category === category);
       if (updatedBeliefData) {
@@ -1728,8 +1727,17 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       }
     }
     
-    // ✅ Save to backend using mutation
-    checkpointMutation.mutate(updated);
+    // ✅ BACKEND SAVE: Save changes to database (background, no waiting)
+    apiRequest(`/api/hercm/save-with-comparison`, 'POST', {
+      weekNumber: actualWeekNumber,
+      year: new Date().getFullYear(),
+      dateString: currentDateStr,
+      beliefs: updated
+    }).catch(error => {
+      console.error('[DELETE ERROR] Failed to save deletion:', error);
+      // Rollback on error
+      queryClient.refetchQueries({ queryKey: ['/api/hrcm/date', currentDateStr, viewAsUserId] });
+    });
   };
 
   // Handle Current Week checkpoint add
