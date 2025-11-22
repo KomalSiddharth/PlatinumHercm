@@ -647,9 +647,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       return data;
     },
     enabled: shouldEnableQuery, // 🔥 Use computed shouldEnableQuery
-    staleTime: 0,  // Always fetch fresh data
-    gcTime: 5000,  // Keep cache for 5 seconds to prevent blank flicker during navigation
-    refetchOnMount: true,  // Refetch when component mounts
+    staleTime: 30000,  // ✅ Data stays fresh for 30 seconds (prevents unnecessary refetches)
+    gcTime: 60000,  // Keep cache for 60 seconds to prevent blank flicker during navigation
+    refetchOnMount: false,  // ✅ Don't refetch on mount (use cached data)
     refetchOnWindowFocus: false,  // Don't refetch on window focus
   });
   
@@ -2013,21 +2013,31 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         console.log('[SAVE] ⚡ Weekly scores updated instantly (optimistic):', { totalCheckpoints, checkedCheckpoints });
       }
       
-      // Only invalidate queries - let React Query handle background refetch
-      // This prevents flickering by not forcing immediate re-renders
-      await queryClient.invalidateQueries({ queryKey: ['/api/rating-progression/caps'] });
-      await queryClient.invalidateQueries({ queryKey: ['/api/rating-progression/status'] });
-      // Invalidate ALL analytics queries regardless of parameters (prefix matching)
-      await queryClient.invalidateQueries({ 
+      // ✅ SMOOTH UPDATE: Refetch in background (no loading states = no flickering)
+      // Background refetch - updates cache silently without showing loading indicators
+      queryClient.refetchQueries({ 
+        queryKey: ['/api/rating-progression/caps'],
+        type: 'active'
+      });
+      queryClient.refetchQueries({ 
+        queryKey: ['/api/rating-progression/status'],
+        type: 'active'
+      });
+      // Refetch ALL analytics queries in background
+      queryClient.refetchQueries({ 
         predicate: (query) => {
           const key = query.queryKey[0];
           return typeof key === 'string' && key.includes('/api/analytics/progress');
-        }
+        },
+        type: 'active'
       });
-      // 📊 Invalidate weekly scores for background sync (after optimistic update)
-      await queryClient.invalidateQueries({ queryKey: ['/api/hercm/weekly-scores'] });
+      // 📊 Background refetch for weekly scores (silent update)
+      queryClient.refetchQueries({ 
+        queryKey: ['/api/hercm/weekly-scores'],
+        type: 'active'
+      });
       
-      console.log('[SAVE] ✅ Data saved successfully and cache invalidated (including weekly scores)');
+      console.log('[SAVE] ✅ Data saved successfully - background sync initiated (no flickering)');
     },
     onError: (error) => {
       console.error('[SAVE] ❌ Save failed:', error);
