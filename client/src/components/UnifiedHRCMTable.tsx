@@ -1686,7 +1686,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
   // 🔥 DELETE CHECKPOINT: Assignment Column Pattern - Instant & Simple!
   const handleCurrentWeekCheckpointDelete = (category: string, type: 'problems' | 'currentFeelings' | 'currentBeliefs' | 'currentActions', itemId: string) => {
-    const currentBeliefs = queryClient.getQueryData<HRCMBelief[]>(['/api/hrcm/date', currentDateStr, viewAsUserId]) || [];
+    const cacheData = queryClient.getQueryData<HRCMBelief[]>(['/api/hrcm/date', currentDateStr, viewAsUserId]);
+    const currentBeliefs = Array.isArray(cacheData) ? cacheData : beliefs;
     
     const updated = currentBeliefs.map(belief => {
       if (belief.category === category) {
@@ -1743,7 +1744,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   // 🔥 ADD CHECKPOINT: Assignment Column Pattern - Instant & No Duplicates!
   const handleCurrentWeekCheckpointAdd = (category: string, type: 'problems' | 'currentFeelings' | 'currentBeliefs' | 'currentActions', text: string) => {
     // Get FRESH data from cache (not stale state!)
-    const currentBeliefs = queryClient.getQueryData<HRCMBelief[]>(['/api/hrcm/date', currentDateStr, viewAsUserId]) || [];
+    const cacheData = queryClient.getQueryData<HRCMBelief[]>(['/api/hrcm/date', currentDateStr, viewAsUserId]);
+    const currentBeliefs = Array.isArray(cacheData) ? cacheData : beliefs;
     
     const newItem: ChecklistItem = { 
       id: `${category}-${type}-${Date.now()}`, 
@@ -1804,7 +1806,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   // 🔥 UPDATE CHECKPOINT: Assignment Column Pattern - Instant & Clean!
   const handleCurrentWeekCheckpointUpdateText = (category: string, type: 'problems' | 'currentFeelings' | 'currentBeliefs' | 'currentActions', itemId: string, text: string) => {
     // Get FRESH data from cache (not stale state!)
-    const currentBeliefs = queryClient.getQueryData<HRCMBelief[]>(['/api/hrcm/date', currentDateStr, viewAsUserId]) || [];
+    const cacheData = queryClient.getQueryData<HRCMBelief[]>(['/api/hrcm/date', currentDateStr, viewAsUserId]);
+    const currentBeliefs = Array.isArray(cacheData) ? cacheData : beliefs;
     
     const updated = currentBeliefs.map(belief => {
       if (belief.category === category) {
