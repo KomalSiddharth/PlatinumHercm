@@ -3438,6 +3438,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   <div className="space-y-2">
                     {items.map((item, index) => (
                       <div key={item.id} className="flex items-start gap-3 py-2 px-3 rounded-lg hover:bg-muted/30 transition-colors group/item">
+                        {/* 🔢 Auto-numbering */}
+                        <span className="text-sm font-semibold text-muted-foreground min-w-[24px] mt-0.5 shrink-0">
+                          {index + 1}.
+                        </span>
                         <Checkbox
                           checked={item.checked}
                           onCheckedChange={() => onToggle(item.id)}
