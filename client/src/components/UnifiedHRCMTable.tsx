@@ -3147,10 +3147,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       actionsChecklist: [],
     }));
     
+    // ✅ INSTANT UPDATE: Update cache AND local state immediately
+    queryClient.setQueryData(['/api/hrcm/date', currentDateStr, viewAsUserId], clearedBeliefs);
     setBeliefs(clearedBeliefs);
     setManualNextWeekMode(true); // Disable auto-sync
     
-    // Save cleared data to database with manualNextWeekMode flag
+    // ✅ BACKEND SAVE: Save cleared data to database with manualNextWeekMode flag
     saveWeekMutation.mutate({
       beliefs: clearedBeliefs,
       weekNumber: actualWeekNumber,
@@ -3181,9 +3183,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       actionsCurrentChecklist: [],
     }));
     
+    // ✅ INSTANT UPDATE: Update cache AND local state immediately
+    queryClient.setQueryData(['/api/hrcm/date', currentDateStr, viewAsUserId], clearedBeliefs);
     setBeliefs(clearedBeliefs);
     
-    // Save cleared data to database
+    // ✅ BACKEND SAVE: Save cleared data to database (background)
     saveWeekMutation.mutate({
       beliefs: clearedBeliefs,
       weekNumber: actualWeekNumber,
