@@ -1928,9 +1928,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
   // 🔥 NEXT WEEK TARGET HANDLERS (Same pattern as Current Week)
   
-  // TOGGLE checkbox in Next Week Target popup
+  // TOGGLE checkbox in Next Week Target popup (INSTANT pattern)
   const handleNextWeekCheckpointToggle = (category: string, type: 'result' | 'feelings' | 'beliefs' | 'actions', itemId: string) => {
-    const currentBeliefs = beliefs;
+    const cacheData = queryClient.getQueryData<HRCMBelief[]>(['/api/hrcm/date', currentDateStr, viewAsUserId]);
+    const currentBeliefs = Array.isArray(cacheData) ? cacheData : beliefs;
     
     const updated = currentBeliefs.map(belief => {
       if (belief.category === category) {
@@ -1950,8 +1951,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       return belief;
     });
     
-    updateBeliefsCache(updated);
+    // ✅ INSTANT UPDATE: Update cache AND local state immediately
+    queryClient.setQueryData(['/api/hrcm/date', currentDateStr, viewAsUserId], updated);
+    setBeliefs(updated);
     
+    // ✅ INSTANT POPUP UPDATE: Update popup list immediately
     if (nextWeekCheckpointPopup.open && nextWeekCheckpointPopup.category === category && nextWeekCheckpointPopup.type === type) {
       const updatedBeliefData = updated.find(b => b.category === category);
       if (updatedBeliefData) {
@@ -1967,6 +1971,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       }
     }
     
+    // ✅ BACKEND SAVE: Save changes to database (background, no waiting)
     apiRequest(`/api/hercm/save-with-comparison`, 'POST', {
       weekNumber: actualWeekNumber,
       year: new Date().getFullYear(),
@@ -1978,7 +1983,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     });
   };
 
-  // DELETE checkpoint from Next Week Target
+  // DELETE checkpoint from Next Week Target (INSTANT pattern)
   const handleNextWeekCheckpointDelete = (category: string, type: 'result' | 'feelings' | 'beliefs' | 'actions', itemId: string) => {
     const cacheData = queryClient.getQueryData<HRCMBelief[]>(['/api/hrcm/date', currentDateStr, viewAsUserId]);
     const currentBeliefs = Array.isArray(cacheData) ? cacheData : beliefs;
@@ -2001,8 +2006,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       return belief;
     });
     
+    // ✅ INSTANT UPDATE: Update cache AND local state immediately
     queryClient.setQueryData(['/api/hrcm/date', currentDateStr, viewAsUserId], updated);
+    setBeliefs(updated);
     
+    // ✅ INSTANT POPUP UPDATE: Update popup list immediately
     if (nextWeekCheckpointPopup.open && nextWeekCheckpointPopup.category === category && nextWeekCheckpointPopup.type === type) {
       const updatedBeliefData = updated.find(b => b.category === category);
       if (updatedBeliefData) {
@@ -2018,6 +2026,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       }
     }
     
+    // ✅ BACKEND SAVE: Save changes to database (background, no waiting)
     apiRequest(`/api/hercm/save-with-comparison`, 'POST', {
       weekNumber: actualWeekNumber,
       year: new Date().getFullYear(),
