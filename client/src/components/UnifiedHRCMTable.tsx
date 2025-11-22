@@ -1442,39 +1442,48 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
   // Calculate Current Week + Next Week Target checkpoint statistics (combined)
   const currentWeekCheckpointStats = useMemo(() => {
-    let checkedCheckpoints = 0; // Only count checked items (each check = 1 point)
+    let checkedCheckpoints = 0;
+    let totalCheckpoints = 0;
     
     beliefs.forEach(belief => {
       // Count Current Week checkpoints
       if (belief.problemsChecklist) {
+        totalCheckpoints += belief.problemsChecklist.length;
         checkedCheckpoints += belief.problemsChecklist.filter(item => item.checked).length;
       }
       if (belief.feelingsCurrentChecklist) {
+        totalCheckpoints += belief.feelingsCurrentChecklist.length;
         checkedCheckpoints += belief.feelingsCurrentChecklist.filter(item => item.checked).length;
       }
       if (belief.beliefsCurrentChecklist) {
+        totalCheckpoints += belief.beliefsCurrentChecklist.length;
         checkedCheckpoints += belief.beliefsCurrentChecklist.filter(item => item.checked).length;
       }
       if (belief.actionsCurrentChecklist) {
+        totalCheckpoints += belief.actionsCurrentChecklist.length;
         checkedCheckpoints += belief.actionsCurrentChecklist.filter(item => item.checked).length;
       }
       
       // Count Next Week Target checkpoints
       if (belief.resultChecklist) {
+        totalCheckpoints += belief.resultChecklist.length;
         checkedCheckpoints += belief.resultChecklist.filter(item => item.checked).length;
       }
       if (belief.feelingsChecklist) {
+        totalCheckpoints += belief.feelingsChecklist.length;
         checkedCheckpoints += belief.feelingsChecklist.filter(item => item.checked).length;
       }
       if (belief.beliefsChecklist) {
+        totalCheckpoints += belief.beliefsChecklist.length;
         checkedCheckpoints += belief.beliefsChecklist.filter(item => item.checked).length;
       }
       if (belief.actionsChecklist) {
+        totalCheckpoints += belief.actionsChecklist.length;
         checkedCheckpoints += belief.actionsChecklist.filter(item => item.checked).length;
       }
     });
     
-    return { checkedCheckpoints };
+    return { checkedCheckpoints, totalCheckpoints };
   }, [beliefs]);
 
   const handleChecklistToggle = (category: string, itemId: string) => {
