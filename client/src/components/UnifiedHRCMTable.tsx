@@ -2796,6 +2796,56 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     }));
   };
 
+  // 🔥 INSTANT CHECKPOINT MUTATION with OPTIMISTIC UPDATES (Assignment Column pattern)
+  const checkpointMutation = useMutation({
+    mutationFn: async (updatedBeliefs: HRCMBelief[]) => {
+      return await apiRequest(`/api/hrcm/save`, 'POST', {
+        weekNumber: actualWeekNumber,
+        year: new Date().getFullYear(),
+        dateString: currentDateStr,
+        beliefs: updatedBeliefs
+      });
+    },
+    onMutate: async (updatedBeliefs: HRCMBelief[]) => {
+      // Cancel outgoing refetches to prevent race conditions
+      await queryClient.cancelQueries({ queryKey: ['/api/hrcm/date', currentDateStr, viewAsUserId] });
+      
+      // Snapshot previous value for rollback
+      const previousData = queryClient.getQueryData<{ beliefs: HRCMBelief[] }>(['/api/hrcm/date', currentDateStr, viewAsUserId]);
+      
+      console.log('[CHECKPOINT] 🚀 INSTANT optimistic update - beliefs count:', updatedBeliefs.length);
+      
+      // INSTANT UI UPDATE: Optimistically update cache BEFORE API call
+      queryClient.setQueryData<{ beliefs: HRCMBelief[] }>(
+        ['/api/hrcm/date', currentDateStr, viewAsUserId],
+        (old) => old ? { ...old, beliefs: updatedBeliefs } : { beliefs: updatedBeliefs }
+      );
+      
+      // Return context for rollback
+      return { previousData };
+    },
+    onSuccess: async () => {
+      console.log('[CHECKPOINT] ✅ Server confirmed - background sync initiated');
+      
+      // Background refetch to sync with server (UI already updated instantly!)
+      await queryClient.refetchQueries({ queryKey: ['/api/hrcm/date', currentDateStr, viewAsUserId] });
+    },
+    onError: (error, variables, context) => {
+      console.error('[CHECKPOINT] ❌ Save failed, rolling back:', error);
+      
+      // Rollback optimistic update on error
+      if (context?.previousData) {
+        queryClient.setQueryData(['/api/hrcm/date', currentDateStr, viewAsUserId], context.previousData);
+      }
+      
+      toast({
+        title: 'Error',
+        description: 'Failed to save checkpoint',
+        variant: 'destructive'
+      });
+    }
+  });
+
   // Add new checkpoint to a checklist
   const handleAddCheckpoint = (category: string, checklistType: 'result' | 'feelings' | 'beliefs' | 'actions' | 'problems' | 'feelingsCurrent' | 'beliefsCurrent' | 'actionsCurrent', text: string = '') => {
     setBeliefs(prev => {
@@ -2837,8 +2887,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         updated = syncCurrentToNextWeek(updated);
       }
       
-      // ✅ NO MUTATION HERE - Will save when dialog closes (on backdrop click)
-      // This prevents flickering from immediate API calls
+      // 🔥 INSTANT SAVE with OPTIMISTIC UPDATE (Assignment Column pattern)
+      // onMutate updates UI instantly → API call in background → onSuccess refetches (no flicker!)
+      checkpointMutation.mutate(updated);
       
       // ✅ UPDATE CURRENT WEEK POPUP if open
       if (isCurrentWeekCheckpoint && currentWeekCheckpointPopup.open && currentWeekCheckpointPopup.category === category) {
@@ -2946,8 +2997,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         updated = syncCurrentToNextWeek(updated);
       }
       
-      // ✅ NO MUTATION HERE - Will save when dialog closes (on backdrop click)
-      // This prevents flickering from immediate API calls
+      // 🔥 INSTANT SAVE with OPTIMISTIC UPDATE (Assignment Column pattern)
+      checkpointMutation.mutate(updated);
       
       return updated;
     });
@@ -2996,8 +3047,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         updated = syncCurrentToNextWeek(updated);
       }
       
-      // ✅ NO MUTATION HERE - Will save when dialog closes (on backdrop click)
-      // This prevents flickering from immediate API calls
+      // 🔥 INSTANT SAVE with OPTIMISTIC UPDATE (Assignment Column pattern)
+      checkpointMutation.mutate(updated);
       
       return updated;
     });
