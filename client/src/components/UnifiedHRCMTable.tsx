@@ -3318,13 +3318,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         <Dialog 
           open={isAddingNew} 
           onOpenChange={(open) => {
-            // ✅ ONLY close add dialog - keep main dialog open
+            // ✅ CLEAN SEPARATION - Just close/open add dialog, main stays independent
             if (!open) {
               setIsAddingNew(false);
               setNewItemText('');
               setEditingItemId(null);
-              // Explicitly keep main dialog open
-              setShowMasterDialog(true);
             }
           }}
         >
@@ -3377,15 +3375,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         {/* Main List Dialog - Assignment Style */}
         <Dialog 
           open={showMasterDialog} 
-          onOpenChange={(open) => {
-            // ✅ KEEP MAIN DIALOG OPEN - Only close if explicitly triggered (not from nested dialog)
-            if (!open && !isAddingNew) {
-              setShowMasterDialog(false);
-            } else if (open) {
-              setShowMasterDialog(true);
-            }
-            // If isAddingNew is true, ignore close events (nested dialog is handling it)
-          }}
+          onOpenChange={setShowMasterDialog}
         >
           <DialogContent className="max-w-lg max-h-[700px] overflow-y-auto">
             <DialogHeader>
@@ -3403,7 +3393,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation(); // ✅ Prevent main dialog close
                     setNewItemText('');
                     setIsAddingNew(true);
                   }}
@@ -3432,13 +3423,15 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         <Checkbox
                           checked={item.checked}
                           onCheckedChange={() => onToggle(item.id)}
+                          onClick={(e) => e.stopPropagation()} // ✅ Prevent main dialog close
                           disabled={disabled}
                           className="h-5 w-5 mt-0.5 shrink-0"
                           data-testid={`checkbox-dialog-${checklistType}-${item.id}`}
                         />
                         <span
                           className={`text-sm flex-1 ${colorScheme.text} leading-relaxed break-words cursor-pointer hover:underline`}
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation(); // ✅ Prevent main dialog close
                             if (!disabled) {
                               setEditingItemId(item.id);
                               setNewItemText(item.text); // Set text for textarea
@@ -3453,7 +3446,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => onDeleteCheckpoint(item.id)}
+                            onClick={(e) => {
+                              e.stopPropagation(); // ✅ Prevent main dialog close
+                              onDeleteCheckpoint(item.id);
+                            }}
                             className="h-6 w-6 p-0 shrink-0"
                             data-testid={`button-delete-dialog-${checklistType}-${item.id}`}
                           >
