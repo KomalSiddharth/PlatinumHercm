@@ -4058,30 +4058,90 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </TableCell>
 
                 {/* Current Week - Problems */}
-                <TableCell className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
-                  <div className="text-sm whitespace-pre-wrap text-gray-700 dark:text-gray-300">
-                    {belief.problems || '—'}
+                <TableCell 
+                  className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top w-[180px] min-w-[180px] max-w-[180px] cursor-pointer hover-elevate active-elevate-2 transition-all"
+                  onClick={() => {
+                    if (!isAdminView && !viewAsUserId) {
+                      setCurrentWeekCheckpointPopup({
+                        open: true,
+                        category: belief.category,
+                        type: 'problems',
+                        items: belief.problemsChecklist || []
+                      });
+                    }
+                  }}
+                  data-testid={`cell-current-week-problems-${belief.category.toLowerCase()}`}
+                >
+                  <div className="text-sm text-gray-500 dark:text-gray-400 italic">
+                    {(belief.problemsChecklist || []).length > 0 
+                      ? `${(belief.problemsChecklist || []).length} item${(belief.problemsChecklist || []).length !== 1 ? 's' : ''}`
+                      : 'Click to add'}
                   </div>
                 </TableCell>
 
                 {/* Current Week - Feelings */}
-                <TableCell className="p-2 bg-emerald-green/5 dark:bg-emerald-green/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
-                  <div className="text-sm whitespace-pre-wrap text-gray-700 dark:text-gray-300">
-                    {belief.currentFeelings || '—'}
+                <TableCell 
+                  className="p-2 bg-emerald-green/5 dark:bg-emerald-green/10 align-top w-[180px] min-w-[180px] max-w-[180px] cursor-pointer hover-elevate active-elevate-2 transition-all"
+                  onClick={() => {
+                    if (!isAdminView && !viewAsUserId) {
+                      setCurrentWeekCheckpointPopup({
+                        open: true,
+                        category: belief.category,
+                        type: 'currentFeelings',
+                        items: belief.feelingsCurrentChecklist || []
+                      });
+                    }
+                  }}
+                  data-testid={`cell-current-week-feelings-${belief.category.toLowerCase()}`}
+                >
+                  <div className="text-sm text-gray-500 dark:text-gray-400 italic">
+                    {(belief.feelingsCurrentChecklist || []).length > 0 
+                      ? `${(belief.feelingsCurrentChecklist || []).length} item${(belief.feelingsCurrentChecklist || []).length !== 1 ? 's' : ''}`
+                      : 'Click to add'}
                   </div>
                 </TableCell>
 
                 {/* Current Week - Beliefs */}
-                <TableCell className="p-2 bg-golden-yellow/5 dark:bg-golden-yellow/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
-                  <div className="text-sm whitespace-pre-wrap text-gray-700 dark:text-gray-300">
-                    {belief.currentBelief || '—'}
+                <TableCell 
+                  className="p-2 bg-golden-yellow/5 dark:bg-golden-yellow/10 align-top w-[180px] min-w-[180px] max-w-[180px] cursor-pointer hover-elevate active-elevate-2 transition-all"
+                  onClick={() => {
+                    if (!isAdminView && !viewAsUserId) {
+                      setCurrentWeekCheckpointPopup({
+                        open: true,
+                        category: belief.category,
+                        type: 'currentBeliefs',
+                        items: belief.beliefsCurrentChecklist || []
+                      });
+                    }
+                  }}
+                  data-testid={`cell-current-week-beliefs-${belief.category.toLowerCase()}`}
+                >
+                  <div className="text-sm text-gray-500 dark:text-gray-400 italic">
+                    {(belief.beliefsCurrentChecklist || []).length > 0 
+                      ? `${(belief.beliefsCurrentChecklist || []).length} item${(belief.beliefsCurrentChecklist || []).length !== 1 ? 's' : ''}`
+                      : 'Click to add'}
                   </div>
                 </TableCell>
 
                 {/* Current Week - Actions */}
-                <TableCell className="p-2 bg-soft-lavender/5 dark:bg-soft-lavender/10 align-top w-[180px] min-w-[180px] max-w-[180px]">
-                  <div className="text-sm whitespace-pre-wrap text-gray-700 dark:text-gray-300">
-                    {belief.currentActions || '—'}
+                <TableCell 
+                  className="p-2 bg-soft-lavender/5 dark:bg-soft-lavender/10 align-top w-[180px] min-w-[180px] max-w-[180px] cursor-pointer hover-elevate active-elevate-2 transition-all"
+                  onClick={() => {
+                    if (!isAdminView && !viewAsUserId) {
+                      setCurrentWeekCheckpointPopup({
+                        open: true,
+                        category: belief.category,
+                        type: 'currentActions',
+                        items: belief.actionsCurrentChecklist || []
+                      });
+                    }
+                  }}
+                  data-testid={`cell-current-week-actions-${belief.category.toLowerCase()}`}
+                >
+                  <div className="text-sm text-gray-500 dark:text-gray-400 italic">
+                    {(belief.actionsCurrentChecklist || []).length > 0 
+                      ? `${(belief.actionsCurrentChecklist || []).length} item${(belief.actionsCurrentChecklist || []).length !== 1 ? 's' : ''}`
+                      : 'Click to add'}
                   </div>
                 </TableCell>
 
