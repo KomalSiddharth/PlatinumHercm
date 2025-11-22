@@ -4380,10 +4380,27 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   }}
                   data-testid={`cell-current-week-problems-${belief.category.toLowerCase()}`}
                 >
-                  <div className="text-sm text-gray-500 dark:text-gray-400 italic">
-                    {(belief.problemsChecklist || []).length > 0 
-                      ? `${(belief.problemsChecklist || []).length} item${(belief.problemsChecklist || []).length !== 1 ? 's' : ''}`
-                      : 'Click to add'}
+                  <div className="space-y-1">
+                    {(belief.problemsChecklist || []).slice(0, 3).map((item, index) => (
+                      <div key={item.id} className="flex items-center gap-1.5">
+                        <Checkbox
+                          checked={item.checked}
+                          disabled
+                          className="h-3 w-3 shrink-0"
+                        />
+                        <span className="line-clamp-1 text-xs text-gray-600 dark:text-gray-300 flex-1">
+                          {item.text}
+                        </span>
+                      </div>
+                    ))}
+                    {(belief.problemsChecklist || []).length > 3 && (
+                      <Badge variant="secondary" className="text-xs inline-block mt-1">
+                        +{(belief.problemsChecklist || []).length - 3} more items
+                      </Badge>
+                    )}
+                    {(belief.problemsChecklist || []).length === 0 && (
+                      <div className="text-xs text-gray-500 dark:text-gray-400 italic">Click to add</div>
+                    )}
                   </div>
                 </TableCell>
 
@@ -4402,10 +4419,27 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   }}
                   data-testid={`cell-current-week-feelings-${belief.category.toLowerCase()}`}
                 >
-                  <div className="text-sm text-gray-500 dark:text-gray-400 italic">
-                    {(belief.feelingsCurrentChecklist || []).length > 0 
-                      ? `${(belief.feelingsCurrentChecklist || []).length} item${(belief.feelingsCurrentChecklist || []).length !== 1 ? 's' : ''}`
-                      : 'Click to add'}
+                  <div className="space-y-1">
+                    {(belief.feelingsCurrentChecklist || []).slice(0, 3).map((item, index) => (
+                      <div key={item.id} className="flex items-center gap-1.5">
+                        <Checkbox
+                          checked={item.checked}
+                          disabled
+                          className="h-3 w-3 shrink-0"
+                        />
+                        <span className="line-clamp-1 text-xs text-gray-600 dark:text-gray-300 flex-1">
+                          {item.text}
+                        </span>
+                      </div>
+                    ))}
+                    {(belief.feelingsCurrentChecklist || []).length > 3 && (
+                      <Badge variant="secondary" className="text-xs inline-block mt-1">
+                        +{(belief.feelingsCurrentChecklist || []).length - 3} more items
+                      </Badge>
+                    )}
+                    {(belief.feelingsCurrentChecklist || []).length === 0 && (
+                      <div className="text-xs text-gray-500 dark:text-gray-400 italic">Click to add</div>
+                    )}
                   </div>
                 </TableCell>
 
@@ -4424,10 +4458,27 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   }}
                   data-testid={`cell-current-week-beliefs-${belief.category.toLowerCase()}`}
                 >
-                  <div className="text-sm text-gray-500 dark:text-gray-400 italic">
-                    {(belief.beliefsCurrentChecklist || []).length > 0 
-                      ? `${(belief.beliefsCurrentChecklist || []).length} item${(belief.beliefsCurrentChecklist || []).length !== 1 ? 's' : ''}`
-                      : 'Click to add'}
+                  <div className="space-y-1">
+                    {(belief.beliefsCurrentChecklist || []).slice(0, 3).map((item, index) => (
+                      <div key={item.id} className="flex items-center gap-1.5">
+                        <Checkbox
+                          checked={item.checked}
+                          disabled
+                          className="h-3 w-3 shrink-0"
+                        />
+                        <span className="line-clamp-1 text-xs text-gray-600 dark:text-gray-300 flex-1">
+                          {item.text}
+                        </span>
+                      </div>
+                    ))}
+                    {(belief.beliefsCurrentChecklist || []).length > 3 && (
+                      <Badge variant="secondary" className="text-xs inline-block mt-1">
+                        +{(belief.beliefsCurrentChecklist || []).length - 3} more items
+                      </Badge>
+                    )}
+                    {(belief.beliefsCurrentChecklist || []).length === 0 && (
+                      <div className="text-xs text-gray-500 dark:text-gray-400 italic">Click to add</div>
+                    )}
                   </div>
                 </TableCell>
 
@@ -4446,10 +4497,27 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   }}
                   data-testid={`cell-current-week-actions-${belief.category.toLowerCase()}`}
                 >
-                  <div className="text-sm text-gray-500 dark:text-gray-400 italic">
-                    {(belief.actionsCurrentChecklist || []).length > 0 
-                      ? `${(belief.actionsCurrentChecklist || []).length} item${(belief.actionsCurrentChecklist || []).length !== 1 ? 's' : ''}`
-                      : 'Click to add'}
+                  <div className="space-y-1">
+                    {(belief.actionsCurrentChecklist || []).slice(0, 3).map((item, index) => (
+                      <div key={item.id} className="flex items-center gap-1.5">
+                        <Checkbox
+                          checked={item.checked}
+                          disabled
+                          className="h-3 w-3 shrink-0"
+                        />
+                        <span className="line-clamp-1 text-xs text-gray-600 dark:text-gray-300 flex-1">
+                          {item.text}
+                        </span>
+                      </div>
+                    ))}
+                    {(belief.actionsCurrentChecklist || []).length > 3 && (
+                      <Badge variant="secondary" className="text-xs inline-block mt-1">
+                        +{(belief.actionsCurrentChecklist || []).length - 3} more items
+                      </Badge>
+                    )}
+                    {(belief.actionsCurrentChecklist || []).length === 0 && (
+                      <div className="text-xs text-gray-500 dark:text-gray-400 italic">Click to add</div>
+                    )}
                   </div>
                 </TableCell>
 
