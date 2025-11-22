@@ -1596,8 +1596,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
   // Handle Current Week checkbox toggle
   const handleCurrentWeekCheckpointToggle = (category: string, type: 'problems' | 'currentFeelings' | 'currentBeliefs' | 'currentActions', itemId: string) => {
-    const cacheData = queryClient.getQueryData<HRCMBelief[]>(['/api/hrcm/date', currentDateStr, viewAsUserId]);
-    const currentBeliefs = Array.isArray(cacheData) ? cacheData : beliefs;
+    const currentBeliefs = beliefs;
     
     // Find the current item to check if it's being checked or unchecked
     const currentBelief = currentBeliefs.find(b => b.category === category);
@@ -1641,8 +1640,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       return belief;
     });
     
-    // ✅ INSTANT UPDATE: Update cache immediately
-    queryClient.setQueryData(['/api/hrcm/date', currentDateStr, viewAsUserId], updated);
+    // ✅ INSTANT UPDATE: Update cache immediately using correct query key
+    updateBeliefsCache(updated);
     
     // ✅ INSTANT POPUP UPDATE: Update popup list immediately
     if (currentWeekCheckpointPopup.open && currentWeekCheckpointPopup.category === category && currentWeekCheckpointPopup.type === type) {
@@ -1886,8 +1885,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   
   // TOGGLE checkbox in Next Week Target popup
   const handleNextWeekCheckpointToggle = (category: string, type: 'result' | 'feelings' | 'beliefs' | 'actions', itemId: string) => {
-    const cacheData = queryClient.getQueryData<HRCMBelief[]>(['/api/hrcm/date', currentDateStr, viewAsUserId]);
-    const currentBeliefs = Array.isArray(cacheData) ? cacheData : beliefs;
+    const currentBeliefs = beliefs;
     
     const updated = currentBeliefs.map(belief => {
       if (belief.category === category) {
@@ -1907,7 +1905,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       return belief;
     });
     
-    queryClient.setQueryData(['/api/hrcm/date', currentDateStr, viewAsUserId], updated);
+    updateBeliefsCache(updated);
     
     if (nextWeekCheckpointPopup.open && nextWeekCheckpointPopup.category === category && nextWeekCheckpointPopup.type === type) {
       const updatedBeliefData = updated.find(b => b.category === category);
