@@ -1506,46 +1506,69 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     });
   };
 
-  // Handle Next Week Target checkbox toggle
+  // Handle Next Week Target checkbox toggle (INSTANT pattern)
   const handleCheckpointToggle = (category: string, type: 'result' | 'feelings' | 'beliefs' | 'actions', itemId: string) => {
-    setBeliefs(prev => {
-      const updated = prev.map(belief => {
-        if (belief.category === category) {
-          let updatedBelief = { ...belief };
-          
-          // Update the appropriate checklist based on type
-          if (type === 'result' && belief.resultChecklist) {
-            updatedBelief.resultChecklist = belief.resultChecklist.map(item =>
-              item.id === itemId ? { ...item, checked: !item.checked } : item
-            );
-          } else if (type === 'feelings' && belief.feelingsChecklist) {
-            updatedBelief.feelingsChecklist = belief.feelingsChecklist.map(item =>
-              item.id === itemId ? { ...item, checked: !item.checked } : item
-            );
-          } else if (type === 'beliefs' && belief.beliefsChecklist) {
-            updatedBelief.beliefsChecklist = belief.beliefsChecklist.map(item =>
-              item.id === itemId ? { ...item, checked: !item.checked } : item
-            );
-          } else if (type === 'actions' && belief.actionsChecklist) {
-            updatedBelief.actionsChecklist = belief.actionsChecklist.map(item =>
-              item.id === itemId ? { ...item, checked: !item.checked } : item
-            );
-          }
-          
-          return updatedBelief;
+    const cacheData = queryClient.getQueryData<HRCMBelief[]>(['/api/hrcm/date', currentDateStr, viewAsUserId]);
+    const currentBeliefs = Array.isArray(cacheData) ? cacheData : beliefs;
+    
+    const updated = currentBeliefs.map(belief => {
+      if (belief.category === category) {
+        let updatedBelief = { ...belief };
+        
+        // Update the appropriate checklist based on type
+        if (type === 'result' && belief.resultChecklist) {
+          updatedBelief.resultChecklist = belief.resultChecklist.map(item =>
+            item.id === itemId ? { ...item, checked: !item.checked } : item
+          );
+        } else if (type === 'feelings' && belief.feelingsChecklist) {
+          updatedBelief.feelingsChecklist = belief.feelingsChecklist.map(item =>
+            item.id === itemId ? { ...item, checked: !item.checked } : item
+          );
+        } else if (type === 'beliefs' && belief.beliefsChecklist) {
+          updatedBelief.beliefsChecklist = belief.beliefsChecklist.map(item =>
+            item.id === itemId ? { ...item, checked: !item.checked } : item
+          );
+        } else if (type === 'actions' && belief.actionsChecklist) {
+          updatedBelief.actionsChecklist = belief.actionsChecklist.map(item =>
+            item.id === itemId ? { ...item, checked: !item.checked } : item
+          );
         }
-        return belief;
-      });
-      
-      // Auto-save changes to database immediately
-      saveWeekMutation.mutate({
-        weekNumber: actualWeekNumber,
-        year: new Date().getFullYear(),
-        dateString: currentDateStr,
-        beliefs: updated,
-      });
-      
-      return updated;
+        
+        return updatedBelief;
+      }
+      return belief;
+    });
+    
+    // ✅ INSTANT UPDATE: Update cache AND local state immediately
+    queryClient.setQueryData(['/api/hrcm/date', currentDateStr, viewAsUserId], updated);
+    setBeliefs(updated);
+    
+    // ✅ INSTANT POPUP UPDATE: Update popup list immediately
+    if (checkpointPopup.open && checkpointPopup.category === category && checkpointPopup.type === type) {
+      const updatedBeliefData = updated.find(b => b.category === category);
+      if (updatedBeliefData) {
+        const newItems = type === 'result' ? updatedBeliefData.resultChecklist || [] :
+                        type === 'feelings' ? updatedBeliefData.feelingsChecklist || [] :
+                        type === 'beliefs' ? updatedBeliefData.beliefsChecklist || [] :
+                        updatedBeliefData.actionsChecklist || [];
+        
+        setCheckpointPopup({
+          ...checkpointPopup,
+          items: newItems
+        });
+      }
+    }
+    
+    // ✅ BACKEND SAVE: Save changes to database (background, no waiting)
+    apiRequest(`/api/hercm/save-with-comparison`, 'POST', {
+      weekNumber: actualWeekNumber,
+      year: new Date().getFullYear(),
+      dateString: currentDateStr,
+      beliefs: updated
+    }).catch(error => {
+      console.error('[TOGGLE ERROR] Failed to save toggle:', error);
+      // Rollback on error
+      queryClient.refetchQueries({ queryKey: ['/api/hrcm/date', currentDateStr, viewAsUserId] });
     });
   };
 
