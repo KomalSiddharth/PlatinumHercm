@@ -4643,25 +4643,28 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   }}
                   data-testid={`cell-next-result-${belief.category.toLowerCase()}`}
                 >
-                  {(belief.resultChecklist || []).length > 0 ? (
-                    <div className="flex items-center gap-2">
-                      <Checkbox
-                        checked={(belief.resultChecklist || [])[0]?.checked}
-                        disabled
-                        className="h-3 w-3 shrink-0"
-                      />
-                      <span className="line-clamp-1 text-xs text-gray-600 dark:text-gray-300 flex-1">
-                        {(belief.resultChecklist || [])[0]?.text}
-                      </span>
-                      {(belief.resultChecklist || []).length > 1 && (
-                        <Badge variant="secondary" className="text-xs shrink-0">
-                          +{(belief.resultChecklist || []).length - 1}
-                        </Badge>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="text-xs text-gray-500 dark:text-gray-400 italic">Click to add</div>
-                  )}
+                  <div className="space-y-1">
+                    {(belief.resultChecklist || []).slice(0, 3).map((item, index) => (
+                      <div key={item.id} className="flex items-center gap-1.5">
+                        <Checkbox
+                          checked={item.checked}
+                          disabled
+                          className="h-3 w-3 shrink-0"
+                        />
+                        <span className="line-clamp-1 text-xs text-gray-600 dark:text-gray-300 flex-1">
+                          {item.text}
+                        </span>
+                      </div>
+                    ))}
+                    {(belief.resultChecklist || []).length > 3 && (
+                      <Badge variant="secondary" className="text-xs inline-block mt-1">
+                        +{(belief.resultChecklist || []).length - 3} more items
+                      </Badge>
+                    )}
+                    {(belief.resultChecklist || []).length === 0 && (
+                      <div className="text-xs text-gray-500 dark:text-gray-400 italic">Click to add</div>
+                    )}
+                  </div>
                 </TableCell>
 
                 {/* Next Week - Feelings (Clickable popup cell) */}
@@ -4677,25 +4680,28 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   }}
                   data-testid={`cell-next-feelings-${belief.category.toLowerCase()}`}
                 >
-                  {(belief.feelingsChecklist || []).length > 0 ? (
-                    <div className="flex items-center gap-2">
-                      <Checkbox
-                        checked={(belief.feelingsChecklist || [])[0]?.checked}
-                        disabled
-                        className="h-3 w-3 shrink-0"
-                      />
-                      <span className="line-clamp-1 text-xs text-gray-600 dark:text-gray-300 flex-1">
-                        {(belief.feelingsChecklist || [])[0]?.text}
-                      </span>
-                      {(belief.feelingsChecklist || []).length > 1 && (
-                        <Badge variant="secondary" className="text-xs shrink-0">
-                          +{(belief.feelingsChecklist || []).length - 1}
-                        </Badge>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="text-xs text-gray-500 dark:text-gray-400 italic">Click to add</div>
-                  )}
+                  <div className="space-y-1">
+                    {(belief.feelingsChecklist || []).slice(0, 3).map((item, index) => (
+                      <div key={item.id} className="flex items-center gap-1.5">
+                        <Checkbox
+                          checked={item.checked}
+                          disabled
+                          className="h-3 w-3 shrink-0"
+                        />
+                        <span className="line-clamp-1 text-xs text-gray-600 dark:text-gray-300 flex-1">
+                          {item.text}
+                        </span>
+                      </div>
+                    ))}
+                    {(belief.feelingsChecklist || []).length > 3 && (
+                      <Badge variant="secondary" className="text-xs inline-block mt-1">
+                        +{(belief.feelingsChecklist || []).length - 3} more items
+                      </Badge>
+                    )}
+                    {(belief.feelingsChecklist || []).length === 0 && (
+                      <div className="text-xs text-gray-500 dark:text-gray-400 italic">Click to add</div>
+                    )}
+                  </div>
                 </TableCell>
 
                 {/* Next Week - Beliefs/Reasons (Clickable popup cell) */}
@@ -4711,25 +4717,28 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   }}
                   data-testid={`cell-next-beliefs-${belief.category.toLowerCase()}`}
                 >
-                  {(belief.beliefsChecklist || []).length > 0 ? (
-                    <div className="flex items-center gap-2">
-                      <Checkbox
-                        checked={(belief.beliefsChecklist || [])[0]?.checked}
-                        disabled
-                        className="h-3 w-3 shrink-0"
-                      />
-                      <span className="line-clamp-1 text-xs text-gray-600 dark:text-gray-300 flex-1">
-                        {(belief.beliefsChecklist || [])[0]?.text}
-                      </span>
-                      {(belief.beliefsChecklist || []).length > 1 && (
-                        <Badge variant="secondary" className="text-xs shrink-0">
-                          +{(belief.beliefsChecklist || []).length - 1}
-                        </Badge>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="text-xs text-gray-500 dark:text-gray-400 italic">Click to add</div>
-                  )}
+                  <div className="space-y-1">
+                    {(belief.beliefsChecklist || []).slice(0, 3).map((item, index) => (
+                      <div key={item.id} className="flex items-center gap-1.5">
+                        <Checkbox
+                          checked={item.checked}
+                          disabled
+                          className="h-3 w-3 shrink-0"
+                        />
+                        <span className="line-clamp-1 text-xs text-gray-600 dark:text-gray-300 flex-1">
+                          {item.text}
+                        </span>
+                      </div>
+                    ))}
+                    {(belief.beliefsChecklist || []).length > 3 && (
+                      <Badge variant="secondary" className="text-xs inline-block mt-1">
+                        +{(belief.beliefsChecklist || []).length - 3} more items
+                      </Badge>
+                    )}
+                    {(belief.beliefsChecklist || []).length === 0 && (
+                      <div className="text-xs text-gray-500 dark:text-gray-400 italic">Click to add</div>
+                    )}
+                  </div>
                 </TableCell>
 
                 {/* Next Week - Actions (Clickable popup cell) */}
@@ -4745,25 +4754,28 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   }}
                   data-testid={`cell-next-actions-${belief.category.toLowerCase()}`}
                 >
-                  {(belief.actionsChecklist || []).length > 0 ? (
-                    <div className="flex items-center gap-2">
-                      <Checkbox
-                        checked={(belief.actionsChecklist || [])[0]?.checked}
-                        disabled
-                        className="h-3 w-3 shrink-0"
-                      />
-                      <span className="line-clamp-1 text-xs text-gray-600 dark:text-gray-300 flex-1">
-                        {(belief.actionsChecklist || [])[0]?.text}
-                      </span>
-                      {(belief.actionsChecklist || []).length > 1 && (
-                        <Badge variant="secondary" className="text-xs shrink-0">
-                          +{(belief.actionsChecklist || []).length - 1}
-                        </Badge>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="text-xs text-gray-500 dark:text-gray-400 italic">Click to add</div>
-                  )}
+                  <div className="space-y-1">
+                    {(belief.actionsChecklist || []).slice(0, 3).map((item, index) => (
+                      <div key={item.id} className="flex items-center gap-1.5">
+                        <Checkbox
+                          checked={item.checked}
+                          disabled
+                          className="h-3 w-3 shrink-0"
+                        />
+                        <span className="line-clamp-1 text-xs text-gray-600 dark:text-gray-300 flex-1">
+                          {item.text}
+                        </span>
+                      </div>
+                    ))}
+                    {(belief.actionsChecklist || []).length > 3 && (
+                      <Badge variant="secondary" className="text-xs inline-block mt-1">
+                        +{(belief.actionsChecklist || []).length - 3} more items
+                      </Badge>
+                    )}
+                    {(belief.actionsChecklist || []).length === 0 && (
+                      <div className="text-xs text-gray-500 dark:text-gray-400 italic">Click to add</div>
+                    )}
+                  </div>
                 </TableCell>
 
                 {/* Unified Assignment Column - Compact view with click popup */}
