@@ -1733,29 +1733,27 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
   // Handle Current Week checkpoint add
   const handleCurrentWeekCheckpointAdd = (category: string, type: 'problems' | 'currentFeelings' | 'currentBeliefs' | 'currentActions', text: string) => {
-    setBeliefs(prev => {
-      const updated = prev.map(belief => {
-        if (belief.category === category) {
-          const newItem: ChecklistItem = { id: Date.now().toString(), text, checked: false };
-          let updatedBelief = { ...belief };
-          
-          if (type === 'problems' && belief.problemsChecklist) {
-            updatedBelief.problemsChecklist = [...belief.problemsChecklist, newItem];
-          } else if (type === 'currentFeelings' && belief.feelingsCurrentChecklist) {
-            updatedBelief.feelingsCurrentChecklist = [...belief.feelingsCurrentChecklist, newItem];
-          } else if (type === 'currentBeliefs' && belief.beliefsCurrentChecklist) {
-            updatedBelief.beliefsCurrentChecklist = [...belief.beliefsCurrentChecklist, newItem];
-          } else if (type === 'currentActions' && belief.actionsCurrentChecklist) {
-            updatedBelief.actionsCurrentChecklist = [...belief.actionsCurrentChecklist, newItem];
-          }
-          return updatedBelief;
+    const updated = beliefs.map(belief => {
+      if (belief.category === category) {
+        const newItem: ChecklistItem = { id: Date.now().toString(), text, checked: false };
+        let updatedBelief = { ...belief };
+        
+        if (type === 'problems' && belief.problemsChecklist) {
+          updatedBelief.problemsChecklist = [...belief.problemsChecklist, newItem];
+        } else if (type === 'currentFeelings' && belief.feelingsCurrentChecklist) {
+          updatedBelief.feelingsCurrentChecklist = [...belief.feelingsCurrentChecklist, newItem];
+        } else if (type === 'currentBeliefs' && belief.beliefsCurrentChecklist) {
+          updatedBelief.beliefsCurrentChecklist = [...belief.beliefsCurrentChecklist, newItem];
+        } else if (type === 'currentActions' && belief.actionsCurrentChecklist) {
+          updatedBelief.actionsCurrentChecklist = [...belief.actionsCurrentChecklist, newItem];
         }
-        return belief;
-      });
-      
-      saveWeekMutation.mutate({ weekNumber: actualWeekNumber, year: new Date().getFullYear(), dateString: currentDateStr, beliefs: updated });
-      return updated;
+        return updatedBelief;
+      }
+      return belief;
     });
+    
+    updateBeliefsCache(updated);
+    saveWeekMutation.mutate({ weekNumber: actualWeekNumber, year: new Date().getFullYear(), dateString: currentDateStr, beliefs: updated });
   };
 
   // Handle Current Week checkpoint update text
