@@ -2022,31 +2022,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         console.log('[SAVE] ⚡ Weekly scores updated instantly (optimistic):', { totalCheckpoints, checkedCheckpoints });
       }
       
-      // ✅ SMOOTH UPDATE: Refetch in background (no loading states = no flickering)
-      // Background refetch - updates cache silently without showing loading indicators
-      queryClient.refetchQueries({ 
-        queryKey: ['/api/rating-progression/caps'],
-        type: 'active'
-      });
-      queryClient.refetchQueries({ 
-        queryKey: ['/api/rating-progression/status'],
-        type: 'active'
-      });
-      // Refetch ALL analytics queries in background
-      queryClient.refetchQueries({ 
-        predicate: (query) => {
-          const key = query.queryKey[0];
-          return typeof key === 'string' && key.includes('/api/analytics/progress');
-        },
-        type: 'active'
-      });
-      // 📊 Background refetch for weekly scores (silent update)
-      queryClient.refetchQueries({ 
-        queryKey: ['/api/hercm/weekly-scores'],
-        type: 'active'
-      });
+      // ✅ ZERO FLICKER: No refetch needed - optimistic updates already applied!
+      // Cache is already updated via updateBeliefsCache() before mutation
+      // Weekly scores updated optimistically above
+      // Server state matches cache after successful save
       
-      console.log('[SAVE] ✅ Data saved successfully - background sync initiated (no flickering)');
+      console.log('[SAVE] ✅ Data saved successfully - ZERO refetch (optimistic updates only)');
     },
     onError: (error) => {
       console.error('[SAVE] ❌ Save failed:', error);
