@@ -1930,10 +1930,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   
   // TOGGLE checkbox in Next Week Target popup (INSTANT pattern)
   const handleNextWeekCheckpointToggle = (category: string, type: 'result' | 'feelings' | 'beliefs' | 'actions', itemId: string) => {
-    const cacheData = queryClient.getQueryData<HRCMBelief[]>(['/api/hrcm/date', currentDateStr, viewAsUserId]);
-    const currentBeliefs = Array.isArray(cacheData) ? cacheData : beliefs;
-    
-    const updated = currentBeliefs.map(belief => {
+    const updated = beliefs.map(belief => {
       if (belief.category === category) {
         let updatedBelief = { ...belief };
         
@@ -1951,8 +1948,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       return belief;
     });
     
-    // ✅ INSTANT UPDATE: Update cache AND local state immediately
-    queryClient.setQueryData(['/api/hrcm/date', currentDateStr, viewAsUserId], updated);
+    // ✅ INSTANT UPDATE: Update cache AND local state immediately (using proper cache structure)
+    updateBeliefsCache(updated);
     setBeliefs(updated);
     
     // ✅ INSTANT POPUP UPDATE: Update popup list immediately
@@ -1979,16 +1976,13 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       beliefs: updated
     }).catch(error => {
       console.error('[UPDATE ERROR] Failed to save toggle:', error);
-      queryClient.refetchQueries({ queryKey: ['/api/hrcm/date', currentDateStr, viewAsUserId] });
+      queryClient.refetchQueries({ queryKey: dateDataQueryKey });
     });
   };
 
   // DELETE checkpoint from Next Week Target (INSTANT pattern)
   const handleNextWeekCheckpointDelete = (category: string, type: 'result' | 'feelings' | 'beliefs' | 'actions', itemId: string) => {
-    const cacheData = queryClient.getQueryData<HRCMBelief[]>(['/api/hrcm/date', currentDateStr, viewAsUserId]);
-    const currentBeliefs = Array.isArray(cacheData) ? cacheData : beliefs;
-    
-    const updated = currentBeliefs.map(belief => {
+    const updated = beliefs.map(belief => {
       if (belief.category === category) {
         let updatedBelief = { ...belief };
         
@@ -2006,8 +2000,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       return belief;
     });
     
-    // ✅ INSTANT UPDATE: Update cache AND local state immediately
-    queryClient.setQueryData(['/api/hrcm/date', currentDateStr, viewAsUserId], updated);
+    // ✅ INSTANT UPDATE: Update cache AND local state immediately (using proper cache structure)
+    updateBeliefsCache(updated);
     setBeliefs(updated);
     
     // ✅ INSTANT POPUP UPDATE: Update popup list immediately
@@ -2034,22 +2028,19 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       beliefs: updated
     }).catch(error => {
       console.error('[UPDATE ERROR] Failed to save delete:', error);
-      queryClient.refetchQueries({ queryKey: ['/api/hrcm/date', currentDateStr, viewAsUserId] });
+      queryClient.refetchQueries({ queryKey: dateDataQueryKey });
     });
   };
 
   // ADD checkpoint to Next Week Target
   const handleNextWeekCheckpointAdd = (category: string, type: 'result' | 'feelings' | 'beliefs' | 'actions', text: string) => {
-    const cacheData = queryClient.getQueryData<HRCMBelief[]>(['/api/hrcm/date', currentDateStr, viewAsUserId]);
-    const currentBeliefs = Array.isArray(cacheData) ? cacheData : beliefs;
-    
     const newItem: ChecklistItem = { 
       id: `${category}-${type}-${Date.now()}`, 
       text, 
       checked: false 
     };
     
-    const updated = currentBeliefs.map(belief => {
+    const updated = beliefs.map(belief => {
       if (belief.category === category) {
         let updatedBelief = { ...belief };
         
@@ -2079,8 +2070,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       return belief;
     });
     
-    queryClient.setQueryData(['/api/hrcm/date', currentDateStr, viewAsUserId], updated);
+    // ✅ INSTANT UPDATE: Update cache AND local state immediately (using proper cache structure)
+    updateBeliefsCache(updated);
+    setBeliefs(updated);
     
+    // ✅ INSTANT POPUP UPDATE: Update popup list immediately
     if (nextWeekCheckpointPopup.open && nextWeekCheckpointPopup.category === category && nextWeekCheckpointPopup.type === type) {
       const updatedBeliefData = updated.find(b => b.category === category);
       if (updatedBeliefData) {
@@ -2096,6 +2090,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       }
     }
     
+    // ✅ BACKEND SAVE: Save changes to database (background, no waiting)
     apiRequest(`/api/hercm/save-with-comparison`, 'POST', {
       weekNumber: actualWeekNumber,
       year: new Date().getFullYear(),
@@ -2103,16 +2098,13 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       beliefs: updated
     }).catch(error => {
       console.error('[UPDATE ERROR] Failed to save add:', error);
-      queryClient.refetchQueries({ queryKey: ['/api/hrcm/date', currentDateStr, viewAsUserId] });
+      queryClient.refetchQueries({ queryKey: dateDataQueryKey });
     });
   };
 
   // UPDATE checkpoint text in Next Week Target
   const handleNextWeekCheckpointUpdateText = (category: string, type: 'result' | 'feelings' | 'beliefs' | 'actions', itemId: string, text: string) => {
-    const cacheData = queryClient.getQueryData<HRCMBelief[]>(['/api/hrcm/date', currentDateStr, viewAsUserId]);
-    const currentBeliefs = Array.isArray(cacheData) ? cacheData : beliefs;
-    
-    const updated = currentBeliefs.map(belief => {
+    const updated = beliefs.map(belief => {
       if (belief.category === category) {
         let updatedBelief = { ...belief };
         
@@ -2130,8 +2122,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       return belief;
     });
     
-    queryClient.setQueryData(['/api/hrcm/date', currentDateStr, viewAsUserId], updated);
+    // ✅ INSTANT UPDATE: Update cache AND local state immediately (using proper cache structure)
+    updateBeliefsCache(updated);
+    setBeliefs(updated);
     
+    // ✅ INSTANT POPUP UPDATE: Update popup list immediately
     if (nextWeekCheckpointPopup.open && nextWeekCheckpointPopup.category === category && nextWeekCheckpointPopup.type === type) {
       const updatedBeliefData = updated.find(b => b.category === category);
       if (updatedBeliefData) {
@@ -2147,6 +2142,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       }
     }
     
+    // ✅ BACKEND SAVE: Save changes to database (background, no waiting)
     apiRequest(`/api/hercm/save-with-comparison`, 'POST', {
       weekNumber: actualWeekNumber,
       year: new Date().getFullYear(),
@@ -2154,7 +2150,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       beliefs: updated
     }).catch(error => {
       console.error('[UPDATE ERROR] Failed to save update:', error);
-      queryClient.refetchQueries({ queryKey: ['/api/hrcm/date', currentDateStr, viewAsUserId] });
+      queryClient.refetchQueries({ queryKey: dateDataQueryKey });
     });
   };
 
@@ -3147,8 +3143,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       actionsChecklist: [],
     }));
     
-    // ✅ INSTANT UPDATE: Update cache AND local state immediately
-    queryClient.setQueryData(['/api/hrcm/date', currentDateStr, viewAsUserId], clearedBeliefs);
+    // ✅ INSTANT UPDATE: Update cache AND local state immediately (using proper cache structure)
+    updateBeliefsCache(clearedBeliefs);
     setBeliefs(clearedBeliefs);
     setManualNextWeekMode(true); // Disable auto-sync
     
@@ -3183,8 +3179,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       actionsCurrentChecklist: [],
     }));
     
-    // ✅ INSTANT UPDATE: Update cache AND local state immediately
-    queryClient.setQueryData(['/api/hrcm/date', currentDateStr, viewAsUserId], clearedBeliefs);
+    // ✅ INSTANT UPDATE: Update cache AND local state immediately (using proper cache structure)
+    updateBeliefsCache(clearedBeliefs);
     setBeliefs(clearedBeliefs);
     
     // ✅ BACKEND SAVE: Save cleared data to database (background)
