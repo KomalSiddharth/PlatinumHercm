@@ -1801,9 +1801,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     });
   };
 
-  // Handle Current Week checkpoint update text
+  // 🔥 UPDATE CHECKPOINT: Assignment Column Pattern - Instant & Clean!
   const handleCurrentWeekCheckpointUpdateText = (category: string, type: 'problems' | 'currentFeelings' | 'currentBeliefs' | 'currentActions', itemId: string, text: string) => {
-    const updated = beliefs.map(belief => {
+    // Get FRESH data from cache (not stale state!)
+    const currentBeliefs = queryClient.getQueryData<HRCMBelief[]>(['/api/hrcm/date', currentDateStr, viewAsUserId]) || [];
+    
+    const updated = currentBeliefs.map(belief => {
       if (belief.category === category) {
         let updatedBelief = { ...belief };
         
@@ -1821,8 +1824,36 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       return belief;
     });
     
-    updateBeliefsCache(updated);
-    saveWeekMutation.mutate({ weekNumber: actualWeekNumber, year: new Date().getFullYear(), dateString: currentDateStr, beliefs: updated });
+    // ✅ INSTANT UPDATE: Update cache immediately
+    queryClient.setQueryData(['/api/hrcm/date', currentDateStr, viewAsUserId], updated);
+    
+    // ✅ INSTANT POPUP UPDATE: Update popup list if it's open
+    if (currentWeekCheckpointPopup.open && currentWeekCheckpointPopup.category === category && currentWeekCheckpointPopup.type === type) {
+      const updatedBeliefData = updated.find(b => b.category === category);
+      if (updatedBeliefData) {
+        const newItems = type === 'problems' ? updatedBeliefData.problemsChecklist || [] :
+                        type === 'currentFeelings' ? updatedBeliefData.feelingsCurrentChecklist || [] :
+                        type === 'currentBeliefs' ? updatedBeliefData.beliefsCurrentChecklist || [] :
+                        updatedBeliefData.actionsCurrentChecklist || [];
+        
+        setCurrentWeekCheckpointPopup({
+          ...currentWeekCheckpointPopup,
+          items: newItems
+        });
+      }
+    }
+    
+    // ✅ BACKEND SAVE: Save changes to database (background)
+    apiRequest(`/api/hercm/save-with-comparison`, 'POST', {
+      weekNumber: actualWeekNumber,
+      year: new Date().getFullYear(),
+      dateString: currentDateStr,
+      beliefs: updated
+    }).catch(error => {
+      console.error('[UPDATE ERROR] Failed to save update:', error);
+      // Rollback on error
+      queryClient.refetchQueries({ queryKey: ['/api/hrcm/date', currentDateStr, viewAsUserId] });
+    });
   };
 
   const handleRatingChange = (category: string, newRating: number) => {
@@ -2682,33 +2713,15 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     setShowFirstCheckpointDialog(open);
   };
 
-  // Save current week checkpoint from dialog
+  // Save current week checkpoint from dialog - FIX: Call RIGHT handler!
   const handleSaveCurrentWeekCheckpoint = () => {
     if (currentWeekCheckpointData && currentWeekCheckpointData.text.trim()) {
-      // Map to existing checkpoint types
-      const typeMap: Record<string, 'result' | 'feelings' | 'beliefs' | 'actions' | 'problems' | 'feelingsCurrent' | 'beliefsCurrent' | 'actionsCurrent'> = {
-        'problems': 'problems',
-        'currentFeelings': 'feelingsCurrent',
-        'currentBeliefs': 'beliefsCurrent',
-        'currentActions': 'actionsCurrent'
-      };
-      const mappedType = typeMap[currentWeekCheckpointData.checklistType];
-      handleAddCheckpoint(currentWeekCheckpointData.category, mappedType, currentWeekCheckpointData.text.trim());
-      
-      // ✅ UPDATE POPUP LIST IN REAL-TIME: Add new checkpoint to popup items
-      if (currentWeekCheckpointPopup.open && 
-          currentWeekCheckpointPopup.category === currentWeekCheckpointData.category &&
-          currentWeekCheckpointPopup.type === currentWeekCheckpointData.checklistType) {
-        const newItem: ChecklistItem = {
-          id: `${currentWeekCheckpointData.category}-${mappedType}-${Date.now()}`,
-          text: currentWeekCheckpointData.text.trim(),
-          checked: false
-        };
-        setCurrentWeekCheckpointPopup(prev => ({
-          ...prev,
-          items: [newItem, ...prev.items] // Add at start for visibility
-        }));
-      }
+      // ✅ Call the RIGHT handler - handleCurrentWeekCheckpointAdd (not handleAddCheckpoint!)
+      handleCurrentWeekCheckpointAdd(
+        currentWeekCheckpointData.category,
+        currentWeekCheckpointData.checklistType,
+        currentWeekCheckpointData.text.trim()
+      );
       
       setShowCurrentWeekCheckpointDialog(false);
       setCurrentWeekCheckpointData(null);
@@ -2723,34 +2736,13 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       // so this won't create duplicates when using Enter/Ctrl+Enter
       if (currentWeekCheckpointData && currentWeekCheckpointData.text.trim()) {
         const textToSave = currentWeekCheckpointData.text.trim();
-        // Map to existing checkpoint types
-        const typeMap: Record<string, 'result' | 'feelings' | 'beliefs' | 'actions' | 'problems' | 'feelingsCurrent' | 'beliefsCurrent' | 'actionsCurrent'> = {
-          'problems': 'problems',
-          'currentFeelings': 'feelingsCurrent',
-          'currentBeliefs': 'beliefsCurrent',
-          'currentActions': 'actionsCurrent'
-        };
-        const mappedType = typeMap[currentWeekCheckpointData.checklistType];
         
-        // ✅ INSTANT ADD: Create new item immediately
-        const newItem: ChecklistItem = {
-          id: `${currentWeekCheckpointData.category}-${mappedType}-${Date.now()}`,
-          text: textToSave,
-          checked: false
-        };
-        
-        // Update popup list INSTANTLY (optimistic update)
-        if (currentWeekCheckpointPopup.open && 
-            currentWeekCheckpointPopup.category === currentWeekCheckpointData.category &&
-            currentWeekCheckpointPopup.type === currentWeekCheckpointData.checklistType) {
-          setCurrentWeekCheckpointPopup(prev => ({
-            ...prev,
-            items: [newItem, ...prev.items] // Add at start for visibility
-          }));
-        }
-        
-        // Save to backend
-        handleAddCheckpoint(currentWeekCheckpointData.category, mappedType, textToSave);
+        // ✅ Call the RIGHT handler - handleCurrentWeekCheckpointAdd (not handleAddCheckpoint!)
+        handleCurrentWeekCheckpointAdd(
+          currentWeekCheckpointData.category,
+          currentWeekCheckpointData.checklistType,
+          textToSave
+        );
       }
       setCurrentWeekCheckpointData(null);
     }
