@@ -1685,8 +1685,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       return belief;
     });
     
-    // ✅ INSTANT UPDATE: Update cache immediately using correct query key
+    // ✅ INSTANT UPDATE: Update cache AND local state immediately (using proper cache structure)
     updateBeliefsCache(updated);
+    setBeliefs(updated);
     
     // ✅ INSTANT POPUP UPDATE: Update popup list immediately
     if (currentWeekCheckpointPopup.open && currentWeekCheckpointPopup.category === category && currentWeekCheckpointPopup.type === type) {
@@ -1746,17 +1747,13 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       beliefs: updated
     }).catch(error => {
       console.error('[TOGGLE ERROR] Failed to save toggle:', error);
-      // Rollback on error
-      queryClient.refetchQueries({ queryKey: ['/api/hrcm/date', currentDateStr, viewAsUserId] });
+      queryClient.refetchQueries({ queryKey: dateDataQueryKey });
     });
   };
 
   // 🔥 DELETE CHECKPOINT: Assignment Column Pattern - Instant & Simple!
   const handleCurrentWeekCheckpointDelete = (category: string, type: 'problems' | 'currentFeelings' | 'currentBeliefs' | 'currentActions', itemId: string) => {
-    const cacheData = queryClient.getQueryData<HRCMBelief[]>(['/api/hrcm/date', currentDateStr, viewAsUserId]);
-    const currentBeliefs = Array.isArray(cacheData) ? cacheData : beliefs;
-    
-    const updated = currentBeliefs.map(belief => {
+    const updated = beliefs.map(belief => {
       if (belief.category === category) {
         let updatedBelief = { ...belief };
         
@@ -1776,8 +1773,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       return belief;
     });
     
-    // ✅ INSTANT UPDATE: Update cache immediately (just like Assignment Column!)
-    queryClient.setQueryData(['/api/hrcm/date', currentDateStr, viewAsUserId], updated);
+    // ✅ INSTANT UPDATE: Update cache AND local state immediately (using proper cache structure)
+    updateBeliefsCache(updated);
+    setBeliefs(updated);
     
     // ✅ INSTANT POPUP UPDATE: Update popup list immediately
     if (currentWeekCheckpointPopup.open && currentWeekCheckpointPopup.category === category && currentWeekCheckpointPopup.type === type) {
@@ -1803,24 +1801,19 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       beliefs: updated
     }).catch(error => {
       console.error('[DELETE ERROR] Failed to save deletion:', error);
-      // Rollback on error
-      queryClient.refetchQueries({ queryKey: ['/api/hrcm/date', currentDateStr, viewAsUserId] });
+      queryClient.refetchQueries({ queryKey: dateDataQueryKey });
     });
   };
 
   // 🔥 ADD CHECKPOINT: Assignment Column Pattern - Instant & No Duplicates!
   const handleCurrentWeekCheckpointAdd = (category: string, type: 'problems' | 'currentFeelings' | 'currentBeliefs' | 'currentActions', text: string) => {
-    // Get FRESH data from cache (not stale state!)
-    const cacheData = queryClient.getQueryData<HRCMBelief[]>(['/api/hrcm/date', currentDateStr, viewAsUserId]);
-    const currentBeliefs = Array.isArray(cacheData) ? cacheData : beliefs;
-    
     const newItem: ChecklistItem = { 
       id: `${category}-${type}-${Date.now()}`, 
       text, 
       checked: false 
     };
     
-    const updated = currentBeliefs.map(belief => {
+    const updated = beliefs.map(belief => {
       if (belief.category === category) {
         let updatedBelief = { ...belief };
         
@@ -1838,8 +1831,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       return belief;
     });
     
-    // ✅ INSTANT UPDATE: Update cache immediately
-    queryClient.setQueryData(['/api/hrcm/date', currentDateStr, viewAsUserId], updated);
+    // ✅ INSTANT UPDATE: Update cache AND local state immediately (using proper cache structure)
+    updateBeliefsCache(updated);
+    setBeliefs(updated);
     
     // ✅ INSTANT POPUP UPDATE: Update popup list if it's open
     if (currentWeekCheckpointPopup.open && currentWeekCheckpointPopup.category === category && currentWeekCheckpointPopup.type === type) {
@@ -1865,18 +1859,13 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       beliefs: updated
     }).catch(error => {
       console.error('[ADD ERROR] Failed to save addition:', error);
-      // Rollback on error
-      queryClient.refetchQueries({ queryKey: ['/api/hrcm/date', currentDateStr, viewAsUserId] });
+      queryClient.refetchQueries({ queryKey: dateDataQueryKey });
     });
   };
 
   // 🔥 UPDATE CHECKPOINT: Assignment Column Pattern - Instant & Clean!
   const handleCurrentWeekCheckpointUpdateText = (category: string, type: 'problems' | 'currentFeelings' | 'currentBeliefs' | 'currentActions', itemId: string, text: string) => {
-    // Get FRESH data from cache (not stale state!)
-    const cacheData = queryClient.getQueryData<HRCMBelief[]>(['/api/hrcm/date', currentDateStr, viewAsUserId]);
-    const currentBeliefs = Array.isArray(cacheData) ? cacheData : beliefs;
-    
-    const updated = currentBeliefs.map(belief => {
+    const updated = beliefs.map(belief => {
       if (belief.category === category) {
         let updatedBelief = { ...belief };
         
@@ -1894,8 +1883,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       return belief;
     });
     
-    // ✅ INSTANT UPDATE: Update cache immediately
-    queryClient.setQueryData(['/api/hrcm/date', currentDateStr, viewAsUserId], updated);
+    // ✅ INSTANT UPDATE: Update cache AND local state immediately (using proper cache structure)
+    updateBeliefsCache(updated);
+    setBeliefs(updated);
     
     // ✅ INSTANT POPUP UPDATE: Update popup list if it's open
     if (currentWeekCheckpointPopup.open && currentWeekCheckpointPopup.category === category && currentWeekCheckpointPopup.type === type) {
@@ -1921,8 +1911,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       beliefs: updated
     }).catch(error => {
       console.error('[UPDATE ERROR] Failed to save update:', error);
-      // Rollback on error
-      queryClient.refetchQueries({ queryKey: ['/api/hrcm/date', currentDateStr, viewAsUserId] });
+      queryClient.refetchQueries({ queryKey: dateDataQueryKey });
     });
   };
 
