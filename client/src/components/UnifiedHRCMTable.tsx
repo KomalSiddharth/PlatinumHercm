@@ -2826,6 +2826,50 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       }
       
       saveWeekMutation.mutate({ weekNumber: actualWeekNumber, year: new Date().getFullYear(), beliefs: updated });
+      
+      // ✅ UPDATE CURRENT WEEK POPUP if open
+      if (isCurrentWeekCheckpoint && currentWeekCheckpointPopup.open && currentWeekCheckpointPopup.category === category) {
+        const typeMapping = {
+          'problems': 'problems' as const,
+          'feelingsCurrent': 'currentFeelings' as const,
+          'beliefsCurrent': 'currentBeliefs' as const,
+          'actionsCurrent': 'currentActions' as const
+        };
+        const mappedType = typeMapping[checklistType as keyof typeof typeMapping];
+        
+        if (currentWeekCheckpointPopup.type === mappedType) {
+          const updatedBeliefData = updated.find(b => b.category === category);
+          if (updatedBeliefData) {
+            const newItems = checklistType === 'problems' ? updatedBeliefData.problemsChecklist || [] :
+                            checklistType === 'feelingsCurrent' ? updatedBeliefData.feelingsCurrentChecklist || [] :
+                            checklistType === 'beliefsCurrent' ? updatedBeliefData.beliefsCurrentChecklist || [] :
+                            updatedBeliefData.actionsCurrentChecklist || [];
+            
+            setCurrentWeekCheckpointPopup({
+              ...currentWeekCheckpointPopup,
+              items: newItems
+            });
+          }
+        }
+      }
+      
+      // ✅ UPDATE NEXT WEEK TARGET POPUP if open
+      const isNextWeekCheckpoint = ['result', 'feelings', 'beliefs', 'actions'].includes(checklistType);
+      if (isNextWeekCheckpoint && checkpointPopup.open && checkpointPopup.category === category && checkpointPopup.type === checklistType) {
+        const updatedBeliefData = updated.find(b => b.category === category);
+        if (updatedBeliefData) {
+          const newItems = checklistType === 'result' ? updatedBeliefData.resultChecklist || [] :
+                          checklistType === 'feelings' ? updatedBeliefData.feelingsChecklist || [] :
+                          checklistType === 'beliefs' ? updatedBeliefData.beliefsChecklist || [] :
+                          updatedBeliefData.actionsChecklist || [];
+          
+          setCheckpointPopup({
+            ...checkpointPopup,
+            items: newItems
+          });
+        }
+      }
+      
       return updated;
     });
   };
