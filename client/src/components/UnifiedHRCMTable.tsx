@@ -1762,28 +1762,26 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
   // Handle Current Week checkpoint update text
   const handleCurrentWeekCheckpointUpdateText = (category: string, type: 'problems' | 'currentFeelings' | 'currentBeliefs' | 'currentActions', itemId: string, text: string) => {
-    setBeliefs(prev => {
-      const updated = prev.map(belief => {
-        if (belief.category === category) {
-          let updatedBelief = { ...belief };
-          
-          if (type === 'problems' && belief.problemsChecklist) {
-            updatedBelief.problemsChecklist = belief.problemsChecklist.map(item => item.id === itemId ? { ...item, text } : item);
-          } else if (type === 'currentFeelings' && belief.feelingsCurrentChecklist) {
-            updatedBelief.feelingsCurrentChecklist = belief.feelingsCurrentChecklist.map(item => item.id === itemId ? { ...item, text } : item);
-          } else if (type === 'currentBeliefs' && belief.beliefsCurrentChecklist) {
-            updatedBelief.beliefsCurrentChecklist = belief.beliefsCurrentChecklist.map(item => item.id === itemId ? { ...item, text } : item);
-          } else if (type === 'currentActions' && belief.actionsCurrentChecklist) {
-            updatedBelief.actionsCurrentChecklist = belief.actionsCurrentChecklist.map(item => item.id === itemId ? { ...item, text } : item);
-          }
-          return updatedBelief;
+    const updated = beliefs.map(belief => {
+      if (belief.category === category) {
+        let updatedBelief = { ...belief };
+        
+        if (type === 'problems' && belief.problemsChecklist) {
+          updatedBelief.problemsChecklist = belief.problemsChecklist.map(item => item.id === itemId ? { ...item, text } : item);
+        } else if (type === 'currentFeelings' && belief.feelingsCurrentChecklist) {
+          updatedBelief.feelingsCurrentChecklist = belief.feelingsCurrentChecklist.map(item => item.id === itemId ? { ...item, text } : item);
+        } else if (type === 'currentBeliefs' && belief.beliefsCurrentChecklist) {
+          updatedBelief.beliefsCurrentChecklist = belief.beliefsCurrentChecklist.map(item => item.id === itemId ? { ...item, text } : item);
+        } else if (type === 'currentActions' && belief.actionsCurrentChecklist) {
+          updatedBelief.actionsCurrentChecklist = belief.actionsCurrentChecklist.map(item => item.id === itemId ? { ...item, text } : item);
         }
-        return belief;
-      });
-      
-      saveWeekMutation.mutate({ weekNumber: actualWeekNumber, year: new Date().getFullYear(), dateString: currentDateStr, beliefs: updated });
-      return updated;
+        return updatedBelief;
+      }
+      return belief;
     });
+    
+    updateBeliefsCache(updated);
+    saveWeekMutation.mutate({ weekNumber: actualWeekNumber, year: new Date().getFullYear(), dateString: currentDateStr, beliefs: updated });
   };
 
   const handleRatingChange = (category: string, newRating: number) => {
@@ -5431,7 +5429,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       }
                     }}
                     autoFocus
-                    className="flex-1 text-sm p-2 border rounded resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="flex-1 text-sm p-2 border rounded resize-none focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                     rows={2}
                     data-testid={`textarea-inline-edit-${currentWeekCheckpointPopup.type}-${index}`}
                   />
