@@ -4632,7 +4632,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
                 {/* Next Week - Results (Clickable popup cell) */}
                 <TableCell 
-                  className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px] cursor-pointer hover:bg-blue-100/30 dark:hover:bg-blue-900/20 transition-colors"
+                  className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px] cursor-pointer hover-elevate active-elevate-2 transition-all"
                   onClick={() => {
                     setNextWeekCheckpointPopup({
                       open: true,
@@ -4643,14 +4643,16 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   }}
                   data-testid={`cell-next-result-${belief.category.toLowerCase()}`}
                 >
-                  <Badge variant="outline" className="font-semibold pointer-events-none">
-                    {(belief.resultChecklist || []).length}
-                  </Badge>
+                  <div className="text-sm text-gray-500 dark:text-gray-400 italic">
+                    {(belief.resultChecklist || []).length > 0 
+                      ? `${(belief.resultChecklist || []).length} item${(belief.resultChecklist || []).length !== 1 ? 's' : ''}`
+                      : 'Click to add'}
+                  </div>
                 </TableCell>
 
                 {/* Next Week - Feelings (Clickable popup cell) */}
                 <TableCell 
-                  className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px] cursor-pointer hover:bg-blue-100/30 dark:hover:bg-blue-900/20 transition-colors"
+                  className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px] cursor-pointer hover-elevate active-elevate-2 transition-all"
                   onClick={() => {
                     setNextWeekCheckpointPopup({
                       open: true,
@@ -4661,14 +4663,16 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   }}
                   data-testid={`cell-next-feelings-${belief.category.toLowerCase()}`}
                 >
-                  <Badge variant="outline" className="font-semibold pointer-events-none">
-                    {(belief.feelingsChecklist || []).length}
-                  </Badge>
+                  <div className="text-sm text-gray-500 dark:text-gray-400 italic">
+                    {(belief.feelingsChecklist || []).length > 0 
+                      ? `${(belief.feelingsChecklist || []).length} item${(belief.feelingsChecklist || []).length !== 1 ? 's' : ''}`
+                      : 'Click to add'}
+                  </div>
                 </TableCell>
 
                 {/* Next Week - Beliefs/Reasons (Clickable popup cell) */}
                 <TableCell 
-                  className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px] cursor-pointer hover:bg-blue-100/30 dark:hover:bg-blue-900/20 transition-colors"
+                  className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px] cursor-pointer hover-elevate active-elevate-2 transition-all"
                   onClick={() => {
                     setNextWeekCheckpointPopup({
                       open: true,
@@ -4679,14 +4683,16 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   }}
                   data-testid={`cell-next-beliefs-${belief.category.toLowerCase()}`}
                 >
-                  <Badge variant="outline" className="font-semibold pointer-events-none">
-                    {(belief.beliefsChecklist || []).length}
-                  </Badge>
+                  <div className="text-sm text-gray-500 dark:text-gray-400 italic">
+                    {(belief.beliefsChecklist || []).length > 0 
+                      ? `${(belief.beliefsChecklist || []).length} item${(belief.beliefsChecklist || []).length !== 1 ? 's' : ''}`
+                      : 'Click to add'}
+                  </div>
                 </TableCell>
 
                 {/* Next Week - Actions (Clickable popup cell) */}
                 <TableCell 
-                  className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px] border-r cursor-pointer hover:bg-blue-100/30 dark:hover:bg-blue-900/20 transition-colors"
+                  className="p-2 bg-blue-50/30 dark:bg-blue-950/10 align-top w-[180px] min-w-[180px] max-w-[180px] border-r cursor-pointer hover-elevate active-elevate-2 transition-all"
                   onClick={() => {
                     setNextWeekCheckpointPopup({
                       open: true,
@@ -4697,9 +4703,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   }}
                   data-testid={`cell-next-actions-${belief.category.toLowerCase()}`}
                 >
-                  <Badge variant="outline" className="font-semibold pointer-events-none">
-                    {(belief.actionsChecklist || []).length}
-                  </Badge>
+                  <div className="text-sm text-gray-500 dark:text-gray-400 italic">
+                    {(belief.actionsChecklist || []).length > 0 
+                      ? `${(belief.actionsChecklist || []).length} item${(belief.actionsChecklist || []).length !== 1 ? 's' : ''}`
+                      : 'Click to add'}
+                  </div>
                 </TableCell>
 
                 {/* Unified Assignment Column - Compact view with click popup */}
