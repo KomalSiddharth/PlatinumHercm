@@ -3318,13 +3318,13 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         <Dialog 
           open={isAddingNew} 
           onOpenChange={(open) => {
-            // Only handle closing - don't propagate to main dialog
+            // ✅ ONLY close add dialog - keep main dialog open
             if (!open) {
-              setTimeout(() => {
-                setIsAddingNew(false);
-                setNewItemText('');
-                setEditingItemId(null);
-              }, 50); // Small delay to prevent main dialog closure
+              setIsAddingNew(false);
+              setNewItemText('');
+              setEditingItemId(null);
+              // Explicitly keep main dialog open
+              setShowMasterDialog(true);
             }
           }}
         >
@@ -3378,18 +3378,13 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         <Dialog 
           open={showMasterDialog} 
           onOpenChange={(open) => {
-            // Prevent closing if add dialog is currently open
-            if (!open) {
-              // Add slight delay to check if add dialog just closed
-              setTimeout(() => {
-                // Double check - only close if add dialog is not opening
-                if (!isAddingNew) {
-                  setShowMasterDialog(false);
-                }
-              }, 100);
-            } else {
+            // ✅ KEEP MAIN DIALOG OPEN - Only close if explicitly triggered (not from nested dialog)
+            if (!open && !isAddingNew) {
+              setShowMasterDialog(false);
+            } else if (open) {
               setShowMasterDialog(true);
             }
+            // If isAddingNew is true, ignore close events (nested dialog is handling it)
           }}
         >
           <DialogContent className="max-w-lg max-h-[700px] overflow-y-auto">
