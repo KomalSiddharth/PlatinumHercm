@@ -1549,54 +1549,61 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     });
   };
 
-  // Handle Next Week Target checkpoint delete
+  // Handle Next Week Target checkpoint delete (INSTANT pattern - same as Current Week!)
   const handleCheckpointDelete = (category: string, type: 'result' | 'feelings' | 'beliefs' | 'actions', itemId: string) => {
-    setBeliefs(prev => {
-      const updated = prev.map(belief => {
-        if (belief.category === category) {
-          let updatedBelief = { ...belief };
-          
-          // Remove item from the appropriate checklist based on type
-          if (type === 'result' && belief.resultChecklist) {
-            updatedBelief.resultChecklist = belief.resultChecklist.filter(item => item.id !== itemId);
-          } else if (type === 'feelings' && belief.feelingsChecklist) {
-            updatedBelief.feelingsChecklist = belief.feelingsChecklist.filter(item => item.id !== itemId);
-          } else if (type === 'beliefs' && belief.beliefsChecklist) {
-            updatedBelief.beliefsChecklist = belief.beliefsChecklist.filter(item => item.id !== itemId);
-          } else if (type === 'actions' && belief.actionsChecklist) {
-            updatedBelief.actionsChecklist = belief.actionsChecklist.filter(item => item.id !== itemId);
-          }
-          
-          return updatedBelief;
+    const cacheData = queryClient.getQueryData<HRCMBelief[]>(['/api/hrcm/date', currentDateStr, viewAsUserId]);
+    const currentBeliefs = Array.isArray(cacheData) ? cacheData : beliefs;
+    
+    const updated = currentBeliefs.map(belief => {
+      if (belief.category === category) {
+        let updatedBelief = { ...belief };
+        
+        // Remove item from the appropriate checklist based on type
+        if (type === 'result' && belief.resultChecklist) {
+          updatedBelief.resultChecklist = belief.resultChecklist.filter(item => item.id !== itemId);
+        } else if (type === 'feelings' && belief.feelingsChecklist) {
+          updatedBelief.feelingsChecklist = belief.feelingsChecklist.filter(item => item.id !== itemId);
+        } else if (type === 'beliefs' && belief.beliefsChecklist) {
+          updatedBelief.beliefsChecklist = belief.beliefsChecklist.filter(item => item.id !== itemId);
+        } else if (type === 'actions' && belief.actionsChecklist) {
+          updatedBelief.actionsChecklist = belief.actionsChecklist.filter(item => item.id !== itemId);
         }
-        return belief;
-      });
-      
-      // Auto-save changes to database immediately
-      saveWeekMutation.mutate({
-        weekNumber: actualWeekNumber,
-        year: new Date().getFullYear(),
-        dateString: currentDateStr,
-        beliefs: updated,
-      });
-      
-      // Update popup state if open
-      if (checkpointPopup.open && checkpointPopup.category === category && checkpointPopup.type === type) {
-        const updatedBeliefData = updated.find(b => b.category === category);
-        if (updatedBeliefData) {
-          const newItems = type === 'result' ? updatedBeliefData.resultChecklist || [] :
-                          type === 'feelings' ? updatedBeliefData.feelingsChecklist || [] :
-                          type === 'beliefs' ? updatedBeliefData.beliefsChecklist || [] :
-                          updatedBeliefData.actionsChecklist || [];
-          
-          setCheckpointPopup({
-            ...checkpointPopup,
-            items: newItems
-          });
-        }
+        
+        return updatedBelief;
       }
-      
-      return updated;
+      return belief;
+    });
+    
+    // ✅ INSTANT UPDATE: Update cache AND local state immediately
+    queryClient.setQueryData(['/api/hrcm/date', currentDateStr, viewAsUserId], updated);
+    setBeliefs(updated);
+    
+    // ✅ INSTANT POPUP UPDATE: Update popup list immediately
+    if (checkpointPopup.open && checkpointPopup.category === category && checkpointPopup.type === type) {
+      const updatedBeliefData = updated.find(b => b.category === category);
+      if (updatedBeliefData) {
+        const newItems = type === 'result' ? updatedBeliefData.resultChecklist || [] :
+                        type === 'feelings' ? updatedBeliefData.feelingsChecklist || [] :
+                        type === 'beliefs' ? updatedBeliefData.beliefsChecklist || [] :
+                        updatedBeliefData.actionsChecklist || [];
+        
+        setCheckpointPopup({
+          ...checkpointPopup,
+          items: newItems
+        });
+      }
+    }
+    
+    // ✅ BACKEND SAVE: Save changes to database (background, no waiting)
+    apiRequest(`/api/hercm/save-with-comparison`, 'POST', {
+      weekNumber: actualWeekNumber,
+      year: new Date().getFullYear(),
+      dateString: currentDateStr,
+      beliefs: updated
+    }).catch(error => {
+      console.error('[DELETE ERROR] Failed to save deletion:', error);
+      // Rollback on error
+      queryClient.refetchQueries({ queryKey: ['/api/hrcm/date', currentDateStr, viewAsUserId] });
     });
   };
 
