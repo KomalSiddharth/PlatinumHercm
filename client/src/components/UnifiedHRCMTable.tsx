@@ -3251,6 +3251,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       updated = syncCurrentToNextWeek(updated);
     }
     
+    // ✅ UPDATE LOCAL STATE IMMEDIATELY (optimistic update for column display)
+    setBeliefs(updated);
+    
     // 🔥 INSTANT SAVE with OPTIMISTIC UPDATE (Assignment Column pattern)
     // onMutate updates cache instantly → API call in background → onSuccess refetches → NO FLICKER!
     checkpointMutation.mutate(updated);
@@ -3358,6 +3361,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       updated = syncCurrentToNextWeek(updated);
     }
     
+    // ✅ UPDATE LOCAL STATE IMMEDIATELY (optimistic update for column display)
+    setBeliefs(updated);
+    
     // 🔥 INSTANT SAVE with OPTIMISTIC UPDATE (Assignment Column pattern)
     checkpointMutation.mutate(updated);
   };
@@ -3404,6 +3410,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     if (isCurrentWeekCheckpoint) {
       updated = syncCurrentToNextWeek(updated);
     }
+    
+    // ✅ UPDATE LOCAL STATE IMMEDIATELY (optimistic update for column display)
+    setBeliefs(updated);
     
     // 🔥 INSTANT SAVE with OPTIMISTIC UPDATE (Assignment Column pattern)
     checkpointMutation.mutate(updated);
