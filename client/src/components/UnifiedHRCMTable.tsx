@@ -5287,8 +5287,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   e.target.setSelectionRange(length, length);
                 }}
                 onKeyDown={(e) => {
-                  // Ctrl+Enter or Cmd+Enter to add and keep dialog open
-                  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                  // Plain Enter to save and close dialog (instant add)
+                  if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
                     e.preventDefault();
                     if (currentWeekCheckpointData?.text.trim()) {
                       // Map checklistType to correct format
@@ -5296,6 +5296,55 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                         currentWeekCheckpointData.checklistType === 'currentBeliefs' ? 'beliefsCurrent' :
                                         currentWeekCheckpointData.checklistType === 'currentActions' ? 'actionsCurrent' :
                                         'problems';
+                      
+                      // ✅ INSTANT ADD: Create new item immediately
+                      const newItem: ChecklistItem = {
+                        id: `${currentWeekCheckpointData.category}-${mappedType}-${Date.now()}`,
+                        text: currentWeekCheckpointData.text.trim(),
+                        checked: false
+                      };
+                      
+                      // Update popup list INSTANTLY (optimistic update)
+                      setCurrentWeekCheckpointPopup(prev => ({
+                        ...prev,
+                        items: [newItem, ...prev.items] // Add at start for visibility
+                      }));
+                      
+                      // Save to backend
+                      handleAddCheckpoint(
+                        currentWeekCheckpointData.category, 
+                        mappedType, 
+                        currentWeekCheckpointData.text.trim()
+                      );
+                      
+                      // Close the add dialog
+                      setShowCurrentWeekCheckpointDialog(false);
+                      setCurrentWeekCheckpointData(null);
+                    }
+                  }
+                  // Ctrl+Enter or Cmd+Enter to add and keep dialog open
+                  else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    if (currentWeekCheckpointData?.text.trim()) {
+                      // Map checklistType to correct format
+                      const mappedType = currentWeekCheckpointData.checklistType === 'currentFeelings' ? 'feelingsCurrent' :
+                                        currentWeekCheckpointData.checklistType === 'currentBeliefs' ? 'beliefsCurrent' :
+                                        currentWeekCheckpointData.checklistType === 'currentActions' ? 'actionsCurrent' :
+                                        'problems';
+                      
+                      // ✅ INSTANT ADD: Create new item immediately
+                      const newItem: ChecklistItem = {
+                        id: `${currentWeekCheckpointData.category}-${mappedType}-${Date.now()}`,
+                        text: currentWeekCheckpointData.text.trim(),
+                        checked: false
+                      };
+                      
+                      // Update popup list INSTANTLY (optimistic update)
+                      setCurrentWeekCheckpointPopup(prev => ({
+                        ...prev,
+                        items: [newItem, ...prev.items]
+                      }));
+                      
                       // Save checkpoint
                       handleAddCheckpoint(
                         currentWeekCheckpointData.category, 
