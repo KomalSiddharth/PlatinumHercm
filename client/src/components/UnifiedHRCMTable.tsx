@@ -660,6 +660,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   
   // 🔥 PURE REACT QUERY PATTERN: Read beliefs directly from cache (single state source)
   const beliefs = dateData?.beliefs || [];
+  
+  // 🔥 HELPER: Update beliefs in React Query cache (replaces all setBeliefs calls)
+  const updateBeliefsCache = (newBeliefs: HRCMBelief[]) => {
+    queryClient.setQueryData(dateDataQueryKey, (old: any) => ({
+      ...old,
+      beliefs: newBeliefs
+    }));
+  };
 
   // Fetch previous week data for comparison (only if week > 1)
   const { data: previousWeekData } = useQuery<{ beliefs?: HRCMBelief[] }>({
@@ -1032,9 +1040,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       });
       
       console.log('[FRONTEND DEBUG] Final updatedBeliefs:', updatedBeliefs);
-      console.log('[FRONTEND DEBUG] 🔥 SETTING BELIEFS STATE with', updatedBeliefs.length, 'items');
-      setBeliefs(updatedBeliefs);
-      console.log('[FRONTEND DEBUG] ✅ Beliefs state updated successfully');
+      console.log('[FRONTEND DEBUG] 🔥 UPDATING CACHE with', updatedBeliefs.length, 'items');
+      updateBeliefsCache(updatedBeliefs);
+      console.log('[FRONTEND DEBUG] ✅ Cache updated successfully');
       
       // 🔥 RESTORE manualNextWeekMode from database to persist across browser refreshes
       if (weekData.manualNextWeekMode !== undefined && weekData.manualNextWeekMode !== null) {
@@ -1134,7 +1142,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           }
         ];
         
-        setBeliefs(dynamicBeliefs);
+        updateBeliefsCache(dynamicBeliefs);
         setUnifiedAssignment([]);
       };
       
@@ -1184,8 +1192,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 checklist: getPlatinumStandardsForCategory(belief.category),
               }));
               
-              // Update state with copied data (includes BOTH Current Week AND Next Week Target)
-              setBeliefs(copiedBeliefs);
+              // Update cache with copied data (includes BOTH Current Week AND Next Week Target)
+              updateBeliefsCache(copiedBeliefs);
               setUnifiedAssignment(previousDayData.unifiedAssignment || []);
               
               // Auto-save copied data to current date
@@ -1293,7 +1301,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     
     if (hasChanges) {
       console.log('[AUTO-SYNC] ✅ Changes detected - updating Next Week Target fields');
-      setBeliefs(syncedBeliefs);
+      updateBeliefsCache(syncedBeliefs);
       
       // Auto-save the synced data with manualNextWeekMode flag
       saveWeekMutation.mutate({
@@ -1868,7 +1876,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       return b;
     });
     
-    setBeliefs(updatedBeliefs);
+    updateBeliefsCache(updatedBeliefs);
     
     // Auto-save the updated standards
     saveWeekMutation.mutate({
@@ -1882,44 +1890,44 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
   // Toggle a standard and recalculate rating (capped at user's max allowed)
   const handleStandardToggle = (category: string, itemId: string) => {
-    setBeliefs(prev => {
-      const updated = prev.map(belief => {
-        if (belief.category === category) {
-          const updatedChecklist = belief.checklist.map(item =>
-            item.id === itemId ? { ...item, checked: !item.checked } : item
-          );
-          
-          // Calculate scaled rating out of 10 based on percentage of standards checked
-          const checkedCount = updatedChecklist.filter(item => item.checked).length;
-          const totalStandards = updatedChecklist.length;
-          const calculatedRating = Math.round((checkedCount / totalStandards) * 10);
-          
-          // Get category-specific max rating from API (defaults to 7 if not loaded)
-          const categoryLower = category.toLowerCase();
-          const maxRating = ratingCaps?.[categoryLower as keyof typeof ratingCaps] || 7;
-          
-          // Cap the rating at user's allowed max
-          const newRating = Math.min(calculatedRating, maxRating);
-          
-          return {
-            ...belief,
-            checklist: updatedChecklist,
-            currentRating: newRating,
-            targetRating: Math.min(newRating + 1, maxRating) // Target is +1, capped at user's max (which is capped at 8)
-          };
-        }
-        return belief;
-      });
-      
-      // Auto-save changes to database immediately
-      saveWeekMutation.mutate({
-        weekNumber: actualWeekNumber,
-        year: new Date().getFullYear(),
-        dateString: currentDateStr, // Use selected calendar date, not today's date
-        beliefs: updated,
-      });
-      
-      return updated;
+    // 🔥 PURE REACT QUERY PATTERN: Compute updates from current cache
+    const updated = beliefs.map(belief => {
+      if (belief.category === category) {
+        const updatedChecklist = belief.checklist.map(item =>
+          item.id === itemId ? { ...item, checked: !item.checked } : item
+        );
+        
+        // Calculate scaled rating out of 10 based on percentage of standards checked
+        const checkedCount = updatedChecklist.filter(item => item.checked).length;
+        const totalStandards = updatedChecklist.length;
+        const calculatedRating = Math.round((checkedCount / totalStandards) * 10);
+        
+        // Get category-specific max rating from API (defaults to 7 if not loaded)
+        const categoryLower = category.toLowerCase();
+        const maxRating = ratingCaps?.[categoryLower as keyof typeof ratingCaps] || 7;
+        
+        // Cap the rating at user's allowed max
+        const newRating = Math.min(calculatedRating, maxRating);
+        
+        return {
+          ...belief,
+          checklist: updatedChecklist,
+          currentRating: newRating,
+          targetRating: Math.min(newRating + 1, maxRating) // Target is +1, capped at user's max (which is capped at 8)
+        };
+      }
+      return belief;
+    });
+    
+    // Update cache instantly
+    updateBeliefsCache(updated);
+    
+    // Auto-save changes to database immediately
+    saveWeekMutation.mutate({
+      weekNumber: actualWeekNumber,
+      year: new Date().getFullYear(),
+      dateString: currentDateStr, // Use selected calendar date, not today's date
+      beliefs: updated,
     });
   };
 
