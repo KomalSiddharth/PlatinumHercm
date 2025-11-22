@@ -1596,8 +1596,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
   // Handle Current Week checkbox toggle
   const handleCurrentWeekCheckpointToggle = (category: string, type: 'problems' | 'currentFeelings' | 'currentBeliefs' | 'currentActions', itemId: string) => {
+    const cacheData = queryClient.getQueryData<HRCMBelief[]>(['/api/hrcm/date', currentDateStr, viewAsUserId]);
+    const currentBeliefs = Array.isArray(cacheData) ? cacheData : beliefs;
+    
     // Find the current item to check if it's being checked or unchecked
-    const currentBelief = beliefs.find(b => b.category === category);
+    const currentBelief = currentBeliefs.find(b => b.category === category);
     let isBeingChecked = false;
     
     if (currentBelief) {
@@ -1610,94 +1613,97 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       isBeingChecked = item ? !item.checked : false;
     }
     
-    setBeliefs(prev => {
-      const updated = prev.map(belief => {
-        if (belief.category === category) {
-          let updatedBelief = { ...belief };
-          
-          // Update the appropriate checklist based on type
-          if (type === 'problems' && belief.problemsChecklist) {
-            updatedBelief.problemsChecklist = belief.problemsChecklist.map(item =>
-              item.id === itemId ? { ...item, checked: !item.checked } : item
-            );
-          } else if (type === 'currentFeelings' && belief.feelingsCurrentChecklist) {
-            updatedBelief.feelingsCurrentChecklist = belief.feelingsCurrentChecklist.map(item =>
-              item.id === itemId ? { ...item, checked: !item.checked } : item
-            );
-          } else if (type === 'currentBeliefs' && belief.beliefsCurrentChecklist) {
-            updatedBelief.beliefsCurrentChecklist = belief.beliefsCurrentChecklist.map(item =>
-              item.id === itemId ? { ...item, checked: !item.checked } : item
-            );
-          } else if (type === 'currentActions' && belief.actionsCurrentChecklist) {
-            updatedBelief.actionsCurrentChecklist = belief.actionsCurrentChecklist.map(item =>
-              item.id === itemId ? { ...item, checked: !item.checked } : item
-            );
-          }
-          
-          return updatedBelief;
+    const updated = currentBeliefs.map(belief => {
+      if (belief.category === category) {
+        let updatedBelief = { ...belief };
+        
+        // Update the appropriate checklist based on type
+        if (type === 'problems' && belief.problemsChecklist) {
+          updatedBelief.problemsChecklist = belief.problemsChecklist.map(item =>
+            item.id === itemId ? { ...item, checked: !item.checked } : item
+          );
+        } else if (type === 'currentFeelings' && belief.feelingsCurrentChecklist) {
+          updatedBelief.feelingsCurrentChecklist = belief.feelingsCurrentChecklist.map(item =>
+            item.id === itemId ? { ...item, checked: !item.checked } : item
+          );
+        } else if (type === 'currentBeliefs' && belief.beliefsCurrentChecklist) {
+          updatedBelief.beliefsCurrentChecklist = belief.beliefsCurrentChecklist.map(item =>
+            item.id === itemId ? { ...item, checked: !item.checked } : item
+          );
+        } else if (type === 'currentActions' && belief.actionsCurrentChecklist) {
+          updatedBelief.actionsCurrentChecklist = belief.actionsCurrentChecklist.map(item =>
+            item.id === itemId ? { ...item, checked: !item.checked } : item
+          );
         }
-        return belief;
-      });
-      
-      // Calculate total and remaining checkpoints after update
-      let totalCheckpoints = 0;
-      let checkedCheckpoints = 0;
-      
-      updated.forEach(belief => {
-        // Count all checkpoints from all 4 columns
-        [belief.problemsChecklist, belief.feelingsCurrentChecklist, belief.beliefsCurrentChecklist, belief.actionsCurrentChecklist].forEach(checklist => {
-          if (checklist) {
-            totalCheckpoints += checklist.length;
-            checkedCheckpoints += checklist.filter(item => item.checked).length;
-          }
+        
+        return updatedBelief;
+      }
+      return belief;
+    });
+    
+    // ✅ INSTANT UPDATE: Update cache immediately
+    queryClient.setQueryData(['/api/hrcm/date', currentDateStr, viewAsUserId], updated);
+    
+    // ✅ INSTANT POPUP UPDATE: Update popup list immediately
+    if (currentWeekCheckpointPopup.open && currentWeekCheckpointPopup.category === category && currentWeekCheckpointPopup.type === type) {
+      const updatedBeliefData = updated.find(b => b.category === category);
+      if (updatedBeliefData) {
+        const newItems = type === 'problems' ? updatedBeliefData.problemsChecklist || [] :
+                        type === 'currentFeelings' ? updatedBeliefData.feelingsCurrentChecklist || [] :
+                        type === 'currentBeliefs' ? updatedBeliefData.beliefsCurrentChecklist || [] :
+                        updatedBeliefData.actionsCurrentChecklist || [];
+        
+        setCurrentWeekCheckpointPopup({
+          ...currentWeekCheckpointPopup,
+          items: newItems
         });
-      });
-      
-      const remainingCheckpoints = totalCheckpoints - checkedCheckpoints;
-      
-      // Show motivational toast notification
-      if (isBeingChecked) {
-        // Checkbox was checked
-        if (remainingCheckpoints === 0) {
-          toast({
-            title: "🎉 All Checkpoints Completed!",
-            description: "Congratulations! You've achieved all your milestones. Keep up the excellent work!",
-            duration: 4000,
-          });
-        } else {
-          toast({
-            title: "✅ Milestone Achieved!",
-            description: `Congratulations! One more milestone achieved, keep going! ${remainingCheckpoints} ${remainingCheckpoints === 1 ? 'checkpoint' : 'checkpoints'} to go to complete this.`,
-            duration: 4000,
-          });
-        }
       }
-      
-      // Auto-save changes to database immediately
-      saveWeekMutation.mutate({
-        weekNumber: actualWeekNumber,
-        year: new Date().getFullYear(),
-        dateString: currentDateStr,
-        beliefs: updated,
-      });
-      
-      // Update popup state if open
-      if (currentWeekCheckpointPopup.open && currentWeekCheckpointPopup.category === category && currentWeekCheckpointPopup.type === type) {
-        const updatedBeliefData = updated.find(b => b.category === category);
-        if (updatedBeliefData) {
-          const newItems = type === 'problems' ? updatedBeliefData.problemsChecklist || [] :
-                          type === 'currentFeelings' ? updatedBeliefData.feelingsCurrentChecklist || [] :
-                          type === 'currentBeliefs' ? updatedBeliefData.beliefsCurrentChecklist || [] :
-                          updatedBeliefData.actionsCurrentChecklist || [];
-          
-          setCurrentWeekCheckpointPopup({
-            ...currentWeekCheckpointPopup,
-            items: newItems
-          });
+    }
+    
+    // Calculate total and remaining checkpoints after update
+    let totalCheckpoints = 0;
+    let checkedCheckpoints = 0;
+    
+    updated.forEach(belief => {
+      // Count all checkpoints from all 4 columns
+      [belief.problemsChecklist, belief.feelingsCurrentChecklist, belief.beliefsCurrentChecklist, belief.actionsCurrentChecklist].forEach(checklist => {
+        if (checklist) {
+          totalCheckpoints += checklist.length;
+          checkedCheckpoints += checklist.filter(item => item.checked).length;
         }
+      });
+    });
+    
+    const remainingCheckpoints = totalCheckpoints - checkedCheckpoints;
+    
+    // Show motivational toast notification
+    if (isBeingChecked) {
+      // Checkbox was checked
+      if (remainingCheckpoints === 0) {
+        toast({
+          title: "🎉 All Checkpoints Completed!",
+          description: "Congratulations! You've achieved all your milestones. Keep up the excellent work!",
+          duration: 4000,
+        });
+      } else {
+        toast({
+          title: "✅ Milestone Achieved!",
+          description: `Congratulations! One more milestone achieved, keep going! ${remainingCheckpoints} ${remainingCheckpoints === 1 ? 'checkpoint' : 'checkpoints'} to go to complete this.`,
+          duration: 4000,
+        });
       }
-      
-      return updated;
+    }
+    
+    // ✅ BACKEND SAVE: Save changes to database (background, no waiting)
+    apiRequest(`/api/hercm/save-with-comparison`, 'POST', {
+      weekNumber: actualWeekNumber,
+      year: new Date().getFullYear(),
+      dateString: currentDateStr,
+      beliefs: updated
+    }).catch(error => {
+      console.error('[TOGGLE ERROR] Failed to save toggle:', error);
+      // Rollback on error
+      queryClient.refetchQueries({ queryKey: ['/api/hrcm/date', currentDateStr, viewAsUserId] });
     });
   };
 
