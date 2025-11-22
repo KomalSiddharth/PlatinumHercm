@@ -4430,8 +4430,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       <div key={item.id} className="flex items-center gap-1.5">
                         <Checkbox
                           checked={item.checked}
-                          disabled
+                          onCheckedChange={() => {
+                            if (!isAdminView && !viewAsUserId) {
+                              handleCurrentWeekCheckpointToggle(belief.category, 'problems', item.id);
+                            }
+                          }}
+                          disabled={!!viewAsUserId || isAdminView}
                           className="h-3 w-3 shrink-0"
+                          data-testid={`checkbox-column-problems-${belief.category.toLowerCase()}-${index}`}
                         />
                         <span className="line-clamp-1 text-xs text-gray-600 dark:text-gray-300 flex-1">
                           {item.text}
@@ -4464,8 +4470,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       <div key={item.id} className="flex items-center gap-1.5">
                         <Checkbox
                           checked={item.checked}
-                          disabled
+                          onCheckedChange={() => {
+                            if (!isAdminView && !viewAsUserId) {
+                              handleCurrentWeekCheckpointToggle(belief.category, 'currentFeelings', item.id);
+                            }
+                          }}
+                          disabled={!!viewAsUserId || isAdminView}
                           className="h-3 w-3 shrink-0"
+                          data-testid={`checkbox-column-feelings-${belief.category.toLowerCase()}-${index}`}
                         />
                         <span className="line-clamp-1 text-xs text-gray-600 dark:text-gray-300 flex-1">
                           {item.text}
@@ -4498,8 +4510,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       <div key={item.id} className="flex items-center gap-1.5">
                         <Checkbox
                           checked={item.checked}
-                          disabled
+                          onCheckedChange={() => {
+                            if (!isAdminView && !viewAsUserId) {
+                              handleCurrentWeekCheckpointToggle(belief.category, 'currentBeliefs', item.id);
+                            }
+                          }}
+                          disabled={!!viewAsUserId || isAdminView}
                           className="h-3 w-3 shrink-0"
+                          data-testid={`checkbox-column-beliefs-${belief.category.toLowerCase()}-${index}`}
                         />
                         <span className="line-clamp-1 text-xs text-gray-600 dark:text-gray-300 flex-1">
                           {item.text}
@@ -4532,8 +4550,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       <div key={item.id} className="flex items-center gap-1.5">
                         <Checkbox
                           checked={item.checked}
-                          disabled
+                          onCheckedChange={() => {
+                            if (!isAdminView && !viewAsUserId) {
+                              handleCurrentWeekCheckpointToggle(belief.category, 'currentActions', item.id);
+                            }
+                          }}
+                          disabled={!!viewAsUserId || isAdminView}
                           className="h-3 w-3 shrink-0"
+                          data-testid={`checkbox-column-actions-${belief.category.toLowerCase()}-${index}`}
                         />
                         <span className="line-clamp-1 text-xs text-gray-600 dark:text-gray-300 flex-1">
                           {item.text}
@@ -4741,8 +4765,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       <div key={item.id} className="flex items-center gap-1.5">
                         <Checkbox
                           checked={item.checked}
-                          disabled
+                          onCheckedChange={() => {
+                            if (!isAdminView && !viewAsUserId) {
+                              handleNextWeekCheckpointToggle(belief.category, 'result', item.id);
+                            }
+                          }}
+                          disabled={!!viewAsUserId || isAdminView}
                           className="h-3 w-3 shrink-0"
+                          data-testid={`checkbox-column-result-${belief.category.toLowerCase()}-${index}`}
                         />
                         <span className="line-clamp-1 text-xs text-gray-600 dark:text-gray-300 flex-1">
                           {item.text}
@@ -4773,8 +4803,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       <div key={item.id} className="flex items-center gap-1.5">
                         <Checkbox
                           checked={item.checked}
-                          disabled
+                          onCheckedChange={() => {
+                            if (!isAdminView && !viewAsUserId) {
+                              handleNextWeekCheckpointToggle(belief.category, 'feelings', item.id);
+                            }
+                          }}
+                          disabled={!!viewAsUserId || isAdminView}
                           className="h-3 w-3 shrink-0"
+                          data-testid={`checkbox-column-next-feelings-${belief.category.toLowerCase()}-${index}`}
                         />
                         <span className="line-clamp-1 text-xs text-gray-600 dark:text-gray-300 flex-1">
                           {item.text}
@@ -4805,8 +4841,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       <div key={item.id} className="flex items-center gap-1.5">
                         <Checkbox
                           checked={item.checked}
-                          disabled
+                          onCheckedChange={() => {
+                            if (!isAdminView && !viewAsUserId) {
+                              handleNextWeekCheckpointToggle(belief.category, 'beliefs', item.id);
+                            }
+                          }}
+                          disabled={!!viewAsUserId || isAdminView}
                           className="h-3 w-3 shrink-0"
+                          data-testid={`checkbox-column-next-beliefs-${belief.category.toLowerCase()}-${index}`}
                         />
                         <span className="line-clamp-1 text-xs text-gray-600 dark:text-gray-300 flex-1">
                           {item.text}
@@ -4837,8 +4879,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       <div key={item.id} className="flex items-center gap-1.5">
                         <Checkbox
                           checked={item.checked}
-                          disabled
+                          onCheckedChange={() => {
+                            if (!isAdminView && !viewAsUserId) {
+                              handleNextWeekCheckpointToggle(belief.category, 'actions', item.id);
+                            }
+                          }}
+                          disabled={!!viewAsUserId || isAdminView}
                           className="h-3 w-3 shrink-0"
+                          data-testid={`checkbox-column-next-actions-${belief.category.toLowerCase()}-${index}`}
                         />
                         <span className="line-clamp-1 text-xs text-gray-600 dark:text-gray-300 flex-1">
                           {item.text}
