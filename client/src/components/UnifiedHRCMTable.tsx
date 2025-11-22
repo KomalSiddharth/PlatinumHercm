@@ -3384,7 +3384,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           open={showMasterDialog} 
           onOpenChange={setShowMasterDialog}
         >
-          <DialogContent className="max-w-lg max-h-[700px] overflow-y-auto">
+          <DialogContent className="max-w-lg max-h-[700px] overflow-y-auto transition-opacity duration-150">
             <DialogHeader>
               <DialogTitle className={`text-lg font-bold ${colorScheme.text}`}>
                 {category} - {colorScheme.label}
