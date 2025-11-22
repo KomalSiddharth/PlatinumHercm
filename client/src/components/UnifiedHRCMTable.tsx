@@ -297,7 +297,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   const today = new Date().toISOString().split('T')[0];
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [currentDateStr, setCurrentDateStr] = useState<string>(today);
-  const [beliefs, setBeliefs] = useState<HRCMBelief[]>([]);
+  // 🔥 REMOVED: beliefs useState - now reading directly from dateQuery.data?.beliefs (Pure React Query pattern)
   
   // 🔥 FIX: Fetch current user to determine if they're admin (for correct endpoint selection)
   const { data: currentUser } = useQuery<{ isAdmin: boolean }>({
@@ -657,6 +657,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
   // Use dateData as weekData for consistency with existing code
   const weekData = dateData;
+  
+  // 🔥 PURE REACT QUERY PATTERN: Read beliefs directly from cache (single state source)
+  const beliefs = dateData?.beliefs || [];
 
   // Fetch previous week data for comparison (only if week > 1)
   const { data: previousWeekData } = useQuery<{ beliefs?: HRCMBelief[] }>({
@@ -2848,94 +2851,91 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
   // Add new checkpoint to a checklist
   const handleAddCheckpoint = (category: string, checklistType: 'result' | 'feelings' | 'beliefs' | 'actions' | 'problems' | 'feelingsCurrent' | 'beliefsCurrent' | 'actionsCurrent', text: string = '') => {
-    setBeliefs(prev => {
-      let updated = prev.map(belief => {
-        if (belief.category === category) {
-          const newItem: ChecklistItem = {
-            id: `${category}-${checklistType}-${Date.now()}`,
-            text: text,
-            checked: false
-          };
-          
-          // Next Week Target checkpoints - Add new checkpoint at START for visibility
-          if (checklistType === 'result') {
-            return { ...belief, resultChecklist: [newItem, ...(belief.resultChecklist || [])] };
-          } else if (checklistType === 'feelings') {
-            return { ...belief, feelingsChecklist: [newItem, ...(belief.feelingsChecklist || [])] };
-          } else if (checklistType === 'beliefs') {
-            return { ...belief, beliefsChecklist: [newItem, ...(belief.beliefsChecklist || [])] };
-          } else if (checklistType === 'actions') {
-            return { ...belief, actionsChecklist: [newItem, ...(belief.actionsChecklist || [])] };
-          }
-          // Current Week checkpoints - Add new checkpoint at START for visibility
-          else if (checklistType === 'problems') {
-            return { ...belief, problemsChecklist: [newItem, ...(belief.problemsChecklist || [])] };
-          } else if (checklistType === 'feelingsCurrent') {
-            return { ...belief, feelingsCurrentChecklist: [newItem, ...(belief.feelingsCurrentChecklist || [])] };
-          } else if (checklistType === 'beliefsCurrent') {
-            return { ...belief, beliefsCurrentChecklist: [newItem, ...(belief.beliefsCurrentChecklist || [])] };
-          } else if (checklistType === 'actionsCurrent') {
-            return { ...belief, actionsCurrentChecklist: [newItem, ...(belief.actionsCurrentChecklist || [])] };
-          }
-        }
-        return belief;
-      });
-      
-      // Auto-sync: If Current Week checkpoint was modified, sync to Next Week Target
-      const isCurrentWeekCheckpoint = ['problems', 'feelingsCurrent', 'beliefsCurrent', 'actionsCurrent'].includes(checklistType);
-      if (isCurrentWeekCheckpoint) {
-        updated = syncCurrentToNextWeek(updated);
-      }
-      
-      // 🔥 INSTANT SAVE with OPTIMISTIC UPDATE (Assignment Column pattern)
-      // onMutate updates UI instantly → API call in background → onSuccess refetches (no flicker!)
-      checkpointMutation.mutate(updated);
-      
-      // ✅ UPDATE CURRENT WEEK POPUP if open
-      if (isCurrentWeekCheckpoint && currentWeekCheckpointPopup.open && currentWeekCheckpointPopup.category === category) {
-        const typeMapping = {
-          'problems': 'problems' as const,
-          'feelingsCurrent': 'currentFeelings' as const,
-          'beliefsCurrent': 'currentBeliefs' as const,
-          'actionsCurrent': 'currentActions' as const
+    // 🔥 PURE REACT QUERY PATTERN: Compute updates from current cache, NO local state!
+    let updated = beliefs.map(belief => {
+      if (belief.category === category) {
+        const newItem: ChecklistItem = {
+          id: `${category}-${checklistType}-${Date.now()}`,
+          text: text,
+          checked: false
         };
-        const mappedType = typeMapping[checklistType as keyof typeof typeMapping];
         
-        if (currentWeekCheckpointPopup.type === mappedType) {
-          const updatedBeliefData = updated.find(b => b.category === category);
-          if (updatedBeliefData) {
-            const newItems = checklistType === 'problems' ? updatedBeliefData.problemsChecklist || [] :
-                            checklistType === 'feelingsCurrent' ? updatedBeliefData.feelingsCurrentChecklist || [] :
-                            checklistType === 'beliefsCurrent' ? updatedBeliefData.beliefsCurrentChecklist || [] :
-                            updatedBeliefData.actionsCurrentChecklist || [];
-            
-            setCurrentWeekCheckpointPopup({
-              ...currentWeekCheckpointPopup,
-              items: newItems
-            });
-          }
+        // Next Week Target checkpoints - Add new checkpoint at START for visibility
+        if (checklistType === 'result') {
+          return { ...belief, resultChecklist: [newItem, ...(belief.resultChecklist || [])] };
+        } else if (checklistType === 'feelings') {
+          return { ...belief, feelingsChecklist: [newItem, ...(belief.feelingsChecklist || [])] };
+        } else if (checklistType === 'beliefs') {
+          return { ...belief, beliefsChecklist: [newItem, ...(belief.beliefsChecklist || [])] };
+        } else if (checklistType === 'actions') {
+          return { ...belief, actionsChecklist: [newItem, ...(belief.actionsChecklist || [])] };
+        }
+        // Current Week checkpoints - Add new checkpoint at START for visibility
+        else if (checklistType === 'problems') {
+          return { ...belief, problemsChecklist: [newItem, ...(belief.problemsChecklist || [])] };
+        } else if (checklistType === 'feelingsCurrent') {
+          return { ...belief, feelingsCurrentChecklist: [newItem, ...(belief.feelingsCurrentChecklist || [])] };
+        } else if (checklistType === 'beliefsCurrent') {
+          return { ...belief, beliefsCurrentChecklist: [newItem, ...(belief.beliefsCurrentChecklist || [])] };
+        } else if (checklistType === 'actionsCurrent') {
+          return { ...belief, actionsCurrentChecklist: [newItem, ...(belief.actionsCurrentChecklist || [])] };
         }
       }
+      return belief;
+    });
+    
+    // Auto-sync: If Current Week checkpoint was modified, sync to Next Week Target
+    const isCurrentWeekCheckpoint = ['problems', 'feelingsCurrent', 'beliefsCurrent', 'actionsCurrent'].includes(checklistType);
+    if (isCurrentWeekCheckpoint) {
+      updated = syncCurrentToNextWeek(updated);
+    }
+    
+    // 🔥 INSTANT SAVE with OPTIMISTIC UPDATE (Assignment Column pattern)
+    // onMutate updates cache instantly → API call in background → onSuccess refetches → NO FLICKER!
+    checkpointMutation.mutate(updated);
+    
+    // ✅ UPDATE CURRENT WEEK POPUP if open
+    if (isCurrentWeekCheckpoint && currentWeekCheckpointPopup.open && currentWeekCheckpointPopup.category === category) {
+      const typeMapping = {
+        'problems': 'problems' as const,
+        'feelingsCurrent': 'currentFeelings' as const,
+        'beliefsCurrent': 'currentBeliefs' as const,
+        'actionsCurrent': 'currentActions' as const
+      };
+      const mappedType = typeMapping[checklistType as keyof typeof typeMapping];
       
-      // ✅ UPDATE NEXT WEEK TARGET POPUP if open
-      const isNextWeekCheckpoint = ['result', 'feelings', 'beliefs', 'actions'].includes(checklistType);
-      if (isNextWeekCheckpoint && checkpointPopup.open && checkpointPopup.category === category && checkpointPopup.type === checklistType) {
+      if (currentWeekCheckpointPopup.type === mappedType) {
         const updatedBeliefData = updated.find(b => b.category === category);
         if (updatedBeliefData) {
-          const newItems = checklistType === 'result' ? updatedBeliefData.resultChecklist || [] :
-                          checklistType === 'feelings' ? updatedBeliefData.feelingsChecklist || [] :
-                          checklistType === 'beliefs' ? updatedBeliefData.beliefsChecklist || [] :
-                          updatedBeliefData.actionsChecklist || [];
+          const newItems = checklistType === 'problems' ? updatedBeliefData.problemsChecklist || [] :
+                          checklistType === 'feelingsCurrent' ? updatedBeliefData.feelingsCurrentChecklist || [] :
+                          checklistType === 'beliefsCurrent' ? updatedBeliefData.beliefsCurrentChecklist || [] :
+                          updatedBeliefData.actionsCurrentChecklist || [];
           
-          setCheckpointPopup({
-            ...checkpointPopup,
+          setCurrentWeekCheckpointPopup({
+            ...currentWeekCheckpointPopup,
             items: newItems
           });
         }
       }
-      
-      return updated;
-    });
+    }
+    
+    // ✅ UPDATE NEXT WEEK TARGET POPUP if open
+    const isNextWeekCheckpoint = ['result', 'feelings', 'beliefs', 'actions'].includes(checklistType);
+    if (isNextWeekCheckpoint && checkpointPopup.open && checkpointPopup.category === category && checkpointPopup.type === checklistType) {
+      const updatedBeliefData = updated.find(b => b.category === category);
+      if (updatedBeliefData) {
+        const newItems = checklistType === 'result' ? updatedBeliefData.resultChecklist || [] :
+                        checklistType === 'feelings' ? updatedBeliefData.feelingsChecklist || [] :
+                        checklistType === 'beliefs' ? updatedBeliefData.beliefsChecklist || [] :
+                        updatedBeliefData.actionsChecklist || [];
+        
+        setCheckpointPopup({
+          ...checkpointPopup,
+          items: newItems
+        });
+      }
+    }
   };
 
   // Update checkpoint text
