@@ -2837,17 +2837,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         updated = syncCurrentToNextWeek(updated);
       }
       
-      // ✅ INSTANT SAVE: Direct mutation with onSuccess that does NOTHING
-      // This prevents background refetch = No flickering!
-      saveWeekMutation.mutate(
-        { weekNumber: actualWeekNumber, year: new Date().getFullYear(), dateString: currentDateStr, beliefs: updated },
-        { 
-          onSuccess: () => {
-            // DO NOTHING - UI already updated via local state
-            // No background refetch = Zero flickering!
-          }
-        }
-      );
+      // ✅ NO MUTATION HERE - Will save when dialog closes (on backdrop click)
+      // This prevents flickering from immediate API calls
       
       // ✅ UPDATE CURRENT WEEK POPUP if open
       if (isCurrentWeekCheckpoint && currentWeekCheckpointPopup.open && currentWeekCheckpointPopup.category === category) {
@@ -2955,17 +2946,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         updated = syncCurrentToNextWeek(updated);
       }
       
-      // ✅ INSTANT SAVE: Direct mutation with onSuccess that does NOTHING
-      // This prevents background refetch = No flickering!
-      saveWeekMutation.mutate(
-        { weekNumber: actualWeekNumber, year: new Date().getFullYear(), dateString: currentDateStr, beliefs: updated },
-        { 
-          onSuccess: () => {
-            // DO NOTHING - UI already updated via local state
-            // No background refetch = Zero flickering!
-          }
-        }
-      );
+      // ✅ NO MUTATION HERE - Will save when dialog closes (on backdrop click)
+      // This prevents flickering from immediate API calls
       
       return updated;
     });
@@ -3014,17 +2996,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         updated = syncCurrentToNextWeek(updated);
       }
       
-      // ✅ INSTANT SAVE: Direct mutation with onSuccess that does NOTHING
-      // This prevents background refetch = No flickering!
-      saveWeekMutation.mutate(
-        { weekNumber: actualWeekNumber, year: new Date().getFullYear(), dateString: currentDateStr, beliefs: updated },
-        { 
-          onSuccess: () => {
-            // DO NOTHING - UI already updated via local state
-            // No background refetch = Zero flickering!
-          }
-        }
-      );
+      // ✅ NO MUTATION HERE - Will save when dialog closes (on backdrop click)
+      // This prevents flickering from immediate API calls
       
       return updated;
     });
