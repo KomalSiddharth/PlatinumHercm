@@ -5,7 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Sparkles, Check, X, TrendingUp, Save, Loader2, ArrowUp, ArrowDown, Plus, MoreHorizontal, Calendar as CalendarIcon, Trash2, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, RefreshCw } from 'lucide-react';
+import { Sparkles, Check, X, TrendingUp, Save, Loader2, ArrowUp, ArrowDown, Plus, MoreHorizontal, Calendar as CalendarIcon, Trash2, Pencil, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, RefreshCw } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
@@ -3429,32 +3429,40 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                           data-testid={`checkbox-dialog-${checklistType}-${item.id}`}
                         />
                         <span
-                          className={`text-sm flex-1 ${colorScheme.text} leading-relaxed break-words cursor-pointer hover:underline`}
-                          onClick={(e) => {
-                            e.stopPropagation(); // ✅ Prevent main dialog close
-                            if (!disabled) {
-                              setEditingItemId(item.id);
-                              setNewItemText(item.text); // Set text for textarea
-                              setIsAddingNew(true);
-                            }
-                          }}
+                          className={`text-sm flex-1 ${colorScheme.text} leading-relaxed break-words`}
                           data-testid={`text-dialog-${checklistType}-${item.id}`}
                         >
                           {item.text}
                         </span>
                         {!disabled && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={(e) => {
-                              e.stopPropagation(); // ✅ Prevent main dialog close
-                              onDeleteCheckpoint(item.id);
-                            }}
-                            className="h-6 w-6 p-0 shrink-0"
-                            data-testid={`button-delete-dialog-${checklistType}-${item.id}`}
-                          >
-                            <Trash2 className="w-4 h-4 text-destructive" />
-                          </Button>
+                          <>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={(e) => {
+                                e.stopPropagation(); // ✅ Prevent main dialog close
+                                setEditingItemId(item.id);
+                                setNewItemText(item.text);
+                                setIsAddingNew(true);
+                              }}
+                              className="h-6 w-6 p-0 shrink-0 opacity-0 group-hover/item:opacity-100 transition-opacity"
+                              data-testid={`button-edit-dialog-${checklistType}-${item.id}`}
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={(e) => {
+                                e.stopPropagation(); // ✅ Prevent main dialog close
+                                onDeleteCheckpoint(item.id);
+                              }}
+                              className="h-6 w-6 p-0 shrink-0 opacity-0 group-hover/item:opacity-100 transition-opacity"
+                              data-testid={`button-delete-dialog-${checklistType}-${item.id}`}
+                            >
+                              <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                            </Button>
+                          </>
                         )}
                       </div>
                     ))}
