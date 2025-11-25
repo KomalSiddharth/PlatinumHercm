@@ -3878,7 +3878,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
-              <div className={`p-4 rounded-lg border-2 ${colorScheme.bg} ${colorScheme.border}`}>
+              <div className={`p-4 rounded-lg border-2 ${colorScheme.gradient} ${colorScheme.border}`}>
                 <Textarea
                   value={newItemText}
                   onChange={(e) => setNewItemText(e.target.value)}
@@ -3907,7 +3907,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     handleAddNewItem();
                   }}
                   disabled={!newItemText.trim()}
-                  className={`${colorScheme.bg} text-white hover:opacity-90`}
+                  className={`${colorScheme.bar} text-white hover:opacity-90`}
                   data-testid={`button-save-checkpoint-${checklistType}`}
                 >
                   {editingItemId ? `Update ${buttonLabel}` : `Add ${buttonLabel}`}
@@ -3988,6 +3988,22 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         </span>
                         {!disabled && (
                           <>
+                            {/* ✅ Quick Add Button - Opens add dialog from any position */}
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingItemId(null);
+                                setNewItemText('');
+                                setIsAddingNew(true);
+                              }}
+                              className={`h-6 w-6 p-0 shrink-0 opacity-0 group-hover/item:opacity-100 transition-opacity ${colorScheme.text}`}
+                              data-testid={`button-quick-add-${checklistType}-${item.id}`}
+                              title={`Add new ${buttonLabel}`}
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                            </Button>
                             <Button
                               size="sm"
                               variant="ghost"
