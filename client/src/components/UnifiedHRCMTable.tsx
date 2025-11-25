@@ -393,6 +393,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   // Current Week Checkpoint Dialog State
   const [showCurrentWeekCheckpointDialog, setShowCurrentWeekCheckpointDialog] = useState(false);
   const [currentWeekCheckpointData, setCurrentWeekCheckpointData] = useState<{ category: string; checklistType: 'problems' | 'currentFeelings' | 'currentBeliefs' | 'currentActions'; text: string } | null>(null);
+  const [editingCurrentWeekCheckpointId, setEditingCurrentWeekCheckpointId] = useState<string | null>(null);
 
   // Current Week Checkpoint Popup Dialog State (for viewing all checkboxes in Current Week boxes)
   const [currentWeekCheckpointPopup, setCurrentWeekCheckpointPopup] = useState<{
@@ -414,6 +415,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   // Next Week Target Checkpoint Dialog State
   const [showNextWeekCheckpointDialog, setShowNextWeekCheckpointDialog] = useState(false);
   const [nextWeekCheckpointData, setNextWeekCheckpointData] = useState<{ category: string; checklistType: 'result' | 'feelings' | 'beliefs' | 'actions'; text: string } | null>(null);
+  const [editingNextWeekCheckpointId, setEditingNextWeekCheckpointId] = useState<string | null>(null);
 
   // Next Week Target Checkpoint Popup Dialog State
   const [nextWeekCheckpointPopup, setNextWeekCheckpointPopup] = useState<{
