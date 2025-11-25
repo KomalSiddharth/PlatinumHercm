@@ -253,13 +253,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Loop through ALL entries (all dates) in this week
         entries.forEach((entry: any) => {
           areas.forEach(area => {
-            // Count from 4 columns: Problems, Feelings, Beliefs, Actions (Current Week data)
-            const problemsChecklist = entry[`${area}ProblemsChecklist`] || [];
-            const feelingsChecklist = entry[`${area}FeelingsCurrentChecklist`] || [];
-            const beliefsChecklist = entry[`${area}BeliefsCurrentChecklist`] || [];
-            const actionsChecklist = entry[`${area}ActionsCurrentChecklist`] || [];
+            // 🔥 Count from NEXT WEEK TARGET table columns (Results, Feelings, Beliefs, Actions)
+            // These match the "Target: X/Y Points" shown in the heading
+            const resultChecklist = entry[`${area}ResultChecklist`] || [];
+            const feelingsChecklist = entry[`${area}FeelingsChecklist`] || [];
+            const beliefsChecklist = entry[`${area}BeliefsChecklist`] || [];
+            const actionsChecklist = entry[`${area}ActionsChecklist`] || [];
             
-            [problemsChecklist, feelingsChecklist, beliefsChecklist, actionsChecklist].forEach(checklist => {
+            [resultChecklist, feelingsChecklist, beliefsChecklist, actionsChecklist].forEach(checklist => {
               if (Array.isArray(checklist)) {
                 totalCheckpoints += checklist.length;
                 checkedCheckpoints += checklist.filter((item: any) => item.checked).length;
