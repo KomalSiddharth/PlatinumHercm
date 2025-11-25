@@ -1487,31 +1487,30 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   }, [beliefs]);
 
   const handleChecklistToggle = (category: string, itemId: string) => {
-    setBeliefs(prev => {
-      const updated = prev.map(belief => {
-        if (belief.category === category) {
-          const updatedChecklist = belief.checklist.map(item =>
-            item.id === itemId ? { ...item, checked: !item.checked } : item
-          );
-          
-          // Only update checklist, DO NOT change rating
-          return {
-            ...belief,
-            checklist: updatedChecklist
-          };
-        }
-        return belief;
-      });
-      
-      // Auto-save changes to database immediately
-      saveWeekMutation.mutate({
-        weekNumber: actualWeekNumber,
-        year: new Date().getFullYear(),
-        dateString: currentDateStr, // Use selected calendar date, not today's date
-        beliefs: updated,
-      });
-      
-      return updated;
+    const updated = beliefs.map(belief => {
+      if (belief.category === category) {
+        const updatedChecklist = belief.checklist.map(item =>
+          item.id === itemId ? { ...item, checked: !item.checked } : item
+        );
+        
+        // Only update checklist, DO NOT change rating
+        return {
+          ...belief,
+          checklist: updatedChecklist
+        };
+      }
+      return belief;
+    });
+    
+    // Update cache (triggers re-render)
+    updateBeliefsCache(updated);
+    
+    // Auto-save changes to database immediately
+    saveWeekMutation.mutate({
+      weekNumber: actualWeekNumber,
+      year: new Date().getFullYear(),
+      dateString: currentDateStr, // Use selected calendar date, not today's date
+      beliefs: updated,
     });
   };
 
@@ -1548,9 +1547,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       return belief;
     });
     
-    // ✅ INSTANT UPDATE: Update cache AND local state immediately
+    // ✅ INSTANT UPDATE: Update cache immediately (triggers re-render)
     queryClient.setQueryData(['/api/hrcm/date', currentDateStr, viewAsUserId], updated);
-    setBeliefs(updated);
     
     // ✅ INSTANT POPUP UPDATE: Update popup list immediately
     if (checkpointPopup.open && checkpointPopup.category === category && checkpointPopup.type === type) {
@@ -1606,9 +1604,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       return belief;
     });
     
-    // ✅ INSTANT UPDATE: Update cache AND local state immediately
+    // ✅ INSTANT UPDATE: Update cache immediately (triggers re-render)
     queryClient.setQueryData(['/api/hrcm/date', currentDateStr, viewAsUserId], updated);
-    setBeliefs(updated);
     
     // ✅ INSTANT POPUP UPDATE: Update popup list immediately
     if (checkpointPopup.open && checkpointPopup.category === category && checkpointPopup.type === type) {
@@ -1687,7 +1684,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     
     // ✅ INSTANT UPDATE: Update cache AND local state immediately (using proper cache structure)
     updateBeliefsCache(updated);
-    setBeliefs(updated);
     
     // ✅ INSTANT POPUP UPDATE: Update popup list immediately
     if (currentWeekCheckpointPopup.open && currentWeekCheckpointPopup.category === category && currentWeekCheckpointPopup.type === type) {
@@ -1753,6 +1749,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
   // 🔥 DELETE CHECKPOINT: Assignment Column Pattern - Instant & Simple!
   const handleCurrentWeekCheckpointDelete = (category: string, type: 'problems' | 'currentFeelings' | 'currentBeliefs' | 'currentActions', itemId: string) => {
+    console.log('🗑️ [DELETE] Called with:', { category, type, itemId });
+    console.log('🗑️ [DELETE] Current beliefs:', beliefs);
     const updated = beliefs.map(belief => {
       if (belief.category === category) {
         let updatedBelief = { ...belief };
@@ -1775,7 +1773,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     
     // ✅ INSTANT UPDATE: Update cache AND local state immediately (using proper cache structure)
     updateBeliefsCache(updated);
-    setBeliefs(updated);
     
     // ✅ INSTANT POPUP UPDATE: Update popup list immediately
     if (currentWeekCheckpointPopup.open && currentWeekCheckpointPopup.category === category && currentWeekCheckpointPopup.type === type) {
@@ -1807,6 +1804,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
   // 🔥 ADD CHECKPOINT: Assignment Column Pattern - Instant & No Duplicates!
   const handleCurrentWeekCheckpointAdd = (category: string, type: 'problems' | 'currentFeelings' | 'currentBeliefs' | 'currentActions', text: string) => {
+    console.log('➕ [ADD] Called with:', { category, type, text });
+    console.log('➕ [ADD] Current beliefs:', beliefs);
     const newItem: ChecklistItem = { 
       id: `${category}-${type}-${Date.now()}`, 
       text, 
@@ -1833,7 +1832,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     
     // ✅ INSTANT UPDATE: Update cache AND local state immediately (using proper cache structure)
     updateBeliefsCache(updated);
-    setBeliefs(updated);
     
     // ✅ INSTANT POPUP UPDATE: Update popup list if it's open
     if (currentWeekCheckpointPopup.open && currentWeekCheckpointPopup.category === category && currentWeekCheckpointPopup.type === type) {
@@ -1885,7 +1883,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     
     // ✅ INSTANT UPDATE: Update cache AND local state immediately (using proper cache structure)
     updateBeliefsCache(updated);
-    setBeliefs(updated);
     
     // ✅ INSTANT POPUP UPDATE: Update popup list if it's open
     if (currentWeekCheckpointPopup.open && currentWeekCheckpointPopup.category === category && currentWeekCheckpointPopup.type === type) {
@@ -1939,7 +1936,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     
     // ✅ INSTANT UPDATE: Update cache AND local state immediately (using proper cache structure)
     updateBeliefsCache(updated);
-    setBeliefs(updated);
     
     // ✅ INSTANT POPUP UPDATE: Update popup list immediately
     if (nextWeekCheckpointPopup.open && nextWeekCheckpointPopup.category === category && nextWeekCheckpointPopup.type === type) {
@@ -1991,7 +1987,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     
     // ✅ INSTANT UPDATE: Update cache AND local state immediately (using proper cache structure)
     updateBeliefsCache(updated);
-    setBeliefs(updated);
     
     // ✅ INSTANT POPUP UPDATE: Update popup list immediately
     if (nextWeekCheckpointPopup.open && nextWeekCheckpointPopup.category === category && nextWeekCheckpointPopup.type === type) {
@@ -2061,7 +2056,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     
     // ✅ INSTANT UPDATE: Update cache AND local state immediately (using proper cache structure)
     updateBeliefsCache(updated);
-    setBeliefs(updated);
     
     // ✅ INSTANT POPUP UPDATE: Update popup list immediately
     if (nextWeekCheckpointPopup.open && nextWeekCheckpointPopup.category === category && nextWeekCheckpointPopup.type === type) {
@@ -2113,7 +2107,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     
     // ✅ INSTANT UPDATE: Update cache AND local state immediately (using proper cache structure)
     updateBeliefsCache(updated);
-    setBeliefs(updated);
     
     // ✅ INSTANT POPUP UPDATE: Update popup list immediately
     if (nextWeekCheckpointPopup.open && nextWeekCheckpointPopup.category === category && nextWeekCheckpointPopup.type === type) {
@@ -2167,34 +2160,33 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   };
 
   const handleRatingChange = (category: string, newRating: number) => {
-    setBeliefs(prev => {
-      const updated = prev.map(belief => {
-        if (belief.category === category) {
-          // Get category-specific max rating from API (defaults to 7 if not loaded)
-          const categoryLower = category.toLowerCase();
-          const maxRating = ratingCaps?.[categoryLower as keyof typeof ratingCaps] || 7;
-          
-          // Cap both current and target ratings at max allowed
-          const cappedRating = Math.min(newRating, maxRating);
-          
-          return {
-            ...belief,
-            currentRating: cappedRating,
-            targetRating: Math.min(cappedRating + 1, maxRating) // Auto-increment by 1, capped at user's max (which is capped at 8)
-          };
-        }
-        return belief;
-      });
-      
-      // Auto-save changes to database immediately
-      saveWeekMutation.mutate({
-        weekNumber: actualWeekNumber,
-        year: new Date().getFullYear(),
-        dateString: currentDateStr, // Use selected calendar date, not today's date
-        beliefs: updated,
-      });
-      
-      return updated;
+    const updated = beliefs.map(belief => {
+      if (belief.category === category) {
+        // Get category-specific max rating from API (defaults to 7 if not loaded)
+        const categoryLower = category.toLowerCase();
+        const maxRating = ratingCaps?.[categoryLower as keyof typeof ratingCaps] || 7;
+        
+        // Cap both current and target ratings at max allowed
+        const cappedRating = Math.min(newRating, maxRating);
+        
+        return {
+          ...belief,
+          currentRating: cappedRating,
+          targetRating: Math.min(cappedRating + 1, maxRating) // Auto-increment by 1, capped at user's max (which is capped at 8)
+        };
+      }
+      return belief;
+    });
+    
+    // Update cache (triggers re-render)
+    updateBeliefsCache(updated);
+    
+    // Auto-save changes to database immediately
+    saveWeekMutation.mutate({
+      weekNumber: actualWeekNumber,
+      year: new Date().getFullYear(),
+      dateString: currentDateStr, // Use selected calendar date, not today's date
+      beliefs: updated,
     });
   };
 
@@ -2204,26 +2196,25 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       // Dialog is closing - auto-save the data
       const { category, field } = editingField;
       
-      setBeliefs(prev => {
-        const updated = prev.map(belief => {
-          if (belief.category === category) {
-            return {
-              ...belief,
-              [field]: dialogValue
-            };
-          }
-          return belief;
-        });
-        
-        // Auto-save changes to database
-        saveWeekMutation.mutate({
-          weekNumber: actualWeekNumber,
-          year: new Date().getFullYear(),
-          dateString: currentDateStr,
-          beliefs: updated,
-        });
-        
-        return updated;
+      const updated = beliefs.map(belief => {
+        if (belief.category === category) {
+          return {
+            ...belief,
+            [field]: dialogValue
+          };
+        }
+        return belief;
+      });
+      
+      // Update cache (triggers re-render)
+      updateBeliefsCache(updated);
+      
+      // Auto-save changes to database
+      saveWeekMutation.mutate({
+        weekNumber: actualWeekNumber,
+        year: new Date().getFullYear(),
+        dateString: currentDateStr,
+        beliefs: updated,
       });
       
       // Reset dialog state
@@ -2470,7 +2461,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     },
     onSuccess: () => {
       // Blank the Next Week Target table
-      setBeliefs(prev => prev.map(belief => ({
+      const blankedBeliefs = beliefs.map(belief => ({
         ...belief,
         targetRating: 0,
         result: '',
@@ -2481,25 +2472,17 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         feelingsChecklist: [],
         beliefsChecklist: [],
         actionsChecklist: [],
-      })));
+      }));
+      
+      // Update cache (triggers re-render)
+      updateBeliefsCache(blankedBeliefs);
       
       // Save the blanked state to database
       saveWeekMutation.mutate({ 
         weekNumber, 
         year: new Date().getFullYear(),
         dateString: currentDateStr, // Use selected calendar date, not today's date
-        beliefs: beliefs.map(belief => ({
-          ...belief,
-          targetRating: 0,
-          result: '',
-          nextFeelings: '',
-          nextWeekTarget: '',
-          nextActions: '',
-          resultChecklist: [],
-          feelingsChecklist: [],
-          beliefsChecklist: [],
-          actionsChecklist: [],
-        }))
+        beliefs: blankedBeliefs
       });
       
       // Refetch snapshot to clear it from UI
@@ -2540,27 +2523,26 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
       const data = await response.json();
 
-      setBeliefs(prev => {
-        const updated = prev.map(b => 
-          b.category === category 
-            ? { 
-                ...b, 
-                assignment: {
-                  courses: data.courses || [],
-                  lessons: b.assignment?.lessons || []
-                }
+      const updated = beliefs.map(b => 
+        b.category === category 
+          ? { 
+              ...b, 
+              assignment: {
+                courses: data.courses || [],
+                lessons: b.assignment?.lessons || []
               }
-            : b
-        );
-        
-        saveWeekMutation.mutate({
-          weekNumber: actualWeekNumber,
-          year: new Date().getFullYear(),
-          dateString: currentDateStr, // Use selected calendar date, not today's date
-          beliefs: updated
-        });
-        
-        return updated;
+            }
+          : b
+      );
+      
+      // Update cache (triggers re-render)
+      updateBeliefsCache(updated);
+      
+      saveWeekMutation.mutate({
+        weekNumber: actualWeekNumber,
+        year: new Date().getFullYear(),
+        dateString: currentDateStr, // Use selected calendar date, not today's date
+        beliefs: updated
       });
 
       const courseCount = data.courses?.length || 0;
@@ -2586,59 +2568,57 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
   // Toggle assignment course completion checkbox
   const handleAssignmentCourseToggle = (category: string, courseId: string) => {
-    setBeliefs(prev => {
-      const updated = prev.map(belief => {
-        if (belief.category === category && belief.assignment) {
-          const updatedCourses = belief.assignment.courses?.map(course =>
-            course.id === courseId ? { ...course, completed: !course.completed } : course
-          );
-          
-          return {
-            ...belief,
-            assignment: {
-              ...belief.assignment,
-              courses: updatedCourses || []
-            }
-          };
-        }
-        return belief;
-      });
-      
-      saveWeekMutation.mutate({
-        weekNumber: actualWeekNumber,
-        beliefs: updated
-      });
-      
-      return updated;
+    const updated = beliefs.map(belief => {
+      if (belief.category === category && belief.assignment) {
+        const updatedCourses = belief.assignment.courses?.map(course =>
+          course.id === courseId ? { ...course, completed: !course.completed } : course
+        );
+        
+        return {
+          ...belief,
+          assignment: {
+            ...belief.assignment,
+            courses: updatedCourses || []
+          }
+        };
+      }
+      return belief;
+    });
+    
+    // Update cache (triggers re-render)
+    updateBeliefsCache(updated);
+    
+    saveWeekMutation.mutate({
+      weekNumber: actualWeekNumber,
+      beliefs: updated
     });
   };
 
   // Toggle assignment lesson completion checkbox
   const handleAssignmentLessonToggle = (category: string, lessonId: string) => {
-    setBeliefs(prev => {
-      const updated = prev.map(belief => {
-        if (belief.category === category && belief.assignment) {
-          const updatedLessons = belief.assignment.lessons?.map(lesson =>
-            lesson.id === lessonId ? { ...lesson, completed: !lesson.completed } : lesson
-          );
-          
-          return {
-            ...belief,
-            assignment: {
-              ...belief.assignment,
-              lessons: updatedLessons || []
-            }
-          };
-        }
-        return belief;
-      });
-      
-      saveWeekMutation.mutate({
-        weekNumber: actualWeekNumber,
-        beliefs: updated
-      });
-      
-      return updated;
+    const updated = beliefs.map(belief => {
+      if (belief.category === category && belief.assignment) {
+        const updatedLessons = belief.assignment.lessons?.map(lesson =>
+          lesson.id === lessonId ? { ...lesson, completed: !lesson.completed } : lesson
+        );
+        
+        return {
+          ...belief,
+          assignment: {
+            ...belief.assignment,
+            lessons: updatedLessons || []
+          }
+        };
+      }
+      return belief;
+    });
+    
+    // Update cache (triggers re-render)
+    updateBeliefsCache(updated);
+    
+    saveWeekMutation.mutate({
+      weekNumber: actualWeekNumber,
+      beliefs: updated
     });
   };
 
@@ -2820,165 +2800,149 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
   // Toggle result checklist item
   const handleResultChecklistToggle = (category: string, itemId: string) => {
-    setBeliefs(prev => {
-      const updated = prev.map(belief => {
-        if (belief.category === category && belief.resultChecklist) {
-          const updatedChecklist = belief.resultChecklist.map(item =>
-            item.id === itemId ? { ...item, checked: !item.checked } : item
-          );
-          return { ...belief, resultChecklist: updatedChecklist };
-        }
-        return belief;
-      });
-      
-      saveWeekMutation.mutate({ weekNumber: actualWeekNumber, year: new Date().getFullYear(), beliefs: updated });
-      return updated;
+    const updated = beliefs.map(belief => {
+      if (belief.category === category && belief.resultChecklist) {
+        const updatedChecklist = belief.resultChecklist.map(item =>
+          item.id === itemId ? { ...item, checked: !item.checked } : item
+        );
+        return { ...belief, resultChecklist: updatedChecklist };
+      }
+      return belief;
     });
+    
+    updateBeliefsCache(updated);
+    saveWeekMutation.mutate({ weekNumber: actualWeekNumber, year: new Date().getFullYear(), beliefs: updated });
   };
 
   // Toggle feelings checklist item
   const handleFeelingsChecklistToggle = (category: string, itemId: string) => {
-    setBeliefs(prev => {
-      const updated = prev.map(belief => {
-        if (belief.category === category && belief.feelingsChecklist) {
-          const updatedChecklist = belief.feelingsChecklist.map(item =>
-            item.id === itemId ? { ...item, checked: !item.checked } : item
-          );
-          return { ...belief, feelingsChecklist: updatedChecklist };
-        }
-        return belief;
-      });
-      
-      saveWeekMutation.mutate({ weekNumber: actualWeekNumber, year: new Date().getFullYear(), beliefs: updated });
-      return updated;
+    const updated = beliefs.map(belief => {
+      if (belief.category === category && belief.feelingsChecklist) {
+        const updatedChecklist = belief.feelingsChecklist.map(item =>
+          item.id === itemId ? { ...item, checked: !item.checked } : item
+        );
+        return { ...belief, feelingsChecklist: updatedChecklist };
+      }
+      return belief;
     });
+    
+    updateBeliefsCache(updated);
+    saveWeekMutation.mutate({ weekNumber: actualWeekNumber, year: new Date().getFullYear(), beliefs: updated });
   };
 
   // Toggle beliefs checklist item
   const handleBeliefsChecklistToggle = (category: string, itemId: string) => {
-    setBeliefs(prev => {
-      const updated = prev.map(belief => {
-        if (belief.category === category && belief.beliefsChecklist) {
-          const updatedChecklist = belief.beliefsChecklist.map(item =>
-            item.id === itemId ? { ...item, checked: !item.checked } : item
-          );
-          return { ...belief, beliefsChecklist: updatedChecklist };
-        }
-        return belief;
-      });
-      
-      saveWeekMutation.mutate({ weekNumber: actualWeekNumber, year: new Date().getFullYear(), beliefs: updated });
-      return updated;
+    const updated = beliefs.map(belief => {
+      if (belief.category === category && belief.beliefsChecklist) {
+        const updatedChecklist = belief.beliefsChecklist.map(item =>
+          item.id === itemId ? { ...item, checked: !item.checked } : item
+        );
+        return { ...belief, beliefsChecklist: updatedChecklist };
+      }
+      return belief;
     });
+    
+    updateBeliefsCache(updated);
+    saveWeekMutation.mutate({ weekNumber: actualWeekNumber, year: new Date().getFullYear(), beliefs: updated });
   };
 
   // Toggle actions checklist item
   const handleActionsChecklistToggle = (category: string, itemId: string) => {
-    setBeliefs(prev => {
-      const updated = prev.map(belief => {
-        if (belief.category === category && belief.actionsChecklist) {
-          const updatedChecklist = belief.actionsChecklist.map(item =>
-            item.id === itemId ? { ...item, checked: !item.checked } : item
-          );
-          return { ...belief, actionsChecklist: updatedChecklist };
-        }
-        return belief;
-      });
-      
-      saveWeekMutation.mutate({ weekNumber: actualWeekNumber, year: new Date().getFullYear(), beliefs: updated });
-      return updated;
+    const updated = beliefs.map(belief => {
+      if (belief.category === category && belief.actionsChecklist) {
+        const updatedChecklist = belief.actionsChecklist.map(item =>
+          item.id === itemId ? { ...item, checked: !item.checked } : item
+        );
+        return { ...belief, actionsChecklist: updatedChecklist };
+      }
+      return belief;
     });
+    
+    updateBeliefsCache(updated);
+    saveWeekMutation.mutate({ weekNumber: actualWeekNumber, year: new Date().getFullYear(), beliefs: updated });
   };
 
   // ======== CURRENT WEEK CHECKPOINT HANDLERS ========
   
   // Toggle problems checklist item (Current Week)
   const handleProblemsChecklistToggle = (category: string, itemId: string) => {
-    setBeliefs(prev => {
-      let updated = prev.map(belief => {
-        if (belief.category === category && belief.problemsChecklist) {
-          const updatedChecklist = belief.problemsChecklist.map(item =>
-            item.id === itemId ? { ...item, checked: !item.checked } : item
-          );
-          return { ...belief, problemsChecklist: updatedChecklist };
-        }
-        return belief;
-      });
-      
-      // Auto-sync to Next Week Target
-      updated = syncCurrentToNextWeek(updated);
-      
-      saveWeekMutation.mutate({ weekNumber: actualWeekNumber, year: new Date().getFullYear(), beliefs: updated });
-      return updated;
+    let updated = beliefs.map(belief => {
+      if (belief.category === category && belief.problemsChecklist) {
+        const updatedChecklist = belief.problemsChecklist.map(item =>
+          item.id === itemId ? { ...item, checked: !item.checked } : item
+        );
+        return { ...belief, problemsChecklist: updatedChecklist };
+      }
+      return belief;
     });
+    
+    // Auto-sync to Next Week Target
+    updated = syncCurrentToNextWeek(updated);
+    
+    updateBeliefsCache(updated);
+    saveWeekMutation.mutate({ weekNumber: actualWeekNumber, year: new Date().getFullYear(), beliefs: updated });
   };
 
   // Toggle feelings current checklist item (Current Week)
   const handleFeelingsCurrentChecklistToggle = (category: string, itemId: string) => {
-    setBeliefs(prev => {
-      let updated = prev.map(belief => {
-        if (belief.category === category && belief.feelingsCurrentChecklist) {
-          const updatedChecklist = belief.feelingsCurrentChecklist.map(item =>
-            item.id === itemId ? { ...item, checked: !item.checked } : item
-          );
-          return { ...belief, feelingsCurrentChecklist: updatedChecklist };
-        }
-        return belief;
-      });
-      
-      // Auto-sync to Next Week Target
-      updated = syncCurrentToNextWeek(updated);
-      
-      saveWeekMutation.mutate({ weekNumber: actualWeekNumber, year: new Date().getFullYear(), beliefs: updated });
-      return updated;
+    let updated = beliefs.map(belief => {
+      if (belief.category === category && belief.feelingsCurrentChecklist) {
+        const updatedChecklist = belief.feelingsCurrentChecklist.map(item =>
+          item.id === itemId ? { ...item, checked: !item.checked } : item
+        );
+        return { ...belief, feelingsCurrentChecklist: updatedChecklist };
+      }
+      return belief;
     });
+    
+    // Auto-sync to Next Week Target
+    updated = syncCurrentToNextWeek(updated);
+    
+    updateBeliefsCache(updated);
+    saveWeekMutation.mutate({ weekNumber: actualWeekNumber, year: new Date().getFullYear(), beliefs: updated });
   };
 
   // Toggle beliefs current checklist item (Current Week)
   const handleBeliefsCurrentChecklistToggle = (category: string, itemId: string) => {
-    setBeliefs(prev => {
-      let updated = prev.map(belief => {
-        if (belief.category === category && belief.beliefsCurrentChecklist) {
-          const updatedChecklist = belief.beliefsCurrentChecklist.map(item =>
-            item.id === itemId ? { ...item, checked: !item.checked } : item
-          );
-          return { ...belief, beliefsCurrentChecklist: updatedChecklist };
-        }
-        return belief;
-      });
-      
-      // Auto-sync to Next Week Target
-      updated = syncCurrentToNextWeek(updated);
-      
-      saveWeekMutation.mutate({ weekNumber: actualWeekNumber, year: new Date().getFullYear(), beliefs: updated });
-      return updated;
+    let updated = beliefs.map(belief => {
+      if (belief.category === category && belief.beliefsCurrentChecklist) {
+        const updatedChecklist = belief.beliefsCurrentChecklist.map(item =>
+          item.id === itemId ? { ...item, checked: !item.checked } : item
+        );
+        return { ...belief, beliefsCurrentChecklist: updatedChecklist };
+      }
+      return belief;
     });
+    
+    // Auto-sync to Next Week Target
+    updated = syncCurrentToNextWeek(updated);
+    
+    updateBeliefsCache(updated);
+    saveWeekMutation.mutate({ weekNumber: actualWeekNumber, year: new Date().getFullYear(), beliefs: updated });
   };
 
   // Toggle actions current checklist item (Current Week)
   const handleActionsCurrentChecklistToggle = (category: string, itemId: string) => {
-    setBeliefs(prev => {
-      let updated = prev.map(belief => {
-        if (belief.category === category && belief.actionsCurrentChecklist) {
-          const updatedChecklist = belief.actionsCurrentChecklist.map(item =>
-            item.id === itemId ? { ...item, checked: !item.checked } : item
-          );
-          return { ...belief, actionsCurrentChecklist: updatedChecklist };
-        }
-        return belief;
-      });
-      
-      // Auto-sync to Next Week Target
-      updated = syncCurrentToNextWeek(updated);
-      
-      saveWeekMutation.mutate({ weekNumber: actualWeekNumber, year: new Date().getFullYear(), beliefs: updated });
-      return updated;
+    let updated = beliefs.map(belief => {
+      if (belief.category === category && belief.actionsCurrentChecklist) {
+        const updatedChecklist = belief.actionsCurrentChecklist.map(item =>
+          item.id === itemId ? { ...item, checked: !item.checked } : item
+        );
+        return { ...belief, actionsCurrentChecklist: updatedChecklist };
+      }
+      return belief;
     });
+    
+    // Auto-sync to Next Week Target
+    updated = syncCurrentToNextWeek(updated);
+    
+    updateBeliefsCache(updated);
+    saveWeekMutation.mutate({ weekNumber: actualWeekNumber, year: new Date().getFullYear(), beliefs: updated });
   };
 
   // Helper: Open Current Week checkpoint popup with FRESH data from cache
   const openCurrentWeekCheckpointPopup = (category: string, type: 'problems' | 'currentFeelings' | 'currentBeliefs' | 'currentActions') => {
-    // Use local beliefs state (always up-to-date since we call setBeliefs on every change)
+    // Use React Query cache beliefs (always up-to-date since we call updateBeliefsCache on every change)
     const belief = beliefs.find(b => b.category === category);
     
     let items: ChecklistItem[] = [];
@@ -2999,7 +2963,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
   // Helper: Open Next Week checkpoint popup with FRESH data from state
   const openNextWeekCheckpointPopup = (category: string, type: 'result' | 'feelings' | 'beliefs' | 'actions') => {
-    // Use local beliefs state (always up-to-date since we call setBeliefs on every change)
+    // Use React Query cache beliefs (always up-to-date since we call updateBeliefsCache on every change)
     const belief = beliefs.find(b => b.category === category);
     
     let items: ChecklistItem[] = [];
@@ -3079,7 +3043,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
   // Save current week checkpoint from dialog - FIX: Call RIGHT handler!
   const handleSaveCurrentWeekCheckpoint = () => {
+    console.log('💾 [SAVE] handleSaveCurrentWeekCheckpoint called');
+    console.log('💾 [SAVE] currentWeekCheckpointData:', currentWeekCheckpointData);
     if (currentWeekCheckpointData && currentWeekCheckpointData.text.trim()) {
+      console.log('💾 [SAVE] Calling handleCurrentWeekCheckpointAdd...');
       // ✅ Call the RIGHT handler - handleCurrentWeekCheckpointAdd (not handleAddCheckpoint!)
       handleCurrentWeekCheckpointAdd(
         currentWeekCheckpointData.category,
@@ -3089,6 +3056,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       
       setShowCurrentWeekCheckpointDialog(false);
       setCurrentWeekCheckpointData(null);
+    } else {
+      console.log('💾 [SAVE] No data or empty text - not saving');
     }
   };
   
@@ -3130,9 +3099,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       actionsChecklist: [],
     }));
     
-    // ✅ INSTANT UPDATE: Update cache AND local state immediately (using proper cache structure)
+    // ✅ INSTANT UPDATE: Update cache immediately (triggers re-render)
     updateBeliefsCache(clearedBeliefs);
-    setBeliefs(clearedBeliefs);
     setManualNextWeekMode(true); // Disable auto-sync
     
     // ✅ BACKEND SAVE: Save cleared data to database with manualNextWeekMode flag
@@ -3166,9 +3134,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       actionsCurrentChecklist: [],
     }));
     
-    // ✅ INSTANT UPDATE: Update cache AND local state immediately (using proper cache structure)
+    // ✅ INSTANT UPDATE: Update cache immediately (triggers re-render)
     updateBeliefsCache(clearedBeliefs);
-    setBeliefs(clearedBeliefs);
     
     // ✅ BACKEND SAVE: Save cleared data to database (background)
     saveWeekMutation.mutate({
@@ -3286,8 +3253,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       updated = syncCurrentToNextWeek(updated);
     }
     
-    // ✅ UPDATE LOCAL STATE IMMEDIATELY (optimistic update for column display)
-    setBeliefs(updated);
+    // ✅ UPDATE CACHE IMMEDIATELY (optimistic update for column display)
+    updateBeliefsCache(updated);
     
     // 🔥 INSTANT SAVE with OPTIMISTIC UPDATE (Assignment Column pattern)
     // onMutate updates cache instantly → API call in background → onSuccess refetches → NO FLICKER!
@@ -3396,8 +3363,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       updated = syncCurrentToNextWeek(updated);
     }
     
-    // ✅ UPDATE LOCAL STATE IMMEDIATELY (optimistic update for column display)
-    setBeliefs(updated);
+    // ✅ UPDATE CACHE IMMEDIATELY (optimistic update for column display)
+    updateBeliefsCache(updated);
     
     // 🔥 INSTANT SAVE with OPTIMISTIC UPDATE (Assignment Column pattern)
     checkpointMutation.mutate(updated);
@@ -3446,8 +3413,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       updated = syncCurrentToNextWeek(updated);
     }
     
-    // ✅ UPDATE LOCAL STATE IMMEDIATELY (optimistic update for column display)
-    setBeliefs(updated);
+    // ✅ UPDATE CACHE IMMEDIATELY (optimistic update for column display)
+    updateBeliefsCache(updated);
     
     // 🔥 INSTANT SAVE with OPTIMISTIC UPDATE (Assignment Column pattern)
     checkpointMutation.mutate(updated);
@@ -4044,7 +4011,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       return belief;
     });
     
-    setBeliefs(updatedBeliefs);
+    // Update cache (triggers re-render)
+    updateBeliefsCache(updatedBeliefs);
     saveWeekMutation.mutate({ 
       weekNumber, 
       year: new Date().getFullYear(), 
@@ -4072,7 +4040,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           return belief;
         });
         
-        setBeliefs(updatedBeliefs);
+        // Update cache (triggers re-render)
+        updateBeliefsCache(updatedBeliefs);
         saveWeekMutation.mutate({ 
           weekNumber, 
           year: new Date().getFullYear(), 
@@ -4110,7 +4079,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         return belief;
       });
       
-      setBeliefs(updatedBeliefs);
+      // Update cache (triggers re-render)
+      updateBeliefsCache(updatedBeliefs);
       saveWeekMutation.mutate({ 
         weekNumber, 
         year: new Date().getFullYear(), 
@@ -4169,8 +4139,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       return belief;
     });
     
-    // Update local state
-    setBeliefs(updatedBeliefs);
+    // Update cache (triggers re-render)
+    updateBeliefsCache(updatedBeliefs);
     
     setEditingField(null);
     setEditValue('');
