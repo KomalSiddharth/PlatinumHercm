@@ -1819,7 +1819,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   const handleCurrentWeekCheckpointDelete = (category: string, type: 'problems' | 'currentFeelings' | 'currentBeliefs' | 'currentActions', itemId: string) => {
     console.log('🗑️ [DELETE] Called with:', { category, type, itemId });
     console.log('🗑️ [DELETE] Current beliefs:', beliefs);
-    const updated = beliefs.map(belief => {
+    let updated = beliefs.map(belief => {
       if (belief.category === category) {
         let updatedBelief = { ...belief };
         
@@ -1838,6 +1838,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       }
       return belief;
     });
+    
+    // 🔥 AUTO-SYNC: Sync Current Week → Next Week Target (unless manual mode enabled)
+    if (!manualNextWeekMode) {
+      console.log('[DELETE] 🔄 Auto-syncing Current Week → Next Week Target...');
+      updated = syncCurrentToNextWeek(updated);
+    }
     
     // ✅ INSTANT UPDATE: Update cache AND local state immediately (using proper cache structure)
     updateBeliefsCache(updated);
@@ -1880,7 +1886,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       checked: false 
     };
     
-    const updated = beliefs.map(belief => {
+    let updated = beliefs.map(belief => {
       if (belief.category === category) {
         let updatedBelief = { ...belief };
         
@@ -1897,6 +1903,12 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       }
       return belief;
     });
+    
+    // 🔥 AUTO-SYNC: Sync Current Week → Next Week Target (unless manual mode enabled)
+    if (!manualNextWeekMode) {
+      console.log('[ADD] 🔄 Auto-syncing Current Week → Next Week Target...');
+      updated = syncCurrentToNextWeek(updated);
+    }
     
     // ✅ INSTANT UPDATE: Update cache AND local state immediately (using proper cache structure)
     updateBeliefsCache(updated);
