@@ -2978,9 +2978,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
 
   // Helper: Open Current Week checkpoint popup with FRESH data from cache
   const openCurrentWeekCheckpointPopup = (category: string, type: 'problems' | 'currentFeelings' | 'currentBeliefs' | 'currentActions') => {
-    const cacheData = queryClient.getQueryData<HRCMBelief[]>(['/api/hrcm/date', currentDateStr, viewAsUserId]);
-    const currentBeliefs = Array.isArray(cacheData) ? cacheData : beliefs;
-    const belief = currentBeliefs.find(b => b.category === category);
+    // Use local beliefs state (always up-to-date since we call setBeliefs on every change)
+    const belief = beliefs.find(b => b.category === category);
     
     let items: ChecklistItem[] = [];
     if (belief) {
@@ -2998,11 +2997,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     });
   };
 
-  // Helper: Open Next Week checkpoint popup with FRESH data from cache
+  // Helper: Open Next Week checkpoint popup with FRESH data from state
   const openNextWeekCheckpointPopup = (category: string, type: 'result' | 'feelings' | 'beliefs' | 'actions') => {
-    const cacheData = queryClient.getQueryData<HRCMBelief[]>(['/api/hrcm/date', currentDateStr, viewAsUserId]);
-    const currentBeliefs = Array.isArray(cacheData) ? cacheData : beliefs;
-    const belief = currentBeliefs.find(b => b.category === category);
+    // Use local beliefs state (always up-to-date since we call setBeliefs on every change)
+    const belief = beliefs.find(b => b.category === category);
     
     let items: ChecklistItem[] = [];
     if (belief) {
