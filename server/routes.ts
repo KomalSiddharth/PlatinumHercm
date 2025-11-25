@@ -214,63 +214,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json([]);
       }
       
-      // Group entries by week number and year, then get the most recent entry for each week
-      const weekMap = new Map();
+      // 🔥 CUMULATIVE: Group ALL entries by week number and year (not just most recent)
+      const weekEntriesMap = new Map<string, any[]>();
       allWeeks.forEach((entry: any) => {
         const key = `${entry.year}-${entry.weekNumber}`;
-        if (!weekMap.has(key)) {
-          weekMap.set(key, entry);
-        } else {
-          // Keep the most recent entry for this week
-          const existing = weekMap.get(key);
-          const existingDate = new Date(existing.createdAt || existing.dateString);
-          const newDate = new Date(entry.createdAt || entry.dateString);
-          if (newDate > existingDate) {
-            weekMap.set(key, entry);
-          }
+        if (!weekEntriesMap.has(key)) {
+          weekEntriesMap.set(key, []);
         }
+        weekEntriesMap.get(key)!.push(entry);
       });
       
-      // Calculate scores AND checkpoint stats for each week using most recent date's data
-      const weeklyScores = Array.from(weekMap.values()).map((week: any) => {
-        // Get current ratings for all 4 HRCM areas (1-7 scale each)
-        const healthRating = week.currentH || 0;
-        const relationshipRating = week.currentE || 0; // Emotion/Relationship
-        const careerRating = week.currentR || 0; // Respect/Career
-        const moneyRating = week.currentC || 0; // Courage/Money
+      // 🔥 Calculate CUMULATIVE checkpoint stats from ALL dates within each week
+      const weeklyScores = Array.from(weekEntriesMap.entries()).map(([key, entries]) => {
+        // Get the most recent entry for HRCM ratings (for display purposes)
+        const sortedEntries = entries.sort((a, b) => {
+          const dateA = new Date(a.createdAt || a.dateString);
+          const dateB = new Date(b.createdAt || b.dateString);
+          return dateB.getTime() - dateA.getTime();
+        });
+        const mostRecentEntry = sortedEntries[0];
+        
+        // Get current ratings for all 4 HRCM areas from most recent entry
+        const healthRating = mostRecentEntry.currentH || 0;
+        const relationshipRating = mostRecentEntry.currentE || 0;
+        const careerRating = mostRecentEntry.currentR || 0;
+        const moneyRating = mostRecentEntry.currentC || 0;
         
         const totalScore = healthRating + relationshipRating + careerRating + moneyRating;
-        const maxScore = 28; // 7 × 4 areas
+        const maxScore = 28;
         const percentage = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
         
-        // 📊 Calculate checkpoint stats from most recent date's Current Week checkpoints
-        // (4 columns: Problems, Feelings, Beliefs, Actions × 4 HRCM areas)
+        // 🔥 CUMULATIVE: Sum checkpoints from ALL dates within this week
         let totalCheckpoints = 0;
         let checkedCheckpoints = 0;
         
-        // Count checkpoints for all 4 HRCM areas
         const areas = ['health', 'relationship', 'career', 'money'];
-        areas.forEach(area => {
-          // Count from 4 columns: Problems, Feelings, Beliefs, Actions (Current Week data)
-          const problemsChecklist = week[`${area}ProblemsChecklist`] || [];
-          const feelingsChecklist = week[`${area}FeelingsCurrentChecklist`] || [];
-          const beliefsChecklist = week[`${area}BeliefsCurrentChecklist`] || [];
-          const actionsChecklist = week[`${area}ActionsCurrentChecklist`] || [];
-          
-          console.log(`[WEEKLY-SCORES] Week ${week.weekNumber} (${week.dateString || week.createdAt}) - ${area}:`);
-          console.log(`  Problems: ${problemsChecklist.length}, Feelings: ${feelingsChecklist.length}, Beliefs: ${beliefsChecklist.length}, Actions: ${actionsChecklist.length}`);
-          
-          [problemsChecklist, feelingsChecklist, beliefsChecklist, actionsChecklist].forEach(checklist => {
-            if (Array.isArray(checklist)) {
-              totalCheckpoints += checklist.length;
-              checkedCheckpoints += checklist.filter((item: any) => item.checked).length;
-            }
+        
+        // Loop through ALL entries (all dates) in this week
+        entries.forEach((entry: any) => {
+          areas.forEach(area => {
+            // Count from 4 columns: Problems, Feelings, Beliefs, Actions (Current Week data)
+            const problemsChecklist = entry[`${area}ProblemsChecklist`] || [];
+            const feelingsChecklist = entry[`${area}FeelingsCurrentChecklist`] || [];
+            const beliefsChecklist = entry[`${area}BeliefsCurrentChecklist`] || [];
+            const actionsChecklist = entry[`${area}ActionsCurrentChecklist`] || [];
+            
+            [problemsChecklist, feelingsChecklist, beliefsChecklist, actionsChecklist].forEach(checklist => {
+              if (Array.isArray(checklist)) {
+                totalCheckpoints += checklist.length;
+                checkedCheckpoints += checklist.filter((item: any) => item.checked).length;
+              }
+            });
           });
         });
         
+        console.log(`[WEEKLY-SCORES] Week ${mostRecentEntry.weekNumber} - CUMULATIVE from ${entries.length} dates: ${checkedCheckpoints}/${totalCheckpoints} checkpoints`);
+        
         return {
-          weekNumber: week.weekNumber,
-          year: week.year,
+          weekNumber: mostRecentEntry.weekNumber,
+          year: mostRecentEntry.year,
           totalScore,
           maxScore,
           percentage,
@@ -283,7 +285,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           checkpoints: {
             total: totalCheckpoints,
             checked: checkedCheckpoints
-          }
+          },
+          datesCount: entries.length // 🔥 Show how many dates contributed
         };
       });
       
