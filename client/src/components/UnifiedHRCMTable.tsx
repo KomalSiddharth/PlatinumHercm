@@ -6161,15 +6161,40 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   </span>
                 )}
                 {!isAdminView && !viewingHistory && !viewAsUserId && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleCurrentWeekCheckpointDelete(currentWeekCheckpointPopup.category, currentWeekCheckpointPopup.type, item.id)}
-                    className="h-6 w-6 p-0 shrink-0"
-                    data-testid={`button-delete-current-week-${currentWeekCheckpointPopup.type}-${index}`}
-                  >
-                    <Trash2 className="w-4 h-4 text-destructive" />
-                  </Button>
+                  <>
+                    {/* ✅ Quick Add Button - Always visible for adding new checkpoint from anywhere */}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        setCurrentWeekCheckpointData({
+                          category: currentWeekCheckpointPopup.category,
+                          checklistType: currentWeekCheckpointPopup.type,
+                          text: ''
+                        });
+                        setShowCurrentWeekCheckpointDialog(true);
+                      }}
+                      className={`h-6 w-6 p-0 shrink-0 ${
+                        currentWeekCheckpointPopup.type === 'problems' ? 'text-coral-red' :
+                        currentWeekCheckpointPopup.type === 'currentFeelings' ? 'text-emerald-green' :
+                        currentWeekCheckpointPopup.type === 'currentBeliefs' ? 'text-golden-yellow' :
+                        'text-blue-500'
+                      } hover:bg-muted/50`}
+                      data-testid={`button-quick-add-current-week-${currentWeekCheckpointPopup.type}-${index}`}
+                      title="Add new checkpoint"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleCurrentWeekCheckpointDelete(currentWeekCheckpointPopup.category, currentWeekCheckpointPopup.type, item.id)}
+                      className="h-6 w-6 p-0 shrink-0"
+                      data-testid={`button-delete-current-week-${currentWeekCheckpointPopup.type}-${index}`}
+                    >
+                      <Trash2 className="w-4 h-4 text-destructive" />
+                    </Button>
+                  </>
                 )}
               </div>
             ))}
@@ -6386,15 +6411,40 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   </span>
                 )}
                 {!isAdminView && !viewingHistory && !viewAsUserId && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleNextWeekCheckpointDelete(nextWeekCheckpointPopup.category, nextWeekCheckpointPopup.type, item.id)}
-                    className="h-6 w-6 p-0 shrink-0"
-                    data-testid={`button-delete-next-week-${nextWeekCheckpointPopup.type}-${index}`}
-                  >
-                    <Trash2 className="w-4 h-4 text-destructive" />
-                  </Button>
+                  <>
+                    {/* ✅ Quick Add Button - Always visible for adding new checkpoint from anywhere */}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        setNextWeekCheckpointData({
+                          category: nextWeekCheckpointPopup.category,
+                          checklistType: nextWeekCheckpointPopup.type,
+                          text: ''
+                        });
+                        setShowNextWeekCheckpointDialog(true);
+                      }}
+                      className={`h-6 w-6 p-0 shrink-0 ${
+                        nextWeekCheckpointPopup.type === 'result' ? 'text-teal-600 dark:text-teal-400' :
+                        nextWeekCheckpointPopup.type === 'feelings' ? 'text-emerald-green' :
+                        nextWeekCheckpointPopup.type === 'beliefs' ? 'text-golden-yellow' :
+                        'text-blue-500'
+                      } hover:bg-muted/50`}
+                      data-testid={`button-quick-add-next-week-${nextWeekCheckpointPopup.type}-${index}`}
+                      title="Add new checkpoint"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleNextWeekCheckpointDelete(nextWeekCheckpointPopup.category, nextWeekCheckpointPopup.type, item.id)}
+                      className="h-6 w-6 p-0 shrink-0"
+                      data-testid={`button-delete-next-week-${nextWeekCheckpointPopup.type}-${index}`}
+                    >
+                      <Trash2 className="w-4 h-4 text-destructive" />
+                    </Button>
+                  </>
                 )}
               </div>
             ))}
