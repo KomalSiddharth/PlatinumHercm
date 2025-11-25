@@ -690,6 +690,95 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     }));
   };
 
+  // 🔥 HELPER: Calculate TOTAL checkpoints from BOTH Current Week + Next Week Target tables
+  const calculateTotalCheckpoints = (beliefsData: HRCMBelief[]) => {
+    let totalCheckpoints = 0;
+    let checkedCheckpoints = 0;
+    
+    beliefsData.forEach(belief => {
+      // Current Week columns (4 columns)
+      const currentWeekLists = [
+        belief.problemsChecklist,
+        belief.feelingsCurrentChecklist, 
+        belief.beliefsCurrentChecklist,
+        belief.actionsCurrentChecklist
+      ];
+      
+      // Next Week Target columns (4 columns)
+      const nextWeekLists = [
+        belief.resultChecklist,
+        belief.feelingsChecklist,
+        belief.beliefsChecklist,
+        belief.actionsChecklist
+      ];
+      
+      // Count from ALL 8 columns
+      [...currentWeekLists, ...nextWeekLists].forEach(checklist => {
+        if (checklist && Array.isArray(checklist)) {
+          totalCheckpoints += checklist.length;
+          checkedCheckpoints += checklist.filter(item => item.checked).length;
+        }
+      });
+    });
+    
+    return { totalCheckpoints, checkedCheckpoints, remainingCheckpoints: totalCheckpoints - checkedCheckpoints };
+  };
+
+  // 🔥 HELPER: Get tiered motivational message based on checked count
+  const getMotivationalMessage = (checkedCount: number, remainingCount: number, isCheckingAction: boolean) => {
+    if (!isCheckingAction) return null; // Don't show message when unchecking
+    
+    if (remainingCount === 0) {
+      return {
+        title: "🎉 All Checkpoints Completed!",
+        description: "Congratulations! You've achieved ALL your milestones. You are a TRUE CHAMPION! Keep up the excellent work!"
+      };
+    }
+    
+    // Tiered motivational messages based on checked count
+    if (checkedCount >= 300) {
+      return {
+        title: "🏆 PLATINUM LEGEND!",
+        description: `Incredible! ${checkedCount} checkpoints conquered! You're in the elite league. Only ${remainingCount} left to complete perfection!`
+      };
+    } else if (checkedCount >= 250) {
+      return {
+        title: "👑 CHAMPION STATUS!",
+        description: `Wow! ${checkedCount} milestones achieved! You're unstoppable. ${remainingCount} more to reach legendary status!`
+      };
+    } else if (checkedCount >= 200) {
+      return {
+        title: "🌟 EXCELLENCE ACHIEVED!",
+        description: `Amazing! ${checkedCount} checkpoints done! You're performing at elite level. ${remainingCount} remaining - keep pushing!`
+      };
+    } else if (checkedCount >= 150) {
+      return {
+        title: "🔥 HIGH ACHIEVER!",
+        description: `Outstanding! ${checkedCount} milestones completed! You're on fire! ${remainingCount} to go - don't stop now!`
+      };
+    } else if (checkedCount >= 100) {
+      return {
+        title: "💪 STRONG PROGRESS!",
+        description: `Great job! ${checkedCount} checkpoints cleared! Building powerful momentum. ${remainingCount} remaining!`
+      };
+    } else if (checkedCount >= 50) {
+      return {
+        title: "🚀 BUILDING HABITS!",
+        description: `Nice! ${checkedCount} milestones achieved! Consistency is paying off. ${remainingCount} checkpoints left!`
+      };
+    } else if (checkedCount >= 25) {
+      return {
+        title: "⚡ GAINING MOMENTUM!",
+        description: `Good progress! ${checkedCount} checkpoints done! Keep the momentum going. ${remainingCount} to complete!`
+      };
+    } else {
+      return {
+        title: "✅ Checkpoint Complete!",
+        description: `One more step forward! ${checkedCount} completed, ${remainingCount} remaining. Every step counts!`
+      };
+    }
+  };
+
   // Fetch previous week data for comparison (only if week > 1)
   const { data: previousWeekData } = useQuery<{ beliefs?: HRCMBelief[] }>({
     queryKey: ['/api/hercm/week', actualWeekNumber - 1],
@@ -1701,38 +1790,17 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       }
     }
     
-    // Calculate total and remaining checkpoints after update
-    let totalCheckpoints = 0;
-    let checkedCheckpoints = 0;
+    // 🔥 Calculate TOTAL checkpoints from BOTH tables (Current Week + Next Week Target)
+    const { totalCheckpoints, checkedCheckpoints, remainingCheckpoints } = calculateTotalCheckpoints(updated);
     
-    updated.forEach(belief => {
-      // Count all checkpoints from all 4 columns
-      [belief.problemsChecklist, belief.feelingsCurrentChecklist, belief.beliefsCurrentChecklist, belief.actionsCurrentChecklist].forEach(checklist => {
-        if (checklist) {
-          totalCheckpoints += checklist.length;
-          checkedCheckpoints += checklist.filter(item => item.checked).length;
-        }
+    // 🔥 Show tiered motivational toast notification based on milestone level
+    const message = getMotivationalMessage(checkedCheckpoints, remainingCheckpoints, isBeingChecked);
+    if (message) {
+      toast({
+        title: message.title,
+        description: message.description,
+        duration: 4000,
       });
-    });
-    
-    const remainingCheckpoints = totalCheckpoints - checkedCheckpoints;
-    
-    // Show motivational toast notification
-    if (isBeingChecked) {
-      // Checkbox was checked
-      if (remainingCheckpoints === 0) {
-        toast({
-          title: "🎉 All Checkpoints Completed!",
-          description: "Congratulations! You've achieved all your milestones. Keep up the excellent work!",
-          duration: 4000,
-        });
-      } else {
-        toast({
-          title: "✅ Milestone Achieved!",
-          description: `Congratulations! One more milestone achieved, keep going! ${remainingCheckpoints} ${remainingCheckpoints === 1 ? 'checkpoint' : 'checkpoints'} to go to complete this.`,
-          duration: 4000,
-        });
-      }
     }
     
     // ✅ BACKEND SAVE: Save changes to database (background, no waiting)
@@ -1916,6 +1984,21 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   
   // TOGGLE checkbox in Next Week Target popup (INSTANT pattern)
   const handleNextWeekCheckpointToggle = (category: string, type: 'result' | 'feelings' | 'beliefs' | 'actions', itemId: string) => {
+    // 🔥 Find if item is being checked or unchecked BEFORE updating
+    let isBeingChecked = false;
+    beliefs.forEach(belief => {
+      if (belief.category === category) {
+        const checklist = type === 'result' ? belief.resultChecklist :
+                         type === 'feelings' ? belief.feelingsChecklist :
+                         type === 'beliefs' ? belief.beliefsChecklist :
+                         belief.actionsChecklist;
+        const item = checklist?.find(i => i.id === itemId);
+        if (item) {
+          isBeingChecked = !item.checked; // Will be checked after toggle
+        }
+      }
+    });
+    
     const updated = beliefs.map(belief => {
       if (belief.category === category) {
         let updatedBelief = { ...belief };
@@ -1951,6 +2034,19 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           items: newItems
         });
       }
+    }
+    
+    // 🔥 Calculate TOTAL checkpoints from BOTH tables (Current Week + Next Week Target)
+    const { totalCheckpoints, checkedCheckpoints, remainingCheckpoints } = calculateTotalCheckpoints(updated);
+    
+    // 🔥 Show tiered motivational toast notification based on milestone level
+    const message = getMotivationalMessage(checkedCheckpoints, remainingCheckpoints, isBeingChecked);
+    if (message) {
+      toast({
+        title: message.title,
+        description: message.description,
+        duration: 4000,
+      });
     }
     
     // ✅ BACKEND SAVE: Save changes to database (background, no waiting)
