@@ -3988,7 +3988,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                         </span>
                         {!disabled && (
                           <>
-                            {/* ✅ Quick Add Button - Opens add dialog from any position */}
+                            {/* ✅ Quick Add Button - Always visible for easy access */}
                             <Button
                               size="sm"
                               variant="ghost"
@@ -3998,7 +3998,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                                 setNewItemText('');
                                 setIsAddingNew(true);
                               }}
-                              className={`h-6 w-6 p-0 shrink-0 opacity-0 group-hover/item:opacity-100 transition-opacity ${colorScheme.text}`}
+                              className={`h-6 w-6 p-0 shrink-0 ${colorScheme.text} hover:bg-muted/50`}
                               data-testid={`button-quick-add-${checklistType}-${item.id}`}
                               title={`Add new ${buttonLabel}`}
                             >
