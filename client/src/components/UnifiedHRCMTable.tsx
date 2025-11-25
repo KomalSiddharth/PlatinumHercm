@@ -647,7 +647,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   
   console.log('🔍 [QUERY ENABLED CHECK] viewAsUserId:', viewAsUserId, 'currentUser:', currentUser, 'isAdminView:', isAdminView, 'shouldEnableQuery:', shouldEnableQuery);
   
-  const { data: dateData, isLoading, isFetching } = useQuery<{ beliefs?: HRCMBelief[]; createdAt?: string; weekNumber?: number }>({
+  const { data: dateData, isLoading, isFetching } = useQuery<{ beliefs?: HRCMBelief[]; createdAt?: string; weekNumber?: number; manualNextWeekMode?: boolean }>({
     queryKey: dateDataQueryKey,
     queryFn: async () => {
       const endpoint = viewAsUserId
