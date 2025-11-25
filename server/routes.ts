@@ -253,14 +253,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Loop through ALL entries (all dates) in this week
         entries.forEach((entry: any) => {
           areas.forEach(area => {
-            // 🔥 Count from NEXT WEEK TARGET table columns (Results, Feelings, Beliefs, Actions)
-            // These match the "Target: X/Y Points" shown in the heading
+            // 🔥 Count from BOTH tables (Current Week + Next Week Target)
+            // This matches the "Target: X/Y Points" shown in the heading
+            
+            // Current Week columns (Problems, Feelings, Beliefs, Actions)
+            const problemsChecklist = entry[`${area}ProblemsChecklist`] || [];
+            const feelingsCurrentChecklist = entry[`${area}FeelingsCurrentChecklist`] || [];
+            const beliefsCurrentChecklist = entry[`${area}BeliefsCurrentChecklist`] || [];
+            const actionsCurrentChecklist = entry[`${area}ActionsCurrentChecklist`] || [];
+            
+            // Next Week Target columns (Results, Feelings, Beliefs, Actions)
             const resultChecklist = entry[`${area}ResultChecklist`] || [];
             const feelingsChecklist = entry[`${area}FeelingsChecklist`] || [];
             const beliefsChecklist = entry[`${area}BeliefsChecklist`] || [];
             const actionsChecklist = entry[`${area}ActionsChecklist`] || [];
             
-            [resultChecklist, feelingsChecklist, beliefsChecklist, actionsChecklist].forEach(checklist => {
+            // Count ALL 8 columns (4 from Current Week + 4 from Next Week Target)
+            [
+              problemsChecklist, feelingsCurrentChecklist, beliefsCurrentChecklist, actionsCurrentChecklist,
+              resultChecklist, feelingsChecklist, beliefsChecklist, actionsChecklist
+            ].forEach(checklist => {
               if (Array.isArray(checklist)) {
                 totalCheckpoints += checklist.length;
                 checkedCheckpoints += checklist.filter((item: any) => item.checked).length;
