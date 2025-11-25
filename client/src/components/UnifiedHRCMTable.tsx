@@ -5954,12 +5954,18 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         </DialogContent>
       </Dialog>
 
-      {/* Current Week Checkpoint Dialog */}
-      <Dialog open={showCurrentWeekCheckpointDialog} onOpenChange={handleCurrentWeekCheckpointDialogClose}>
+      {/* Current Week Checkpoint Dialog - Handles both Add and Edit */}
+      <Dialog open={showCurrentWeekCheckpointDialog} onOpenChange={(open) => {
+        if (!open) {
+          setShowCurrentWeekCheckpointDialog(false);
+          setCurrentWeekCheckpointData(null);
+          setEditingCurrentWeekCheckpointId(null);
+        }
+      }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="text-base font-semibold">
-              Add Current Week Checkpoint
+              {editingCurrentWeekCheckpointId ? 'Edit' : 'Add'} Current Week Checkpoint
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -5983,41 +5989,49 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   e.target.setSelectionRange(length, length);
                 }}
                 onKeyDown={(e) => {
-                  // Plain Enter to save and close dialog (instant add)
+                  // Plain Enter to save and close dialog
                   if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
                     e.preventDefault();
                     if (currentWeekCheckpointData?.text.trim()) {
                       const textToSave = currentWeekCheckpointData.text.trim();
-                      // Map checklistType to correct format
                       const mappedType = currentWeekCheckpointData.checklistType === 'currentFeelings' ? 'currentFeelings' :
                                         currentWeekCheckpointData.checklistType === 'currentBeliefs' ? 'currentBeliefs' :
                                         currentWeekCheckpointData.checklistType === 'currentActions' ? 'currentActions' :
                                         'problems';
                       
-                      // ✅ Let handleCurrentWeekCheckpointAdd do EVERYTHING (cache + popup + save)
-                      handleCurrentWeekCheckpointAdd(
-                        currentWeekCheckpointData.category, 
-                        mappedType, 
-                        textToSave
-                      );
+                      if (editingCurrentWeekCheckpointId) {
+                        // Edit mode: Update existing checkpoint
+                        handleCurrentWeekCheckpointUpdateText(
+                          currentWeekCheckpointData.category,
+                          mappedType,
+                          editingCurrentWeekCheckpointId,
+                          textToSave
+                        );
+                      } else {
+                        // Add mode: Create new checkpoint
+                        handleCurrentWeekCheckpointAdd(
+                          currentWeekCheckpointData.category, 
+                          mappedType, 
+                          textToSave
+                        );
+                      }
                       
                       // Clear and close
                       setCurrentWeekCheckpointData(null);
+                      setEditingCurrentWeekCheckpointId(null);
                       setShowCurrentWeekCheckpointDialog(false);
                     }
                   }
-                  // Ctrl+Enter or Cmd+Enter to add and keep dialog open
-                  else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                  // Ctrl+Enter or Cmd+Enter to add and keep dialog open (only for Add mode)
+                  else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && !editingCurrentWeekCheckpointId) {
                     e.preventDefault();
                     if (currentWeekCheckpointData?.text.trim()) {
                       const textToSave = currentWeekCheckpointData.text.trim();
-                      // Map checklistType to correct format
                       const mappedType = currentWeekCheckpointData.checklistType === 'currentFeelings' ? 'currentFeelings' :
                                         currentWeekCheckpointData.checklistType === 'currentBeliefs' ? 'currentBeliefs' :
                                         currentWeekCheckpointData.checklistType === 'currentActions' ? 'currentActions' :
                                         'problems';
                       
-                      // ✅ Let handleCurrentWeekCheckpointAdd do EVERYTHING (cache + popup + save)
                       handleCurrentWeekCheckpointAdd(
                         currentWeekCheckpointData.category, 
                         mappedType, 
@@ -6029,7 +6043,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     }
                   }
                 }}
-                placeholder="Enter your checkpoint... (Ctrl+Enter to add more)"
+                placeholder={editingCurrentWeekCheckpointId ? "Edit your checkpoint..." : "Enter your checkpoint... (Ctrl+Enter to add more)"}
                 className="min-h-[100px] text-sm bg-white dark:bg-gray-950 border-muted"
                 autoFocus
                 data-testid="textarea-current-week-checkpoint"
@@ -6041,18 +6055,46 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 onClick={() => {
                   setShowCurrentWeekCheckpointDialog(false);
                   setCurrentWeekCheckpointData(null);
+                  setEditingCurrentWeekCheckpointId(null);
                 }}
                 data-testid="button-cancel-current-week-checkpoint"
               >
                 Cancel
               </Button>
               <Button
-                onClick={handleSaveCurrentWeekCheckpoint}
+                onClick={() => {
+                  if (currentWeekCheckpointData?.text.trim()) {
+                    const textToSave = currentWeekCheckpointData.text.trim();
+                    const mappedType = currentWeekCheckpointData.checklistType === 'currentFeelings' ? 'currentFeelings' :
+                                      currentWeekCheckpointData.checklistType === 'currentBeliefs' ? 'currentBeliefs' :
+                                      currentWeekCheckpointData.checklistType === 'currentActions' ? 'currentActions' :
+                                      'problems';
+                    
+                    if (editingCurrentWeekCheckpointId) {
+                      handleCurrentWeekCheckpointUpdateText(
+                        currentWeekCheckpointData.category,
+                        mappedType,
+                        editingCurrentWeekCheckpointId,
+                        textToSave
+                      );
+                    } else {
+                      handleCurrentWeekCheckpointAdd(
+                        currentWeekCheckpointData.category, 
+                        mappedType, 
+                        textToSave
+                      );
+                    }
+                    
+                    setCurrentWeekCheckpointData(null);
+                    setEditingCurrentWeekCheckpointId(null);
+                    setShowCurrentWeekCheckpointDialog(false);
+                  }
+                }}
                 disabled={!currentWeekCheckpointData?.text.trim()}
                 className="bg-gradient-to-r from-primary to-accent text-white hover:opacity-90"
                 data-testid="button-save-current-week-checkpoint"
               >
-                Add {
+                {editingCurrentWeekCheckpointId ? 'Save' : 'Add'} {
                   currentWeekCheckpointData?.checklistType === 'problems' ? 'Problem' :
                   currentWeekCheckpointData?.checklistType === 'currentFeelings' ? 'Feeling' :
                   currentWeekCheckpointData?.checklistType === 'currentBeliefs' ? 'Belief' :
@@ -6084,13 +6126,13 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             <div className="pt-4 pb-2 border-b">
               <Button
                 onClick={() => {
+                  setEditingCurrentWeekCheckpointId(null);
                   setCurrentWeekCheckpointData({
                     category: currentWeekCheckpointPopup.category,
                     checklistType: currentWeekCheckpointPopup.type,
                     text: ''
                   });
                   setShowCurrentWeekCheckpointDialog(true);
-                  // Keep popup open - don't close it
                 }}
                 className="w-full bg-gradient-to-r from-primary to-accent text-white hover:opacity-90"
                 data-testid="button-add-checkpoint-from-popup"
@@ -6166,6 +6208,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               <div 
                 className="flex items-center justify-center py-3 mt-2 border-t border-dashed cursor-pointer hover:bg-muted/30 rounded-lg transition-colors"
                 onClick={() => {
+                  setEditingCurrentWeekCheckpointId(null);
                   setCurrentWeekCheckpointData({
                     category: currentWeekCheckpointPopup.category,
                     checklistType: currentWeekCheckpointPopup.type,
@@ -6209,12 +6252,18 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         </DialogContent>
       </Dialog>
 
-      {/* Next Week Target Checkpoint Dialog */}
-      <Dialog open={showNextWeekCheckpointDialog} onOpenChange={handleNextWeekCheckpointDialogClose}>
+      {/* Next Week Target Checkpoint Dialog - Handles both Add and Edit */}
+      <Dialog open={showNextWeekCheckpointDialog} onOpenChange={(open) => {
+        if (!open) {
+          setShowNextWeekCheckpointDialog(false);
+          setNextWeekCheckpointData(null);
+          setEditingNextWeekCheckpointId(null);
+        }
+      }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="text-base font-semibold">
-              Add Next Week Checkpoint
+              {editingNextWeekCheckpointId ? 'Edit' : 'Add'} Next Week Checkpoint
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -6238,20 +6287,37 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   e.target.setSelectionRange(length, length);
                 }}
                 onKeyDown={(e) => {
+                  // Plain Enter to save and close dialog
                   if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
                     e.preventDefault();
                     if (nextWeekCheckpointData?.text.trim()) {
                       const textToSave = nextWeekCheckpointData.text.trim();
-                      handleNextWeekCheckpointAdd(
-                        nextWeekCheckpointData.category, 
-                        nextWeekCheckpointData.checklistType, 
-                        textToSave
-                      );
+                      
+                      if (editingNextWeekCheckpointId) {
+                        // Edit mode: Update existing checkpoint
+                        handleNextWeekCheckpointUpdateText(
+                          nextWeekCheckpointData.category,
+                          nextWeekCheckpointData.checklistType,
+                          editingNextWeekCheckpointId,
+                          textToSave
+                        );
+                      } else {
+                        // Add mode: Create new checkpoint
+                        handleNextWeekCheckpointAdd(
+                          nextWeekCheckpointData.category, 
+                          nextWeekCheckpointData.checklistType, 
+                          textToSave
+                        );
+                      }
+                      
+                      // Clear and close
                       setNextWeekCheckpointData(null);
+                      setEditingNextWeekCheckpointId(null);
                       setShowNextWeekCheckpointDialog(false);
                     }
                   }
-                  else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                  // Ctrl+Enter or Cmd+Enter to add and keep dialog open (only for Add mode)
+                  else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && !editingNextWeekCheckpointId) {
                     e.preventDefault();
                     if (nextWeekCheckpointData?.text.trim()) {
                       const textToSave = nextWeekCheckpointData.text.trim();
@@ -6264,7 +6330,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     }
                   }
                 }}
-                placeholder="Enter your checkpoint... (Ctrl+Enter to add more)"
+                placeholder={editingNextWeekCheckpointId ? "Edit your checkpoint..." : "Enter your checkpoint... (Ctrl+Enter to add more)"}
                 className="min-h-[100px] text-sm bg-white dark:bg-gray-950 border-muted"
                 autoFocus
                 data-testid="textarea-next-week-checkpoint"
@@ -6276,18 +6342,42 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 onClick={() => {
                   setShowNextWeekCheckpointDialog(false);
                   setNextWeekCheckpointData(null);
+                  setEditingNextWeekCheckpointId(null);
                 }}
                 data-testid="button-cancel-next-week-checkpoint"
               >
                 Cancel
               </Button>
               <Button
-                onClick={handleSaveNextWeekCheckpoint}
+                onClick={() => {
+                  if (nextWeekCheckpointData?.text.trim()) {
+                    const textToSave = nextWeekCheckpointData.text.trim();
+                    
+                    if (editingNextWeekCheckpointId) {
+                      handleNextWeekCheckpointUpdateText(
+                        nextWeekCheckpointData.category,
+                        nextWeekCheckpointData.checklistType,
+                        editingNextWeekCheckpointId,
+                        textToSave
+                      );
+                    } else {
+                      handleNextWeekCheckpointAdd(
+                        nextWeekCheckpointData.category, 
+                        nextWeekCheckpointData.checklistType, 
+                        textToSave
+                      );
+                    }
+                    
+                    setNextWeekCheckpointData(null);
+                    setEditingNextWeekCheckpointId(null);
+                    setShowNextWeekCheckpointDialog(false);
+                  }
+                }}
                 disabled={!nextWeekCheckpointData?.text.trim()}
                 className="bg-gradient-to-r from-primary to-accent text-white hover:opacity-90"
                 data-testid="button-save-next-week-checkpoint"
               >
-                Add {
+                {editingNextWeekCheckpointId ? 'Save' : 'Add'} {
                   nextWeekCheckpointData?.checklistType === 'result' ? 'Result' :
                   nextWeekCheckpointData?.checklistType === 'feelings' ? 'Feeling' :
                   nextWeekCheckpointData?.checklistType === 'beliefs' ? 'Belief' :
@@ -6319,6 +6409,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             <div className="pt-4 pb-2 border-b">
               <Button
                 onClick={() => {
+                  setEditingNextWeekCheckpointId(null);
                   setNextWeekCheckpointData({
                     category: nextWeekCheckpointPopup.category,
                     checklistType: nextWeekCheckpointPopup.type,
@@ -6400,6 +6491,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               <div 
                 className="flex items-center justify-center py-3 mt-2 border-t border-dashed cursor-pointer hover:bg-muted/30 rounded-lg transition-colors"
                 onClick={() => {
+                  setEditingNextWeekCheckpointId(null);
                   setNextWeekCheckpointData({
                     category: nextWeekCheckpointPopup.category,
                     checklistType: nextWeekCheckpointPopup.type,
