@@ -84,6 +84,16 @@ const NEGATIVE_EMOTIONS = [
   'Disgust', 'Hopelessness', 'Despair', 'Worthlessness'
 ];
 
+const MISSING_EMOTIONS = [
+  'Love', 'Affection', 'Care', 'Intimacy', 'Appreciation', 'Belonging', 'Trust', 'Support',
+  'Acceptance', 'Understanding', 'Joy', 'Happiness', 'Playfulness', 'Cheerfulness', 'Fun',
+  'Excitement', 'Delight', 'Laughter', 'Spark', 'Enjoyment', 'Peace', 'Calm', 'Balance',
+  'Groundedness', 'Clarity', 'Serenity', 'Safety', 'Security', 'Confidence', 'Motivation',
+  'Focus', 'Willpower', 'Determination', 'Drive', 'Persistence', 'Passion', 'Inspiration',
+  'Hope', 'Courage', 'Curiosity', 'Creativity', 'Openness', 'Flexibility', 'Expansion',
+  'Renewal', 'Healing', 'Progress', 'Purpose', 'Vision'
+];
+
 export default function EmotionalTracker() {
   const today = getLocalDateString(new Date());
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -100,10 +110,11 @@ export default function EmotionalTracker() {
   // Custom emotions for inline dropdown
   const [customEmotions, setCustomEmotions] = useState<string[]>([]);
   const [customNegativeEmotions, setCustomNegativeEmotions] = useState<string[]>([]);
+  const [customMissingEmotions, setCustomMissingEmotions] = useState<string[]>([]);
   const [customEmotionDialogOpen, setCustomEmotionDialogOpen] = useState(false);
   const [customEmotionValue, setCustomEmotionValue] = useState<string>('');
   const [pendingTimeSlot, setPendingTimeSlot] = useState<string>('');
-  const [emotionType, setEmotionType] = useState<'positive' | 'negative'>('positive');
+  const [emotionType, setEmotionType] = useState<'positive' | 'negative' | 'missing'>('positive');
 
   // Update currentDateStr when selectedDate changes (using LOCAL time, not UTC)
   useEffect(() => {
@@ -313,6 +324,47 @@ export default function EmotionalTracker() {
     });
   };
 
+  // Handle inline missing emotion selection (auto-save)
+  const handleMissingEmotionChange = (timeSlot: string, emotion: string) => {
+    if (emotion === 'ADD_CUSTOM') {
+      setPendingTimeSlot(timeSlot);
+      setEmotionType('missing');
+      setCustomEmotionDialogOpen(true);
+      return;
+    }
+
+    const data = trackerData[timeSlot] || {
+      timeSlot,
+      date: currentDateStr,
+      userId: '',
+      positiveEmotions: '',
+      negativeEmotions: '',
+      repeatingEmotions: '',
+      missingEmotions: '',
+    };
+
+    // Update local state
+    const updatedData = {
+      ...data,
+      missingEmotions: emotion,
+    };
+
+    setTrackerData((prev) => ({
+      ...prev,
+      [timeSlot]: updatedData as EmotionalTrackerData,
+    }));
+
+    // Save to server
+    saveMutation.mutate({
+      date: currentDateStr,
+      timeSlot,
+      positiveEmotions: data?.positiveEmotions || '',
+      negativeEmotions: data?.negativeEmotions || '',
+      repeatingEmotions: data?.repeatingEmotions || '',
+      missingEmotions: emotion,
+    });
+  };
+
   // Handle custom emotion submission
   const handleCustomEmotionSubmit = () => {
     if (customEmotionValue.trim()) {
@@ -334,6 +386,15 @@ export default function EmotionalTracker() {
           // Save this emotion to the dropdown and tracker
           if (pendingTimeSlot) {
             handleNegativeEmotionChange(pendingTimeSlot, newEmotionValue);
+          }
+        }
+      } else if (emotionType === 'missing') {
+        if (!customMissingEmotions.includes(newEmotionValue)) {
+          setCustomMissingEmotions((prev) => [...prev, newEmotionValue]);
+          
+          // Save this emotion to the dropdown and tracker
+          if (pendingTimeSlot) {
+            handleMissingEmotionChange(pendingTimeSlot, newEmotionValue);
           }
         }
       }
