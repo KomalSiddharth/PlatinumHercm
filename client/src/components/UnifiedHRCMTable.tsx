@@ -6294,6 +6294,27 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       {/* Next Week Target Checkpoint Dialog - Handles both Add and Edit */}
       <Dialog open={showNextWeekCheckpointDialog} onOpenChange={(open) => {
         if (!open) {
+          // 🔥 AUTO-SAVE: Save text when clicking outside popup (unless already saved via Enter key)
+          if (nextWeekCheckpointData?.text.trim()) {
+            const textToSave = nextWeekCheckpointData.text.trim();
+            
+            if (editingNextWeekCheckpointId) {
+              // Edit mode: Update existing checkpoint
+              handleNextWeekCheckpointUpdateText(
+                nextWeekCheckpointData.category,
+                nextWeekCheckpointData.checklistType,
+                editingNextWeekCheckpointId,
+                textToSave
+              );
+            } else {
+              // Add mode: Create new checkpoint
+              handleNextWeekCheckpointAdd(
+                nextWeekCheckpointData.category, 
+                nextWeekCheckpointData.checklistType, 
+                textToSave
+              );
+            }
+          }
           setShowNextWeekCheckpointDialog(false);
           setNextWeekCheckpointData(null);
           setEditingNextWeekCheckpointId(null);
@@ -6379,9 +6400,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               <Button
                 variant="outline"
                 onClick={() => {
-                  setShowNextWeekCheckpointDialog(false);
+                  // Clear data FIRST to prevent auto-save on close
                   setNextWeekCheckpointData(null);
                   setEditingNextWeekCheckpointId(null);
+                  setShowNextWeekCheckpointDialog(false);
                 }}
                 data-testid="button-cancel-next-week-checkpoint"
               >
