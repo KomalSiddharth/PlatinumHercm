@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -496,15 +497,8 @@ export default function EmotionalTracker() {
     }));
   };
 
-  // Handle inline repeating emotion selection
-  const handleRepeatingEmotionChange = (timeSlot: string, emotion: string) => {
-    if (emotion === 'ADD_CUSTOM') {
-      setPendingTimeSlot(timeSlot);
-      setEmotionType('repeating');
-      setCustomEmotionDialogOpen(true);
-      return;
-    }
-
+  // Handle inline repeating emotion text change (local state only)
+  const handleRepeatingEmotionLocalChange = (timeSlot: string, emotion: string) => {
     const data = trackerData[timeSlot] || {
       timeSlot,
       date: currentDateStr,
@@ -515,7 +509,7 @@ export default function EmotionalTracker() {
       missingEmotions: '',
     };
 
-    // Update local state
+    // Update local state only (save on blur)
     const updatedData = {
       ...data,
       repeatingEmotions: emotion,
@@ -525,14 +519,20 @@ export default function EmotionalTracker() {
       ...prev,
       [timeSlot]: updatedData as EmotionalTrackerData,
     }));
+  };
 
-    // Save to server
+  // Handle repeating emotion blur (save to server)
+  const handleRepeatingEmotionBlur = (timeSlot: string) => {
+    const data = trackerData[timeSlot];
+    if (!data) return;
+
+    // Save to server on blur
     saveMutation.mutate({
       date: currentDateStr,
       timeSlot,
       positiveEmotions: data?.positiveEmotions || '',
       negativeEmotions: data?.negativeEmotions || '',
-      repeatingEmotions: emotion,
+      repeatingEmotions: data?.repeatingEmotions || '',
       missingEmotions: data?.missingEmotions || '',
     });
   };
@@ -567,7 +567,8 @@ export default function EmotionalTracker() {
         if (!customRepeatingEmotions.includes(newEmotionValue)) {
           setCustomRepeatingEmotions((prev) => [...prev, newEmotionValue]);
           if (pendingTimeSlot) {
-            handleRepeatingEmotionChange(pendingTimeSlot, newEmotionValue);
+            handleRepeatingEmotionLocalChange(pendingTimeSlot, newEmotionValue);
+            handleRepeatingEmotionBlur(pendingTimeSlot);
           }
         }
       }
@@ -778,33 +779,22 @@ export default function EmotionalTracker() {
                         </Select>
                       </td>
 
-                      {/* Repeating Emotions - Inline Dropdown */}
+                      {/* Repeating Emotions - Text Input */}
                       <td className="p-1 sm:p-1.5 md:p-2 align-top">
-                        <Select value={data.repeatingEmotions} onValueChange={(value) => handleRepeatingEmotionChange(timeSlot, value)}>
-                          <SelectTrigger 
-                            className={`h-[36px] w-full text-sm border transition-colors ${
-                              getRepeatingEmotionType(data.repeatingEmotions) === 'positive'
-                                ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 hover:border-green-400 dark:hover:border-green-500'
-                                : getRepeatingEmotionType(data.repeatingEmotions) === 'negative'
-                                ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 hover:border-red-400 dark:hover:border-red-500'
-                                : `${FIELD_COLORS.repeatingEmotions.bg} ${FIELD_COLORS.repeatingEmotions.border} hover:border-blue-400 dark:hover:border-blue-500`
-                            }`}
-                            data-testid={`input-repeating-${index}`}
-                          >
-                            <SelectValue placeholder="Select emotion..." />
-                          </SelectTrigger>
-                          <SelectContent className="max-h-[300px]">
-                            <SelectItem value="ADD_CUSTOM" data-testid={`button-add-custom-repeating-emotion-${index}`}>
-                              <span className="text-primary font-semibold">+ Add Custom Emotion</span>
-                            </SelectItem>
-                            <div className="border-t border-gray-200 dark:border-gray-700 my-1" />
-                            {[...REPEATING_EMOTIONS, ...customRepeatingEmotions].map((emotion) => (
-                              <SelectItem key={emotion} value={emotion}>
-                                {emotion}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <Input
+                          value={data.repeatingEmotions || ''}
+                          onChange={(e) => handleRepeatingEmotionLocalChange(timeSlot, e.target.value)}
+                          onBlur={() => handleRepeatingEmotionBlur(timeSlot)}
+                          placeholder="Type emotion..."
+                          className={`h-[36px] w-full text-sm border transition-colors ${
+                            getRepeatingEmotionType(data.repeatingEmotions) === 'positive'
+                              ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 focus:border-green-400 dark:focus:border-green-500'
+                              : getRepeatingEmotionType(data.repeatingEmotions) === 'negative'
+                              ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 focus:border-red-400 dark:focus:border-red-500'
+                              : `${FIELD_COLORS.repeatingEmotions.bg} ${FIELD_COLORS.repeatingEmotions.border} focus:border-blue-400 dark:focus:border-blue-500`
+                          }`}
+                          data-testid={`input-repeating-${index}`}
+                        />
                       </td>
 
                       {/* Missing Emotions - Inline Dropdown */}
