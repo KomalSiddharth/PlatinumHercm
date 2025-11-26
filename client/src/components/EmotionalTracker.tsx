@@ -85,6 +85,12 @@ export default function EmotionalTracker() {
   const [dialogValue, setDialogValue] = useState<string>('');
   const [isCustomEmotionInput, setIsCustomEmotionInput] = useState(false);
   const [customEmotionInput, setCustomEmotionInput] = useState<string>('');
+  
+  // Custom emotions for inline dropdown
+  const [customEmotions, setCustomEmotions] = useState<string[]>([]);
+  const [customEmotionDialogOpen, setCustomEmotionDialogOpen] = useState(false);
+  const [customEmotionValue, setCustomEmotionValue] = useState<string>('');
+  const [pendingTimeSlot, setPendingTimeSlot] = useState<string>('');
 
   // Update currentDateStr when selectedDate changes (using LOCAL time, not UTC)
   useEffect(() => {
@@ -214,6 +220,12 @@ export default function EmotionalTracker() {
 
   // Handle inline positive emotion selection (auto-save)
   const handlePositiveEmotionChange = (timeSlot: string, emotion: string) => {
+    if (emotion === 'ADD_CUSTOM') {
+      setPendingTimeSlot(timeSlot);
+      setCustomEmotionDialogOpen(true);
+      return;
+    }
+
     const data = trackerData[timeSlot] || {
       timeSlot,
       date: currentDateStr,
@@ -244,6 +256,24 @@ export default function EmotionalTracker() {
       repeatingEmotions: data?.repeatingEmotions || '',
       missingEmotions: data?.missingEmotions || '',
     });
+  };
+
+  // Handle custom emotion submission
+  const handleCustomEmotionSubmit = () => {
+    if (customEmotionValue.trim() && !customEmotions.includes(customEmotionValue.trim())) {
+      const newEmotionValue = customEmotionValue.trim();
+      setCustomEmotions((prev) => [...prev, newEmotionValue]);
+      
+      // Save this emotion to the dropdown and tracker
+      if (pendingTimeSlot) {
+        handlePositiveEmotionChange(pendingTimeSlot, newEmotionValue);
+      }
+      
+      // Reset dialog
+      setCustomEmotionValue('');
+      setCustomEmotionDialogOpen(false);
+      setPendingTimeSlot('');
+    }
   };
 
   if (isLoading) {
@@ -398,11 +428,20 @@ export default function EmotionalTracker() {
                             <SelectValue placeholder="Select emotion..." />
                           </SelectTrigger>
                           <SelectContent className="max-h-[300px]">
-                            {POSITIVE_EMOTIONS.map((emotion) => (
+                            {[...POSITIVE_EMOTIONS, ...customEmotions].map((emotion) => (
                               <SelectItem key={emotion} value={emotion}>
                                 {emotion}
                               </SelectItem>
                             ))}
+                            <div className="border-t border-gray-200 dark:border-gray-700 my-1 pt-1">
+                              <button
+                                onClick={() => handlePositiveEmotionChange(timeSlot, 'ADD_CUSTOM')}
+                                className="w-full px-2 py-2 text-left text-sm text-primary hover:bg-primary/10 dark:hover:bg-primary/20 rounded"
+                                data-testid={`button-add-custom-emotion-${index}`}
+                              >
+                                + Add Custom Emotion
+                              </button>
+                            </div>
                           </SelectContent>
                         </Select>
                       </td>
