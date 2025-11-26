@@ -94,6 +94,84 @@ const MISSING_EMOTIONS = [
   'Renewal', 'Healing', 'Progress', 'Purpose', 'Vision'
 ];
 
+const REPEATING_EMOTIONS = [
+  'Overthinking', 'Worry', 'Stress', 'Irritation', 'Doubt', 'Fear', 'Anxiety', 'Frustration',
+  'Emotional Fatigue', 'Withdrawal', 'Calm Moments', 'Motivational Spikes', 'Relief', 'Small Joy',
+  'Focus', 'Gratitude', 'Hope', 'Confidence Bursts', 'Encouragement', 'Emotional Clarity',
+  'Confusion', 'Uncertainty', 'Emotional Highs and Lows', 'Feeling Okay Then Overwhelmed',
+  'Drained But Functioning', 'Wanting Connection But Pulling Away', 'Silent Emotional Cycles',
+  'Mind–Body Disconnection', 'Detached But Longing', 'Busy But Unfulfilled'
+];
+
+// Function to recommend repeating emotion based on positive, negative, and missing emotions
+const recommendRepeatingEmotion = (positive: string, negative: string, missing: string): string => {
+  const emotionCombination = `${positive}|${negative}|${missing}`.toLowerCase();
+  
+  // Mapping emotion combinations to recommended repeating emotions
+  if (negative.toLowerCase().includes('overthink') || negative.toLowerCase().includes('worry') || negative.toLowerCase().includes('anxiety')) {
+    return 'Overthinking';
+  }
+  if (negative.toLowerCase().includes('stress') || negative.toLowerCase().includes('overwhelm') || negative.toLowerCase().includes('pressure')) {
+    return 'Stress';
+  }
+  if (negative.toLowerCase().includes('irritat') || negative.toLowerCase().includes('frustrat') || negative.toLowerCase().includes('angry')) {
+    return 'Irritation';
+  }
+  if (negative.toLowerCase().includes('doubt') || negative.toLowerCase().includes('uncertain') || negative.toLowerCase().includes('confused')) {
+    return 'Doubt';
+  }
+  if (negative.toLowerCase().includes('fear') || negative.toLowerCase().includes('afraid') || negative.toLowerCase().includes('panic')) {
+    return 'Fear';
+  }
+  if (negative.toLowerCase().includes('withdraw') || negative.toLowerCase().includes('detach') || negative.toLowerCase().includes('numb')) {
+    return 'Withdrawal';
+  }
+  if (negative.toLowerCase().includes('drained') || negative.toLowerCase().includes('fatigue') || negative.toLowerCase().includes('low')) {
+    return 'Emotional Fatigue';
+  }
+  if (positive.toLowerCase().includes('calm') || positive.toLowerCase().includes('peace') || positive.toLowerCase().includes('serenity')) {
+    return 'Calm Moments';
+  }
+  if (positive.toLowerCase().includes('motivation') || positive.toLowerCase().includes('confidence') || positive.toLowerCase().includes('courage')) {
+    return 'Motivational Spikes';
+  }
+  if (positive.toLowerCase().includes('relief') || positive.toLowerCase().includes('peace')) {
+    return 'Relief';
+  }
+  if (positive.toLowerCase().includes('joy') || positive.toLowerCase().includes('delight') || positive.toLowerCase().includes('happiness')) {
+    return 'Small Joy';
+  }
+  if (positive.toLowerCase().includes('focus') || positive.toLowerCase().includes('clarity') || positive.toLowerCase().includes('determination')) {
+    return 'Focus';
+  }
+  if (positive.toLowerCase().includes('gratitude') || positive.toLowerCase().includes('appreciation')) {
+    return 'Gratitude';
+  }
+  if (positive.toLowerCase().includes('hope')) {
+    return 'Hope';
+  }
+  if (positive.toLowerCase().includes('confidence')) {
+    return 'Confidence Bursts';
+  }
+  if (missing.toLowerCase().includes('love') || missing.toLowerCase().includes('affection') || missing.toLowerCase().includes('connection')) {
+    return 'Wanting Connection But Pulling Away';
+  }
+  if (missing.toLowerCase().includes('clarity') || missing.toLowerCase().includes('purpose') || missing.toLowerCase().includes('meaning')) {
+    return 'Emotional Clarity';
+  }
+  if (negative && positive) {
+    return 'Emotional Highs and Lows';
+  }
+  if (negative && !positive) {
+    return 'Silent Emotional Cycles';
+  }
+  if (missing && !positive) {
+    return 'Detached But Longing';
+  }
+  
+  return '';
+};
+
 export default function EmotionalTracker() {
   const today = getLocalDateString(new Date());
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -111,10 +189,11 @@ export default function EmotionalTracker() {
   const [customEmotions, setCustomEmotions] = useState<string[]>([]);
   const [customNegativeEmotions, setCustomNegativeEmotions] = useState<string[]>([]);
   const [customMissingEmotions, setCustomMissingEmotions] = useState<string[]>([]);
+  const [customRepeatingEmotions, setCustomRepeatingEmotions] = useState<string[]>([]);
   const [customEmotionDialogOpen, setCustomEmotionDialogOpen] = useState(false);
   const [customEmotionValue, setCustomEmotionValue] = useState<string>('');
   const [pendingTimeSlot, setPendingTimeSlot] = useState<string>('');
-  const [emotionType, setEmotionType] = useState<'positive' | 'negative' | 'missing'>('positive');
+  const [emotionType, setEmotionType] = useState<'positive' | 'negative' | 'missing' | 'repeating'>('positive');
 
   // Update currentDateStr when selectedDate changes (using LOCAL time, not UTC)
   useEffect(() => {
@@ -272,15 +351,24 @@ export default function EmotionalTracker() {
       [timeSlot]: updatedData as EmotionalTrackerData,
     }));
 
+    // Auto-fill repeating emotion
+    const recommendedRepeating = recommendRepeatingEmotion(emotion, data?.negativeEmotions || '', data?.missingEmotions || '');
+    
     // Save to server
     saveMutation.mutate({
       date: currentDateStr,
       timeSlot,
       positiveEmotions: emotion,
       negativeEmotions: data?.negativeEmotions || '',
-      repeatingEmotions: data?.repeatingEmotions || '',
+      repeatingEmotions: recommendedRepeating || (data?.repeatingEmotions || ''),
       missingEmotions: data?.missingEmotions || '',
     });
+    
+    // Update local state with auto-filled repeating emotion
+    setTrackerData((prev) => ({
+      ...prev,
+      [timeSlot]: { ...updatedData, repeatingEmotions: recommendedRepeating || (data?.repeatingEmotions || '') } as EmotionalTrackerData,
+    }));
   };
 
   // Handle inline negative emotion selection (auto-save)
@@ -313,15 +401,24 @@ export default function EmotionalTracker() {
       [timeSlot]: updatedData as EmotionalTrackerData,
     }));
 
+    // Auto-fill repeating emotion
+    const recommendedRepeating = recommendRepeatingEmotion(data?.positiveEmotions || '', emotion, data?.missingEmotions || '');
+
     // Save to server
     saveMutation.mutate({
       date: currentDateStr,
       timeSlot,
       positiveEmotions: data?.positiveEmotions || '',
       negativeEmotions: emotion,
-      repeatingEmotions: data?.repeatingEmotions || '',
+      repeatingEmotions: recommendedRepeating || (data?.repeatingEmotions || ''),
       missingEmotions: data?.missingEmotions || '',
     });
+    
+    // Update local state with auto-filled repeating emotion
+    setTrackerData((prev) => ({
+      ...prev,
+      [timeSlot]: { ...updatedData, repeatingEmotions: recommendedRepeating || (data?.repeatingEmotions || '') } as EmotionalTrackerData,
+    }));
   };
 
   // Handle inline missing emotion selection (auto-save)
@@ -354,14 +451,64 @@ export default function EmotionalTracker() {
       [timeSlot]: updatedData as EmotionalTrackerData,
     }));
 
+    // Auto-fill repeating emotion
+    const recommendedRepeating = recommendRepeatingEmotion(data?.positiveEmotions || '', data?.negativeEmotions || '', emotion);
+
     // Save to server
     saveMutation.mutate({
       date: currentDateStr,
       timeSlot,
       positiveEmotions: data?.positiveEmotions || '',
       negativeEmotions: data?.negativeEmotions || '',
-      repeatingEmotions: data?.repeatingEmotions || '',
+      repeatingEmotions: recommendedRepeating || (data?.repeatingEmotions || ''),
       missingEmotions: emotion,
+    });
+    
+    // Update local state with auto-filled repeating emotion
+    setTrackerData((prev) => ({
+      ...prev,
+      [timeSlot]: { ...updatedData, repeatingEmotions: recommendedRepeating || (data?.repeatingEmotions || '') } as EmotionalTrackerData,
+    }));
+  };
+
+  // Handle inline repeating emotion selection
+  const handleRepeatingEmotionChange = (timeSlot: string, emotion: string) => {
+    if (emotion === 'ADD_CUSTOM') {
+      setPendingTimeSlot(timeSlot);
+      setEmotionType('repeating');
+      setCustomEmotionDialogOpen(true);
+      return;
+    }
+
+    const data = trackerData[timeSlot] || {
+      timeSlot,
+      date: currentDateStr,
+      userId: '',
+      positiveEmotions: '',
+      negativeEmotions: '',
+      repeatingEmotions: '',
+      missingEmotions: '',
+    };
+
+    // Update local state
+    const updatedData = {
+      ...data,
+      repeatingEmotions: emotion,
+    };
+
+    setTrackerData((prev) => ({
+      ...prev,
+      [timeSlot]: updatedData as EmotionalTrackerData,
+    }));
+
+    // Save to server
+    saveMutation.mutate({
+      date: currentDateStr,
+      timeSlot,
+      positiveEmotions: data?.positiveEmotions || '',
+      negativeEmotions: data?.negativeEmotions || '',
+      repeatingEmotions: emotion,
+      missingEmotions: data?.missingEmotions || '',
     });
   };
 
@@ -373,8 +520,6 @@ export default function EmotionalTracker() {
       if (emotionType === 'positive') {
         if (!customEmotions.includes(newEmotionValue)) {
           setCustomEmotions((prev) => [...prev, newEmotionValue]);
-          
-          // Save this emotion to the dropdown and tracker
           if (pendingTimeSlot) {
             handlePositiveEmotionChange(pendingTimeSlot, newEmotionValue);
           }
@@ -382,8 +527,6 @@ export default function EmotionalTracker() {
       } else if (emotionType === 'negative') {
         if (!customNegativeEmotions.includes(newEmotionValue)) {
           setCustomNegativeEmotions((prev) => [...prev, newEmotionValue]);
-          
-          // Save this emotion to the dropdown and tracker
           if (pendingTimeSlot) {
             handleNegativeEmotionChange(pendingTimeSlot, newEmotionValue);
           }
@@ -391,15 +534,19 @@ export default function EmotionalTracker() {
       } else if (emotionType === 'missing') {
         if (!customMissingEmotions.includes(newEmotionValue)) {
           setCustomMissingEmotions((prev) => [...prev, newEmotionValue]);
-          
-          // Save this emotion to the dropdown and tracker
           if (pendingTimeSlot) {
             handleMissingEmotionChange(pendingTimeSlot, newEmotionValue);
           }
         }
+      } else if (emotionType === 'repeating') {
+        if (!customRepeatingEmotions.includes(newEmotionValue)) {
+          setCustomRepeatingEmotions((prev) => [...prev, newEmotionValue]);
+          if (pendingTimeSlot) {
+            handleRepeatingEmotionChange(pendingTimeSlot, newEmotionValue);
+          }
+        }
       }
       
-      // Reset dialog
       setCustomEmotionValue('');
       setCustomEmotionDialogOpen(false);
       setPendingTimeSlot('');
