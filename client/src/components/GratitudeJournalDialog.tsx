@@ -193,21 +193,6 @@ export function GratitudeJournalDialog({ open, onOpenChange }: GratitudeJournalD
     }
   };
 
-  const goToToday = () => {
-    if (!isToday(currentDate)) {
-      setIsFlipping(true);
-      setFlipDirection('left');
-
-      setTimeout(() => {
-        setCurrentDate(new Date());
-        setTimeout(() => {
-          setIsFlipping(false);
-          setFlipDirection(null);
-        }, 300);
-      }, 300);
-    }
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
@@ -275,17 +260,6 @@ export function GratitudeJournalDialog({ open, onOpenChange }: GratitudeJournalD
                     </PopoverContent>
                   </Popover>
 
-                  {!isToday(currentDate) && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={goToToday}
-                      className="text-xs hover:bg-white/10 text-pink-200"
-                      data-testid="button-goto-today"
-                    >
-                      Today
-                    </Button>
-                  )}
                 </div>
               </div>
 
