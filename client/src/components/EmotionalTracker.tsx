@@ -235,6 +235,7 @@ export default function EmotionalTracker() {
   const handlePositiveEmotionChange = (timeSlot: string, emotion: string) => {
     if (emotion === 'ADD_CUSTOM') {
       setPendingTimeSlot(timeSlot);
+      setEmotionType('positive');
       setCustomEmotionDialogOpen(true);
       return;
     }
@@ -271,21 +272,77 @@ export default function EmotionalTracker() {
     });
   };
 
+  // Handle inline negative emotion selection (auto-save)
+  const handleNegativeEmotionChange = (timeSlot: string, emotion: string) => {
+    if (emotion === 'ADD_CUSTOM') {
+      setPendingTimeSlot(timeSlot);
+      setEmotionType('negative');
+      setCustomEmotionDialogOpen(true);
+      return;
+    }
+
+    const data = trackerData[timeSlot] || {
+      timeSlot,
+      date: currentDateStr,
+      userId: '',
+      positiveEmotions: '',
+      negativeEmotions: '',
+      repeatingEmotions: '',
+      missingEmotions: '',
+    };
+
+    // Update local state
+    const updatedData = {
+      ...data,
+      negativeEmotions: emotion,
+    };
+
+    setTrackerData((prev) => ({
+      ...prev,
+      [timeSlot]: updatedData as EmotionalTrackerData,
+    }));
+
+    // Save to server
+    saveMutation.mutate({
+      date: currentDateStr,
+      timeSlot,
+      positiveEmotions: data?.positiveEmotions || '',
+      negativeEmotions: emotion,
+      repeatingEmotions: data?.repeatingEmotions || '',
+      missingEmotions: data?.missingEmotions || '',
+    });
+  };
+
   // Handle custom emotion submission
   const handleCustomEmotionSubmit = () => {
-    if (customEmotionValue.trim() && !customEmotions.includes(customEmotionValue.trim())) {
+    if (customEmotionValue.trim()) {
       const newEmotionValue = customEmotionValue.trim();
-      setCustomEmotions((prev) => [...prev, newEmotionValue]);
       
-      // Save this emotion to the dropdown and tracker
-      if (pendingTimeSlot) {
-        handlePositiveEmotionChange(pendingTimeSlot, newEmotionValue);
+      if (emotionType === 'positive') {
+        if (!customEmotions.includes(newEmotionValue)) {
+          setCustomEmotions((prev) => [...prev, newEmotionValue]);
+          
+          // Save this emotion to the dropdown and tracker
+          if (pendingTimeSlot) {
+            handlePositiveEmotionChange(pendingTimeSlot, newEmotionValue);
+          }
+        }
+      } else if (emotionType === 'negative') {
+        if (!customNegativeEmotions.includes(newEmotionValue)) {
+          setCustomNegativeEmotions((prev) => [...prev, newEmotionValue]);
+          
+          // Save this emotion to the dropdown and tracker
+          if (pendingTimeSlot) {
+            handleNegativeEmotionChange(pendingTimeSlot, newEmotionValue);
+          }
+        }
       }
       
       // Reset dialog
       setCustomEmotionValue('');
       setCustomEmotionDialogOpen(false);
       setPendingTimeSlot('');
+      setEmotionType('positive');
     }
   };
 
@@ -454,19 +511,27 @@ export default function EmotionalTracker() {
                         </Select>
                       </td>
 
-                      {/* Negative Emotions */}
+                      {/* Negative Emotions - Inline Dropdown */}
                       <td className="p-1 sm:p-1.5 md:p-2 align-top">
-                        <div
-                          onClick={() => openEditDialog(timeSlot, 'negativeEmotions')}
-                          className={`cursor-pointer h-[36px] w-full overflow-hidden rounded px-3 py-2 text-sm ${FIELD_COLORS.negativeEmotions.bg} ${FIELD_COLORS.negativeEmotions.border} border hover:border-red-400 dark:hover:border-red-500 transition-colors flex items-center`}
-                          data-testid={`input-negative-${index}`}
-                        >
-                          {data.negativeEmotions ? (
-                            <span className="text-gray-700 dark:text-gray-200 truncate block">{data.negativeEmotions}</span>
-                          ) : (
-                            <span className="text-gray-400 dark:text-gray-500 italic truncate block">Click to add...</span>
-                          )}
-                        </div>
+                        <Select value={data.negativeEmotions} onValueChange={(value) => handleNegativeEmotionChange(timeSlot, value)}>
+                          <SelectTrigger 
+                            className={`h-[36px] w-full text-sm ${FIELD_COLORS.negativeEmotions.bg} ${FIELD_COLORS.negativeEmotions.border} border hover:border-red-400 dark:hover:border-red-500 transition-colors`}
+                            data-testid={`input-negative-${index}`}
+                          >
+                            <SelectValue placeholder="Select emotion..." />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-[300px]">
+                            <SelectItem value="ADD_CUSTOM" data-testid={`button-add-custom-negative-emotion-${index}`}>
+                              <span className="text-primary font-semibold">+ Add Custom Emotion</span>
+                            </SelectItem>
+                            <div className="border-t border-gray-200 dark:border-gray-700 my-1" />
+                            {[...NEGATIVE_EMOTIONS, ...customNegativeEmotions].map((emotion) => (
+                              <SelectItem key={emotion} value={emotion}>
+                                {emotion}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </td>
 
                       {/* Repeating Emotions */}
