@@ -212,6 +212,40 @@ export default function EmotionalTracker() {
     }
   };
 
+  // Handle inline positive emotion selection (auto-save)
+  const handlePositiveEmotionChange = (timeSlot: string, emotion: string) => {
+    const data = trackerData[timeSlot] || {
+      timeSlot,
+      date: currentDateStr,
+      userId: '',
+      positiveEmotions: '',
+      negativeEmotions: '',
+      repeatingEmotions: '',
+      missingEmotions: '',
+    };
+
+    // Update local state
+    const updatedData = {
+      ...data,
+      positiveEmotions: emotion,
+    };
+
+    setTrackerData((prev) => ({
+      ...prev,
+      [timeSlot]: updatedData as EmotionalTrackerData,
+    }));
+
+    // Save to server
+    saveMutation.mutate({
+      date: currentDateStr,
+      timeSlot,
+      positiveEmotions: emotion,
+      negativeEmotions: data?.negativeEmotions || '',
+      repeatingEmotions: data?.repeatingEmotions || '',
+      missingEmotions: data?.missingEmotions || '',
+    });
+  };
+
   if (isLoading) {
     return (
       <Card className="border-2 border-primary/30 dark:border-primary/50">
@@ -354,19 +388,23 @@ export default function EmotionalTracker() {
                         {timeSlot}
                       </td>
                       
-                      {/* Positive Emotions */}
+                      {/* Positive Emotions - Inline Dropdown */}
                       <td className="p-1 sm:p-1.5 md:p-2 align-top">
-                        <div
-                          onClick={() => openEditDialog(timeSlot, 'positiveEmotions')}
-                          className={`cursor-pointer h-[36px] w-full overflow-hidden rounded px-3 py-2 text-sm ${FIELD_COLORS.positiveEmotions.bg} ${FIELD_COLORS.positiveEmotions.border} border hover:border-green-400 dark:hover:border-green-500 transition-colors flex items-center`}
-                          data-testid={`input-positive-${index}`}
-                        >
-                          {data.positiveEmotions ? (
-                            <span className="text-gray-700 dark:text-gray-200 truncate block">{data.positiveEmotions}</span>
-                          ) : (
-                            <span className="text-gray-400 dark:text-gray-500 italic truncate block">Click to add...</span>
-                          )}
-                        </div>
+                        <Select value={data.positiveEmotions} onValueChange={(value) => handlePositiveEmotionChange(timeSlot, value)}>
+                          <SelectTrigger 
+                            className={`h-[36px] w-full text-sm ${FIELD_COLORS.positiveEmotions.bg} ${FIELD_COLORS.positiveEmotions.border} border hover:border-green-400 dark:hover:border-green-500 transition-colors`}
+                            data-testid={`input-positive-${index}`}
+                          >
+                            <SelectValue placeholder="Select emotion..." />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-[300px]">
+                            {POSITIVE_EMOTIONS.map((emotion) => (
+                              <SelectItem key={emotion} value={emotion}>
+                                {emotion}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </td>
 
                       {/* Negative Emotions */}
