@@ -5957,6 +5957,33 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       {/* Current Week Checkpoint Dialog - Handles both Add and Edit */}
       <Dialog open={showCurrentWeekCheckpointDialog} onOpenChange={(open) => {
         if (!open) {
+          // Auto-save on click-outside if there's text (Add mode only)
+          if (!editingCurrentWeekCheckpointId && currentWeekCheckpointData?.text?.trim()) {
+            const textToSave = currentWeekCheckpointData.text.trim();
+            const mappedType = currentWeekCheckpointData.checklistType === 'currentFeelings' ? 'currentFeelings' :
+                              currentWeekCheckpointData.checklistType === 'currentBeliefs' ? 'currentBeliefs' :
+                              currentWeekCheckpointData.checklistType === 'currentActions' ? 'currentActions' :
+                              'problems';
+            handleCurrentWeekCheckpointAdd(
+              currentWeekCheckpointData.category,
+              mappedType,
+              textToSave
+            );
+          }
+          // Auto-save on click-outside if there's text (Edit mode)
+          else if (editingCurrentWeekCheckpointId && currentWeekCheckpointData?.text?.trim()) {
+            const textToSave = currentWeekCheckpointData.text.trim();
+            const mappedType = currentWeekCheckpointData.checklistType === 'currentFeelings' ? 'currentFeelings' :
+                              currentWeekCheckpointData.checklistType === 'currentBeliefs' ? 'currentBeliefs' :
+                              currentWeekCheckpointData.checklistType === 'currentActions' ? 'currentActions' :
+                              'problems';
+            handleCurrentWeekCheckpointUpdateText(
+              currentWeekCheckpointData.category,
+              mappedType,
+              editingCurrentWeekCheckpointId,
+              textToSave
+            );
+          }
           setShowCurrentWeekCheckpointDialog(false);
           setCurrentWeekCheckpointData(null);
           setEditingCurrentWeekCheckpointId(null);
