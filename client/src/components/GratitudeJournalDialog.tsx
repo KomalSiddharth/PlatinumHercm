@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { ChevronLeft, ChevronRight, BookOpen, Save, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, BookOpen, Loader2 } from 'lucide-react';
 import { format, addDays, subDays, isToday } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -204,23 +204,6 @@ export function GratitudeJournalDialog({ open, onOpenChange }: GratitudeJournalD
                   data-testid="input-gratitude-text"
                 />
               )}
-
-              {/* Save Button */}
-              <div className="flex justify-end">
-                <Button
-                  onClick={handleSave}
-                  disabled={saveMutation.isPending}
-                  className="bg-amber-600 hover:bg-amber-700 text-white"
-                  data-testid="button-save-gratitude"
-                >
-                  {saveMutation.isPending ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : (
-                    <Save className="h-4 w-4 mr-2" />
-                  )}
-                  Save Entry
-                </Button>
-              </div>
             </div>
 
             {/* Page Navigation */}
