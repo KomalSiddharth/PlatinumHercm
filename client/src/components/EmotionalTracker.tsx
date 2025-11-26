@@ -103,6 +103,29 @@ const REPEATING_EMOTIONS = [
   'Mind–Body Disconnection', 'Detached But Longing', 'Busy But Unfulfilled'
 ];
 
+const POSITIVE_REPEATING_EMOTIONS = [
+  'Calm Moments', 'Motivational Spikes', 'Relief', 'Small Joy', 'Focus', 'Gratitude', 'Hope',
+  'Confidence Bursts', 'Encouragement', 'Emotional Clarity'
+];
+
+const NEGATIVE_REPEATING_EMOTIONS = [
+  'Overthinking', 'Worry', 'Stress', 'Irritation', 'Doubt', 'Fear', 'Anxiety', 'Frustration',
+  'Emotional Fatigue', 'Withdrawal', 'Confusion', 'Uncertainty', 'Emotional Highs and Lows',
+  'Feeling Okay Then Overwhelmed', 'Drained But Functioning', 'Wanting Connection But Pulling Away',
+  'Silent Emotional Cycles', 'Mind–Body Disconnection', 'Detached But Longing', 'Busy But Unfulfilled'
+];
+
+// Function to get repeating emotion type (positive or negative)
+const getRepeatingEmotionType = (emotion: string): 'positive' | 'negative' | null => {
+  if (POSITIVE_REPEATING_EMOTIONS.includes(emotion)) {
+    return 'positive';
+  }
+  if (NEGATIVE_REPEATING_EMOTIONS.includes(emotion)) {
+    return 'negative';
+  }
+  return null;
+};
+
 // Function to recommend repeating emotion based on positive, negative, and missing emotions
 const recommendRepeatingEmotion = (positive: string, negative: string, missing: string): string => {
   const emotionCombination = `${positive}|${negative}|${missing}`.toLowerCase();
@@ -746,7 +769,13 @@ export default function EmotionalTracker() {
                       <td className="p-1 sm:p-1.5 md:p-2 align-top">
                         <Select value={data.repeatingEmotions} onValueChange={(value) => handleRepeatingEmotionChange(timeSlot, value)}>
                           <SelectTrigger 
-                            className={`h-[36px] w-full text-sm ${FIELD_COLORS.repeatingEmotions.bg} ${FIELD_COLORS.repeatingEmotions.border} border hover:border-blue-400 dark:hover:border-blue-500 transition-colors`}
+                            className={`h-[36px] w-full text-sm border transition-colors ${
+                              getRepeatingEmotionType(data.repeatingEmotions) === 'positive'
+                                ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 hover:border-green-400 dark:hover:border-green-500'
+                                : getRepeatingEmotionType(data.repeatingEmotions) === 'negative'
+                                ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 hover:border-red-400 dark:hover:border-red-500'
+                                : `${FIELD_COLORS.repeatingEmotions.bg} ${FIELD_COLORS.repeatingEmotions.border} hover:border-blue-400 dark:hover:border-blue-500`
+                            }`}
                             data-testid={`input-repeating-${index}`}
                           >
                             <SelectValue placeholder="Select emotion..." />
