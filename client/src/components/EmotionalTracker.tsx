@@ -97,7 +97,7 @@ const MISSING_EMOTIONS = [
 
 const REPEATING_EMOTIONS = [
   'Overthinking', 'Worry', 'Stress', 'Irritation', 'Doubt', 'Fear', 'Anxiety', 'Frustration',
-  'Emotional Fatigue', 'Withdrawal', 'Calm Moments', 'Motivational Spikes', 'Relief', 'Small Joy',
+  'Emotional Fatigue', 'Withdrawal', 'Calm Moments', 'Motivational Spikes', 'Relief', 'Joy',
   'Focus', 'Gratitude', 'Hope', 'Confidence Bursts', 'Encouragement', 'Emotional Clarity',
   'Confusion', 'Uncertainty', 'Emotional Highs and Lows', 'Feeling Okay Then Overwhelmed',
   'Drained But Functioning', 'Wanting Connection But Pulling Away', 'Silent Emotional Cycles',
@@ -105,7 +105,7 @@ const REPEATING_EMOTIONS = [
 ];
 
 const POSITIVE_REPEATING_EMOTIONS = [
-  'Calm Moments', 'Motivational Spikes', 'Relief', 'Small Joy', 'Focus', 'Gratitude', 'Hope',
+  'Calm Moments', 'Motivational Spikes', 'Relief', 'Joy', 'Focus', 'Gratitude', 'Hope',
   'Confidence Bursts', 'Encouragement', 'Emotional Clarity'
 ];
 
@@ -163,7 +163,7 @@ const recommendRepeatingEmotion = (positive: string, negative: string, missing: 
     return 'Relief';
   }
   if (positive.toLowerCase().includes('joy') || positive.toLowerCase().includes('delight') || positive.toLowerCase().includes('happiness')) {
-    return 'Small Joy';
+    return 'Joy';
   }
   if (positive.toLowerCase().includes('focus') || positive.toLowerCase().includes('clarity') || positive.toLowerCase().includes('determination')) {
     return 'Focus';
