@@ -1,7 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { format, subDays, startOfWeek, startOfMonth, startOfYear } from 'date-fns';
+import { format } from 'date-fns';
 import { RefreshCcw } from 'lucide-react';
 
 interface EmotionalStats {
@@ -13,13 +13,39 @@ interface EmotionalStats {
 }
 
 export function EmotionalPreviewDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
-  const { data: stats, isLoading } = useQuery({
-    queryKey: ['/api/emotional-stats'],
-    enabled: open,
-    staleTime: 30000,
-  });
+  const [stats, setStats] = useState<EmotionalStats | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  if (isLoading || !stats) {
+  useEffect(() => {
+    if (!open) return;
+
+    const fetchStats = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const res = await fetch('/api/emotional-stats', {
+          credentials: 'include',
+        });
+        if (!res.ok) {
+          throw new Error(`Failed to fetch: ${res.status}`);
+        }
+        const data = await res.json();
+        setStats(data);
+      } catch (err) {
+        console.error('Error fetching emotional stats:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load stats');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, [open]);
+
+  if (!open) return null;
+
+  if (isLoading) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-4xl">
@@ -28,6 +54,21 @@ export function EmotionalPreviewDialog({ open, onOpenChange }: { open: boolean; 
           </DialogHeader>
           <div className="flex items-center justify-center py-12">
             <RefreshCcw className="h-6 w-6 animate-spin text-primary" />
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  if (error || !stats) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Your Emotional Preview</DialogTitle>
+          </DialogHeader>
+          <div className="flex items-center justify-center py-12">
+            <p className="text-sm text-red-600">{error || 'Unable to load statistics'}</p>
           </div>
         </DialogContent>
       </Dialog>
@@ -51,7 +92,7 @@ export function EmotionalPreviewDialog({ open, onOpenChange }: { open: boolean; 
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <span>✨ Your Emotional Preview</span>
+            <span>Your Emotional Preview</span>
           </DialogTitle>
         </DialogHeader>
         
