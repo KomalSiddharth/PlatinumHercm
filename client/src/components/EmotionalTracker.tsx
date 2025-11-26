@@ -769,12 +769,12 @@ export default function EmotionalTracker() {
                                   Auto-detected from your emotions
                                 </div>
                               ) : (
-                                <div className="flex flex-wrap gap-1.5">
+                                <div className="flex flex-col gap-1">
                                   {/* Positive Repeating Emotions First */}
                                   {positiveRepeating.map(({ emotion, count }) => (
                                     <span
                                       key={`pos-${emotion}`}
-                                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 border border-green-300 dark:border-green-700"
+                                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 border border-green-300 dark:border-green-700 w-fit"
                                     >
                                       {emotion}
                                       {count > 1 && <span className="font-bold">-{count}</span>}
@@ -785,7 +785,7 @@ export default function EmotionalTracker() {
                                   {negativeRepeating.map(({ emotion, count }) => (
                                     <span
                                       key={`neg-${emotion}`}
-                                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-700"
+                                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-700 w-fit"
                                     >
                                       {emotion}
                                       {count > 1 && <span className="font-bold">-{count}</span>}
