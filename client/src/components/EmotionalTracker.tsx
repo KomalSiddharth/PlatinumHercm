@@ -428,14 +428,15 @@ export default function EmotionalTracker() {
                             <SelectValue placeholder="Select emotion..." />
                           </SelectTrigger>
                           <SelectContent className="max-h-[300px]">
+                            <SelectItem value="ADD_CUSTOM" data-testid={`button-add-custom-emotion-${index}`}>
+                              <span className="text-primary font-semibold">+ Add Custom Emotion</span>
+                            </SelectItem>
+                            <div className="border-t border-gray-200 dark:border-gray-700 my-1" />
                             {[...POSITIVE_EMOTIONS, ...customEmotions].map((emotion) => (
                               <SelectItem key={emotion} value={emotion}>
                                 {emotion}
                               </SelectItem>
                             ))}
-                            <SelectItem value="ADD_CUSTOM" data-testid={`button-add-custom-emotion-${index}`}>
-                              <span className="text-primary font-semibold">+ Add Custom Emotion</span>
-                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </td>
@@ -624,7 +625,7 @@ export default function EmotionalTracker() {
               value={customEmotionValue}
               onChange={(e) => setCustomEmotionValue(e.target.value)}
               placeholder="Type a custom emotion..."
-              className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               autoFocus
               data-testid="input-custom-emotion-dialog"
               onKeyDown={(e) => {
