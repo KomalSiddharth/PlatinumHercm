@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -215,11 +214,10 @@ export default function EmotionalTracker() {
   const [customEmotions, setCustomEmotions] = useState<string[]>([]);
   const [customNegativeEmotions, setCustomNegativeEmotions] = useState<string[]>([]);
   const [customMissingEmotions, setCustomMissingEmotions] = useState<string[]>([]);
-  const [customRepeatingEmotions, setCustomRepeatingEmotions] = useState<string[]>([]);
   const [customEmotionDialogOpen, setCustomEmotionDialogOpen] = useState(false);
   const [customEmotionValue, setCustomEmotionValue] = useState<string>('');
   const [pendingTimeSlot, setPendingTimeSlot] = useState<string>('');
-  const [emotionType, setEmotionType] = useState<'positive' | 'negative' | 'missing' | 'repeating'>('positive');
+  const [emotionType, setEmotionType] = useState<'positive' | 'negative' | 'missing'>('positive');
 
   // Update currentDateStr when selectedDate changes (using LOCAL time, not UTC)
   useEffect(() => {
@@ -497,45 +495,6 @@ export default function EmotionalTracker() {
     }));
   };
 
-  // Handle inline repeating emotion text change (local state only)
-  const handleRepeatingEmotionLocalChange = (timeSlot: string, emotion: string) => {
-    const data = trackerData[timeSlot] || {
-      timeSlot,
-      date: currentDateStr,
-      userId: '',
-      positiveEmotions: '',
-      negativeEmotions: '',
-      repeatingEmotions: '',
-      missingEmotions: '',
-    };
-
-    // Update local state only (save on blur)
-    const updatedData = {
-      ...data,
-      repeatingEmotions: emotion,
-    };
-
-    setTrackerData((prev) => ({
-      ...prev,
-      [timeSlot]: updatedData as EmotionalTrackerData,
-    }));
-  };
-
-  // Handle repeating emotion blur (save to server)
-  const handleRepeatingEmotionBlur = (timeSlot: string) => {
-    const data = trackerData[timeSlot];
-    if (!data) return;
-
-    // Save to server on blur
-    saveMutation.mutate({
-      date: currentDateStr,
-      timeSlot,
-      positiveEmotions: data?.positiveEmotions || '',
-      negativeEmotions: data?.negativeEmotions || '',
-      repeatingEmotions: data?.repeatingEmotions || '',
-      missingEmotions: data?.missingEmotions || '',
-    });
-  };
 
   // Handle custom emotion submission
   const handleCustomEmotionSubmit = () => {
@@ -561,14 +520,6 @@ export default function EmotionalTracker() {
           setCustomMissingEmotions((prev) => [...prev, newEmotionValue]);
           if (pendingTimeSlot) {
             handleMissingEmotionChange(pendingTimeSlot, newEmotionValue);
-          }
-        }
-      } else if (emotionType === 'repeating') {
-        if (!customRepeatingEmotions.includes(newEmotionValue)) {
-          setCustomRepeatingEmotions((prev) => [...prev, newEmotionValue]);
-          if (pendingTimeSlot) {
-            handleRepeatingEmotionLocalChange(pendingTimeSlot, newEmotionValue);
-            handleRepeatingEmotionBlur(pendingTimeSlot);
           }
         }
       }
@@ -779,22 +730,24 @@ export default function EmotionalTracker() {
                         </Select>
                       </td>
 
-                      {/* Repeating Emotions - Text Input */}
+                      {/* Repeating Emotions - Auto-Detected (Read-Only) */}
                       <td className="p-1 sm:p-1.5 md:p-2 align-top">
-                        <Input
-                          value={data.repeatingEmotions || ''}
-                          onChange={(e) => handleRepeatingEmotionLocalChange(timeSlot, e.target.value)}
-                          onBlur={() => handleRepeatingEmotionBlur(timeSlot)}
-                          placeholder="Type emotion..."
-                          className={`h-[36px] w-full text-sm border transition-colors ${
+                        <div
+                          className={`h-[36px] w-full text-sm border rounded-md px-3 flex items-center transition-colors ${
                             getRepeatingEmotionType(data.repeatingEmotions) === 'positive'
-                              ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 focus:border-green-400 dark:focus:border-green-500'
+                              ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300'
                               : getRepeatingEmotionType(data.repeatingEmotions) === 'negative'
-                              ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 focus:border-red-400 dark:focus:border-red-500'
-                              : `${FIELD_COLORS.repeatingEmotions.bg} ${FIELD_COLORS.repeatingEmotions.border} focus:border-blue-400 dark:focus:border-blue-500`
+                              ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'
+                              : `${FIELD_COLORS.repeatingEmotions.bg} ${FIELD_COLORS.repeatingEmotions.border} ${FIELD_COLORS.repeatingEmotions.text}`
                           }`}
-                          data-testid={`input-repeating-${index}`}
-                        />
+                          data-testid={`display-repeating-${index}`}
+                        >
+                          {data.repeatingEmotions ? (
+                            <span className="truncate font-medium">{data.repeatingEmotions}</span>
+                          ) : (
+                            <span className="text-gray-400 dark:text-gray-500 italic text-xs">Auto-detected</span>
+                          )}
+                        </div>
                       </td>
 
                       {/* Missing Emotions - Inline Dropdown */}
