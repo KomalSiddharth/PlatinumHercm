@@ -13,6 +13,7 @@ import { emailService } from "./emailService";
 import { validateAndCapRating, updateRatingProgression, getRatingCaps, getRatingProgressionStatus } from "./ratingProgression";
 import { backupAllData, backupUserData, getBackupStats } from "./backupService";
 import { isSupabaseConfigured, checkSupabaseHealth } from "./supabase";
+import { format } from "date-fns";
 import OpenAI from "openai";
 import rateLimit from "express-rate-limit";
 
