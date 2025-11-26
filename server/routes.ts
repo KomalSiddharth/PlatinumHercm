@@ -6774,10 +6774,103 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
       // Get all trackers for today
       const allTrackers = await storage.getEmotionalTrackersByDate(userId, formatDate(today));
       
+      // Known positive emotions list (for categorizing Repeating/Missing columns)
+      const POSITIVE_EMOTIONS = [
+        'happy', 'joyful', 'excited', 'grateful', 'thankful', 'content', 'peaceful', 'calm',
+        'relaxed', 'hopeful', 'optimistic', 'confident', 'proud', 'loved', 'loving', 'caring',
+        'compassionate', 'inspired', 'motivated', 'energized', 'enthusiastic', 'cheerful',
+        'delighted', 'blissful', 'serene', 'satisfied', 'fulfilled', 'empowered', 'brave',
+        'courageous', 'curious', 'amazed', 'fascinated', 'passionate', 'determined', 'focused',
+        'present', 'mindful', 'free', 'liberated', 'appreciated', 'valued', 'respected',
+        'secure', 'safe', 'comfortable', 'warm', 'affectionate', 'tender', 'kind', 'generous',
+        'forgiving', 'accepting', 'understanding', 'patient', 'trusting', 'faithful', 'devoted',
+        'committed', 'loyal', 'connected', 'belonging', 'included', 'supported', 'encouraged',
+        'uplifted', 'alive', 'vibrant', 'playful', 'amused', 'entertained', 'relieved', 'refreshed',
+        'renewed', 'restored', 'balanced', 'centered', 'grounded', 'stable', 'steady', 'resilient'
+      ];
+
+      // Known negative emotions list
+      const NEGATIVE_EMOTIONS = [
+        'sad', 'unhappy', 'depressed', 'anxious', 'worried', 'stressed', 'overwhelmed', 'frustrated',
+        'angry', 'furious', 'irritated', 'annoyed', 'resentful', 'bitter', 'jealous', 'envious',
+        'guilty', 'ashamed', 'embarrassed', 'humiliated', 'lonely', 'isolated', 'abandoned',
+        'rejected', 'hurt', 'heartbroken', 'disappointed', 'discouraged', 'hopeless', 'helpless',
+        'powerless', 'weak', 'vulnerable', 'insecure', 'uncertain', 'confused', 'lost', 'stuck',
+        'trapped', 'suffocated', 'exhausted', 'drained', 'tired', 'fatigued', 'bored', 'restless',
+        'impatient', 'tense', 'nervous', 'scared', 'fearful', 'terrified', 'panicked', 'paranoid',
+        'suspicious', 'distrustful', 'cynical', 'pessimistic', 'negative', 'critical', 'judgmental',
+        'contemptuous', 'disgusted', 'repulsed', 'numb', 'empty', 'hollow', 'detached', 'disconnected',
+        'apathetic', 'indifferent', 'unmotivated', 'lazy', 'procrastinating', 'distracted', 'unfocused',
+        'scattered', 'chaotic', 'unstable', 'unbalanced', 'off-center', 'shaky', 'fragile', 'broken'
+      ];
+
+      // Smart categorization function
+      const categorizeEmotion = (emotion: string): 'positive' | 'negative' | 'neutral' => {
+        const lowerEmotion = emotion.toLowerCase().trim();
+        if (POSITIVE_EMOTIONS.some(pe => lowerEmotion.includes(pe) || pe.includes(lowerEmotion))) {
+          return 'positive';
+        }
+        if (NEGATIVE_EMOTIONS.some(ne => lowerEmotion.includes(ne) || ne.includes(lowerEmotion))) {
+          return 'negative';
+        }
+        return 'neutral';
+      };
+
+      // Calculate positivity based on emotion counts across all 4 columns
       const calculatePositivityPercentage = (trackers: any[]) => {
-        if (trackers.length === 0) return 0;
-        const positiveCount = trackers.filter((t) => t.positiveEmotions && t.positiveEmotions.length > 0).length;
-        return Math.round((positiveCount / trackers.length) * 100);
+        if (trackers.length === 0) return 50; // Neutral if no data
+
+        let positiveCount = 0;
+        let negativeCount = 0;
+
+        trackers.forEach((tracker: any) => {
+          // Positive column - all count as positive
+          if (tracker.positiveEmotions && Array.isArray(tracker.positiveEmotions)) {
+            positiveCount += tracker.positiveEmotions.length;
+          }
+
+          // Negative column - all count as negative
+          if (tracker.negativeEmotions && Array.isArray(tracker.negativeEmotions)) {
+            negativeCount += tracker.negativeEmotions.length;
+          }
+
+          // Repeating column - categorize each emotion
+          if (tracker.repeatingEmotions && Array.isArray(tracker.repeatingEmotions)) {
+            tracker.repeatingEmotions.forEach((emotion: string) => {
+              const category = categorizeEmotion(emotion);
+              if (category === 'positive') positiveCount++;
+              else if (category === 'negative') negativeCount++;
+              // neutral emotions don't affect the score
+            });
+          }
+
+          // Missing column - these are emotions user wants but doesn't have
+          // If missing positive emotions = slightly negative (wanting something you don't have)
+          // If missing negative emotions = slightly positive (not having bad emotions)
+          if (tracker.missingEmotions && Array.isArray(tracker.missingEmotions)) {
+            tracker.missingEmotions.forEach((emotion: string) => {
+              const category = categorizeEmotion(emotion);
+              // Missing positive emotions = user feels absence of good feelings
+              if (category === 'positive') negativeCount += 0.5;
+              // Missing negative emotions = user is free from bad feelings
+              else if (category === 'negative') positiveCount += 0.5;
+            });
+          }
+        });
+
+        const total = positiveCount + negativeCount;
+        
+        // No emotions entered = neutral (50%)
+        if (total === 0) return 50;
+
+        // Calculate percentage: (positive / total) * 100
+        // This gives us 0-100% where:
+        // - 100% = all positive emotions
+        // - 0% = all negative emotions  
+        // - 50% = balanced
+        const percentage = Math.round((positiveCount / total) * 100);
+        
+        return Math.min(100, Math.max(0, percentage));
       };
 
       // Generate 7-day trend and weekly emotions
