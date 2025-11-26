@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { RefreshCcw } from 'lucide-react';
 
 interface EmotionalStats {
@@ -392,11 +392,12 @@ export function EmotionalPreviewDialog({ open, onOpenChange }: { open: boolean; 
     );
   }
 
+  // Bar data with both positive and negative percentages
   const barData = [
-    { period: 'Today', percentage: stats.daily },
-    { period: 'Week', percentage: stats.weekly },
-    { period: 'Month', percentage: stats.monthly },
-    { period: 'Year', percentage: stats.yearly },
+    { period: 'Today', positive: stats.daily, negative: 100 - stats.daily },
+    { period: 'Week', positive: stats.weekly, negative: 100 - stats.weekly },
+    { period: 'Month', positive: stats.monthly, negative: 100 - stats.monthly },
+    { period: 'Year', positive: stats.yearly, negative: 100 - stats.yearly },
   ];
 
   return (
@@ -420,64 +421,70 @@ export function EmotionalPreviewDialog({ open, onOpenChange }: { open: boolean; 
             </div>
           </div>
 
-          {/* Row 2: Charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Period Comparison Bar Chart */}
-            <div className="border rounded-lg p-4 bg-white dark:bg-gray-800">
-              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Positivity Across Periods</h3>
-              <div style={{ width: '100%', height: 220 }}>
-                <ResponsiveContainer width="100%" height={220}>
-                  <BarChart data={barData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="period" />
-                    <YAxis domain={[0, 100]} />
-                    <Tooltip formatter={(value) => `${value}%`} />
-                    <Bar dataKey="percentage" fill="#10b981" radius={[8, 8, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* Weekly Trend Line Chart */}
-            <div className="border rounded-lg p-4 bg-white dark:bg-gray-800">
-              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">7-Day Positivity Trend</h3>
-              <div style={{ width: '100%', height: 220 }}>
-                <ResponsiveContainer width="100%" height={220}>
-                  <LineChart data={stats.dailyTrend || []}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis domain={[0, 100]} />
-                    <Tooltip formatter={(value) => `${value}%`} />
-                    <Line
-                      type="monotone"
-                      dataKey="percentage"
-                      stroke="#06b6d4"
-                      strokeWidth={2}
-                      dot={{ fill: '#06b6d4' }}
-                      name="Daily Positivity %"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+          {/* Row 2: Positivity vs Negativity Chart - Full Width */}
+          <div className="border rounded-lg p-4 bg-white dark:bg-gray-800">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Positivity vs Negativity Across Periods</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+              Calculated from positive vs negative emotions across all columns (Positive, Negative, Repeating, Missing)
+            </p>
+            <div style={{ width: '100%', height: 280 }}>
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart data={barData} barGap={4}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="period" />
+                  <YAxis domain={[0, 100]} tickFormatter={(val) => `${val}%`} />
+                  <Tooltip 
+                    formatter={(value: number, name: string) => [`${value}%`, name === 'positive' ? 'Positive' : 'Negative']}
+                    contentStyle={{ backgroundColor: 'rgba(255,255,255,0.95)', borderRadius: '8px' }}
+                  />
+                  <Legend 
+                    formatter={(value) => value === 'positive' ? '✨ Positive' : '💔 Negative'}
+                  />
+                  <Bar 
+                    dataKey="positive" 
+                    fill="#10b981" 
+                    radius={[8, 8, 0, 0]} 
+                    name="positive"
+                  />
+                  <Bar 
+                    dataKey="negative" 
+                    fill="#ef4444" 
+                    radius={[8, 8, 0, 0]} 
+                    name="negative"
+                  />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
 
-          {/* Stats Summary */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-gradient-to-r from-emerald-50 to-cyan-50 dark:from-emerald-900/20 dark:to-cyan-900/20 rounded-lg">
+          {/* Stats Summary - Positive and Negative */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-gradient-to-r from-emerald-50 to-red-50 dark:from-emerald-900/20 dark:to-red-900/20 rounded-lg">
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{stats.daily}%</div>
-              <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">Today</div>
+              <div className="flex justify-center gap-2 items-baseline">
+                <span className="text-2xl font-bold text-green-600">{stats.daily}%</span>
+                <span className="text-lg font-medium text-red-500">/ {100 - stats.daily}%</span>
+              </div>
+              <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">Today (Positive / Negative)</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-cyan-600">{stats.weekly}%</div>
+              <div className="flex justify-center gap-2 items-baseline">
+                <span className="text-2xl font-bold text-green-600">{stats.weekly}%</span>
+                <span className="text-lg font-medium text-red-500">/ {100 - stats.weekly}%</span>
+              </div>
               <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">This Week</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{stats.monthly}%</div>
+              <div className="flex justify-center gap-2 items-baseline">
+                <span className="text-2xl font-bold text-green-600">{stats.monthly}%</span>
+                <span className="text-lg font-medium text-red-500">/ {100 - stats.monthly}%</span>
+              </div>
               <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">This Month</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">{stats.yearly}%</div>
+              <div className="flex justify-center gap-2 items-baseline">
+                <span className="text-2xl font-bold text-green-600">{stats.yearly}%</span>
+                <span className="text-lg font-medium text-red-500">/ {100 - stats.yearly}%</span>
+              </div>
               <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">This Year</div>
             </div>
           </div>
