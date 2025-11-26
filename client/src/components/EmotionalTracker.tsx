@@ -83,6 +83,8 @@ export default function EmotionalTracker() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingField, setEditingField] = useState<{ timeSlot: string; field: EmotionField } | null>(null);
   const [dialogValue, setDialogValue] = useState<string>('');
+  const [isCustomEmotionInput, setIsCustomEmotionInput] = useState(false);
+  const [customEmotionInput, setCustomEmotionInput] = useState<string>('');
 
   // Update currentDateStr when selectedDate changes (using LOCAL time, not UTC)
   useEffect(() => {
@@ -142,6 +144,8 @@ export default function EmotionalTracker() {
     const currentValue = data?.[field] as string || '';
     setEditingField({ timeSlot, field });
     setDialogValue(currentValue);
+    setIsCustomEmotionInput(false);
+    setCustomEmotionInput('');
     setDialogOpen(true);
   };
 
@@ -194,6 +198,17 @@ export default function EmotionalTracker() {
       saveDialogEdit();
     } else {
       setDialogOpen(open);
+      setIsCustomEmotionInput(false);
+      setCustomEmotionInput('');
+    }
+  };
+
+  // Handle custom emotion selection
+  const handleAddCustomEmotion = () => {
+    if (customEmotionInput.trim()) {
+      setDialogValue(customEmotionInput);
+      setCustomEmotionInput('');
+      setIsCustomEmotionInput(false);
     }
   };
 
@@ -423,14 +438,86 @@ export default function EmotionalTracker() {
             </DialogTitle>
           </DialogHeader>
           <div className="py-4">
-            <Textarea
-              value={dialogValue}
-              onChange={(e) => setDialogValue(e.target.value)}
-              placeholder="Enter your emotions here..."
-              className="min-h-[150px] resize-none"
-              autoFocus
-              data-testid="textarea-dialog-edit"
-            />
+            {editingField?.field === 'positiveEmotions' ? (
+              <div className="space-y-3">
+                {!isCustomEmotionInput ? (
+                  <>
+                    <Select value={dialogValue} onValueChange={setDialogValue}>
+                      <SelectTrigger data-testid="select-positive-emotion">
+                        <SelectValue placeholder="Select an emotion..." />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[300px]">
+                        {POSITIVE_EMOTIONS.map((emotion) => (
+                          <SelectItem key={emotion} value={emotion}>
+                            {emotion}
+                          </SelectItem>
+                        ))}
+                        <div className="border-t mt-2 pt-2">
+                          <button
+                            onClick={() => setIsCustomEmotionInput(true)}
+                            className="w-full text-left px-3 py-2 text-sm text-primary hover:bg-accent rounded"
+                            data-testid="button-add-custom-emotion"
+                          >
+                            + Add Custom Emotion
+                          </button>
+                        </div>
+                      </SelectContent>
+                    </Select>
+                  </>
+                ) : (
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      value={customEmotionInput}
+                      onChange={(e) => setCustomEmotionInput(e.target.value)}
+                      placeholder="Type custom emotion..."
+                      className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      autoFocus
+                      data-testid="input-custom-emotion"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleAddCustomEmotion();
+                        }
+                      }}
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={handleAddCustomEmotion}
+                        size="sm"
+                        data-testid="button-confirm-custom"
+                      >
+                        Add
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setIsCustomEmotionInput(false);
+                          setCustomEmotionInput('');
+                        }}
+                        size="sm"
+                        variant="outline"
+                        data-testid="button-cancel-custom"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                {dialogValue && (
+                  <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded text-sm text-green-700 dark:text-green-300">
+                    Selected: <strong>{dialogValue}</strong>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Textarea
+                value={dialogValue}
+                onChange={(e) => setDialogValue(e.target.value)}
+                placeholder="Enter your emotions here..."
+                className="min-h-[150px] resize-none"
+                autoFocus
+                data-testid="textarea-dialog-edit"
+              />
+            )}
           </div>
           <div className="flex justify-end pt-4">
             <Button
