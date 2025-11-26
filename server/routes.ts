@@ -6842,6 +6842,66 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
     }
   });
 
+  // ========== Gratitude Journal Routes ==========
+  // Get gratitude entry for a specific date
+  app.get('/api/gratitude-journal/:date', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const { date } = req.params;
+      const entry = await storage.getGratitudeEntry(userId, date);
+      res.json(entry || { date, gratitudeText: '' });
+    } catch (error) {
+      console.error("Error fetching gratitude entry:", error);
+      res.status(500).json({ message: "Failed to fetch gratitude entry" });
+    }
+  });
+
+  // Get all gratitude entries for user
+  app.get('/api/gratitude-journal', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const entries = await storage.getAllGratitudeEntries(userId);
+      res.json(entries);
+    } catch (error) {
+      console.error("Error fetching gratitude entries:", error);
+      res.status(500).json({ message: "Failed to fetch gratitude entries" });
+    }
+  });
+
+  // Save/Update gratitude entry
+  app.post('/api/gratitude-journal', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const { date, gratitudeText } = req.body;
+      if (!date) {
+        return res.status(400).json({ message: "Date is required" });
+      }
+
+      const entry = await storage.upsertGratitudeEntry({
+        userId,
+        date,
+        gratitudeText: gratitudeText || '',
+      });
+
+      res.json(entry);
+    } catch (error) {
+      console.error("Error saving gratitude entry:", error);
+      res.status(500).json({ message: "Failed to save gratitude entry" });
+    }
+  });
+
   // ========== User Persistent Assignments Routes ==========
   // Get user's persistent assignments (date-independent)
   app.get('/api/persistent-assignments', isAuthenticated, async (req: any, res) => {
