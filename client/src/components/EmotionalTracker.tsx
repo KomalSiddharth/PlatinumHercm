@@ -8,8 +8,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
-import { Heart, Brain, RefreshCcw, Sparkles, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Heart, Brain, RefreshCcw, Sparkles, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import { format } from 'date-fns';
+import { EmotionalPreviewDialog } from './EmotionalPreviewDialog';
 
 interface EmotionalTrackerData {
   id?: string;
@@ -200,6 +201,7 @@ export default function EmotionalTracker() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [currentDateStr, setCurrentDateStr] = useState<string>(today);
   const [trackerData, setTrackerData] = useState<Record<string, EmotionalTrackerData>>({});
+  const [previewOpen, setPreviewOpen] = useState(false);
   
   // Dialog state for editing
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -611,6 +613,17 @@ export default function EmotionalTracker() {
             </div>
             
             <div className="flex items-center gap-1.5 sm:gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setPreviewOpen(true)}
+                data-testid="button-emotional-preview"
+                className="h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"
+              >
+                <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
+                <span className="hidden sm:inline">Emotional Preview</span>
+                <span className="sm:hidden">Preview</span>
+              </Button>
+
               <Button
                 variant="outline"
                 size="icon"

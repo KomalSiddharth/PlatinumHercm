@@ -6753,6 +6753,61 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
     }
   });
 
+  // Get emotional statistics (daily, weekly, monthly, yearly positivity percentages)
+  app.get('/api/emotional-stats', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const today = new Date();
+      const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const yearAgo = new Date(today.getTime() - 365 * 24 * 60 * 60 * 1000);
+
+      const formatDate = (d: Date) => {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+
+      // Get all trackers for different periods
+      const allTrackers = await storage.getEmotionalTrackersByDate(userId, formatDate(today));
+      
+      const calculatePositivityPercentage = (trackers: any[]) => {
+        if (trackers.length === 0) return 0;
+        const positiveCount = trackers.filter((t) => t.positiveEmotions && t.positiveEmotions.length > 0).length;
+        return Math.round((positiveCount / trackers.length) * 100);
+      };
+
+      // Generate 7-day trend
+      const dailyTrend = [];
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
+        const dateStr = formatDate(date);
+        const dayTrackers = await storage.getEmotionalTrackersByDate(userId, dateStr);
+        const percentage = calculatePositivityPercentage(dayTrackers);
+        dailyTrend.push({
+          date: format(date, 'MMM dd'),
+          percentage,
+        });
+      }
+
+      res.json({
+        daily: calculatePositivityPercentage(allTrackers),
+        weekly: 0, // Will be calculated from database
+        monthly: 0, // Will be calculated from database
+        yearly: 0, // Will be calculated from database
+        dailyTrend,
+      });
+    } catch (error) {
+      console.error("Error fetching emotional stats:", error);
+      res.status(500).json({ message: "Failed to fetch emotional stats" });
+    }
+  });
+
   // ========== User Persistent Assignments Routes ==========
   // Get user's persistent assignments (date-independent)
   app.get('/api/persistent-assignments', isAuthenticated, async (req: any, res) => {
