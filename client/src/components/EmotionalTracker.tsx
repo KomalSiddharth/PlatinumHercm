@@ -836,6 +836,78 @@ export default function EmotionalTracker() {
             </table>
           </div>
           
+          {/* Repeating Emotions Summary Section */}
+          {(() => {
+            // Aggregate all repeating emotions from all time slots
+            const allRepeating: string[] = [];
+            Object.values(trackerData).forEach((data: any) => {
+              if (data?.repeatingEmotions && typeof data.repeatingEmotions === 'string' && data.repeatingEmotions.trim()) {
+                allRepeating.push(data.repeatingEmotions.trim());
+              }
+            });
+            
+            if (allRepeating.length === 0) return null;
+            
+            // Count occurrences and group by positive/negative
+            const countMap: Record<string, number> = {};
+            allRepeating.forEach(emotion => {
+              countMap[emotion] = (countMap[emotion] || 0) + 1;
+            });
+            
+            // Separate into positive and negative
+            const positiveEmotions: { emotion: string; count: number }[] = [];
+            const negativeEmotions: { emotion: string; count: number }[] = [];
+            
+            Object.entries(countMap).forEach(([emotion, count]) => {
+              const type = getRepeatingEmotionType(emotion);
+              if (type === 'positive') {
+                positiveEmotions.push({ emotion, count });
+              } else {
+                // Default to negative if not explicitly positive
+                negativeEmotions.push({ emotion, count });
+              }
+            });
+            
+            return (
+              <div className="mt-4 p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <h3 className="text-sm font-semibold text-blue-700 dark:text-blue-300 mb-3 flex items-center gap-2">
+                  <RefreshCcw className="h-4 w-4" />
+                  Today's Repeating Emotions Summary
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {/* Positive Repeating Emotions (First Half) */}
+                  {positiveEmotions.map(({ emotion, count }) => (
+                    <span
+                      key={`pos-${emotion}`}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 border border-green-300 dark:border-green-700"
+                      data-testid={`badge-repeating-positive-${emotion}`}
+                    >
+                      {emotion}
+                      {count > 1 && <span className="font-bold">-{count}</span>}
+                    </span>
+                  ))}
+                  
+                  {/* Separator if we have both types */}
+                  {positiveEmotions.length > 0 && negativeEmotions.length > 0 && (
+                    <span className="text-gray-400 dark:text-gray-500 mx-1">|</span>
+                  )}
+                  
+                  {/* Negative Repeating Emotions (Second Half - in Red) */}
+                  {negativeEmotions.map(({ emotion, count }) => (
+                    <span
+                      key={`neg-${emotion}`}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-700"
+                      data-testid={`badge-repeating-negative-${emotion}`}
+                    >
+                      {emotion}
+                      {count > 1 && <span className="font-bold">-{count}</span>}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+          
           {saveMutation.isPending && (
             <div className="mt-4 text-sm text-purple-600 dark:text-purple-400 flex items-center gap-2">
               <RefreshCcw className="h-4 w-4 animate-spin" />
