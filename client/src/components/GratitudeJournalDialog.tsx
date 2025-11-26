@@ -111,30 +111,29 @@ export function GratitudeJournalDialog({ open, onOpenChange }: GratitudeJournalD
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl p-0 overflow-hidden bg-transparent border-none shadow-none">
+      <DialogContent className="max-w-3xl p-0 overflow-hidden border-none shadow-2xl bg-amber-100 dark:bg-amber-950">
         {/* Book Container */}
         <div className="relative perspective-1000">
           {/* Book Cover / Spine Effect */}
-          <div className="absolute -left-2 top-0 bottom-0 w-4 bg-gradient-to-r from-amber-900 to-amber-800 rounded-l-md shadow-lg z-10" />
+          <div className="absolute -left-2 top-0 bottom-0 w-6 bg-gradient-to-r from-amber-800 via-amber-700 to-amber-600 rounded-l-md shadow-xl z-10" />
           
           {/* Main Book */}
           <div 
             className={`
-              relative bg-gradient-to-br from-amber-50 to-orange-50 
-              dark:from-amber-950 dark:to-orange-950
-              rounded-r-lg shadow-2xl min-h-[500px] 
+              relative min-h-[500px] 
               transition-transform duration-300 ease-in-out
               ${isFlipping ? (flipDirection === 'left' ? 'animate-flip-left' : 'animate-flip-right') : ''}
             `}
             style={{
+              backgroundColor: '#fef3c7',
               backgroundImage: `
-                linear-gradient(to right, rgba(139, 69, 19, 0.1) 0%, transparent 5%),
+                linear-gradient(to right, rgba(139, 69, 19, 0.15) 0%, transparent 8%),
                 repeating-linear-gradient(
                   to bottom,
                   transparent,
                   transparent 31px,
-                  rgba(139, 69, 19, 0.1) 31px,
-                  rgba(139, 69, 19, 0.1) 32px
+                  rgba(139, 69, 19, 0.12) 31px,
+                  rgba(139, 69, 19, 0.12) 32px
                 )
               `,
             }}
@@ -253,10 +252,10 @@ export function GratitudeJournalDialog({ open, onOpenChange }: GratitudeJournalD
               </Button>
             </div>
 
-            {/* Page Edge Effect */}
-            <div className="absolute right-0 top-4 bottom-4 w-1 bg-gradient-to-l from-amber-200 dark:from-amber-800 to-transparent" />
-            <div className="absolute right-1 top-4 bottom-4 w-px bg-amber-300 dark:bg-amber-700" />
-            <div className="absolute right-2 top-4 bottom-4 w-px bg-amber-200 dark:bg-amber-800 opacity-50" />
+            {/* Page Edge Effect - Solid colors */}
+            <div className="absolute right-0 top-4 bottom-4 w-1" style={{ backgroundColor: '#d97706' }} />
+            <div className="absolute right-1 top-4 bottom-4 w-px" style={{ backgroundColor: '#b45309' }} />
+            <div className="absolute right-2 top-4 bottom-4 w-px" style={{ backgroundColor: '#92400e' }} />
           </div>
         </div>
 
