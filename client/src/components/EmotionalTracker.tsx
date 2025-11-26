@@ -73,6 +73,17 @@ const POSITIVE_EMOTIONS = [
   'Zeal', 'Invigoration', 'Liveliness', 'Eagerness', 'Optimism', 'Positivity', 'Vibrancy',
 ];
 
+const NEGATIVE_EMOTIONS = [
+  'Sad', 'Disappointed', 'Lonely', 'Hurt', 'Empty', 'Hopeless', 'Miserable', 'Unmotivated',
+  'Drained', 'Low', 'Overwhelmed', 'Stressed', 'Pressured', 'Anxious', 'Restless', 'Tense',
+  'Nervous', 'Panicked', 'Uneasy', 'Worry', 'Insecure', 'Doubtful', 'Afraid', 'Uncertain',
+  'Hesitant', 'Unstable', 'Sensitive', 'Fragile', 'Exposed', 'Vulnerable', 'Angry', 'Frustrated',
+  'Irritated', 'Annoyed', 'Resentful', 'Rage', 'Bitter', 'Enraged', 'Infuriated', 'Agitated',
+  'Numb', 'Detached', 'Lost', 'Confused', 'Foggy', 'Disconnected', 'Unfocused', 'Blank',
+  'Shut Down', 'Withdrawn', 'Guilt', 'Shame', 'Regret', 'Embarrassment', 'Self-Blame', 'Self-Criticism',
+  'Disgust', 'Hopelessness', 'Despair', 'Worthlessness'
+];
+
 export default function EmotionalTracker() {
   const today = getLocalDateString(new Date());
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -88,9 +99,11 @@ export default function EmotionalTracker() {
   
   // Custom emotions for inline dropdown
   const [customEmotions, setCustomEmotions] = useState<string[]>([]);
+  const [customNegativeEmotions, setCustomNegativeEmotions] = useState<string[]>([]);
   const [customEmotionDialogOpen, setCustomEmotionDialogOpen] = useState(false);
   const [customEmotionValue, setCustomEmotionValue] = useState<string>('');
   const [pendingTimeSlot, setPendingTimeSlot] = useState<string>('');
+  const [emotionType, setEmotionType] = useState<'positive' | 'negative'>('positive');
 
   // Update currentDateStr when selectedDate changes (using LOCAL time, not UTC)
   useEffect(() => {
