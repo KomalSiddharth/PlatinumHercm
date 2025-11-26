@@ -433,15 +433,9 @@ export default function EmotionalTracker() {
                                 {emotion}
                               </SelectItem>
                             ))}
-                            <div className="border-t border-gray-200 dark:border-gray-700 my-1 pt-1">
-                              <button
-                                onClick={() => handlePositiveEmotionChange(timeSlot, 'ADD_CUSTOM')}
-                                className="w-full px-2 py-2 text-left text-sm text-primary hover:bg-primary/10 dark:hover:bg-primary/20 rounded"
-                                data-testid={`button-add-custom-emotion-${index}`}
-                              >
-                                + Add Custom Emotion
-                              </button>
-                            </div>
+                            <SelectItem value="ADD_CUSTOM" data-testid={`button-add-custom-emotion-${index}`}>
+                              <span className="text-primary font-semibold">+ Add Custom Emotion</span>
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </td>
