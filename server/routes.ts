@@ -6901,10 +6901,21 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
         };
 
         dayTrackers.forEach((tracker: any) => {
-          if (tracker.positiveEmotions) dayEmotions.positive.push(...tracker.positiveEmotions);
-          if (tracker.negativeEmotions) dayEmotions.negative.push(...tracker.negativeEmotions);
-          if (tracker.repeatingEmotions) dayEmotions.repeating.push(...tracker.repeatingEmotions);
-          if (tracker.missingEmotions) dayEmotions.missing.push(...tracker.missingEmotions);
+          // Each emotion column stores a single emotion string (not array)
+          // Just add the string directly if it exists and is short enough
+          const addEmotion = (emotion: any, target: string[]) => {
+            if (!emotion) return;
+            const str = String(emotion).trim();
+            // Only add short, meaningful emotions (not long descriptions)
+            if (str && str.length > 1 && str.length < 30) {
+              target.push(str);
+            }
+          };
+          
+          addEmotion(tracker.positiveEmotions, dayEmotions.positive);
+          addEmotion(tracker.negativeEmotions, dayEmotions.negative);
+          addEmotion(tracker.repeatingEmotions, dayEmotions.repeating);
+          addEmotion(tracker.missingEmotions, dayEmotions.missing);
         });
 
         weeklyEmotions.push({

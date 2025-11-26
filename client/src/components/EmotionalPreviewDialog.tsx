@@ -149,25 +149,42 @@ function MoodMeter({ percentage }: { percentage: number }) {
 
 // Weekly Feelings Tracker Grid Component - Dynamic based on user's actual emotions
 function WeeklyFeelingsTracker({ weeklyEmotions }: { weeklyEmotions?: EmotionalStats['weeklyEmotions'] }) {
+  console.log('[WeeklyTracker] weeklyEmotions:', weeklyEmotions);
+  
   // Extract all unique emotions from the week's data
   const getUniqueEmotions = () => {
-    if (!weeklyEmotions) return { positive: [], negative: [] };
+    if (!weeklyEmotions || !Array.isArray(weeklyEmotions)) return { positive: [], negative: [] };
     
     const positiveSet = new Set<string>();
     const negativeSet = new Set<string>();
     
     weeklyEmotions.forEach(dayData => {
-      // Positive emotions from positive column
-      dayData.emotions.positive.forEach(e => {
-        const cleaned = e.trim();
-        if (cleaned && cleaned.length < 30) positiveSet.add(cleaned);
-      });
+      if (!dayData?.emotions) return;
       
-      // Negative emotions from negative column
-      dayData.emotions.negative.forEach(e => {
-        const cleaned = e.trim();
-        if (cleaned && cleaned.length < 30) negativeSet.add(cleaned);
-      });
+      // Positive emotions from positive column
+      if (Array.isArray(dayData.emotions.positive)) {
+        dayData.emotions.positive.forEach(e => {
+          if (typeof e === 'string') {
+            const cleaned = e.trim();
+            // Only add short, single-word or simple emotions (not long descriptions)
+            if (cleaned && cleaned.length > 1 && cleaned.length < 25 && !cleaned.includes(' — ')) {
+              positiveSet.add(cleaned);
+            }
+          }
+        });
+      }
+      
+      // Negative emotions from negative column  
+      if (Array.isArray(dayData.emotions.negative)) {
+        dayData.emotions.negative.forEach(e => {
+          if (typeof e === 'string') {
+            const cleaned = e.trim();
+            if (cleaned && cleaned.length > 1 && cleaned.length < 25 && !cleaned.includes(' — ')) {
+              negativeSet.add(cleaned);
+            }
+          }
+        });
+      }
     });
     
     return {
@@ -177,15 +194,20 @@ function WeeklyFeelingsTracker({ weeklyEmotions }: { weeklyEmotions?: EmotionalS
   };
 
   const { positive: positiveEmotions, negative: negativeEmotions } = getUniqueEmotions();
+  console.log('[WeeklyTracker] Extracted emotions:', { positive: positiveEmotions, negative: negativeEmotions });
   
   // Check if emotion exists for a given day
   const hasEmotionOnDay = (day: string, emotionName: string, type: 'positive' | 'negative') => {
-    if (!weeklyEmotions) return false;
+    if (!weeklyEmotions || !Array.isArray(weeklyEmotions)) return false;
     const dayData = weeklyEmotions.find(d => d.day === day);
-    if (!dayData) return false;
+    if (!dayData?.emotions) return false;
     
     const emotions = type === 'positive' ? dayData.emotions.positive : dayData.emotions.negative;
-    return emotions.some(e => e.toLowerCase().trim() === emotionName.toLowerCase().trim());
+    if (!Array.isArray(emotions)) return false;
+    
+    return emotions.some(e => 
+      typeof e === 'string' && e.toLowerCase().trim() === emotionName.toLowerCase().trim()
+    );
   };
 
   // No emotions recorded
