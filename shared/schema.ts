@@ -666,3 +666,22 @@ export const insertNextWeekSnapshotSchema = createInsertSchema(nextWeekSnapshots
 
 export type InsertNextWeekSnapshot = z.infer<typeof insertNextWeekSnapshotSchema>;
 export type NextWeekSnapshot = typeof nextWeekSnapshots.$inferSelect;
+
+// Gratitude Journal - Daily gratitude entries
+export const gratitudeJournals = pgTable("gratitude_journals", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  date: varchar("date").notNull(), // YYYY-MM-DD format
+  gratitudeText: varchar("gratitude_text", { length: 5000 }), // Main gratitude entry
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertGratitudeJournalSchema = createInsertSchema(gratitudeJournals).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertGratitudeJournal = z.infer<typeof insertGratitudeJournalSchema>;
+export type GratitudeJournal = typeof gratitudeJournals.$inferSelect;
