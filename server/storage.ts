@@ -60,6 +60,9 @@ import {
   nextWeekSnapshots,
   type NextWeekSnapshot,
   type InsertNextWeekSnapshot,
+  gratitudeJournals,
+  type GratitudeJournal,
+  type InsertGratitudeJournal,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, asc, and, or, count, sql, gte, lte } from "drizzle-orm";
@@ -2015,6 +2018,65 @@ export class DatabaseStorage implements IStorage {
         and(
           eq(nextWeekSnapshots.userId, userId),
           eq(nextWeekSnapshots.archived, false)
+        )
+      );
+  }
+
+  // Gratitude Journal operations
+  async getGratitudeEntry(userId: string, date: string): Promise<GratitudeJournal | undefined> {
+    const [entry] = await db
+      .select()
+      .from(gratitudeJournals)
+      .where(
+        and(
+          eq(gratitudeJournals.userId, userId),
+          eq(gratitudeJournals.date, date)
+        )
+      )
+      .limit(1);
+    return entry;
+  }
+
+  async getAllGratitudeEntries(userId: string): Promise<GratitudeJournal[]> {
+    return await db
+      .select()
+      .from(gratitudeJournals)
+      .where(eq(gratitudeJournals.userId, userId))
+      .orderBy(desc(gratitudeJournals.date));
+  }
+
+  async upsertGratitudeEntry(entry: InsertGratitudeJournal): Promise<GratitudeJournal> {
+    // Check if entry exists for this date
+    const existing = await this.getGratitudeEntry(entry.userId, entry.date);
+    
+    if (existing) {
+      // Update existing entry
+      const [updated] = await db
+        .update(gratitudeJournals)
+        .set({
+          gratitudeText: entry.gratitudeText,
+          updatedAt: new Date()
+        })
+        .where(eq(gratitudeJournals.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      // Create new entry
+      const [newEntry] = await db
+        .insert(gratitudeJournals)
+        .values(entry)
+        .returning();
+      return newEntry;
+    }
+  }
+
+  async deleteGratitudeEntry(userId: string, date: string): Promise<void> {
+    await db
+      .delete(gratitudeJournals)
+      .where(
+        and(
+          eq(gratitudeJournals.userId, userId),
+          eq(gratitudeJournals.date, date)
         )
       );
   }
