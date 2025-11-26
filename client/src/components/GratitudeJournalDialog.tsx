@@ -278,13 +278,13 @@ export function GratitudeJournalDialog({ open, onOpenChange }: GratitudeJournalD
                   />
                 </div>
 
-                {/* Items List */}
+                {/* Items List - Scrollable after 10 items */}
                 {isLoading ? (
                   <div className="flex items-center justify-center h-32">
                     <Loader2 className="h-8 w-8 animate-spin text-pink-400" />
                   </div>
                 ) : (
-                  <div className="space-y-1 max-h-[250px] overflow-y-auto pr-2">
+                  <div className={`space-y-1 pr-2 ${items.length > 10 ? 'max-h-[320px] overflow-y-auto' : ''}`}>
                     {items.length === 0 ? (
                       <p className="text-center py-8 font-serif text-pink-200/80">
                         No gratitude entries yet. Start typing above!
