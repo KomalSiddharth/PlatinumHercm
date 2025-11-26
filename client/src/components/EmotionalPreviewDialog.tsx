@@ -29,20 +29,9 @@ const MOOD_LEVELS = [
   { label: 'Excellent', color: '#22c55e', range: [80, 100] },
 ];
 
-// Emotion categories for weekly tracker
-const EMOTION_CATEGORIES = [
-  { name: 'Happy', color: '#fbbf24', bgColor: 'bg-yellow-400' },
-  { name: 'Excited', color: '#f472b6', bgColor: 'bg-pink-400' },
-  { name: 'Grateful', color: '#34d399', bgColor: 'bg-emerald-400' },
-  { name: 'Peaceful', color: '#60a5fa', bgColor: 'bg-blue-400' },
-  { name: 'Confident', color: '#a78bfa', bgColor: 'bg-violet-400' },
-  { name: 'Sad', color: '#93c5fd', bgColor: 'bg-blue-300' },
-  { name: 'Angry', color: '#f87171', bgColor: 'bg-red-400' },
-  { name: 'Frustrated', color: '#fb923c', bgColor: 'bg-orange-400' },
-  { name: 'Anxious', color: '#c084fc', bgColor: 'bg-purple-400' },
-  { name: 'Stressed', color: '#f472b6', bgColor: 'bg-pink-400' },
-  { name: 'Jealous', color: '#4ade80', bgColor: 'bg-green-400' },
-];
+// Color palette for dynamic emotions
+const POSITIVE_COLORS = ['#22c55e', '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9', '#3b82f6', '#6366f1'];
+const NEGATIVE_COLORS = ['#ef4444', '#f97316', '#f59e0b', '#eab308', '#dc2626', '#c026d3', '#9333ea'];
 
 const DAYS_OF_WEEK = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -158,23 +147,61 @@ function MoodMeter({ percentage }: { percentage: number }) {
   );
 }
 
-// Weekly Feelings Tracker Grid Component
+// Weekly Feelings Tracker Grid Component - Dynamic based on user's actual emotions
 function WeeklyFeelingsTracker({ weeklyEmotions }: { weeklyEmotions?: EmotionalStats['weeklyEmotions'] }) {
-  // Helper to check if an emotion was felt on a given day
-  const hasEmotion = (day: string, emotionName: string) => {
+  // Extract all unique emotions from the week's data
+  const getUniqueEmotions = () => {
+    if (!weeklyEmotions) return { positive: [], negative: [] };
+    
+    const positiveSet = new Set<string>();
+    const negativeSet = new Set<string>();
+    
+    weeklyEmotions.forEach(dayData => {
+      // Positive emotions from positive column
+      dayData.emotions.positive.forEach(e => {
+        const cleaned = e.trim();
+        if (cleaned && cleaned.length < 30) positiveSet.add(cleaned);
+      });
+      
+      // Negative emotions from negative column
+      dayData.emotions.negative.forEach(e => {
+        const cleaned = e.trim();
+        if (cleaned && cleaned.length < 30) negativeSet.add(cleaned);
+      });
+    });
+    
+    return {
+      positive: Array.from(positiveSet).slice(0, 8), // Limit to top 8
+      negative: Array.from(negativeSet).slice(0, 6), // Limit to top 6
+    };
+  };
+
+  const { positive: positiveEmotions, negative: negativeEmotions } = getUniqueEmotions();
+  
+  // Check if emotion exists for a given day
+  const hasEmotionOnDay = (day: string, emotionName: string, type: 'positive' | 'negative') => {
     if (!weeklyEmotions) return false;
     const dayData = weeklyEmotions.find(d => d.day === day);
     if (!dayData) return false;
     
-    const allEmotions = [
-      ...dayData.emotions.positive,
-      ...dayData.emotions.negative,
-      ...dayData.emotions.repeating,
-      ...dayData.emotions.missing,
-    ].map(e => e.toLowerCase());
-    
-    return allEmotions.some(e => e.includes(emotionName.toLowerCase()));
+    const emotions = type === 'positive' ? dayData.emotions.positive : dayData.emotions.negative;
+    return emotions.some(e => e.toLowerCase().trim() === emotionName.toLowerCase().trim());
   };
+
+  // No emotions recorded
+  if (positiveEmotions.length === 0 && negativeEmotions.length === 0) {
+    return (
+      <div className="p-4">
+        <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-2 text-center">
+          Weekly Feelings Tracker
+        </h3>
+        <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">
+          No emotions recorded this week yet.<br/>
+          Start tracking in the Emotional Tracker to see your patterns!
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4">
@@ -182,14 +209,14 @@ function WeeklyFeelingsTracker({ weeklyEmotions }: { weeklyEmotions?: EmotionalS
         Weekly Feelings Tracker
       </h3>
       <p className="text-xs text-gray-500 dark:text-gray-400 mb-4 text-center">
-        Emotions you felt each day this week
+        Your emotions across the week (from Positive & Negative columns)
       </p>
       
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto max-h-[280px] overflow-y-auto">
         <table className="w-full text-sm">
-          <thead>
+          <thead className="sticky top-0 bg-white dark:bg-gray-800 z-10">
             <tr>
-              <th className="py-2 px-1 text-left text-gray-700 dark:text-gray-300"></th>
+              <th className="py-2 px-1 text-left text-gray-700 dark:text-gray-300 text-xs">Emotion</th>
               {DAYS_OF_WEEK.map((day, idx) => (
                 <th 
                   key={day} 
@@ -205,24 +232,68 @@ function WeeklyFeelingsTracker({ weeklyEmotions }: { weeklyEmotions?: EmotionalS
             </tr>
           </thead>
           <tbody>
-            {EMOTION_CATEGORIES.map((emotion) => (
-              <tr key={emotion.name} className="border-b border-gray-100 dark:border-gray-700">
-                <td className="py-2 px-1 flex items-center gap-2">
+            {/* Positive Emotions Section */}
+            {positiveEmotions.length > 0 && (
+              <tr className="bg-green-50 dark:bg-green-900/20">
+                <td colSpan={8} className="py-1 px-2 text-xs font-semibold text-green-700 dark:text-green-400">
+                  ✨ Positive
+                </td>
+              </tr>
+            )}
+            {positiveEmotions.map((emotion, idx) => (
+              <tr key={`pos-${emotion}-${idx}`} className="border-b border-gray-100 dark:border-gray-700">
+                <td className="py-1.5 px-1 flex items-center gap-2">
                   <span 
-                    className="w-3 h-3 rounded-full inline-block"
-                    style={{ backgroundColor: emotion.color }}
+                    className="w-2.5 h-2.5 rounded-full inline-block flex-shrink-0"
+                    style={{ backgroundColor: POSITIVE_COLORS[idx % POSITIVE_COLORS.length] }}
                   />
-                  <span className="text-xs text-gray-700 dark:text-gray-300">{emotion.name}</span>
+                  <span className="text-xs text-gray-700 dark:text-gray-300 truncate max-w-[100px]" title={emotion}>
+                    {emotion}
+                  </span>
                 </td>
                 {DAYS_OF_WEEK.map((day) => (
-                  <td key={day} className="py-2 px-1 text-center">
-                    {hasEmotion(day, emotion.name) ? (
+                  <td key={day} className="py-1.5 px-1 text-center">
+                    {hasEmotionOnDay(day, emotion, 'positive') ? (
                       <span 
-                        className="inline-block w-5 h-5 rounded-full"
-                        style={{ backgroundColor: emotion.color }}
+                        className="inline-block w-4 h-4 rounded-full"
+                        style={{ backgroundColor: POSITIVE_COLORS[idx % POSITIVE_COLORS.length] }}
                       />
                     ) : (
-                      <span className="inline-block w-5 h-5 rounded-full bg-gray-200 dark:bg-gray-600 opacity-30" />
+                      <span className="inline-block w-4 h-4 rounded-full bg-gray-200 dark:bg-gray-600 opacity-20" />
+                    )}
+                  </td>
+                ))}
+              </tr>
+            ))}
+            
+            {/* Negative Emotions Section */}
+            {negativeEmotions.length > 0 && (
+              <tr className="bg-red-50 dark:bg-red-900/20">
+                <td colSpan={8} className="py-1 px-2 text-xs font-semibold text-red-700 dark:text-red-400">
+                  💔 Negative
+                </td>
+              </tr>
+            )}
+            {negativeEmotions.map((emotion, idx) => (
+              <tr key={`neg-${emotion}-${idx}`} className="border-b border-gray-100 dark:border-gray-700">
+                <td className="py-1.5 px-1 flex items-center gap-2">
+                  <span 
+                    className="w-2.5 h-2.5 rounded-full inline-block flex-shrink-0"
+                    style={{ backgroundColor: NEGATIVE_COLORS[idx % NEGATIVE_COLORS.length] }}
+                  />
+                  <span className="text-xs text-gray-700 dark:text-gray-300 truncate max-w-[100px]" title={emotion}>
+                    {emotion}
+                  </span>
+                </td>
+                {DAYS_OF_WEEK.map((day) => (
+                  <td key={day} className="py-1.5 px-1 text-center">
+                    {hasEmotionOnDay(day, emotion, 'negative') ? (
+                      <span 
+                        className="inline-block w-4 h-4 rounded-full"
+                        style={{ backgroundColor: NEGATIVE_COLORS[idx % NEGATIVE_COLORS.length] }}
+                      />
+                    ) : (
+                      <span className="inline-block w-4 h-4 rounded-full bg-gray-200 dark:bg-gray-600 opacity-20" />
                     )}
                   </td>
                 ))}
