@@ -1004,6 +1004,8 @@ export default function EmotionalTracker() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <EmotionalPreviewDialog open={previewOpen} onOpenChange={setPreviewOpen} />
     </>
   );
 }
