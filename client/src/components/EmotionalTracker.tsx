@@ -662,194 +662,170 @@ export default function EmotionalTracker() {
                 </tr>
               </thead>
               <tbody>
-                {TIME_SLOTS.map((timeSlot, index) => {
-                  const data = trackerData[timeSlot] || {
-                    timeSlot,
-                    date: currentDateStr,
-                    userId: '',
-                    positiveEmotions: '',
-                    negativeEmotions: '',
-                    repeatingEmotions: '',
-                    missingEmotions: '',
-                  };
+                {(() => {
+                  // Compute aggregated repeating emotions for the merged cell
+                  const allRepeating: string[] = [];
+                  Object.values(trackerData).forEach((d: any) => {
+                    if (d?.repeatingEmotions && typeof d.repeatingEmotions === 'string' && d.repeatingEmotions.trim()) {
+                      allRepeating.push(d.repeatingEmotions.trim());
+                    }
+                  });
+                  
+                  const countMap: Record<string, number> = {};
+                  allRepeating.forEach(emotion => {
+                    countMap[emotion] = (countMap[emotion] || 0) + 1;
+                  });
+                  
+                  const positiveRepeating: { emotion: string; count: number }[] = [];
+                  const negativeRepeating: { emotion: string; count: number }[] = [];
+                  
+                  Object.entries(countMap).forEach(([emotion, count]) => {
+                    const type = getRepeatingEmotionType(emotion);
+                    if (type === 'positive') {
+                      positiveRepeating.push({ emotion, count });
+                    } else {
+                      negativeRepeating.push({ emotion, count });
+                    }
+                  });
 
-                  return (
-                    <tr
-                      key={timeSlot}
-                      className={`border-b border-primary/20 dark:border-primary/30 hover-elevate h-[52px] ${
-                        index % 2 === 0 ? 'bg-white/50 dark:bg-gray-900/20' : 'bg-primary/5 dark:bg-primary/10'
-                      }`}
-                    >
-                      <td className="p-1.5 sm:p-2 md:p-3 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 align-top" data-testid={`time-slot-${index}`}>
-                        {timeSlot}
-                      </td>
-                      
-                      {/* Positive Emotions - Inline Dropdown */}
-                      <td className="p-1 sm:p-1.5 md:p-2 align-top">
-                        <Select value={data.positiveEmotions} onValueChange={(value) => handlePositiveEmotionChange(timeSlot, value)}>
-                          <SelectTrigger 
-                            className={`h-[36px] w-full text-sm ${FIELD_COLORS.positiveEmotions.bg} ${FIELD_COLORS.positiveEmotions.border} border hover:border-green-400 dark:hover:border-green-500 transition-colors`}
-                            data-testid={`input-positive-${index}`}
-                          >
-                            <SelectValue placeholder="Select emotion..." />
-                          </SelectTrigger>
-                          <SelectContent className="max-h-[300px]">
-                            <SelectItem value="ADD_CUSTOM" data-testid={`button-add-custom-emotion-${index}`}>
-                              <span className="text-primary font-semibold">+ Add Custom Emotion</span>
-                            </SelectItem>
-                            <div className="border-t border-gray-200 dark:border-gray-700 my-1" />
-                            {[...POSITIVE_EMOTIONS, ...customEmotions].map((emotion) => (
-                              <SelectItem key={emotion} value={emotion}>
-                                {emotion}
+                  return TIME_SLOTS.map((timeSlot, index) => {
+                    const data = trackerData[timeSlot] || {
+                      timeSlot,
+                      date: currentDateStr,
+                      userId: '',
+                      positiveEmotions: '',
+                      negativeEmotions: '',
+                      repeatingEmotions: '',
+                      missingEmotions: '',
+                    };
+
+                    return (
+                      <tr
+                        key={timeSlot}
+                        className={`border-b border-primary/20 dark:border-primary/30 hover-elevate h-[52px] ${
+                          index % 2 === 0 ? 'bg-white/50 dark:bg-gray-900/20' : 'bg-primary/5 dark:bg-primary/10'
+                        }`}
+                      >
+                        <td className="p-1.5 sm:p-2 md:p-3 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 align-top" data-testid={`time-slot-${index}`}>
+                          {timeSlot}
+                        </td>
+                        
+                        {/* Positive Emotions - Inline Dropdown */}
+                        <td className="p-1 sm:p-1.5 md:p-2 align-top">
+                          <Select value={data.positiveEmotions} onValueChange={(value) => handlePositiveEmotionChange(timeSlot, value)}>
+                            <SelectTrigger 
+                              className={`h-[36px] w-full text-sm ${FIELD_COLORS.positiveEmotions.bg} ${FIELD_COLORS.positiveEmotions.border} border hover:border-green-400 dark:hover:border-green-500 transition-colors`}
+                              data-testid={`input-positive-${index}`}
+                            >
+                              <SelectValue placeholder="Select emotion..." />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-[300px]">
+                              <SelectItem value="ADD_CUSTOM" data-testid={`button-add-custom-emotion-${index}`}>
+                                <span className="text-primary font-semibold">+ Add Custom Emotion</span>
                               </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </td>
+                              <div className="border-t border-gray-200 dark:border-gray-700 my-1" />
+                              {[...POSITIVE_EMOTIONS, ...customEmotions].map((emotion) => (
+                                <SelectItem key={emotion} value={emotion}>
+                                  {emotion}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </td>
 
-                      {/* Negative Emotions - Inline Dropdown */}
-                      <td className="p-1 sm:p-1.5 md:p-2 align-top">
-                        <Select value={data.negativeEmotions} onValueChange={(value) => handleNegativeEmotionChange(timeSlot, value)}>
-                          <SelectTrigger 
-                            className={`h-[36px] w-full text-sm ${FIELD_COLORS.negativeEmotions.bg} ${FIELD_COLORS.negativeEmotions.border} border hover:border-red-400 dark:hover:border-red-500 transition-colors`}
-                            data-testid={`input-negative-${index}`}
-                          >
-                            <SelectValue placeholder="Select emotion..." />
-                          </SelectTrigger>
-                          <SelectContent className="max-h-[300px]">
-                            <SelectItem value="ADD_CUSTOM" data-testid={`button-add-custom-negative-emotion-${index}`}>
-                              <span className="text-primary font-semibold">+ Add Custom Emotion</span>
-                            </SelectItem>
-                            <div className="border-t border-gray-200 dark:border-gray-700 my-1" />
-                            {[...NEGATIVE_EMOTIONS, ...customNegativeEmotions].map((emotion) => (
-                              <SelectItem key={emotion} value={emotion}>
-                                {emotion}
+                        {/* Negative Emotions - Inline Dropdown */}
+                        <td className="p-1 sm:p-1.5 md:p-2 align-top">
+                          <Select value={data.negativeEmotions} onValueChange={(value) => handleNegativeEmotionChange(timeSlot, value)}>
+                            <SelectTrigger 
+                              className={`h-[36px] w-full text-sm ${FIELD_COLORS.negativeEmotions.bg} ${FIELD_COLORS.negativeEmotions.border} border hover:border-red-400 dark:hover:border-red-500 transition-colors`}
+                              data-testid={`input-negative-${index}`}
+                            >
+                              <SelectValue placeholder="Select emotion..." />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-[300px]">
+                              <SelectItem value="ADD_CUSTOM" data-testid={`button-add-custom-negative-emotion-${index}`}>
+                                <span className="text-primary font-semibold">+ Add Custom Emotion</span>
                               </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </td>
+                              <div className="border-t border-gray-200 dark:border-gray-700 my-1" />
+                              {[...NEGATIVE_EMOTIONS, ...customNegativeEmotions].map((emotion) => (
+                                <SelectItem key={emotion} value={emotion}>
+                                  {emotion}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </td>
 
-                      {/* Repeating Emotions - Auto-Detected (Read-Only) */}
-                      <td className="p-1 sm:p-1.5 md:p-2 align-top">
-                        <div
-                          className={`h-[36px] w-full text-sm border rounded-md px-3 flex items-center transition-colors ${
-                            getRepeatingEmotionType(data.repeatingEmotions) === 'positive'
-                              ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300'
-                              : getRepeatingEmotionType(data.repeatingEmotions) === 'negative'
-                              ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'
-                              : `${FIELD_COLORS.repeatingEmotions.bg} ${FIELD_COLORS.repeatingEmotions.border} ${FIELD_COLORS.repeatingEmotions.text}`
-                          }`}
-                          data-testid={`display-repeating-${index}`}
-                        >
-                          {data.repeatingEmotions ? (
-                            <span className="truncate font-medium">{data.repeatingEmotions}</span>
-                          ) : (
-                            <span className="text-gray-400 dark:text-gray-500 italic text-xs">Auto-detected</span>
-                          )}
-                        </div>
-                      </td>
-
-                      {/* Missing Emotions - Inline Dropdown */}
-                      <td className="p-1 sm:p-1.5 md:p-2 align-top">
-                        <Select value={data.missingEmotions} onValueChange={(value) => handleMissingEmotionChange(timeSlot, value)}>
-                          <SelectTrigger 
-                            className={`h-[36px] w-full text-sm ${FIELD_COLORS.missingEmotions.bg} ${FIELD_COLORS.missingEmotions.border} border hover:border-orange-400 dark:hover:border-orange-500 transition-colors`}
-                            data-testid={`input-missing-${index}`}
+                        {/* Repeating Emotions - Merged Cell with Aggregated Summary (only first row) */}
+                        {index === 0 && (
+                          <td 
+                            className="p-2 sm:p-3 align-top bg-gradient-to-b from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-l border-blue-200 dark:border-blue-800"
+                            rowSpan={TIME_SLOTS.length}
+                            data-testid="display-repeating-summary"
                           >
-                            <SelectValue placeholder="Select emotion..." />
-                          </SelectTrigger>
-                          <SelectContent className="max-h-[300px]">
-                            <SelectItem value="ADD_CUSTOM" data-testid={`button-add-custom-missing-emotion-${index}`}>
-                              <span className="text-primary font-semibold">+ Add Custom Emotion</span>
-                            </SelectItem>
-                            <div className="border-t border-gray-200 dark:border-gray-700 my-1" />
-                            {[...MISSING_EMOTIONS, ...customMissingEmotions].map((emotion) => (
-                              <SelectItem key={emotion} value={emotion}>
-                                {emotion}
+                            <div className="flex flex-col gap-2 h-full">
+                              {allRepeating.length === 0 ? (
+                                <div className="text-gray-400 dark:text-gray-500 italic text-xs text-center py-4">
+                                  Auto-detected from your emotions
+                                </div>
+                              ) : (
+                                <div className="flex flex-wrap gap-1.5">
+                                  {/* Positive Repeating Emotions First */}
+                                  {positiveRepeating.map(({ emotion, count }) => (
+                                    <span
+                                      key={`pos-${emotion}`}
+                                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 border border-green-300 dark:border-green-700"
+                                    >
+                                      {emotion}
+                                      {count > 1 && <span className="font-bold">-{count}</span>}
+                                    </span>
+                                  ))}
+                                  
+                                  {/* Negative Repeating Emotions Second (in Red) */}
+                                  {negativeRepeating.map(({ emotion, count }) => (
+                                    <span
+                                      key={`neg-${emotion}`}
+                                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-700"
+                                    >
+                                      {emotion}
+                                      {count > 1 && <span className="font-bold">-{count}</span>}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        )}
+
+                        {/* Missing Emotions - Inline Dropdown */}
+                        <td className="p-1 sm:p-1.5 md:p-2 align-top">
+                          <Select value={data.missingEmotions} onValueChange={(value) => handleMissingEmotionChange(timeSlot, value)}>
+                            <SelectTrigger 
+                              className={`h-[36px] w-full text-sm ${FIELD_COLORS.missingEmotions.bg} ${FIELD_COLORS.missingEmotions.border} border hover:border-orange-400 dark:hover:border-orange-500 transition-colors`}
+                              data-testid={`input-missing-${index}`}
+                            >
+                              <SelectValue placeholder="Select emotion..." />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-[300px]">
+                              <SelectItem value="ADD_CUSTOM" data-testid={`button-add-custom-missing-emotion-${index}`}>
+                                <span className="text-primary font-semibold">+ Add Custom Emotion</span>
                               </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </td>
-                    </tr>
-                  );
-                })}
+                              <div className="border-t border-gray-200 dark:border-gray-700 my-1" />
+                              {[...MISSING_EMOTIONS, ...customMissingEmotions].map((emotion) => (
+                                <SelectItem key={emotion} value={emotion}>
+                                  {emotion}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </td>
+                      </tr>
+                    );
+                  });
+                })()}
               </tbody>
             </table>
           </div>
-          
-          {/* Repeating Emotions Summary Section */}
-          {(() => {
-            // Aggregate all repeating emotions from all time slots
-            const allRepeating: string[] = [];
-            Object.values(trackerData).forEach((data: any) => {
-              if (data?.repeatingEmotions && typeof data.repeatingEmotions === 'string' && data.repeatingEmotions.trim()) {
-                allRepeating.push(data.repeatingEmotions.trim());
-              }
-            });
-            
-            if (allRepeating.length === 0) return null;
-            
-            // Count occurrences and group by positive/negative
-            const countMap: Record<string, number> = {};
-            allRepeating.forEach(emotion => {
-              countMap[emotion] = (countMap[emotion] || 0) + 1;
-            });
-            
-            // Separate into positive and negative
-            const positiveEmotions: { emotion: string; count: number }[] = [];
-            const negativeEmotions: { emotion: string; count: number }[] = [];
-            
-            Object.entries(countMap).forEach(([emotion, count]) => {
-              const type = getRepeatingEmotionType(emotion);
-              if (type === 'positive') {
-                positiveEmotions.push({ emotion, count });
-              } else {
-                // Default to negative if not explicitly positive
-                negativeEmotions.push({ emotion, count });
-              }
-            });
-            
-            return (
-              <div className="mt-4 p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                <h3 className="text-sm font-semibold text-blue-700 dark:text-blue-300 mb-3 flex items-center gap-2">
-                  <RefreshCcw className="h-4 w-4" />
-                  Today's Repeating Emotions Summary
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {/* Positive Repeating Emotions (First Half) */}
-                  {positiveEmotions.map(({ emotion, count }) => (
-                    <span
-                      key={`pos-${emotion}`}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 border border-green-300 dark:border-green-700"
-                      data-testid={`badge-repeating-positive-${emotion}`}
-                    >
-                      {emotion}
-                      {count > 1 && <span className="font-bold">-{count}</span>}
-                    </span>
-                  ))}
-                  
-                  {/* Separator if we have both types */}
-                  {positiveEmotions.length > 0 && negativeEmotions.length > 0 && (
-                    <span className="text-gray-400 dark:text-gray-500 mx-1">|</span>
-                  )}
-                  
-                  {/* Negative Repeating Emotions (Second Half - in Red) */}
-                  {negativeEmotions.map(({ emotion, count }) => (
-                    <span
-                      key={`neg-${emotion}`}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-700"
-                      data-testid={`badge-repeating-negative-${emotion}`}
-                    >
-                      {emotion}
-                      {count > 1 && <span className="font-bold">-{count}</span>}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            );
-          })()}
           
           {saveMutation.isPending && (
             <div className="mt-4 text-sm text-purple-600 dark:text-purple-400 flex items-center gap-2">
