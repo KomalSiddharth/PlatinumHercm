@@ -6816,83 +6816,82 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
         return 'neutral';
       };
 
-      // Calculate positivity based on emotion counts across all 4 columns
-      const calculatePositivityPercentage = (trackers: any[]) => {
-        if (trackers.length === 0) return 50; // Neutral if no data
-
+      // Count emotions from trackers - returns {positive, negative, hasData}
+      const countEmotions = (trackers: any[]) => {
         let positiveCount = 0;
         let negativeCount = 0;
+        let hasData = false;
 
         trackers.forEach((tracker: any) => {
-          // Positive column - all count as positive
-          if (tracker.positiveEmotions && Array.isArray(tracker.positiveEmotions)) {
-            positiveCount += tracker.positiveEmotions.length;
+          // Each column stores a SINGLE emotion string (not array)
+          // Positive column - count as positive if exists
+          if (tracker.positiveEmotions && typeof tracker.positiveEmotions === 'string' && tracker.positiveEmotions.trim()) {
+            positiveCount++;
+            hasData = true;
           }
 
-          // Negative column - all count as negative
-          if (tracker.negativeEmotions && Array.isArray(tracker.negativeEmotions)) {
-            negativeCount += tracker.negativeEmotions.length;
+          // Negative column - count as negative if exists
+          if (tracker.negativeEmotions && typeof tracker.negativeEmotions === 'string' && tracker.negativeEmotions.trim()) {
+            negativeCount++;
+            hasData = true;
           }
 
-          // Repeating column - categorize each emotion
-          if (tracker.repeatingEmotions && Array.isArray(tracker.repeatingEmotions)) {
-            tracker.repeatingEmotions.forEach((emotion: string) => {
-              const category = categorizeEmotion(emotion);
-              if (category === 'positive') positiveCount++;
-              else if (category === 'negative') negativeCount++;
-              // neutral emotions don't affect the score
-            });
+          // Repeating column - categorize the emotion
+          if (tracker.repeatingEmotions && typeof tracker.repeatingEmotions === 'string' && tracker.repeatingEmotions.trim()) {
+            const category = categorizeEmotion(tracker.repeatingEmotions);
+            if (category === 'positive') positiveCount++;
+            else if (category === 'negative') negativeCount++;
+            hasData = true;
           }
 
           // Missing column - these are emotions user wants but doesn't have
-          // If missing positive emotions = slightly negative (wanting something you don't have)
-          // If missing negative emotions = slightly positive (not having bad emotions)
-          if (tracker.missingEmotions && Array.isArray(tracker.missingEmotions)) {
-            tracker.missingEmotions.forEach((emotion: string) => {
-              const category = categorizeEmotion(emotion);
-              // Missing positive emotions = user feels absence of good feelings
-              if (category === 'positive') negativeCount += 0.5;
-              // Missing negative emotions = user is free from bad feelings
-              else if (category === 'negative') positiveCount += 0.5;
-            });
+          if (tracker.missingEmotions && typeof tracker.missingEmotions === 'string' && tracker.missingEmotions.trim()) {
+            const category = categorizeEmotion(tracker.missingEmotions);
+            // Missing positive emotions = user feels absence of good feelings
+            if (category === 'positive') negativeCount += 0.5;
+            // Missing negative emotions = user is free from bad feelings
+            else if (category === 'negative') positiveCount += 0.5;
+            hasData = true;
           }
         });
 
-        const total = positiveCount + negativeCount;
-        
-        // No emotions entered = neutral (50%)
-        if (total === 0) return 50;
-
-        // Calculate percentage: (positive / total) * 100
-        // This gives us 0-100% where:
-        // - 100% = all positive emotions
-        // - 0% = all negative emotions  
-        // - 50% = balanced
-        const percentage = Math.round((positiveCount / total) * 100);
-        
-        return Math.min(100, Math.max(0, percentage));
+        return { positiveCount, negativeCount, hasData };
       };
 
-      // Generate 7-day trend and weekly emotions
-      const dailyTrend = [];
+      // Calculate positivity percentage from counts
+      const calculatePercentage = (positiveCount: number, negativeCount: number, hasData: boolean) => {
+        if (!hasData) return null; // No data = null (not 50%)
+        
+        const total = positiveCount + negativeCount;
+        if (total === 0) return null; // No emotions = null
+        
+        return Math.min(100, Math.max(0, Math.round((positiveCount / total) * 100)));
+      };
+
+      // ===== CALCULATE TODAY'S DATA =====
+      const todayCounts = countEmotions(allTrackers);
+      const dailyPercentage = calculatePercentage(todayCounts.positiveCount, todayCounts.negativeCount, todayCounts.hasData);
+
+      // ===== CALCULATE WEEKLY DATA (Cumulative - last 7 days) =====
       const weeklyEmotions = [];
       const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       
-      let weeklyPositiveTotal = 0;
-      let weeklyDaysWithData = 0;
+      let weeklyPositive = 0;
+      let weeklyNegative = 0;
+      let weeklyHasData = false;
 
       for (let i = 6; i >= 0; i--) {
         const date = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
         const dateStr = formatDate(date);
         const dayTrackers = await storage.getEmotionalTrackersByDate(userId, dateStr);
-        const percentage = calculatePositivityPercentage(dayTrackers);
         
-        dailyTrend.push({
-          date: format(date, 'MMM dd'),
-          percentage,
-        });
+        // Accumulate counts for weekly cumulative
+        const dayCounts = countEmotions(dayTrackers);
+        weeklyPositive += dayCounts.positiveCount;
+        weeklyNegative += dayCounts.negativeCount;
+        if (dayCounts.hasData) weeklyHasData = true;
 
-        // Collect weekly emotions
+        // Collect weekly emotions for the tracker display
         const dayEmotions = {
           positive: [] as string[],
           negative: [] as string[],
@@ -6901,12 +6900,9 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
         };
 
         dayTrackers.forEach((tracker: any) => {
-          // Each emotion column stores a single emotion string (not array)
-          // Just add the string directly if it exists and is short enough
           const addEmotion = (emotion: any, target: string[]) => {
             if (!emotion) return;
             const str = String(emotion).trim();
-            // Only add short, meaningful emotions (not long descriptions)
             if (str && str.length > 1 && str.length < 30) {
               target.push(str);
             }
@@ -6922,22 +6918,44 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
           day: dayNames[date.getDay()],
           emotions: dayEmotions,
         });
-
-        if (dayTrackers.length > 0) {
-          weeklyPositiveTotal += percentage;
-          weeklyDaysWithData++;
-        }
       }
 
-      // Calculate weekly average
-      const weeklyAverage = weeklyDaysWithData > 0 ? Math.round(weeklyPositiveTotal / weeklyDaysWithData) : 0;
+      const weeklyPercentage = calculatePercentage(weeklyPositive, weeklyNegative, weeklyHasData);
+
+      // ===== CALCULATE MONTHLY DATA (Cumulative - last 30 days) =====
+      let monthlyPositive = weeklyPositive; // Start with weekly data
+      let monthlyNegative = weeklyNegative;
+      let monthlyHasData = weeklyHasData;
+
+      // Add days 8-30 (we already have days 1-7 from weekly)
+      for (let i = 7; i < 30; i++) {
+        const date = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
+        const dateStr = formatDate(date);
+        const dayTrackers = await storage.getEmotionalTrackersByDate(userId, dateStr);
+        
+        const dayCounts = countEmotions(dayTrackers);
+        monthlyPositive += dayCounts.positiveCount;
+        monthlyNegative += dayCounts.negativeCount;
+        if (dayCounts.hasData) monthlyHasData = true;
+      }
+
+      const monthlyPercentage = calculatePercentage(monthlyPositive, monthlyNegative, monthlyHasData);
+
+      // ===== YEARLY DATA - Only show if we have monthly data =====
+      // For now, yearly is same as monthly (would need more historical data)
+      const yearlyPercentage = monthlyHasData ? monthlyPercentage : null;
 
       res.json({
-        daily: calculatePositivityPercentage(allTrackers),
-        weekly: weeklyAverage,
-        monthly: weeklyAverage, // Approximation for now
-        yearly: weeklyAverage, // Approximation for now
-        dailyTrend,
+        daily: dailyPercentage ?? 0,
+        weekly: weeklyPercentage ?? 0,
+        monthly: monthlyPercentage ?? 0,
+        yearly: yearlyPercentage ?? 0,
+        hasData: {
+          daily: todayCounts.hasData,
+          weekly: weeklyHasData,
+          monthly: monthlyHasData,
+          yearly: monthlyHasData, // Only true if monthly has data
+        },
         weeklyEmotions,
       });
     } catch (error) {

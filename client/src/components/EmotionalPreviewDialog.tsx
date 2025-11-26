@@ -8,7 +8,12 @@ interface EmotionalStats {
   weekly: number;
   monthly: number;
   yearly: number;
-  dailyTrend: Array<{ date: string; percentage: number }>;
+  hasData?: {
+    daily: boolean;
+    weekly: boolean;
+    monthly: boolean;
+    yearly: boolean;
+  };
   weeklyEmotions?: Array<{
     day: string;
     emotions: {
@@ -392,12 +397,34 @@ export function EmotionalPreviewDialog({ open, onOpenChange }: { open: boolean; 
     );
   }
 
-  // Bar data with both positive and negative percentages
+  // Bar data with both positive and negative percentages - only include periods with data
+  const hasData = stats.hasData || { daily: true, weekly: true, monthly: true, yearly: true };
+  
   const barData = [
-    { period: 'Today', positive: stats.daily, negative: 100 - stats.daily },
-    { period: 'Week', positive: stats.weekly, negative: 100 - stats.weekly },
-    { period: 'Month', positive: stats.monthly, negative: 100 - stats.monthly },
-    { period: 'Year', positive: stats.yearly, negative: 100 - stats.yearly },
+    { 
+      period: 'Today', 
+      positive: hasData.daily ? stats.daily : 0, 
+      negative: hasData.daily ? 100 - stats.daily : 0,
+      hasData: hasData.daily 
+    },
+    { 
+      period: 'Week', 
+      positive: hasData.weekly ? stats.weekly : 0, 
+      negative: hasData.weekly ? 100 - stats.weekly : 0,
+      hasData: hasData.weekly 
+    },
+    { 
+      period: 'Month', 
+      positive: hasData.monthly ? stats.monthly : 0, 
+      negative: hasData.monthly ? 100 - stats.monthly : 0,
+      hasData: hasData.monthly 
+    },
+    { 
+      period: 'Year', 
+      positive: hasData.yearly ? stats.yearly : 0, 
+      negative: hasData.yearly ? 100 - stats.yearly : 0,
+      hasData: hasData.yearly 
+    },
   ];
 
   return (
@@ -425,16 +452,46 @@ export function EmotionalPreviewDialog({ open, onOpenChange }: { open: boolean; 
           <div className="border rounded-lg p-4 bg-white dark:bg-gray-800">
             <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Positivity vs Negativity Across Periods</h3>
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
-              Calculated from positive vs negative emotions across all columns (Positive, Negative, Repeating, Missing)
+              Cumulative count of positive vs negative emotions. Today = today only, Week = last 7 days, Month = last 30 days
             </p>
             <div style={{ width: '100%', height: 280 }}>
               <ResponsiveContainer width="100%" height={280}>
                 <BarChart data={barData} barGap={4}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="period" />
+                  <XAxis 
+                    dataKey="period" 
+                    tick={({ x, y, payload }: any) => {
+                      const item = barData.find(d => d.period === payload.value);
+                      return (
+                        <g transform={`translate(${x},${y})`}>
+                          <text 
+                            x={0} y={0} dy={16} 
+                            textAnchor="middle" 
+                            fill={item?.hasData ? '#374151' : '#9ca3af'}
+                            fontSize={12}
+                          >
+                            {payload.value}
+                          </text>
+                          {!item?.hasData && (
+                            <text 
+                              x={0} y={0} dy={30} 
+                              textAnchor="middle" 
+                              fill="#9ca3af"
+                              fontSize={9}
+                            >
+                              (No data)
+                            </text>
+                          )}
+                        </g>
+                      );
+                    }}
+                  />
                   <YAxis domain={[0, 100]} tickFormatter={(val) => `${val}%`} />
                   <Tooltip 
-                    formatter={(value: number, name: string) => [`${value}%`, name === 'positive' ? 'Positive' : 'Negative']}
+                    formatter={(value: number, name: string, props: any) => {
+                      if (!props.payload.hasData) return ['No data', ''];
+                      return [`${value}%`, name === 'positive' ? 'Positive' : 'Negative'];
+                    }}
                     contentStyle={{ backgroundColor: 'rgba(255,255,255,0.95)', borderRadius: '8px' }}
                   />
                   <Legend 
@@ -460,31 +517,47 @@ export function EmotionalPreviewDialog({ open, onOpenChange }: { open: boolean; 
           {/* Stats Summary - Positive and Negative */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-gradient-to-r from-emerald-50 to-red-50 dark:from-emerald-900/20 dark:to-red-900/20 rounded-lg">
             <div className="text-center">
-              <div className="flex justify-center gap-2 items-baseline">
-                <span className="text-2xl font-bold text-green-600">{stats.daily}%</span>
-                <span className="text-lg font-medium text-red-500">/ {100 - stats.daily}%</span>
-              </div>
+              {hasData.daily ? (
+                <div className="flex justify-center gap-2 items-baseline">
+                  <span className="text-2xl font-bold text-green-600">{stats.daily}%</span>
+                  <span className="text-lg font-medium text-red-500">/ {100 - stats.daily}%</span>
+                </div>
+              ) : (
+                <div className="text-lg text-gray-400">No data</div>
+              )}
               <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">Today (Positive / Negative)</div>
             </div>
             <div className="text-center">
-              <div className="flex justify-center gap-2 items-baseline">
-                <span className="text-2xl font-bold text-green-600">{stats.weekly}%</span>
-                <span className="text-lg font-medium text-red-500">/ {100 - stats.weekly}%</span>
-              </div>
-              <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">This Week</div>
+              {hasData.weekly ? (
+                <div className="flex justify-center gap-2 items-baseline">
+                  <span className="text-2xl font-bold text-green-600">{stats.weekly}%</span>
+                  <span className="text-lg font-medium text-red-500">/ {100 - stats.weekly}%</span>
+                </div>
+              ) : (
+                <div className="text-lg text-gray-400">No data</div>
+              )}
+              <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">This Week (7 days)</div>
             </div>
             <div className="text-center">
-              <div className="flex justify-center gap-2 items-baseline">
-                <span className="text-2xl font-bold text-green-600">{stats.monthly}%</span>
-                <span className="text-lg font-medium text-red-500">/ {100 - stats.monthly}%</span>
-              </div>
-              <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">This Month</div>
+              {hasData.monthly ? (
+                <div className="flex justify-center gap-2 items-baseline">
+                  <span className="text-2xl font-bold text-green-600">{stats.monthly}%</span>
+                  <span className="text-lg font-medium text-red-500">/ {100 - stats.monthly}%</span>
+                </div>
+              ) : (
+                <div className="text-lg text-gray-400">No data</div>
+              )}
+              <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">This Month (30 days)</div>
             </div>
             <div className="text-center">
-              <div className="flex justify-center gap-2 items-baseline">
-                <span className="text-2xl font-bold text-green-600">{stats.yearly}%</span>
-                <span className="text-lg font-medium text-red-500">/ {100 - stats.yearly}%</span>
-              </div>
+              {hasData.yearly ? (
+                <div className="flex justify-center gap-2 items-baseline">
+                  <span className="text-2xl font-bold text-green-600">{stats.yearly}%</span>
+                  <span className="text-lg font-medium text-red-500">/ {100 - stats.yearly}%</span>
+                </div>
+              ) : (
+                <div className="text-lg text-gray-400">No data yet</div>
+              )}
               <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">This Year</div>
             </div>
           </div>
