@@ -56,110 +56,103 @@ function MoodMeter({ percentage }: { percentage: number }) {
   };
 
   const currentMood = getMoodLevel(percentage);
-  const rotation = (percentage / 100) * 180 - 90; // -90 to 90 degrees
+  // Map percentage to angle: 0% = -90deg (left), 100% = 90deg (right)
+  const needleAngle = (percentage / 100) * 180 - 90;
 
   return (
-    <div className="flex flex-col items-center p-4">
-      <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4">Today is</h3>
+    <div className="flex flex-col items-center p-6">
+      <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6">Today is</h3>
       
-      {/* Gauge Container */}
-      <div className="relative w-64 h-32 overflow-hidden">
-        {/* Gauge Background Arcs */}
-        <svg viewBox="0 0 200 100" className="w-full h-full">
+      {/* Gauge Container - Much wider */}
+      <div className="relative w-full max-w-md">
+        <svg viewBox="0 0 300 180" className="w-full">
+          {/* Gauge Arc Segments */}
           {/* Very Poor - Red */}
           <path
-            d="M 10 100 A 90 90 0 0 1 46 28"
+            d="M 30 150 A 120 120 0 0 1 66 54"
             fill="none"
             stroke="#dc2626"
-            strokeWidth="20"
-            strokeLinecap="round"
+            strokeWidth="28"
           />
           {/* Poor - Orange */}
           <path
-            d="M 46 28 A 90 90 0 0 1 100 10"
+            d="M 66 54 A 120 120 0 0 1 150 30"
             fill="none"
             stroke="#ea580c"
-            strokeWidth="20"
-            strokeLinecap="round"
+            strokeWidth="28"
           />
           {/* Average - Yellow */}
           <path
-            d="M 100 10 A 90 90 0 0 1 154 28"
+            d="M 150 30 A 120 120 0 0 1 234 54"
             fill="none"
             stroke="#eab308"
-            strokeWidth="20"
-            strokeLinecap="round"
+            strokeWidth="28"
           />
           {/* Good - Light Green */}
           <path
-            d="M 154 28 A 90 90 0 0 1 190 100"
+            d="M 234 54 A 120 120 0 0 1 270 150"
             fill="none"
             stroke="#84cc16"
-            strokeWidth="20"
-            strokeLinecap="round"
+            strokeWidth="28"
           />
-          {/* Excellent - Green (overlay for high values) */}
+          {/* Excellent section overlay */}
           <path
-            d="M 172 64 A 90 90 0 0 1 190 100"
+            d="M 258 110 A 120 120 0 0 1 270 150"
             fill="none"
             stroke="#22c55e"
-            strokeWidth="20"
-            strokeLinecap="round"
+            strokeWidth="28"
           />
-          
-          {/* Needle */}
-          <g transform={`rotate(${rotation}, 100, 100)`}>
-            <line
-              x1="100"
-              y1="100"
-              x2="100"
-              y2="25"
-              stroke="#1f2937"
-              strokeWidth="4"
-              strokeLinecap="round"
+
+          {/* Emoji faces on the arc */}
+          <text x="20" y="165" fontSize="24">😢</text>
+          <text x="50" y="75" fontSize="24">😟</text>
+          <text x="138" y="35" fontSize="24">😐</text>
+          <text x="225" y="75" fontSize="24">🙂</text>
+          <text x="255" y="165" fontSize="24">😄</text>
+
+          {/* Labels - positioned clearly below each segment */}
+          <text x="15" y="178" fontSize="11" fontWeight="600" fill="#dc2626">Very Poor</text>
+          <text x="62" y="95" fontSize="11" fontWeight="600" fill="#ea580c">Poor</text>
+          <text x="127" y="58" fontSize="12" fontWeight="600" fill="#eab308">Average</text>
+          <text x="215" y="95" fontSize="11" fontWeight="600" fill="#84cc16">Good</text>
+          <text x="235" y="178" fontSize="11" fontWeight="600" fill="#22c55e">Excellent</text>
+
+          {/* Needle - much more visible */}
+          <g transform={`rotate(${needleAngle}, 150, 150)`}>
+            {/* Needle shadow for depth */}
+            <polygon
+              points="150,45 144,150 156,150"
+              fill="rgba(0,0,0,0.2)"
+              transform="translate(2, 2)"
             />
-            <circle cx="100" cy="100" r="8" fill="#1f2937" />
+            {/* Needle body */}
+            <polygon
+              points="150,45 144,150 156,150"
+              fill="#1e293b"
+            />
+            {/* Needle tip highlight */}
+            <polygon
+              points="150,50 147,140 153,140"
+              fill="#334155"
+            />
+            {/* Center circle */}
+            <circle cx="150" cy="150" r="14" fill="#1e293b" stroke="#0f172a" strokeWidth="3" />
+            <circle cx="150" cy="150" r="6" fill="#64748b" />
           </g>
         </svg>
-
-        {/* Labels */}
-        <div className="absolute bottom-0 left-0 text-xs font-medium text-red-600 transform -rotate-45">
-          Very Poor
-        </div>
-        <div className="absolute bottom-8 left-6 text-xs font-medium text-orange-600">
-          Poor
-        </div>
-        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 text-xs font-medium text-yellow-600">
-          Average
-        </div>
-        <div className="absolute bottom-8 right-6 text-xs font-medium text-lime-600">
-          Good
-        </div>
-        <div className="absolute bottom-0 right-0 text-xs font-medium text-green-600 transform rotate-45">
-          Excellent
-        </div>
       </div>
 
-      {/* Current Status */}
-      <div className="mt-4 text-center">
+      {/* Current Status - Larger and more prominent */}
+      <div className="mt-2 text-center">
         <div 
-          className="text-3xl font-bold"
+          className="text-4xl font-bold drop-shadow-sm"
           style={{ color: currentMood.color }}
         >
           {currentMood.label}
         </div>
-        <div className="text-lg text-gray-600 dark:text-gray-400">
+        <div className="text-xl font-medium text-gray-600 dark:text-gray-400 mt-1">
           {percentage}% Positive
         </div>
-      </div>
-
-      {/* Emoji Faces */}
-      <div className="flex justify-between w-full mt-4 px-2">
-        <span className="text-2xl" title="Very Poor">😢</span>
-        <span className="text-2xl" title="Poor">😟</span>
-        <span className="text-2xl" title="Average">😐</span>
-        <span className="text-2xl" title="Good">🙂</span>
-        <span className="text-2xl" title="Excellent">😄</span>
       </div>
     </div>
   );
