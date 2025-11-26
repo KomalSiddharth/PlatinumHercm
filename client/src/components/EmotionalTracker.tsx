@@ -610,19 +610,27 @@ export default function EmotionalTracker() {
                         </div>
                       </td>
 
-                      {/* Missing Emotions */}
+                      {/* Missing Emotions - Inline Dropdown */}
                       <td className="p-1 sm:p-1.5 md:p-2 align-top">
-                        <div
-                          onClick={() => openEditDialog(timeSlot, 'missingEmotions')}
-                          className={`cursor-pointer h-[36px] w-full overflow-hidden rounded px-3 py-2 text-sm ${FIELD_COLORS.missingEmotions.bg} ${FIELD_COLORS.missingEmotions.border} border hover:border-orange-400 dark:hover:border-orange-500 transition-colors flex items-center`}
-                          data-testid={`input-missing-${index}`}
-                        >
-                          {data.missingEmotions ? (
-                            <span className="text-gray-700 dark:text-gray-200 truncate block">{data.missingEmotions}</span>
-                          ) : (
-                            <span className="text-gray-400 dark:text-gray-500 italic truncate block">Click to add...</span>
-                          )}
-                        </div>
+                        <Select value={data.missingEmotions} onValueChange={(value) => handleMissingEmotionChange(timeSlot, value)}>
+                          <SelectTrigger 
+                            className={`h-[36px] w-full text-sm ${FIELD_COLORS.missingEmotions.bg} ${FIELD_COLORS.missingEmotions.border} border hover:border-orange-400 dark:hover:border-orange-500 transition-colors`}
+                            data-testid={`input-missing-${index}`}
+                          >
+                            <SelectValue placeholder="Select emotion..." />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-[300px]">
+                            <SelectItem value="ADD_CUSTOM" data-testid={`button-add-custom-missing-emotion-${index}`}>
+                              <span className="text-primary font-semibold">+ Add Custom Emotion</span>
+                            </SelectItem>
+                            <div className="border-t border-gray-200 dark:border-gray-700 my-1" />
+                            {[...MISSING_EMOTIONS, ...customMissingEmotions].map((emotion) => (
+                              <SelectItem key={emotion} value={emotion}>
+                                {emotion}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </td>
                     </tr>
                   );
