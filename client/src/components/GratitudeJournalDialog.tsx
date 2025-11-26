@@ -331,7 +331,7 @@ export function GratitudeJournalDialog({ open, onOpenChange }: GratitudeJournalD
                         data-testid={`gratitude-item-${item.id}`}
                       >
                         {/* Bullet Point */}
-                        <span className="flex-shrink-0 mt-1.5 w-2 h-2 rounded-full" style={{ backgroundColor: '#b45309' }} />
+                        <span className="flex-shrink-0 mt-1.5 ml-2 w-2 h-2 rounded-full" style={{ backgroundColor: '#b45309' }} />
                         
                         {/* Text or Edit Input */}
                         {editingId === item.id ? (
