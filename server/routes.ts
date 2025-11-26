@@ -6763,9 +6763,6 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
       }
 
       const today = new Date();
-      const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-      const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
-      const yearAgo = new Date(today.getTime() - 365 * 24 * 60 * 60 * 1000);
 
       const formatDate = (d: Date) => {
         const year = d.getFullYear();
@@ -6774,7 +6771,7 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
         return `${year}-${month}-${day}`;
       };
 
-      // Get all trackers for different periods
+      // Get all trackers for today
       const allTrackers = await storage.getEmotionalTrackersByDate(userId, formatDate(today));
       
       const calculatePositivityPercentage = (trackers: any[]) => {
@@ -6783,25 +6780,61 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
         return Math.round((positiveCount / trackers.length) * 100);
       };
 
-      // Generate 7-day trend
+      // Generate 7-day trend and weekly emotions
       const dailyTrend = [];
+      const weeklyEmotions = [];
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      
+      let weeklyPositiveTotal = 0;
+      let weeklyDaysWithData = 0;
+
       for (let i = 6; i >= 0; i--) {
         const date = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
         const dateStr = formatDate(date);
         const dayTrackers = await storage.getEmotionalTrackersByDate(userId, dateStr);
         const percentage = calculatePositivityPercentage(dayTrackers);
+        
         dailyTrend.push({
           date: format(date, 'MMM dd'),
           percentage,
         });
+
+        // Collect weekly emotions
+        const dayEmotions = {
+          positive: [] as string[],
+          negative: [] as string[],
+          repeating: [] as string[],
+          missing: [] as string[],
+        };
+
+        dayTrackers.forEach((tracker: any) => {
+          if (tracker.positiveEmotions) dayEmotions.positive.push(...tracker.positiveEmotions);
+          if (tracker.negativeEmotions) dayEmotions.negative.push(...tracker.negativeEmotions);
+          if (tracker.repeatingEmotions) dayEmotions.repeating.push(...tracker.repeatingEmotions);
+          if (tracker.missingEmotions) dayEmotions.missing.push(...tracker.missingEmotions);
+        });
+
+        weeklyEmotions.push({
+          day: dayNames[date.getDay()],
+          emotions: dayEmotions,
+        });
+
+        if (dayTrackers.length > 0) {
+          weeklyPositiveTotal += percentage;
+          weeklyDaysWithData++;
+        }
       }
+
+      // Calculate weekly average
+      const weeklyAverage = weeklyDaysWithData > 0 ? Math.round(weeklyPositiveTotal / weeklyDaysWithData) : 0;
 
       res.json({
         daily: calculatePositivityPercentage(allTrackers),
-        weekly: 0, // Will be calculated from database
-        monthly: 0, // Will be calculated from database
-        yearly: 0, // Will be calculated from database
+        weekly: weeklyAverage,
+        monthly: weeklyAverage, // Approximation for now
+        yearly: weeklyAverage, // Approximation for now
         dailyTrend,
+        weeklyEmotions,
       });
     } catch (error) {
       console.error("Error fetching emotional stats:", error);
