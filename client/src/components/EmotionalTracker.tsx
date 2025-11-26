@@ -742,19 +742,27 @@ export default function EmotionalTracker() {
                         </Select>
                       </td>
 
-                      {/* Repeating Emotions */}
+                      {/* Repeating Emotions - Inline Dropdown */}
                       <td className="p-1 sm:p-1.5 md:p-2 align-top">
-                        <div
-                          onClick={() => openEditDialog(timeSlot, 'repeatingEmotions')}
-                          className={`cursor-pointer h-[36px] w-full overflow-hidden rounded px-3 py-2 text-sm ${FIELD_COLORS.repeatingEmotions.bg} ${FIELD_COLORS.repeatingEmotions.border} border hover:border-blue-400 dark:hover:border-blue-500 transition-colors flex items-center`}
-                          data-testid={`input-repeating-${index}`}
-                        >
-                          {data.repeatingEmotions ? (
-                            <span className="text-gray-700 dark:text-gray-200 truncate block">{data.repeatingEmotions}</span>
-                          ) : (
-                            <span className="text-gray-400 dark:text-gray-500 italic truncate block">Click to add...</span>
-                          )}
-                        </div>
+                        <Select value={data.repeatingEmotions} onValueChange={(value) => handleRepeatingEmotionChange(timeSlot, value)}>
+                          <SelectTrigger 
+                            className={`h-[36px] w-full text-sm ${FIELD_COLORS.repeatingEmotions.bg} ${FIELD_COLORS.repeatingEmotions.border} border hover:border-blue-400 dark:hover:border-blue-500 transition-colors`}
+                            data-testid={`input-repeating-${index}`}
+                          >
+                            <SelectValue placeholder="Select emotion..." />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-[300px]">
+                            <SelectItem value="ADD_CUSTOM" data-testid={`button-add-custom-repeating-emotion-${index}`}>
+                              <span className="text-primary font-semibold">+ Add Custom Emotion</span>
+                            </SelectItem>
+                            <div className="border-t border-gray-200 dark:border-gray-700 my-1" />
+                            {[...REPEATING_EMOTIONS, ...customRepeatingEmotions].map((emotion) => (
+                              <SelectItem key={emotion} value={emotion}>
+                                {emotion}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </td>
 
                       {/* Missing Emotions - Inline Dropdown */}
