@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ChevronLeft, ChevronRight, BookOpen, Loader2, CalendarIcon, X } from 'lucide-react';
-import { format, addDays, subDays, isToday } from 'date-fns';
+import { format, addDays, subDays } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -243,11 +243,6 @@ export function GratitudeJournalDialog({ open, onOpenChange }: GratitudeJournalD
                         <CalendarIcon className="h-4 w-4 text-pink-300" />
                         <span className="font-bold">{dayName}</span>
                         <span className="text-sm text-pink-200">{displayDate}</span>
-                        {isToday(currentDate) && (
-                          <span className="ml-1 px-2 py-0.5 text-xs rounded-full bg-emerald-500 text-white">
-                            Today
-                          </span>
-                        )}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="end">
