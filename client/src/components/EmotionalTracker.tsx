@@ -606,6 +606,65 @@ export default function EmotionalTracker() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Custom Emotion Dialog */}
+      <Dialog open={customEmotionDialogOpen} onOpenChange={(open) => {
+        if (!open) {
+          // Save on click outside
+          if (customEmotionValue.trim()) {
+            handleCustomEmotionSubmit();
+          } else {
+            setCustomEmotionDialogOpen(false);
+            setCustomEmotionValue('');
+            setPendingTimeSlot('');
+          }
+        }
+      }}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Add Custom Emotion</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <input
+              type="text"
+              value={customEmotionValue}
+              onChange={(e) => setCustomEmotionValue(e.target.value)}
+              placeholder="Type a custom emotion..."
+              className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              autoFocus
+              data-testid="input-custom-emotion-dialog"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleCustomEmotionSubmit();
+                }
+              }}
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Press Enter or click Save to add this emotion
+            </p>
+          </div>
+          <div className="flex justify-end gap-2 pt-4">
+            <Button
+              onClick={() => {
+                setCustomEmotionDialogOpen(false);
+                setCustomEmotionValue('');
+                setPendingTimeSlot('');
+              }}
+              variant="outline"
+              data-testid="button-cancel-emotion-dialog"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCustomEmotionSubmit}
+              disabled={!customEmotionValue.trim()}
+              data-testid="button-save-emotion-dialog"
+            >
+              Save
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
