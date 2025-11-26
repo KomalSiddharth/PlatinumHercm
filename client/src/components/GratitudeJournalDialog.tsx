@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ChevronLeft, ChevronRight, BookOpen, Loader2, CalendarIcon, X, Check } from 'lucide-react';
+import { ChevronLeft, ChevronRight, BookOpen, Loader2, CalendarIcon, X } from 'lucide-react';
 import { format, addDays, subDays, isToday } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -15,20 +15,22 @@ interface GratitudeJournalDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-interface GratitudeCheckpoint {
+interface GratitudeItem {
   id: string;
   text: string;
-  completed: boolean;
 }
 
 export function GratitudeJournalDialog({ open, onOpenChange }: GratitudeJournalDialogProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [checkpoints, setCheckpoints] = useState<GratitudeCheckpoint[]>([]);
+  const [items, setItems] = useState<GratitudeItem[]>([]);
   const [newItemText, setNewItemText] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState('');
   const [isFlipping, setIsFlipping] = useState(false);
   const [flipDirection, setFlipDirection] = useState<'left' | 'right' | null>(null);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const editInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -60,74 +62,98 @@ export function GratitudeJournalDialog({ open, onOpenChange }: GratitudeJournalD
     },
   });
 
-  // Parse checkpoints from stored text (JSON format)
-  const parseCheckpoints = (text: string): GratitudeCheckpoint[] => {
+  // Parse items from stored text (JSON format)
+  const parseItems = (text: string): GratitudeItem[] => {
     if (!text) return [];
     try {
       const parsed = JSON.parse(text);
-      if (Array.isArray(parsed)) return parsed;
+      if (Array.isArray(parsed)) {
+        // Handle both old format (with completed) and new format
+        return parsed.map((item: any) => ({ id: item.id, text: item.text }));
+      }
     } catch {
-      // Legacy format: plain text, convert to single checkpoint
+      // Legacy format: plain text, convert to single item
       if (text.trim()) {
-        return [{ id: Date.now().toString(), text: text.trim(), completed: false }];
+        return [{ id: Date.now().toString(), text: text.trim() }];
       }
     }
     return [];
   };
 
-  // Convert checkpoints to stored format
-  const serializeCheckpoints = (items: GratitudeCheckpoint[]): string => {
-    return JSON.stringify(items);
+  // Convert items to stored format
+  const serializeItems = (itemList: GratitudeItem[]): string => {
+    return JSON.stringify(itemList);
   };
 
-  // Update checkpoints when entry loads
+  // Update items when entry loads
   useEffect(() => {
     if (entry?.gratitudeText !== undefined) {
-      setCheckpoints(parseCheckpoints(entry.gratitudeText || ''));
+      setItems(parseItems(entry.gratitudeText || ''));
     } else {
-      setCheckpoints([]);
+      setItems([]);
     }
   }, [entry]);
 
-  // Auto-save when checkpoints change
-  const saveCheckpoints = useCallback((items: GratitudeCheckpoint[]) => {
-    const serialized = serializeCheckpoints(items);
+  // Auto-save items
+  const saveItems = useCallback((itemList: GratitudeItem[]) => {
+    const serialized = serializeItems(itemList);
     saveMutation.mutate({ date: dateStr, gratitudeText: serialized });
   }, [dateStr, saveMutation]);
 
-  // Add new checkpoint on Enter
+  // Add new item on Enter
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && newItemText.trim()) {
       e.preventDefault();
-      const newCheckpoint: GratitudeCheckpoint = {
+      const newItem: GratitudeItem = {
         id: Date.now().toString(),
         text: newItemText.trim(),
-        completed: false,
       };
-      const updated = [...checkpoints, newCheckpoint];
-      setCheckpoints(updated);
+      const updated = [...items, newItem];
+      setItems(updated);
       setNewItemText('');
-      saveCheckpoints(updated);
+      saveItems(updated);
       
       // Keep focus on input
       setTimeout(() => inputRef.current?.focus(), 0);
     }
   };
 
-  // Toggle checkpoint completion
-  const toggleCheckpoint = (id: string) => {
-    const updated = checkpoints.map(cp => 
-      cp.id === id ? { ...cp, completed: !cp.completed } : cp
-    );
-    setCheckpoints(updated);
-    saveCheckpoints(updated);
+  // Start editing an item
+  const startEditing = (item: GratitudeItem) => {
+    setEditingId(item.id);
+    setEditingText(item.text);
+    setTimeout(() => editInputRef.current?.focus(), 0);
   };
 
-  // Delete checkpoint
-  const deleteCheckpoint = (id: string) => {
-    const updated = checkpoints.filter(cp => cp.id !== id);
-    setCheckpoints(updated);
-    saveCheckpoints(updated);
+  // Save edited item
+  const saveEdit = () => {
+    if (editingId && editingText.trim()) {
+      const updated = items.map(item =>
+        item.id === editingId ? { ...item, text: editingText.trim() } : item
+      );
+      setItems(updated);
+      saveItems(updated);
+    }
+    setEditingId(null);
+    setEditingText('');
+  };
+
+  // Handle edit keydown
+  const handleEditKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      saveEdit();
+    } else if (e.key === 'Escape') {
+      setEditingId(null);
+      setEditingText('');
+    }
+  };
+
+  // Delete item
+  const deleteItem = (id: string) => {
+    const updated = items.filter(item => item.id !== id);
+    setItems(updated);
+    saveItems(updated);
   };
 
   // Page flip animation
@@ -286,45 +312,55 @@ export function GratitudeJournalDialog({ open, onOpenChange }: GratitudeJournalD
                 />
               </div>
 
-              {/* Checkpoints List */}
+              {/* Items List */}
               {isLoading ? (
                 <div className="flex items-center justify-center h-32">
                   <Loader2 className="h-8 w-8 animate-spin" style={{ color: '#b45309' }} />
                 </div>
               ) : (
-                <div className="space-y-2 max-h-[250px] overflow-y-auto pr-2">
-                  {checkpoints.length === 0 ? (
+                <div className="space-y-1 max-h-[250px] overflow-y-auto pr-2">
+                  {items.length === 0 ? (
                     <p className="text-center py-8 font-serif" style={{ color: '#92400e' }}>
                       No gratitude entries yet. Start typing above!
                     </p>
                   ) : (
-                    checkpoints.map((checkpoint) => (
+                    items.map((item) => (
                       <div
-                        key={checkpoint.id}
-                        className="flex items-center gap-2 p-2 rounded-lg hover:bg-amber-100/50 group"
-                        data-testid={`gratitude-item-${checkpoint.id}`}
+                        key={item.id}
+                        className="flex items-start gap-2 py-1 group"
+                        data-testid={`gratitude-item-${item.id}`}
                       >
+                        {/* Bullet Point */}
+                        <span className="flex-shrink-0 mt-1.5 w-2 h-2 rounded-full" style={{ backgroundColor: '#b45309' }} />
+                        
+                        {/* Text or Edit Input */}
+                        {editingId === item.id ? (
+                          <Input
+                            ref={editInputRef}
+                            value={editingText}
+                            onChange={(e) => setEditingText(e.target.value)}
+                            onKeyDown={handleEditKeyDown}
+                            onBlur={saveEdit}
+                            className="flex-1 bg-white/80 border-amber-400 font-serif py-0 h-7"
+                            style={{ color: '#1c1917' }}
+                            data-testid={`edit-gratitude-${item.id}`}
+                          />
+                        ) : (
+                          <span 
+                            onClick={() => startEditing(item)}
+                            className="flex-1 font-serif cursor-pointer hover:bg-amber-100/50 rounded px-1 -mx-1"
+                            style={{ color: '#1c1917' }}
+                            data-testid={`text-gratitude-${item.id}`}
+                          >
+                            {item.text}
+                          </span>
+                        )}
+                        
+                        {/* Delete button */}
                         <button
-                          onClick={() => toggleCheckpoint(checkpoint.id)}
-                          className={`flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
-                            checkpoint.completed 
-                              ? 'bg-green-600 border-green-600' 
-                              : 'border-amber-400 hover:border-amber-600'
-                          }`}
-                          data-testid={`toggle-gratitude-${checkpoint.id}`}
-                        >
-                          {checkpoint.completed && <Check className="h-3 w-3 text-white" />}
-                        </button>
-                        <span 
-                          className={`flex-1 font-serif ${checkpoint.completed ? 'line-through opacity-60' : ''}`}
-                          style={{ color: '#1c1917' }}
-                        >
-                          {checkpoint.text}
-                        </span>
-                        <button
-                          onClick={() => deleteCheckpoint(checkpoint.id)}
-                          className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-100 transition-opacity"
-                          data-testid={`delete-gratitude-${checkpoint.id}`}
+                          onClick={() => deleteItem(item.id)}
+                          className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-100 transition-opacity flex-shrink-0"
+                          data-testid={`delete-gratitude-${item.id}`}
                         >
                           <X className="h-4 w-4 text-red-500" />
                         </button>
@@ -351,7 +387,7 @@ export function GratitudeJournalDialog({ open, onOpenChange }: GratitudeJournalD
               </Button>
 
               <div className="text-xs font-medium" style={{ color: '#92400e' }}>
-                {checkpoints.length} gratitude{checkpoints.length !== 1 ? 's' : ''} recorded
+                {items.length} gratitude{items.length !== 1 ? 's' : ''} recorded
               </div>
 
               <Button
