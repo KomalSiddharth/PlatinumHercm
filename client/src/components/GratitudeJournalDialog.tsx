@@ -139,10 +139,10 @@ export function GratitudeJournalDialog({ open, onOpenChange }: GratitudeJournalD
             }}
           >
             {/* Book Header */}
-            <div className="flex items-center justify-between p-4 border-b border-amber-200 dark:border-amber-800">
+            <div className="flex items-center justify-between p-4 border-b-2" style={{ borderColor: '#92400e' }}>
               <div className="flex items-center gap-2">
-                <BookOpen className="h-6 w-6 text-amber-700 dark:text-amber-400" />
-                <h2 className="text-xl font-serif font-bold text-amber-900 dark:text-amber-200">
+                <BookOpen className="h-6 w-6" style={{ color: '#78350f' }} />
+                <h2 className="text-xl font-serif font-bold" style={{ color: '#451a03' }}>
                   Gratitude Journal
                 </h2>
               </div>
@@ -151,7 +151,8 @@ export function GratitudeJournalDialog({ open, onOpenChange }: GratitudeJournalD
                   variant="ghost"
                   size="sm"
                   onClick={goToToday}
-                  className="text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900"
+                  className="hover:bg-amber-200"
+                  style={{ color: '#78350f' }}
                   data-testid="button-goto-today"
                 >
                   Go to Today
@@ -162,15 +163,15 @@ export function GratitudeJournalDialog({ open, onOpenChange }: GratitudeJournalD
             {/* Page Content */}
             <div className="p-6 space-y-4">
               {/* Date Header - Styled like handwriting */}
-              <div className="text-center border-b-2 border-amber-300 dark:border-amber-700 pb-4 mb-6">
-                <p className="text-3xl font-serif font-bold text-amber-800 dark:text-amber-300">
+              <div className="text-center border-b-2 pb-4 mb-6" style={{ borderColor: '#b45309' }}>
+                <p className="text-3xl font-serif font-bold" style={{ color: '#451a03' }}>
                   {dayName}
                 </p>
-                <p className="text-lg text-amber-600 dark:text-amber-400 mt-1">
+                <p className="text-lg mt-1" style={{ color: '#78350f' }}>
                   {displayDate}
                 </p>
                 {isToday(currentDate) && (
-                  <span className="inline-block mt-2 px-3 py-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 text-sm rounded-full">
+                  <span className="inline-block mt-2 px-3 py-1 text-sm rounded-full" style={{ backgroundColor: '#166534', color: '#ffffff' }}>
                     Today
                   </span>
                 )}
@@ -178,7 +179,7 @@ export function GratitudeJournalDialog({ open, onOpenChange }: GratitudeJournalD
 
               {/* Gratitude Prompt */}
               <div className="mb-4">
-                <p className="text-amber-700 dark:text-amber-400 italic font-serif text-lg mb-3">
+                <p className="italic font-serif text-lg mb-3" style={{ color: '#78350f' }}>
                   What are you grateful for today?
                 </p>
               </div>
@@ -186,15 +187,16 @@ export function GratitudeJournalDialog({ open, onOpenChange }: GratitudeJournalD
               {/* Gratitude Text Area */}
               {isLoading ? (
                 <div className="flex items-center justify-center h-48">
-                  <Loader2 className="h-8 w-8 animate-spin text-amber-600" />
+                  <Loader2 className="h-8 w-8 animate-spin" style={{ color: '#b45309' }} />
                 </div>
               ) : (
                 <Textarea
                   value={gratitudeText}
                   onChange={(e) => setGratitudeText(e.target.value)}
                   placeholder="Write your gratitude here... What made you smile today? Who are you thankful for? What small moments brought you joy?"
-                  className="min-h-[200px] bg-transparent border-none resize-none text-amber-900 dark:text-amber-200 placeholder:text-amber-400 dark:placeholder:text-amber-600 font-serif text-lg focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className="min-h-[200px] bg-transparent border-none resize-none font-serif text-lg focus-visible:ring-0 focus-visible:ring-offset-0"
                   style={{
+                    color: '#1c1917',
                     lineHeight: '32px',
                     backgroundImage: 'repeating-linear-gradient(to bottom, transparent, transparent 31px, rgba(139, 69, 19, 0.15) 31px, rgba(139, 69, 19, 0.15) 32px)',
                     backgroundAttachment: 'local',
@@ -228,14 +230,15 @@ export function GratitudeJournalDialog({ open, onOpenChange }: GratitudeJournalD
                 size="lg"
                 onClick={() => flipPage('prev')}
                 disabled={isFlipping}
-                className="text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900"
+                className="hover:bg-amber-200"
+                style={{ color: '#78350f' }}
                 data-testid="button-prev-page"
               >
                 <ChevronLeft className="h-8 w-8" />
                 <span className="sr-only">Previous Day</span>
               </Button>
 
-              <div className="text-sm text-amber-500 dark:text-amber-600">
+              <div className="text-sm font-medium" style={{ color: '#92400e' }}>
                 Flip pages to navigate days
               </div>
 
@@ -244,7 +247,8 @@ export function GratitudeJournalDialog({ open, onOpenChange }: GratitudeJournalD
                 size="lg"
                 onClick={() => flipPage('next')}
                 disabled={isFlipping}
-                className="text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900"
+                className="hover:bg-amber-200"
+                style={{ color: '#78350f' }}
                 data-testid="button-next-page"
               >
                 <ChevronRight className="h-8 w-8" />
