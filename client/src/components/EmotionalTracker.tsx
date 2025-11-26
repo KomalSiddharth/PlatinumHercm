@@ -59,6 +59,20 @@ const FIELD_COLORS: Record<EmotionField, { bg: string; text: string; border: str
   missingEmotions: { bg: 'bg-orange-50 dark:bg-orange-900/20', text: 'text-orange-700 dark:text-orange-300', border: 'border-orange-200 dark:border-orange-800' },
 };
 
+const POSITIVE_EMOTIONS = [
+  'Happiness', 'Joy', 'Delight', 'Excitement', 'Peace', 'Calmness', 'Relief', 'Contentment',
+  'Satisfaction', 'Comfort', 'Love', 'Affection', 'Warmth', 'Care', 'Compassion', 'Kindness',
+  'Gratitude', 'Appreciation', 'Empathy', 'Trust', 'Motivation', 'Confidence', 'Courage',
+  'Determination', 'Enthusiasm', 'Strength', 'Resilience', 'Hope', 'Faith', 'Willpower',
+  'Clarity', 'Centeredness', 'Groundedness', 'Stability', 'Stillness', 'Harmony', 'Balance',
+  'Serenity', 'Presence', 'Mindfulness', 'Inspiration', 'Creativity', 'Curiosity', 'Openness',
+  'Flexibility', 'Acceptance', 'Progress', 'Renewal', 'Healing', 'Expansion', 'Pride',
+  'Accomplishment', 'Productivity', 'Efficiency', 'Success', 'Empowerment', 'Mastery',
+  'Capability', 'Focus', 'Drive', 'Tenderness', 'Sweetness', 'Soft Joy', 'Ease', 'Lightness',
+  'Playfulness', 'Amusement', 'Cheerfulness', 'Pleasantness', 'Energy', 'Passion', 'Excitement',
+  'Zeal', 'Invigoration', 'Liveliness', 'Eagerness', 'Optimism', 'Positivity', 'Vibrancy',
+];
+
 export default function EmotionalTracker() {
   const today = getLocalDateString(new Date());
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
