@@ -396,7 +396,7 @@ export default function UserDashboardSearch({ isAdmin = false }: UserDashboardSe
           <PopoverContent className="w-[500px] p-0" align="start">
             <Command shouldFilter={false}>
               <CommandInput
-                placeholder="Search by name or email..."
+                placeholder="Search by name..."
                 value={searchQuery}
                 onValueChange={setSearchQuery}
                 data-testid="input-user-search"
@@ -426,13 +426,12 @@ export default function UserDashboardSearch({ isAdmin = false }: UserDashboardSe
                       return (
                         <CommandItem
                           key={user.id}
-                          value={`${user.firstName} ${user.lastName} ${user.email}`}
+                          value={`${user.firstName} ${user.lastName}`}
                           onSelect={() => handleSelectUser(user.id)}
-                          className="flex flex-col items-start py-3 cursor-pointer"
+                          className="flex items-center py-3 cursor-pointer"
                           data-testid={`option-user-${user.id}`}
                         >
                           <div className="font-semibold text-base">{displayName}</div>
-                          <div className="text-sm text-muted-foreground">{user.email}</div>
                         </CommandItem>
                       );
                     })}
