@@ -116,9 +116,7 @@ export default function FeedbackButton() {
                   <SelectItem value="bug">🐛 Report a Bug</SelectItem>
                   <SelectItem value="feature">💡 Suggest a Feature</SelectItem>
                   <SelectItem value="course">📚 Course Content Feedback</SelectItem>
-                  <SelectItem value="ui">🎨 UI/UX Improvement</SelectItem>
-                  <SelectItem value="general">⭐ General Feedback</SelectItem>
-                  <SelectItem value="support">❓ Help/Support</SelectItem>
+                  <SelectItem value="gratitude">🙏 Express Your Gratitude</SelectItem>
                 </SelectContent>
               </Select>
             </div>
