@@ -581,7 +581,7 @@ export default function EmotionalTracker() {
                       data-testid="button-date-picker"
                       className="h-8 sm:h-9 px-3 sm:px-4 font-semibold"
                     >
-                      {format(selectedDate, 'MMM d, yyyy')}
+                      {format(selectedDate, 'MMMM dd, yyyy')}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="center">
