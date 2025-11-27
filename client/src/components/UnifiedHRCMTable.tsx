@@ -321,6 +321,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editDialogData, setEditDialogData] = useState<{ category: string; field: string; value: string; label: string; color: string } | null>(null);
   const [manualNextWeekMode, setManualNextWeekMode] = useState(false); // 🔥 Flag to disable auto-sync when user manually updates Next Week Target
+  const [manualModeInitialized, setManualModeInitialized] = useState(false); // 🔥 Track if manual mode was already loaded from database
   const [calendarPopoverOpen, setCalendarPopoverOpen] = useState(false); // Calendar popover state for Current Week
   const [nextWeekCalendarPopoverOpen, setNextWeekCalendarPopoverOpen] = useState(false); // Calendar popover state for Next Week
   
@@ -1156,13 +1157,19 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       updateBeliefsCache(updatedBeliefs);
       console.log('[FRONTEND DEBUG] ✅ Cache updated successfully');
       
-      // 🔥 RESTORE manualNextWeekMode from database to persist across browser refreshes
-      if (weekData.manualNextWeekMode !== undefined && weekData.manualNextWeekMode !== null) {
-        console.log('[LOAD] 🔄 Restoring manualNextWeekMode from database:', weekData.manualNextWeekMode);
-        setManualNextWeekMode(weekData.manualNextWeekMode);
+      // 🔥 RESTORE manualNextWeekMode from database ONLY on initial load
+      // This prevents refetch after save from overwriting local state
+      if (!manualModeInitialized) {
+        if (weekData.manualNextWeekMode !== undefined && weekData.manualNextWeekMode !== null) {
+          console.log('[LOAD] 🔄 Restoring manualNextWeekMode from database:', weekData.manualNextWeekMode);
+          setManualNextWeekMode(weekData.manualNextWeekMode);
+        } else {
+          console.log('[LOAD] ℹ️ No manualNextWeekMode in database, using default: false');
+          setManualNextWeekMode(false);
+        }
+        setManualModeInitialized(true);
       } else {
-        console.log('[LOAD] ℹ️ No manualNextWeekMode in database, using default: false');
-        setManualNextWeekMode(false);
+        console.log('[LOAD] ⏭️ Skipping manualNextWeekMode restore (already initialized locally)');
       }
       
       // Extract and combine assignments from all categories into unified list
@@ -1360,6 +1367,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   useEffect(() => {
     // Reset on date change to allow proper loading of new date's data
     setInitialDataLoaded(false);
+    setManualModeInitialized(false); // 🔥 Also reset manual mode flag for new date
   }, [currentDateStr]);
   
   useEffect(() => {
