@@ -787,6 +787,11 @@ export default function Dashboard() {
           <LifeSkillsMap />
         </section>
 
+        {/* Emotional Tracker Section */}
+        <section ref={emotionalRef} id="emotional" className="scroll-mt-20">
+          <EmotionalTracker />
+        </section>
+
         <section ref={ritualsRef} id="rituals" className="scroll-mt-20 p-3 sm:p-4 md:p-6 rounded-lg border-2" style={{ backgroundColor: '#00008c', borderColor: '#0000cc' }}>
           <div className="space-y-4 sm:space-y-6">
             <div className="flex items-center justify-between">
@@ -899,11 +904,6 @@ export default function Dashboard() {
               </>
             )}
           </div>
-        </section>
-
-        {/* Emotional Tracker Section */}
-        <section ref={emotionalRef} id="emotional" className="scroll-mt-20">
-          <EmotionalTracker />
         </section>
 
         {/* Team Activity Section - Hidden as per user request */}
