@@ -13,7 +13,6 @@ import { useToast } from '@/hooks/use-toast';
 export default function FeedbackButton() {
   const [isOpen, setIsOpen] = useState(false);
   const [feedbackType, setFeedbackType] = useState('');
-  const [relatedFeature, setRelatedFeature] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const { toast } = useToast();
@@ -43,7 +42,6 @@ export default function FeedbackButton() {
   const handleClose = () => {
     setIsOpen(false);
     setFeedbackType('');
-    setRelatedFeature('');
     setTitle('');
     setDescription('');
   };
@@ -62,7 +60,7 @@ export default function FeedbackButton() {
 
     submitMutation.mutate({
       feedbackType,
-      relatedFeature: relatedFeature || null,
+      relatedFeature: null,
       title,
       description,
       priority: 'medium',
@@ -117,26 +115,6 @@ export default function FeedbackButton() {
                   <SelectItem value="feature">💡 Suggest a Feature</SelectItem>
                   <SelectItem value="course">📚 Course Content Feedback</SelectItem>
                   <SelectItem value="gratitude">🙏 Express Your Gratitude</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="relatedFeature" className="text-sm font-medium">
-                Related Feature <span className="text-muted-foreground">(Optional)</span>
-              </Label>
-              <Select value={relatedFeature} onValueChange={setRelatedFeature}>
-                <SelectTrigger id="relatedFeature" data-testid="select-related-feature">
-                  <SelectValue placeholder="Select related feature" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="hrcm">HRCM Tracking</SelectItem>
-                  <SelectItem value="emotional_tracker">Daily Emotional Tracker</SelectItem>
-                  <SelectItem value="courses">Course Progress</SelectItem>
-                  <SelectItem value="standards">Platinum Standards</SelectItem>
-                  <SelectItem value="rituals">Daily Rituals</SelectItem>
-                  <SelectItem value="leaderboard">Team Leaderboard</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
             </div>
