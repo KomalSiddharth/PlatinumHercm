@@ -553,18 +553,63 @@ export default function EmotionalTracker() {
     <>
       <Card className="border-2 border-primary/30 dark:border-primary/50 bg-gradient-to-br from-primary/5 to-accent/5 dark:from-primary/10 dark:to-accent/10">
         <CardHeader className="p-3 sm:p-4 md:p-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
-            <div>
+          <div className="flex flex-col gap-3">
+            {/* Top row: Title, Date (center), and Controls */}
+            <div className="flex items-center justify-between">
+              {/* Left: Title */}
               <CardTitle className="flex items-center gap-1.5 sm:gap-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent text-lg sm:text-xl md:text-2xl">
                 <Heart className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 Daily Emotional Tracker
               </CardTitle>
-              <CardDescription className="text-xs sm:text-sm mt-1">
-                Track your emotions throughout the day in 2-hour time slots (5am - 1am)
-              </CardDescription>
-            </div>
-            
-            <div className="flex items-center gap-1.5 sm:gap-2">
+              
+              {/* Center: Clickable Date */}
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => navigateDate('prev')}
+                  data-testid="button-prev-day"
+                  className="h-8 w-8 sm:h-9 sm:w-9"
+                >
+                  <ChevronLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                </Button>
+                
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      data-testid="button-date-picker"
+                      className="h-8 sm:h-9 px-3 sm:px-4 font-semibold"
+                    >
+                      {format(selectedDate, 'MMM d, yyyy')}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="center">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={(date) => {
+                        if (date) {
+                          setSelectedDate(date);
+                        }
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => navigateDate('next')}
+                  data-testid="button-next-day"
+                  className="h-8 w-8 sm:h-9 sm:w-9"
+                >
+                  <ChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                </Button>
+              </div>
+              
+              {/* Right: Pattern Analysis Button */}
               <Button
                 variant="outline"
                 onClick={() => setPreviewOpen(true)}
@@ -575,52 +620,12 @@ export default function EmotionalTracker() {
                 <span className="hidden sm:inline">Emotional Pattern Analysis</span>
                 <span className="sm:hidden">Analysis</span>
               </Button>
-
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => navigateDate('prev')}
-                data-testid="button-prev-day"
-                className="h-8 w-8 sm:h-9 sm:w-9"
-              >
-                <ChevronLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              </Button>
-              
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    data-testid="button-date-picker"
-                    className="h-8 w-8 sm:h-9 sm:w-9"
-                  >
-                    <CalendarIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="end">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={(date) => {
-                      if (date) {
-                        setSelectedDate(date);
-                      }
-                    }}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => navigateDate('next')}
-                data-testid="button-next-day"
-                className="h-8 w-8 sm:h-9 sm:w-9"
-              >
-                <ChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              </Button>
             </div>
+            
+            {/* Description */}
+            <CardDescription className="text-xs sm:text-sm">
+              Track your emotions throughout the day in 2-hour time slots (5am - 1am)
+            </CardDescription>
           </div>
         </CardHeader>
         <CardContent className="p-3 sm:p-4 md:p-6">
