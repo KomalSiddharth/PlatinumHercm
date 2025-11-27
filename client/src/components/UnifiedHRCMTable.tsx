@@ -1377,8 +1377,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     }
   }, [weekData]);
   
-  // 🔥 SMART RESET: Auto-reset manual mode when Next Week Target is completely empty
+  // 🔥 SMART RESET: Auto-reset manual mode when BOTH tables are completely empty
   // This fixes the issue where user clears both tables but auto-sync doesn't work
+  // CRITICAL: Only reset when BOTH are empty - not just Next Week Target!
   useEffect(() => {
     if (!initialDataLoaded || isAdminView) return;
     
@@ -1395,9 +1396,23 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       return textEmpty && checklistEmpty;
     });
     
-    // If Next Week Target is completely empty and manual mode is ON, reset to auto-sync
-    if (nextWeekIsEmpty && manualNextWeekMode) {
-      console.log('[AUTO-SYNC RESET] 🔄 Next Week Target is empty - re-enabling auto-sync');
+    // Check if ALL Current Week fields are also empty
+    const currentWeekIsEmpty = beliefs.every(belief => {
+      const textEmpty = !belief.problems?.trim() && 
+                       !belief.currentFeelings?.trim() && 
+                       !belief.currentBelief?.trim() && 
+                       !belief.currentActions?.trim();
+      const checklistEmpty = (!belief.problemsChecklist || belief.problemsChecklist.length === 0) &&
+                            (!belief.feelingsCurrentChecklist || belief.feelingsCurrentChecklist.length === 0) &&
+                            (!belief.beliefsCurrentChecklist || belief.beliefsCurrentChecklist.length === 0) &&
+                            (!belief.actionsCurrentChecklist || belief.actionsCurrentChecklist.length === 0);
+      return textEmpty && checklistEmpty;
+    });
+    
+    // CRITICAL FIX: Only reset auto-sync when BOTH tables are empty
+    // If only Next Week Target is empty but Current Week has data, user intentionally cleared it
+    if (nextWeekIsEmpty && currentWeekIsEmpty && manualNextWeekMode) {
+      console.log('[AUTO-SYNC RESET] 🔄 BOTH tables are empty - re-enabling auto-sync');
       setManualNextWeekMode(false);
     }
   }, [beliefs, initialDataLoaded, isAdminView, manualNextWeekMode]);
