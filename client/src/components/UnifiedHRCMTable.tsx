@@ -431,6 +431,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     items: []
   });
 
+  // 🔥 Multi-select state for bulk delete
+  const [selectedCurrentWeekItems, setSelectedCurrentWeekItems] = useState<Set<string>>(new Set());
+  const [selectedNextWeekItems, setSelectedNextWeekItems] = useState<Set<string>>(new Set());
+
   // Platinum Standard Ratings State (for Health category)
   const [standardRatings, setStandardRatings] = useState<Record<string, number>>({});
   
@@ -3590,6 +3594,103 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     checkpointMutation.mutate(updated);
   };
 
+  // 🔥 BULK DELETE: Delete multiple selected checkpoints at once (Current Week)
+  const handleBulkDeleteCurrentWeek = () => {
+    if (selectedCurrentWeekItems.size === 0) return;
+    
+    const category = currentWeekCheckpointPopup.category;
+    const type = currentWeekCheckpointPopup.type;
+    const idsToDelete = Array.from(selectedCurrentWeekItems);
+    
+    console.log('[BULK DELETE] Current Week - Deleting', idsToDelete.length, 'items');
+    
+    let updated = beliefs.map(belief => {
+      if (belief.category === category) {
+        if (type === 'problems' && belief.problemsChecklist) {
+          return { ...belief, problemsChecklist: belief.problemsChecklist.filter(item => !idsToDelete.includes(item.id)) };
+        } else if (type === 'currentFeelings' && belief.feelingsCurrentChecklist) {
+          return { ...belief, feelingsCurrentChecklist: belief.feelingsCurrentChecklist.filter(item => !idsToDelete.includes(item.id)) };
+        } else if (type === 'currentBeliefs' && belief.beliefsCurrentChecklist) {
+          return { ...belief, beliefsCurrentChecklist: belief.beliefsCurrentChecklist.filter(item => !idsToDelete.includes(item.id)) };
+        } else if (type === 'currentActions' && belief.actionsCurrentChecklist) {
+          return { ...belief, actionsCurrentChecklist: belief.actionsCurrentChecklist.filter(item => !idsToDelete.includes(item.id)) };
+        }
+      }
+      return belief;
+    });
+    
+    // Auto-sync to Next Week Target if not in manual mode
+    if (!manualNextWeekMode) {
+      updated = syncCurrentToNextWeek(updated);
+    }
+    
+    // Update cache and save
+    updateBeliefsCache(updated);
+    checkpointMutation.mutate(updated);
+    
+    // Update popup items and clear selection
+    const updatedBelief = updated.find(b => b.category === category);
+    if (updatedBelief) {
+      const newItems = type === 'problems' ? updatedBelief.problemsChecklist || [] :
+                      type === 'currentFeelings' ? updatedBelief.feelingsCurrentChecklist || [] :
+                      type === 'currentBeliefs' ? updatedBelief.beliefsCurrentChecklist || [] :
+                      updatedBelief.actionsCurrentChecklist || [];
+      setCurrentWeekCheckpointPopup({ ...currentWeekCheckpointPopup, items: newItems });
+    }
+    setSelectedCurrentWeekItems(new Set());
+    
+    toast({
+      title: 'Items Deleted',
+      description: `${idsToDelete.length} checkpoint(s) removed successfully.`,
+    });
+  };
+
+  // 🔥 BULK DELETE: Delete multiple selected checkpoints at once (Next Week Target)
+  const handleBulkDeleteNextWeek = () => {
+    if (selectedNextWeekItems.size === 0) return;
+    
+    const category = nextWeekCheckpointPopup.category;
+    const type = nextWeekCheckpointPopup.type;
+    const idsToDelete = Array.from(selectedNextWeekItems);
+    
+    console.log('[BULK DELETE] Next Week - Deleting', idsToDelete.length, 'items');
+    
+    const updated = beliefs.map(belief => {
+      if (belief.category === category) {
+        if (type === 'result' && belief.resultChecklist) {
+          return { ...belief, resultChecklist: belief.resultChecklist.filter(item => !idsToDelete.includes(item.id)) };
+        } else if (type === 'feelings' && belief.feelingsChecklist) {
+          return { ...belief, feelingsChecklist: belief.feelingsChecklist.filter(item => !idsToDelete.includes(item.id)) };
+        } else if (type === 'beliefs' && belief.beliefsChecklist) {
+          return { ...belief, beliefsChecklist: belief.beliefsChecklist.filter(item => !idsToDelete.includes(item.id)) };
+        } else if (type === 'actions' && belief.actionsChecklist) {
+          return { ...belief, actionsChecklist: belief.actionsChecklist.filter(item => !idsToDelete.includes(item.id)) };
+        }
+      }
+      return belief;
+    });
+    
+    // Update cache and save
+    updateBeliefsCache(updated);
+    checkpointMutation.mutate(updated);
+    
+    // Update popup items and clear selection
+    const updatedBelief = updated.find(b => b.category === category);
+    if (updatedBelief) {
+      const newItems = type === 'result' ? updatedBelief.resultChecklist || [] :
+                      type === 'feelings' ? updatedBelief.feelingsChecklist || [] :
+                      type === 'beliefs' ? updatedBelief.beliefsChecklist || [] :
+                      updatedBelief.actionsChecklist || [];
+      setNextWeekCheckpointPopup({ ...nextWeekCheckpointPopup, items: newItems });
+    }
+    setSelectedNextWeekItems(new Set());
+    
+    toast({
+      title: 'Items Deleted',
+      description: `${idsToDelete.length} checkpoint(s) removed successfully.`,
+    });
+  };
+
   // 📊 Weekly Performance Dropdown Component
   const WeeklyPerformanceDropdown = () => {
     // Fetch weekly scores
@@ -6196,7 +6297,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       {/* Current Week Checkpoint Popup Dialog */}
       <Dialog 
         open={currentWeekCheckpointPopup.open} 
-        onOpenChange={(open) => setCurrentWeekCheckpointPopup({ ...currentWeekCheckpointPopup, open })}
+        onOpenChange={(open) => {
+          if (!open) setSelectedCurrentWeekItems(new Set()); // Clear selection on close
+          setCurrentWeekCheckpointPopup({ ...currentWeekCheckpointPopup, open });
+        }}
       >
         <DialogContent className="max-w-md max-h-[600px] overflow-y-auto">
           <DialogHeader>
@@ -6235,9 +6339,63 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             </div>
           )}
           
+          {/* 🔥 Multi-Select Controls */}
+          {!isAdminView && !viewingHistory && !viewAsUserId && currentWeekCheckpointPopup.items.length > 0 && (
+            <div className="flex items-center justify-between py-2 px-3 bg-muted/30 rounded-lg">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  checked={selectedCurrentWeekItems.size === currentWeekCheckpointPopup.items.length && currentWeekCheckpointPopup.items.length > 0}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setSelectedCurrentWeekItems(new Set(currentWeekCheckpointPopup.items.map(item => item.id)));
+                    } else {
+                      setSelectedCurrentWeekItems(new Set());
+                    }
+                  }}
+                  className="h-4 w-4"
+                  data-testid="checkbox-select-all-current-week"
+                />
+                <span className="text-sm font-medium">
+                  {selectedCurrentWeekItems.size > 0 
+                    ? `${selectedCurrentWeekItems.size} selected` 
+                    : 'Select All'}
+                </span>
+              </div>
+              {selectedCurrentWeekItems.size > 0 && (
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={handleBulkDeleteCurrentWeek}
+                  className="h-7"
+                  data-testid="button-delete-selected-current-week"
+                >
+                  <Trash2 className="w-3.5 h-3.5 mr-1" />
+                  Delete ({selectedCurrentWeekItems.size})
+                </Button>
+              )}
+            </div>
+          )}
+          
           <div className="space-y-2 py-4">
             {currentWeekCheckpointPopup.items.map((item, index) => (
               <div key={item.id} className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/30 transition-colors group/checkpoint-item">
+                {/* Selection checkbox for multi-select */}
+                {!isAdminView && !viewingHistory && !viewAsUserId && (
+                  <Checkbox
+                    checked={selectedCurrentWeekItems.has(item.id)}
+                    onCheckedChange={(checked) => {
+                      const newSet = new Set(selectedCurrentWeekItems);
+                      if (checked) {
+                        newSet.add(item.id);
+                      } else {
+                        newSet.delete(item.id);
+                      }
+                      setSelectedCurrentWeekItems(newSet);
+                    }}
+                    className="h-4 w-4 shrink-0 border-2 border-primary/50"
+                    data-testid={`checkbox-select-current-week-${index}`}
+                  />
+                )}
                 <span className={`text-sm font-semibold shrink-0 ${
                   currentWeekCheckpointPopup.type === 'problems' ? 'text-coral-red' :
                   currentWeekCheckpointPopup.type === 'currentFeelings' ? 'text-emerald-green' :
@@ -6501,7 +6659,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       {/* Next Week Target Checkpoint Popup Dialog */}
       <Dialog 
         open={nextWeekCheckpointPopup.open} 
-        onOpenChange={(open) => setNextWeekCheckpointPopup({ ...nextWeekCheckpointPopup, open })}
+        onOpenChange={(open) => {
+          if (!open) setSelectedNextWeekItems(new Set()); // Clear selection on close
+          setNextWeekCheckpointPopup({ ...nextWeekCheckpointPopup, open });
+        }}
       >
         <DialogContent className="max-w-md max-h-[600px] overflow-y-auto">
           <DialogHeader>
@@ -6540,9 +6701,63 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             </div>
           )}
           
+          {/* 🔥 Multi-Select Controls */}
+          {!isAdminView && !viewingHistory && !viewAsUserId && nextWeekCheckpointPopup.items.length > 0 && (
+            <div className="flex items-center justify-between py-2 px-3 bg-muted/30 rounded-lg">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  checked={selectedNextWeekItems.size === nextWeekCheckpointPopup.items.length && nextWeekCheckpointPopup.items.length > 0}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setSelectedNextWeekItems(new Set(nextWeekCheckpointPopup.items.map(item => item.id)));
+                    } else {
+                      setSelectedNextWeekItems(new Set());
+                    }
+                  }}
+                  className="h-4 w-4"
+                  data-testid="checkbox-select-all-next-week"
+                />
+                <span className="text-sm font-medium">
+                  {selectedNextWeekItems.size > 0 
+                    ? `${selectedNextWeekItems.size} selected` 
+                    : 'Select All'}
+                </span>
+              </div>
+              {selectedNextWeekItems.size > 0 && (
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={handleBulkDeleteNextWeek}
+                  className="h-7"
+                  data-testid="button-delete-selected-next-week"
+                >
+                  <Trash2 className="w-3.5 h-3.5 mr-1" />
+                  Delete ({selectedNextWeekItems.size})
+                </Button>
+              )}
+            </div>
+          )}
+          
           <div className="space-y-2 py-4">
             {nextWeekCheckpointPopup.items.map((item, index) => (
               <div key={item.id} className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/30 transition-colors">
+                {/* Selection checkbox for multi-select */}
+                {!isAdminView && !viewingHistory && !viewAsUserId && (
+                  <Checkbox
+                    checked={selectedNextWeekItems.has(item.id)}
+                    onCheckedChange={(checked) => {
+                      const newSet = new Set(selectedNextWeekItems);
+                      if (checked) {
+                        newSet.add(item.id);
+                      } else {
+                        newSet.delete(item.id);
+                      }
+                      setSelectedNextWeekItems(newSet);
+                    }}
+                    className="h-4 w-4 shrink-0 border-2 border-primary/50"
+                    data-testid={`checkbox-select-next-week-${index}`}
+                  />
+                )}
                 <span className={`text-sm font-semibold shrink-0 ${
                   nextWeekCheckpointPopup.type === 'result' ? 'text-teal-600 dark:text-teal-400' :
                   nextWeekCheckpointPopup.type === 'feelings' ? 'text-emerald-green' :
