@@ -1369,6 +1369,31 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     }
   }, [weekData]);
   
+  // 🔥 SMART RESET: Auto-reset manual mode when Next Week Target is completely empty
+  // This fixes the issue where user clears both tables but auto-sync doesn't work
+  useEffect(() => {
+    if (!initialDataLoaded || isAdminView) return;
+    
+    // Check if ALL Next Week Target fields are empty
+    const nextWeekIsEmpty = beliefs.every(belief => {
+      const textEmpty = !belief.result?.trim() && 
+                       !belief.nextFeelings?.trim() && 
+                       !belief.nextWeekTarget?.trim() && 
+                       !belief.nextActions?.trim();
+      const checklistEmpty = (!belief.resultChecklist || belief.resultChecklist.length === 0) &&
+                            (!belief.feelingsChecklist || belief.feelingsChecklist.length === 0) &&
+                            (!belief.beliefsChecklist || belief.beliefsChecklist.length === 0) &&
+                            (!belief.actionsChecklist || belief.actionsChecklist.length === 0);
+      return textEmpty && checklistEmpty;
+    });
+    
+    // If Next Week Target is completely empty and manual mode is ON, reset to auto-sync
+    if (nextWeekIsEmpty && manualNextWeekMode) {
+      console.log('[AUTO-SYNC RESET] 🔄 Next Week Target is empty - re-enabling auto-sync');
+      setManualNextWeekMode(false);
+    }
+  }, [beliefs, initialDataLoaded, isAdminView, manualNextWeekMode]);
+  
   useEffect(() => {
     // Skip auto-sync during initial data load to preserve database state
     if (!initialDataLoaded) {
