@@ -4640,7 +4640,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   variant="outline"
                   onClick={handleClearCurrentWeek}
                   disabled={saveWeekMutation.isPending}
-                  data-testid="button-update-current-week"
+                  data-testid="button-reset-current-week"
                   className="bg-orange-500 border-orange-600 text-white hover:bg-orange-600 hover:border-orange-700 shadow-lg h-8 font-semibold"
                 >
                   {saveWeekMutation.isPending ? (
@@ -4648,7 +4648,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   ) : (
                     <RefreshCw className="w-4 h-4" />
                   )}
-                  <span className="ml-1.5">Update</span>
+                  <span className="ml-1.5">Reset</span>
                 </Button>
               )}
             </div>
@@ -4979,7 +4979,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   variant="outline"
                   onClick={handleClearNextWeekTarget}
                   disabled={saveWeekMutation.isPending}
-                  data-testid="button-update-next-week"
+                  data-testid="button-reset-next-week"
                   className="bg-orange-500 border-orange-600 text-white hover:bg-orange-600 hover:border-orange-700 shadow-lg h-8 font-semibold"
                 >
                   {saveWeekMutation.isPending ? (
@@ -4987,7 +4987,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   ) : (
                     <RefreshCw className="w-4 h-4" />
                   )}
-                  <span className="ml-1.5">Update</span>
+                  <span className="ml-1.5">Reset</span>
                 </Button>
               )}
               {!viewingHistory && !isAdminView && activeSnapshot && (
