@@ -4736,9 +4736,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 <TableCell 
                   className="p-2 bg-coral-red/5 dark:bg-coral-red/10 align-top w-[180px] min-w-[180px] max-w-[180px] cursor-pointer hover-elevate active-elevate-2 transition-all"
                   onClick={() => {
-                    if (!isAdminView && !viewAsUserId) {
-                      openCurrentWeekCheckpointPopup(belief.category, 'problems');
-                    }
+                    openCurrentWeekCheckpointPopup(belief.category, 'problems');
                   }}
                   data-testid={`cell-current-week-problems-${belief.category.toLowerCase()}`}
                 >
@@ -4778,9 +4776,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 <TableCell 
                   className="p-2 bg-emerald-green/5 dark:bg-emerald-green/10 align-top w-[180px] min-w-[180px] max-w-[180px] cursor-pointer hover-elevate active-elevate-2 transition-all"
                   onClick={() => {
-                    if (!isAdminView && !viewAsUserId) {
-                      openCurrentWeekCheckpointPopup(belief.category, 'currentFeelings');
-                    }
+                    openCurrentWeekCheckpointPopup(belief.category, 'currentFeelings');
                   }}
                   data-testid={`cell-current-week-feelings-${belief.category.toLowerCase()}`}
                 >
@@ -4820,9 +4816,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 <TableCell 
                   className="p-2 bg-golden-yellow/5 dark:bg-golden-yellow/10 align-top w-[180px] min-w-[180px] max-w-[180px] cursor-pointer hover-elevate active-elevate-2 transition-all"
                   onClick={() => {
-                    if (!isAdminView && !viewAsUserId) {
-                      openCurrentWeekCheckpointPopup(belief.category, 'currentBeliefs');
-                    }
+                    openCurrentWeekCheckpointPopup(belief.category, 'currentBeliefs');
                   }}
                   data-testid={`cell-current-week-beliefs-${belief.category.toLowerCase()}`}
                 >
@@ -4862,9 +4856,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 <TableCell 
                   className="p-2 bg-soft-lavender/5 dark:bg-soft-lavender/10 align-top w-[180px] min-w-[180px] max-w-[180px] cursor-pointer hover-elevate active-elevate-2 transition-all"
                   onClick={() => {
-                    if (!isAdminView && !viewAsUserId) {
-                      openCurrentWeekCheckpointPopup(belief.category, 'currentActions');
-                    }
+                    openCurrentWeekCheckpointPopup(belief.category, 'currentActions');
                   }}
                   data-testid={`cell-current-week-actions-${belief.category.toLowerCase()}`}
                 >
