@@ -7157,6 +7157,23 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
     }
   });
 
+  // Delete all assignments (used by Reset button in Next Week Target table)
+  app.delete('/api/persistent-assignments/all', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      await storage.deleteAllPersistentAssignments(userId);
+      res.json({ success: true, message: "All assignments deleted" });
+    } catch (error) {
+      console.error("Error deleting all persistent assignments:", error);
+      res.status(500).json({ message: "Failed to delete all assignments" });
+    }
+  });
+
   // Delete single assignment
   app.delete('/api/persistent-assignments/:id', isAuthenticated, async (req: any, res) => {
     try {

@@ -226,6 +226,7 @@ export interface IStorage {
   updateCustomAssignment(id: string, userId: string, customText: string): Promise<UserPersistentAssignment>;
   deletePersistentAssignment(id: string, userId: string): Promise<void>;
   deleteCompletedAssignments(userId: string): Promise<void>;
+  deleteAllPersistentAssignments(userId: string): Promise<void>;
   
   // User Feedback operations
   getAllFeedback(): Promise<UserFeedback[]>;
@@ -1893,6 +1894,12 @@ export class DatabaseStorage implements IStorage {
         eq(userPersistentAssignments.userId, userId),
         eq(userPersistentAssignments.completed, true)
       ));
+  }
+
+  async deleteAllPersistentAssignments(userId: string): Promise<void> {
+    await db
+      .delete(userPersistentAssignments)
+      .where(eq(userPersistentAssignments.userId, userId));
   }
 
   // User Feedback operations

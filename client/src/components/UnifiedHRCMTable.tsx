@@ -3257,8 +3257,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   };
 
   // 🔥 UPDATE BUTTON: Clear Next Week Target data and enable manual planning mode
-  const handleClearNextWeekTarget = () => {
-    console.log('[UPDATE BTN] 🗑️ Clearing Next Week Target data and enabling manual mode...');
+  const handleClearNextWeekTarget = async () => {
+    console.log('[UPDATE BTN] 🗑️ Clearing Next Week Target data, assignments, and enabling manual mode...');
     
     // Clear all Next Week Target fields
     const clearedBeliefs = beliefs.map(belief => ({
@@ -3285,9 +3285,19 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       manualNextWeekMode: true, // 🔥 PERSIST manual mode to database
     });
     
+    // ✅ CLEAR ASSIGNMENTS: Delete all persistent assignments
+    try {
+      await apiRequest('/api/persistent-assignments/all', 'DELETE');
+      // Invalidate assignments cache to refresh UI
+      queryClient.invalidateQueries({ queryKey: ['/api/persistent-assignments'] });
+      console.log('[UPDATE BTN] ✅ All assignments cleared successfully');
+    } catch (error) {
+      console.error('[UPDATE BTN] ❌ Failed to clear assignments:', error);
+    }
+    
     toast({
       title: 'Next Week Target Cleared',
-      description: 'Auto-sync disabled. You can now plan your next week manually.',
+      description: 'All checkpoints and assignments cleared. Auto-sync disabled.',
     });
   };
 
