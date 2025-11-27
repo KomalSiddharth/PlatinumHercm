@@ -6379,23 +6379,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           <div className="space-y-2 py-4">
             {currentWeekCheckpointPopup.items.map((item, index) => (
               <div key={item.id} className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/30 transition-colors group/checkpoint-item">
-                {/* Selection checkbox for multi-select */}
-                {!isAdminView && !viewingHistory && !viewAsUserId && (
-                  <Checkbox
-                    checked={selectedCurrentWeekItems.has(item.id)}
-                    onCheckedChange={(checked) => {
-                      const newSet = new Set(selectedCurrentWeekItems);
-                      if (checked) {
-                        newSet.add(item.id);
-                      } else {
-                        newSet.delete(item.id);
-                      }
-                      setSelectedCurrentWeekItems(newSet);
-                    }}
-                    className="h-4 w-4 shrink-0 border-2 border-primary/50"
-                    data-testid={`checkbox-select-current-week-${index}`}
-                  />
-                )}
                 <span className={`text-sm font-semibold shrink-0 ${
                   currentWeekCheckpointPopup.type === 'problems' ? 'text-coral-red' :
                   currentWeekCheckpointPopup.type === 'currentFeelings' ? 'text-emerald-green' :
@@ -6741,23 +6724,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           <div className="space-y-2 py-4">
             {nextWeekCheckpointPopup.items.map((item, index) => (
               <div key={item.id} className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/30 transition-colors">
-                {/* Selection checkbox for multi-select */}
-                {!isAdminView && !viewingHistory && !viewAsUserId && (
-                  <Checkbox
-                    checked={selectedNextWeekItems.has(item.id)}
-                    onCheckedChange={(checked) => {
-                      const newSet = new Set(selectedNextWeekItems);
-                      if (checked) {
-                        newSet.add(item.id);
-                      } else {
-                        newSet.delete(item.id);
-                      }
-                      setSelectedNextWeekItems(newSet);
-                    }}
-                    className="h-4 w-4 shrink-0 border-2 border-primary/50"
-                    data-testid={`checkbox-select-next-week-${index}`}
-                  />
-                )}
                 <span className={`text-sm font-semibold shrink-0 ${
                   nextWeekCheckpointPopup.type === 'result' ? 'text-teal-600 dark:text-teal-400' :
                   nextWeekCheckpointPopup.type === 'feelings' ? 'text-emerald-green' :
