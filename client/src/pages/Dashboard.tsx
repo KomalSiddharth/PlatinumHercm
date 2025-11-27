@@ -18,6 +18,7 @@ import { CourseRecommendations } from '@/components/CourseRecommendations';
 import { CourseRecommendationNotification } from '@/components/CourseRecommendationNotification';
 import FeedbackButton from '@/components/FeedbackButton';
 import LifeSkillsMap from '@/components/LifeSkillsMap';
+import { GratitudeJournalDialog } from '@/components/GratitudeJournalDialog';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
@@ -27,7 +28,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Trophy, Pause, History as HistoryIcon, Trash2, ChevronDown, Book, RefreshCw, Map, ChevronRight, Folder, FolderOpen, FileText, CheckCircle2 } from 'lucide-react';
+import { Trophy, Pause, History as HistoryIcon, Trash2, ChevronDown, Book, RefreshCw, Map, ChevronRight, Folder, FolderOpen, FileText, CheckCircle2, BookOpen } from 'lucide-react';
 import type { Ritual as DbRitual, RitualCompletion } from '@shared/schema';
 
 interface Ritual {
@@ -93,6 +94,7 @@ export default function Dashboard() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [progressOpen, setProgressOpen] = useState(false);
+  const [gratitudeJournalOpen, setGratitudeJournalOpen] = useState(false);
   const [selectedRitual, setSelectedRitual] = useState<Ritual | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const [assignmentDialogOpen, setAssignmentDialogOpen] = useState(false);
@@ -787,11 +789,23 @@ export default function Dashboard() {
 
         <section ref={ritualsRef} id="rituals" className="scroll-mt-20 p-3 sm:p-4 md:p-6 rounded-lg border-2" style={{ backgroundColor: '#00008c', borderColor: '#0000cc' }}>
           <div className="space-y-4 sm:space-y-6">
-            <div>
-              <h2 className="text-2xl sm:text-2xl md:text-3xl font-bold text-white">
-                Daily Rituals
-              </h2>
-              <p className="text-sm sm:text-base text-white/80 mt-1">Build consistent habits and earn points</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl sm:text-2xl md:text-3xl font-bold text-white">
+                  Daily Rituals
+                </h2>
+                <p className="text-sm sm:text-base text-white/80 mt-1">Build consistent habits and earn points</p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setGratitudeJournalOpen(true)}
+                className="bg-amber-500/20 border-amber-400 text-amber-200 hover:bg-amber-500/40 hover:text-white"
+                data-testid="button-gratitude-journal"
+              >
+                <BookOpen className="h-4 w-4 mr-2" />
+                Gratitude Journal
+              </Button>
             </div>
 
             <AddRitualForm onAdd={handleAddRitual} />
@@ -1009,6 +1023,7 @@ export default function Dashboard() {
         </DialogContent>
       </Dialog>
 
+      <GratitudeJournalDialog open={gratitudeJournalOpen} onOpenChange={setGratitudeJournalOpen} />
       <FeedbackButton />
     </div>
   );

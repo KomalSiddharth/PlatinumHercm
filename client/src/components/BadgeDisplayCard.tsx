@@ -3,11 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Award, Trophy, Star, Sparkles, Medal, BookOpen } from 'lucide-react';
+import { Award, Trophy, Star, Sparkles, Medal } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { GratitudeJournalDialog } from './GratitudeJournalDialog';
 
 interface PlatinumBadge {
   id: string;
@@ -40,7 +39,6 @@ interface BadgeDisplayCardProps {
 export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserId }: BadgeDisplayCardProps) {
   const { toast } = useToast();
   const [badges, setBadges] = useState<PlatinumBadge[]>([]);
-  const [journalOpen, setJournalOpen] = useState(false);
   const currentMonth = new Date().getMonth() + 1;
   const currentYear = new Date().getFullYear();
 
@@ -79,22 +77,10 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
     <>
     <Card className="border-2" style={{ backgroundColor: '#00008c', borderColor: '#0000cc' }}>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-primary" />
-            Achievements & Badges
-          </CardTitle>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setJournalOpen(true)}
-            className="bg-amber-500/20 border-amber-400 text-amber-200 hover:bg-amber-500/40 hover:text-white"
-            data-testid="button-gratitude-journal"
-          >
-            <BookOpen className="h-4 w-4 mr-2" />
-            Gratitude Journal
-          </Button>
-        </div>
+        <CardTitle className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent flex items-center gap-2">
+          <Trophy className="h-5 w-5 text-primary" />
+          Achievements & Badges
+        </CardTitle>
         <CardDescription className="text-white/80">Track your platinum progress and badges</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -296,8 +282,6 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
         </div>
       </CardContent>
     </Card>
-    
-    <GratitudeJournalDialog open={journalOpen} onOpenChange={setJournalOpen} />
     </>
   );
 }
