@@ -568,12 +568,12 @@ export default function EmotionalTracker() {
               <Button
                 variant="outline"
                 onClick={() => setPreviewOpen(true)}
-                data-testid="button-emotional-preview"
+                data-testid="button-emotional-pattern-analysis"
                 className="h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"
               >
                 <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
-                <span className="hidden sm:inline">Emotional Preview</span>
-                <span className="sm:hidden">Preview</span>
+                <span className="hidden sm:inline">Emotional Pattern Analysis</span>
+                <span className="sm:hidden">Analysis</span>
               </Button>
 
               <Button
