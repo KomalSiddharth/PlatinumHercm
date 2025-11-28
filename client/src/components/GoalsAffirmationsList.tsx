@@ -207,7 +207,7 @@ export default function GoalsAffirmationsList() {
                               value={editingText}
                               onChange={(e) => setEditingText(e.target.value)}
                               onKeyDown={(e) => {
-                                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                                if (e.key === 'Enter' && !e.shiftKey) {
                                   e.preventDefault();
                                   if (editingText.trim() && editingText.trim() !== goal.text) {
                                     updateGoalMutation.mutate({ id: goal.id, text: editingText.trim() });
@@ -294,7 +294,7 @@ export default function GoalsAffirmationsList() {
                               value={editingText}
                               onChange={(e) => setEditingText(e.target.value)}
                               onKeyDown={(e) => {
-                                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                                if (e.key === 'Enter' && !e.shiftKey) {
                                   e.preventDefault();
                                   if (editingText.trim() && editingText.trim() !== goal.text) {
                                     updateGoalMutation.mutate({ id: goal.id, text: editingText.trim() });
