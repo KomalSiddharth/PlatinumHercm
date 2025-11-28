@@ -708,3 +708,27 @@ export const insertGratitudePostSchema = createInsertSchema(gratitudePosts).omit
 
 export type InsertGratitudePost = z.infer<typeof insertGratitudePostSchema>;
 export type GratitudePost = typeof gratitudePosts.$inferSelect;
+
+// Goals & Affirmations - Personal goal tracking with target dates and categories
+export const goalsAffirmations = pgTable("goals_affirmations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  text: varchar("text", { length: 1000 }).notNull(),
+  targetDate: varchar("target_date").notNull(), // YYYY-MM-DD format
+  category: varchar("category").notNull(), // 'health', 'relationship', 'career', 'money'
+  completed: boolean("completed").default(false).notNull(),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertGoalAffirmationSchema = createInsertSchema(goalsAffirmations).omit({
+  id: true,
+  completed: true,
+  completedAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertGoalAffirmation = z.infer<typeof insertGoalAffirmationSchema>;
+export type GoalAffirmation = typeof goalsAffirmations.$inferSelect;

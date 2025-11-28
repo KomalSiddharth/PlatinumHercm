@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Menu, X, Trophy, Moon, Sun, User as UserIcon } from 'lucide-react';
+import { Menu, X, Trophy, Moon, Sun, User as UserIcon, Target } from 'lucide-react';
 import Logo from './Logo';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -11,6 +11,7 @@ interface DashboardHeaderProps {
   onNavigate?: (section: string) => void;
   activeSection?: string;
   onProfileClick?: () => void;
+  onGoalsClick?: () => void;
 }
 
 export default function DashboardHeader({
@@ -18,7 +19,8 @@ export default function DashboardHeader({
   isAdmin = false,
   onNavigate = () => {},
   activeSection = 'hrcm',
-  onProfileClick = () => {}
+  onProfileClick = () => {},
+  onGoalsClick = () => {}
 }: DashboardHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
@@ -97,6 +99,17 @@ export default function DashboardHeader({
 
           <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
             <Button
+              variant="outline"
+              size="sm"
+              onClick={onGoalsClick}
+              data-testid="button-goals-affirmations"
+              className="hidden sm:inline-flex bg-gradient-to-r from-primary/10 to-accent/10 border-primary/30 hover:from-primary/20 hover:to-accent/20 text-xs sm:text-sm"
+            >
+              <Target className="w-4 h-4 mr-1.5" />
+              Goals & Affirmations
+            </Button>
+
+            <Button
               variant="ghost"
               size="icon"
               onClick={toggleDarkMode}
@@ -160,6 +173,18 @@ export default function DashboardHeader({
                   {item.label}
                 </Button>
               ))}
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  onGoalsClick();
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full justify-start text-sm"
+                data-testid="nav-mobile-goals"
+              >
+                <Target className="w-4 h-4 mr-2" />
+                Goals & Affirmations
+              </Button>
             </nav>
           </div>
         )}

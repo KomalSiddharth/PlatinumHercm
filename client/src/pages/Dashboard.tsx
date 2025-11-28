@@ -18,6 +18,8 @@ import { CourseRecommendations } from '@/components/CourseRecommendations';
 import { CourseRecommendationNotification } from '@/components/CourseRecommendationNotification';
 import FeedbackButton from '@/components/FeedbackButton';
 import LifeSkillsMap from '@/components/LifeSkillsMap';
+import { GoalsAffirmationsDialog } from '@/components/GoalsAffirmationsDialog';
+import GoalsAffirmationsList from '@/components/GoalsAffirmationsList';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
@@ -95,6 +97,7 @@ export default function Dashboard() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [progressOpen, setProgressOpen] = useState(false);
+  const [goalsDialogOpen, setGoalsDialogOpen] = useState(false);
   const [selectedRitual, setSelectedRitual] = useState<Ritual | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const [assignmentDialogOpen, setAssignmentDialogOpen] = useState(false);
@@ -813,6 +816,7 @@ export default function Dashboard() {
         activeSection={activeSection}
         onNavigate={scrollToSection}
         onProfileClick={() => setProfileOpen(true)}
+        onGoalsClick={() => setGoalsDialogOpen(true)}
       />
       
       {/* Real-time notification for course recommendations */}
@@ -973,6 +977,11 @@ export default function Dashboard() {
           />
         </section>
 
+        {/* Goals & Affirmations Section */}
+        <section className="scroll-mt-20">
+          <GoalsAffirmationsList />
+        </section>
+
         {/* Platinum User Progress Section */}
         <section className="scroll-mt-20 bg-purple-50 dark:bg-purple-950/40 p-6 rounded-lg border-2 border-purple-200 dark:border-purple-800">
           <div className="space-y-6">
@@ -1070,6 +1079,7 @@ export default function Dashboard() {
         </DialogContent>
       </Dialog>
 
+      <GoalsAffirmationsDialog open={goalsDialogOpen} onOpenChange={setGoalsDialogOpen} />
       <FeedbackButton />
     </div>
   );

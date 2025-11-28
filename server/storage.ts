@@ -66,6 +66,9 @@ import {
   gratitudePosts,
   type GratitudePost,
   type InsertGratitudePost,
+  goalsAffirmations,
+  type GoalAffirmation,
+  type InsertGoalAffirmation,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, asc, and, or, count, sql, gte, lte, offset } from "drizzle-orm";
@@ -254,6 +257,12 @@ export interface IStorage {
   archiveOldPosts(): Promise<number>;
   createGratitudePost(post: InsertGratitudePost): Promise<GratitudePost>;
   deleteGratitudePost(id: string, userId: string): Promise<void>;
+  
+  // Goals & Affirmations operations
+  getGoalsAffirmations(userId: string): Promise<GoalAffirmation[]>;
+  createGoalAffirmation(goal: InsertGoalAffirmation): Promise<GoalAffirmation>;
+  toggleGoalCompletion(id: string, userId: string): Promise<GoalAffirmation>;
+  deleteGoalAffirmation(id: string, userId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2213,6 +2222,64 @@ export class DatabaseStorage implements IStorage {
         and(
           eq(gratitudePosts.id, id),
           eq(gratitudePosts.userId, userId)
+        )
+      );
+  }
+
+  // Goals & Affirmations operations
+  async getGoalsAffirmations(userId: string): Promise<GoalAffirmation[]> {
+    return await db
+      .select()
+      .from(goalsAffirmations)
+      .where(eq(goalsAffirmations.userId, userId))
+      .orderBy(desc(goalsAffirmations.createdAt));
+  }
+
+  async createGoalAffirmation(goal: InsertGoalAffirmation): Promise<GoalAffirmation> {
+    const [newGoal] = await db
+      .insert(goalsAffirmations)
+      .values(goal)
+      .returning();
+    return newGoal;
+  }
+
+  async toggleGoalCompletion(id: string, userId: string): Promise<GoalAffirmation> {
+    // First get the current goal
+    const [goal] = await db
+      .select()
+      .from(goalsAffirmations)
+      .where(
+        and(
+          eq(goalsAffirmations.id, id),
+          eq(goalsAffirmations.userId, userId)
+        )
+      );
+    
+    if (!goal) {
+      throw new Error('Goal not found');
+    }
+    
+    // Toggle completion status
+    const [updated] = await db
+      .update(goalsAffirmations)
+      .set({
+        completed: !goal.completed,
+        completedAt: !goal.completed ? new Date() : null,
+        updatedAt: new Date()
+      })
+      .where(eq(goalsAffirmations.id, id))
+      .returning();
+    
+    return updated;
+  }
+
+  async deleteGoalAffirmation(id: string, userId: string): Promise<void> {
+    await db
+      .delete(goalsAffirmations)
+      .where(
+        and(
+          eq(goalsAffirmations.id, id),
+          eq(goalsAffirmations.userId, userId)
         )
       );
   }

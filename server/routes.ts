@@ -7161,6 +7161,93 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
     }
   });
 
+  // ========== Goals & Affirmations Routes ==========
+  // Get user's goals and affirmations
+  app.get('/api/goals', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const goals = await storage.getGoalsAffirmations(userId);
+      res.json(goals);
+    } catch (error) {
+      console.error("Error fetching goals:", error);
+      res.status(500).json({ message: "Failed to fetch goals" });
+    }
+  });
+
+  // Create a new goal or affirmation
+  app.post('/api/goals', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const { text, targetDate, category } = req.body;
+      
+      if (!text || text.trim().length === 0) {
+        return res.status(400).json({ message: "Goal text is required" });
+      }
+      
+      if (!targetDate) {
+        return res.status(400).json({ message: "Target date is required" });
+      }
+      
+      if (!category || !['health', 'relationship', 'career', 'money'].includes(category)) {
+        return res.status(400).json({ message: "Valid category is required" });
+      }
+
+      const goal = await storage.createGoalAffirmation({
+        userId,
+        text: text.trim(),
+        targetDate,
+        category,
+      });
+
+      res.json(goal);
+    } catch (error) {
+      console.error("Error creating goal:", error);
+      res.status(500).json({ message: "Failed to create goal" });
+    }
+  });
+
+  // Toggle goal completion
+  app.patch('/api/goals/:id/complete', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const { id } = req.params;
+      const updated = await storage.toggleGoalCompletion(id, userId);
+      res.json(updated);
+    } catch (error) {
+      console.error("Error toggling goal completion:", error);
+      res.status(500).json({ message: "Failed to update goal" });
+    }
+  });
+
+  // Delete a goal
+  app.delete('/api/goals/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const { id } = req.params;
+      await storage.deleteGoalAffirmation(id, userId);
+      res.json({ success: true, message: "Goal deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting goal:", error);
+      res.status(500).json({ message: "Failed to delete goal" });
+    }
+  });
+
   // ========== User Persistent Assignments Routes ==========
   // Get user's persistent assignments (date-independent)
   app.get('/api/persistent-assignments', isAuthenticated, async (req: any, res) => {
