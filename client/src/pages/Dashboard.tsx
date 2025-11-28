@@ -806,9 +806,10 @@ export default function Dashboard() {
               <div>
                 <h2 className="text-2xl sm:text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
                   Daily Rituals
-                  <Badge className="gap-1.5 bg-gradient-to-r from-amber-400 to-orange-500 text-white border-0 text-base px-3 py-1">
+                  <Badge className="gap-1.5 bg-gradient-to-r from-pink-500 to-purple-600 text-white border-0 text-base px-3 py-1">
                     <Trophy className="w-4 h-4" />
                     {totalPoints} Points
+                    <span className="ml-1 text-xs font-semibold">(1pt)</span>
                   </Badge>
                 </h2>
                 <p className="text-sm sm:text-base text-white/80 mt-1">Build consistent habits and earn points</p>
