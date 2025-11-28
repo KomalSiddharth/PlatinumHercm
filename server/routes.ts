@@ -5272,61 +5272,8 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         return res.status(404).json({ message: "User not found" });
       }
       
-      // Define default rituals that should exist for all users
-      const defaultRituals = [
-        {
-          title: "Attend Live DMP Everyday",
-          description: "Daily morning practice",
-          category: "Health",
-          frequency: "daily",
-          points: 1,
-          isDefault: true,
-        },
-        {
-          title: "Attend Morning Fitness Everyday",
-          description: "Morning fitness routine",
-          category: "Health",
-          frequency: "daily",
-          points: 1,
-          isDefault: true,
-        },
-        {
-          title: "Attend Platinum Live Support Calls",
-          description: "Join support sessions",
-          category: "Career",
-          frequency: "daily",
-          points: 1,
-          isDefault: true,
-        },
-        {
-          title: "Joined Magic of 6",
-          description: "Magic of 6 practice",
-          category: "Career",
-          frequency: "daily",
-          points: 1,
-          isDefault: true,
-        },
-      ];
-      
-      // Get existing rituals
-      const existingRituals = await storage.getRitualsByUser(user.id);
-      
-      // Check which default rituals are missing
-      const existingTitles = new Set(existingRituals.map(r => r.title));
-      const missingDefaults = defaultRituals.filter(d => !existingTitles.has(d.title));
-      
-      // Create missing default rituals
-      for (const defaultRitual of missingDefaults) {
-        await storage.createRitual({
-          ...defaultRitual,
-          userId: user.id,
-        });
-      }
-      
-      // Fetch all rituals again if we created any defaults
-      const allRituals = missingDefaults.length > 0 
-        ? await storage.getRitualsByUser(user.id)
-        : existingRituals;
+      // Get existing rituals (no default rituals created)
+      const allRituals = await storage.getRitualsByUser(user.id);
       
       res.json(allRituals);
     } catch (error) {
