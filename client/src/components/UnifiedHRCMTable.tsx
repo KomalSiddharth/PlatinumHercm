@@ -5930,9 +5930,17 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       >
         <DialogContent className="max-w-md max-h-[600px] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent">
-              {platinumStandardsDialog.category} Platinum Standards
-            </DialogTitle>
+            <div className="flex items-center justify-between gap-2">
+              <DialogTitle className="text-lg font-bold bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent">
+                {platinumStandardsDialog.category} Platinum Standards
+              </DialogTitle>
+              <Badge 
+                className={`${getProgressColor(calculateStandardsProgress(platinumStandardsDialog.category, platinumStandardsData, savedRatings))} font-semibold text-xs`}
+                data-testid={`badge-dialog-progress-${platinumStandardsDialog.category.toLowerCase()}`}
+              >
+                {calculateStandardsProgress(platinumStandardsDialog.category, platinumStandardsData, savedRatings)}%
+              </Badge>
+            </div>
             <p className="text-sm text-muted-foreground">
               Rate each standard from 0 to 7
             </p>
