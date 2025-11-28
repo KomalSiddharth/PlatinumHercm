@@ -7070,6 +7070,75 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
     }
   });
 
+  // ========== Gratitude Posts (Shared Feed) Routes ==========
+  // Get all public gratitude posts
+  app.get('/api/gratitude-posts', isAuthenticated, async (req: any, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 50;
+      const posts = await storage.getGratitudePosts(limit);
+      res.json(posts);
+    } catch (error) {
+      console.error("Error fetching gratitude posts:", error);
+      res.status(500).json({ message: "Failed to fetch gratitude posts" });
+    }
+  });
+
+  // Create a new gratitude post
+  app.post('/api/gratitude-posts', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const { content, category } = req.body;
+      if (!content || content.trim().length === 0) {
+        return res.status(400).json({ message: "Content is required" });
+      }
+
+      if (content.length > 1000) {
+        return res.status(400).json({ message: "Content must be 1000 characters or less" });
+      }
+
+      // Get user details for caching in post
+      const user = await storage.getUserByEmail(userId);
+      const userName = user?.firstName 
+        ? `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}`
+        : userId.split('@')[0];
+
+      const post = await storage.createGratitudePost({
+        userId,
+        userName,
+        userEmail: userId,
+        content: content.trim(),
+        category: category || 'gratitude',
+        isPublic: true,
+      });
+
+      res.json(post);
+    } catch (error) {
+      console.error("Error creating gratitude post:", error);
+      res.status(500).json({ message: "Failed to create gratitude post" });
+    }
+  });
+
+  // Delete own gratitude post
+  app.delete('/api/gratitude-posts/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const { id } = req.params;
+      await storage.deleteGratitudePost(id, userId);
+      res.json({ success: true, message: "Post deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting gratitude post:", error);
+      res.status(500).json({ message: "Failed to delete gratitude post" });
+    }
+  });
+
   // ========== User Persistent Assignments Routes ==========
   // Get user's persistent assignments (date-independent)
   app.get('/api/persistent-assignments', isAuthenticated, async (req: any, res) => {
