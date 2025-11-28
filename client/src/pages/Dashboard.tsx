@@ -654,7 +654,7 @@ export default function Dashboard() {
     title: string;
     url?: string;
     completed: boolean;
-    points?: number; // Points awarded for completing this lesson (default: 10)
+    points?: number; // Points awarded for completing this lesson (default: 1)
   }
 
   interface AssignmentLesson {

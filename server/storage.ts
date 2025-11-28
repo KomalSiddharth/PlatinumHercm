@@ -444,7 +444,7 @@ export class DatabaseStorage implements IStorage {
       if (hasRelationshipChecklist) score += 10;
       if (hasCareerChecklist) score += 10;
       if (hasMoneyChecklist) score += 10;
-      if (hasUnifiedAssignment) score += 10;  // Add 10 points for having assignment data
+      if (hasUnifiedAssignment) score += 1;  // Add 1 point for having assignment data
       
       // Add 5 points per checkpoint field (checkpoint data is valuable!)
       if (hasHealthProblemsChecklist) score += 5;
@@ -1908,15 +1908,15 @@ export class DatabaseStorage implements IStorage {
       ))
       .returning();
 
-    // Award/subtract 10 points based on completion status change
+    // Award/subtract 1 point based on completion status change
     if (willBeCompleted && !wasCompleted) {
-      // Marking as completed → Award 10 points
-      await this.addPointsToUser(userId, 10);
-      console.log(`✅ [ASSIGNMENT POINTS] Added 10 points to user ${userId} for completing assignment: ${current.lessonName}`);
+      // Marking as completed → Award 1 point
+      await this.addPointsToUser(userId, 1);
+      console.log(`✅ [ASSIGNMENT POINTS] Added 1 point to user ${userId} for completing assignment: ${current.lessonName}`);
     } else if (!willBeCompleted && wasCompleted) {
-      // Unmarking (completed → incomplete) → Subtract 10 points
-      await this.addPointsToUser(userId, -10);
-      console.log(`❌ [ASSIGNMENT POINTS] Subtracted 10 points from user ${userId} for unchecking assignment: ${current.lessonName}`);
+      // Unmarking (completed → incomplete) → Subtract 1 point
+      await this.addPointsToUser(userId, -1);
+      console.log(`❌ [ASSIGNMENT POINTS] Subtracted 1 point from user ${userId} for unchecking assignment: ${current.lessonName}`);
     }
 
     return updated;
