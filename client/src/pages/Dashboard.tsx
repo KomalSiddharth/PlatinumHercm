@@ -19,6 +19,7 @@ import { CourseRecommendations } from '@/components/CourseRecommendations';
 import { CourseRecommendationNotification } from '@/components/CourseRecommendationNotification';
 import FeedbackButton from '@/components/FeedbackButton';
 import LifeSkillsMap from '@/components/LifeSkillsMap';
+import DelphiChatbot from '@/components/DelphiChatbot';
 import { GoalsAffirmationsDialog } from '@/components/GoalsAffirmationsDialog';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -852,12 +853,22 @@ export default function Dashboard() {
         {/* Course Recommendations Card - REMOVED: User wants ONLY popup dialog, not this card */}
         {/* <CourseRecommendations currentWeek={currentWeek} /> */}
         
-        <section ref={hrcmRef} id="hrcm" className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-3 sm:p-4 md:p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
-          <UnifiedHRCMTable 
-            weekNumber={currentWeek}
-            onWeekChange={handleWeekChange}
-          />
-        </section>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+          {/* HRCM Section - 2 columns */}
+          <div className="lg:col-span-2">
+            <section ref={hrcmRef} id="hrcm" className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-3 sm:p-4 md:p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
+              <UnifiedHRCMTable 
+                weekNumber={currentWeek}
+                onWeekChange={handleWeekChange}
+              />
+            </section>
+          </div>
+          
+          {/* Delphi Chatbot - 1 column */}
+          <div className="lg:col-span-1">
+            <DelphiChatbot />
+          </div>
+        </div>
 
         {/* Course Tracker Section - Moved below HRCM */}
         <section ref={coursesRef} id="courses" className="scroll-mt-20">
