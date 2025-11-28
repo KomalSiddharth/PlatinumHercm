@@ -948,10 +948,10 @@ export default function Dashboard() {
         </section>
 
         {/* Share Your Result and Express Your Gratitude Section */}
-        <section className="scroll-mt-20 bg-amber-50 dark:bg-amber-950/40 p-6 rounded-lg border-2 border-amber-200 dark:border-amber-800">
+        <section className="scroll-mt-20 bg-gradient-to-br from-primary/5 to-accent/5 dark:from-primary/10 dark:to-accent/10 p-6 rounded-lg border-2 border-primary/30 dark:border-primary/50">
           <div className="space-y-6">
             <div>
-              <h2 className="text-3xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">Share Your Result and Express Your Gratitude</h2>
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Share Your Result and Express Your Gratitude</h2>
               <p className="text-muted-foreground mt-1">Celebrate your achievements and reflect on what you're grateful for</p>
             </div>
             <GratitudeFeed currentUserId={currentUser?.id} />
