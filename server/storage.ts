@@ -924,11 +924,7 @@ export class DatabaseStorage implements IStorage {
 
   async seedDefaultRituals(userId: string): Promise<void> {
     const defaultRitualsData = [
-      { title: 'Morning Fitness', url: 'https://us06web.zoom.us/meeting/register/Yw6DM7FiRtCfO2vwfmaCdg#/registration', category: 'Health', order: 1 },
-      { title: 'Morning Support Call', url: 'https://zoom.miteshkhatri.com/event/pprac', category: 'Relationship', order: 2 },
-      { title: 'Magic of 6', url: 'https://zoom.miteshkhatri.com/event/ps', category: 'Career', order: 3 },
-      { title: 'Evening Support Call', url: 'https://zoom.miteshkhatri.com/event/pprac', category: 'Relationship', order: 4 },
-      { title: 'DMP', url: 'https://us06web.zoom.us/meeting/register/OLYrOHBUQqa_49GbYWdCjg#/registration', category: 'Money', order: 5 },
+      { title: 'Evening Support Call', url: 'https://zoom.miteshkhatri.com/event/pprac', category: 'Relationship', order: 1 },
     ];
 
     for (const ritualData of defaultRitualsData) {
