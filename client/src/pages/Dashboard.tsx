@@ -901,14 +901,15 @@ export default function Dashboard() {
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    onClick={() => handleDeleteRitual(ritual.id)}
+                                    onClick={() => !ritual.isDefault && handleDeleteRitual(ritual.id)}
+                                    disabled={ritual.isDefault}
                                     data-testid={`button-delete-${ritual.id}`}
                                     className="w-7 h-7 sm:w-8 sm:h-8"
                                   >
                                     <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                   </Button>
                                 </TooltipTrigger>
-                                <TooltipContent>Delete</TooltipContent>
+                                <TooltipContent>{ritual.isDefault ? 'Cannot delete default rituals' : 'Delete'}</TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
                           </div>

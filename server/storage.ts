@@ -868,6 +868,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteRitual(id: string, userId: string): Promise<number> {
+    // Check if ritual is a default ritual (non-deletable)
+    const ritual = await db
+      .select()
+      .from(rituals)
+      .where(and(
+        eq(rituals.id, id),
+        eq(rituals.userId, userId)
+      ))
+      .limit(1);
+
+    if (ritual.length > 0 && ritual[0].isDefault) {
+      // Return 0 to indicate deletion failed (or throw error)
+      throw new Error('Cannot delete default rituals');
+    }
+
     const result = await db
       .delete(rituals)
       .where(and(
@@ -903,7 +918,7 @@ export class DatabaseStorage implements IStorage {
           points: 1,
           url: ritualData.url,
           isActive: true,
-          isDefault: false,
+          isDefault: true,
         });
       }
     }

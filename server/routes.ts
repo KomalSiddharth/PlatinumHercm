@@ -5357,6 +5357,9 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       res.json({ success: true, message: "Ritual deleted" });
     } catch (error) {
       console.error("Error deleting ritual:", error);
+      if ((error as Error).message === 'Cannot delete default rituals') {
+        return res.status(403).json({ message: "Cannot delete default rituals" });
+      }
       res.status(500).json({ message: "Failed to delete ritual" });
     }
   });
