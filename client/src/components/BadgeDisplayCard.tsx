@@ -79,7 +79,7 @@ export default function BadgeDisplayCard({ leaderboardEntries = [], currentUserI
       <CardHeader>
         <CardTitle className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent flex items-center gap-2">
           <Trophy className="h-5 w-5 text-primary" />
-          Achievements & Badges
+          Platinum Growth
         </CardTitle>
         <CardDescription className="text-white/80">Track your platinum progress and badges</CardDescription>
       </CardHeader>
