@@ -133,7 +133,7 @@ export default function GratitudeFeed({ currentUserId }: GratitudeFeedProps) {
 
   return (
     <div className="space-y-6">
-      <Card className="border-2 border-amber-200 dark:border-amber-800 bg-gradient-to-br from-amber-50/50 to-orange-50/50 dark:from-amber-950/30 dark:to-orange-950/30">
+      <Card className="border-2 border-primary/30 dark:border-primary/50 bg-gradient-to-br from-primary/5 to-accent/5 dark:from-primary/10 dark:to-accent/10">
         <CardContent className="pt-6">
           <div className="relative">
             <textarea
@@ -141,7 +141,7 @@ export default function GratitudeFeed({ currentUserId }: GratitudeFeedProps) {
               onChange={(e) => setContent(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Share your weekly results, wins, or express gratitude for your progress and the support you've received... (Ctrl+Enter to share)"
-              className="w-full h-28 p-4 border-2 border-amber-200 dark:border-amber-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 dark:bg-amber-950/20 dark:text-white resize-none text-base"
+              className="w-full h-28 p-4 border-2 border-primary/30 dark:border-primary/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-primary/5 dark:text-white resize-none text-base bg-white/50 dark:bg-gray-900/50"
               maxLength={1000}
               data-testid="textarea-share-gratitude"
             />
@@ -154,7 +154,7 @@ export default function GratitudeFeed({ currentUserId }: GratitudeFeedProps) {
               <Button
                 onClick={handleSubmit}
                 disabled={!content.trim() || createPostMutation.isPending}
-                className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white gap-2"
+                className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white gap-2"
                 data-testid="button-share-gratitude"
               >
                 <Send className="w-4 h-4" />
@@ -164,14 +164,14 @@ export default function GratitudeFeed({ currentUserId }: GratitudeFeedProps) {
                 variant="outline"
                 onClick={() => setContent('')}
                 disabled={!content}
-                className="border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300"
+                className="border-primary/30 dark:border-primary/50 text-primary dark:text-accent"
                 data-testid="button-clear-gratitude"
               >
                 Clear
               </Button>
             </div>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Sparkles className="w-4 h-4 text-amber-500" />
+              <Sparkles className="w-4 h-4 text-primary" />
               <span>Inspire others with your journey</span>
             </div>
           </div>
@@ -180,15 +180,15 @@ export default function GratitudeFeed({ currentUserId }: GratitudeFeedProps) {
 
       {isLoading ? (
         <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
         </div>
       ) : posts.length > 0 ? (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Heart className="w-5 h-5 text-rose-500" />
+              <Heart className="w-5 h-5 text-primary" />
               <h3 className="font-semibold text-lg">Team Gratitude Wall</h3>
-              <Badge variant="secondary" className="bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300">
+              <Badge variant="secondary" className="bg-primary/10 dark:bg-primary/20 text-primary dark:text-accent">
                 {posts.length} posts
               </Badge>
             </div>
@@ -226,7 +226,7 @@ export default function GratitudeFeed({ currentUserId }: GratitudeFeedProps) {
                   }}
                   className="flex-shrink-0 w-80"
                 >
-                  <Card className="h-full border-2 border-amber-100 dark:border-amber-900/50 bg-gradient-to-br from-white to-amber-50/30 dark:from-gray-900 dark:to-amber-950/20 hover:shadow-lg hover:shadow-amber-200/50 dark:hover:shadow-amber-900/30 transition-all duration-300 group">
+                  <Card className="h-full border-2 border-primary/20 dark:border-primary/40 bg-gradient-to-br from-white to-primary/5 dark:from-gray-900 dark:to-primary/10 hover:shadow-lg hover:shadow-primary/20 dark:hover:shadow-primary/30 transition-all duration-300 group">
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
                         <Avatar className={`w-10 h-10 ${getAvatarColor(post.userName)} text-white`}>
@@ -238,7 +238,7 @@ export default function GratitudeFeed({ currentUserId }: GratitudeFeedProps) {
                           <div className="flex items-center gap-2 mb-1">
                             <span className="font-semibold text-sm truncate">{post.userName}</span>
                             {post.userId === currentUserId && (
-                              <Badge variant="outline" className="text-xs px-1.5 py-0 border-amber-300 text-amber-600">
+                              <Badge variant="outline" className="text-xs px-1.5 py-0 border-primary/30 text-primary dark:text-accent">
                                 You
                               </Badge>
                             )}
