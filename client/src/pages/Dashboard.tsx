@@ -20,7 +20,6 @@ import FeedbackButton from '@/components/FeedbackButton';
 import LifeSkillsMap from '@/components/LifeSkillsMap';
 import { GratitudeJournalDialog } from '@/components/GratitudeJournalDialog';
 import GratitudeFeed from '@/components/GratitudeFeed';
-import DelphiChat from '@/components/DelphiChat';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
@@ -116,8 +115,6 @@ export default function Dashboard() {
   const weekEndDate = useMemo(() => getWeekEndDate(), []);
   const currentMonth = useMemo(() => new Date().getMonth(), []);
   const currentYear = useMemo(() => new Date().getFullYear(), []);
-
-  // Delphi chat is handled by the DelphiChat component
   
   // Fetch current user data
   const { data: currentUser, isLoading: userLoading, error: userError } = useQuery<{ id: string; email: string; firstName?: string; lastName?: string; isAdmin?: boolean }>({
@@ -1060,7 +1057,6 @@ export default function Dashboard() {
 
       <GratitudeJournalDialog open={gratitudeJournalOpen} onOpenChange={setGratitudeJournalOpen} />
       <FeedbackButton />
-      <DelphiChat />
     </div>
   );
 }
