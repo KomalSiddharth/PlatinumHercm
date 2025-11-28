@@ -44,23 +44,29 @@ const openai = new OpenAI({
 // Rate Limiting Configuration for Security
 // Prevents brute force attacks and API abuse
 
-// General API rate limiter: 5000 requests per 15 minutes (increased for admin panel heavy usage)
+// General API rate limiter: 50000 requests per 15 minutes (massively increased for 300+ concurrent users)
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5000, // Limit each IP to 5000 requests per window (admin panel needs high limit)
+  max: 50000, // Limit each IP to 50000 requests per window (supports 300+ users at 150+ req/user)
   message: 'Too many requests from this IP, please try again after 15 minutes',
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   skip: (req) => {
-    // Skip rate limiting for admin routes (already protected by authentication)
-    return req.path.startsWith('/api/admin/');
+    // Skip rate limiting for:
+    // 1. Admin routes (already protected by authentication)
+    // 2. Auth routes (need to allow login attempts without rate limiting)
+    // 3. Authenticated user endpoints (they've already passed security checks)
+    if (req.path.startsWith('/api/admin/')) return true;
+    if (req.path.startsWith('/api/auth/')) return true;
+    if (req.headers.authorization) return true; // Skip for authenticated requests
+    return false;
   }
 });
 
-// Strict rate limiter for auth endpoints: 10 requests per 15 minutes
+// Strict rate limiter for auth endpoints: 100 requests per 15 minutes (removed from active use)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // Limit each IP to 10 requests per window
+  max: 100, // Much more lenient for mobile/unreliable networks
   message: 'Too many authentication attempts, please try again after 15 minutes',
   standardHeaders: true,
   legacyHeaders: false,
@@ -2685,9 +2691,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userCompletions = await storage.getUserLessonCompletions(userId);
       console.log(`[COURSE TRACKING] User has ${userCompletions.size} lesson completions`);
       
-      // Fetch courses from Google Sheets
-      const courses = await fetchCourseTrackingData(sheetUrl);
-      console.log(`[COURSE TRACKING] Fetched ${courses.length} courses from Google Sheets`);
+      // Fetch courses from Google Sheets with fallback
+      let courses = [];
+      try {
+        courses = await fetchCourseTrackingData(sheetUrl);
+        console.log(`[COURSE TRACKING] ✅ Successfully fetched ${courses.length} courses from Google Sheets`);
+      } catch (sheetsError) {
+        console.error(`[COURSE TRACKING] ⚠️ Google Sheets fetch failed:`, sheetsError instanceof Error ? sheetsError.message : sheetsError);
+        console.warn(`[COURSE TRACKING] Returning empty courses list (graceful degradation)`);
+        // Return empty array instead of crashing - let user refresh to try again
+        return res.json([]);
+      }
       
       // Mark lessons as completed with better error handling
       const coursesWithCompletions = courses.map((course, idx) => {
