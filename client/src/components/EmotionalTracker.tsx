@@ -128,61 +128,80 @@ const getRepeatingEmotionType = (emotion: string): 'positive' | 'negative' | nul
 };
 
 // Function to recommend repeating emotion based on positive, negative, and missing emotions
+// Returns multiple emotions separated by |
 const recommendRepeatingEmotion = (positive: string, negative: string, missing: string): string => {
-  const emotionCombination = `${positive}|${negative}|${missing}`.toLowerCase();
+  const recommendedEmotions: Set<string> = new Set();
+  const posneg = `${positive}|${negative}|${missing}`.toLowerCase();
   
-  // Mapping emotion combinations to recommended repeating emotions
-  if (negative.toLowerCase().includes('overthink') || negative.toLowerCase().includes('worry') || negative.toLowerCase().includes('anxiety')) {
-    return 'Overthinking';
+  // Check NEGATIVE emotions and add corresponding repeating patterns
+  if (negative) {
+    if (negative.toLowerCase().includes('overthink') || negative.toLowerCase().includes('worry') || negative.toLowerCase().includes('anxiety')) {
+      recommendedEmotions.add('Overthinking');
+    }
+    if (negative.toLowerCase().includes('stress') || negative.toLowerCase().includes('overwhelm') || negative.toLowerCase().includes('pressure')) {
+      recommendedEmotions.add('Stress');
+    }
+    if (negative.toLowerCase().includes('irritat') || negative.toLowerCase().includes('frustrat') || negative.toLowerCase().includes('angry')) {
+      recommendedEmotions.add('Irritation');
+    }
+    if (negative.toLowerCase().includes('doubt') || negative.toLowerCase().includes('uncertain') || negative.toLowerCase().includes('confused')) {
+      recommendedEmotions.add('Doubt');
+    }
+    if (negative.toLowerCase().includes('fear') || negative.toLowerCase().includes('afraid') || negative.toLowerCase().includes('panic')) {
+      recommendedEmotions.add('Fear');
+    }
+    if (negative.toLowerCase().includes('withdraw') || negative.toLowerCase().includes('detach') || negative.toLowerCase().includes('numb')) {
+      recommendedEmotions.add('Withdrawal');
+    }
+    if (negative.toLowerCase().includes('drained') || negative.toLowerCase().includes('fatigue') || negative.toLowerCase().includes('low')) {
+      recommendedEmotions.add('Emotional Fatigue');
+    }
   }
-  if (negative.toLowerCase().includes('stress') || negative.toLowerCase().includes('overwhelm') || negative.toLowerCase().includes('pressure')) {
-    return 'Stress';
+
+  // Check POSITIVE emotions and add corresponding repeating patterns
+  if (positive) {
+    if (positive.toLowerCase().includes('calm') || positive.toLowerCase().includes('peace') || positive.toLowerCase().includes('serenity')) {
+      recommendedEmotions.add('Calm Moments');
+    }
+    if (positive.toLowerCase().includes('motivation') || positive.toLowerCase().includes('confidence') || positive.toLowerCase().includes('courage')) {
+      recommendedEmotions.add('Motivational Spikes');
+    }
+    if (positive.toLowerCase().includes('relief') || positive.toLowerCase().includes('peace')) {
+      recommendedEmotions.add('Relief');
+    }
+    if (positive.toLowerCase().includes('joy') || positive.toLowerCase().includes('delight') || positive.toLowerCase().includes('happiness')) {
+      recommendedEmotions.add('Joy');
+    }
+    if (positive.toLowerCase().includes('focus') || positive.toLowerCase().includes('clarity') || positive.toLowerCase().includes('determination')) {
+      recommendedEmotions.add('Focus');
+    }
+    if (positive.toLowerCase().includes('gratitude') || positive.toLowerCase().includes('appreciation')) {
+      recommendedEmotions.add('Gratitude');
+    }
+    if (positive.toLowerCase().includes('hope')) {
+      recommendedEmotions.add('Hope');
+    }
+    if (positive.toLowerCase().includes('confidence')) {
+      recommendedEmotions.add('Confidence Bursts');
+    }
   }
-  if (negative.toLowerCase().includes('irritat') || negative.toLowerCase().includes('frustrat') || negative.toLowerCase().includes('angry')) {
-    return 'Irritation';
+
+  // Check MISSING emotions
+  if (missing) {
+    if (missing.toLowerCase().includes('love') || missing.toLowerCase().includes('affection') || missing.toLowerCase().includes('connection')) {
+      recommendedEmotions.add('Wanting Connection But Pulling Away');
+    }
+    if (missing.toLowerCase().includes('clarity') || missing.toLowerCase().includes('purpose') || missing.toLowerCase().includes('meaning')) {
+      recommendedEmotions.add('Emotional Clarity');
+    }
   }
-  if (negative.toLowerCase().includes('doubt') || negative.toLowerCase().includes('uncertain') || negative.toLowerCase().includes('confused')) {
-    return 'Doubt';
+
+  // If we have recommendations, return them joined by |
+  if (recommendedEmotions.size > 0) {
+    return Array.from(recommendedEmotions).join('|');
   }
-  if (negative.toLowerCase().includes('fear') || negative.toLowerCase().includes('afraid') || negative.toLowerCase().includes('panic')) {
-    return 'Fear';
-  }
-  if (negative.toLowerCase().includes('withdraw') || negative.toLowerCase().includes('detach') || negative.toLowerCase().includes('numb')) {
-    return 'Withdrawal';
-  }
-  if (negative.toLowerCase().includes('drained') || negative.toLowerCase().includes('fatigue') || negative.toLowerCase().includes('low')) {
-    return 'Emotional Fatigue';
-  }
-  if (positive.toLowerCase().includes('calm') || positive.toLowerCase().includes('peace') || positive.toLowerCase().includes('serenity')) {
-    return 'Calm Moments';
-  }
-  if (positive.toLowerCase().includes('motivation') || positive.toLowerCase().includes('confidence') || positive.toLowerCase().includes('courage')) {
-    return 'Motivational Spikes';
-  }
-  if (positive.toLowerCase().includes('relief') || positive.toLowerCase().includes('peace')) {
-    return 'Relief';
-  }
-  if (positive.toLowerCase().includes('joy') || positive.toLowerCase().includes('delight') || positive.toLowerCase().includes('happiness')) {
-    return 'Joy';
-  }
-  if (positive.toLowerCase().includes('focus') || positive.toLowerCase().includes('clarity') || positive.toLowerCase().includes('determination')) {
-    return 'Focus';
-  }
-  if (positive.toLowerCase().includes('gratitude') || positive.toLowerCase().includes('appreciation')) {
-    return 'Gratitude';
-  }
-  if (positive.toLowerCase().includes('hope')) {
-    return 'Hope';
-  }
-  if (positive.toLowerCase().includes('confidence')) {
-    return 'Confidence Bursts';
-  }
-  if (missing.toLowerCase().includes('love') || missing.toLowerCase().includes('affection') || missing.toLowerCase().includes('connection')) {
-    return 'Wanting Connection But Pulling Away';
-  }
-  if (missing.toLowerCase().includes('clarity') || missing.toLowerCase().includes('purpose') || missing.toLowerCase().includes('meaning')) {
-    return 'Emotional Clarity';
-  }
+
+  // Fallback patterns when no specific matches found
   if (negative && positive) {
     return 'Emotional Highs and Lows';
   }
