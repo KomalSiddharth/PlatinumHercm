@@ -5012,7 +5012,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               <TableHead className="text-xs sm:text-sm w-[150px] bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/40 dark:to-blue-900/40 font-semibold px-1.5 sm:px-2 py-1.5 sm:py-2">
                 <div className="flex items-center gap-1">
                   <Sparkles className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
-                  Assignment
+                  Platinum Skills
                 </div>
               </TableHead>
             </TableRow>

@@ -235,7 +235,7 @@ export function RefinedHistoryModal({ open, onOpenChange, currentWeek }: Refined
                         <TableHead className="min-w-[140px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Feelings</TableHead>
                         <TableHead className="min-w-[140px] bg-blue-100 dark:bg-blue-900/40 font-semibold">Beliefs/Reasons</TableHead>
                         <TableHead className="min-w-[140px] bg-blue-100 dark:bg-blue-900/40 font-semibold border-r">Actions</TableHead>
-                        <TableHead className="min-w-[200px] bg-cyan-100 dark:bg-cyan-900/40 font-semibold">Assignment</TableHead>
+                        <TableHead className="min-w-[200px] bg-cyan-100 dark:bg-cyan-900/40 font-semibold">Platinum Skills</TableHead>
                         <TableHead className="min-w-[150px] bg-amber-100 dark:bg-amber-900/40 font-semibold">Platinum Standards</TableHead>
                         <TableHead className="min-w-[70px] bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 font-semibold text-center">Progress</TableHead>
                       </TableRow>
