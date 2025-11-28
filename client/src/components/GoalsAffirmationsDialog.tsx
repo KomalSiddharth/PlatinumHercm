@@ -26,10 +26,8 @@ export function GoalsAffirmationsDialog({ open, onOpenChange }: GoalsAffirmation
 
   const createGoalMutation = useMutation({
     mutationFn: async (data: { text: string; targetDate: string; category: string }) => {
-      return await apiRequest('/api/goals', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
+      const res = await apiRequest('/api/goals', 'POST', data);
+      return await res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/goals'] });

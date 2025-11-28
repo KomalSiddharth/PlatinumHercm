@@ -46,9 +46,8 @@ export default function GoalsAffirmationsList() {
 
   const toggleCompletionMutation = useMutation({
     mutationFn: async (id: string) => {
-      return await apiRequest(`/api/goals/${id}/complete`, {
-        method: 'PATCH',
-      });
+      const res = await apiRequest(`/api/goals/${id}/complete`, 'PATCH');
+      return await res.json();
     },
     onMutate: async (id) => {
       await queryClient.cancelQueries({ queryKey: ['/api/goals'] });
@@ -83,9 +82,8 @@ export default function GoalsAffirmationsList() {
 
   const deleteGoalMutation = useMutation({
     mutationFn: async (id: string) => {
-      return await apiRequest(`/api/goals/${id}`, {
-        method: 'DELETE',
-      });
+      const res = await apiRequest(`/api/goals/${id}`, 'DELETE');
+      return await res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/goals'] });
