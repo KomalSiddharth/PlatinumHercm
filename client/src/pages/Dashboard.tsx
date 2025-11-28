@@ -821,8 +821,7 @@ export default function Dashboard() {
       {/* Real-time notification for course recommendations */}
       <CourseRecommendationNotification userId={currentUser?.id} />
 
-      <div className="flex gap-6 max-w-[1400px] mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
-        <main className="flex-1 space-y-6 sm:space-y-8 md:space-y-12 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 120px)' }}>
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 space-y-6 sm:space-y-8 md:space-y-12">
         {/* Course Recommendations Card - REMOVED: User wants ONLY popup dialog, not this card */}
         {/* <CourseRecommendations currentWeek={currentWeek} /> */}
         
@@ -988,36 +987,7 @@ export default function Dashboard() {
             <UserDashboardSearch isAdmin={currentUser?.isAdmin || false} />
           </div>
         </section>
-        </main>
-        
-        {/* Delphi Chat on Right Side */}
-        <div className="hidden lg:block flex-shrink-0 sticky top-[70px]" style={{ width: '350px', height: '800px' }}>
-          <div 
-            id="delphi-page-container"
-            style={{ width: '100%', height: '100%', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border)' }}
-          />
-          <script
-            id="delphi-page-script"
-            dangerouslySetInnerHTML={{
-              __html: `
-                window.delphi = {...(window.delphi ?? {}) };
-                window.delphi.page = {
-                  config: "00175779-acb8-4580-a7ec-8469446841a4",
-                  overrides: {
-                    landingPage: "OVERVIEW",
-                  },
-                  container: {
-                    width: "100%",
-                    height: "800px",
-                  },
-                  targetElementId: "delphi-page-container"
-                };
-              `
-            }}
-          />
-          <script id="delphi-page-bootstrap" src="https://embed.delphi.ai/loader.js" async />
-        </div>
-      </div>
+      </main>
 
       <ProfileModal
         open={profileOpen}
