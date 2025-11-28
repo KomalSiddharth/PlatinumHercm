@@ -687,3 +687,23 @@ export const insertGratitudeJournalSchema = createInsertSchema(gratitudeJournals
 
 export type InsertGratitudeJournal = z.infer<typeof insertGratitudeJournalSchema>;
 export type GratitudeJournal = typeof gratitudeJournals.$inferSelect;
+
+// Gratitude Posts - Shared feed for all users to see each other's results and gratitude
+export const gratitudePosts = pgTable("gratitude_posts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  userName: varchar("user_name").notNull(), // Cached for display
+  userEmail: varchar("user_email"), // For avatar fallback
+  content: varchar("content", { length: 1000 }).notNull(), // Message content
+  category: varchar("category").default('gratitude'), // 'gratitude', 'result', 'milestone'
+  isPublic: boolean("is_public").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertGratitudePostSchema = createInsertSchema(gratitudePosts).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertGratitudePost = z.infer<typeof insertGratitudePostSchema>;
+export type GratitudePost = typeof gratitudePosts.$inferSelect;
