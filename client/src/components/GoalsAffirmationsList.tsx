@@ -209,14 +209,21 @@ export default function GoalsAffirmationsList() {
                               onKeyDown={(e) => {
                                 if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
                                   e.preventDefault();
-                                  if (editingText.trim()) {
+                                  if (editingText.trim() && editingText.trim() !== goal.text) {
                                     updateGoalMutation.mutate({ id: goal.id, text: editingText.trim() });
+                                  } else {
+                                    setEditingId(null);
+                                    setEditingText('');
                                   }
                                 }
                               }}
                               onBlur={() => {
-                                setEditingId(null);
-                                setEditingText('');
+                                if (editingText.trim() && editingText.trim() !== goal.text) {
+                                  updateGoalMutation.mutate({ id: goal.id, text: editingText.trim() });
+                                } else {
+                                  setEditingId(null);
+                                  setEditingText('');
+                                }
                               }}
                               className="min-h-[60px] resize-none text-sm"
                               autoFocus
@@ -293,14 +300,21 @@ export default function GoalsAffirmationsList() {
                               onKeyDown={(e) => {
                                 if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
                                   e.preventDefault();
-                                  if (editingText.trim()) {
+                                  if (editingText.trim() && editingText.trim() !== goal.text) {
                                     updateGoalMutation.mutate({ id: goal.id, text: editingText.trim() });
+                                  } else {
+                                    setEditingId(null);
+                                    setEditingText('');
                                   }
                                 }
                               }}
                               onBlur={() => {
-                                setEditingId(null);
-                                setEditingText('');
+                                if (editingText.trim() && editingText.trim() !== goal.text) {
+                                  updateGoalMutation.mutate({ id: goal.id, text: editingText.trim() });
+                                } else {
+                                  setEditingId(null);
+                                  setEditingText('');
+                                }
                               }}
                               className="min-h-[60px] resize-none text-sm"
                               autoFocus

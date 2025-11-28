@@ -7214,6 +7214,29 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
     }
   });
 
+  // Update goal text
+  app.patch('/api/goals/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const { id } = req.params;
+      const { text } = req.body;
+
+      if (!text || text.trim().length === 0) {
+        return res.status(400).json({ message: "Goal text is required" });
+      }
+
+      const updated = await storage.updateGoalText(id, userId, text.trim());
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating goal text:", error);
+      res.status(500).json({ message: "Failed to update goal" });
+    }
+  });
+
   // Toggle goal completion
   app.patch('/api/goals/:id/complete', isAuthenticated, async (req: any, res) => {
     try {

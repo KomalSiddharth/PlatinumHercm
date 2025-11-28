@@ -261,6 +261,7 @@ export interface IStorage {
   // Goals & Affirmations operations
   getGoalsAffirmations(userId: string): Promise<GoalAffirmation[]>;
   createGoalAffirmation(goal: InsertGoalAffirmation): Promise<GoalAffirmation>;
+  updateGoalText(id: string, userId: string, text: string): Promise<GoalAffirmation>;
   toggleGoalCompletion(id: string, userId: string): Promise<GoalAffirmation>;
   deleteGoalAffirmation(id: string, userId: string): Promise<void>;
 }
@@ -2246,6 +2247,28 @@ export class DatabaseStorage implements IStorage {
       .values(goal)
       .returning();
     return newGoal;
+  }
+
+  async updateGoalText(id: string, userId: string, text: string): Promise<GoalAffirmation> {
+    const [updated] = await db
+      .update(goalsAffirmations)
+      .set({
+        text: text.trim(),
+        updatedAt: new Date()
+      })
+      .where(
+        and(
+          eq(goalsAffirmations.id, id),
+          eq(goalsAffirmations.userId, userId)
+        )
+      )
+      .returning();
+    
+    if (!updated) {
+      throw new Error('Goal not found');
+    }
+    
+    return updated;
   }
 
   async toggleGoalCompletion(id: string, userId: string): Promise<GoalAffirmation> {
