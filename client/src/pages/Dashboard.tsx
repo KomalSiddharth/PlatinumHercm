@@ -28,7 +28,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Trophy, Pause, History as HistoryIcon, Trash2, ChevronDown, Book, RefreshCw, Map, ChevronRight, Folder, FolderOpen, FileText, CheckCircle2, BookOpen } from 'lucide-react';
+import { Trophy, Pause, History as HistoryIcon, Trash2, ChevronDown, Book, RefreshCw, Map, ChevronRight, Folder, FolderOpen, FileText, CheckCircle2, BookOpen, ExternalLink } from 'lucide-react';
 import type { Ritual as DbRitual, RitualCompletion } from '@shared/schema';
 
 interface Ritual {
@@ -858,8 +858,13 @@ export default function Dashboard() {
                           />
                           
                           <div className="flex-1 min-w-0">
-                            <h3 className={`text-sm sm:text-base font-medium ${ritual.completed ? 'text-muted-foreground' : 'text-foreground'}`}>
+                            <h3 
+                              className={`text-sm sm:text-base font-medium cursor-pointer flex items-center gap-2 ${ritual.completed ? 'text-muted-foreground' : 'text-foreground'} ${ritual.url ? 'hover:text-blue-600 dark:hover:text-blue-400 transition-colors' : ''}`}
+                              onClick={() => ritual.url && window.open(ritual.url, '_blank')}
+                              data-testid={`link-ritual-${ritual.id}`}
+                            >
                               {ritual.title}
+                              {ritual.url && <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
                             </h3>
                           </div>
                           
