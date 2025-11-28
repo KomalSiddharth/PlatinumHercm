@@ -116,9 +116,15 @@ export function GoalsAffirmationsDialog({ open, onOpenChange }: GoalsAffirmation
             </Label>
             <Textarea
               id="goal-text"
-              placeholder="Write your goal or affirmation here... (e.g., 'I will exercise 5 days a week' or 'I am becoming healthier every day')"
+              placeholder="Write your goal or affirmation here... (e.g., 'I will exercise 5 days a week' or 'I am becoming healthier every day') - Press Enter to add"
               value={text}
               onChange={(e) => setText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey && (e.ctrlKey || e.metaKey)) {
+                  e.preventDefault();
+                  handleSubmit();
+                }
+              }}
               className="min-h-[100px] resize-none"
               data-testid="input-goal-text"
             />
@@ -189,24 +195,6 @@ export function GoalsAffirmationsDialog({ open, onOpenChange }: GoalsAffirmation
             </div>
           </div>
 
-          <div className="flex gap-3 pt-4">
-            <Button
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              className="flex-1"
-              data-testid="button-cancel-goal"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={createGoalMutation.isPending}
-              className="flex-1 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
-              data-testid="button-save-goal"
-            >
-              {createGoalMutation.isPending ? 'Saving...' : 'Add Goal'}
-            </Button>
-          </div>
 
           {/* Goals List */}
           <div className="border-t pt-4 mt-4">
