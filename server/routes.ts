@@ -5348,18 +5348,6 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       
       const { id } = req.params;
       
-      // Check if ritual is a default ritual before attempting deletion
-      const rituals = await storage.getRitualsByUser(user.id);
-      const ritual = rituals.find(r => r.id === id);
-      
-      if (!ritual) {
-        return res.status(404).json({ message: "Ritual not found" });
-      }
-      
-      if (ritual.isDefault) {
-        return res.status(403).json({ message: "Default rituals cannot be deleted. You can pause them instead." });
-      }
-      
       const deletedCount = await storage.deleteRitual(id, user.id);
       
       if (deletedCount === 0) {
