@@ -602,11 +602,8 @@ export default function LifeSkillsMap() {
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-gray-600" data-testid={`text-course-progress-${course.id}`}>
-                            {completedLessons}/{totalLessons} lessons
-                          </span>
-                          <span className="text-xs font-semibold text-pink-600" data-testid={`text-course-percent-${course.id}`}>
-                            {progressPercent}%
+                          <span className="text-xs font-semibold text-primary" data-testid={`text-course-progress-${course.id}`}>
+                            {completedLessons} pts
                           </span>
                         </div>
                         <div className="w-24">
@@ -694,8 +691,8 @@ export default function LifeSkillsMap() {
                                     {subcat.title}
                                   </span>
                                 </div>
-                                <span className="text-xs text-gray-600" data-testid={`text-subcategory-progress-${subcat.id}`}>
-                                  {completedSubLessons}/{totalSubLessons}
+                                <span className="text-xs font-semibold text-primary" data-testid={`text-subcategory-progress-${subcat.id}`}>
+                                  {completedSubLessons} pts
                                 </span>
                               </CollapsibleTrigger>
                               
