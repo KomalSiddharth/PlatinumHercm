@@ -11,6 +11,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarIcon, Target, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
+import GoalsAffirmationsList from './GoalsAffirmationsList';
 
 interface GoalsAffirmationsDialogProps {
   open: boolean;
@@ -36,7 +37,6 @@ export function GoalsAffirmationsDialog({ open, onOpenChange }: GoalsAffirmation
         description: 'Your goal has been saved successfully.',
       });
       resetForm();
-      onOpenChange(false);
     },
     onError: (error: any) => {
       toast({
@@ -95,7 +95,7 @@ export function GoalsAffirmationsDialog({ open, onOpenChange }: GoalsAffirmation
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <div className="p-2 rounded-lg bg-gradient-to-br from-primary to-accent">
@@ -206,6 +206,12 @@ export function GoalsAffirmationsDialog({ open, onOpenChange }: GoalsAffirmation
             >
               {createGoalMutation.isPending ? 'Saving...' : 'Add Goal'}
             </Button>
+          </div>
+
+          {/* Goals List */}
+          <div className="border-t pt-4 mt-4">
+            <h3 className="font-semibold text-lg mb-3">Your Goals & Affirmations</h3>
+            <GoalsAffirmationsList />
           </div>
         </div>
       </DialogContent>

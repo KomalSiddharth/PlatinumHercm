@@ -19,7 +19,6 @@ import { CourseRecommendationNotification } from '@/components/CourseRecommendat
 import FeedbackButton from '@/components/FeedbackButton';
 import LifeSkillsMap from '@/components/LifeSkillsMap';
 import { GoalsAffirmationsDialog } from '@/components/GoalsAffirmationsDialog';
-import GoalsAffirmationsList from '@/components/GoalsAffirmationsList';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
@@ -975,11 +974,6 @@ export default function Dashboard() {
             leaderboardEntries={leaderboardEntries} 
             currentUserId={currentUser?.id}
           />
-        </section>
-
-        {/* Goals & Affirmations Section */}
-        <section className="scroll-mt-20">
-          <GoalsAffirmationsList />
         </section>
 
         {/* Platinum User Progress Section */}
