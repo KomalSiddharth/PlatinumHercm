@@ -2173,7 +2173,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const ritualPoints = rituals.reduce((sum, ritual) => {
         const isCompleted = todayCompletions.some(c => c.ritualId === ritual.id);
         if (!isCompleted || !ritual.isActive) return sum;
-        const points = ritual.points || 10;
+        const points = ritual.points || 1;
         return sum + points;
       }, 0);
       
@@ -5279,7 +5279,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
           description: "Daily morning practice",
           category: "Health",
           frequency: "daily",
-          points: 10,
+          points: 1,
           isDefault: true,
         },
         {
@@ -5287,7 +5287,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
           description: "Morning fitness routine",
           category: "Health",
           frequency: "daily",
-          points: 10,
+          points: 1,
           isDefault: true,
         },
         {
@@ -5295,7 +5295,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
           description: "Join support sessions",
           category: "Career",
           frequency: "daily",
-          points: 10,
+          points: 1,
           isDefault: true,
         },
         {
@@ -5303,7 +5303,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
           description: "Magic of 6 practice",
           category: "Career",
           frequency: "daily",
-          points: 10,
+          points: 1,
           isDefault: true,
         },
       ];
@@ -5569,14 +5569,14 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
             const ritual = userRituals.find(r => r.id === completion.ritualId);
             if (!ritual || !ritual.isActive) return sum;
             
-            // Use custom points from database, fallback to 10 if not set
-            const points = ritual.points || 10;
+            // Use custom points from database, fallback to 1 if not set
+            const points = ritual.points || 1;
             return sum + points;
           }, 0);
           
-          // Get all course lesson completions for this user (each lesson = 10 points)
+          // Get all course lesson completions for this user (each lesson = 1 point)
           const lessonCompletions = await storage.getAllCourseVideoCompletions(user.id);
-          const lessonPoints = lessonCompletions.length * 10;
+          const lessonPoints = lessonCompletions.length * 1;
           
           // Total all-time points = ritual points + lesson points (same as header)
           const points = ritualPoints + lessonPoints;
@@ -5650,13 +5650,13 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       const ritualPoints = allRitualCompletions.reduce((sum: number, completion: RitualCompletion) => {
         const ritual = userRituals.find(r => r.id === completion.ritualId);
         if (!ritual || !ritual.isActive) return sum;
-        const points = ritual.points || 10;
+        const points = ritual.points || 1;
         return sum + points;
       }, 0);
       
-      // Get all course lesson completions (each lesson = 10 points)
+      // Get all course lesson completions (each lesson = 1 point)
       const lessonCompletions = await storage.getAllCourseVideoCompletions(userId);
-      const lessonPoints = lessonCompletions.length * 10;
+      const lessonPoints = lessonCompletions.length * 1;
       
       // Total all-time points
       const totalPoints = ritualPoints + lessonPoints;
