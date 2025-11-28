@@ -194,7 +194,7 @@ export default function AdminEmotionalTrackerView({ userId, isAdminView = false 
         </div>
       </CardHeader>
       <CardContent className="p-3 sm:p-4 md:p-6">
-        <div>
+        <div className="overflow-x-auto">
           <table className="w-full border-collapse table-fixed">
             <thead>
               <tr className="border-b-2 border-primary/30 dark:border-primary/50">
@@ -232,146 +232,165 @@ export default function AdminEmotionalTrackerView({ userId, isAdminView = false 
               </tr>
             </thead>
             <tbody>
-              {TIME_SLOTS.map((timeSlot, index) => {
-                const data = trackerData[timeSlot] || {
-                  timeSlot,
-                  date: currentDateStr,
-                  userId: '',
-                  positiveEmotions: '',
-                  negativeEmotions: '',
-                  repeatingEmotions: '',
-                  missingEmotions: '',
+              {(() => {
+                // Compute aggregated repeating emotions - same logic as dashboard
+                const allRepeating: string[] = [];
+                Object.values(trackerData).forEach((d: any) => {
+                  const hasPositive = d?.positiveEmotions && d.positiveEmotions.trim();
+                  const hasNegative = d?.negativeEmotions && d.negativeEmotions.trim();
+                  
+                  if ((hasPositive || hasNegative) && d?.repeatingEmotions && typeof d.repeatingEmotions === 'string' && d.repeatingEmotions.trim()) {
+                    allRepeating.push(d.repeatingEmotions.trim());
+                  }
+                });
+                
+                const countMap: Record<string, number> = {};
+                allRepeating.forEach(emotion => {
+                  countMap[emotion] = (countMap[emotion] || 0) + 1;
+                });
+                
+                const getRepeatingEmotionType = (emotion: string): 'positive' | 'negative' | null => {
+                  const POSITIVE_REPEATING = ['Calm Moments', 'Motivational Spikes', 'Relief', 'Joy', 'Focus', 'Gratitude', 'Hope', 'Confidence Bursts', 'Encouragement', 'Emotional Clarity'];
+                  const NEGATIVE_REPEATING = ['Overthinking', 'Worry', 'Stress', 'Irritation', 'Doubt', 'Fear', 'Anxiety', 'Frustration', 'Emotional Fatigue', 'Withdrawal', 'Confusion', 'Uncertainty', 'Emotional Highs and Lows', 'Feeling Okay Then Overwhelmed', 'Drained But Functioning', 'Wanting Connection But Pulling Away', 'Silent Emotional Cycles', 'Mind–Body Disconnection', 'Detached But Longing', 'Busy But Unfulfilled'];
+                  if (POSITIVE_REPEATING.includes(emotion)) return 'positive';
+                  if (NEGATIVE_REPEATING.includes(emotion)) return 'negative';
+                  return null;
                 };
+                
+                const positiveRepeating: { emotion: string; count: number }[] = [];
+                const negativeRepeating: { emotion: string; count: number }[] = [];
+                
+                Object.entries(countMap).forEach(([emotion, count]) => {
+                  const type = getRepeatingEmotionType(emotion);
+                  if (type === 'positive') {
+                    positiveRepeating.push({ emotion, count });
+                  } else {
+                    negativeRepeating.push({ emotion, count });
+                  }
+                });
 
-                return (
-                  <tr
-                    key={timeSlot}
-                    className={`border-b border-primary/20 dark:border-primary/30 hover-elevate ${
-                      index % 2 === 0 ? 'bg-white/50 dark:bg-gray-900/20' : 'bg-primary/5 dark:bg-primary/10'
-                    }`}
-                  >
-                    <td className="p-1.5 sm:p-2 md:p-3 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300" data-testid={`time-slot-${index}`}>
-                      {timeSlot}
-                    </td>
-                    
-                    {/* Positive Emotions */}
-                    <td className="p-1 sm:p-1.5 md:p-2">
-                      {data.positiveEmotions ? (
-                        <HoverCard openDelay={200}>
-                          <HoverCardTrigger asChild>
-                            <div className="px-2 py-1.5 rounded border border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-900/20 cursor-pointer">
-                              <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 truncate">
-                                {data.positiveEmotions}
-                              </p>
-                            </div>
-                          </HoverCardTrigger>
-                          <HoverCardContent 
-                            side="top" 
-                            align="center" 
-                            className="w-96 bg-green-50 dark:bg-green-900/90 border-green-300 dark:border-green-500 z-[100]"
-                          >
-                            <div className="space-y-2">
-                              <h4 className="text-sm font-semibold text-green-700 dark:text-green-200">Positive Emotions</h4>
-                              <p className="text-sm text-gray-700 dark:text-gray-100 whitespace-pre-wrap">{data.positiveEmotions}</p>
-                            </div>
-                          </HoverCardContent>
-                        </HoverCard>
-                      ) : (
-                        <div className="px-2 py-1.5 rounded border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20">
-                          <p className="text-xs sm:text-sm text-gray-400 dark:text-gray-600 italic">No data</p>
-                        </div>
-                      )}
-                    </td>
+                return TIME_SLOTS.map((timeSlot, index) => {
+                  const data = trackerData[timeSlot] || {
+                    timeSlot,
+                    date: currentDateStr,
+                    userId: '',
+                    positiveEmotions: '',
+                    negativeEmotions: '',
+                    repeatingEmotions: '',
+                    missingEmotions: '',
+                  };
 
-                    {/* Negative Emotions */}
-                    <td className="p-1 sm:p-1.5 md:p-2">
-                      {data.negativeEmotions ? (
-                        <HoverCard openDelay={200}>
-                          <HoverCardTrigger asChild>
-                            <div className="px-2 py-1.5 rounded border border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-900/20 cursor-pointer">
-                              <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 truncate">
-                                {data.negativeEmotions}
-                              </p>
-                            </div>
-                          </HoverCardTrigger>
-                          <HoverCardContent 
-                            side="top" 
-                            align="center" 
-                            className="w-96 bg-red-50 dark:bg-red-900/90 border-red-300 dark:border-red-500 z-[100]"
-                          >
-                            <div className="space-y-2">
-                              <h4 className="text-sm font-semibold text-red-700 dark:text-red-200">Negative Emotions</h4>
-                              <p className="text-sm text-gray-700 dark:text-gray-100 whitespace-pre-wrap">{data.negativeEmotions}</p>
-                            </div>
-                          </HoverCardContent>
-                        </HoverCard>
-                      ) : (
-                        <div className="px-2 py-1.5 rounded border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20">
-                          <p className="text-xs sm:text-sm text-gray-400 dark:text-gray-600 italic">No data</p>
-                        </div>
-                      )}
-                    </td>
+                  return (
+                    <tr
+                      key={timeSlot}
+                      className={`border-b border-primary/20 dark:border-primary/30 hover-elevate h-[52px] ${
+                        index % 2 === 0 ? 'bg-white/50 dark:bg-gray-900/20' : 'bg-primary/5 dark:bg-primary/10'
+                      }`}
+                    >
+                      <td className="p-1.5 sm:p-2 md:p-3 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 align-top" data-testid={`time-slot-${index}`}>
+                        {timeSlot}
+                      </td>
+                      
+                      {/* Positive Emotions */}
+                      <td className="p-1 sm:p-1.5 md:p-2 align-top">
+                        {data.positiveEmotions ? (
+                          <div className="px-2 py-1.5 rounded border border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-900/20">
+                            <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 break-words">
+                              {data.positiveEmotions}
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="px-2 py-1.5 rounded border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20">
+                            <p className="text-xs sm:text-sm text-gray-400 dark:text-gray-600 italic">No data</p>
+                          </div>
+                        )}
+                      </td>
 
-                    {/* Repeating Emotions */}
-                    <td className="p-1 sm:p-1.5 md:p-2">
-                      {data.repeatingEmotions ? (
-                        <HoverCard openDelay={200}>
-                          <HoverCardTrigger asChild>
-                            <div className="px-2 py-1.5 rounded border border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/20 cursor-pointer">
-                              <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 truncate">
-                                {data.repeatingEmotions}
-                              </p>
-                            </div>
-                          </HoverCardTrigger>
-                          <HoverCardContent 
-                            side="top" 
-                            align="center" 
-                            className="w-96 bg-blue-50 dark:bg-blue-900/90 border-blue-300 dark:border-blue-500 z-[100]"
-                          >
-                            <div className="space-y-2">
-                              <h4 className="text-sm font-semibold text-blue-700 dark:text-blue-200">Repeating Emotions</h4>
-                              <p className="text-sm text-gray-700 dark:text-gray-100 whitespace-pre-wrap">{data.repeatingEmotions}</p>
-                            </div>
-                          </HoverCardContent>
-                        </HoverCard>
-                      ) : (
-                        <div className="px-2 py-1.5 rounded border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20">
-                          <p className="text-xs sm:text-sm text-gray-400 dark:text-gray-600 italic">No data</p>
-                        </div>
-                      )}
-                    </td>
+                      {/* Negative Emotions */}
+                      <td className="p-1 sm:p-1.5 md:p-2 align-top">
+                        {data.negativeEmotions ? (
+                          <div className="px-2 py-1.5 rounded border border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-900/20">
+                            <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 break-words">
+                              {data.negativeEmotions}
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="px-2 py-1.5 rounded border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20">
+                            <p className="text-xs sm:text-sm text-gray-400 dark:text-gray-600 italic">No data</p>
+                          </div>
+                        )}
+                      </td>
 
-                    {/* Missing Emotions */}
-                    <td className="p-1 sm:p-1.5 md:p-2">
-                      {data.missingEmotions ? (
-                        <HoverCard openDelay={200}>
-                          <HoverCardTrigger asChild>
-                            <div className="px-2 py-1.5 rounded border border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-900/20 cursor-pointer">
-                              <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 truncate">
-                                {data.missingEmotions}
-                              </p>
-                            </div>
-                          </HoverCardTrigger>
-                          <HoverCardContent 
-                            side="top" 
-                            align="center" 
-                            className="w-96 bg-orange-50 dark:bg-orange-900/90 border-orange-300 dark:border-orange-500 z-[100]"
-                          >
-                            <div className="space-y-2">
-                              <h4 className="text-sm font-semibold text-orange-700 dark:text-orange-200">Missing Emotions</h4>
-                              <p className="text-sm text-gray-700 dark:text-gray-100 whitespace-pre-wrap">{data.missingEmotions}</p>
-                            </div>
-                          </HoverCardContent>
-                        </HoverCard>
-                      ) : (
-                        <div className="px-2 py-1.5 rounded border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20">
-                          <p className="text-xs sm:text-sm text-gray-400 dark:text-gray-600 italic">No data</p>
-                        </div>
+                      {/* Repeating Emotions - Aggregated in first row with rowSpan */}
+                      {index === 0 && (
+                        <td 
+                          className="p-2 sm:p-3 align-top bg-gradient-to-b from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-l border-blue-200 dark:border-blue-800"
+                          rowSpan={TIME_SLOTS.length}
+                          data-testid="display-repeating-summary"
+                        >
+                          <div className="flex flex-col gap-2 h-full">
+                            {allRepeating.length === 0 ? (
+                              <div className="text-gray-400 dark:text-gray-500 italic text-xs text-center py-4">
+                                Auto-detected from emotions
+                              </div>
+                            ) : (
+                              <div className="flex flex-col gap-1">
+                                {positiveRepeating.map(({ emotion, count }) => (
+                                  <span
+                                    key={`pos-${emotion}`}
+                                    className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 border border-green-300 dark:border-green-700 w-fit"
+                                  >
+                                    {emotion}
+                                    {count > 1 && <span className="font-bold">-{count}</span>}
+                                  </span>
+                                ))}
+                                
+                                {negativeRepeating.map(({ emotion, count }) => (
+                                  <span
+                                    key={`neg-${emotion}`}
+                                    className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-700 w-fit"
+                                  >
+                                    {emotion}
+                                    {count > 1 && <span className="font-bold">-{count}</span>}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </td>
                       )}
-                    </td>
-                  </tr>
-                );
-              })}
+
+                      {/* Missing Emotions - Aggregated in first row with rowSpan */}
+                      {index === 0 && (
+                        <td 
+                          className="p-2 sm:p-3 align-top bg-gradient-to-b from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 border-l border-orange-200 dark:border-orange-800"
+                          rowSpan={TIME_SLOTS.length}
+                          data-testid="display-missing-emotions"
+                        >
+                          <div className="flex flex-col gap-2 h-full">
+                            {data.missingEmotions ? (
+                              <div className="flex flex-wrap gap-1.5">
+                                {data.missingEmotions.split('|').filter(e => e.trim()).map((emotion) => (
+                                  <span
+                                    key={emotion}
+                                    className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 border border-orange-300 dark:border-orange-700 w-fit"
+                                  >
+                                    {emotion}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="text-gray-400 dark:text-gray-500 italic text-xs text-center py-4">
+                                No data
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  );
+                });
+              })()}
             </tbody>
           </table>
         </div>
