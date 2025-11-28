@@ -2973,6 +2973,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 🚀 ZAPIER WEBHOOK - Auto-add Kajabi members to approved emails
+  // This endpoint is called by Zapier when a new member joins Kajabi
+  app.post('/api/webhooks/zapier-member', async (req, res) => {
+    try {
+      console.log('[ZAPIER WEBHOOK] 📢 New member notification received');
+      console.log('[ZAPIER WEBHOOK] Request body:', JSON.stringify(req.body, null, 2));
+      
+      const { name, email, membershipTag, secret } = req.body;
+      
+      // 1. Validate secret key for security
+      const expectedSecret = process.env.ZAPIER_WEBHOOK_SECRET;
+      if (!expectedSecret) {
+        console.error('[ZAPIER WEBHOOK] ❌ ZAPIER_WEBHOOK_SECRET not configured');
+        return res.status(500).json({ 
+          success: false, 
+          message: 'Webhook secret not configured on server' 
+        });
+      }
+      
+      if (secret !== expectedSecret) {
+        console.error('[ZAPIER WEBHOOK] ❌ Invalid secret key provided');
+        return res.status(401).json({ 
+          success: false, 
+          message: 'Invalid secret key' 
+        });
+      }
+      
+      // 2. Validate required fields
+      if (!email) {
+        console.error('[ZAPIER WEBHOOK] ❌ Email is required');
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Email is required' 
+        });
+      }
+      
+      // 3. Check if email already exists
+      const normalizedEmail = email.toLowerCase().trim();
+      const existingEmail = await storage.getApprovedEmail(normalizedEmail);
+      
+      if (existingEmail) {
+        console.log(`[ZAPIER WEBHOOK] ℹ️ Email already exists: ${normalizedEmail}`);
+        return res.json({ 
+          success: true, 
+          message: 'Email already approved',
+          email: normalizedEmail,
+          alreadyExists: true
+        });
+      }
+      
+      // 4. Add to approved emails
+      const newApprovedEmail = await storage.addApprovedEmail({
+        email: normalizedEmail,
+        name: name || null,
+        status: 'active',
+        accessCount: 0,
+      });
+      
+      console.log(`[ZAPIER WEBHOOK] ✅ Successfully added new member: ${normalizedEmail} (${name || 'No name'})`);
+      console.log(`[ZAPIER WEBHOOK] 📋 Membership tag: ${membershipTag || 'N/A'}`);
+      
+      res.json({ 
+        success: true, 
+        message: 'Member added to approved list',
+        email: normalizedEmail,
+        name: name || null,
+        membershipTag: membershipTag || null,
+        id: newApprovedEmail.id
+      });
+      
+    } catch (error) {
+      console.error('[ZAPIER WEBHOOK] ❌ Error processing webhook:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to process webhook',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // AI-powered course recommendations based on HERCM data
   app.post('/api/courses/recommend', isAuthenticated, async (req: any, res) => {
     try {
