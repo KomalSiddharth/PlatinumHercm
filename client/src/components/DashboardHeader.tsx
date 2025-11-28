@@ -65,7 +65,7 @@ export default function DashboardHeader({
     { id: 'courses', label: 'Courses' },
     { id: 'emotional', label: 'Emotional Tracker' },
     { id: 'rituals', label: 'Daily Rituals' },
-    { id: 'achievements', label: 'Achievements' }
+    { id: 'achievements', label: 'Platinum Growth' }
   ];
 
   return (
