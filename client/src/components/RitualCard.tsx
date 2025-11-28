@@ -2,7 +2,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, Trophy, Pause, Play, Edit, Trash2 } from 'lucide-react';
+import { Clock, Trophy, Pause, Play, Edit, Trash2, ExternalLink } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -17,6 +17,7 @@ interface RitualCardProps {
   points: number;
   active: boolean;
   completed?: boolean;
+  url?: string;
   onToggleComplete?: (id: string) => void;
   onToggleActive?: (id: string) => void;
   onViewHistory?: (id: string) => void;
@@ -56,8 +57,13 @@ export default function RitualCard({
           />
 
           <div className="flex-1 min-w-0">
-            <h3 className={`font-medium ${completed ? 'text-muted-foreground' : 'text-foreground'}`}>
+            <h3 
+              className={`font-medium cursor-pointer flex items-center gap-2 ${completed ? 'text-muted-foreground' : 'text-foreground'} ${url ? 'hover:text-primary transition-colors' : ''}`}
+              onClick={() => url && window.open(url, '_blank')}
+              data-testid={`link-ritual-${id}`}
+            >
               {title}
+              {url && <ExternalLink className="w-3 h-3" />}
             </h3>
             {!active && (
               <div className="flex items-center gap-2 mt-1">

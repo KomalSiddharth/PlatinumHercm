@@ -38,6 +38,7 @@ interface Ritual {
   points: number;
   active: boolean;
   completed: boolean;
+  url?: string;
 }
 
 // Helper function to get today's date in YYYY-MM-DD format (LOCAL timezone, NOT UTC)
@@ -185,6 +186,13 @@ export default function Dashboard() {
     return () => clearInterval(intervalId);
   }, [todayDate, toast]);
   
+  // Seed default rituals on mount
+  useEffect(() => {
+    if (dbRituals.length === 0) {
+      apiRequest('/api/rituals/seed-defaults', 'POST').catch(err => console.error('Failed to seed default rituals:', err));
+    }
+  }, []);
+
   // Map database rituals to Dashboard Ritual interface
   const rituals: Ritual[] = useMemo(() => {
     return dbRituals.map(dbRitual => {
@@ -198,7 +206,8 @@ export default function Dashboard() {
         recurrence: mapFrequencyToRecurrence(dbRitual.frequency),
         points,
         active: dbRitual.isActive,
-        completed: isCompleted
+        completed: isCompleted,
+        url: dbRitual.url
       };
     });
   }, [dbRituals, todayCompletions]);

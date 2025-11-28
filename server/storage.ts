@@ -126,6 +126,7 @@ export interface IStorage {
   createRitual(ritual: InsertRitual): Promise<Ritual>;
   updateRitual(id: string, userId: string, ritual: Partial<InsertRitual>): Promise<Ritual | undefined>;
   deleteRitual(id: string, userId: string): Promise<number>;
+  seedDefaultRituals(userId: string): Promise<void>;
   
   // Ritual Completions operations
   getAllRitualCompletions(userId: string): Promise<RitualCompletion[]>;
@@ -867,33 +868,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteRitual(id: string, userId: string): Promise<number> {
-    // Check if this is a default ritual (non-deletable)
-    const [ritual] = await db
-      .select()
-      .from(rituals)
-      .where(and(
-        eq(rituals.id, id),
-        eq(rituals.userId, userId)
-      ));
-    
-    if (!ritual) {
-      return 0;
-    }
-    
-    // Prevent deletion of default rituals
-    if (ritual.isDefault) {
-      return 0;
-    }
-    
-    // First delete all ritual completions for this ritual
-    await db
-      .delete(ritualCompletions)
-      .where(and(
-        eq(ritualCompletions.ritualId, id),
-        eq(ritualCompletions.userId, userId)
-      ));
-    
-    // Then delete the ritual itself
     const result = await db
       .delete(rituals)
       .where(and(
@@ -902,6 +876,37 @@ export class DatabaseStorage implements IStorage {
       ))
       .returning();
     return result.length;
+  }
+
+  async seedDefaultRituals(userId: string): Promise<void> {
+    const defaultRitualsData = [
+      { title: 'Morning Fitness', url: 'https://us06web.zoom.us/meeting/register/Yw6DM7FiRtCfO2vwfmaCdg#/registration', category: 'Health' },
+      { title: 'Morning Support Call', url: 'https://zoom.miteshkhatri.com/event/pprac', category: 'Relationship' },
+      { title: 'Magic of 6', url: 'https://zoom.miteshkhatri.com/event/ps', category: 'Career' },
+      { title: 'Evening Support Call', url: 'https://zoom.miteshkhatri.com/event/pprac', category: 'Relationship' },
+      { title: 'DMP', url: 'https://us06web.zoom.us/meeting/register/OLYrOHBUQqa_49GbYWdCjg#/registration', category: 'Money' },
+    ];
+
+    for (const ritualData of defaultRitualsData) {
+      const existingRitual = await db.select().from(rituals).where(and(
+        eq(rituals.userId, userId),
+        eq(rituals.title, ritualData.title)
+      )).limit(1);
+
+      if (existingRitual.length === 0) {
+        await db.insert(rituals).values({
+          userId,
+          title: ritualData.title,
+          description: '',
+          category: ritualData.category,
+          frequency: 'daily',
+          points: 1,
+          url: ritualData.url,
+          isActive: true,
+          isDefault: false,
+        });
+      }
+    }
   }
 
   // Ritual Completions operations

@@ -5361,6 +5361,31 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
+  // Seed default rituals
+  app.post('/api/rituals/seed-defaults', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      let user = await storage.getUser(userId);
+      if (!user && typeof userId === 'string' && userId.includes('@')) {
+        user = await storage.getUserByEmail(userId);
+      }
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      await storage.seedDefaultRituals(user.id);
+      res.json({ success: true, message: "Default rituals seeded" });
+    } catch (error) {
+      console.error("Error seeding default rituals:", error);
+      res.status(500).json({ message: "Failed to seed default rituals" });
+    }
+  });
+
   // Ritual Completions endpoints
   // Get all ritual completions for user (for history navigation)
   app.get('/api/ritual-completions', isAuthenticated, async (req: any, res) => {

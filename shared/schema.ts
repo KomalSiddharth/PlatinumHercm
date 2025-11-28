@@ -318,6 +318,7 @@ export const rituals = pgTable("rituals", {
   category: varchar("category").notNull(), // 'Health', 'Relationship', 'Career', 'Money'
   frequency: varchar("frequency").default('daily').notNull(), // 'daily', 'weekly'
   points: integer("points").default(50).notNull(), // Custom points for each ritual
+  url: varchar("url"), // Optional URL for default rituals (e.g., Zoom links)
   isActive: boolean("is_active").default(true).notNull(),
   isDefault: boolean("is_default").default(false).notNull(), // System default rituals (non-deletable)
   createdAt: timestamp("created_at").defaultNow(),
