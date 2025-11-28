@@ -208,7 +208,8 @@ export default function Dashboard() {
         points,
         active: dbRitual.isActive,
         completed: isCompleted,
-        url: dbRitual.url
+        url: dbRitual.url,
+        isDefault: dbRitual.isDefault
       };
     });
   }, [dbRituals, todayCompletions]);
