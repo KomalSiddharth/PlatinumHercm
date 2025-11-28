@@ -195,6 +195,16 @@ export function GoalsAffirmationsDialog({ open, onOpenChange }: GoalsAffirmation
             </div>
           </div>
 
+          {/* Save Button */}
+          <Button
+            onClick={handleSubmit}
+            disabled={createGoalMutation.isPending}
+            className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90"
+            size="lg"
+            data-testid="button-save-goal"
+          >
+            {createGoalMutation.isPending ? 'Saving...' : 'Save Goal / Affirmation'}
+          </Button>
 
           {/* Goals List */}
           <div className="border-t pt-4 mt-4">
