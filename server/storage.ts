@@ -956,6 +956,11 @@ export class DatabaseStorage implements IStorage {
           ));
       }
     }
+    
+    // Normalize ALL user rituals to 1 point (unified reward system)
+    await db.update(rituals)
+      .set({ points: 1, updatedAt: new Date() } as any)
+      .where(eq(rituals.userId, userId));
   }
 
   // Ritual Completions operations

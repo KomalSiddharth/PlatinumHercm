@@ -83,10 +83,9 @@ const mapFrequencyToRecurrence = (frequency: string): 'daily' | 'mon-fri' | 'cus
   return 'daily';
 };
 
-// No longer needed - using points from database directly
-// Keeping for backward compatibility but will use dbRitual.points
+// Unified 1-point reward system for all rituals
 const calculatePoints = (frequency: string): number => {
-  return frequency === 'daily' ? 50 : 75;
+  return 1;
 };
 
 export default function Dashboard() {
