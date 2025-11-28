@@ -18,8 +18,6 @@ import { CourseRecommendations } from '@/components/CourseRecommendations';
 import { CourseRecommendationNotification } from '@/components/CourseRecommendationNotification';
 import FeedbackButton from '@/components/FeedbackButton';
 import LifeSkillsMap from '@/components/LifeSkillsMap';
-import { GratitudeJournalDialog } from '@/components/GratitudeJournalDialog';
-import GratitudeFeed from '@/components/GratitudeFeed';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
@@ -39,7 +37,7 @@ interface Ritual {
   points: number;
   active: boolean;
   completed: boolean;
-  url?: string;
+  url?: string | null;
   isDefault?: boolean;
 }
 
@@ -97,7 +95,6 @@ export default function Dashboard() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [progressOpen, setProgressOpen] = useState(false);
-  const [gratitudeJournalOpen, setGratitudeJournalOpen] = useState(false);
   const [selectedRitual, setSelectedRitual] = useState<Ritual | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const [assignmentDialogOpen, setAssignmentDialogOpen] = useState(false);
@@ -855,16 +852,6 @@ export default function Dashboard() {
                 </h2>
                 <p className="text-sm sm:text-base text-white/80 mt-1">Build consistent habits and earn points</p>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setGratitudeJournalOpen(true)}
-                className="bg-amber-500/20 border-amber-400 text-amber-200 hover:bg-amber-500/40 hover:text-white"
-                data-testid="button-gratitude-journal"
-              >
-                <BookOpen className="h-4 w-4 mr-2" />
-                Gratitude Journal
-              </Button>
             </div>
 
             <AddRitualForm onAdd={handleAddRitual} />
@@ -986,17 +973,6 @@ export default function Dashboard() {
           />
         </section>
 
-        {/* Share Your Result and Express Your Gratitude Section */}
-        <section className="scroll-mt-20 bg-gradient-to-br from-primary/5 to-accent/5 dark:from-primary/10 dark:to-accent/10 p-6 rounded-lg border-2 border-primary/30 dark:border-primary/50">
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Share Your Result and Express Your Gratitude</h2>
-              <p className="text-muted-foreground mt-1">Celebrate your achievements and reflect on what you're grateful for</p>
-            </div>
-            <GratitudeFeed currentUserId={currentUser?.id} />
-          </div>
-        </section>
-
         {/* Platinum User Progress Section */}
         <section className="scroll-mt-20 bg-purple-50 dark:bg-purple-950/40 p-6 rounded-lg border-2 border-purple-200 dark:border-purple-800">
           <div className="space-y-6">
@@ -1094,7 +1070,6 @@ export default function Dashboard() {
         </DialogContent>
       </Dialog>
 
-      <GratitudeJournalDialog open={gratitudeJournalOpen} onOpenChange={setGratitudeJournalOpen} />
       <FeedbackButton />
     </div>
   );
