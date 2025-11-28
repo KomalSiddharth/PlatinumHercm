@@ -109,6 +109,7 @@ export default function Dashboard() {
   const [userName, setUserName] = useState('User');
   const [userEmail, setUserEmail] = useState('');
   const [totalPoints, setTotalPoints] = useState(0);
+  const [recentLessonPoints, setRecentLessonPoints] = useState<string | null>(null);
   
   // Use useState instead of useMemo so it can be updated when date changes at midnight
   const [todayDate, setTodayDate] = useState(getTodayDate());
@@ -626,6 +627,12 @@ export default function Dashboard() {
         title: completed ? 'Module Completed!' : 'Module Unmarked',
         description: completed ? 'Added to Assignment column' : 'Removed from Assignment column',
       });
+      
+      // Show points awarded for lesson completion
+      if (completed) {
+        setRecentLessonPoints('+1 pt');
+        setTimeout(() => setRecentLessonPoints(null), 2000);
+      }
     } catch (error) {
       console.error('Failed to save progress:', error);
       toast({
@@ -854,6 +861,14 @@ export default function Dashboard() {
 
         {/* Course Tracker Section - Moved below HRCM */}
         <section ref={coursesRef} id="courses" className="scroll-mt-20">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl sm:text-2xl md:text-3xl font-bold">Courses</h2>
+            {recentLessonPoints && (
+              <Badge className="gap-1.5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white border-0 text-base px-3 py-1 animate-pulse">
+                {recentLessonPoints}
+              </Badge>
+            )}
+          </div>
           <LifeSkillsMap />
         </section>
 
