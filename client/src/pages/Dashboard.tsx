@@ -145,6 +145,10 @@ export default function Dashboard() {
   // Fetch selected date's ritual completions (for checkbox status)
   const { data: todayCompletions = [] } = useQuery<RitualCompletion[]>({
     queryKey: ['/api/ritual-completions', selectedRitualDateStr],
+    queryFn: async () => {
+      const response = await apiRequest(`/api/ritual-completions/${selectedRitualDateStr}`, 'GET');
+      return response.json();
+    },
     enabled: !!currentUser,
   });
 
@@ -327,39 +331,39 @@ export default function Dashboard() {
     addRitualMutation.mutate(newRitual);
   };
 
-  // Mutation: Toggle ritual completion
+  // Mutation: Toggle ritual completion for selected date
   const toggleCompleteMutation = useMutation({
-    mutationFn: async ({ id, isCompleted }: { id: string; isCompleted: boolean }) => {
+    mutationFn: async ({ id, isCompleted, date }: { id: string; isCompleted: boolean; date: string }) => {
       if (isCompleted) {
-        // Delete completion
-        await apiRequest(`/api/ritual-completions/${id}/${todayDate}`, 'DELETE');
+        // Delete completion for the selected date
+        await apiRequest(`/api/ritual-completions/${id}/${date}`, 'DELETE');
       } else {
-        // Create completion
+        // Create completion for the selected date
         await apiRequest('/api/ritual-completions', 'POST', {
           ritualId: id,
-          date: selectedRitualDateStr,
+          date: date,
         });
       }
     },
-    onMutate: async ({ id, isCompleted }) => {
+    onMutate: async ({ id, isCompleted, date }) => {
       // Cancel outgoing refetches to avoid overwriting our optimistic update
-      await queryClient.cancelQueries({ queryKey: ['/api/ritual-completions', selectedRitualDateStr] });
+      await queryClient.cancelQueries({ queryKey: ['/api/ritual-completions', date] });
       await queryClient.cancelQueries({ queryKey: ['/api/user/total-points'] });
       
       // Snapshot the previous values
-      const previousCompletions = queryClient.getQueryData<RitualCompletion[]>(['/api/ritual-completions', selectedRitualDateStr]);
+      const previousCompletions = queryClient.getQueryData<RitualCompletion[]>(['/api/ritual-completions', date]);
       const previousPoints = queryClient.getQueryData<{ totalPoints: number }>(['/api/user/total-points']);
       
       // Optimistically update the UI
       queryClient.setQueryData<RitualCompletion[]>(
-        ['/api/ritual-completions', todayDate],
+        ['/api/ritual-completions', date],
         (old = []) => {
           if (isCompleted) {
             // Remove completion (unchecking)
             return old.filter(c => c.ritualId !== id);
           } else {
             // Add completion (checking)
-            return [...old, { id: `temp-${id}`, ritualId: id, userId: '', date: todayDate, completedAt: new Date(), createdAt: new Date() }];
+            return [...old, { id: `temp-${id}`, ritualId: id, userId: '', date: date, completedAt: new Date(), createdAt: new Date() }];
           }
         }
       );
@@ -375,12 +379,12 @@ export default function Dashboard() {
         console.log('[Daily Rituals] ⚡ Instant points update:', pointsChange > 0 ? `+${pointsChange}` : pointsChange);
       }
       
-      return { previousCompletions, previousPoints };
+      return { previousCompletions, previousPoints, date };
     },
     onSuccess: (_, variables) => {
       // Invalidate all ritual completion queries
       queryClient.invalidateQueries({ queryKey: ['/api/ritual-completions'] }); // Base query for ALL completions (history modal)
-      queryClient.invalidateQueries({ queryKey: ['/api/ritual-completions', todayDate] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ritual-completions', variables.date] });
       queryClient.invalidateQueries({ queryKey: ['/api/ritual-completions/month', currentYear, currentMonth] });
       queryClient.invalidateQueries({ queryKey: ['/api/ritual-completions/week', weekStartDate, weekEndDate] });
       
@@ -397,8 +401,8 @@ export default function Dashboard() {
     },
     onError: (error: Error, variables, context) => {
       // Rollback to previous state on error
-      if (context?.previousCompletions) {
-        queryClient.setQueryData(['/api/ritual-completions', todayDate], context.previousCompletions);
+      if (context?.previousCompletions && context?.date) {
+        queryClient.setQueryData(['/api/ritual-completions', context.date], context.previousCompletions);
       }
       if (context?.previousPoints) {
         queryClient.setQueryData(['/api/user/total-points'], context.previousPoints);
@@ -414,7 +418,7 @@ export default function Dashboard() {
   const handleToggleComplete = (id: string) => {
     const ritual = rituals.find(r => r.id === id);
     if (ritual && ritual.active) {
-      toggleCompleteMutation.mutate({ id, isCompleted: ritual.completed });
+      toggleCompleteMutation.mutate({ id, isCompleted: ritual.completed, date: selectedRitualDateStr });
     }
   };
 
