@@ -20,6 +20,7 @@ import FeedbackButton from '@/components/FeedbackButton';
 import LifeSkillsMap from '@/components/LifeSkillsMap';
 import { GratitudeJournalDialog } from '@/components/GratitudeJournalDialog';
 import GratitudeFeed from '@/components/GratitudeFeed';
+import DelphiChat from '@/components/DelphiChat';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
@@ -116,30 +117,7 @@ export default function Dashboard() {
   const currentMonth = useMemo(() => new Date().getMonth(), []);
   const currentYear = useMemo(() => new Date().getFullYear(), []);
 
-  // Load Delphi chat bubble - ensure it loads on dashboard mount
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      // Reinitialize Delphi config on dashboard
-      if ((window as any).delphi) {
-        (window as any).delphi.bubble = {
-          config: "00175779-acb8-4580-a7ec-8469446841a4",
-          overrides: {
-            landingPage: "OVERVIEW",
-          },
-          trigger: {
-            color: "#bc0000",
-          },
-        };
-        
-        // Reinitialize loader if available
-        if ((window as any).__delphiBubbleLoaded) {
-          (window as any).__delphiBubbleLoaded();
-        }
-      }
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, []);
+  // Delphi chat is handled by the DelphiChat component
   
   // Fetch current user data
   const { data: currentUser, isLoading: userLoading, error: userError } = useQuery<{ id: string; email: string; firstName?: string; lastName?: string; isAdmin?: boolean }>({
@@ -1082,6 +1060,7 @@ export default function Dashboard() {
 
       <GratitudeJournalDialog open={gratitudeJournalOpen} onOpenChange={setGratitudeJournalOpen} />
       <FeedbackButton />
+      <DelphiChat />
     </div>
   );
 }
