@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -6,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
 import { Target, Calendar, Trash2, Trophy, Sparkles, Heart, Briefcase, DollarSign, Activity } from 'lucide-react';
 import { format, parseISO, isPast, isToday } from 'date-fns';
 import type { GoalAffirmation } from '@shared/schema';
@@ -39,9 +41,34 @@ const categoryConfig: Record<string, { color: string; bgColor: string; icon: any
 
 export default function GoalsAffirmationsList() {
   const { toast } = useToast();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState('');
 
   const { data: goals = [], isLoading } = useQuery<GoalAffirmation[]>({
     queryKey: ['/api/goals'],
+  });
+
+  const updateGoalMutation = useMutation({
+    mutationFn: async ({ id, text }: { id: string; text: string }) => {
+      const res = await apiRequest(`/api/goals/${id}`, 'PATCH', { text });
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/goals'] });
+      setEditingId(null);
+      setEditingText('');
+      toast({
+        title: 'Goal Updated',
+        description: 'Your goal has been updated successfully.',
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to update goal',
+        variant: 'destructive',
+      });
+    },
   });
 
   const toggleCompletionMutation = useMutation({
@@ -160,6 +187,7 @@ export default function GoalsAffirmationsList() {
                     const config = categoryConfig[goal.category] || categoryConfig.health;
                     const CategoryIcon = config.icon;
                     const dateStatus = getDateStatus(goal.targetDate);
+                    const isEditing = editingId === goal.id;
 
                     return (
                       <div
@@ -174,7 +202,38 @@ export default function GoalsAffirmationsList() {
                           data-testid={`checkbox-goal-${goal.id}`}
                         />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium leading-snug">{goal.text}</p>
+                          {isEditing ? (
+                            <Textarea
+                              value={editingText}
+                              onChange={(e) => setEditingText(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                                  e.preventDefault();
+                                  if (editingText.trim()) {
+                                    updateGoalMutation.mutate({ id: goal.id, text: editingText.trim() });
+                                  }
+                                }
+                              }}
+                              onBlur={() => {
+                                setEditingId(null);
+                                setEditingText('');
+                              }}
+                              className="min-h-[60px] resize-none text-sm"
+                              autoFocus
+                              data-testid={`input-edit-goal-${goal.id}`}
+                            />
+                          ) : (
+                            <p
+                              onClick={() => {
+                                setEditingId(goal.id);
+                                setEditingText(goal.text);
+                              }}
+                              className="text-sm font-medium leading-snug cursor-pointer hover:opacity-70 transition-opacity"
+                              data-testid={`text-goal-${goal.id}`}
+                            >
+                              {goal.text}
+                            </p>
+                          )}
                           <div className="flex items-center gap-2 mt-2 flex-wrap">
                             <Badge variant="outline" className={`${config.color} border-current text-xs`}>
                               <CategoryIcon className="w-3 h-3 mr-1" />
@@ -212,6 +271,7 @@ export default function GoalsAffirmationsList() {
                   {completedGoals.map((goal) => {
                     const config = categoryConfig[goal.category] || categoryConfig.health;
                     const CategoryIcon = config.icon;
+                    const isEditing = editingId === goal.id;
 
                     return (
                       <div
@@ -226,9 +286,37 @@ export default function GoalsAffirmationsList() {
                           data-testid={`checkbox-goal-${goal.id}`}
                         />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium leading-snug line-through text-muted-foreground">
-                            {goal.text}
-                          </p>
+                          {isEditing ? (
+                            <Textarea
+                              value={editingText}
+                              onChange={(e) => setEditingText(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                                  e.preventDefault();
+                                  if (editingText.trim()) {
+                                    updateGoalMutation.mutate({ id: goal.id, text: editingText.trim() });
+                                  }
+                                }
+                              }}
+                              onBlur={() => {
+                                setEditingId(null);
+                                setEditingText('');
+                              }}
+                              className="min-h-[60px] resize-none text-sm"
+                              autoFocus
+                              data-testid={`input-edit-goal-${goal.id}`}
+                            />
+                          ) : (
+                            <p className="text-sm font-medium leading-snug line-through text-muted-foreground cursor-pointer hover:opacity-70 transition-opacity"
+                              onClick={() => {
+                                setEditingId(goal.id);
+                                setEditingText(goal.text);
+                              }}
+                              data-testid={`text-goal-${goal.id}`}
+                            >
+                              {goal.text}
+                            </p>
+                          )}
                           <div className="flex items-center gap-2 mt-2 flex-wrap">
                             <Badge variant="outline" className="text-muted-foreground border-muted-foreground/30 text-xs">
                               <CategoryIcon className="w-3 h-3 mr-1" />
