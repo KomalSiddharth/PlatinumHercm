@@ -28,7 +28,9 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Trophy, Pause, History as HistoryIcon, Trash2, ChevronDown, Book, RefreshCw, Map, ChevronRight, Folder, FolderOpen, FileText, CheckCircle2, BookOpen, ExternalLink } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Trophy, Pause, History as HistoryIcon, Trash2, ChevronDown, Book, RefreshCw, Map, ChevronRight, Folder, FolderOpen, FileText, CheckCircle2, BookOpen, ExternalLink, ChevronLeft, Calendar as CalendarIcon } from 'lucide-react';
 import type { Ritual as DbRitual, RitualCompletion } from '@shared/schema';
 
 interface Ritual {
@@ -109,6 +111,20 @@ export default function Dashboard() {
   
   // Use useState instead of useMemo so it can be updated when date changes at midnight
   const [todayDate, setTodayDate] = useState(getTodayDate());
+  
+  // Daily Rituals date picker
+  const [selectedRitualDate, setSelectedRitualDate] = useState<Date>(new Date());
+  const [ritualCalendarOpen, setRitualCalendarOpen] = useState(false);
+  
+  // Helper to convert Date to YYYY-MM-DD format
+  const getDateString = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+  
+  const selectedRitualDateStr = getDateString(selectedRitualDate);
   const weekStartDate = useMemo(() => getWeekStartDate(), []);
   const weekEndDate = useMemo(() => getWeekEndDate(), []);
   const currentMonth = useMemo(() => new Date().getMonth(), []);
@@ -126,9 +142,9 @@ export default function Dashboard() {
     enabled: !!currentUser, // Only fetch when user is authenticated
   });
   
-  // Fetch today's ritual completions (for today's checkbox status)
+  // Fetch selected date's ritual completions (for checkbox status)
   const { data: todayCompletions = [] } = useQuery<RitualCompletion[]>({
-    queryKey: ['/api/ritual-completions', todayDate],
+    queryKey: ['/api/ritual-completions', selectedRitualDateStr],
     enabled: !!currentUser,
   });
 
@@ -321,17 +337,17 @@ export default function Dashboard() {
         // Create completion
         await apiRequest('/api/ritual-completions', 'POST', {
           ritualId: id,
-          date: todayDate,
+          date: selectedRitualDateStr,
         });
       }
     },
     onMutate: async ({ id, isCompleted }) => {
       // Cancel outgoing refetches to avoid overwriting our optimistic update
-      await queryClient.cancelQueries({ queryKey: ['/api/ritual-completions', todayDate] });
+      await queryClient.cancelQueries({ queryKey: ['/api/ritual-completions', selectedRitualDateStr] });
       await queryClient.cancelQueries({ queryKey: ['/api/user/total-points'] });
       
       // Snapshot the previous values
-      const previousCompletions = queryClient.getQueryData<RitualCompletion[]>(['/api/ritual-completions', todayDate]);
+      const previousCompletions = queryClient.getQueryData<RitualCompletion[]>(['/api/ritual-completions', selectedRitualDateStr]);
       const previousPoints = queryClient.getQueryData<{ totalPoints: number }>(['/api/user/total-points']);
       
       // Optimistically update the UI
@@ -843,17 +859,73 @@ export default function Dashboard() {
 
         <section ref={ritualsRef} id="rituals" className="scroll-mt-20 p-3 sm:p-4 md:p-6 rounded-lg border-2" style={{ backgroundColor: '#00008c', borderColor: '#0000cc' }}>
           <div className="space-y-4 sm:space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl sm:text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
-                  Daily Rituals
-                  <Badge className="gap-1.5 bg-gradient-to-r from-pink-500 to-purple-600 text-white border-0 text-base px-3 py-1">
-                    <Trophy className="w-4 h-4" />
-                    {totalPoints} Points
-                  </Badge>
-                </h2>
-                <p className="text-sm sm:text-base text-white/80 mt-1">Build consistent habits and earn points</p>
+            <div>
+              <h2 className="text-2xl sm:text-2xl md:text-3xl font-bold text-white flex items-center justify-center gap-3 mb-4">
+                Daily Rituals
+                <Badge className="gap-1.5 bg-gradient-to-r from-pink-500 to-purple-600 text-white border-0 text-base px-3 py-1">
+                  <Trophy className="w-4 h-4" />
+                  {totalPoints} Points
+                </Badge>
+              </h2>
+              
+              {/* Date Picker */}
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    const newDate = new Date(selectedRitualDate);
+                    newDate.setDate(newDate.getDate() - 1);
+                    setSelectedRitualDate(newDate);
+                  }}
+                  className="text-white hover:bg-white/10"
+                  data-testid="button-ritual-date-prev"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </Button>
+
+                <Popover open={ritualCalendarOpen} onOpenChange={setRitualCalendarOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="text-white hover:bg-white/10 min-w-fit"
+                      data-testid="button-ritual-date-picker"
+                    >
+                      <CalendarIcon className="w-4 h-4 mr-2" />
+                      {selectedRitualDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="center">
+                    <Calendar
+                      mode="single"
+                      selected={selectedRitualDate}
+                      onSelect={(date) => {
+                        if (date) {
+                          setSelectedRitualDate(date);
+                          setRitualCalendarOpen(false);
+                        }
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    const newDate = new Date(selectedRitualDate);
+                    newDate.setDate(newDate.getDate() + 1);
+                    setSelectedRitualDate(newDate);
+                  }}
+                  className="text-white hover:bg-white/10"
+                  data-testid="button-ritual-date-next"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </Button>
               </div>
+              
+              <p className="text-sm sm:text-base text-white/80 text-center">Build consistent habits and earn points</p>
             </div>
 
             <AddRitualForm onAdd={handleAddRitual} />
