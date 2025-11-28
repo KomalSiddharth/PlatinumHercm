@@ -140,7 +140,7 @@ export default function GratitudeFeed({ currentUserId }: GratitudeFeedProps) {
               value={content}
               onChange={(e) => setContent(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Share your weekly results, wins, or express gratitude for your progress and the support you've received... (Ctrl+Enter to share)"
+              placeholder="Share your weekly results, wins, or express gratitude for your progress and the support you've received..."
               className="w-full h-28 p-4 border-2 border-primary/30 dark:border-primary/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-primary/5 dark:text-white resize-none text-base bg-white/50 dark:bg-gray-900/50"
               maxLength={1000}
               data-testid="textarea-share-gratitude"
