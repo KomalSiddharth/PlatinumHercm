@@ -85,9 +85,9 @@ const mapFrequencyToRecurrence = (frequency: string): 'daily' | 'mon-fri' | 'cus
   return 'daily';
 };
 
-// 0-point reward system for all rituals (fresh start)
+// 1-point reward system for all rituals
 const calculatePoints = (frequency: string): number => {
-  return 0;
+  return 1;
 };
 
 export default function Dashboard() {
