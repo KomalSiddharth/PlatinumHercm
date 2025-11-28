@@ -770,7 +770,6 @@ export default function Dashboard() {
     <div className="min-h-screen bg-background">
       <DashboardHeader
         userName={userName}
-        userPoints={totalPoints}
         isAdmin={false}
         activeSection={activeSection}
         onNavigate={scrollToSection}
@@ -805,8 +804,12 @@ export default function Dashboard() {
           <div className="space-y-4 sm:space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl sm:text-2xl md:text-3xl font-bold text-white">
+                <h2 className="text-2xl sm:text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
                   Daily Rituals
+                  <Badge className="gap-1.5 bg-gradient-to-r from-amber-400 to-orange-500 text-white border-0 text-base px-3 py-1">
+                    <Trophy className="w-4 h-4" />
+                    {totalPoints} Points
+                  </Badge>
                 </h2>
                 <p className="text-sm sm:text-base text-white/80 mt-1">Build consistent habits and earn points</p>
               </div>

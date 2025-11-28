@@ -7,7 +7,6 @@ import { Badge } from '@/components/ui/badge';
 
 interface DashboardHeaderProps {
   userName?: string;
-  userPoints?: number;
   isAdmin?: boolean;
   onNavigate?: (section: string) => void;
   activeSection?: string;
@@ -16,7 +15,6 @@ interface DashboardHeaderProps {
 
 export default function DashboardHeader({
   userName = 'User',
-  userPoints = 0,
   isAdmin = false,
   onNavigate = () => {},
   activeSection = 'hrcm',
@@ -98,14 +96,6 @@ export default function DashboardHeader({
           </nav>
 
           <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
-            <Badge 
-              className="gap-0.5 sm:gap-1 hidden sm:flex bg-gradient-to-r from-primary to-accent text-white border-0 text-xs px-1.5 sm:px-2" 
-              data-testid="badge-points"
-            >
-              <Trophy className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="font-semibold text-[10px] sm:text-xs">{userPoints}</span>
-            </Badge>
-
             <Button
               variant="ghost"
               size="icon"
@@ -170,12 +160,6 @@ export default function DashboardHeader({
                   {item.label}
                 </Button>
               ))}
-              <div className="pt-2 mt-2 border-t">
-                <Badge className="w-full justify-center gap-1.5 sm:gap-2 py-1.5 sm:py-2 bg-gradient-to-r from-primary to-accent text-white border-0 text-xs sm:text-sm">
-                  <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  <span className="font-semibold">{userPoints} Points</span>
-                </Badge>
-              </div>
             </nav>
           </div>
         )}
