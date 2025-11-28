@@ -321,6 +321,7 @@ export const rituals = pgTable("rituals", {
   url: varchar("url"), // Optional URL for default rituals (e.g., Zoom links)
   isActive: boolean("is_active").default(true).notNull(),
   isDefault: boolean("is_default").default(false).notNull(), // System default rituals (non-deletable)
+  order: integer("order").default(999).notNull(), // Display order for rituals (lower = earlier)
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

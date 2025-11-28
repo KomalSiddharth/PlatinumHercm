@@ -833,7 +833,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(rituals)
       .where(eq(rituals.userId, userId))
-      .orderBy(desc(rituals.createdAt));
+      .orderBy(asc(rituals.order), desc(rituals.createdAt));
   }
 
   async getRitualsByUserAndCategory(userId: string, category: string): Promise<Ritual[]> {
@@ -895,11 +895,11 @@ export class DatabaseStorage implements IStorage {
 
   async seedDefaultRituals(userId: string): Promise<void> {
     const defaultRitualsData = [
-      { title: 'Morning Fitness', url: 'https://us06web.zoom.us/meeting/register/Yw6DM7FiRtCfO2vwfmaCdg#/registration', category: 'Health' },
-      { title: 'Morning Support Call', url: 'https://zoom.miteshkhatri.com/event/pprac', category: 'Relationship' },
-      { title: 'Magic of 6', url: 'https://zoom.miteshkhatri.com/event/ps', category: 'Career' },
-      { title: 'Evening Support Call', url: 'https://zoom.miteshkhatri.com/event/pprac', category: 'Relationship' },
-      { title: 'DMP', url: 'https://us06web.zoom.us/meeting/register/OLYrOHBUQqa_49GbYWdCjg#/registration', category: 'Money' },
+      { title: 'Morning Fitness', url: 'https://us06web.zoom.us/meeting/register/Yw6DM7FiRtCfO2vwfmaCdg#/registration', category: 'Health', order: 1 },
+      { title: 'Morning Support Call', url: 'https://zoom.miteshkhatri.com/event/pprac', category: 'Relationship', order: 2 },
+      { title: 'Magic of 6', url: 'https://zoom.miteshkhatri.com/event/ps', category: 'Career', order: 3 },
+      { title: 'Evening Support Call', url: 'https://zoom.miteshkhatri.com/event/pprac', category: 'Relationship', order: 4 },
+      { title: 'DMP', url: 'https://us06web.zoom.us/meeting/register/OLYrOHBUQqa_49GbYWdCjg#/registration', category: 'Money', order: 5 },
     ];
 
     for (const ritualData of defaultRitualsData) {
@@ -919,11 +919,12 @@ export class DatabaseStorage implements IStorage {
           url: ritualData.url,
           isActive: true,
           isDefault: true,
+          order: ritualData.order,
         });
       } else if (!existingRitual[0].isDefault) {
-        // Update existing ritual to mark as default if not already
+        // Update existing ritual to mark as default and set order if not already
         await db.update(rituals)
-          .set({ isDefault: true, updatedAt: new Date() } as any)
+          .set({ isDefault: true, order: ritualData.order, updatedAt: new Date() } as any)
           .where(and(
             eq(rituals.userId, userId),
             eq(rituals.title, ritualData.title)
