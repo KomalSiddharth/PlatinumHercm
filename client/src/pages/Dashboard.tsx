@@ -946,6 +946,33 @@ export default function Dashboard() {
           />
         </section>
 
+        {/* Share Your Result and Express Your Gratitude Section */}
+        <section className="scroll-mt-20 bg-amber-50 dark:bg-amber-950/40 p-6 rounded-lg border-2 border-amber-200 dark:border-amber-800">
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">Share Your Result and Express Your Gratitude</h2>
+              <p className="text-muted-foreground mt-1">Celebrate your achievements and reflect on what you're grateful for</p>
+            </div>
+            <Card className="border-2 border-amber-200 dark:border-amber-800">
+              <CardContent className="pt-6">
+                <textarea
+                  placeholder="Share your weekly results, wins, or express gratitude for your progress and the support you've received..."
+                  className="w-full h-32 p-4 border-2 border-amber-200 dark:border-amber-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 dark:bg-amber-950/20 dark:text-white resize-none"
+                  data-testid="textarea-share-gratitude"
+                />
+                <div className="mt-4 flex gap-2">
+                  <button className="px-6 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-lg hover:opacity-90 transition-opacity" data-testid="button-share-gratitude">
+                    Share
+                  </button>
+                  <button className="px-6 py-2 border-2 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 font-semibold rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors" data-testid="button-clear-gratitude">
+                    Clear
+                  </button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
         {/* Platinum User Progress Section */}
         <section className="scroll-mt-20 bg-purple-50 dark:bg-purple-950/40 p-6 rounded-lg border-2 border-purple-200 dark:border-purple-800">
           <div className="space-y-6">
