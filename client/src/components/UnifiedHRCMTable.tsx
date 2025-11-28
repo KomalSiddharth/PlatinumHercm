@@ -2827,9 +2827,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
         ) : old
       );
       
-      // INSTANT UI UPDATE: Optimistically update points in header (+10 or -10)
+      // INSTANT UI UPDATE: Optimistically update points in header (+1 or -1)
       if (previousPoints) {
-        const pointsChange = willBeCompleted ? 10 : -10;
+        const pointsChange = willBeCompleted ? 1 : -1;
         const newTotalPoints = previousPoints.totalPoints + pointsChange;
         queryClient.setQueryData<{ totalPoints: number }>(
           ['/api/user/total-points'],

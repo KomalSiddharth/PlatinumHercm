@@ -178,14 +178,14 @@ export default function LifeSkillsMap() {
         }
       );
       
-      // INSTANT POINTS UPDATE: +10 when checking, -10 when unchecking
+      // INSTANT POINTS UPDATE: +1 when checking, -1 when unchecking
       if (previousPoints) {
-        const pointsChange = completed ? 10 : -10;
+        const pointsChange = completed ? 1 : -1;
         queryClient.setQueryData<{ totalPoints: number }>(
           ['/api/user/total-points'],
           { totalPoints: previousPoints.totalPoints + pointsChange }
         );
-        console.log('[Course Tracker] ⚡ Instant points update:', pointsChange > 0 ? '+10' : '-10');
+        console.log('[Course Tracker] ⚡ Instant points update:', pointsChange > 0 ? '+1' : '-1');
       }
       
       return { previousCourses, previousPoints };

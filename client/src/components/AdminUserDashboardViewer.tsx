@@ -125,10 +125,10 @@ export default function AdminUserDashboardViewer({ approvedEmails }: AdminUserDa
     const ritualPoints = (dashboardData.allRitualCompletions || []).reduce((sum: number, completion: any) => {
       const ritual = dashboardData.rituals?.find((r: any) => r.id === completion.ritualId);
       if (!ritual || !ritual.isActive) return sum;
-      return sum + (ritual.points || 10);
+      return sum + (ritual.points || 1);
     }, 0);
     
-    const lessonPoints = (dashboardData.completedLessons || []).length * 10; // 10 points per lesson
+    const lessonPoints = (dashboardData.completedLessons || []).length * 1; // 1 point per lesson
     const totalPoints = ritualPoints + lessonPoints;
 
     return (
