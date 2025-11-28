@@ -249,6 +249,7 @@ export interface IStorage {
   
   // Gratitude Posts operations - Shared feed
   getGratitudePosts(limit?: number): Promise<GratitudePost[]>;
+  archiveOldPosts(): Promise<number>;
   createGratitudePost(post: InsertGratitudePost): Promise<GratitudePost>;
   deleteGratitudePost(id: string, userId: string): Promise<void>;
 }
@@ -2136,12 +2137,37 @@ export class DatabaseStorage implements IStorage {
 
   // Gratitude Posts operations - Shared feed
   async getGratitudePosts(limit: number = 50): Promise<GratitudePost[]> {
+    // Get only recent month's posts (last 30 days), most recent first, not archived
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
     return await db
       .select()
       .from(gratitudePosts)
-      .where(eq(gratitudePosts.isPublic, true))
+      .where(and(
+        eq(gratitudePosts.isPublic, true),
+        eq(gratitudePosts.isArchived, false),
+        gte(gratitudePosts.createdAt, thirtyDaysAgo)
+      ))
       .orderBy(desc(gratitudePosts.createdAt))
       .limit(limit);
+  }
+
+  async archiveOldPosts(): Promise<number> {
+    // Archive posts older than 30 days
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const result = await db
+      .update(gratitudePosts)
+      .set({ isArchived: true })
+      .where(and(
+        eq(gratitudePosts.isArchived, false),
+        lte(gratitudePosts.createdAt, thirtyDaysAgo)
+      ))
+      .returning();
+    
+    return result.length;
   }
 
   async createGratitudePost(post: InsertGratitudePost): Promise<GratitudePost> {

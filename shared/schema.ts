@@ -697,6 +697,7 @@ export const gratitudePosts = pgTable("gratitude_posts", {
   content: varchar("content", { length: 1000 }).notNull(), // Message content
   category: varchar("category").default('gratitude'), // 'gratitude', 'result', 'milestone'
   isPublic: boolean("is_public").default(true).notNull(),
+  isArchived: boolean("is_archived").default(false).notNull(), // Archived posts (older than 30 days)
   createdAt: timestamp("created_at").defaultNow(),
 });
 

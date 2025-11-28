@@ -7071,9 +7071,12 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
   });
 
   // ========== Gratitude Posts (Shared Feed) Routes ==========
-  // Get all public gratitude posts
+  // Get recent public gratitude posts (last 30 days, archived old ones)
   app.get('/api/gratitude-posts', isAuthenticated, async (req: any, res) => {
     try {
+      // Archive old posts (30+ days old) before fetching
+      await storage.archiveOldPosts();
+      
       const limit = parseInt(req.query.limit as string) || 50;
       const posts = await storage.getGratitudePosts(limit);
       res.json(posts);
