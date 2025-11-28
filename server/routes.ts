@@ -5272,7 +5272,10 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         return res.status(404).json({ message: "User not found" });
       }
       
-      // Get existing rituals (no default rituals created)
+      // Ensure all default rituals exist and are marked as default
+      await storage.seedDefaultRituals(user.id);
+      
+      // Get all rituals
       const allRituals = await storage.getRitualsByUser(user.id);
       
       res.json(allRituals);

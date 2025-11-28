@@ -920,6 +920,14 @@ export class DatabaseStorage implements IStorage {
           isActive: true,
           isDefault: true,
         });
+      } else if (!existingRitual[0].isDefault) {
+        // Update existing ritual to mark as default if not already
+        await db.update(rituals)
+          .set({ isDefault: true, updatedAt: new Date() } as any)
+          .where(and(
+            eq(rituals.userId, userId),
+            eq(rituals.title, ritualData.title)
+          ));
       }
     }
   }
