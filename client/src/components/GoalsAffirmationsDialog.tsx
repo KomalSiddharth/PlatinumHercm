@@ -101,7 +101,7 @@ export function GoalsAffirmationsDialog({ open, onOpenChange }: GoalsAffirmation
             <div className="p-2 rounded-lg bg-gradient-to-br from-primary to-accent">
               <Target className="w-5 h-5 text-white" />
             </div>
-            Goals & Affirmations
+            Goals / Affirmations
           </DialogTitle>
           <DialogDescription>
             Set your goals and affirmations with a target date. Track your progress and celebrate your achievements.

@@ -161,7 +161,7 @@ export default function GoalsAffirmationsList() {
             <Target className="w-5 h-5 text-white" />
           </div>
           <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Goals & Affirmations
+            Goals / Affirmations
           </span>
           {goals.length > 0 && (
             <Badge variant="secondary" className="ml-auto">
@@ -175,7 +175,7 @@ export default function GoalsAffirmationsList() {
           <div className="text-center py-8 text-muted-foreground">
             <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-50" />
             <p>No goals or affirmations yet.</p>
-            <p className="text-sm">Click "Goals & Affirmations" in the header to add one!</p>
+            <p className="text-sm">Click "Goals / Affirmations" in the header to add one!</p>
           </div>
         ) : (
           <div className="space-y-4">

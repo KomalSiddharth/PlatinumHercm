@@ -106,7 +106,7 @@ export default function DashboardHeader({
               className="hidden sm:inline-flex bg-gradient-to-r from-primary/10 to-accent/10 border-primary/30 hover:from-primary/20 hover:to-accent/20 text-xs sm:text-sm"
             >
               <Target className="w-4 h-4 mr-1.5" />
-              Goals & Affirmations
+              Goals / Affirmations
             </Button>
 
             <Button
