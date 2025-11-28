@@ -4936,15 +4936,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     <TrendingUp className="w-5 h-5" />
                     {format(new Date(selectedDate.getTime() + 7 * 24 * 60 * 60 * 1000), 'MMMM dd, yyyy')}
                   </h3>
-                  {currentWeekCheckpointStats.totalCheckpoints > 0 && (
-                    <Badge 
-                      variant="outline" 
-                      className="bg-white/20 border-white/40 text-white text-xs font-semibold"
-                      data-testid="badge-current-week-checkpoint-stats"
-                    >
-                      Target: {currentWeekCheckpointStats.checkedCheckpoints}/{currentWeekCheckpointStats.totalCheckpoints} Points
-                    </Badge>
-                  )}
                 </div>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="center">
