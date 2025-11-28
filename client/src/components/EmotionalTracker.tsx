@@ -827,7 +827,7 @@ export default function EmotionalTracker() {
                                   {positiveRepeating.map(({ emotion, count }) => (
                                     <span
                                       key={`pos-${emotion}`}
-                                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 border border-green-300 dark:border-green-700 w-fit"
+                                      className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 border border-green-300 dark:border-green-700 w-fit"
                                     >
                                       {emotion}
                                       {count > 1 && <span className="font-bold">-{count}</span>}
@@ -838,7 +838,7 @@ export default function EmotionalTracker() {
                                   {negativeRepeating.map(({ emotion, count }) => (
                                     <span
                                       key={`neg-${emotion}`}
-                                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-700 w-fit"
+                                      className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-700 w-fit"
                                     >
                                       {emotion}
                                       {count > 1 && <span className="font-bold">-{count}</span>}
@@ -860,7 +860,7 @@ export default function EmotionalTracker() {
                             <div className="flex flex-col gap-2 h-full">
                               <Select value="" onValueChange={(value) => handleMissingEmotionChange(TIME_SLOTS[0], value)}>
                                 <SelectTrigger 
-                                  className={`h-[36px] w-full text-sm ${FIELD_COLORS.missingEmotions.bg} ${FIELD_COLORS.missingEmotions.border} border hover:border-orange-400 dark:hover:border-orange-500 transition-colors`}
+                                  className={`h-10 w-full text-base ${FIELD_COLORS.missingEmotions.bg} ${FIELD_COLORS.missingEmotions.border} border hover:border-orange-400 dark:hover:border-orange-500 transition-colors`}
                                   data-testid="input-missing-dropdown"
                                 >
                                   <SelectValue placeholder="Select emotion..." />
@@ -880,11 +880,11 @@ export default function EmotionalTracker() {
                               
                               {/* Display accumulated emotions as removable pills */}
                               {trackerData[TIME_SLOTS[0]]?.missingEmotions && (
-                                <div className="flex flex-wrap gap-1">
+                                <div className="flex flex-wrap gap-1.5">
                                   {trackerData[TIME_SLOTS[0]].missingEmotions.split('|').filter(e => e.trim()).map((emotion) => (
                                     <span
                                       key={emotion}
-                                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 border border-orange-300 dark:border-orange-700 w-fit"
+                                      className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 border border-orange-300 dark:border-orange-700 w-fit"
                                     >
                                       {emotion}
                                       <button
