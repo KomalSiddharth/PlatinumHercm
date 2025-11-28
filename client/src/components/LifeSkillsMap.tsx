@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronRight, Map, Plus, ExternalLink } from "lucide-react";
+import { ChevronRight, Map, Plus, ExternalLink, Trophy } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -355,9 +355,15 @@ export default function LifeSkillsMap() {
     >
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-4">
         <div className="flex-1">
-          <h2 className="text-2xl font-bold text-white mb-1" data-testid="text-course-tracker-title">
-            Course Tracker
-          </h2>
+          <div className="flex items-center gap-3 mb-1">
+            <h2 className="text-2xl font-bold text-white" data-testid="text-course-tracker-title">
+              Course Tracker
+            </h2>
+            <Badge className="gap-1.5 bg-gradient-to-r from-primary to-accent text-white border-0 text-sm px-3 py-1" data-testid="badge-course-points">
+              <Trophy className="w-4 h-4" />
+              {overallProgress.completed} Points
+            </Badge>
+          </div>
           <p className="text-sm text-gray-400 mb-3" data-testid="text-course-tracker-subtitle">
             Manage your learning journey and skill development
           </p>
