@@ -195,6 +195,45 @@ export default function Dashboard() {
     }
   }, []);
 
+  // Load Delphi Chat Bubble only on Dashboard
+  useEffect(() => {
+    // Set up Delphi config
+    (window as any).delphi = {
+      ...(((window as any).delphi) ?? {}),
+    };
+    (window as any).delphi.bubble = {
+      config: "00175779-acb8-4580-a7ec-8469446841a4",
+      overrides: {
+        landingPage: "OVERVIEW",
+      },
+      trigger: {
+        color: "#bc0000",
+      },
+    };
+
+    // Load Delphi bubble script if not already loaded
+    if (!document.getElementById('delphi-bubble-bootstrap-dashboard')) {
+      const script = document.createElement('script');
+      script.id = 'delphi-bubble-bootstrap-dashboard';
+      script.src = 'https://embed.delphi.ai/loader.js';
+      script.async = true;
+      document.head.appendChild(script);
+    }
+
+    return () => {
+      // Clean up Delphi bubble when leaving dashboard
+      const script = document.getElementById('delphi-bubble-bootstrap-dashboard');
+      if (script) {
+        script.remove();
+      }
+      // Also remove the bubble iframe if it exists
+      const bubble = document.querySelector('[id*="delphi"]');
+      if (bubble) {
+        bubble.remove();
+      }
+    };
+  }, []);
+
   // Map database rituals to Dashboard Ritual interface
   const rituals: Ritual[] = useMemo(() => {
     return dbRituals.map(dbRitual => {
