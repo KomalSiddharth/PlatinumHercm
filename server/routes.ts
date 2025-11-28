@@ -5575,11 +5575,14 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         })
       );
       
-      // Sort by points descending (highest first)
-      leaderboardData.sort((a, b) => b.points - a.points);
+      // Filter out users with 0 points (only show active participants)
+      const activeParticipants = leaderboardData.filter(entry => entry.points > 0);
       
-      // Add rank to ALL users first
-      const rankedLeaderboard = leaderboardData.map((entry, index) => ({
+      // Sort by points descending (highest first)
+      activeParticipants.sort((a, b) => b.points - a.points);
+      
+      // Add rank to ALL active users first
+      const rankedLeaderboard = activeParticipants.map((entry, index) => ({
         rank: index + 1,
         ...entry,
       }));
