@@ -218,12 +218,8 @@ export default function GoalsAffirmationsList() {
                                 }
                               }}
                               onBlur={() => {
-                                if (editingText.trim() && editingText.trim() !== goal.text) {
-                                  updateGoalMutation.mutate({ id: goal.id, text: editingText.trim() });
-                                } else {
-                                  setEditingId(null);
-                                  setEditingText('');
-                                }
+                                setEditingId(null);
+                                setEditingText('');
                               }}
                               className="min-h-[60px] resize-none text-sm"
                               autoFocus
@@ -309,12 +305,8 @@ export default function GoalsAffirmationsList() {
                                 }
                               }}
                               onBlur={() => {
-                                if (editingText.trim() && editingText.trim() !== goal.text) {
-                                  updateGoalMutation.mutate({ id: goal.id, text: editingText.trim() });
-                                } else {
-                                  setEditingId(null);
-                                  setEditingText('');
-                                }
+                                setEditingId(null);
+                                setEditingText('');
                               }}
                               className="min-h-[60px] resize-none text-sm"
                               autoFocus
