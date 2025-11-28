@@ -375,15 +375,34 @@ export default function EmotionalTracker() {
       [timeSlot]: updatedData as EmotionalTrackerData,
     }));
 
+    // If both positive and negative are empty, clear missing and repeating emotions
+    const negativeEmotions = data?.negativeEmotions || '';
+    if (!emotion && !negativeEmotions) {
+      // Both empty - clear derived fields
+      saveMutation.mutate({
+        date: currentDateStr,
+        timeSlot,
+        positiveEmotions: emotion,
+        negativeEmotions: negativeEmotions,
+        repeatingEmotions: '',
+        missingEmotions: '',
+      });
+      setTrackerData((prev) => ({
+        ...prev,
+        [timeSlot]: { ...updatedData, repeatingEmotions: '', missingEmotions: '' } as EmotionalTrackerData,
+      }));
+      return;
+    }
+
     // Auto-fill repeating emotion
-    const recommendedRepeating = recommendRepeatingEmotion(emotion, data?.negativeEmotions || '', data?.missingEmotions || '');
+    const recommendedRepeating = recommendRepeatingEmotion(emotion, negativeEmotions, data?.missingEmotions || '');
     
     // Save to server
     saveMutation.mutate({
       date: currentDateStr,
       timeSlot,
       positiveEmotions: emotion,
-      negativeEmotions: data?.negativeEmotions || '',
+      negativeEmotions: negativeEmotions,
       repeatingEmotions: recommendedRepeating || (data?.repeatingEmotions || ''),
       missingEmotions: data?.missingEmotions || '',
     });
@@ -425,14 +444,33 @@ export default function EmotionalTracker() {
       [timeSlot]: updatedData as EmotionalTrackerData,
     }));
 
+    // If both positive and negative are empty, clear missing and repeating emotions
+    const positiveEmotions = data?.positiveEmotions || '';
+    if (!emotion && !positiveEmotions) {
+      // Both empty - clear derived fields
+      saveMutation.mutate({
+        date: currentDateStr,
+        timeSlot,
+        positiveEmotions: positiveEmotions,
+        negativeEmotions: emotion,
+        repeatingEmotions: '',
+        missingEmotions: '',
+      });
+      setTrackerData((prev) => ({
+        ...prev,
+        [timeSlot]: { ...updatedData, repeatingEmotions: '', missingEmotions: '' } as EmotionalTrackerData,
+      }));
+      return;
+    }
+
     // Auto-fill repeating emotion
-    const recommendedRepeating = recommendRepeatingEmotion(data?.positiveEmotions || '', emotion, data?.missingEmotions || '');
+    const recommendedRepeating = recommendRepeatingEmotion(positiveEmotions, emotion, data?.missingEmotions || '');
 
     // Save to server
     saveMutation.mutate({
       date: currentDateStr,
       timeSlot,
-      positiveEmotions: data?.positiveEmotions || '',
+      positiveEmotions: positiveEmotions,
       negativeEmotions: emotion,
       repeatingEmotions: recommendedRepeating || (data?.repeatingEmotions || ''),
       missingEmotions: data?.missingEmotions || '',
