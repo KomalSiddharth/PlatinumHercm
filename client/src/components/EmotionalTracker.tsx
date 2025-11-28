@@ -755,9 +755,14 @@ export default function EmotionalTracker() {
               <tbody>
                 {(() => {
                   // Compute aggregated repeating emotions for the merged cell
+                  // ONLY include repeating emotions from time slots that have positive OR negative emotions filled
                   const allRepeating: string[] = [];
                   Object.values(trackerData).forEach((d: any) => {
-                    if (d?.repeatingEmotions && typeof d.repeatingEmotions === 'string' && d.repeatingEmotions.trim()) {
+                    // Only count repeating emotions if there's at least one emotion (positive OR negative) selected
+                    const hasPositive = d?.positiveEmotions && d.positiveEmotions.trim();
+                    const hasNegative = d?.negativeEmotions && d.negativeEmotions.trim();
+                    
+                    if ((hasPositive || hasNegative) && d?.repeatingEmotions && typeof d.repeatingEmotions === 'string' && d.repeatingEmotions.trim()) {
                       allRepeating.push(d.repeatingEmotions.trim());
                     }
                   });
