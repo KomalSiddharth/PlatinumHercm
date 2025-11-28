@@ -207,7 +207,7 @@ function StandardItem({
 
 export default function AdminPanel() {
   const [, setLocation] = useLocation();
-  const [activeTab, setActiveTab] = useState<'approved' | 'team' | 'logs' | 'analytics' | 'dashboard-viewer' | 'team-analytics' | 'recommendations' | 'platinum-standards' | 'feedback'>('analytics');
+  const [activeTab, setActiveTab] = useState<'approved' | 'team' | 'logs' | 'analytics' | 'dashboard-viewer' | 'team-analytics' | 'recommendations' | 'platinum-standards' | 'feedback' | 'integration'>('analytics');
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showBulkDialog, setShowBulkDialog] = useState(false);
@@ -1403,6 +1403,17 @@ export default function AdminPanel() {
                 data-testid="tab-feedback"
               >
                 User Feedback
+              </button>
+              <button 
+                onClick={() => setActiveTab('integration')}
+                className={`px-4 py-3 rounded-md text-left transition-colors ${
+                  activeTab === 'integration' 
+                    ? 'bg-blue-600 text-white font-medium' 
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'
+                }`}
+                data-testid="tab-integration"
+              >
+                Integration
               </button>
             </div>
           </div>
@@ -3241,6 +3252,166 @@ export default function AdminPanel() {
                     </p>
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* Integration Tab Content */}
+          {activeTab === 'integration' && (
+            <div className="p-6">
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                    Zapier Integration
+                  </h2>
+                  <p className="text-muted-foreground mt-1">
+                    Automatically add Kajabi members to approved emails via Zapier webhook
+                  </p>
+                </div>
+
+                {/* Webhook URL Card */}
+                <Card className="border-2 border-purple-200 dark:border-purple-800">
+                  <CardHeader className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/30 dark:to-blue-950/30">
+                    <CardTitle className="flex items-center gap-2 text-purple-700 dark:text-purple-300">
+                      <ExternalLink className="w-5 h-5" />
+                      Webhook URL
+                    </CardTitle>
+                    <CardDescription>Use this URL in your Zapier webhook action</CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-4">
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm font-mono break-all">
+                        {window.location.origin}/api/webhooks/zapier-member
+                      </code>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          navigator.clipboard.writeText(`${window.location.origin}/api/webhooks/zapier-member`);
+                          toast({ title: "Copied!", description: "Webhook URL copied to clipboard" });
+                        }}
+                        data-testid="button-copy-webhook-url"
+                      >
+                        Copy
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* JSON Body Template Card */}
+                <Card className="border-2 border-blue-200 dark:border-blue-800">
+                  <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30">
+                    <CardTitle className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
+                      <Download className="w-5 h-5" />
+                      JSON Body Template
+                    </CardTitle>
+                    <CardDescription>Copy this template for your Zapier webhook body</CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-4">
+                    <pre className="p-4 bg-gray-900 text-green-400 rounded-lg text-sm font-mono overflow-x-auto">
+{`{
+  "name": "{{member_name}}",
+  "email": "{{member_email}}",
+  "membershipTag": "platinum",
+  "secret": "b93ba308f1055600176adf0d45a01dbca3193e8931f6b04ce98402923ebcd63e"
+}`}
+                    </pre>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-3"
+                      onClick={() => {
+                        const template = `{
+  "name": "{{member_name}}",
+  "email": "{{member_email}}",
+  "membershipTag": "platinum",
+  "secret": "b93ba308f1055600176adf0d45a01dbca3193e8931f6b04ce98402923ebcd63e"
+}`;
+                        navigator.clipboard.writeText(template);
+                        toast({ title: "Copied!", description: "JSON template copied to clipboard" });
+                      }}
+                      data-testid="button-copy-json-template"
+                    >
+                      Copy JSON Template
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Setup Instructions Card */}
+                <Card className="border-2 border-green-200 dark:border-green-800">
+                  <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30">
+                    <CardTitle className="flex items-center gap-2 text-green-700 dark:text-green-300">
+                      <HelpCircle className="w-5 h-5" />
+                      Zapier Setup Instructions
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-4">
+                    <ol className="space-y-3 text-sm">
+                      <li className="flex items-start gap-3">
+                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 flex items-center justify-center font-bold text-xs">1</span>
+                        <span><strong>Trigger:</strong> Create a new Zap with Kajabi → "New Member" trigger</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 flex items-center justify-center font-bold text-xs">2</span>
+                        <span><strong>Action:</strong> Add "Webhooks by Zapier" → "POST" action</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 flex items-center justify-center font-bold text-xs">3</span>
+                        <span><strong>URL:</strong> Paste the Webhook URL from above</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 flex items-center justify-center font-bold text-xs">4</span>
+                        <span><strong>Payload Type:</strong> Select "JSON"</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 flex items-center justify-center font-bold text-xs">5</span>
+                        <span><strong>Data:</strong> Map Kajabi fields to name & email, keep the secret as-is</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 flex items-center justify-center font-bold text-xs">6</span>
+                        <span><strong>Test & Activate:</strong> Test the Zap and turn it on!</span>
+                      </li>
+                    </ol>
+                  </CardContent>
+                </Card>
+
+                {/* How It Works Card */}
+                <Card className="border-2 border-amber-200 dark:border-amber-800">
+                  <CardHeader className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30">
+                    <CardTitle className="flex items-center gap-2 text-amber-700 dark:text-amber-300">
+                      <TrendingUp className="w-5 h-5" />
+                      How It Works
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-4">
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="text-center p-3">
+                        <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
+                          <Users className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                        </div>
+                        <p className="font-medium">New Member</p>
+                        <p className="text-xs text-muted-foreground">Joins Kajabi</p>
+                      </div>
+                      <div className="text-2xl text-muted-foreground">→</div>
+                      <div className="text-center p-3">
+                        <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-orange-100 dark:bg-orange-900 flex items-center justify-center">
+                          <RefreshCw className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                        </div>
+                        <p className="font-medium">Zapier</p>
+                        <p className="text-xs text-muted-foreground">Triggers Webhook</p>
+                      </div>
+                      <div className="text-2xl text-muted-foreground">→</div>
+                      <div className="text-center p-3">
+                        <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
+                          <Check className="w-6 h-6 text-green-600 dark:text-green-400" />
+                        </div>
+                        <p className="font-medium">Auto-Added</p>
+                        <p className="text-xs text-muted-foreground">To Approved Emails</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
               </div>
             </div>
           )}
