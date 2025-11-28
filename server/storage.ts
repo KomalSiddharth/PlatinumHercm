@@ -63,6 +63,9 @@ import {
   gratitudeJournals,
   type GratitudeJournal,
   type InsertGratitudeJournal,
+  gratitudePosts,
+  type GratitudePost,
+  type InsertGratitudePost,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, asc, and, or, count, sql, gte, lte } from "drizzle-orm";
@@ -243,6 +246,11 @@ export interface IStorage {
   createSnapshot(snapshot: InsertNextWeekSnapshot): Promise<NextWeekSnapshot>;
   archiveSnapshot(id: string): Promise<void>;
   archiveAllUserSnapshots(userId: string): Promise<void>;
+  
+  // Gratitude Posts operations - Shared feed
+  getGratitudePosts(limit?: number): Promise<GratitudePost[]>;
+  createGratitudePost(post: InsertGratitudePost): Promise<GratitudePost>;
+  deleteGratitudePost(id: string, userId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2122,6 +2130,35 @@ export class DatabaseStorage implements IStorage {
         and(
           eq(gratitudeJournals.userId, userId),
           eq(gratitudeJournals.date, date)
+        )
+      );
+  }
+
+  // Gratitude Posts operations - Shared feed
+  async getGratitudePosts(limit: number = 50): Promise<GratitudePost[]> {
+    return await db
+      .select()
+      .from(gratitudePosts)
+      .where(eq(gratitudePosts.isPublic, true))
+      .orderBy(desc(gratitudePosts.createdAt))
+      .limit(limit);
+  }
+
+  async createGratitudePost(post: InsertGratitudePost): Promise<GratitudePost> {
+    const [newPost] = await db
+      .insert(gratitudePosts)
+      .values(post)
+      .returning();
+    return newPost;
+  }
+
+  async deleteGratitudePost(id: string, userId: string): Promise<void> {
+    await db
+      .delete(gratitudePosts)
+      .where(
+        and(
+          eq(gratitudePosts.id, id),
+          eq(gratitudePosts.userId, userId)
         )
       );
   }
