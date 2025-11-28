@@ -2924,16 +2924,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Desired state is checked, so mark as completed
         await storage.markLessonComplete(userId, lessonId);
         
-        // Add 10 points
-        await storage.addPointsToUser(userId, 10);
-        console.log(`✅ Added 10 points to user ${userId} for completing lesson: ${lessonName}`);
+        // Add 1 point
+        await storage.addPointsToUser(userId, 1);
+        console.log(`✅ Added 1 point to user ${userId} for completing lesson: ${lessonName}`);
       } else {
         // Desired state is unchecked, so mark as incomplete (remove completion record)
         await storage.markLessonIncomplete(userId, lessonId);
         
-        // Subtract 10 points
-        await storage.addPointsToUser(userId, -10);
-        console.log(`❌ Subtracted 10 points from user ${userId} for unchecking lesson: ${lessonName}`);
+        // Subtract 1 point
+        await storage.addPointsToUser(userId, -1);
+        console.log(`❌ Subtracted 1 point from user ${userId} for unchecking lesson: ${lessonName}`);
       }
 
       res.json({ success: true, lessonId, completed });
