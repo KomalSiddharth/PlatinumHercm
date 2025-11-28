@@ -850,51 +850,57 @@ export default function EmotionalTracker() {
                           </td>
                         )}
 
-                        {/* Missing Emotions - Dropdown with Accumulated Emotions Below */}
-                        <td className="p-1 sm:p-1.5 md:p-2 align-top">
-                          <div className="space-y-2">
-                            <Select value="" onValueChange={(value) => handleMissingEmotionChange(timeSlot, value)}>
-                              <SelectTrigger 
-                                className={`h-[36px] w-full text-sm ${FIELD_COLORS.missingEmotions.bg} ${FIELD_COLORS.missingEmotions.border} border hover:border-orange-400 dark:hover:border-orange-500 transition-colors`}
-                                data-testid={`input-missing-${index}`}
-                              >
-                                <SelectValue placeholder="Select emotion..." />
-                              </SelectTrigger>
-                              <SelectContent className="max-h-[300px]">
-                                <SelectItem value="ADD_CUSTOM" data-testid={`button-add-custom-missing-emotion-${index}`}>
-                                  <span className="text-primary font-semibold">+ Add Custom Emotion</span>
-                                </SelectItem>
-                                <div className="border-t border-gray-200 dark:border-gray-700 my-1" />
-                                {[...MISSING_EMOTIONS, ...customMissingEmotions].map((emotion) => (
-                                  <SelectItem key={emotion} value={emotion}>
-                                    {emotion}
+                        {/* Missing Emotions - Single Dropdown in First Row with rowSpan */}
+                        {index === 0 && (
+                          <td 
+                            className="p-2 sm:p-3 align-top bg-gradient-to-b from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 border-l border-orange-200 dark:border-orange-800"
+                            rowSpan={TIME_SLOTS.length}
+                            data-testid="display-missing-emotions"
+                          >
+                            <div className="flex flex-col gap-2 h-full">
+                              <Select value="" onValueChange={(value) => handleMissingEmotionChange(TIME_SLOTS[0], value)}>
+                                <SelectTrigger 
+                                  className={`h-[36px] w-full text-sm ${FIELD_COLORS.missingEmotions.bg} ${FIELD_COLORS.missingEmotions.border} border hover:border-orange-400 dark:hover:border-orange-500 transition-colors`}
+                                  data-testid="input-missing-dropdown"
+                                >
+                                  <SelectValue placeholder="Select emotion..." />
+                                </SelectTrigger>
+                                <SelectContent className="max-h-[300px]">
+                                  <SelectItem value="ADD_CUSTOM" data-testid="button-add-custom-missing-emotion">
+                                    <span className="text-primary font-semibold">+ Add Custom Emotion</span>
                                   </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            
-                            {/* Display accumulated emotions as removable pills */}
-                            {data.missingEmotions && (
-                              <div className="flex flex-wrap gap-1">
-                                {data.missingEmotions.split('|').filter(e => e.trim()).map((emotion) => (
-                                  <span
-                                    key={emotion}
-                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 border border-orange-300 dark:border-orange-700"
-                                  >
-                                    {emotion}
-                                    <button
-                                      onClick={() => handleRemoveMissingEmotion(timeSlot, emotion)}
-                                      className="ml-0.5 hover:text-orange-900 dark:hover:text-orange-100"
-                                      data-testid={`button-remove-missing-emotion-${emotion}`}
+                                  <div className="border-t border-gray-200 dark:border-gray-700 my-1" />
+                                  {[...MISSING_EMOTIONS, ...customMissingEmotions].map((emotion) => (
+                                    <SelectItem key={emotion} value={emotion}>
+                                      {emotion}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              
+                              {/* Display accumulated emotions as removable pills */}
+                              {trackerData[TIME_SLOTS[0]]?.missingEmotions && (
+                                <div className="flex flex-wrap gap-1">
+                                  {trackerData[TIME_SLOTS[0]].missingEmotions.split('|').filter(e => e.trim()).map((emotion) => (
+                                    <span
+                                      key={emotion}
+                                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 border border-orange-300 dark:border-orange-700 w-fit"
                                     >
-                                      ×
-                                    </button>
-                                  </span>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        </td>
+                                      {emotion}
+                                      <button
+                                        onClick={() => handleRemoveMissingEmotion(TIME_SLOTS[0], emotion)}
+                                        className="ml-0.5 hover:text-orange-900 dark:hover:text-orange-100"
+                                        data-testid={`button-remove-missing-emotion-${emotion}`}
+                                      >
+                                        ×
+                                      </button>
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     );
                   });
