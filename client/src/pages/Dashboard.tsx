@@ -116,36 +116,29 @@ export default function Dashboard() {
   const currentMonth = useMemo(() => new Date().getMonth(), []);
   const currentYear = useMemo(() => new Date().getFullYear(), []);
 
-  // Load Delphi chat bubble only on dashboard
+  // Load Delphi chat bubble - ensure it loads on dashboard mount
   useEffect(() => {
-    // Set up Delphi config
-    (window as any).delphi = {
-      ...(((window as any).delphi) ?? {}),
-    };
-    (window as any).delphi.bubble = {
-      config: "00175779-acb8-4580-a7ec-8469446841a4",
-      overrides: {
-        landingPage: "OVERVIEW",
-      },
-      trigger: {
-        color: "#bc0000",
-      },
-    };
-
-    // Load Delphi bubble script
-    const script = document.createElement('script');
-    script.id = 'delphi-bubble-bootstrap';
-    script.src = 'https://embed.delphi.ai/loader.js';
-    script.async = true;
-    document.head.appendChild(script);
-
-    return () => {
-      // Clean up when dashboard unmounts
-      const existingScript = document.getElementById('delphi-bubble-bootstrap');
-      if (existingScript) {
-        existingScript.remove();
+    const timer = setTimeout(() => {
+      // Reinitialize Delphi config on dashboard
+      if ((window as any).delphi) {
+        (window as any).delphi.bubble = {
+          config: "00175779-acb8-4580-a7ec-8469446841a4",
+          overrides: {
+            landingPage: "OVERVIEW",
+          },
+          trigger: {
+            color: "#bc0000",
+          },
+        };
+        
+        // Reinitialize loader if available
+        if ((window as any).__delphiBubbleLoaded) {
+          (window as any).__delphiBubbleLoaded();
+        }
       }
-    };
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, []);
   
   // Fetch current user data

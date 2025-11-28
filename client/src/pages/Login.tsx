@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,15 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+
+  // Hide Delphi chat bubble on login page
+  useEffect(() => {
+    const delphiIframe = document.querySelector('iframe[src*="embed.delphi.ai"]') as HTMLElement | null;
+    if (delphiIframe) {
+      delphiIframe.style.display = 'none';
+      delphiIframe.style.visibility = 'hidden';
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
