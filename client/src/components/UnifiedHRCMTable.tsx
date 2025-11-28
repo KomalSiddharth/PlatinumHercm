@@ -4672,8 +4672,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               <TableHead className="text-xs sm:text-sm w-[150px] bg-rose-100 dark:bg-rose-900/40 font-semibold px-1.5 sm:px-2 py-1.5 sm:py-2">Problems</TableHead>
               <TableHead className="text-xs sm:text-sm w-[150px] bg-rose-100 dark:bg-rose-900/40 font-semibold px-1.5 sm:px-2 py-1.5 sm:py-2">Feelings</TableHead>
               <TableHead className="text-xs sm:text-sm w-[150px] bg-rose-100 dark:bg-rose-900/40 font-semibold px-1.5 sm:px-2 py-1.5 sm:py-2">Beliefs/Reasons</TableHead>
-              <TableHead className="text-xs sm:text-sm w-[150px] bg-rose-100 dark:bg-rose-900/40 font-semibold px-1.5 sm:px-2 py-1.5 sm:py-2">Actions</TableHead>
-              <TableHead className="text-xs sm:text-sm w-[80px] bg-rose-100 dark:bg-rose-900/40 font-semibold border-r px-1.5 sm:px-2 py-1.5 sm:py-2">Progress</TableHead>
+              <TableHead className="text-xs sm:text-sm w-[150px] bg-rose-100 dark:bg-rose-900/40 font-semibold px-1.5 sm:px-2 py-1.5 sm:py-2 border-r">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -4900,16 +4899,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                       <div className="text-xs text-gray-500 dark:text-gray-400 italic">Click to add</div>
                     )}
                   </div>
-                </TableCell>
-
-                {/* Current Week - Progress */}
-                <TableCell className="p-2 bg-rose-100 dark:bg-rose-900/40 border-r align-top text-center">
-                  <Badge 
-                    className={`${getProgressColor(calculateStandardsProgress(belief.category, platinumStandardsData, savedRatings))} font-semibold text-xs`}
-                    data-testid={`badge-progress-${belief.category.toLowerCase()}`}
-                  >
-                    {calculateStandardsProgress(belief.category, platinumStandardsData, savedRatings)}%
-                  </Badge>
                 </TableCell>
               </TableRow>
             ))}
