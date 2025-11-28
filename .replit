@@ -105,3 +105,8 @@ integrations = [
   "google-sheet:1.0.0",
   "javascript_openai_ai_integrations:1.0.0",
 ]
+
+[userenv]
+
+[userenv.shared]
+ZAPIER_WEBHOOK_SECRET = "b93ba308f1055600176adf0d45a01dbca3193e8931f6b04ce98402923ebcd63e"
