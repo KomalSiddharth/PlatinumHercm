@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
+import { format } from 'date-fns';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import DashboardHeader from '@/components/DashboardHeader';
 import UnifiedHRCMTable from '@/components/UnifiedHRCMTable';
@@ -892,11 +893,10 @@ export default function Dashboard() {
                   <PopoverTrigger asChild>
                     <Button
                       variant="ghost"
-                      className="text-white hover:bg-white/10 min-w-fit"
+                      className="text-white hover:bg-white/10 min-w-fit text-lg font-semibold"
                       data-testid="button-ritual-date-picker"
                     >
-                      <CalendarIcon className="w-4 h-4 mr-2" />
-                      {selectedRitualDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                      {format(selectedRitualDate, 'MMMM dd, yyyy')}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="center">
