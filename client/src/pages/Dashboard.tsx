@@ -864,13 +864,13 @@ export default function Dashboard() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl sm:text-2xl md:text-3xl font-bold flex items-center gap-3">
               Courses
-              <Badge className="gap-1.5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white border-0 text-base px-3 py-1" data-testid="badge-course-points">
+              <Badge className="gap-1.5 bg-gradient-to-r from-primary to-accent text-white border-0 text-base px-3 py-1" data-testid="badge-course-points">
                 <Trophy className="w-4 h-4" />
                 {Object.values(completedModules).reduce((total, modules) => total + modules.length, 0)} Points
               </Badge>
             </h2>
             {recentLessonPoints && (
-              <Badge className="gap-1.5 bg-gradient-to-r from-yellow-500 to-orange-500 text-white border-0 text-base px-3 py-1 animate-pulse" data-testid="badge-recent-lesson-points">
+              <Badge className="gap-1.5 bg-gradient-to-r from-primary to-accent text-white border-0 text-base px-3 py-1 animate-pulse" data-testid="badge-recent-lesson-points">
                 {recentLessonPoints}
               </Badge>
             )}
