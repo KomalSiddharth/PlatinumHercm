@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronRight, Map, Plus, ExternalLink, Trophy } from "lucide-react";
+import { ChevronRight, Map, Plus, ExternalLink, Trophy, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -48,6 +49,7 @@ interface CourseTrackingData {
 export default function LifeSkillsMap() {
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
   const [openSubcategories, setOpenSubcategories] = useState<Record<string, boolean>>({});
+  const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
 
   console.log('[LifeSkillsMap] Component mounted/rendering');
@@ -369,6 +371,19 @@ export default function LifeSkillsMap() {
             Manage your learning journey and skill development
           </p>
           
+          {/* Search Box */}
+          <div className="relative mb-3">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="Search lessons..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 bg-gray-800 border-gray-600 text-white placeholder:text-gray-400 focus:border-primary"
+              data-testid="input-search-lessons"
+            />
+          </div>
+          
           {/* Overall Progress Bar */}
           <div className="space-y-2" data-testid="container-overall-progress">
             <div className="flex items-center justify-between text-sm">
@@ -450,6 +465,101 @@ export default function LifeSkillsMap() {
             <p className="text-center text-gray-600" data-testid="text-empty-state">
               No courses available at the moment.
             </p>
+          </div>
+        ) : searchQuery.trim() ? (
+          // Search Results View
+          <div className="bg-white dark:bg-white rounded-lg border border-gray-300 p-4 max-h-[500px] overflow-y-auto">
+            <div className="space-y-2">
+              {(() => {
+                const searchResults: { course: CourseTrackingData; lesson: CourseLesson; subcategoryTitle?: string }[] = [];
+                const query = searchQuery.toLowerCase().trim();
+                
+                coursesData.forEach(course => {
+                  // Search in main lessons
+                  course.lessons.forEach(lesson => {
+                    if (lesson.title.toLowerCase().includes(query)) {
+                      searchResults.push({ course, lesson });
+                    }
+                  });
+                  
+                  // Search in subcategory lessons
+                  if (course.subcategories) {
+                    course.subcategories.forEach(subcat => {
+                      subcat.lessons.forEach(lesson => {
+                        if (lesson.title.toLowerCase().includes(query)) {
+                          searchResults.push({ course, lesson, subcategoryTitle: subcat.title });
+                        }
+                      });
+                    });
+                  }
+                });
+                
+                if (searchResults.length === 0) {
+                  return (
+                    <div className="text-center py-8 text-gray-500">
+                      No lessons found for "{searchQuery}"
+                    </div>
+                  );
+                }
+                
+                return searchResults.map((result, idx) => (
+                  <div 
+                    key={`${result.course.id}-${result.lesson.id}-${idx}`}
+                    className="flex items-center justify-between p-2 rounded hover:bg-gray-50 transition-colors cursor-pointer group border-b border-gray-100 last:border-b-0"
+                    onClick={() => handleLessonToggle(result.course.id, result.lesson.id, result.lesson.completed, result.lesson.title, result.course.title, result.lesson.url, result.course.category)}
+                  >
+                    <div className="flex items-center gap-2 flex-1">
+                      <Checkbox
+                        checked={result.lesson.completed}
+                        onCheckedChange={() => {
+                          handleLessonToggle(result.course.id, result.lesson.id, result.lesson.completed, result.lesson.title, result.course.title, result.lesson.url, result.course.category);
+                        }}
+                        className="border-gray-400"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <div className="flex flex-col">
+                        <a
+                          href={result.lesson.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {result.lesson.title}
+                        </a>
+                        <span className="text-xs text-gray-500">
+                          {result.course.title}{result.subcategoryTitle ? ` → ${result.subcategoryTitle}` : ''}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-600">1 pt</span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 w-6 p-0 text-primary/80 hover:text-primary hover:bg-primary/10"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAddToAssignment('general', result.course.id, result.course.title, result.lesson.id, result.lesson.title, result.lesson.url);
+                        }}
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ));
+              })()}
+            </div>
+            <div className="mt-3 text-center">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSearchQuery('')}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                Clear Search
+              </Button>
+            </div>
           </div>
         ) : (
           <div className="bg-white dark:bg-white rounded-lg border border-gray-300 p-4 max-h-[500px] overflow-y-auto">
