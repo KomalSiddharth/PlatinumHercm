@@ -115,6 +115,38 @@ export default function Dashboard() {
   const weekEndDate = useMemo(() => getWeekEndDate(), []);
   const currentMonth = useMemo(() => new Date().getMonth(), []);
   const currentYear = useMemo(() => new Date().getFullYear(), []);
+
+  // Load Delphi chat bubble only on dashboard
+  useEffect(() => {
+    // Set up Delphi config
+    (window as any).delphi = {
+      ...(((window as any).delphi) ?? {}),
+    };
+    (window as any).delphi.bubble = {
+      config: "00175779-acb8-4580-a7ec-8469446841a4",
+      overrides: {
+        landingPage: "OVERVIEW",
+      },
+      trigger: {
+        color: "#bc0000",
+      },
+    };
+
+    // Load Delphi bubble script
+    const script = document.createElement('script');
+    script.id = 'delphi-bubble-bootstrap';
+    script.src = 'https://embed.delphi.ai/loader.js';
+    script.async = true;
+    document.head.appendChild(script);
+
+    return () => {
+      // Clean up when dashboard unmounts
+      const existingScript = document.getElementById('delphi-bubble-bootstrap');
+      if (existingScript) {
+        existingScript.remove();
+      }
+    };
+  }, []);
   
   // Fetch current user data
   const { data: currentUser, isLoading: userLoading, error: userError } = useQuery<{ id: string; email: string; firstName?: string; lastName?: string; isAdmin?: boolean }>({
