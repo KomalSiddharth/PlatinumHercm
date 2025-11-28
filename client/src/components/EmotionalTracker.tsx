@@ -803,7 +803,7 @@ export default function EmotionalTracker() {
                         
                         {/* Positive Emotions - Inline Dropdown */}
                         <td className="p-1 sm:p-1.5 md:p-2 align-top">
-                          <Select value={data.positiveEmotions} onValueChange={(value) => handlePositiveEmotionChange(timeSlot, value)}>
+                          <Select value={data.positiveEmotions} onValueChange={(value) => handlePositiveEmotionChange(timeSlot, value === "NONE" ? "" : value)}>
                             <SelectTrigger 
                               className={`h-[36px] w-full text-sm ${FIELD_COLORS.positiveEmotions.bg} ${FIELD_COLORS.positiveEmotions.border} border hover:border-green-400 dark:hover:border-green-500 transition-colors`}
                               data-testid={`input-positive-${index}`}
@@ -811,6 +811,9 @@ export default function EmotionalTracker() {
                               <SelectValue placeholder="Select emotion..." />
                             </SelectTrigger>
                             <SelectContent className="max-h-[300px]">
+                              <SelectItem value="NONE" data-testid={`button-clear-positive-${index}`}>
+                                <span className="text-gray-500 italic">None (Clear)</span>
+                              </SelectItem>
                               <SelectItem value="ADD_CUSTOM" data-testid={`button-add-custom-emotion-${index}`}>
                                 <span className="text-primary font-semibold">+ Add Custom Emotion</span>
                               </SelectItem>
@@ -826,7 +829,7 @@ export default function EmotionalTracker() {
 
                         {/* Negative Emotions - Inline Dropdown */}
                         <td className="p-1 sm:p-1.5 md:p-2 align-top">
-                          <Select value={data.negativeEmotions} onValueChange={(value) => handleNegativeEmotionChange(timeSlot, value)}>
+                          <Select value={data.negativeEmotions} onValueChange={(value) => handleNegativeEmotionChange(timeSlot, value === "NONE" ? "" : value)}>
                             <SelectTrigger 
                               className={`h-[36px] w-full text-sm ${FIELD_COLORS.negativeEmotions.bg} ${FIELD_COLORS.negativeEmotions.border} border hover:border-red-400 dark:hover:border-red-500 transition-colors`}
                               data-testid={`input-negative-${index}`}
@@ -834,6 +837,9 @@ export default function EmotionalTracker() {
                               <SelectValue placeholder="Select emotion..." />
                             </SelectTrigger>
                             <SelectContent className="max-h-[300px]">
+                              <SelectItem value="NONE" data-testid={`button-clear-negative-${index}`}>
+                                <span className="text-gray-500 italic">None (Clear)</span>
+                              </SelectItem>
                               <SelectItem value="ADD_CUSTOM" data-testid={`button-add-custom-negative-emotion-${index}`}>
                                 <span className="text-primary font-semibold">+ Add Custom Emotion</span>
                               </SelectItem>
