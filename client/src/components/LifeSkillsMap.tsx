@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronRight, Map, Plus, ExternalLink, Trophy, Search } from "lucide-react";
+import { ChevronRight, Map, Plus, ExternalLink, Trophy, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from "react";
@@ -15,6 +15,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useWebSocket } from "@/hooks/useWebSocket";
 
@@ -50,6 +56,7 @@ export default function LifeSkillsMap() {
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
   const [openSubcategories, setOpenSubcategories] = useState<Record<string, boolean>>({});
   const [searchQuery, setSearchQuery] = useState('');
+  const [showCompletedLessons, setShowCompletedLessons] = useState(false);
   const { toast } = useToast();
 
   console.log('[LifeSkillsMap] Component mounted/rendering');
@@ -352,6 +359,7 @@ export default function LifeSkillsMap() {
   const overallProgress = calculateOverallProgress();
 
   return (
+    <>
     <Card 
       className="w-full border-2 border-blue-500/40 bg-[#1a2942] dark:bg-[#1a2942]" 
       data-testid="card-course-tracker"
@@ -362,10 +370,14 @@ export default function LifeSkillsMap() {
             <h2 className="text-2xl font-bold text-white" data-testid="text-course-tracker-title">
               Course Tracker
             </h2>
-            <Badge className="gap-1.5 bg-gradient-to-r from-primary to-accent text-white border-0 text-base px-3 py-1" data-testid="badge-course-points">
+            <button
+              onClick={() => setShowCompletedLessons(true)}
+              className="gap-1.5 bg-gradient-to-r from-primary to-accent text-white border-0 text-base px-3 py-1 rounded-full flex items-center cursor-pointer hover:opacity-90 transition-opacity"
+              data-testid="badge-course-points"
+            >
               <Trophy className="w-4 h-4" />
               {overallProgress.completed} Points
-            </Badge>
+            </button>
           </div>
           <p className="text-sm text-gray-400 mb-3" data-testid="text-course-tracker-subtitle">
             Manage your learning journey and skill development
@@ -751,8 +763,85 @@ export default function LifeSkillsMap() {
         )}
       </CardContent>
     </Card>
+
+    {/* Completed Lessons Dialog */}
+    <Dialog open={showCompletedLessons} onOpenChange={setShowCompletedLessons}> 
+      <DialogContent className="max-w-2xl max-h-[600px] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Trophy className="w-5 h-5" />
+            Completed Lessons
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          {(() => {
+            const completedLessons: { course: string; lesson: string; url: string }[] = [];
+            
+            if (coursesData) {
+              coursesData.forEach(course => {
+                // Get completed lessons from main lessons
+                course.lessons.forEach(lesson => {
+                  if (lesson.completed) {
+                    completedLessons.push({
+                      course: course.title,
+                      lesson: lesson.title,
+                      url: lesson.url
+                    });
+                  }
+                });
+                
+                // Get completed lessons from subcategories
+                if (course.subcategories) {
+                  course.subcategories.forEach(subcat => {
+                    subcat.lessons.forEach(lesson => {
+                      if (lesson.completed) {
+                        completedLessons.push({
+                          course: `${course.title} → ${subcat.title}`,
+                          lesson: lesson.title,
+                          url: lesson.url
+                        });
+                      }
+                    });
+                  });
+                }
+              });
+            }
+            
+            if (completedLessons.length === 0) {
+              return (
+                <div className="text-center py-8 text-gray-500">
+                  No completed lessons yet. Start learning!
+                </div>
+              );
+            }
+            
+            return completedLessons.map((item, idx) => (
+              <div 
+                key={idx}
+                className="flex items-start justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700"
+              >
+                <div className="flex-1">
+                  <a 
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline"
+                  >
+                    {item.lesson}
+                  </a>
+                  <p className="text-xs text-gray-500 mt-1">{item.course}</p>
+                </div>
+                <div className="flex items-center gap-2 ml-2">
+                  <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-1 rounded">
+                    +1 pt
+                  </span>
+                </div>
+              </div>
+            ));
+          })()}
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }
-                  
-                  let total = 0;
-                  let completed = 0;
