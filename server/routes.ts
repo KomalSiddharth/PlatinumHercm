@@ -5616,13 +5616,13 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       const ritualPoints = allRitualCompletions.reduce((sum: number, completion: RitualCompletion) => {
         const ritual = userRituals.find(r => r.id === completion.ritualId);
         if (!ritual || !ritual.isActive) return sum;
-        const points = ritual.points || 1;
+        const points = ritual.points || 0;
         return sum + points;
       }, 0);
       
-      // Get all course lesson completions (each lesson = 1 point)
+      // Get all course lesson completions (each lesson = 0 points for fresh start)
       const lessonCompletions = await storage.getAllCourseVideoCompletions(userId);
-      const lessonPoints = lessonCompletions.length * 1;
+      const lessonPoints = 0;
       
       // Total all-time points
       const totalPoints = ritualPoints + lessonPoints;
