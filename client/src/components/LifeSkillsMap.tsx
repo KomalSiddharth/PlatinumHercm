@@ -522,7 +522,7 @@ export default function LifeSkillsMap() {
                             </div>
                             <div className="flex items-center gap-2">
                               <span className="text-xs text-gray-600" data-testid={`text-lesson-points-${lesson.id}`}>
-                                10 pts
+                                1 pt
                               </span>
                               <Button
                                 size="sm"
@@ -602,7 +602,7 @@ export default function LifeSkillsMap() {
                                       </div>
                                       <div className="flex items-center gap-2">
                                         <span className="text-xs text-gray-600" data-testid={`text-lesson-points-${lesson.id}`}>
-                                          10 pts
+                                          1 pt
                                         </span>
                                         <Button
                                           size="sm"
