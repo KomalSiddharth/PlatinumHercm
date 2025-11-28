@@ -68,7 +68,7 @@ import {
   type InsertGratitudePost,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, asc, and, or, count, sql, gte, lte } from "drizzle-orm";
+import { eq, desc, asc, and, or, count, sql, gte, lte, offset } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (Required for Replit Auth)
@@ -249,6 +249,8 @@ export interface IStorage {
   
   // Gratitude Posts operations - Shared feed
   getGratitudePosts(limit?: number): Promise<GratitudePost[]>;
+  getArchivedPosts(limit?: number, offset?: number): Promise<GratitudePost[]>;
+  getArchivedPostsCount(): Promise<number>;
   archiveOldPosts(): Promise<number>;
   createGratitudePost(post: InsertGratitudePost): Promise<GratitudePost>;
   deleteGratitudePost(id: string, userId: string): Promise<void>;
@@ -2168,6 +2170,32 @@ export class DatabaseStorage implements IStorage {
       .returning();
     
     return result.length;
+  }
+
+  async getArchivedPosts(limit: number = 20, offset: number = 0): Promise<GratitudePost[]> {
+    // Get archived posts with pagination (oldest first within archive)
+    return await db
+      .select()
+      .from(gratitudePosts)
+      .where(and(
+        eq(gratitudePosts.isPublic, true),
+        eq(gratitudePosts.isArchived, true)
+      ))
+      .orderBy(desc(gratitudePosts.createdAt))
+      .limit(limit)
+      .offset(offset);
+  }
+
+  async getArchivedPostsCount(): Promise<number> {
+    // Get total count of archived posts
+    const [result] = await db
+      .select({ count: count() })
+      .from(gratitudePosts)
+      .where(and(
+        eq(gratitudePosts.isPublic, true),
+        eq(gratitudePosts.isArchived, true)
+      ));
+    return result?.count || 0;
   }
 
   async createGratitudePost(post: InsertGratitudePost): Promise<GratitudePost> {

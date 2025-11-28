@@ -7125,6 +7125,25 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
     }
   });
 
+  // Get archived gratitude posts (past testimonials older than 30 days)
+  app.get('/api/gratitude-posts/archived', isAuthenticated, async (req: any, res) => {
+    try {
+      const page = parseInt(req.query.page as string) || 0;
+      const limit = 20;
+      const offset = page * limit;
+      
+      const [posts, totalCount] = await Promise.all([
+        storage.getArchivedPosts(limit, offset),
+        storage.getArchivedPostsCount()
+      ]);
+      
+      res.json({ posts, totalCount, page, limit });
+    } catch (error) {
+      console.error("Error fetching archived gratitude posts:", error);
+      res.status(500).json({ message: "Failed to fetch archived posts" });
+    }
+  });
+
   // Delete own gratitude post
   app.delete('/api/gratitude-posts/:id', isAuthenticated, async (req: any, res) => {
     try {

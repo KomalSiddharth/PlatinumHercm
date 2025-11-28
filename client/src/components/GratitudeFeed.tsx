@@ -7,8 +7,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Send, Trash2, Sparkles, Heart, Star, Clock, Pause, Play } from 'lucide-react';
+import { Send, Trash2, Sparkles, Heart, Star, Clock, Pause, Play, Archive } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { ArchivedTestimonialsModal } from './ArchivedTestimonialsModal';
 import type { GratitudePost } from '@shared/schema';
 
 interface GratitudeFeedProps {
@@ -19,6 +20,7 @@ export default function GratitudeFeed({ currentUserId }: GratitudeFeedProps) {
   const { toast } = useToast();
   const [content, setContent] = useState('');
   const [isPaused, setIsPaused] = useState(false);
+  const [archiveOpen, setArchiveOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>();
 
@@ -283,6 +285,22 @@ export default function GratitudeFeed({ currentUserId }: GratitudeFeedProps) {
           </p>
         </div>
       )}
+
+      {/* View Archive Button */}
+      <div className="flex justify-center mt-6">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => setArchiveOpen(true)}
+          className="gap-2"
+          data-testid="button-view-archives"
+        >
+          <Archive className="w-4 h-4" />
+          View Past Testimonials
+        </Button>
+      </div>
+
+      <ArchivedTestimonialsModal open={archiveOpen} onOpenChange={setArchiveOpen} />
     </div>
   );
 }
