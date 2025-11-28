@@ -848,9 +848,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createRitual(ritualData: InsertRitual): Promise<Ritual> {
+    // Get the maximum order for this user to add new ritual below all existing ones
+    const maxOrderResult = await db
+      .select({ maxOrder: sql<number>`MAX(CAST("order" AS INTEGER))` })
+      .from(rituals)
+      .where(eq(rituals.userId, ritualData.userId));
+    
+    const maxOrder = maxOrderResult[0]?.maxOrder || 0;
+    const nextOrder = (maxOrder || 0) + 1;
+
     const [ritual] = await db
       .insert(rituals)
-      .values(ritualData as any)
+      .values({ ...ritualData, order: nextOrder } as any)
       .returning();
     return ritual;
   }
