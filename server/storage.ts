@@ -940,7 +940,7 @@ export class DatabaseStorage implements IStorage {
           description: '',
           category: ritualData.category,
           frequency: 'daily',
-          points: 1,
+          points: 0,
           url: ritualData.url,
           isActive: true,
           isDefault: true,
@@ -957,9 +957,9 @@ export class DatabaseStorage implements IStorage {
       }
     }
     
-    // Normalize ALL user rituals to 1 point (unified reward system)
+    // Normalize ALL user rituals to 0 points (fresh start)
     await db.update(rituals)
-      .set({ points: 1, updatedAt: new Date() } as any)
+      .set({ points: 0, updatedAt: new Date() } as any)
       .where(eq(rituals.userId, userId));
   }
 
