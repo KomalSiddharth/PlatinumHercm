@@ -17,8 +17,8 @@ export default function AddRitualForm({ onAdd = () => {} }: AddRitualFormProps) 
     e.preventDefault();
     if (!title.trim()) return;
 
-    onAdd({ title, recurrence, points: 10 });
-    console.log('Ritual added:', { title, recurrence, points: 10 });
+    onAdd({ title, recurrence, points: 1 });
+    console.log('Ritual added:', { title, recurrence, points: 1 });
 
     setTitle('');
     setRecurrence('daily');
@@ -41,7 +41,7 @@ export default function AddRitualForm({ onAdd = () => {} }: AddRitualFormProps) 
             data-testid="button-add-ritual"
           >
             <Plus className="w-4 h-4" />
-            Add (10 pts)
+            Add (1 pt)
           </Button>
         </form>
       </CardContent>
