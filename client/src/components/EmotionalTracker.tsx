@@ -445,7 +445,7 @@ export default function EmotionalTracker() {
     }));
   };
 
-  // Handle inline missing emotion selection (auto-save)
+  // Handle inline missing emotion selection (auto-save) - accumulate emotions
   const handleMissingEmotionChange = (timeSlot: string, emotion: string) => {
     if (emotion === 'ADD_CUSTOM') {
       setPendingTimeSlot(timeSlot);
@@ -453,6 +453,8 @@ export default function EmotionalTracker() {
       setCustomEmotionDialogOpen(true);
       return;
     }
+
+    if (!emotion) return;
 
     const data = trackerData[timeSlot] || {
       timeSlot,
@@ -464,10 +466,22 @@ export default function EmotionalTracker() {
       missingEmotions: '',
     };
 
+    // Parse existing missing emotions as array
+    const existingMissing = data?.missingEmotions 
+      ? data.missingEmotions.split('|').filter(e => e.trim()) 
+      : [];
+
+    // Add new emotion if not already present
+    if (!existingMissing.includes(emotion)) {
+      existingMissing.push(emotion);
+    }
+
+    const updatedMissingEmotions = existingMissing.join('|');
+
     // Update local state
     const updatedData = {
       ...data,
-      missingEmotions: emotion,
+      missingEmotions: updatedMissingEmotions,
     };
 
     setTrackerData((prev) => ({
@@ -485,7 +499,7 @@ export default function EmotionalTracker() {
       positiveEmotions: data?.positiveEmotions || '',
       negativeEmotions: data?.negativeEmotions || '',
       repeatingEmotions: recommendedRepeating || (data?.repeatingEmotions || ''),
-      missingEmotions: emotion,
+      missingEmotions: updatedMissingEmotions,
     });
     
     // Update local state with auto-filled repeating emotion
@@ -493,6 +507,40 @@ export default function EmotionalTracker() {
       ...prev,
       [timeSlot]: { ...updatedData, repeatingEmotions: recommendedRepeating || (data?.repeatingEmotions || '') } as EmotionalTrackerData,
     }));
+  };
+
+  // Remove missing emotion from list
+  const handleRemoveMissingEmotion = (timeSlot: string, emotionToRemove: string) => {
+    const data = trackerData[timeSlot];
+    if (!data) return;
+
+    // Parse existing emotions and filter out the one to remove
+    const existingMissing = data.missingEmotions 
+      ? data.missingEmotions.split('|').filter(e => e.trim() && e !== emotionToRemove) 
+      : [];
+
+    const updatedMissingEmotions = existingMissing.join('|');
+
+    // Update local state
+    const updatedData = {
+      ...data,
+      missingEmotions: updatedMissingEmotions,
+    };
+
+    setTrackerData((prev) => ({
+      ...prev,
+      [timeSlot]: updatedData as EmotionalTrackerData,
+    }));
+
+    // Save to server
+    saveMutation.mutate({
+      date: currentDateStr,
+      timeSlot,
+      positiveEmotions: data.positiveEmotions || '',
+      negativeEmotions: data.negativeEmotions || '',
+      repeatingEmotions: data.repeatingEmotions || '',
+      missingEmotions: updatedMissingEmotions,
+    });
   };
 
 
@@ -802,27 +850,50 @@ export default function EmotionalTracker() {
                           </td>
                         )}
 
-                        {/* Missing Emotions - Inline Dropdown */}
+                        {/* Missing Emotions - Dropdown with Accumulated Emotions Below */}
                         <td className="p-1 sm:p-1.5 md:p-2 align-top">
-                          <Select value={data.missingEmotions} onValueChange={(value) => handleMissingEmotionChange(timeSlot, value)}>
-                            <SelectTrigger 
-                              className={`h-[36px] w-full text-sm ${FIELD_COLORS.missingEmotions.bg} ${FIELD_COLORS.missingEmotions.border} border hover:border-orange-400 dark:hover:border-orange-500 transition-colors`}
-                              data-testid={`input-missing-${index}`}
-                            >
-                              <SelectValue placeholder="Select emotion..." />
-                            </SelectTrigger>
-                            <SelectContent className="max-h-[300px]">
-                              <SelectItem value="ADD_CUSTOM" data-testid={`button-add-custom-missing-emotion-${index}`}>
-                                <span className="text-primary font-semibold">+ Add Custom Emotion</span>
-                              </SelectItem>
-                              <div className="border-t border-gray-200 dark:border-gray-700 my-1" />
-                              {[...MISSING_EMOTIONS, ...customMissingEmotions].map((emotion) => (
-                                <SelectItem key={emotion} value={emotion}>
-                                  {emotion}
+                          <div className="space-y-2">
+                            <Select value="" onValueChange={(value) => handleMissingEmotionChange(timeSlot, value)}>
+                              <SelectTrigger 
+                                className={`h-[36px] w-full text-sm ${FIELD_COLORS.missingEmotions.bg} ${FIELD_COLORS.missingEmotions.border} border hover:border-orange-400 dark:hover:border-orange-500 transition-colors`}
+                                data-testid={`input-missing-${index}`}
+                              >
+                                <SelectValue placeholder="Select emotion..." />
+                              </SelectTrigger>
+                              <SelectContent className="max-h-[300px]">
+                                <SelectItem value="ADD_CUSTOM" data-testid={`button-add-custom-missing-emotion-${index}`}>
+                                  <span className="text-primary font-semibold">+ Add Custom Emotion</span>
                                 </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                                <div className="border-t border-gray-200 dark:border-gray-700 my-1" />
+                                {[...MISSING_EMOTIONS, ...customMissingEmotions].map((emotion) => (
+                                  <SelectItem key={emotion} value={emotion}>
+                                    {emotion}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            
+                            {/* Display accumulated emotions as removable pills */}
+                            {data.missingEmotions && (
+                              <div className="flex flex-wrap gap-1">
+                                {data.missingEmotions.split('|').filter(e => e.trim()).map((emotion) => (
+                                  <span
+                                    key={emotion}
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 border border-orange-300 dark:border-orange-700"
+                                  >
+                                    {emotion}
+                                    <button
+                                      onClick={() => handleRemoveMissingEmotion(timeSlot, emotion)}
+                                      className="ml-0.5 hover:text-orange-900 dark:hover:text-orange-100"
+                                      data-testid={`button-remove-missing-emotion-${emotion}`}
+                                    >
+                                      ×
+                                    </button>
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     );
