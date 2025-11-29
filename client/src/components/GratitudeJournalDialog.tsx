@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Calendar } from '@/components/ui/calendar';
@@ -194,19 +194,22 @@ export function GratitudeJournalDialog({ open, onOpenChange }: GratitudeJournalD
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent 
-        className="max-w-2xl p-0 overflow-hidden border-none shadow-2xl"
+    <Sheet open={open} onOpenChange={onOpenChange} modal={false}>
+      <SheetContent 
+        side="left"
+        className="w-[400px] sm:w-[450px] p-0 overflow-hidden border-none shadow-2xl"
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
       >
         {/* Book Container with Cosmic Background */}
-        <div className="relative perspective-1000">
+        <div className="relative perspective-1000 h-full">
           {/* Glowing Spine Effect */}
           <div className="absolute -left-2 top-0 bottom-0 w-6 bg-gradient-to-r from-purple-900 via-indigo-800 to-purple-700 rounded-l-md shadow-xl z-10" />
           
           {/* Main Book */}
           <div 
             className={`
-              relative min-h-[450px] 
+              relative h-full min-h-screen
               transition-transform duration-300 ease-in-out
               ${isFlipping ? (flipDirection === 'left' ? 'animate-flip-left' : 'animate-flip-right') : ''}
             `}
@@ -230,7 +233,7 @@ export function GratitudeJournalDialog({ open, onOpenChange }: GratitudeJournalD
                   </h2>
                 </div>
 
-                {/* Clickable Date with Calendar */}
+                {/* Clickable Date with Calendar + Close Button */}
                 <div className="flex items-center gap-2">
                   <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                     <PopoverTrigger asChild>
@@ -254,12 +257,22 @@ export function GratitudeJournalDialog({ open, onOpenChange }: GratitudeJournalD
                       />
                     </PopoverContent>
                   </Popover>
-
+                  
+                  {/* Close Button */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onOpenChange(false)}
+                    className="hover:bg-white/10 text-white"
+                    data-testid="button-close-journal"
+                  >
+                    <X className="h-5 w-5" />
+                  </Button>
                 </div>
               </div>
 
               {/* Page Content */}
-              <div className="p-4 pb-16">
+              <div className="p-4 pb-20 h-full flex flex-col">
                 {/* Gratitude Prompt */}
                 <p className="italic font-serif text-base mb-3 text-pink-200 drop-shadow">
                   What are you grateful for today? Type and press Enter to add.
@@ -278,13 +291,13 @@ export function GratitudeJournalDialog({ open, onOpenChange }: GratitudeJournalD
                   />
                 </div>
 
-                {/* Items List - Scrollable after 10 items */}
+                {/* Items List - Scrollable */}
                 {isLoading ? (
                   <div className="flex items-center justify-center h-32">
                     <Loader2 className="h-8 w-8 animate-spin text-pink-400" />
                   </div>
                 ) : (
-                  <div className={`space-y-1 pr-2 ${items.length > 10 ? 'max-h-[320px] overflow-y-auto' : ''}`}>
+                  <div className="flex-1 space-y-1 pr-2 overflow-y-auto max-h-[calc(100vh-250px)]">
                     {items.length === 0 ? (
                       <p className="text-center py-8 font-serif text-pink-200/80">
                         No gratitude entries yet. Start typing above!
@@ -396,7 +409,7 @@ export function GratitudeJournalDialog({ open, onOpenChange }: GratitudeJournalD
             perspective: 1000px;
           }
         `}</style>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
