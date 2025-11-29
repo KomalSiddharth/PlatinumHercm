@@ -2,11 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Hide Delphi chatbot on homepage */
-body.is-homepage #delphi-bubble,
-body.is-homepage [id*="delphi"] {
+/* Hide Delphi chatbot on homepage/login */
+html[data-hide-chatbot="true"] #delphi-bubble,
+html[data-hide-chatbot="true"] [id*="delphi"],
+html[data-hide-chatbot="true"] [class*="delphi"] {
   display: none !important;
   visibility: hidden !important;
+  pointer-events: none !important;
 }
 
 /* LIGHT MODE */

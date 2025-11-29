@@ -22,6 +22,11 @@
         }
       };
       console.log('[DELPHI] Configuration initialized:', window.delphi);
+      
+      // Hide chatbot on homepage
+      if (window.location.pathname === '/' || window.location.pathname === '/login') {
+        document.documentElement.setAttribute('data-hide-chatbot', 'true');
+      }
     </script>
     <script src="https://embed.delphi.ai/loader.js" async onload="console.log('[DELPHI] ✅ Loader script loaded')" onerror="console.error('[DELPHI] ❌ Failed to load loader script')"></script>
   </head>
