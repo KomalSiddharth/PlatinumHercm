@@ -709,13 +709,13 @@ export const insertGratitudePostSchema = createInsertSchema(gratitudePosts).omit
 export type InsertGratitudePost = z.infer<typeof insertGratitudePostSchema>;
 export type GratitudePost = typeof gratitudePosts.$inferSelect;
 
-// Goals & Affirmations - Personal goal tracking with target dates and categories
+// Goals & Affirmations - Personal goal tracking with optional target dates and categories
 export const goalsAffirmations = pgTable("goals_affirmations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id),
   text: varchar("text", { length: 1000 }).notNull(),
-  targetDate: varchar("target_date").notNull(), // YYYY-MM-DD format
-  category: varchar("category").notNull(), // 'health', 'relationship', 'career', 'money'
+  targetDate: varchar("target_date"), // YYYY-MM-DD format (optional)
+  category: varchar("category"), // 'health', 'relationship', 'career', 'money' (optional)
   completed: boolean("completed").default(false).notNull(),
   completedAt: timestamp("completed_at"),
   createdAt: timestamp("created_at").defaultNow(),

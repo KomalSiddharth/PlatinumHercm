@@ -26,7 +26,7 @@ export function GoalsAffirmationsDialog({ open, onOpenChange }: GoalsAffirmation
   const [calendarOpen, setCalendarOpen] = useState(false);
 
   const createGoalMutation = useMutation({
-    mutationFn: async (data: { text: string; targetDate: string; category: string }) => {
+    mutationFn: async (data: { text: string; targetDate: string | null; category: string | null }) => {
       const res = await apiRequest('/api/goals', 'POST', data);
       return await res.json();
     },
@@ -62,27 +62,11 @@ export function GoalsAffirmationsDialog({ open, onOpenChange }: GoalsAffirmation
       });
       return;
     }
-    if (!category) {
-      toast({
-        title: 'Missing Information',
-        description: 'Please select a category.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    if (!targetDate) {
-      toast({
-        title: 'Missing Information',
-        description: 'Please select a target date.',
-        variant: 'destructive',
-      });
-      return;
-    }
 
     createGoalMutation.mutate({
       text: text.trim(),
-      targetDate: format(targetDate, 'yyyy-MM-dd'),
-      category,
+      targetDate: targetDate ? format(targetDate, 'yyyy-MM-dd') : null,
+      category: category || null,
     });
   };
 
@@ -132,7 +116,7 @@ export function GoalsAffirmationsDialog({ open, onOpenChange }: GoalsAffirmation
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Category</Label>
+              <Label className="text-muted-foreground">Category (Optional)</Label>
               <Select value={category} onValueChange={setCategory}>
                 <SelectTrigger data-testid="select-category">
                   <SelectValue placeholder="Select category" />
@@ -167,7 +151,7 @@ export function GoalsAffirmationsDialog({ open, onOpenChange }: GoalsAffirmation
             </div>
 
             <div className="space-y-2">
-              <Label>Target Date</Label>
+              <Label className="text-muted-foreground">Target Date (Optional)</Label>
               <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                 <PopoverTrigger asChild>
                   <Button
