@@ -7261,19 +7261,16 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
         return res.status(400).json({ message: "Goal text is required" });
       }
       
-      if (!targetDate) {
-        return res.status(400).json({ message: "Target date is required" });
-      }
-      
-      if (!category || !['health', 'relationship', 'career', 'money'].includes(category)) {
-        return res.status(400).json({ message: "Valid category is required" });
+      // Category and targetDate are optional - validate only if provided
+      if (category && !['health', 'relationship', 'career', 'money'].includes(category)) {
+        return res.status(400).json({ message: "Invalid category" });
       }
 
       const goal = await storage.createGoalAffirmation({
         userId,
         text: text.trim(),
-        targetDate,
-        category,
+        targetDate: targetDate || null,
+        category: category || null,
       });
 
       res.json(goal);

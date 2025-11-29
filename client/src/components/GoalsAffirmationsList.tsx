@@ -39,6 +39,14 @@ const categoryConfig: Record<string, { color: string; bgColor: string; icon: any
   },
 };
 
+// Default config for goals without category
+const defaultCategoryConfig = {
+  color: 'text-purple-600 dark:text-purple-400',
+  bgColor: 'bg-purple-100 dark:bg-purple-900/30 border-purple-200 dark:border-purple-800',
+  icon: Sparkles,
+  label: 'General'
+};
+
 export default function GoalsAffirmationsList() {
   const { toast } = useToast();
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -128,7 +136,8 @@ export default function GoalsAffirmationsList() {
     },
   });
 
-  const getDateStatus = (targetDate: string) => {
+  const getDateStatus = (targetDate: string | null) => {
+    if (!targetDate) return null;
     const date = parseISO(targetDate);
     if (isToday(date)) return { text: 'Due Today', color: 'text-orange-600 dark:text-orange-400' };
     if (isPast(date)) return { text: 'Overdue', color: 'text-red-600 dark:text-red-400' };
@@ -184,7 +193,7 @@ export default function GoalsAffirmationsList() {
                 <h4 className="text-sm font-medium text-muted-foreground">Active Goals</h4>
                 <div className="space-y-2">
                   {activeGoals.map((goal) => {
-                    const config = categoryConfig[goal.category] || categoryConfig.health;
+                    const config = goal.category ? (categoryConfig[goal.category] || defaultCategoryConfig) : defaultCategoryConfig;
                     const CategoryIcon = config.icon;
                     const dateStatus = getDateStatus(goal.targetDate);
                     const isEditing = editingId === goal.id;
@@ -242,10 +251,12 @@ export default function GoalsAffirmationsList() {
                               <CategoryIcon className="w-3 h-3 mr-1" />
                               {config.label}
                             </Badge>
-                            <span className={`text-xs flex items-center gap-1 ${dateStatus.color}`}>
-                              <Calendar className="w-3 h-3" />
-                              {dateStatus.text}
-                            </span>
+                            {dateStatus && (
+                              <span className={`text-xs flex items-center gap-1 ${dateStatus.color}`}>
+                                <Calendar className="w-3 h-3" />
+                                {dateStatus.text}
+                              </span>
+                            )}
                           </div>
                         </div>
                         <Button
@@ -272,7 +283,7 @@ export default function GoalsAffirmationsList() {
                 </h4>
                 <div className="space-y-2">
                   {completedGoals.map((goal) => {
-                    const config = categoryConfig[goal.category] || categoryConfig.health;
+                    const config = goal.category ? (categoryConfig[goal.category] || defaultCategoryConfig) : defaultCategoryConfig;
                     const CategoryIcon = config.icon;
                     const isEditing = editingId === goal.id;
 
