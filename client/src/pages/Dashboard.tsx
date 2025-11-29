@@ -20,7 +20,6 @@ import { CourseRecommendationNotification } from '@/components/CourseRecommendat
 import FeedbackButton from '@/components/FeedbackButton';
 import LifeSkillsMap from '@/components/LifeSkillsMap';
 import { GoalsAffirmationsDialog } from '@/components/GoalsAffirmationsDialog';
-import ChatBubble from '@/components/ChatBubble';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
@@ -1121,7 +1120,6 @@ export default function Dashboard() {
 
       <GoalsAffirmationsDialog open={goalsDialogOpen} onOpenChange={setGoalsDialogOpen} />
       <FeedbackButton />
-      <ChatBubble />
     </div>
   );
 }
