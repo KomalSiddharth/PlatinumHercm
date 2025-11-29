@@ -1,4 +1,4 @@
-import { Switch, Route, Redirect } from "wouter";
+import { Switch, Route, Redirect, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -8,6 +8,7 @@ import Login from "@/pages/Login";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminPanel from "@/pages/AdminPanel";
 import NotFound from "@/pages/not-found";
+import ChatBubble from "@/components/ChatBubble";
 
 function Router() {
   return (
@@ -25,12 +26,22 @@ function Router() {
   );
 }
 
+function ChatBubbleWrapper() {
+  const [location] = useLocation();
+  const showOnPages = ['/dashboard', '/admin/panel'];
+  const shouldShow = showOnPages.some(page => location.startsWith(page));
+  
+  if (!shouldShow) return null;
+  return <ChatBubble />;
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Router />
+        <ChatBubbleWrapper />
       </TooltipProvider>
     </QueryClientProvider>
   );
