@@ -1,10 +1,26 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MessageCircle, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-export default function ChatBubble() {
-  const [isOpen, setIsOpen] = useState(false);
+interface ChatBubbleProps {
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export default function ChatBubble({ isOpen: controlledOpen, onOpenChange }: ChatBubbleProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
+
+  const handleOpenChange = (open: boolean) => {
+    if (onOpenChange) {
+      onOpenChange(open);
+    } else {
+      setInternalOpen(open);
+    }
+    if (open) setIsLoading(true);
+  };
 
   return (
     <>
@@ -17,10 +33,7 @@ export default function ChatBubble() {
           </div>
         )}
         <Button
-          onClick={() => {
-            setIsOpen(!isOpen);
-            if (!isOpen) setIsLoading(true);
-          }}
+          onClick={() => handleOpenChange(!isOpen)}
           size="icon"
           className={`w-14 h-14 rounded-full shadow-lg transition-all duration-300 ${
             isOpen 
@@ -52,7 +65,7 @@ export default function ChatBubble() {
               </div>
             </div>
             <Button
-              onClick={() => setIsOpen(false)}
+              onClick={() => handleOpenChange(false)}
               size="icon"
               variant="ghost"
               className="text-white hover:bg-white/20"

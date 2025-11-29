@@ -3,6 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ChatBubbleProvider, useChatBubble } from "@/contexts/ChatBubbleContext";
 import Dashboard from "@/pages/Dashboard";
 import Login from "@/pages/Login";
 import AdminLogin from "@/pages/AdminLogin";
@@ -28,20 +29,23 @@ function Router() {
 
 function ChatBubbleWrapper() {
   const [location] = useLocation();
+  const { isChatBubbleOpen, setChatBubbleOpen } = useChatBubble();
   const showOnPages = ['/dashboard', '/admin/panel'];
   const shouldShow = showOnPages.some(page => location.startsWith(page));
   
   if (!shouldShow) return null;
-  return <ChatBubble />;
+  return <ChatBubble isOpen={isChatBubbleOpen} onOpenChange={setChatBubbleOpen} />;
 }
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Router />
-        <ChatBubbleWrapper />
+        <ChatBubbleProvider>
+          <Toaster />
+          <Router />
+          <ChatBubbleWrapper />
+        </ChatBubbleProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );

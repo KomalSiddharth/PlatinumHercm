@@ -3,6 +3,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { format } from 'date-fns';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useChatBubble } from '@/contexts/ChatBubbleContext';
 import DashboardHeader from '@/components/DashboardHeader';
 import UnifiedHRCMTable from '@/components/UnifiedHRCMTable';
 import AddRitualForm from '@/components/AddRitualForm';
@@ -95,6 +96,7 @@ const calculatePoints = (frequency: string): number => {
 export default function Dashboard() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const { isChatBubbleOpen } = useChatBubble();
   const [activeSection, setActiveSection] = useState('hrcm');
   
   const [profileOpen, setProfileOpen] = useState(false);
@@ -1180,7 +1182,7 @@ export default function Dashboard() {
         </DialogContent>
       </Dialog>
 
-      <GoalsAffirmationsDialog open={goalsDialogOpen} onOpenChange={setGoalsDialogOpen} />
+      <GoalsAffirmationsDialog open={goalsDialogOpen} onOpenChange={setGoalsDialogOpen} isChatBubbleOpen={isChatBubbleOpen} />
       <GratitudeJournalDialog open={gratitudeJournalOpen} onOpenChange={setGratitudeJournalOpen} />
       <FeedbackButton />
     </div>
