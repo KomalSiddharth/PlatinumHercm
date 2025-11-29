@@ -20,6 +20,7 @@ import { CourseRecommendationNotification } from '@/components/CourseRecommendat
 import FeedbackButton from '@/components/FeedbackButton';
 import LifeSkillsMap from '@/components/LifeSkillsMap';
 import { GoalsAffirmationsDialog } from '@/components/GoalsAffirmationsDialog';
+import ChatBubble from '@/components/ChatBubble';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
@@ -95,69 +96,6 @@ export default function Dashboard() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [activeSection, setActiveSection] = useState('hrcm');
-  
-  // Load Delphi chat bubble only on Dashboard (not on login/other pages)
-  useEffect(() => {
-    console.log('[DELPHI] 💬 Loading Delphi chat bubble on Dashboard');
-    
-    // Small delay to ensure DOM is ready
-    const timer = setTimeout(() => {
-      // Create and configure Delphi window object BEFORE loading script
-      (window as any).delphi = {...((window as any).delphi ?? {})};
-      (window as any).delphi.bubble = {
-        config: "00175779-acb8-4580-a7ec-8469446841a4",
-        overrides: {
-          landingPage: "OVERVIEW",
-        },
-        trigger: {
-          color: "#bc0000",
-        },
-      };
-      
-      console.log('[DELPHI] 🔧 Configuration set:', (window as any).delphi.bubble);
-      
-      // Check if script already exists to avoid duplicates
-      let delphiScript = document.getElementById('delphi-bubble-bootstrap');
-      
-      if (!delphiScript) {
-        // Create the Delphi bootstrap script element
-        delphiScript = document.createElement('script');
-        delphiScript.id = 'delphi-bubble-bootstrap';
-        (delphiScript as HTMLScriptElement).src = 'https://embed.delphi.ai/loader.js';
-        (delphiScript as HTMLScriptElement).async = true;
-        
-        // Handle load event
-        delphiScript.onload = () => {
-          console.log('[DELPHI] ✅ Delphi loader script loaded successfully');
-        };
-        
-        // Handle error event
-        delphiScript.onerror = () => {
-          console.error('[DELPHI] ❌ Failed to load Delphi loader script');
-        };
-        
-        // Append script to document body (not head, for better visibility)
-        document.body.appendChild(delphiScript);
-        console.log('[DELPHI] ✅ Delphi loader script injected');
-      } else {
-        console.log('[DELPHI] ℹ️ Delphi script already exists, reinitializing');
-      }
-    }, 500); // 500ms delay to ensure Dashboard is fully rendered
-    
-    // Cleanup: Remove Delphi script when leaving Dashboard
-    return () => {
-      clearTimeout(timer);
-      console.log('[DELPHI] 🗑️ Removing Delphi chat bubble (leaving Dashboard)');
-      const script = document.getElementById('delphi-bubble-bootstrap');
-      if (script) {
-        script.remove();
-      }
-      // Clean up Delphi window object to prevent conflicts
-      if ((window as any).delphi?.bubble) {
-        delete (window as any).delphi.bubble;
-      }
-    };
-  }, []); // Empty dependency array - runs once on mount, cleanup on unmount
   
   const [profileOpen, setProfileOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -1221,6 +1159,7 @@ export default function Dashboard() {
 
       <GoalsAffirmationsDialog open={goalsDialogOpen} onOpenChange={setGoalsDialogOpen} />
       <FeedbackButton />
+      <ChatBubble />
     </div>
   );
 }
