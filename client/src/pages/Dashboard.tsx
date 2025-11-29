@@ -95,6 +95,47 @@ export default function Dashboard() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [activeSection, setActiveSection] = useState('hrcm');
+  
+  // Load Delphi chat bubble only on Dashboard (not on login/other pages)
+  useEffect(() => {
+    console.log('[DELPHI] 💬 Loading Delphi chat bubble on Dashboard');
+    
+    // Create and configure Delphi window object
+    (window as any).delphi = {...((window as any).delphi ?? {})};
+    (window as any).delphi.bubble = {
+      config: "00175779-acb8-4580-a7ec-8469446841a4",
+      overrides: {
+        landingPage: "OVERVIEW",
+      },
+      trigger: {
+        color: "#bc0000",
+      },
+    };
+    
+    // Create the Delphi bootstrap script element
+    const delphiScript = document.createElement('script');
+    delphiScript.id = 'delphi-bubble-bootstrap';
+    delphiScript.src = 'https://embed.delphi.ai/loader.js';
+    delphiScript.async = true;
+    
+    // Append script to document head
+    document.head.appendChild(delphiScript);
+    console.log('[DELPHI] ✅ Chat bubble script injected');
+    
+    // Cleanup: Remove Delphi script when leaving Dashboard
+    return () => {
+      console.log('[DELPHI] 🗑️ Removing Delphi chat bubble (leaving Dashboard)');
+      const script = document.getElementById('delphi-bubble-bootstrap');
+      if (script) {
+        script.remove();
+      }
+      // Clean up Delphi window object to prevent conflicts
+      if ((window as any).delphi?.bubble) {
+        delete (window as any).delphi.bubble;
+      }
+    };
+  }, []); // Empty dependency array - runs once on mount, cleanup on unmount
+  
   const [profileOpen, setProfileOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [progressOpen, setProgressOpen] = useState(false);
