@@ -446,8 +446,7 @@ export default function Dashboard() {
       const ritual = rituals.find(r => r.id === id);
       toast({
         title: 'Ritual Deleted',
-        description: `${ritual?.title} has been removed.`,
-        variant: 'destructive'
+        description: `${ritual?.title} has been removed.`
       });
     },
     onError: (error: Error) => {
