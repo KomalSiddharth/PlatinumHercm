@@ -913,6 +913,12 @@ export class DatabaseStorage implements IStorage {
       throw new Error('Cannot delete default rituals');
     }
 
+    // Delete all related ritual completions first (to avoid foreign key constraint)
+    await db
+      .delete(ritualCompletions)
+      .where(eq(ritualCompletions.ritualId, id));
+
+    // Now delete the ritual
     const result = await db
       .delete(rituals)
       .where(and(

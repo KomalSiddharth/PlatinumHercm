@@ -5364,20 +5364,27 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       }
       
       const { id } = req.params;
+      console.log(`[RITUAL DELETE] Attempting to delete ritual ${id} for user ${user.id}`);
       
-      const deletedCount = await storage.deleteRitual(id, user.id);
-      
-      if (deletedCount === 0) {
-        return res.status(404).json({ message: "Ritual not found or access denied" });
+      try {
+        const deletedCount = await storage.deleteRitual(id, user.id);
+        console.log(`[RITUAL DELETE] Deleted ${deletedCount} ritual(s)`);
+        
+        if (deletedCount === 0) {
+          return res.status(404).json({ message: "Ritual not found or access denied" });
+        }
+        
+        res.json({ success: true, message: "Ritual deleted" });
+      } catch (storageError) {
+        console.error(`[RITUAL DELETE] Storage error: ${(storageError as Error).message}`);
+        if ((storageError as Error).message === 'Cannot delete default rituals') {
+          return res.status(403).json({ message: "Cannot delete default rituals" });
+        }
+        throw storageError;
       }
-      
-      res.json({ success: true, message: "Ritual deleted" });
     } catch (error) {
       console.error("Error deleting ritual:", error);
-      if ((error as Error).message === 'Cannot delete default rituals') {
-        return res.status(403).json({ message: "Cannot delete default rituals" });
-      }
-      res.status(500).json({ message: "Failed to delete ritual" });
+      res.status(500).json({ message: "Failed to delete ritual: " + ((error as Error).message || 'Unknown error') });
     }
   });
 
