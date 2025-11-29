@@ -320,7 +320,13 @@ export default function Dashboard() {
       
       // Snapshot the previous values
       const previousCompletions = queryClient.getQueryData<RitualCompletion[]>(['/api/ritual-completions', date]);
-      const previousPoints = queryClient.getQueryData<{ totalPoints: number }>(['/api/user/total-points']);
+      const previousPoints = queryClient.getQueryData<{
+        totalPoints: number;
+        ritualPoints: number;
+        lessonPoints: number;
+        ritualCount: number;
+        lessonCount: number;
+      }>(['/api/user/total-points']);
       
       // Optimistically update the UI
       queryClient.setQueryData<RitualCompletion[]>(
@@ -340,9 +346,15 @@ export default function Dashboard() {
       const ritual = rituals.find(r => r.id === id);
       if (previousPoints && ritual) {
         const pointsChange = isCompleted ? -ritual.points : ritual.points;
-        queryClient.setQueryData<{ totalPoints: number }>(
+        const countChange = isCompleted ? -1 : 1;
+        queryClient.setQueryData(
           ['/api/user/total-points'],
-          { totalPoints: previousPoints.totalPoints + pointsChange }
+          {
+            ...previousPoints,
+            totalPoints: previousPoints.totalPoints + pointsChange,
+            ritualPoints: (previousPoints.ritualPoints || 0) + pointsChange,
+            ritualCount: Math.max(0, (previousPoints.ritualCount || 0) + countChange)
+          }
         );
         console.log('[Daily Rituals] ⚡ Instant points update:', pointsChange > 0 ? `+${pointsChange}` : pointsChange);
       }
@@ -403,17 +415,48 @@ export default function Dashboard() {
     mutationFn: async (id: string) => {
       await apiRequest(`/api/rituals/${id}`, 'DELETE');
     },
-    onSuccess: (_, id) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/rituals'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/ritual-completions', todayDate] });
+    onMutate: async (id: string) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['/api/user/total-points'] });
       
+      // Snapshot the previous points
+      const previousPoints = queryClient.getQueryData<{
+        totalPoints: number;
+        ritualPoints: number;
+        lessonPoints: number;
+        ritualCount: number;
+        lessonCount: number;
+      }>(['/api/user/total-points']);
+      
+      // Check if ritual was completed - if so, deduct points optimistically
       const ritual = rituals.find(r => r.id === id);
+      if (previousPoints && ritual && ritual.completed) {
+        queryClient.setQueryData(['/api/user/total-points'], {
+          ...previousPoints,
+          totalPoints: previousPoints.totalPoints - ritual.points,
+          ritualPoints: previousPoints.ritualPoints - ritual.points,
+          ritualCount: Math.max(0, previousPoints.ritualCount - 1)
+        });
+        console.log('[Daily Rituals] ⚡ Instant points deduction on delete:', -ritual.points);
+      }
+      
+      return { previousPoints, ritual };
+    },
+    onSuccess: (_, id, context) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/rituals'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ritual-completions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/total-points'] });
+      
       toast({
         title: 'Ritual Deleted',
-        description: `${ritual?.title} has been removed.`
+        description: `${context?.ritual?.title} has been removed.`
       });
     },
-    onError: (error: Error) => {
+    onError: (error: Error, _, context) => {
+      // Rollback on error
+      if (context?.previousPoints) {
+        queryClient.setQueryData(['/api/user/total-points'], context.previousPoints);
+      }
       toast({
         title: 'Error',
         description: error.message || 'Failed to delete ritual',
