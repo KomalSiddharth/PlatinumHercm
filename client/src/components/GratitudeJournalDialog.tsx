@@ -233,7 +233,7 @@ export function GratitudeJournalDialog({ open, onOpenChange }: GratitudeJournalD
                   </h2>
                 </div>
 
-                {/* Clickable Date with Calendar + Close Button */}
+                {/* Clickable Date with Calendar */}
                 <div className="flex items-center gap-2">
                   <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                     <PopoverTrigger asChild>
@@ -257,17 +257,6 @@ export function GratitudeJournalDialog({ open, onOpenChange }: GratitudeJournalD
                       />
                     </PopoverContent>
                   </Popover>
-                  
-                  {/* Close Button */}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onOpenChange(false)}
-                    className="hover:bg-white/10 text-white"
-                    data-testid="button-close-journal"
-                  >
-                    <X className="h-5 w-5" />
-                  </Button>
                 </div>
               </div>
 
