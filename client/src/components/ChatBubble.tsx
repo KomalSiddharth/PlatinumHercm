@@ -9,7 +9,13 @@ export default function ChatBubble() {
   return (
     <>
       {/* Chat Bubble Button - Fixed on right side */}
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2">
+        {/* Name label - shows when minimized */}
+        {!isOpen && (
+          <div className="bg-gradient-to-r from-blue-500 to-cyan-600 text-white px-3 py-2 rounded-full shadow-lg text-sm font-semibold animate-in fade-in slide-in-from-right-2 duration-300">
+            Mitesh-AI
+          </div>
+        )}
         <Button
           onClick={() => {
             setIsOpen(!isOpen);
