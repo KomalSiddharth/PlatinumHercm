@@ -26,7 +26,7 @@ function Router() {
   );
 }
 
-// 🤖 Smart Delphi Chatbot Loader - Only shows for logged-in users NOT on homepage
+// 🤖 Smart Delphi Chatbot Loader - Shows for logged-in users only
 function DelphiChatbotLoader() {
   // Check authentication status using the actual auth query
   const { data: currentUser, isLoading } = useQuery<{ id: string; email: string } | null>({
@@ -38,12 +38,11 @@ function DelphiChatbotLoader() {
     // Don't load until auth query completes
     if (isLoading) return;
     
-    const isHomePage = window.location.pathname === '/';
     const isLoggedIn = !!currentUser; // If currentUser data exists, user is logged in
     
-    // Only load chatbot if NOT on homepage AND user is logged in
-    if (!isHomePage && isLoggedIn) {
-      console.log('[DELPHI] 🤖 Loading chatbot (logged in, not on homepage)');
+    // Only load chatbot if user is logged in
+    if (isLoggedIn) {
+      console.log('[DELPHI] 🤖 Loading chatbot (user logged in)');
       
       // Delphi configuration
       (window as any).delphi = {
@@ -69,9 +68,9 @@ function DelphiChatbotLoader() {
         console.log('[DELPHI] ✅ Chatbot script loaded');
       }
     } else {
-      console.log('[DELPHI] ⏸️ Chatbot skipped:', { isHomePage, isLoggedIn });
+      console.log('[DELPHI] ⏸️ Chatbot hidden (user not logged in)');
       
-      // Clean up if on homepage or not logged in
+      // Clean up if not logged in
       const script = document.getElementById('delphi-bubble-bootstrap-global');
       if (script) {
         script.remove();
@@ -81,7 +80,7 @@ function DelphiChatbotLoader() {
         bubble.remove();
       }
     }
-  }, [currentUser, isLoading, window.location.pathname]);
+  }, [currentUser, isLoading]);
 
   return null;
 }
