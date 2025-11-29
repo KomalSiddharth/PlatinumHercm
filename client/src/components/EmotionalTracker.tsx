@@ -135,53 +135,58 @@ const recommendRepeatingEmotion = (positive: string, negative: string, missing: 
   
   // Check NEGATIVE emotions and add corresponding repeating patterns
   if (negative) {
-    if (negative.toLowerCase().includes('overthink') || negative.toLowerCase().includes('worry') || negative.toLowerCase().includes('anxiety')) {
+    const negLower = negative.toLowerCase();
+    if (negLower.includes('overthink') || negLower.includes('worry') || negLower.includes('anxiety')) {
       recommendedEmotions.add('Overthinking');
     }
-    if (negative.toLowerCase().includes('stress') || negative.toLowerCase().includes('overwhelm') || negative.toLowerCase().includes('pressure')) {
+    if (negLower.includes('stress') || negLower.includes('overwhelm') || negLower.includes('pressure')) {
       recommendedEmotions.add('Stress');
     }
-    if (negative.toLowerCase().includes('irritat') || negative.toLowerCase().includes('frustrat') || negative.toLowerCase().includes('angry')) {
+    if (negLower.includes('irritat') || negLower.includes('frustrat') || negLower.includes('angry') || negLower.includes('resentful')) {
       recommendedEmotions.add('Irritation');
     }
-    if (negative.toLowerCase().includes('doubt') || negative.toLowerCase().includes('uncertain') || negative.toLowerCase().includes('confused')) {
+    if (negLower.includes('doubt') || negLower.includes('uncertain') || negLower.includes('confused')) {
       recommendedEmotions.add('Doubt');
     }
-    if (negative.toLowerCase().includes('fear') || negative.toLowerCase().includes('afraid') || negative.toLowerCase().includes('panic')) {
+    if (negLower.includes('fear') || negLower.includes('afraid') || negLower.includes('panic')) {
       recommendedEmotions.add('Fear');
     }
-    if (negative.toLowerCase().includes('withdraw') || negative.toLowerCase().includes('detach') || negative.toLowerCase().includes('numb')) {
+    if (negLower.includes('withdraw') || negLower.includes('detach') || negLower.includes('numb') || negLower.includes('disconnect')) {
       recommendedEmotions.add('Withdrawal');
     }
-    if (negative.toLowerCase().includes('drained') || negative.toLowerCase().includes('fatigue') || negative.toLowerCase().includes('low')) {
+    if (negLower.includes('drained') || negLower.includes('fatigue') || negLower.includes('low') || negLower.includes('unmotivated')) {
       recommendedEmotions.add('Emotional Fatigue');
+    }
+    if (negLower.includes('sad') || negLower.includes('disappointed') || negLower.includes('miserable') || negLower.includes('hurt') || negLower.includes('lonely')) {
+      recommendedEmotions.add('Feeling Okay Then Overwhelmed');
     }
   }
 
   // Check POSITIVE emotions and add corresponding repeating patterns
   if (positive) {
-    if (positive.toLowerCase().includes('calm') || positive.toLowerCase().includes('peace') || positive.toLowerCase().includes('serenity')) {
+    const posLower = positive.toLowerCase();
+    if (posLower.includes('calm') || posLower.includes('peace') || posLower.includes('serenity') || posLower.includes('stillness')) {
       recommendedEmotions.add('Calm Moments');
     }
-    if (positive.toLowerCase().includes('motivation') || positive.toLowerCase().includes('confidence') || positive.toLowerCase().includes('courage')) {
+    if (posLower.includes('motivation') || posLower.includes('energi') || posLower.includes('enthusiasm')) {
       recommendedEmotions.add('Motivational Spikes');
     }
-    if (positive.toLowerCase().includes('relief') || positive.toLowerCase().includes('peace')) {
+    if (posLower.includes('relief') || posLower.includes('peace')) {
       recommendedEmotions.add('Relief');
     }
-    if (positive.toLowerCase().includes('joy') || positive.toLowerCase().includes('delight') || positive.toLowerCase().includes('happiness')) {
+    if (posLower.includes('joy') || posLower.includes('delight') || posLower.includes('happiness') || posLower.includes('cheerful') || posLower.includes('pleasant')) {
       recommendedEmotions.add('Joy');
     }
-    if (positive.toLowerCase().includes('focus') || positive.toLowerCase().includes('clarity') || positive.toLowerCase().includes('determination')) {
+    if (posLower.includes('focus') || posLower.includes('clarity') || posLower.includes('determination') || posLower.includes('drive')) {
       recommendedEmotions.add('Focus');
     }
-    if (positive.toLowerCase().includes('gratitude') || positive.toLowerCase().includes('appreciation')) {
+    if (posLower.includes('gratitude') || posLower.includes('appreciation') || posLower.includes('thankful')) {
       recommendedEmotions.add('Gratitude');
     }
-    if (positive.toLowerCase().includes('hope')) {
+    if (posLower.includes('hope') || posLower.includes('hopeful')) {
       recommendedEmotions.add('Hope');
     }
-    if (positive.toLowerCase().includes('confidence')) {
+    if (posLower.includes('confidence') || posLower.includes('courage') || posLower.includes('empowerment')) {
       recommendedEmotions.add('Confidence Bursts');
     }
   }
@@ -413,8 +418,15 @@ export default function EmotionalTracker() {
       return;
     }
 
-    // Auto-fill repeating emotion
+    // Auto-fill repeating emotion (considering BOTH positive AND negative)
     const recommendedRepeating = recommendRepeatingEmotion(emotion, negativeEmotions, data?.missingEmotions || '');
+    
+    // Merge with existing repeating emotions if we're adding a new positive emotion alongside negative
+    let finalRepeating = recommendedRepeating;
+    if (negativeEmotions && emotion && recommendedRepeating) {
+      // Both positive and negative are filled - use the recommended repeating
+      finalRepeating = recommendedRepeating;
+    }
     
     // Save to server
     saveMutation.mutate({
@@ -422,14 +434,14 @@ export default function EmotionalTracker() {
       timeSlot,
       positiveEmotions: emotion,
       negativeEmotions: negativeEmotions,
-      repeatingEmotions: recommendedRepeating || (data?.repeatingEmotions || ''),
+      repeatingEmotions: finalRepeating || (data?.repeatingEmotions || ''),
       missingEmotions: data?.missingEmotions || '',
     });
     
     // Update local state with auto-filled repeating emotion
     setTrackerData((prev) => ({
       ...prev,
-      [timeSlot]: { ...updatedData, repeatingEmotions: recommendedRepeating || (data?.repeatingEmotions || '') } as EmotionalTrackerData,
+      [timeSlot]: { ...updatedData, repeatingEmotions: finalRepeating || (data?.repeatingEmotions || '') } as EmotionalTrackerData,
     }));
   };
 
@@ -482,8 +494,15 @@ export default function EmotionalTracker() {
       return;
     }
 
-    // Auto-fill repeating emotion
+    // Auto-fill repeating emotion (considering BOTH positive AND negative)
     const recommendedRepeating = recommendRepeatingEmotion(positiveEmotions, emotion, data?.missingEmotions || '');
+    
+    // Merge with existing repeating emotions if we're adding a new negative emotion alongside positive
+    let finalRepeating = recommendedRepeating;
+    if (positiveEmotions && emotion && recommendedRepeating) {
+      // Both positive and negative are filled - use the recommended repeating
+      finalRepeating = recommendedRepeating;
+    }
 
     // Save to server
     saveMutation.mutate({
@@ -491,14 +510,14 @@ export default function EmotionalTracker() {
       timeSlot,
       positiveEmotions: positiveEmotions,
       negativeEmotions: emotion,
-      repeatingEmotions: recommendedRepeating || (data?.repeatingEmotions || ''),
+      repeatingEmotions: finalRepeating || (data?.repeatingEmotions || ''),
       missingEmotions: data?.missingEmotions || '',
     });
     
     // Update local state with auto-filled repeating emotion
     setTrackerData((prev) => ({
       ...prev,
-      [timeSlot]: { ...updatedData, repeatingEmotions: recommendedRepeating || (data?.repeatingEmotions || '') } as EmotionalTrackerData,
+      [timeSlot]: { ...updatedData, repeatingEmotions: finalRepeating || (data?.repeatingEmotions || '') } as EmotionalTrackerData,
     }));
   };
 
