@@ -549,3 +549,11 @@
     animation: bounce 1s ease-in-out infinite;
   }
 }
+
+/* 🚀 Position Delphi Chatbot on Right Side */
+[id*="delphi"],
+iframe[src*="delphi"],
+div[class*="delphi"] {
+  right: 20px !important;
+  left: auto !important;
+}
