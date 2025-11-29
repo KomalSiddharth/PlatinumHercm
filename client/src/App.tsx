@@ -1,7 +1,7 @@
 import { Switch, Route, Redirect } from "wouter";
 import { useEffect } from "react";
 import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider, useQuery } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Dashboard from "@/pages/Dashboard";
@@ -26,61 +26,39 @@ function Router() {
   );
 }
 
-// 🤖 Smart Delphi Chatbot Loader - Shows for logged-in users only
+// 🤖 Simple Delphi Chatbot Loader
 function DelphiChatbotLoader() {
-  // Check authentication status using the actual auth query
-  const { data: currentUser, isLoading } = useQuery<{ id: string; email: string } | null>({
-    queryKey: ['/api/auth/user'],
-    retry: false,
-  });
-  
   useEffect(() => {
-    // Don't load until auth query completes
-    if (isLoading) return;
-    
-    const isLoggedIn = !!currentUser; // If currentUser data exists, user is logged in
-    
-    // Only load chatbot if user is logged in
-    if (isLoggedIn) {
-      console.log('[DELPHI] 🤖 Loading chatbot (user logged in)');
-      
-      // Delphi configuration
-      (window as any).delphi = {
-        ...((window as any).delphi ?? {}),
-      };
-      (window as any).delphi.bubble = {
-        config: "00175779-acb8-4580-a7ec-8469446841a4",
-        overrides: {
-          landingPage: "OVERVIEW",
-        },
-        trigger: {
-          color: "#bc0000",
-        },
-      };
-
-      // Load Delphi script if not already loaded
-      if (!document.getElementById('delphi-bubble-bootstrap-global')) {
-        const script = document.createElement('script');
-        script.id = 'delphi-bubble-bootstrap-global';
-        script.src = 'https://embed.delphi.ai/loader.js';
-        script.async = true;
-        document.body.appendChild(script);
-        console.log('[DELPHI] ✅ Chatbot script loaded');
-      }
+    // Add homepage class to body for CSS hiding
+    if (window.location.pathname === '/') {
+      document.body.classList.add('is-homepage');
     } else {
-      console.log('[DELPHI] ⏸️ Chatbot hidden (user not logged in)');
-      
-      // Clean up if not logged in
-      const script = document.getElementById('delphi-bubble-bootstrap-global');
-      if (script) {
-        script.remove();
-      }
-      const bubble = document.querySelector('[id*="delphi"]');
-      if (bubble) {
-        bubble.remove();
-      }
+      document.body.classList.remove('is-homepage');
     }
-  }, [currentUser, isLoading]);
+  }, []);
+
+  useEffect(() => {
+    // Load Delphi script
+    window.delphi = { ...(window.delphi ?? {}) };
+    window.delphi.bubble = {
+      config: "00175779-acb8-4580-a7ec-8469446841a4",
+      overrides: {
+        landingPage: "OVERVIEW",
+      },
+      trigger: {
+        color: "#bc0000",
+      },
+    };
+
+    // Load the script
+    if (!document.getElementById('delphi-bubble-bootstrap')) {
+      const script = document.createElement('script');
+      script.id = 'delphi-bubble-bootstrap';
+      script.src = 'https://embed.delphi.ai/loader.js';
+      script.async = true;
+      document.body.appendChild(script);
+    }
+  }, []);
 
   return null;
 }
