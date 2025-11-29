@@ -100,30 +100,53 @@ export default function Dashboard() {
   useEffect(() => {
     console.log('[DELPHI] 💬 Loading Delphi chat bubble on Dashboard');
     
-    // Create and configure Delphi window object
-    (window as any).delphi = {...((window as any).delphi ?? {})};
-    (window as any).delphi.bubble = {
-      config: "00175779-acb8-4580-a7ec-8469446841a4",
-      overrides: {
-        landingPage: "OVERVIEW",
-      },
-      trigger: {
-        color: "#bc0000",
-      },
-    };
-    
-    // Create the Delphi bootstrap script element
-    const delphiScript = document.createElement('script');
-    delphiScript.id = 'delphi-bubble-bootstrap';
-    delphiScript.src = 'https://embed.delphi.ai/loader.js';
-    delphiScript.async = true;
-    
-    // Append script to document head
-    document.head.appendChild(delphiScript);
-    console.log('[DELPHI] ✅ Chat bubble script injected');
+    // Small delay to ensure DOM is ready
+    const timer = setTimeout(() => {
+      // Create and configure Delphi window object BEFORE loading script
+      (window as any).delphi = {...((window as any).delphi ?? {})};
+      (window as any).delphi.bubble = {
+        config: "00175779-acb8-4580-a7ec-8469446841a4",
+        overrides: {
+          landingPage: "OVERVIEW",
+        },
+        trigger: {
+          color: "#bc0000",
+        },
+      };
+      
+      console.log('[DELPHI] 🔧 Configuration set:', (window as any).delphi.bubble);
+      
+      // Check if script already exists to avoid duplicates
+      let delphiScript = document.getElementById('delphi-bubble-bootstrap');
+      
+      if (!delphiScript) {
+        // Create the Delphi bootstrap script element
+        delphiScript = document.createElement('script');
+        delphiScript.id = 'delphi-bubble-bootstrap';
+        (delphiScript as HTMLScriptElement).src = 'https://embed.delphi.ai/loader.js';
+        (delphiScript as HTMLScriptElement).async = true;
+        
+        // Handle load event
+        delphiScript.onload = () => {
+          console.log('[DELPHI] ✅ Delphi loader script loaded successfully');
+        };
+        
+        // Handle error event
+        delphiScript.onerror = () => {
+          console.error('[DELPHI] ❌ Failed to load Delphi loader script');
+        };
+        
+        // Append script to document body (not head, for better visibility)
+        document.body.appendChild(delphiScript);
+        console.log('[DELPHI] ✅ Delphi loader script injected');
+      } else {
+        console.log('[DELPHI] ℹ️ Delphi script already exists, reinitializing');
+      }
+    }, 500); // 500ms delay to ensure Dashboard is fully rendered
     
     // Cleanup: Remove Delphi script when leaving Dashboard
     return () => {
+      clearTimeout(timer);
       console.log('[DELPHI] 🗑️ Removing Delphi chat bubble (leaving Dashboard)');
       const script = document.getElementById('delphi-bubble-bootstrap');
       if (script) {
