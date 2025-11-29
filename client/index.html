@@ -8,8 +8,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Delphi Chat Bubble Script - Load at end of body -->
     <script>
-      // Delphi chat bubble configuration - set before loader script
       window.delphi = {
         bubble: {
           config: "00175779-acb8-4580-a7ec-8469446841a4",
@@ -21,17 +26,8 @@
           }
         }
       };
-      console.log('[DELPHI] Configuration initialized:', window.delphi);
-      
-      // Hide chatbot on homepage/login pages
-      if (window.location.pathname === '/' || window.location.pathname === '/login' || window.location.pathname === '/admin/login') {
-        document.documentElement.setAttribute('data-hide-bubble', 'true');
-      }
+      console.log('[DELPHI] Configuration initialized');
     </script>
-    <script src="https://embed.delphi.ai/loader.js" async onload="console.log('[DELPHI] ✅ Loader script loaded')" onerror="console.error('[DELPHI] ❌ Failed to load loader script')"></script>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <script src="https://embed.delphi.ai/loader.js" defer></script>
   </body>
 </html>
