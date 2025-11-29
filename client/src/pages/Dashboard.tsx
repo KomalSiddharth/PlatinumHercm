@@ -837,17 +837,9 @@ export default function Dashboard() {
         <section ref={ritualsRef} id="rituals" className="scroll-mt-20 p-3 sm:p-4 md:p-6 rounded-lg border-2" style={{ backgroundColor: '#00008c', borderColor: '#0000cc' }}>
           <div className="space-y-4 sm:space-y-6">
             <div>
-              {/* Header Row with Gratitude Journal button right-aligned */}
+              {/* Header Row with Gratitude Journal button left-aligned */}
               <div className="flex items-center justify-between mb-4">
-                <div className="flex-1" />
-                <h2 className="text-2xl sm:text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
-                  Daily Rituals
-                  <Badge className="gap-1.5 bg-gradient-to-r from-pink-500 to-purple-600 text-white border-0 text-base px-3 py-1">
-                    <Trophy className="w-4 h-4" />
-                    {totalPoints} Points
-                  </Badge>
-                </h2>
-                <div className="flex-1 flex justify-end">
+                <div className="flex-1 flex justify-start">
                   <Button
                     onClick={() => setGratitudeJournalOpen(true)}
                     className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white border-0"
@@ -857,6 +849,14 @@ export default function Dashboard() {
                     Gratitude Journal
                   </Button>
                 </div>
+                <h2 className="text-2xl sm:text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+                  Daily Rituals
+                  <Badge className="gap-1.5 bg-gradient-to-r from-pink-500 to-purple-600 text-white border-0 text-base px-3 py-1">
+                    <Trophy className="w-4 h-4" />
+                    {totalPoints} Points
+                  </Badge>
+                </h2>
+                <div className="flex-1" />
               </div>
               
               {/* Date Picker */}
