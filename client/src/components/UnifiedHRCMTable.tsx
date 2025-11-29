@@ -1306,30 +1306,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               const sourceDate = previousDayData.dateString || 'previous day';
               console.log(`[AUTO-COPY] ✅ Found data from ${sourceDate}, copying to current date...`);
               
-              // 🔥 SMART AUTO-SYNC DETECTION
-              // Check if previous day had Current Week == Next Week Target
-              const hadAutoSync = previousDayData.beliefs.every((belief: HRCMBelief) => {
-                const cwMatch = belief.problems === belief.result &&
-                               belief.currentFeelings === belief.nextFeelings &&
-                               belief.currentBelief === belief.nextWeekTarget &&
-                               belief.currentActions === belief.nextActions;
-                
-                // Also check checklists
-                const checklistMatch = JSON.stringify(belief.problemsChecklist || []) === JSON.stringify(belief.resultChecklist || []) &&
-                                      JSON.stringify(belief.feelingsCurrentChecklist || []) === JSON.stringify(belief.feelingsChecklist || []) &&
-                                      JSON.stringify(belief.beliefsCurrentChecklist || []) === JSON.stringify(belief.beliefsChecklist || []) &&
-                                      JSON.stringify(belief.actionsCurrentChecklist || []) === JSON.stringify(belief.actionsChecklist || []);
-                
-                return cwMatch && checklistMatch;
-              });
-              
-              if (hadAutoSync) {
-                console.log('[AUTO-COPY] 🔄 Previous data had auto-sync enabled → Enabling auto-sync for today');
-                setManualNextWeekMode(false); // Enable auto-sync
-              } else {
-                console.log('[AUTO-COPY] 📝 Previous data had manual planning → Preserving separate Next Week Target');
-                setManualNextWeekMode(true); // Disable auto-sync, preserve manual planning
-              }
+              // 🔥 FIX: Always enable auto-sync on fresh daily copy
+              // This ensures new additions to Current Week automatically sync to Next Week Target
+              // Users can manually turn it off if they want to edit Next Week Target separately
+              console.log('[AUTO-COPY] ✅ Enabling auto-sync for new day - new additions will sync automatically');
+              setManualNextWeekMode(false); // 🔥 ALWAYS reset to false for fresh day
               
               // Copy previous day data to current date
               const copiedBeliefs = previousDayData.beliefs.map((belief: HRCMBelief) => ({
@@ -1347,7 +1328,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 weekNumber: actualWeekNumber,
                 dateString: currentDateStr, // 🔥 CRITICAL: Save to current date!
                 beliefs: copiedBeliefs,
-                unifiedAssignment: previousDayData.unifiedAssignment || []
+                unifiedAssignment: previousDayData.unifiedAssignment || [],
+                manualNextWeekMode: false, // 🔥 FIX: Always enable auto-sync on new day
               };
               
               console.log('[AUTO-COPY] 💾 Auto-saving copied data to current date:', currentDateStr);
