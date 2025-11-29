@@ -23,6 +23,34 @@ const wsClients = new Map<string, WebSocket>();
 // WebSocket server instance - will be set after initialization
 let wssInstance: WebSocketServer | null = null;
 
+// 🚀 AGGRESSIVE GOOGLE SHEETS CACHING - Handle 300+ concurrent users
+let coursesCacheData: any[] | null = null;
+let coursesCacheTimestamp: number = 0;
+const COURSES_CACHE_TTL = 30 * 1000; // Cache for 30 seconds (reduce API load)
+
+function setCoursesCacheData(data: any[]): void {
+  coursesCacheData = data;
+  coursesCacheTimestamp = Date.now();
+  console.log(`[CACHE] Google Sheets courses cached (${data.length} courses, expires in 30s)`);
+}
+
+function getCoursesCacheData(): any[] | null {
+  if (coursesCacheData && (Date.now() - coursesCacheTimestamp) < COURSES_CACHE_TTL) {
+    console.log(`[CACHE] ✅ Using cached courses (${Date.now() - coursesCacheTimestamp}ms old)`);
+    return coursesCacheData;
+  }
+  return null;
+}
+
+function getCoursesCacheDataStale(): any[] | null {
+  // Return stale cache as last resort fallback (even if expired)
+  if (coursesCacheData) {
+    console.log(`[CACHE] ⚠️ Using stale cache as fallback (${Date.now() - coursesCacheTimestamp}ms old)`);
+    return coursesCacheData;
+  }
+  return null;
+}
+
 /**
  * Calculate current week number based on user's creation date
  * Week 1 = Day 0-6, Week 2 = Day 7-13, Week 3 = Day 14-20, etc.
@@ -2691,16 +2719,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userCompletions = await storage.getUserLessonCompletions(userId);
       console.log(`[COURSE TRACKING] User has ${userCompletions.size} lesson completions`);
       
-      // Fetch courses from Google Sheets with fallback
-      let courses = [];
-      try {
-        courses = await fetchCourseTrackingData(sheetUrl);
-        console.log(`[COURSE TRACKING] ✅ Successfully fetched ${courses.length} courses from Google Sheets`);
-      } catch (sheetsError) {
-        console.error(`[COURSE TRACKING] ⚠️ Google Sheets fetch failed:`, sheetsError instanceof Error ? sheetsError.message : sheetsError);
-        console.warn(`[COURSE TRACKING] Returning empty courses list (graceful degradation)`);
-        // Return empty array instead of crashing - let user refresh to try again
-        return res.json([]);
+      // 🚀 Try fresh cache first, then fetch, then use stale cache as fallback
+      let courses: any[] = [];
+      
+      // Step 1: Try fresh cache (valid within 30 seconds)
+      const cachedCourses = getCoursesCacheData();
+      if (cachedCourses) {
+        courses = cachedCourses;
+      } else {
+        // Step 2: Try fetching fresh data from Google Sheets
+        try {
+          courses = await fetchCourseTrackingData(sheetUrl);
+          console.log(`[COURSE TRACKING] ✅ Successfully fetched ${courses.length} courses from Google Sheets`);
+          // Cache the successful fetch
+          setCoursesCacheData(courses);
+        } catch (sheetsError) {
+          console.error(`[COURSE TRACKING] ⚠️ Google Sheets fetch failed:`, sheetsError instanceof Error ? sheetsError.message : sheetsError);
+          
+          // Step 3: Fall back to stale cache (even if expired - better than empty!)
+          const staleCourses = getCoursesCacheDataStale();
+          if (staleCourses) {
+            courses = staleCourses;
+            console.log(`[COURSE TRACKING] 💾 Using stale cache fallback (${staleCourses.length} courses)`);
+          } else {
+            console.warn(`[COURSE TRACKING] ⚠️ No cache available - returning empty courses list`);
+            courses = [];
+          }
+        }
       }
       
       // Mark lessons as completed with better error handling

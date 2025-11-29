@@ -68,12 +68,14 @@ export default function LifeSkillsMap() {
   
   const { data: coursesData, isLoading, isError, error, refetch } = useQuery<CourseTrackingData[]>({
     queryKey: ['/api/courses/tracking'],
-    retry: 2,
-    retryDelay: 1000,
-    staleTime: 0, // Always consider data stale
-    gcTime: 0, // Don't cache at all
-    refetchInterval: 30000, // Auto-refresh every 30 seconds as fallback
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+    staleTime: 25 * 1000, // Consider fresh for 25 seconds (server cache is 30s)
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes (fallback for offline/errors)
+    refetchInterval: 30000, // Auto-refresh every 30 seconds
     refetchIntervalInBackground: true,
+    // 🚀 CRITICAL: Reuse stale cache if refetch fails - prevents empty states during API outages
+    throwOnError: false,
   });
 
   // 🚀 INSTANT GOOGLE SHEETS SYNC - Listen for webhook notifications
