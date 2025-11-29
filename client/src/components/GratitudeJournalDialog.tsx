@@ -194,12 +194,10 @@ export function GratitudeJournalDialog({ open, onOpenChange }: GratitudeJournalD
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange} modal={false}>
+    <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent 
         side="left"
         className="w-[400px] sm:w-[450px] p-0 overflow-hidden border-none shadow-2xl"
-        onPointerDownOutside={(e) => e.preventDefault()}
-        onInteractOutside={(e) => e.preventDefault()}
       >
         {/* Book Container with Cosmic Background */}
         <div className="relative perspective-1000 h-full">
