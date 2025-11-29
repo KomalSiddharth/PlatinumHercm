@@ -233,27 +233,25 @@ export function GoalsAffirmationsDialog({ open, onOpenChange, isChatBubbleOpen =
   // When ChatBubble is closed, use Dialog (popup)
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden p-0">
-        <div className="h-full flex flex-col bg-gradient-to-br from-background via-background to-muted/30">
-          {/* Header */}
-          <DialogHeader className="p-4 border-b bg-gradient-to-r from-primary/10 to-accent/10">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-primary to-accent">
-                <Target className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <DialogTitle className="text-lg font-semibold">Goals / Affirmations</DialogTitle>
-                <DialogDescription className="text-xs text-muted-foreground">
-                  Set goals, track progress, celebrate achievements
-                </DialogDescription>
-              </div>
+      <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col p-0">
+        {/* Header */}
+        <DialogHeader className="p-4 border-b bg-gradient-to-r from-primary/10 to-accent/10 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-gradient-to-br from-primary to-accent">
+              <Target className="w-5 h-5 text-white" />
             </div>
-          </DialogHeader>
-
-          {/* Content - Scrollable */}
-          <div className="flex-1 overflow-y-auto p-4">
-            <FormContent />
+            <div>
+              <DialogTitle className="text-lg font-semibold">Goals / Affirmations</DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground">
+                Set goals, track progress, celebrate achievements
+              </DialogDescription>
+            </div>
           </div>
+        </DialogHeader>
+
+        {/* Content - Scrollable */}
+        <div className="flex-1 overflow-y-auto p-4 min-h-0">
+          <FormContent />
         </div>
       </DialogContent>
     </Dialog>
