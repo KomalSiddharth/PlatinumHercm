@@ -20,6 +20,7 @@ import { CourseRecommendationNotification } from '@/components/CourseRecommendat
 import FeedbackButton from '@/components/FeedbackButton';
 import LifeSkillsMap from '@/components/LifeSkillsMap';
 import { GoalsAffirmationsDialog } from '@/components/GoalsAffirmationsDialog';
+import { GratitudeJournalDialog } from '@/components/GratitudeJournalDialog';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
@@ -100,6 +101,7 @@ export default function Dashboard() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [progressOpen, setProgressOpen] = useState(false);
   const [goalsDialogOpen, setGoalsDialogOpen] = useState(false);
+  const [gratitudeJournalOpen, setGratitudeJournalOpen] = useState(false);
   const [selectedRitual, setSelectedRitual] = useState<Ritual | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const [assignmentDialogOpen, setAssignmentDialogOpen] = useState(false);
@@ -844,58 +846,69 @@ export default function Dashboard() {
               </h2>
               
               {/* Date Picker */}
-              <div className="flex items-center justify-center gap-3 mb-4">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    const newDate = new Date(selectedRitualDate);
-                    newDate.setDate(newDate.getDate() - 1);
-                    setSelectedRitualDate(newDate);
-                  }}
-                  className="text-white hover:bg-white/10"
-                  data-testid="button-ritual-date-prev"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </Button>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-4">
+                <div className="flex items-center justify-center gap-3">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      const newDate = new Date(selectedRitualDate);
+                      newDate.setDate(newDate.getDate() - 1);
+                      setSelectedRitualDate(newDate);
+                    }}
+                    className="text-white hover:bg-white/10"
+                    data-testid="button-ritual-date-prev"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </Button>
 
-                <Popover open={ritualCalendarOpen} onOpenChange={setRitualCalendarOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="text-white hover:bg-white/10 min-w-fit text-lg font-semibold"
-                      data-testid="button-ritual-date-picker"
-                    >
-                      {format(selectedRitualDate, 'MMMM dd, yyyy')}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="center">
-                    <Calendar
-                      mode="single"
-                      selected={selectedRitualDate}
-                      onSelect={(date) => {
-                        if (date) {
-                          setSelectedRitualDate(date);
-                          setRitualCalendarOpen(false);
-                        }
-                      }}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
+                  <Popover open={ritualCalendarOpen} onOpenChange={setRitualCalendarOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="text-white hover:bg-white/10 min-w-fit text-lg font-semibold"
+                        data-testid="button-ritual-date-picker"
+                      >
+                        {format(selectedRitualDate, 'MMMM dd, yyyy')}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="center">
+                      <Calendar
+                        mode="single"
+                        selected={selectedRitualDate}
+                        onSelect={(date) => {
+                          if (date) {
+                            setSelectedRitualDate(date);
+                            setRitualCalendarOpen(false);
+                          }
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      const newDate = new Date(selectedRitualDate);
+                      newDate.setDate(newDate.getDate() + 1);
+                      setSelectedRitualDate(newDate);
+                    }}
+                    className="text-white hover:bg-white/10"
+                    data-testid="button-ritual-date-next"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </Button>
+                </div>
 
                 <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    const newDate = new Date(selectedRitualDate);
-                    newDate.setDate(newDate.getDate() + 1);
-                    setSelectedRitualDate(newDate);
-                  }}
-                  className="text-white hover:bg-white/10"
-                  data-testid="button-ritual-date-next"
+                  onClick={() => setGratitudeJournalOpen(true)}
+                  className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white border-0"
+                  data-testid="button-gratitude-journal"
                 >
-                  <ChevronRight className="w-5 h-5" />
+                  <BookOpen className="w-4 h-4 mr-2" />
+                  Gratitude Journal
                 </Button>
               </div>
               
@@ -1119,6 +1132,7 @@ export default function Dashboard() {
       </Dialog>
 
       <GoalsAffirmationsDialog open={goalsDialogOpen} onOpenChange={setGoalsDialogOpen} />
+      <GratitudeJournalDialog open={gratitudeJournalOpen} onOpenChange={setGratitudeJournalOpen} />
       <FeedbackButton />
     </div>
   );
