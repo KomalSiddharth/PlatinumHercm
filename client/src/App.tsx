@@ -28,23 +28,21 @@ function Router() {
 
 // 🤖 Smart Delphi Chatbot Loader - Only shows for logged-in users NOT on homepage
 function DelphiChatbotLoader() {
+  // Check authentication status using the actual auth query
+  const { data: currentUser, isLoading } = useQuery<{ id: string; email: string } | null>({
+    queryKey: ['/api/auth/user'],
+    retry: false,
+  });
+  
   useEffect(() => {
-    // Check if user is on homepage
-    const isHomePage = window.location.pathname === '/';
+    // Don't load until auth query completes
+    if (isLoading) return;
     
-    // Check if user is logged in (check for user session)
-    const isLoggedIn = () => {
-      return (
-        document.cookie.includes('user_session') || 
-        document.cookie.includes('auth_token') ||
-        sessionStorage.getItem('isLoggedIn') === 'true' ||
-        // Alternative: Check if user endpoint works (if you have auth query)
-        !!document.body.getAttribute('data-authenticated')
-      );
-    };
-
+    const isHomePage = window.location.pathname === '/';
+    const isLoggedIn = !!currentUser; // If currentUser data exists, user is logged in
+    
     // Only load chatbot if NOT on homepage AND user is logged in
-    if (!isHomePage && isLoggedIn()) {
+    if (!isHomePage && isLoggedIn) {
       console.log('[DELPHI] 🤖 Loading chatbot (logged in, not on homepage)');
       
       // Delphi configuration
@@ -71,7 +69,7 @@ function DelphiChatbotLoader() {
         console.log('[DELPHI] ✅ Chatbot script loaded');
       }
     } else {
-      console.log('[DELPHI] ⏸️ Chatbot skipped:', { isHomePage, isLoggedIn: isLoggedIn() });
+      console.log('[DELPHI] ⏸️ Chatbot skipped:', { isHomePage, isLoggedIn });
       
       // Clean up if on homepage or not logged in
       const script = document.getElementById('delphi-bubble-bootstrap-global');
@@ -83,19 +81,7 @@ function DelphiChatbotLoader() {
         bubble.remove();
       }
     }
-
-    // Listen for route changes and reload chatbot
-    const handleRouteChange = () => {
-      const newIsHomePage = window.location.pathname === '/';
-      if (newIsHomePage !== isHomePage) {
-        // Route changed - reload chatbot logic on next render
-        window.dispatchEvent(new Event('chatbot-check'));
-      }
-    };
-
-    window.addEventListener('popstate', handleRouteChange);
-    return () => window.removeEventListener('popstate', handleRouteChange);
-  }, [window.location.pathname]); // Re-check when path changes
+  }, [currentUser, isLoading, window.location.pathname]);
 
   return null;
 }
