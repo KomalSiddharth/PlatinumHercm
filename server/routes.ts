@@ -7869,6 +7869,12 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
     }
   });
 
+  // ========== Chatbot Page Route ==========
+  // Serve chatbot.html page (authenticated users only)
+  app.get('/chatbot', isAuthenticated, (req, res) => {
+    res.sendFile(__dirname + '/../public/chatbot.html');
+  });
+
   const httpServer = createServer(app);
   
   // Setup WebSocket server for real-time notifications

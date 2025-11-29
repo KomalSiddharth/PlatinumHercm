@@ -1,0 +1,219 @@
+Complete Chatbot Page Setup
+Step 1: Replit me Naya HTML File Banayein
+Replit me apne project me:
+
+Files panel me click karein
+"Add file" button click karein (ya + icon)
+File name: chatbot.html
+Create karein
+Step 2: Chatbot.html Me Ye Complete Code Add Karein
+Copy<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assistant - Platinum HRCM</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 15px 15px 0 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            color: #bc0000;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .chatbot-wrapper {
+            background: white;
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+        
+        #delphi-container {
+            width: 100%;
+            min-height: 800px;
+        }
+        
+        .back-button {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 12px 24px;
+            background: white;
+            color: #bc0000;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .back-button:hover {
+            background: #bc0000;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(188,0,0,0.3);
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 22px;
+            }
+            
+            #delphi-container {
+                min-height: 600px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Back to Dashboard Button -->
+        <a href="/dashboard" class="back-button">← Back to Dashboard</a>
+        
+        <!-- Header -->
+        <div class="header">
+            <h1>🤖 AI Assistant</h1>
+            <p>Your intelligent helper for all HRCM related queries</p>
+        </div>
+        
+        <!-- Chatbot Container -->
+        <div class="chatbot-wrapper">
+            <div id="delphi-container"></div>
+        </div>
+    </div>
+
+    <!-- Delphi Embed Code -->
+    <script id="delphi-page-script">
+      window.delphi = {...(window.delphi ?? {}) };
+      window.delphi.page = {
+        config: "00175779-acb8-4580-a7ec-8469446841a4",
+        overrides: {
+          landingPage: "OVERVIEW",
+        },
+        container: {
+          selector: "#delphi-container",
+          width: "100%",
+          height: "800px",
+        },
+      };
+    </script>
+
+    <script id="delphi-page-bootstrap" src="https://embed.delphi.ai/loader.js"></script>
+</body>
+</html>
+Step 3: Dashboard Me Link Add Karein
+Apne dashboard.html (ya jo bhi main dashboard file hai) me chatbot ka link add karein:
+
+Copy<!-- Dashboard me ye button/link add karein -->
+<a href="/chatbot" class="chatbot-link" style="
+    display: inline-block;
+    padding: 12px 24px;
+    background: #bc0000;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    margin: 10px 0;
+">
+    💬 Open AI Assistant
+</a>
+Ya agar navigation menu hai to:
+
+Copy<nav>
+  <a href="/dashboard">Dashboard</a>
+  <a href="/chatbot">AI Assistant</a>
+  <!-- other links -->
+</nav>
+Step 4: Server Configuration (Important)
+Replit me routing setup karein. Ye aapki technology pe depend karta hai:
+
+For Node.js/Express:
+Apne main server file me (usually index.js or server.js):
+
+Copyconst express = require('express');
+const app = express();
+
+// Serve static files
+app.use(express.static('public'));
+
+// Dashboard route (with authentication)
+app.get('/dashboard', requireAuth, (req, res) => {
+  res.sendFile(__dirname + '/dashboard.html');
+});
+
+// Chatbot route (with authentication)
+app.get('/chatbot', requireAuth, (req, res) => {
+  res.sendFile(__dirname + '/chatbot.html');
+});
+
+app.listen(3000);
+For Python/Flask:
+Copyfrom flask import Flask, render_template, redirect
+app = Flask(__name__)
+
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    return render_template('dashboard.html')
+
+@app.route('/chatbot')
+@login_required
+def chatbot():
+    return render_template('chatbot.html')
+For Plain HTML (Static Site):
+Agar simple HTML files hain aur koi backend nahi hai, to:
+
+File name ko chatbot.html hi rakhein
+Direct access: https://platinum.miteshkhatri.com/chatbot.html
+Dashboard me link: <a href="/chatbot.html">AI Assistant</a>
+Step 5: Authentication Protection
+Chatbot page ko protected banane ke liye, page ke top me ye check add karein:
+
+Copy<script>
+  // Check if user is logged in
+  function checkAuth() {
+    // Method 1: Check session/cookie
+    const isLoggedIn = document.cookie.includes('user_session') || 
+                       sessionStorage.getItem('isLoggedIn') === 'true';
+    
+    // If not logged in, redirect to login
+    if (!isLoggedIn) {
+      window.location.href = '/';
+    }
+  }
+  
+  // Run check on page load
+  checkAuth();
+</script>
