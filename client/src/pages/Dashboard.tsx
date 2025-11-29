@@ -917,14 +917,6 @@ export default function Dashboard() {
 
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center mb-4">
               <AddRitualForm onAdd={handleAddRitual} />
-              <Button
-                onClick={() => window.location.href = '/chatbot'}
-                className="bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white border-0"
-                data-testid="button-open-chatbot"
-              >
-                <BookOpen className="w-4 h-4 mr-2" />
-                AI Assistant
-              </Button>
             </div>
 
             {ritualsLoading ? (
