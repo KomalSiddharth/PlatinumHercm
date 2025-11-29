@@ -369,7 +369,7 @@ export default function EmotionalTracker() {
     }
   };
 
-  // Handle inline positive emotion selection (auto-save)
+  // Handle inline positive emotion selection (auto-save) - accumulate emotions
   const handlePositiveEmotionChange = (timeSlot: string, emotion: string) => {
     if (emotion === 'ADD_CUSTOM') {
       setPendingTimeSlot(timeSlot);
@@ -378,6 +378,8 @@ export default function EmotionalTracker() {
       return;
     }
 
+    if (!emotion) return;
+
     const data = trackerData[timeSlot] || {
       timeSlot,
       date: currentDateStr,
@@ -388,10 +390,22 @@ export default function EmotionalTracker() {
       missingEmotions: '',
     };
 
+    // Parse existing positive emotions as array
+    const existingPositive = data?.positiveEmotions 
+      ? data.positiveEmotions.split('|').filter(e => e.trim()) 
+      : [];
+
+    // Add new emotion if not already present
+    if (!existingPositive.includes(emotion)) {
+      existingPositive.push(emotion);
+    }
+
+    const updatedPositiveEmotions = existingPositive.join('|');
+
     // Update local state
     const updatedData = {
       ...data,
-      positiveEmotions: emotion,
+      positiveEmotions: updatedPositiveEmotions,
     };
 
     setTrackerData((prev) => ({
@@ -399,53 +413,28 @@ export default function EmotionalTracker() {
       [timeSlot]: updatedData as EmotionalTrackerData,
     }));
 
-    // If both positive and negative are empty, clear missing and repeating emotions
-    const negativeEmotions = data?.negativeEmotions || '';
-    if (!emotion && !negativeEmotions) {
-      // Both empty - clear derived fields
-      saveMutation.mutate({
-        date: currentDateStr,
-        timeSlot,
-        positiveEmotions: emotion,
-        negativeEmotions: negativeEmotions,
-        repeatingEmotions: '',
-        missingEmotions: '',
-      });
-      setTrackerData((prev) => ({
-        ...prev,
-        [timeSlot]: { ...updatedData, repeatingEmotions: '', missingEmotions: '' } as EmotionalTrackerData,
-      }));
-      return;
-    }
-
     // Auto-fill repeating emotion (considering BOTH positive AND negative)
-    const recommendedRepeating = recommendRepeatingEmotion(emotion, negativeEmotions, data?.missingEmotions || '');
-    
-    // Merge with existing repeating emotions if we're adding a new positive emotion alongside negative
-    let finalRepeating = recommendedRepeating;
-    if (negativeEmotions && emotion && recommendedRepeating) {
-      // Both positive and negative are filled - use the recommended repeating
-      finalRepeating = recommendedRepeating;
-    }
+    const negativeEmotions = data?.negativeEmotions || '';
+    const recommendedRepeating = recommendRepeatingEmotion(updatedPositiveEmotions, negativeEmotions, data?.missingEmotions || '');
     
     // Save to server
     saveMutation.mutate({
       date: currentDateStr,
       timeSlot,
-      positiveEmotions: emotion,
+      positiveEmotions: updatedPositiveEmotions,
       negativeEmotions: negativeEmotions,
-      repeatingEmotions: finalRepeating || (data?.repeatingEmotions || ''),
+      repeatingEmotions: recommendedRepeating || (data?.repeatingEmotions || ''),
       missingEmotions: data?.missingEmotions || '',
     });
     
     // Update local state with auto-filled repeating emotion
     setTrackerData((prev) => ({
       ...prev,
-      [timeSlot]: { ...updatedData, repeatingEmotions: finalRepeating || (data?.repeatingEmotions || '') } as EmotionalTrackerData,
+      [timeSlot]: { ...updatedData, repeatingEmotions: recommendedRepeating || (data?.repeatingEmotions || '') } as EmotionalTrackerData,
     }));
   };
 
-  // Handle inline negative emotion selection (auto-save)
+  // Handle inline negative emotion selection (auto-save) - accumulate emotions
   const handleNegativeEmotionChange = (timeSlot: string, emotion: string) => {
     if (emotion === 'ADD_CUSTOM') {
       setPendingTimeSlot(timeSlot);
@@ -454,6 +443,8 @@ export default function EmotionalTracker() {
       return;
     }
 
+    if (!emotion) return;
+
     const data = trackerData[timeSlot] || {
       timeSlot,
       date: currentDateStr,
@@ -464,10 +455,22 @@ export default function EmotionalTracker() {
       missingEmotions: '',
     };
 
+    // Parse existing negative emotions as array
+    const existingNegative = data?.negativeEmotions 
+      ? data.negativeEmotions.split('|').filter(e => e.trim()) 
+      : [];
+
+    // Add new emotion if not already present
+    if (!existingNegative.includes(emotion)) {
+      existingNegative.push(emotion);
+    }
+
+    const updatedNegativeEmotions = existingNegative.join('|');
+
     // Update local state
     const updatedData = {
       ...data,
-      negativeEmotions: emotion,
+      negativeEmotions: updatedNegativeEmotions,
     };
 
     setTrackerData((prev) => ({
@@ -475,49 +478,24 @@ export default function EmotionalTracker() {
       [timeSlot]: updatedData as EmotionalTrackerData,
     }));
 
-    // If both positive and negative are empty, clear missing and repeating emotions
-    const positiveEmotions = data?.positiveEmotions || '';
-    if (!emotion && !positiveEmotions) {
-      // Both empty - clear derived fields
-      saveMutation.mutate({
-        date: currentDateStr,
-        timeSlot,
-        positiveEmotions: positiveEmotions,
-        negativeEmotions: emotion,
-        repeatingEmotions: '',
-        missingEmotions: '',
-      });
-      setTrackerData((prev) => ({
-        ...prev,
-        [timeSlot]: { ...updatedData, repeatingEmotions: '', missingEmotions: '' } as EmotionalTrackerData,
-      }));
-      return;
-    }
-
     // Auto-fill repeating emotion (considering BOTH positive AND negative)
-    const recommendedRepeating = recommendRepeatingEmotion(positiveEmotions, emotion, data?.missingEmotions || '');
+    const positiveEmotions = data?.positiveEmotions || '';
+    const recommendedRepeating = recommendRepeatingEmotion(positiveEmotions, updatedNegativeEmotions, data?.missingEmotions || '');
     
-    // Merge with existing repeating emotions if we're adding a new negative emotion alongside positive
-    let finalRepeating = recommendedRepeating;
-    if (positiveEmotions && emotion && recommendedRepeating) {
-      // Both positive and negative are filled - use the recommended repeating
-      finalRepeating = recommendedRepeating;
-    }
-
     // Save to server
     saveMutation.mutate({
       date: currentDateStr,
       timeSlot,
       positiveEmotions: positiveEmotions,
-      negativeEmotions: emotion,
-      repeatingEmotions: finalRepeating || (data?.repeatingEmotions || ''),
+      negativeEmotions: updatedNegativeEmotions,
+      repeatingEmotions: recommendedRepeating || (data?.repeatingEmotions || ''),
       missingEmotions: data?.missingEmotions || '',
     });
     
     // Update local state with auto-filled repeating emotion
     setTrackerData((prev) => ({
       ...prev,
-      [timeSlot]: { ...updatedData, repeatingEmotions: finalRepeating || (data?.repeatingEmotions || '') } as EmotionalTrackerData,
+      [timeSlot]: { ...updatedData, repeatingEmotions: recommendedRepeating || (data?.repeatingEmotions || '') } as EmotionalTrackerData,
     }));
   };
 
