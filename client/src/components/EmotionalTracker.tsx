@@ -127,38 +127,32 @@ const getRepeatingEmotionType = (emotion: string): 'positive' | 'negative' | nul
   return null;
 };
 
-// Function to detect emotions that appear in BOTH positive AND negative columns
+// Function to detect emotions that appear MULTIPLE TIMES across all time slots
 // Returns them with their total occurrence count
-const detectCommonEmotions = (trackerData: Record<string, EmotionalTrackerData>): Record<string, number> => {
-  const positiveSet = new Set<string>();
-  const negativeSet = new Set<string>();
-  const positiveCount: Record<string, number> = {};
-  const negativeCount: Record<string, number> = {};
+const detectRepeatingEmotions = (trackerData: Record<string, EmotionalTrackerData>): Record<string, number> => {
+  const emotionCount: Record<string, number> = {};
   
+  // Count all emotions (positive and negative) across all time slots
   Object.values(trackerData).forEach(d => {
     if (d?.positiveEmotions && d.positiveEmotions.trim()) {
       const emotion = d.positiveEmotions.trim();
-      positiveSet.add(emotion);
-      positiveCount[emotion] = (positiveCount[emotion] || 0) + 1;
+      emotionCount[emotion] = (emotionCount[emotion] || 0) + 1;
     }
     if (d?.negativeEmotions && d.negativeEmotions.trim()) {
       const emotion = d.negativeEmotions.trim();
-      negativeSet.add(emotion);
-      negativeCount[emotion] = (negativeCount[emotion] || 0) + 1;
+      emotionCount[emotion] = (emotionCount[emotion] || 0) + 1;
     }
   });
   
-  // Find emotions that appear in BOTH positive and negative
-  const commonEmotions = Array.from(positiveSet).filter(e => negativeSet.has(e));
-  
-  // Build count map for common emotions
-  const countMap: Record<string, number> = {};
-  commonEmotions.forEach(emotion => {
-    const totalCount = (positiveCount[emotion] || 0) + (negativeCount[emotion] || 0);
-    countMap[emotion] = totalCount;
+  // Return only emotions that appear more than once
+  const repeatingEmotions: Record<string, number> = {};
+  Object.entries(emotionCount).forEach(([emotion, count]) => {
+    if (count > 1) {
+      repeatingEmotions[emotion] = count;
+    }
   });
   
-  return countMap;
+  return repeatingEmotions;
 };
 
 // Function to recommend repeating emotion based on positive, negative, and missing emotions
@@ -782,21 +776,22 @@ export default function EmotionalTracker() {
               </thead>
               <tbody>
                 {(() => {
-                  // Detect common emotions appearing in BOTH positive AND negative columns
-                  const commonEmotionsCounts = detectCommonEmotions(trackerData);
+                  // Detect emotions that repeat (appear multiple times) across all time slots
+                  const repeatingEmotionsCounts = detectRepeatingEmotions(trackerData);
                   
-                  // Separate common emotions into positive and negative based on exact name match
+                  // Separate repeating emotions into positive and negative based on emotion lists
                   const positiveRepeating: { emotion: string; count: number }[] = [];
                   const negativeRepeating: { emotion: string; count: number }[] = [];
                   
-                  Object.entries(commonEmotionsCounts).forEach(([emotion, count]) => {
-                    // Check if this emotion appears in POSITIVE_EMOTIONS or NEGATIVE_EMOTIONS lists
+                  Object.entries(repeatingEmotionsCounts).forEach(([emotion, count]) => {
+                    // Check if this emotion is in POSITIVE or NEGATIVE lists
                     if (POSITIVE_EMOTIONS.includes(emotion) || customEmotions.includes(emotion)) {
                       positiveRepeating.push({ emotion, count });
                     } else if (NEGATIVE_EMOTIONS.includes(emotion) || customNegativeEmotions.includes(emotion)) {
                       negativeRepeating.push({ emotion, count });
                     } else {
-                      // If it's a custom emotion appearing in both, default to showing in positive
+                      // If it's a custom emotion, check which column it was last used in
+                      // Default to positive if unclear
                       positiveRepeating.push({ emotion, count });
                     }
                   });
