@@ -94,6 +94,8 @@ export default function AdminEmotionalTrackerView({ userId, isAdminView = false 
       return data;
     },
     enabled: shouldEnableQuery, // 🔥 Use computed shouldEnableQuery
+    staleTime: 0, // Always consider data stale for instant updates
+    refetchInterval: 2000, // Poll every 2 seconds for real-time emotional tracker updates
   });
 
   const trackerData: Record<string, EmotionalTrackerData> = {};
