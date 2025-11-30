@@ -20,66 +20,39 @@ interface GoalsAffirmationsDialogProps {
   isChatBubbleOpen?: boolean;
 }
 
-export function GoalsAffirmationsDialog({ open, onOpenChange, isChatBubbleOpen = false }: GoalsAffirmationsDialogProps) {
-  const { toast } = useToast();
-  const [text, setText] = useState('');
-  const [category, setCategory] = useState<string>('');
-  const [targetDate, setTargetDate] = useState<Date | undefined>(undefined);
-  const [calendarOpen, setCalendarOpen] = useState(false);
+const categoryColors: Record<string, string> = {
+  health: 'bg-green-500',
+  relationship: 'bg-pink-500',
+  career: 'bg-blue-500',
+  money: 'bg-amber-500',
+};
 
-  const createGoalMutation = useMutation({
-    mutationFn: async (data: { text: string; targetDate: string | null; category: string | null }) => {
-      const res = await apiRequest('/api/goals', 'POST', data);
-      return await res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/goals'] });
-      toast({
-        title: 'Goal Added!',
-        description: 'Your goal has been saved successfully.',
-      });
-      resetForm();
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to add goal',
-        variant: 'destructive',
-      });
-    },
-  });
+interface FormContentProps {
+  text: string;
+  setText: (text: string) => void;
+  category: string;
+  setCategory: (category: string) => void;
+  targetDate: Date | undefined;
+  setTargetDate: (date: Date | undefined) => void;
+  calendarOpen: boolean;
+  setCalendarOpen: (open: boolean) => void;
+  onSubmit: () => void;
+  isPending: boolean;
+}
 
-  const resetForm = () => {
-    setText('');
-    setCategory('');
-    setTargetDate(undefined);
-  };
-
-  const handleSubmit = () => {
-    if (!text.trim()) {
-      toast({
-        title: 'Missing Information',
-        description: 'Please enter your goal or affirmation.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    createGoalMutation.mutate({
-      text: text.trim(),
-      targetDate: targetDate ? format(targetDate, 'yyyy-MM-dd') : null,
-      category: category || null,
-    });
-  };
-
-  const categoryColors: Record<string, string> = {
-    health: 'bg-green-500',
-    relationship: 'bg-pink-500',
-    career: 'bg-blue-500',
-    money: 'bg-amber-500',
-  };
-
-  const FormContent = () => (
+function FormContentComponent({
+  text,
+  setText,
+  category,
+  setCategory,
+  targetDate,
+  setTargetDate,
+  calendarOpen,
+  setCalendarOpen,
+  onSubmit,
+  isPending,
+}: FormContentProps) {
+  return (
     <div className="space-y-4">
       {/* Input Section */}
       <div className="space-y-2">
@@ -95,7 +68,7 @@ export function GoalsAffirmationsDialog({ open, onOpenChange, isChatBubbleOpen =
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey && (e.ctrlKey || e.metaKey)) {
               e.preventDefault();
-              handleSubmit();
+              onSubmit();
             }
           }}
           className="min-h-[80px] resize-none"
@@ -172,12 +145,12 @@ export function GoalsAffirmationsDialog({ open, onOpenChange, isChatBubbleOpen =
 
       {/* Save Button */}
       <Button
-        onClick={handleSubmit}
-        disabled={createGoalMutation.isPending}
+        onClick={onSubmit}
+        disabled={isPending}
         className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90"
         data-testid="button-save-goal"
       >
-        {createGoalMutation.isPending ? 'Saving...' : 'Add Goal / Affirmation'}
+        {isPending ? 'Saving...' : 'Add Goal / Affirmation'}
       </Button>
 
       {/* Goals List */}
@@ -187,6 +160,59 @@ export function GoalsAffirmationsDialog({ open, onOpenChange, isChatBubbleOpen =
       </div>
     </div>
   );
+}
+
+export function GoalsAffirmationsDialog({ open, onOpenChange, isChatBubbleOpen = false }: GoalsAffirmationsDialogProps) {
+  const { toast } = useToast();
+  const [text, setText] = useState('');
+  const [category, setCategory] = useState<string>('');
+  const [targetDate, setTargetDate] = useState<Date | undefined>(undefined);
+  const [calendarOpen, setCalendarOpen] = useState(false);
+
+  const createGoalMutation = useMutation({
+    mutationFn: async (data: { text: string; targetDate: string | null; category: string | null }) => {
+      const res = await apiRequest('/api/goals', 'POST', data);
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/goals'] });
+      toast({
+        title: 'Goal Added!',
+        description: 'Your goal has been saved successfully.',
+      });
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to add goal',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const resetForm = () => {
+    setText('');
+    setCategory('');
+    setTargetDate(undefined);
+  };
+
+  const handleSubmit = () => {
+    if (!text.trim()) {
+      toast({
+        title: 'Missing Information',
+        description: 'Please enter your goal or affirmation.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    createGoalMutation.mutate({
+      text: text.trim(),
+      targetDate: targetDate ? format(targetDate, 'yyyy-MM-dd') : null,
+      category: category || null,
+    });
+  };
 
   // When ChatBubble is open, use Sheet (side panel)
   if (isChatBubbleOpen) {
@@ -223,7 +249,18 @@ export function GoalsAffirmationsDialog({ open, onOpenChange, isChatBubbleOpen =
 
             {/* Content - Scrollable */}
             <div className="flex-1 overflow-y-auto p-4">
-              <FormContent />
+              <FormContentComponent
+                text={text}
+                setText={setText}
+                category={category}
+                setCategory={setCategory}
+                targetDate={targetDate}
+                setTargetDate={setTargetDate}
+                calendarOpen={calendarOpen}
+                setCalendarOpen={setCalendarOpen}
+                onSubmit={handleSubmit}
+                isPending={createGoalMutation.isPending}
+              />
             </div>
           </div>
         </SheetContent>
@@ -252,7 +289,18 @@ export function GoalsAffirmationsDialog({ open, onOpenChange, isChatBubbleOpen =
 
         {/* Content - Scrollable */}
         <div className="flex-1 overflow-y-auto p-4 min-h-0">
-          <FormContent />
+          <FormContentComponent
+            text={text}
+            setText={setText}
+            category={category}
+            setCategory={setCategory}
+            targetDate={targetDate}
+            setTargetDate={setTargetDate}
+            calendarOpen={calendarOpen}
+            setCalendarOpen={setCalendarOpen}
+            onSubmit={handleSubmit}
+            isPending={createGoalMutation.isPending}
+          />
         </div>
       </DialogContent>
     </Dialog>
