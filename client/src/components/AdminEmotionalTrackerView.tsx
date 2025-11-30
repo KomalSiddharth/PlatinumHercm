@@ -37,16 +37,29 @@ const TIME_SLOTS = [
   '11pm to 01am',
 ];
 
-const POSITIVE_REPEATING_EMOTIONS = [
-  'Calm Moments', 'Motivational Spikes', 'Relief', 'Joy', 'Focus', 'Gratitude', 'Hope',
-  'Confidence Bursts', 'Encouragement', 'Emotional Clarity'
+const POSITIVE_EMOTIONS = [
+  'Happiness', 'Joy', 'Delight', 'Excitement', 'Peace', 'Calmness', 'Relief', 'Contentment',
+  'Satisfaction', 'Comfort', 'Love', 'Affection', 'Warmth', 'Care', 'Compassion', 'Kindness',
+  'Gratitude', 'Appreciation', 'Empathy', 'Trust', 'Motivation', 'Confidence', 'Courage',
+  'Determination', 'Enthusiasm', 'Strength', 'Resilience', 'Hope', 'Faith', 'Willpower',
+  'Clarity', 'Centeredness', 'Groundedness', 'Stability', 'Stillness', 'Harmony', 'Balance',
+  'Serenity', 'Presence', 'Mindfulness', 'Inspiration', 'Creativity', 'Curiosity', 'Openness',
+  'Flexibility', 'Acceptance', 'Progress', 'Renewal', 'Healing', 'Expansion', 'Pride',
+  'Accomplishment', 'Productivity', 'Efficiency', 'Success', 'Empowerment', 'Mastery',
+  'Capability', 'Focus', 'Drive', 'Tenderness', 'Sweetness', 'Soft Joy', 'Ease', 'Lightness',
+  'Playfulness', 'Amusement', 'Cheerfulness', 'Pleasantness', 'Energy', 'Passion',
+  'Zeal', 'Invigoration', 'Liveliness', 'Eagerness', 'Optimism', 'Positivity', 'Vibrancy',
 ];
 
-const NEGATIVE_REPEATING_EMOTIONS = [
-  'Overthinking', 'Worry', 'Stress', 'Irritation', 'Doubt', 'Fear', 'Anxiety', 'Frustration',
-  'Emotional Fatigue', 'Withdrawal', 'Confusion', 'Uncertainty', 'Emotional Highs and Lows',
-  'Feeling Okay Then Overwhelmed', 'Drained But Functioning', 'Wanting Connection But Pulling Away',
-  'Silent Emotional Cycles', 'Mind–Body Disconnection', 'Detached But Longing', 'Busy But Unfulfilled'
+const NEGATIVE_EMOTIONS = [
+  'Sad', 'Disappointed', 'Lonely', 'Hurt', 'Empty', 'Hopeless', 'Miserable', 'Unmotivated',
+  'Drained', 'Low', 'Overwhelmed', 'Stressed', 'Pressured', 'Anxious', 'Restless', 'Tense',
+  'Nervous', 'Panicked', 'Uneasy', 'Worry', 'Insecure', 'Doubtful', 'Afraid', 'Uncertain',
+  'Hesitant', 'Unstable', 'Sensitive', 'Fragile', 'Exposed', 'Vulnerable', 'Angry', 'Frustrated',
+  'Irritated', 'Annoyed', 'Resentful', 'Rage', 'Bitter', 'Enraged', 'Infuriated', 'Agitated',
+  'Numb', 'Detached', 'Lost', 'Confused', 'Foggy', 'Disconnected', 'Unfocused', 'Blank',
+  'Shut Down', 'Withdrawn', 'Guilt', 'Shame', 'Regret', 'Embarrassment', 'Self-Blame', 'Self-Criticism',
+  'Disgust', 'Hopelessness', 'Despair', 'Worthlessness'
 ];
 
 // Function to detect emotions that appear MULTIPLE TIMES across all time slots
@@ -282,9 +295,10 @@ export default function AdminEmotionalTrackerView({ userId, isAdminView = false 
                 const negativeRepeating: { emotion: string; count: number }[] = [];
                 
                 Object.entries(repeatingEmotionsCounts).forEach(([emotion, count]) => {
-                  if (POSITIVE_REPEATING_EMOTIONS.includes(emotion)) {
+                  // Check if this emotion is in POSITIVE or NEGATIVE lists (same logic as dashboard)
+                  if (POSITIVE_EMOTIONS.includes(emotion)) {
                     positiveRepeating.push({ emotion, count });
-                  } else if (NEGATIVE_REPEATING_EMOTIONS.includes(emotion)) {
+                  } else if (NEGATIVE_EMOTIONS.includes(emotion)) {
                     negativeRepeating.push({ emotion, count });
                   } else {
                     // Default to positive if unclear
