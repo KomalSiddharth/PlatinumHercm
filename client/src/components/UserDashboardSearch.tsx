@@ -195,11 +195,6 @@ export default function UserDashboardSearch({ isAdmin = false }: UserDashboardSe
           </Button>
           
           <div className="flex items-center gap-4">
-            {/* Points Display */}
-            <Badge className="bg-gradient-to-r from-pink-500 to-blue-500 text-white px-4 py-2 text-base font-semibold" data-testid="badge-user-total-points">
-              ⭐ {totalPoints} Points
-            </Badge>
-            
             <div className="flex items-center gap-3">
               <Avatar className="w-10 h-10">
                 <AvatarFallback className="bg-primary/10 text-primary font-semibold">
