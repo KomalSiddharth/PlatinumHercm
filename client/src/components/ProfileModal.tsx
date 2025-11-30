@@ -351,15 +351,15 @@ export default function ProfileModal({
       </Dialog>
 
       <Dialog open={cropDialogOpen} onOpenChange={setCropDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-screen overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Crop Photo</DialogTitle>
             <DialogDescription>Adjust and crop your photo</DialogDescription>
           </DialogHeader>
           
           {imageToCrop && (
-            <div className="space-y-4">
-              <div className="relative w-full h-64 bg-muted rounded-lg overflow-hidden">
+            <div className="space-y-4 pb-4">
+              <div className="relative w-full h-48 bg-muted rounded-lg overflow-hidden flex-shrink-0">
                 <Cropper
                   image={imageToCrop}
                   crop={crop}
@@ -373,9 +373,9 @@ export default function ProfileModal({
                 />
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-3 flex-shrink-0">
                 <div className="flex items-center gap-2">
-                  <ZoomOut className="w-4 h-4 text-muted-foreground" />
+                  <ZoomOut className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                   <input
                     type="range"
                     min={1}
@@ -383,19 +383,24 @@ export default function ProfileModal({
                     step={0.1}
                     value={zoom}
                     onChange={(e) => setZoom(parseFloat(e.target.value))}
-                    className="flex-1"
+                    className="flex-1 min-w-0"
                     data-testid="slider-zoom"
                   />
-                  <ZoomIn className="w-4 h-4 text-muted-foreground" />
+                  <ZoomIn className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                 </div>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-shrink-0 sticky bottom-0 bg-background pt-2 border-t">
                 <Button
                   variant="outline"
                   onClick={() => {
                     setCropDialogOpen(false);
                     setImageToCrop('');
+                    setCrop({ x: 0, y: 0 });
+                    setZoom(1);
+                    if (galleryInputRef.current) {
+                      galleryInputRef.current.value = '';
+                    }
                   }}
                   className="flex-1"
                   data-testid="button-cancel-crop"
