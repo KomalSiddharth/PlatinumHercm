@@ -223,24 +223,39 @@ export default function Dashboard() {
   // 🤖 Delphi chatbot is now loaded globally in App.tsx for all pages
 
   // Map database rituals to Dashboard Ritual interface
+  // Filter rituals so they only show from their creation date onwards
   const rituals: Ritual[] = useMemo(() => {
-    return dbRituals.map(dbRitual => {
-      // Use points from database instead of calculating
-      const points = dbRitual.points || calculatePoints(dbRitual.frequency);
-      const isCompleted = todayCompletions.some(c => c.ritualId === dbRitual.id);
-      
-      return {
-        id: dbRitual.id,
-        title: dbRitual.title,
-        recurrence: mapFrequencyToRecurrence(dbRitual.frequency),
-        points,
-        active: dbRitual.isActive,
-        completed: isCompleted,
-        url: dbRitual.url,
-        isDefault: dbRitual.isDefault
-      };
-    });
-  }, [dbRituals, todayCompletions]);
+    return dbRituals
+      .filter(dbRitual => {
+        // Convert ritual's createdAt to YYYY-MM-DD format
+        if (!dbRitual.createdAt) return true; // Show if no creation date (shouldn't happen)
+        
+        const createdDate = new Date(dbRitual.createdAt);
+        const createdYear = createdDate.getFullYear();
+        const createdMonth = String(createdDate.getMonth() + 1).padStart(2, '0');
+        const createdDay = String(createdDate.getDate()).padStart(2, '0');
+        const createdDateStr = `${createdYear}-${createdMonth}-${createdDay}`;
+        
+        // Only show ritual if selectedRitualDateStr >= createdDateStr
+        return selectedRitualDateStr >= createdDateStr;
+      })
+      .map(dbRitual => {
+        // Use points from database instead of calculating
+        const points = dbRitual.points || calculatePoints(dbRitual.frequency);
+        const isCompleted = todayCompletions.some(c => c.ritualId === dbRitual.id);
+        
+        return {
+          id: dbRitual.id,
+          title: dbRitual.title,
+          recurrence: mapFrequencyToRecurrence(dbRitual.frequency),
+          points,
+          active: dbRitual.isActive,
+          completed: isCompleted,
+          url: dbRitual.url,
+          isDefault: dbRitual.isDefault
+        };
+      });
+  }, [dbRituals, todayCompletions, selectedRitualDateStr]);
 
   const hrcmRef = useRef<HTMLDivElement>(null);
   const ritualsRef = useRef<HTMLDivElement>(null);
