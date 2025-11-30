@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Trophy, Mail, User, LogOut, MapPin, Briefcase, FileText, Camera } from 'lucide-react';
+import { Trophy, Mail, User, LogOut, MapPin, Briefcase, FileText, Camera, Image } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 
 interface ProfileModalProps {
@@ -75,6 +75,8 @@ export default function ProfileModal({
     }
   };
 
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+
   const handleSave = () => {
     onSave({ name, email, bio: userBio, profession: userProfession, city: userCity, profileImageUrl: profileImage });
     setIsEditing(false);
@@ -118,13 +120,37 @@ export default function ProfileModal({
             <div className="text-center">
               <h3 className="text-xl font-semibold">{name}</h3>
               <p className="text-sm text-muted-foreground">{email}</p>
-              {userProfession && <p className="text-xs text-muted-foreground mt-1">{userProfession}</p>}
-              {userCity && <p className="text-xs text-muted-foreground flex items-center justify-center gap-1"><MapPin className="w-3 h-3" /> {userCity}</p>}
             </div>
           </div>
 
           {isEditing ? (
             <div className="space-y-4 max-h-96 overflow-y-auto">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Profile Picture</Label>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => galleryInputRef.current?.click()}
+                    className="flex-1 gap-2"
+                    disabled={uploading}
+                    data-testid="button-choose-gallery"
+                  >
+                    <Image className="w-4 h-4" />
+                    Choose from Gallery
+                  </Button>
+                </div>
+                <input
+                  ref={galleryInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  disabled={uploading}
+                  data-testid="input-gallery-upload"
+                />
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="profile-name" className="flex items-center gap-2">
                   <User className="w-4 h-4" />
