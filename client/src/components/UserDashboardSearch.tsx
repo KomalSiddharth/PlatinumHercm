@@ -105,6 +105,19 @@ export default function UserDashboardSearch({ isAdmin = false }: UserDashboardSe
     retry: false,
   });
 
+  // Fetch selected user's total points (matches their actual dashboard)
+  const { data: userTotalPointsData } = useQuery<{
+    totalPoints: number;
+    ritualPoints: number;
+    lessonPoints: number;
+    ritualCount: number;
+    lessonCount: number;
+  }>({
+    queryKey: [`/api/team/user/${selectedUserId}/total-points`],
+    enabled: !!selectedUserId,
+    retry: false,
+  });
+
   // Auto-detect latest week (no manual selection needed)
   const latestWeekNumber = dashboardData?.allWeeks && dashboardData.allWeeks.length > 0
     ? dashboardData.allWeeks.reduce((max, week) => 
@@ -252,7 +265,7 @@ export default function UserDashboardSearch({ isAdmin = false }: UserDashboardSe
                     Daily Rituals
                     <Badge className="gap-1.5 bg-gradient-to-r from-pink-500 to-purple-600 text-white border-0 text-base px-3 py-1">
                       <Trophy className="w-4 h-4" />
-                      {(dashboardData.rituals || []).reduce((sum: number, ritual: any) => sum + (ritual.points || 0), 0)} Points
+                      {userTotalPointsData?.totalPoints || 0} Points
                     </Badge>
                   </h2>
                   <p className="text-sm sm:text-base text-white/80 mt-1">Team member's daily habits and completions (Read Only)</p>
