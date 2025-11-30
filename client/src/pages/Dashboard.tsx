@@ -146,7 +146,8 @@ export default function Dashboard() {
   // Fetch rituals from database
   const { data: dbRituals = [], isLoading: ritualsLoading } = useQuery<DbRitual[]>({
     queryKey: ['/api/rituals'],
-    enabled: !!currentUser, // Only fetch when user is authenticated
+    enabled: !!currentUser,
+    staleTime: 2 * 60 * 1000, // 2 minutes for rituals (stable data)
   });
   
   // Fetch selected date's ritual completions (for checkbox status)
@@ -157,6 +158,7 @@ export default function Dashboard() {
       return response.json();
     },
     enabled: !!currentUser,
+    staleTime: 10 * 1000, // 10 seconds for daily checkboxes (frequently changing)
   });
 
   // Fetch current week's ritual completions (for cumulative weekly points)
@@ -167,6 +169,7 @@ export default function Dashboard() {
       return response.json();
     },
     enabled: !!currentUser,
+    staleTime: 15 * 1000, // 15 seconds for weekly data
   });
 
   // Fetch ALL ritual completions (for history navigation across months)
@@ -177,6 +180,7 @@ export default function Dashboard() {
       return response.json();
     },
     enabled: !!currentUser,
+    staleTime: 60 * 1000, // 60 seconds for history (less frequently accessed)
   });
 
 
@@ -184,6 +188,7 @@ export default function Dashboard() {
   const { data: userWeeks = [], isLoading: loadingWeeks, isError: weeksError } = useQuery<any[]>({
     queryKey: ['/api/hercm/weeks'],
     enabled: !!currentUser,
+    staleTime: 30 * 1000, // 30 seconds for HRCM data
   });
   
   // 🌙 AUTOMATIC MIDNIGHT RESET - Check every minute for date change (IST timezone)
