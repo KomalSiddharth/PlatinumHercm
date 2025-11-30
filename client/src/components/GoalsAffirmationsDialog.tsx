@@ -99,6 +99,7 @@ export function GoalsAffirmationsDialog({ open, onOpenChange, isChatBubbleOpen =
             }
           }}
           className="min-h-[80px] resize-none"
+          autoFocus
           data-testid="input-goal-text"
         />
       </div>
