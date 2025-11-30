@@ -1140,7 +1140,6 @@ export default function Dashboard() {
         onOpenChange={setProfileOpen}
         userName={userName}
         userEmail={userEmail}
-        totalPoints={totalPoints}
         profileImageUrl={currentUser?.profileImageUrl}
         bio={currentUser?.bio}
         profession={currentUser?.profession}

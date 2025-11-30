@@ -20,7 +20,6 @@ interface ProfileModalProps {
   onOpenChange: (open: boolean) => void;
   userName: string;
   userEmail: string;
-  totalPoints: number;
   profileImageUrl?: string;
   bio?: string;
   profession?: string;
@@ -34,7 +33,6 @@ export default function ProfileModal({
   onOpenChange,
   userName,
   userEmail,
-  totalPoints,
   profileImageUrl = '',
   bio = '',
   profession = '',
@@ -123,14 +121,6 @@ export default function ProfileModal({
               {userProfession && <p className="text-xs text-muted-foreground mt-1">{userProfession}</p>}
               {userCity && <p className="text-xs text-muted-foreground flex items-center justify-center gap-1"><MapPin className="w-3 h-3" /> {userCity}</p>}
             </div>
-          </div>
-
-          <div className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg p-4 text-center border border-primary/20">
-            <div className="flex items-center justify-center gap-2 mb-1">
-              <Trophy className="w-5 h-5 text-primary" />
-              <span className="text-sm font-medium text-muted-foreground">Total Points</span>
-            </div>
-            <p className="text-3xl font-bold text-foreground">{totalPoints.toLocaleString()}</p>
           </div>
 
           {isEditing ? (
@@ -225,7 +215,40 @@ export default function ProfileModal({
               </div>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-4">
+              <div className="space-y-3 bg-muted/30 rounded-lg p-4">
+                {userProfession && (
+                  <div className="flex gap-2 items-start">
+                    <Briefcase className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Profession</p>
+                      <p className="text-sm font-medium">{userProfession}</p>
+                    </div>
+                  </div>
+                )}
+                {userCity && (
+                  <div className="flex gap-2 items-start">
+                    <MapPin className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">City</p>
+                      <p className="text-sm font-medium">{userCity}</p>
+                    </div>
+                  </div>
+                )}
+                {userBio && (
+                  <div className="flex gap-2 items-start">
+                    <FileText className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Bio</p>
+                      <p className="text-sm">{userBio}</p>
+                    </div>
+                  </div>
+                )}
+                {!userProfession && !userCity && !userBio && (
+                  <p className="text-sm text-muted-foreground text-center py-2">No additional profile information yet. Click Edit Profile to add details.</p>
+                )}
+              </div>
+              
               <Button
                 variant="outline"
                 onClick={() => setIsEditing(true)}
