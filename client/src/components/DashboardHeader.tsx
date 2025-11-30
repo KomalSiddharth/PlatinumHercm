@@ -12,6 +12,7 @@ interface DashboardHeaderProps {
   activeSection?: string;
   onProfileClick?: () => void;
   onGoalsClick?: () => void;
+  profileImageUrl?: string;
 }
 
 export default function DashboardHeader({
@@ -20,7 +21,8 @@ export default function DashboardHeader({
   onNavigate = () => {},
   activeSection = 'hrcm',
   onProfileClick = () => {},
-  onGoalsClick = () => {}
+  onGoalsClick = () => {},
+  profileImageUrl = ''
 }: DashboardHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
@@ -127,7 +129,7 @@ export default function DashboardHeader({
               className="relative h-8 w-8 sm:h-9 sm:w-9"
             >
               <Avatar className="w-7 h-7 sm:w-8 sm:h-8">
-                <AvatarImage src="" />
+                {profileImageUrl && <AvatarImage src={profileImageUrl} alt={displayName} />}
                 <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-white text-xs sm:text-sm font-medium">
                   {displayName.charAt(0).toUpperCase()}
                 </AvatarFallback>

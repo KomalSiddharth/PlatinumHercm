@@ -890,6 +890,7 @@ export default function Dashboard() {
         onNavigate={scrollToSection}
         onProfileClick={() => setProfileOpen(true)}
         onGoalsClick={() => setGoalsDialogOpen(true)}
+        profileImageUrl={currentUser?.profileImageUrl}
       />
       
       {/* Real-time notification for course recommendations */}
