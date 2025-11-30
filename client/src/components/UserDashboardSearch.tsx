@@ -248,7 +248,13 @@ export default function UserDashboardSearch({ isAdmin = false }: UserDashboardSe
             <section className="scroll-mt-20 p-3 sm:p-4 md:p-6 rounded-lg border-2" style={{ backgroundColor: '#00008c', borderColor: '#0000cc' }}>
               <div className="space-y-4 sm:space-y-6">
                 <div>
-                  <h2 className="text-2xl sm:text-2xl md:text-3xl font-bold text-white">Daily Rituals</h2>
+                  <h2 className="text-2xl sm:text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+                    Daily Rituals
+                    <Badge className="gap-1.5 bg-gradient-to-r from-pink-500 to-purple-600 text-white border-0 text-base px-3 py-1">
+                      <Trophy className="w-4 h-4" />
+                      {(dashboardData.rituals || []).reduce((sum: number, ritual: any) => sum + (ritual.points || 0), 0)} Points
+                    </Badge>
+                  </h2>
                   <p className="text-sm sm:text-base text-white/80 mt-1">Team member's daily habits and completions (Read Only)</p>
                 </div>
 
