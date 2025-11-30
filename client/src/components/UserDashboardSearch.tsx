@@ -91,11 +91,13 @@ export default function UserDashboardSearch({ isAdmin = false }: UserDashboardSe
     retry: false, // Don't retry on 404
   });
 
-  // Get selected user's dashboard data
+  // Get selected user's dashboard data - LIVE with instant updates on ritual changes
   const { data: dashboardData, isLoading: isDashboardLoading, error: dashboardError } = useQuery<UserDashboardData>({
     queryKey: [`${dashboardEndpointBase}/${selectedUserId}/dashboard`],
     enabled: !!selectedUserId,
     retry: false, // Don't retry on 404 errors
+    staleTime: 0, // Always consider data stale for instant updates
+    refetchInterval: 2000, // Poll every 2 seconds for real-time ritual updates
   });
 
   // Fetch selected user's goals
@@ -105,7 +107,7 @@ export default function UserDashboardSearch({ isAdmin = false }: UserDashboardSe
     retry: false,
   });
 
-  // Fetch selected user's total points (matches their actual dashboard)
+  // Fetch selected user's total points (matches their actual dashboard) - LIVE with instant updates
   const { data: userTotalPointsData } = useQuery<{
     totalPoints: number;
     ritualPoints: number;
@@ -116,6 +118,8 @@ export default function UserDashboardSearch({ isAdmin = false }: UserDashboardSe
     queryKey: [`/api/team/user/${selectedUserId}/total-points`],
     enabled: !!selectedUserId,
     retry: false,
+    staleTime: 0, // Always consider data stale for instant updates
+    refetchInterval: 2000, // Poll every 2 seconds for real-time updates
   });
 
   // Auto-detect latest week (no manual selection needed)
