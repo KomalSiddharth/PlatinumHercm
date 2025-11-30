@@ -127,6 +127,40 @@ const getRepeatingEmotionType = (emotion: string): 'positive' | 'negative' | nul
   return null;
 };
 
+// Function to detect emotions that appear in BOTH positive AND negative columns
+// Returns them with their total occurrence count
+const detectCommonEmotions = (trackerData: Record<string, EmotionalTrackerData>): Record<string, number> => {
+  const positiveSet = new Set<string>();
+  const negativeSet = new Set<string>();
+  const positiveCount: Record<string, number> = {};
+  const negativeCount: Record<string, number> = {};
+  
+  Object.values(trackerData).forEach(d => {
+    if (d?.positiveEmotions && d.positiveEmotions.trim()) {
+      const emotion = d.positiveEmotions.trim();
+      positiveSet.add(emotion);
+      positiveCount[emotion] = (positiveCount[emotion] || 0) + 1;
+    }
+    if (d?.negativeEmotions && d.negativeEmotions.trim()) {
+      const emotion = d.negativeEmotions.trim();
+      negativeSet.add(emotion);
+      negativeCount[emotion] = (negativeCount[emotion] || 0) + 1;
+    }
+  });
+  
+  // Find emotions that appear in BOTH positive and negative
+  const commonEmotions = Array.from(positiveSet).filter(e => negativeSet.has(e));
+  
+  // Build count map for common emotions
+  const countMap: Record<string, number> = {};
+  commonEmotions.forEach(emotion => {
+    const totalCount = (positiveCount[emotion] || 0) + (negativeCount[emotion] || 0);
+    countMap[emotion] = totalCount;
+  });
+  
+  return countMap;
+};
+
 // Function to recommend repeating emotion based on positive, negative, and missing emotions
 // Returns multiple emotions separated by |
 const recommendRepeatingEmotion = (positive: string, negative: string, missing: string): string => {
@@ -748,35 +782,26 @@ export default function EmotionalTracker() {
               </thead>
               <tbody>
                 {(() => {
-                  // Compute aggregated repeating emotions for the merged cell
-                  // ONLY include repeating emotions from time slots that have positive OR negative emotions filled
-                  const allRepeating: string[] = [];
-                  Object.values(trackerData).forEach((d: any) => {
-                    // Only count repeating emotions if there's at least one emotion (positive OR negative) selected
-                    const hasPositive = d?.positiveEmotions && d.positiveEmotions.trim();
-                    const hasNegative = d?.negativeEmotions && d.negativeEmotions.trim();
-                    
-                    if ((hasPositive || hasNegative) && d?.repeatingEmotions && typeof d.repeatingEmotions === 'string' && d.repeatingEmotions.trim()) {
-                      allRepeating.push(d.repeatingEmotions.trim());
-                    }
-                  });
+                  // Detect common emotions appearing in BOTH positive AND negative columns
+                  const commonEmotionsCounts = detectCommonEmotions(trackerData);
                   
-                  const countMap: Record<string, number> = {};
-                  allRepeating.forEach(emotion => {
-                    countMap[emotion] = (countMap[emotion] || 0) + 1;
-                  });
-                  
+                  // Separate common emotions into positive and negative based on exact name match
                   const positiveRepeating: { emotion: string; count: number }[] = [];
                   const negativeRepeating: { emotion: string; count: number }[] = [];
                   
-                  Object.entries(countMap).forEach(([emotion, count]) => {
-                    const type = getRepeatingEmotionType(emotion);
-                    if (type === 'positive') {
+                  Object.entries(commonEmotionsCounts).forEach(([emotion, count]) => {
+                    // Check if this emotion appears in POSITIVE_EMOTIONS or NEGATIVE_EMOTIONS lists
+                    if (POSITIVE_EMOTIONS.includes(emotion) || customEmotions.includes(emotion)) {
                       positiveRepeating.push({ emotion, count });
-                    } else {
+                    } else if (NEGATIVE_EMOTIONS.includes(emotion) || customNegativeEmotions.includes(emotion)) {
                       negativeRepeating.push({ emotion, count });
+                    } else {
+                      // If it's a custom emotion appearing in both, default to showing in positive
+                      positiveRepeating.push({ emotion, count });
                     }
                   });
+                  
+                  const allRepeating = [...positiveRepeating, ...negativeRepeating].map(e => e.emotion);
 
                   return TIME_SLOTS.map((timeSlot, index) => {
                     const data = trackerData[timeSlot] || {
