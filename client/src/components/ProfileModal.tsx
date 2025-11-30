@@ -29,38 +29,38 @@ interface ProfileModalProps {
   onLogout?: () => void;
 }
 
-const createImage = (url: string): Promise<HTMLImageElement> =>
-  new Promise((resolve, reject) => {
-    const image = new Image();
-    image.addEventListener('load', () => resolve(image));
-    image.addEventListener('error', (err) => reject(err));
-    image.setAttribute('crossOrigin', 'anonymous');
-    image.src = url;
+const getCroppedImg = (imageSrc: string, pixelCrop: Area): Promise<string> => {
+  return new Promise((resolve) => {
+    const image = new window.Image();
+    image.src = imageSrc;
+    image.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      if (!ctx) {
+        resolve(imageSrc);
+        return;
+      }
+
+      canvas.width = pixelCrop.width;
+      canvas.height = pixelCrop.height;
+
+      ctx.drawImage(
+        image,
+        pixelCrop.x,
+        pixelCrop.y,
+        pixelCrop.width,
+        pixelCrop.height,
+        0,
+        0,
+        pixelCrop.width,
+        pixelCrop.height
+      );
+
+      resolve(canvas.toDataURL('image/jpeg'));
+    };
+    image.onerror = () => resolve(imageSrc);
   });
-
-const getCroppedImg = async (imageSrc: string, pixelCrop: Area): Promise<string> => {
-  const image = await createImage(imageSrc);
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-
-  if (!ctx) return imageSrc;
-
-  canvas.width = pixelCrop.width;
-  canvas.height = pixelCrop.height;
-
-  ctx.drawImage(
-    image,
-    pixelCrop.x,
-    pixelCrop.y,
-    pixelCrop.width,
-    pixelCrop.height,
-    0,
-    0,
-    pixelCrop.width,
-    pixelCrop.height
-  );
-
-  return canvas.toDataURL('image/jpeg');
 };
 
 export default function ProfileModal({
@@ -105,14 +105,10 @@ export default function ProfileModal({
 
   const handleCropConfirm = async () => {
     if (imageToCrop && croppedAreaPixels) {
-      try {
-        const croppedImage = await getCroppedImg(imageToCrop, croppedAreaPixels);
-        setProfileImage(croppedImage);
-        setCropDialogOpen(false);
-        setImageToCrop('');
-      } catch (error) {
-        console.error('Failed to crop image:', error);
-      }
+      const croppedImage = await getCroppedImg(imageToCrop, croppedAreaPixels);
+      setProfileImage(croppedImage);
+      setCropDialogOpen(false);
+      setImageToCrop('');
     }
   };
 
