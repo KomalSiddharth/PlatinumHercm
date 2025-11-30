@@ -37,6 +37,46 @@ const TIME_SLOTS = [
   '11pm to 01am',
 ];
 
+const POSITIVE_REPEATING_EMOTIONS = [
+  'Calm Moments', 'Motivational Spikes', 'Relief', 'Joy', 'Focus', 'Gratitude', 'Hope',
+  'Confidence Bursts', 'Encouragement', 'Emotional Clarity'
+];
+
+const NEGATIVE_REPEATING_EMOTIONS = [
+  'Overthinking', 'Worry', 'Stress', 'Irritation', 'Doubt', 'Fear', 'Anxiety', 'Frustration',
+  'Emotional Fatigue', 'Withdrawal', 'Confusion', 'Uncertainty', 'Emotional Highs and Lows',
+  'Feeling Okay Then Overwhelmed', 'Drained But Functioning', 'Wanting Connection But Pulling Away',
+  'Silent Emotional Cycles', 'Mind–Body Disconnection', 'Detached But Longing', 'Busy But Unfulfilled'
+];
+
+// Function to detect emotions that appear MULTIPLE TIMES across all time slots
+// Same logic as actual dashboard
+const detectRepeatingEmotions = (trackerData: Record<string, EmotionalTrackerData>): Record<string, number> => {
+  const emotionCount: Record<string, number> = {};
+  
+  // Count all emotions (positive and negative) across all time slots
+  Object.values(trackerData).forEach(d => {
+    if (d?.positiveEmotions && d.positiveEmotions.trim()) {
+      const emotion = d.positiveEmotions.trim();
+      emotionCount[emotion] = (emotionCount[emotion] || 0) + 1;
+    }
+    if (d?.negativeEmotions && d.negativeEmotions.trim()) {
+      const emotion = d.negativeEmotions.trim();
+      emotionCount[emotion] = (emotionCount[emotion] || 0) + 1;
+    }
+  });
+  
+  // Return only emotions that appear more than once
+  const repeatingEmotions: Record<string, number> = {};
+  Object.entries(emotionCount).forEach(([emotion, count]) => {
+    if (count > 1) {
+      repeatingEmotions[emotion] = count;
+    }
+  });
+  
+  return repeatingEmotions;
+};
+
 // Helper function to get local date string (NOT UTC)
 const getLocalDateString = (date: Date): string => {
   const year = date.getFullYear();
@@ -235,41 +275,24 @@ export default function AdminEmotionalTrackerView({ userId, isAdminView = false 
             </thead>
             <tbody>
               {(() => {
-                // Compute aggregated repeating emotions - same logic as dashboard
-                const allRepeating: string[] = [];
-                Object.values(trackerData).forEach((d: any) => {
-                  const hasPositive = d?.positiveEmotions && d.positiveEmotions.trim();
-                  const hasNegative = d?.negativeEmotions && d.negativeEmotions.trim();
-                  
-                  if ((hasPositive || hasNegative) && d?.repeatingEmotions && typeof d.repeatingEmotions === 'string' && d.repeatingEmotions.trim()) {
-                    allRepeating.push(d.repeatingEmotions.trim());
-                  }
-                });
-                
-                const countMap: Record<string, number> = {};
-                allRepeating.forEach(emotion => {
-                  countMap[emotion] = (countMap[emotion] || 0) + 1;
-                });
-                
-                const getRepeatingEmotionType = (emotion: string): 'positive' | 'negative' | null => {
-                  const POSITIVE_REPEATING = ['Calm Moments', 'Motivational Spikes', 'Relief', 'Joy', 'Focus', 'Gratitude', 'Hope', 'Confidence Bursts', 'Encouragement', 'Emotional Clarity'];
-                  const NEGATIVE_REPEATING = ['Overthinking', 'Worry', 'Stress', 'Irritation', 'Doubt', 'Fear', 'Anxiety', 'Frustration', 'Emotional Fatigue', 'Withdrawal', 'Confusion', 'Uncertainty', 'Emotional Highs and Lows', 'Feeling Okay Then Overwhelmed', 'Drained But Functioning', 'Wanting Connection But Pulling Away', 'Silent Emotional Cycles', 'Mind–Body Disconnection', 'Detached But Longing', 'Busy But Unfulfilled'];
-                  if (POSITIVE_REPEATING.includes(emotion)) return 'positive';
-                  if (NEGATIVE_REPEATING.includes(emotion)) return 'negative';
-                  return null;
-                };
+                // Detect emotions that appear MULTIPLE TIMES - same logic as actual dashboard
+                const repeatingEmotionsCounts = detectRepeatingEmotions(trackerData);
                 
                 const positiveRepeating: { emotion: string; count: number }[] = [];
                 const negativeRepeating: { emotion: string; count: number }[] = [];
                 
-                Object.entries(countMap).forEach(([emotion, count]) => {
-                  const type = getRepeatingEmotionType(emotion);
-                  if (type === 'positive') {
+                Object.entries(repeatingEmotionsCounts).forEach(([emotion, count]) => {
+                  if (POSITIVE_REPEATING_EMOTIONS.includes(emotion)) {
                     positiveRepeating.push({ emotion, count });
-                  } else {
+                  } else if (NEGATIVE_REPEATING_EMOTIONS.includes(emotion)) {
                     negativeRepeating.push({ emotion, count });
+                  } else {
+                    // Default to positive if unclear
+                    positiveRepeating.push({ emotion, count });
                   }
                 });
+                
+                const allRepeating = [...positiveRepeating, ...negativeRepeating].map(e => e.emotion);
 
                 return TIME_SLOTS.map((timeSlot, index) => {
                   const data = trackerData[timeSlot] || {
