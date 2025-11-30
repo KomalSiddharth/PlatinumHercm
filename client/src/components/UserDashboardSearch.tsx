@@ -11,6 +11,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import UnifiedHRCMTable from './UnifiedHRCMTable';
 import AdminEmotionalTrackerView from './AdminEmotionalTrackerView';
 import RitualHistoryModal from './RitualHistoryModal';
+import TeamGoalsViewer from './TeamGoalsViewer';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
@@ -313,6 +314,9 @@ export default function UserDashboardSearch({ isAdmin = false }: UserDashboardSe
 
             {/* Daily Emotional Tracker - Team View */}
             <AdminEmotionalTrackerView userId={selectedUserId} isAdminView={isAdmin} />
+
+            {/* Team Goals & Affirmations - Read-Only View */}
+            <TeamGoalsViewer goals={[]} />
 
             {/* Badges Section */}
             <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20 border-yellow-200 dark:border-yellow-800">
