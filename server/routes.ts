@@ -124,6 +124,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Apply general rate limiting to all API routes
   app.use('/api/', apiLimiter);
 
+  // Update user profile
+  app.patch('/api/user/profile', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      let user = await storage.getUser(userId);
+      if (!user && typeof userId === 'string' && userId.includes('@')) {
+        user = await storage.getUserByEmail(userId);
+      }
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const { firstName, bio, profession, city, profileImageUrl } = req.body;
+      
+      // Update user in database using upsert
+      const updated = await storage.upsertUser({
+        id: user.id,
+        email: user.email,
+        firstName: firstName || user.firstName,
+        lastName: user.lastName,
+        bio: bio !== undefined ? bio : user.bio,
+        profession: profession !== undefined ? profession : user.profession,
+        city: city !== undefined ? city : user.city,
+        profileImageUrl: profileImageUrl !== undefined ? profileImageUrl : user.profileImageUrl,
+        isAdmin: user.isAdmin,
+        courseSheetUrl: user.courseSheetUrl,
+      });
+
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
   // Auth routes - no rate limiting to allow immediate re-login after logout
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {

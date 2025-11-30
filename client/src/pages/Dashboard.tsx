@@ -491,13 +491,30 @@ export default function Dashboard() {
     deleteRitualMutation.mutate(id);
   };
 
-  const handleSaveProfile = (data: { name: string; email: string }) => {
-    setUserName(data.name);
-    setUserEmail(data.email);
-    toast({
-      title: 'Profile Updated',
-      description: 'Your profile has been successfully updated.'
-    });
+  const handleSaveProfile = async (data: { name: string; email: string; bio: string; profession: string; city: string; profileImageUrl: string }) => {
+    try {
+      const response = await apiRequest('/api/user/profile', 'PATCH', {
+        firstName: data.name,
+        bio: data.bio,
+        profession: data.profession,
+        city: data.city,
+        profileImageUrl: data.profileImageUrl
+      });
+      
+      setUserName(data.name);
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      
+      toast({
+        title: 'Profile Updated',
+        description: 'Your profile has been successfully updated.'
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Update Failed',
+        description: error.message || 'Failed to update profile',
+        variant: 'destructive'
+      });
+    }
   };
 
   const handleLogout = () => {
@@ -1124,6 +1141,10 @@ export default function Dashboard() {
         userName={userName}
         userEmail={userEmail}
         totalPoints={totalPoints}
+        profileImageUrl={currentUser?.profileImageUrl}
+        bio={currentUser?.bio}
+        profession={currentUser?.profession}
+        city={currentUser?.city}
         onSave={handleSaveProfile}
         onLogout={handleLogout}
       />

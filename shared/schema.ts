@@ -29,6 +29,9 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
+  bio: varchar("bio"), // User's bio/about
+  profession: varchar("profession"), // User's profession
+  city: varchar("city"), // User's city
   isAdmin: boolean("is_admin").default(false).notNull(),
   courseSheetUrl: varchar("course_sheet_url"), // User's Google Sheet URL for courses
   createdAt: timestamp("created_at").defaultNow(),
