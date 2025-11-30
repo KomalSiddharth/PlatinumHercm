@@ -2155,6 +2155,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Team: Get goals and affirmations for a specific user (read-only view)
+  app.get('/api/team/user/:userId/goals', isAuthenticated, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const goals = await storage.getGoalsAffirmations(userId);
+      res.json(goals);
+    } catch (error) {
+      console.error("Error fetching team user goals:", error);
+      res.status(500).json({ message: "Failed to fetch goals" });
+    }
+  });
+
   app.get('/api/admin/user/:userId/weeks', isAdmin, async (req, res) => {
     try {
       const { userId } = req.params;

@@ -98,6 +98,13 @@ export default function UserDashboardSearch({ isAdmin = false }: UserDashboardSe
     retry: false, // Don't retry on 404 errors
   });
 
+  // Fetch selected user's goals
+  const { data: userGoals = [] } = useQuery<any[]>({
+    queryKey: [`/api/team/user/${selectedUserId}/goals`],
+    enabled: !!selectedUserId,
+    retry: false,
+  });
+
   // Auto-detect latest week (no manual selection needed)
   const latestWeekNumber = dashboardData?.allWeeks && dashboardData.allWeeks.length > 0
     ? dashboardData.allWeeks.reduce((max, week) => 
@@ -316,7 +323,7 @@ export default function UserDashboardSearch({ isAdmin = false }: UserDashboardSe
             <AdminEmotionalTrackerView userId={selectedUserId} isAdminView={isAdmin} />
 
             {/* Team Goals & Affirmations - Read-Only View */}
-            <TeamGoalsViewer goals={[]} />
+            <TeamGoalsViewer goals={userGoals} />
 
             {/* Badges Section */}
             <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20 border-yellow-200 dark:border-yellow-800">
