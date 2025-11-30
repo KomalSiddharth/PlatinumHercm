@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -79,7 +79,7 @@ export function GoalsAffirmationsDialog({ open, onOpenChange, isChatBubbleOpen =
     money: 'bg-amber-500',
   };
 
-  const FormContent = useCallback(() => (
+  const FormContent = () => (
     <div className="space-y-4">
       {/* Input Section */}
       <div className="space-y-2">
@@ -186,7 +186,7 @@ export function GoalsAffirmationsDialog({ open, onOpenChange, isChatBubbleOpen =
         <GoalsAffirmationsList />
       </div>
     </div>
-  ), [text, category, targetDate, calendarOpen, createGoalMutation.isPending, handleSubmit]);
+  );
 
   // When ChatBubble is open, use Sheet (side panel)
   if (isChatBubbleOpen) {
