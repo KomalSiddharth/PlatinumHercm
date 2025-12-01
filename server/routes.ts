@@ -4,13 +4,27 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, isAdmin } from "./replitAuth";
-import { fetchCourseData, findMatchingCourse, recommendCourses, fetchEnhancedCourseData } from "./googleSheets";
+import {
+  fetchCourseData,
+  findMatchingCourse,
+  recommendCourses,
+  fetchEnhancedCourseData,
+} from "./googleSheets";
 import { parseCourseCSV } from "./csvCourseParser";
-import { recommendCoursesRequestSchema, insertCourseVideoSchema, type RitualCompletion } from "@shared/schema";
+import {
+  recommendCoursesRequestSchema,
+  insertCourseVideoSchema,
+  type RitualCompletion,
+} from "@shared/schema";
 import { getAIRecommendations, generateAffirmation } from "./aiRecommendations";
 import { generateHRCMWeeklyPDF, generateMonthlyProgressPDF } from "./pdfExport";
 import { emailService } from "./emailService";
-import { validateAndCapRating, updateRatingProgression, getRatingCaps, getRatingProgressionStatus } from "./ratingProgression";
+import {
+  validateAndCapRating,
+  updateRatingProgression,
+  getRatingCaps,
+  getRatingProgressionStatus,
+} from "./ratingProgression";
 import { backupAllData, backupUserData, getBackupStats } from "./backupService";
 import { isSupabaseConfigured, checkSupabaseHealth } from "./supabase";
 import { format } from "date-fns";
@@ -31,12 +45,19 @@ const COURSES_CACHE_TTL = 30 * 1000; // Cache for 30 seconds (reduce API load)
 function setCoursesCacheData(data: any[]): void {
   coursesCacheData = data;
   coursesCacheTimestamp = Date.now();
-  console.log(`[CACHE] Google Sheets courses cached (${data.length} courses, expires in 30s)`);
+  console.log(
+    `[CACHE] Google Sheets courses cached (${data.length} courses, expires in 30s)`,
+  );
 }
 
 function getCoursesCacheData(): any[] | null {
-  if (coursesCacheData && (Date.now() - coursesCacheTimestamp) < COURSES_CACHE_TTL) {
-    console.log(`[CACHE] ✅ Using cached courses (${Date.now() - coursesCacheTimestamp}ms old)`);
+  if (
+    coursesCacheData &&
+    Date.now() - coursesCacheTimestamp < COURSES_CACHE_TTL
+  ) {
+    console.log(
+      `[CACHE] ✅ Using cached courses (${Date.now() - coursesCacheTimestamp}ms old)`,
+    );
     return coursesCacheData;
   }
   return null;
@@ -45,7 +66,9 @@ function getCoursesCacheData(): any[] | null {
 function getCoursesCacheDataStale(): any[] | null {
   // Return stale cache as last resort fallback (even if expired)
   if (coursesCacheData) {
-    console.log(`[CACHE] ⚠️ Using stale cache as fallback (${Date.now() - coursesCacheTimestamp}ms old)`);
+    console.log(
+      `[CACHE] ⚠️ Using stale cache as fallback (${Date.now() - coursesCacheTimestamp}ms old)`,
+    );
     return coursesCacheData;
   }
   return null;
@@ -59,14 +82,16 @@ function getCoursesCacheDataStale(): any[] | null {
  */
 function getCurrentWeekNumber(userCreatedAt: Date): number {
   const now = new Date();
-  const daysSinceCreation = Math.floor((now.getTime() - userCreatedAt.getTime()) / (1000 * 60 * 60 * 24));
+  const daysSinceCreation = Math.floor(
+    (now.getTime() - userCreatedAt.getTime()) / (1000 * 60 * 60 * 24),
+  );
   const weekNumber = Math.floor(daysSinceCreation / 7) + 1; // Week 1 starts on day 0
   return Math.max(1, weekNumber); // Always at least Week 1
 }
 
 const openai = new OpenAI({
   baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY
+  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
 });
 
 // Rate Limiting Configuration for Security
@@ -76,7 +101,7 @@ const openai = new OpenAI({
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 50000, // Limit each IP to 50000 requests per window (supports 300+ users at 150+ req/user)
-  message: 'Too many requests from this IP, please try again after 15 minutes',
+  message: "Too many requests from this IP, please try again after 15 minutes",
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   skip: (req) => {
@@ -84,18 +109,19 @@ const apiLimiter = rateLimit({
     // 1. Admin routes (already protected by authentication)
     // 2. Auth routes (need to allow login attempts without rate limiting)
     // 3. Authenticated user endpoints (they've already passed security checks)
-    if (req.path.startsWith('/api/admin/')) return true;
-    if (req.path.startsWith('/api/auth/')) return true;
+    if (req.path.startsWith("/api/admin/")) return true;
+    if (req.path.startsWith("/api/auth/")) return true;
     if (req.headers.authorization) return true; // Skip for authenticated requests
     return false;
-  }
+  },
 });
 
 // Strict rate limiter for auth endpoints: 100 requests per 15 minutes (removed from active use)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // Much more lenient for mobile/unreliable networks
-  message: 'Too many authentication attempts, please try again after 15 minutes',
+  message:
+    "Too many authentication attempts, please try again after 15 minutes",
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -104,13 +130,13 @@ const authLimiter = rateLimit({
 const uploadLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 20, // Limit each IP to 20 uploads per hour
-  message: 'Too many file uploads, please try again after an hour',
+  message: "Too many file uploads, please try again after an hour",
   standardHeaders: true,
   legacyHeaders: false,
 });
 
 // Extend express-session to include custom session fields
-declare module 'express-session' {
+declare module "express-session" {
   interface SessionData {
     userEmail?: string;
     isAdmin?: boolean;
@@ -119,13 +145,13 @@ declare module 'express-session' {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup Replit Auth middleware
-  await setupAuth(app);
+  // await setupAuth(app);
 
   // Apply general rate limiting to all API routes
-  app.use('/api/', apiLimiter);
+  app.use("/api/", apiLimiter);
 
   // Update user profile
-  app.patch('/api/user/profile', isAuthenticated, async (req: any, res) => {
+  app.patch("/api/user/profile", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.session.userEmail;
       if (!userId) {
@@ -133,7 +159,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       let user = await storage.getUser(userId);
-      if (!user && typeof userId === 'string' && userId.includes('@')) {
+      if (!user && typeof userId === "string" && userId.includes("@")) {
         user = await storage.getUserByEmail(userId);
       }
 
@@ -142,7 +168,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { firstName, bio, profession, city, profileImageUrl } = req.body;
-      
+
       // Update user in database using upsert
       const updated = await storage.upsertUser({
         id: user.id,
@@ -152,7 +178,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         bio: bio !== undefined ? bio : user.bio,
         profession: profession !== undefined ? profession : user.profession,
         city: city !== undefined ? city : user.city,
-        profileImageUrl: profileImageUrl !== undefined ? profileImageUrl : user.profileImageUrl,
+        profileImageUrl:
+          profileImageUrl !== undefined
+            ? profileImageUrl
+            : user.profileImageUrl,
         isAdmin: user.isAdmin,
         courseSheetUrl: user.courseSheetUrl,
       });
@@ -165,35 +194,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Auth routes - no rate limiting to allow immediate re-login after logout
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  app.get("/api/auth/user", isAuthenticated, async (req: any, res) => {
     try {
       // Prioritize email-based session auth to match login flow
       const userId = req.session.userEmail || req.user?.claims?.sub;
-      console.log(`[AUTH/USER] Fetching user - session.userEmail=${req.session.userEmail}, claims.sub=${req.user?.claims?.sub}, userId=${userId}`);
-      
+      console.log(
+        `[AUTH/USER] Fetching user - session.userEmail=${req.session.userEmail}, claims.sub=${req.user?.claims?.sub}, userId=${userId}`,
+      );
+
       if (!userId) {
-        console.log('[AUTH/USER] No userId found - returning 401');
+        console.log("[AUTH/USER] No userId found - returning 401");
         return res.status(401).json({ message: "User not authenticated" });
       }
-      
+
       // Try to get user by ID first
       let user = await storage.getUser(userId);
-      
+
       // If not found and userId looks like an email, try getUserByEmail
-      if (!user && typeof userId === 'string' && userId.includes('@')) {
-        console.log(`[AUTH/USER] User not found by ID, trying email lookup for ${userId}`);
+      if (!user && typeof userId === "string" && userId.includes("@")) {
+        console.log(
+          `[AUTH/USER] User not found by ID, trying email lookup for ${userId}`,
+        );
         user = await storage.getUserByEmail(userId);
       }
-      
-      console.log(`[AUTH/USER] User lookup result for ${userId}:`, user ? 'Found' : 'Not found');
-      
+
+      console.log(
+        `[AUTH/USER] User lookup result for ${userId}:`,
+        user ? "Found" : "Not found",
+      );
+
       // If user not found, return 404 instead of empty response
       if (!user) {
-        console.log(`[AUTH/USER] User not found for userId=${userId} - returning 404`);
+        console.log(
+          `[AUTH/USER] User not found for userId=${userId} - returning 404`,
+        );
         return res.status(404).json({ message: "User not found" });
       }
-      
-      console.log(`[AUTH/USER] Returning user - id: ${user.id}, firstName: ${user.firstName}, lastName: ${user.lastName}`);
+
+      console.log(
+        `[AUTH/USER] Returning user - id: ${user.id}, firstName: ${user.firstName}, lastName: ${user.lastName}`,
+      );
       console.log(`[AUTH/USER] Full user object:`, JSON.stringify(user));
       res.json(user);
     } catch (error) {
@@ -203,24 +243,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User HRCM routes (protected)
-  app.get('/api/hercm/weeks', isAuthenticated, async (req: any, res) => {
+  app.get("/api/hercm/weeks", isAuthenticated, async (req: any, res) => {
     try {
       // Handle both OIDC auth (req.user.claims.sub) and email-based auth (req.session.userEmail)
       const userId = req.user?.claims?.sub || req.session.userEmail;
       if (!userId) {
         return res.status(401).json({ message: "User not authenticated" });
       }
-      
+
       // Get actual user to ensure we use correct user ID
       let user = await storage.getUser(userId);
-      if (!user && typeof userId === 'string' && userId.includes('@')) {
+      if (!user && typeof userId === "string" && userId.includes("@")) {
         user = await storage.getUserByEmail(userId);
       }
-      
+
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       const weeks = await storage.getHercmWeeksByUser(user.id);
       res.json(weeks);
     } catch (error) {
@@ -230,28 +270,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // 🆕 Get current week number based on user's join date
-  app.get('/api/hercm/current-week', isAuthenticated, async (req: any, res) => {
+  app.get("/api/hercm/current-week", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.session.userEmail;
       if (!userId) {
         return res.status(401).json({ message: "User not authenticated" });
       }
-      
+
       let user = await storage.getUser(userId);
-      if (!user && typeof userId === 'string' && userId.includes('@')) {
+      if (!user && typeof userId === "string" && userId.includes("@")) {
         user = await storage.getUserByEmail(userId);
       }
-      
+
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
-      const currentWeekNumber = getCurrentWeekNumber(user.createdAt || new Date());
-      
-      res.json({ 
+
+      const currentWeekNumber = getCurrentWeekNumber(
+        user.createdAt || new Date(),
+      );
+
+      res.json({
         weekNumber: currentWeekNumber,
         userJoinDate: user.createdAt,
-        message: `Week ${currentWeekNumber} (joined ${user.createdAt})`
+        message: `Week ${currentWeekNumber} (joined ${user.createdAt})`,
       });
     } catch (error) {
       console.error("Error fetching current week:", error);
@@ -260,769 +302,908 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // 📊 NEW: Get weekly scores summary for performance dropdown
-  app.get('/api/hercm/weekly-scores', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
-      
-      let user = await storage.getUser(userId);
-      if (!user && typeof userId === 'string' && userId.includes('@')) {
-        user = await storage.getUserByEmail(userId);
-      }
-      
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      
-      // 🔥 Calculate current week number based on user's join date
-      const currentWeekNumber = getCurrentWeekNumber(user.createdAt || new Date());
-      const currentYear = new Date().getFullYear();
-      
-      console.log(`[WEEKLY-SCORES] User ${user.id} joined on ${user.createdAt}, current week: ${currentWeekNumber}`);
-      
-      // Get all date-specific entries for user (not week-level summary)
-      const allWeeks = await storage.getAllHercmWeeksByUserWithDates(user.id);
-      
-      if (!allWeeks || allWeeks.length === 0) {
-        return res.json([]);
-      }
-      
-      // 🔥 CUMULATIVE: Group ALL entries by week number and year (not just most recent)
-      const weekEntriesMap = new Map<string, any[]>();
-      allWeeks.forEach((entry: any) => {
-        const key = `${entry.year}-${entry.weekNumber}`;
-        if (!weekEntriesMap.has(key)) {
-          weekEntriesMap.set(key, []);
+  app.get(
+    "/api/hercm/weekly-scores",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
         }
-        weekEntriesMap.get(key)!.push(entry);
-      });
-      
-      // 🔥 Calculate CUMULATIVE checkpoint stats from ALL dates within each week
-      const weeklyScores = Array.from(weekEntriesMap.entries()).map(([key, entries]) => {
-        // Get the most recent entry for HRCM ratings (for display purposes)
-        const sortedEntries = entries.sort((a, b) => {
-          const dateA = new Date(a.createdAt || a.dateString);
-          const dateB = new Date(b.createdAt || b.dateString);
-          return dateB.getTime() - dateA.getTime();
+
+        let user = await storage.getUser(userId);
+        if (!user && typeof userId === "string" && userId.includes("@")) {
+          user = await storage.getUserByEmail(userId);
+        }
+
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        // 🔥 Calculate current week number based on user's join date
+        const currentWeekNumber = getCurrentWeekNumber(
+          user.createdAt || new Date(),
+        );
+        const currentYear = new Date().getFullYear();
+
+        console.log(
+          `[WEEKLY-SCORES] User ${user.id} joined on ${user.createdAt}, current week: ${currentWeekNumber}`,
+        );
+
+        // Get all date-specific entries for user (not week-level summary)
+        const allWeeks = await storage.getAllHercmWeeksByUserWithDates(user.id);
+
+        if (!allWeeks || allWeeks.length === 0) {
+          return res.json([]);
+        }
+
+        // 🔥 CUMULATIVE: Group ALL entries by week number and year (not just most recent)
+        const weekEntriesMap = new Map<string, any[]>();
+        allWeeks.forEach((entry: any) => {
+          const key = `${entry.year}-${entry.weekNumber}`;
+          if (!weekEntriesMap.has(key)) {
+            weekEntriesMap.set(key, []);
+          }
+          weekEntriesMap.get(key)!.push(entry);
         });
-        const mostRecentEntry = sortedEntries[0];
-        
-        // Get current ratings for all 4 HRCM areas from most recent entry
-        const healthRating = mostRecentEntry.currentH || 0;
-        const relationshipRating = mostRecentEntry.currentE || 0;
-        const careerRating = mostRecentEntry.currentR || 0;
-        const moneyRating = mostRecentEntry.currentC || 0;
-        
-        const totalScore = healthRating + relationshipRating + careerRating + moneyRating;
-        const maxScore = 28;
-        const percentage = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
-        
-        // 🔥 CUMULATIVE: Sum checkpoints from ALL dates within this week
-        let totalCheckpoints = 0;
-        let checkedCheckpoints = 0;
-        
-        const areas = ['health', 'relationship', 'career', 'money'];
-        
-        // Loop through ALL entries (all dates) in this week
-        entries.forEach((entry: any) => {
-          areas.forEach(area => {
-            // 🔥 Count from BOTH tables (Current Week + Next Week Target)
-            // This matches the "Target: X/Y Points" shown in the heading
-            
-            // Current Week columns (Problems, Feelings, Beliefs, Actions)
-            const problemsChecklist = entry[`${area}ProblemsChecklist`] || [];
-            const feelingsCurrentChecklist = entry[`${area}FeelingsCurrentChecklist`] || [];
-            const beliefsCurrentChecklist = entry[`${area}BeliefsCurrentChecklist`] || [];
-            const actionsCurrentChecklist = entry[`${area}ActionsCurrentChecklist`] || [];
-            
-            // Next Week Target columns (Results, Feelings, Beliefs, Actions)
-            const resultChecklist = entry[`${area}ResultChecklist`] || [];
-            const feelingsChecklist = entry[`${area}FeelingsChecklist`] || [];
-            const beliefsChecklist = entry[`${area}BeliefsChecklist`] || [];
-            const actionsChecklist = entry[`${area}ActionsChecklist`] || [];
-            
-            // Count ALL 8 columns (4 from Current Week + 4 from Next Week Target)
-            [
-              problemsChecklist, feelingsCurrentChecklist, beliefsCurrentChecklist, actionsCurrentChecklist,
-              resultChecklist, feelingsChecklist, beliefsChecklist, actionsChecklist
-            ].forEach(checklist => {
-              if (Array.isArray(checklist)) {
-                totalCheckpoints += checklist.length;
-                checkedCheckpoints += checklist.filter((item: any) => item.checked).length;
-              }
+
+        // 🔥 Calculate CUMULATIVE checkpoint stats from ALL dates within each week
+        const weeklyScores = Array.from(weekEntriesMap.entries()).map(
+          ([key, entries]) => {
+            // Get the most recent entry for HRCM ratings (for display purposes)
+            const sortedEntries = entries.sort((a, b) => {
+              const dateA = new Date(a.createdAt || a.dateString);
+              const dateB = new Date(b.createdAt || b.dateString);
+              return dateB.getTime() - dateA.getTime();
             });
-          });
-        });
-        
-        console.log(`[WEEKLY-SCORES] Week ${mostRecentEntry.weekNumber} - CUMULATIVE from ${entries.length} dates: ${checkedCheckpoints}/${totalCheckpoints} checkpoints`);
-        
-        return {
-          weekNumber: mostRecentEntry.weekNumber,
-          year: mostRecentEntry.year,
-          totalScore,
-          maxScore,
-          percentage,
-          breakdown: {
-            health: healthRating,
-            relationship: relationshipRating,
-            career: careerRating,
-            money: moneyRating
+            const mostRecentEntry = sortedEntries[0];
+
+            // Get current ratings for all 4 HRCM areas from most recent entry
+            const healthRating = mostRecentEntry.currentH || 0;
+            const relationshipRating = mostRecentEntry.currentE || 0;
+            const careerRating = mostRecentEntry.currentR || 0;
+            const moneyRating = mostRecentEntry.currentC || 0;
+
+            const totalScore =
+              healthRating + relationshipRating + careerRating + moneyRating;
+            const maxScore = 28;
+            const percentage =
+              maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
+
+            // 🔥 CUMULATIVE: Sum checkpoints from ALL dates within this week
+            let totalCheckpoints = 0;
+            let checkedCheckpoints = 0;
+
+            const areas = ["health", "relationship", "career", "money"];
+
+            // Loop through ALL entries (all dates) in this week
+            entries.forEach((entry: any) => {
+              areas.forEach((area) => {
+                // 🔥 Count from BOTH tables (Current Week + Next Week Target)
+                // This matches the "Target: X/Y Points" shown in the heading
+
+                // Current Week columns (Problems, Feelings, Beliefs, Actions)
+                const problemsChecklist =
+                  entry[`${area}ProblemsChecklist`] || [];
+                const feelingsCurrentChecklist =
+                  entry[`${area}FeelingsCurrentChecklist`] || [];
+                const beliefsCurrentChecklist =
+                  entry[`${area}BeliefsCurrentChecklist`] || [];
+                const actionsCurrentChecklist =
+                  entry[`${area}ActionsCurrentChecklist`] || [];
+
+                // Next Week Target columns (Results, Feelings, Beliefs, Actions)
+                const resultChecklist = entry[`${area}ResultChecklist`] || [];
+                const feelingsChecklist =
+                  entry[`${area}FeelingsChecklist`] || [];
+                const beliefsChecklist = entry[`${area}BeliefsChecklist`] || [];
+                const actionsChecklist = entry[`${area}ActionsChecklist`] || [];
+
+                // Count ALL 8 columns (4 from Current Week + 4 from Next Week Target)
+                [
+                  problemsChecklist,
+                  feelingsCurrentChecklist,
+                  beliefsCurrentChecklist,
+                  actionsCurrentChecklist,
+                  resultChecklist,
+                  feelingsChecklist,
+                  beliefsChecklist,
+                  actionsChecklist,
+                ].forEach((checklist) => {
+                  if (Array.isArray(checklist)) {
+                    totalCheckpoints += checklist.length;
+                    checkedCheckpoints += checklist.filter(
+                      (item: any) => item.checked,
+                    ).length;
+                  }
+                });
+              });
+            });
+
+            console.log(
+              `[WEEKLY-SCORES] Week ${mostRecentEntry.weekNumber} - CUMULATIVE from ${entries.length} dates: ${checkedCheckpoints}/${totalCheckpoints} checkpoints`,
+            );
+
+            return {
+              weekNumber: mostRecentEntry.weekNumber,
+              year: mostRecentEntry.year,
+              totalScore,
+              maxScore,
+              percentage,
+              breakdown: {
+                health: healthRating,
+                relationship: relationshipRating,
+                career: careerRating,
+                money: moneyRating,
+              },
+              checkpoints: {
+                total: totalCheckpoints,
+                checked: checkedCheckpoints,
+              },
+              datesCount: entries.length, // 🔥 Show how many dates contributed
+            };
           },
-          checkpoints: {
-            total: totalCheckpoints,
-            checked: checkedCheckpoints
-          },
-          datesCount: entries.length // 🔥 Show how many dates contributed
-        };
-      });
-      
-      // 🔥 Generate entries for ALL weeks from 1 to current week (including empty ones)
-      const allWeekEntries = [];
-      for (let week = 1; week <= currentWeekNumber; week++) {
-        const existingWeek = weeklyScores.find(w => w.weekNumber === week && w.year === currentYear);
-        
-        if (existingWeek) {
-          // Use existing data
-          allWeekEntries.push(existingWeek);
-        } else {
-          // Create empty week entry
-          allWeekEntries.push({
-            weekNumber: week,
-            year: currentYear,
-            totalScore: 0,
-            maxScore: 28,
-            percentage: 0,
-            breakdown: {
-              health: 0,
-              relationship: 0,
-              career: 0,
-              money: 0
-            },
-            checkpoints: {
-              total: 0,
-              checked: 0
-            }
-          });
+        );
+
+        // 🔥 Generate entries for ALL weeks from 1 to current week (including empty ones)
+        const allWeekEntries = [];
+        for (let week = 1; week <= currentWeekNumber; week++) {
+          const existingWeek = weeklyScores.find(
+            (w) => w.weekNumber === week && w.year === currentYear,
+          );
+
+          if (existingWeek) {
+            // Use existing data
+            allWeekEntries.push(existingWeek);
+          } else {
+            // Create empty week entry
+            allWeekEntries.push({
+              weekNumber: week,
+              year: currentYear,
+              totalScore: 0,
+              maxScore: 28,
+              percentage: 0,
+              breakdown: {
+                health: 0,
+                relationship: 0,
+                career: 0,
+                money: 0,
+              },
+              checkpoints: {
+                total: 0,
+                checked: 0,
+              },
+            });
+          }
         }
+
+        // Sort by week number (most recent first)
+        allWeekEntries.sort((a, b) => b.weekNumber - a.weekNumber);
+
+        console.log(
+          `[WEEKLY-SCORES] Returning ${allWeekEntries.length} weeks (1 to ${currentWeekNumber})`,
+        );
+
+        res.json(allWeekEntries);
+      } catch (error) {
+        console.error("Error fetching weekly scores:", error);
+        res.status(500).json({ message: "Failed to fetch weekly scores" });
       }
-      
-      // Sort by week number (most recent first)
-      allWeekEntries.sort((a, b) => b.weekNumber - a.weekNumber);
-      
-      console.log(`[WEEKLY-SCORES] Returning ${allWeekEntries.length} weeks (1 to ${currentWeekNumber})`);
-      
-      res.json(allWeekEntries);
-    } catch (error) {
-      console.error("Error fetching weekly scores:", error);
-      res.status(500).json({ message: "Failed to fetch weekly scores" });
-    }
-  });
+    },
+  );
 
   // 🆕 Get previous day's HRCM data for daily auto-copy feature
   // 🔥 ENHANCED: Look for last available data within 7 days (not just immediate previous day)
-  app.get('/api/hercm/previous-day/:date', isAuthenticated, async (req: any, res) => {
-    try {
-      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-      res.setHeader('Pragma', 'no-cache');
-      res.setHeader('Expires', '0');
-      
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
-      
-      let user = await storage.getUser(userId);
-      if (!user && typeof userId === 'string' && userId.includes('@')) {
-        user = await storage.getUserByEmail(userId);
-      }
-      
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      
-      const currentDate = req.params.date;
-      
-      console.log(`[PREVIOUS DAY] Current date: ${currentDate}, searching for last available data...`);
-      
-      // Get ALL weeks for user
-      const allWeeks = await storage.getAllHercmWeeksByUserWithDates(user.id);
-      
-      if (!allWeeks || allWeeks.length === 0) {
-        console.log(`[PREVIOUS DAY] No weeks found for user ${user.id}`);
-        return res.json(null);
-      }
-      
-      // 🔥 NEW LOGIC: Search backward up to 7 days to find last available data
-      let week = null;
-      let daysSearched = 0;
-      const maxDaysToSearch = 7;
-      
-      for (let i = 1; i <= maxDaysToSearch; i++) {
-        const searchDateTime = new Date(currentDate);
-        searchDateTime.setDate(searchDateTime.getDate() - i);
-        const searchDate = `${searchDateTime.getFullYear()}-${String(searchDateTime.getMonth() + 1).padStart(2, '0')}-${String(searchDateTime.getDate()).padStart(2, '0')}`;
-        
-        daysSearched = i;
-        
-        // Try exact dateString match
-        const exactMatchWeeks = allWeeks.filter((w: any) => w.dateString === searchDate);
-        
-        if (exactMatchWeeks.length > 0) {
-          console.log(`[PREVIOUS DAY] ✅ Found data for ${searchDate} (${i} days ago)`);
-          week = exactMatchWeeks.sort((a: any, b: any) => 
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          )[0];
-          break;
-        }
-        
-        // Fallback: Try createdAt match
-        const searchDateStart = new Date(searchDate);
-        searchDateStart.setHours(0, 0, 0, 0);
-        
-        const searchDateEnd = new Date(searchDate);
-        searchDateEnd.setHours(23, 59, 59, 999);
-        
-        const createdAtMatches = allWeeks.filter((w: any) => {
-          if (!w.createdAt) return false;
-          const createdDate = new Date(w.createdAt);
-          return createdDate >= searchDateStart && createdDate <= searchDateEnd;
-        });
-        
-        if (createdAtMatches.length > 0) {
-          console.log(`[PREVIOUS DAY] ✅ Found data via createdAt for ${searchDate} (${i} days ago)`);
-          week = createdAtMatches.sort((a: any, b: any) => 
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          )[0];
-          break;
-        }
-      }
-      
-      if (!week) {
-        console.log(`[PREVIOUS DAY] ❌ No data found in last ${daysSearched} days`);
-        return res.json(null);
-      }
-      
-      // Transform to beliefs format
-      const beliefs = [
-        {
-          category: 'Health',
-          currentRating: week.currentH || 0,
-          targetRating: week.targetH || 0,
-          problems: week.healthProblems || '',
-          currentFeelings: week.healthCurrentFeelings || '',
-          currentBelief: week.healthCurrentBelief || '',
-          currentActions: week.healthCurrentActions || '',
-          result: week.healthResult || '',
-          nextFeelings: week.healthNextFeelings || '',
-          nextWeekTarget: week.healthNextTarget || '',
-          nextActions: week.healthNextActions || '',
-          checklist: week.healthChecklist || [],
-          assignment: week.healthAssignment || { courses: [], lessons: [] },
-          problemsChecklist: week.healthProblemsChecklist || [],
-          feelingsCurrentChecklist: week.healthFeelingsCurrentChecklist || [],
-          beliefsCurrentChecklist: week.healthBeliefsCurrentChecklist || [],
-          actionsCurrentChecklist: week.healthActionsCurrentChecklist || [],
-          resultChecklist: week.healthResultChecklist || [],
-          feelingsChecklist: week.healthFeelingsChecklist || [],
-          beliefsChecklist: week.healthBeliefsChecklist || [],
-          actionsChecklist: week.healthActionsChecklist || [],
-        },
-        {
-          category: 'Relationship',
-          currentRating: week.currentE || 0,
-          targetRating: week.targetE || 0,
-          problems: week.relationshipProblems || '',
-          currentFeelings: week.relationshipCurrentFeelings || '',
-          currentBelief: week.relationshipCurrentBelief || '',
-          currentActions: week.relationshipCurrentActions || '',
-          result: week.relationshipResult || '',
-          nextFeelings: week.relationshipNextFeelings || '',
-          nextWeekTarget: week.relationshipNextTarget || '',
-          nextActions: week.relationshipNextActions || '',
-          checklist: week.relationshipChecklist || [],
-          assignment: week.relationshipAssignment || { courses: [], lessons: [] },
-          problemsChecklist: week.relationshipProblemsChecklist || [],
-          feelingsCurrentChecklist: week.relationshipFeelingsCurrentChecklist || [],
-          beliefsCurrentChecklist: week.relationshipBeliefsCurrentChecklist || [],
-          actionsCurrentChecklist: week.relationshipActionsCurrentChecklist || [],
-          resultChecklist: week.relationshipResultChecklist || [],
-          feelingsChecklist: week.relationshipFeelingsChecklist || [],
-          beliefsChecklist: week.relationshipBeliefsChecklist || [],
-          actionsChecklist: week.relationshipActionsChecklist || [],
-        },
-        {
-          category: 'Career',
-          currentRating: week.currentR || 0,
-          targetRating: week.targetR || 0,
-          problems: week.careerProblems || '',
-          currentFeelings: week.careerCurrentFeelings || '',
-          currentBelief: week.careerCurrentBelief || '',
-          currentActions: week.careerCurrentActions || '',
-          result: week.careerResult || '',
-          nextFeelings: week.careerNextFeelings || '',
-          nextWeekTarget: week.careerNextTarget || '',
-          nextActions: week.careerNextActions || '',
-          checklist: week.careerChecklist || [],
-          assignment: week.careerAssignment || { courses: [], lessons: [] },
-          problemsChecklist: week.careerProblemsChecklist || [],
-          feelingsCurrentChecklist: week.careerFeelingsCurrentChecklist || [],
-          beliefsCurrentChecklist: week.careerBeliefsCurrentChecklist || [],
-          actionsCurrentChecklist: week.careerActionsCurrentChecklist || [],
-          resultChecklist: week.careerResultChecklist || [],
-          feelingsChecklist: week.careerFeelingsChecklist || [],
-          beliefsChecklist: week.careerBeliefsChecklist || [],
-          actionsChecklist: week.careerActionsChecklist || [],
-        },
-        {
-          category: 'Money',
-          currentRating: week.currentC || 0,
-          targetRating: week.targetC || 0,
-          problems: week.moneyProblems || '',
-          currentFeelings: week.moneyCurrentFeelings || '',
-          currentBelief: week.moneyCurrentBelief || '',
-          currentActions: week.moneyCurrentActions || '',
-          result: week.moneyResult || '',
-          nextFeelings: week.moneyNextFeelings || '',
-          nextWeekTarget: week.moneyNextTarget || '',
-          nextActions: week.moneyNextActions || '',
-          checklist: week.moneyChecklist || [],
-          assignment: week.moneyAssignment || { courses: [], lessons: [] },
-          problemsChecklist: week.moneyProblemsChecklist || [],
-          feelingsCurrentChecklist: week.moneyFeelingsCurrentChecklist || [],
-          beliefsCurrentChecklist: week.moneyBeliefsCurrentChecklist || [],
-          actionsCurrentChecklist: week.moneyActionsCurrentChecklist || [],
-          resultChecklist: week.moneyResultChecklist || [],
-          feelingsChecklist: week.moneyFeelingsChecklist || [],
-          beliefsChecklist: week.moneyBeliefsChecklist || [],
-          actionsChecklist: week.moneyActionsChecklist || [],
-        }
-      ];
+  app.get(
+    "/api/hercm/previous-day/:date",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        res.setHeader(
+          "Cache-Control",
+          "no-store, no-cache, must-revalidate, private",
+        );
+        res.setHeader("Pragma", "no-cache");
+        res.setHeader("Expires", "0");
 
-      res.json({
-        beliefs,
-        weekNumber: week.weekNumber,
-        createdAt: week.createdAt,
-        dateString: week.dateString,
-        unifiedAssignment: week.unifiedAssignment || []
-      });
-    } catch (error) {
-      console.error("Error fetching previous day data:", error);
-      res.status(500).json({ message: "Failed to fetch previous day data" });
-    }
-  });
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
 
-  // Get HRCM data by specific date (like Emotional Tracker)
-  app.get('/api/hercm/by-date/:date', isAuthenticated, async (req: any, res) => {
-    try {
-      // CRITICAL: Disable ALL caching to prevent showing wrong date's data
-      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-      res.setHeader('Pragma', 'no-cache');
-      res.setHeader('Expires', '0');
-      
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
-      
-      let user = await storage.getUser(userId);
-      if (!user && typeof userId === 'string' && userId.includes('@')) {
-        user = await storage.getUserByEmail(userId);
-      }
-      
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      
-      const requestedDate = req.params.date;
-      
-      // Get ALL weeks for user (no week number deduplication)
-      const allWeeks = await storage.getAllHercmWeeksByUserWithDates(user.id);
-      
-      console.log(`[HERCM BY-DATE] Requested date: ${requestedDate}, Total weeks found: ${allWeeks?.length || 0}`);
-      
-      if (!allWeeks || allWeeks.length === 0) {
-        console.log(`[HERCM BY-DATE] No weeks found for user ${user.id}`);
-        return res.json(null);
-      }
-      
-      // Log all week dates for debugging
-      allWeeks.forEach((week: any, index: number) => {
-        console.log(`[HERCM BY-DATE] Week ${index + 1}: createdAt=${week.createdAt}, dateString=${week.dateString}, weekNumber=${week.weekNumber}`);
-      });
-      
-      // CRITICAL: Check if requested date is in the FUTURE using LOCAL timezone (NOT UTC)
-      // Using UTC caused bug: IST 3rd Nov 1:30 AM → UTC 2nd Nov 8 PM → thought 3rd was future!
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      const todayStr = `${year}-${month}-${day}`;  // Local date, not UTC!
-      
-      const requestedDateTime = new Date(requestedDate).getTime();
-      const todayTime = new Date(todayStr).getTime();
-      
-      console.log(`[BY-DATE DEBUG] Today (LOCAL): ${todayStr}, Requested: ${requestedDate}, Is Future: ${requestedDateTime > todayTime}`);
-      
-      if (requestedDateTime > todayTime) {
-        // FUTURE DATE - Return null (blank table)
-        console.log(`[BY-DATE DEBUG] Future date detected - returning null`);
-        return res.json(null);
-      }
-      
-      // NOT FUTURE (Past or Today) - Show data
-      // IMPROVED SEARCH LOGIC for Google-level performance:
-      // Step 1: Try exact dateString match (fastest, most accurate)
-      const exactMatchWeeks = allWeeks.filter((week: any) => {
-        const isMatch = week.dateString === requestedDate;
-        console.log(`[HERCM BY-DATE] Exact match check: ${week.dateString} === ${requestedDate}: ${isMatch}`);
-        return isMatch;
-      });
-      
-      let week;
-      
-      if (exactMatchWeeks.length > 0) {
-        // Found exact match - return most recent entry for that date
-        console.log(`[BY-DATE DEBUG] ✅ Exact dateString match found for ${requestedDate}`);
-        week = exactMatchWeeks.sort((a: any, b: any) => 
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        )[0];
-      } else {
-        // Step 2: FALLBACK - Use createdAt to find data created on the requested date
-        // This ensures ALL historical data is accessible even if dateString wasn't set properly
-        console.log(`[BY-DATE DEBUG] No exact dateString match, trying createdAt fallback...`);
-        
-        const requestedDateStart = new Date(requestedDate);
-        requestedDateStart.setHours(0, 0, 0, 0);
-        
-        const requestedDateEnd = new Date(requestedDate);
-        requestedDateEnd.setHours(23, 59, 59, 999);
-        
-        const createdAtMatches = allWeeks.filter((week: any) => {
-          if (!week.createdAt) return false;
-          const createdDate = new Date(week.createdAt);
-          const isInRange = createdDate >= requestedDateStart && createdDate <= requestedDateEnd;
-          if (isInRange) {
-            console.log(`[BY-DATE DEBUG] ✅ createdAt match: ${week.createdAt} is on ${requestedDate}`);
-          }
-          return isInRange;
-        });
-        
-        if (createdAtMatches.length > 0) {
-          // Found data created on this date - return most recent
-          console.log(`[BY-DATE DEBUG] ✅ Found ${createdAtMatches.length} entries via createdAt for ${requestedDate}`);
-          week = createdAtMatches.sort((a: any, b: any) => 
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          )[0];
-        } else {
-          // No data found for this date - return null (blank table)
-          console.log(`[BY-DATE DEBUG] ❌ No data found for ${requestedDate} (checked dateString and createdAt)`);
+        let user = await storage.getUser(userId);
+        if (!user && typeof userId === "string" && userId.includes("@")) {
+          user = await storage.getUserByEmail(userId);
+        }
+
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        const currentDate = req.params.date;
+
+        console.log(
+          `[PREVIOUS DAY] Current date: ${currentDate}, searching for last available data...`,
+        );
+
+        // Get ALL weeks for user
+        const allWeeks = await storage.getAllHercmWeeksByUserWithDates(user.id);
+
+        if (!allWeeks || allWeeks.length === 0) {
+          console.log(`[PREVIOUS DAY] No weeks found for user ${user.id}`);
           return res.json(null);
         }
-      }
-      
-      console.log(`[BY-DATE DEBUG] Selected week - createdAt: ${week.createdAt}, healthProblems: ${week.healthProblems}, healthCurrentFeelings: ${week.healthCurrentFeelings}`);
-      
-      // Transform to beliefs format (same as week endpoint)
-      const beliefs = [
-        {
-          category: 'Health',
-          currentRating: week.currentH || 0,
-          targetRating: week.targetH || 0,
-          problems: week.healthProblems || '',
-          currentFeelings: week.healthCurrentFeelings || '',
-          currentBelief: week.healthCurrentBelief || '',
-          currentActions: week.healthCurrentActions || '',
-          result: week.healthResult || '',
-          nextFeelings: week.healthNextFeelings || '',
-          nextWeekTarget: week.healthNextTarget || '',
-          nextActions: week.healthNextActions || '',
-          checklist: week.healthChecklist || [],
-          assignment: week.healthAssignment || { courses: [], lessons: [] },
-          resultChecklist: week.healthResultChecklist || [],
-          feelingsChecklist: week.healthFeelingsChecklist || [],
-          beliefsChecklist: week.healthBeliefsChecklist || [],
-          actionsChecklist: week.healthActionsChecklist || [],
-          problemsChecklist: week.healthProblemsChecklist || [],
-          feelingsCurrentChecklist: week.healthFeelingsCurrentChecklist || [],
-          beliefsCurrentChecklist: week.healthBeliefsCurrentChecklist || [],
-          actionsCurrentChecklist: week.healthActionsCurrentChecklist || []
-        },
-        {
-          category: 'Relationship',
-          currentRating: week.currentE || 0,
-          targetRating: week.targetE || 0,
-          problems: week.relationshipProblems || '',
-          currentFeelings: week.relationshipCurrentFeelings || '',
-          currentBelief: week.relationshipCurrentBelief || '',
-          currentActions: week.relationshipCurrentActions || '',
-          result: week.relationshipResult || '',
-          nextFeelings: week.relationshipNextFeelings || '',
-          nextWeekTarget: week.relationshipNextTarget || '',
-          nextActions: week.relationshipNextActions || '',
-          checklist: week.relationshipChecklist || [],
-          assignment: week.relationshipAssignment || { courses: [], lessons: [] },
-          resultChecklist: week.relationshipResultChecklist || [],
-          feelingsChecklist: week.relationshipFeelingsChecklist || [],
-          beliefsChecklist: week.relationshipBeliefsChecklist || [],
-          actionsChecklist: week.relationshipActionsChecklist || [],
-          problemsChecklist: week.relationshipProblemsChecklist || [],
-          feelingsCurrentChecklist: week.relationshipFeelingsCurrentChecklist || [],
-          beliefsCurrentChecklist: week.relationshipBeliefsCurrentChecklist || [],
-          actionsCurrentChecklist: week.relationshipActionsCurrentChecklist || []
-        },
-        {
-          category: 'Career',
-          currentRating: week.currentR || 0,
-          targetRating: week.targetR || 0,
-          problems: week.careerProblems || '',
-          currentFeelings: week.careerCurrentFeelings || '',
-          currentBelief: week.careerCurrentBelief || '',
-          currentActions: week.careerCurrentActions || '',
-          result: week.careerResult || '',
-          nextFeelings: week.careerNextFeelings || '',
-          nextWeekTarget: week.careerNextTarget || '',
-          nextActions: week.careerNextActions || '',
-          checklist: week.careerChecklist || [],
-          assignment: week.careerAssignment || { courses: [], lessons: [] },
-          resultChecklist: week.careerResultChecklist || [],
-          feelingsChecklist: week.careerFeelingsChecklist || [],
-          beliefsChecklist: week.careerBeliefsChecklist || [],
-          actionsChecklist: week.careerActionsChecklist || [],
-          problemsChecklist: week.careerProblemsChecklist || [],
-          feelingsCurrentChecklist: week.careerFeelingsCurrentChecklist || [],
-          beliefsCurrentChecklist: week.careerBeliefsCurrentChecklist || [],
-          actionsCurrentChecklist: week.careerActionsCurrentChecklist || []
-        },
-        {
-          category: 'Money',
-          currentRating: week.currentC || 0,
-          targetRating: week.targetC || 0,
-          problems: week.moneyProblems || '',
-          currentFeelings: week.moneyCurrentFeelings || '',
-          currentBelief: week.moneyCurrentBelief || '',
-          currentActions: week.moneyCurrentActions || '',
-          result: week.moneyResult || '',
-          nextFeelings: week.moneyNextFeelings || '',
-          nextWeekTarget: week.moneyNextTarget || '',
-          nextActions: week.moneyNextActions || '',
-          checklist: week.moneyChecklist || [],
-          assignment: week.moneyAssignment || { courses: [], lessons: [] },
-          resultChecklist: week.moneyResultChecklist || [],
-          feelingsChecklist: week.moneyFeelingsChecklist || [],
-          beliefsChecklist: week.moneyBeliefsChecklist || [],
-          actionsChecklist: week.moneyActionsChecklist || [],
-          problemsChecklist: week.moneyProblemsChecklist || [],
-          feelingsCurrentChecklist: week.moneyFeelingsCurrentChecklist || [],
-          beliefsCurrentChecklist: week.moneyBeliefsCurrentChecklist || [],
-          actionsCurrentChecklist: week.moneyActionsCurrentChecklist || []
+
+        // 🔥 NEW LOGIC: Search backward up to 7 days to find last available data
+        let week = null;
+        let daysSearched = 0;
+        const maxDaysToSearch = 7;
+
+        for (let i = 1; i <= maxDaysToSearch; i++) {
+          const searchDateTime = new Date(currentDate);
+          searchDateTime.setDate(searchDateTime.getDate() - i);
+          const searchDate = `${searchDateTime.getFullYear()}-${String(searchDateTime.getMonth() + 1).padStart(2, "0")}-${String(searchDateTime.getDate()).padStart(2, "0")}`;
+
+          daysSearched = i;
+
+          // Try exact dateString match
+          const exactMatchWeeks = allWeeks.filter(
+            (w: any) => w.dateString === searchDate,
+          );
+
+          if (exactMatchWeeks.length > 0) {
+            console.log(
+              `[PREVIOUS DAY] ✅ Found data for ${searchDate} (${i} days ago)`,
+            );
+            week = exactMatchWeeks.sort(
+              (a: any, b: any) =>
+                new Date(b.createdAt).getTime() -
+                new Date(a.createdAt).getTime(),
+            )[0];
+            break;
+          }
+
+          // Fallback: Try createdAt match
+          const searchDateStart = new Date(searchDate);
+          searchDateStart.setHours(0, 0, 0, 0);
+
+          const searchDateEnd = new Date(searchDate);
+          searchDateEnd.setHours(23, 59, 59, 999);
+
+          const createdAtMatches = allWeeks.filter((w: any) => {
+            if (!w.createdAt) return false;
+            const createdDate = new Date(w.createdAt);
+            return (
+              createdDate >= searchDateStart && createdDate <= searchDateEnd
+            );
+          });
+
+          if (createdAtMatches.length > 0) {
+            console.log(
+              `[PREVIOUS DAY] ✅ Found data via createdAt for ${searchDate} (${i} days ago)`,
+            );
+            week = createdAtMatches.sort(
+              (a: any, b: any) =>
+                new Date(b.createdAt).getTime() -
+                new Date(a.createdAt).getTime(),
+            )[0];
+            break;
+          }
         }
-      ];
-      
-      res.json({ 
-        beliefs, 
-        createdAt: week.createdAt, 
-        weekNumber: week.weekNumber,
-        dateString: week.dateString,
-        manualNextWeekMode: week.manualNextWeekMode || false  // 🔥 Include manualNextWeekMode in response
-      });
-    } catch (error) {
-      console.error("Error fetching HRCM data by date:", error);
-      res.status(500).json({ message: "Failed to fetch HRCM data" });
-    }
-  });
 
-  app.get('/api/hercm/week/:weekNumber', isAuthenticated, async (req: any, res) => {
-    try {
-      // Handle both OIDC auth (req.user.claims.sub) and email-based auth (req.session.userEmail)
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
-      
-      // Get actual user to ensure we use correct user ID
-      let user = await storage.getUser(userId);
-      if (!user && typeof userId === 'string' && userId.includes('@')) {
-        user = await storage.getUserByEmail(userId);
-      }
-      
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      
-      const weekNumber = parseInt(req.params.weekNumber);
-      let week = await storage.getHercmWeek(user.id, weekNumber);
-      
-      if (!week) {
-        return res.json(null);
-      }
+        if (!week) {
+          console.log(
+            `[PREVIOUS DAY] ❌ No data found in last ${daysSearched} days`,
+          );
+          return res.json(null);
+        }
 
-      // Check if 7 days have passed since week creation
-      const weekCreatedAt = week.createdAt ? new Date(week.createdAt) : new Date();
-      const now = new Date();
-      const daysDiff = Math.floor((now.getTime() - weekCreatedAt.getTime()) / (1000 * 60 * 60 * 24));
-      
-      if (daysDiff >= 7) {
-        // Auto-create new week with empty current week and prefilled next week
-        const newWeekNumber = weekNumber + 1;
-        
-        // Check if next week already exists
-        const existingNextWeek = await storage.getHercmWeek(userId, newWeekNumber);
-        
-        if (!existingNextWeek) {
-          // Create new week with prefilled next week data from previous week's next week section
-          const newWeekData = {
+        // Transform to beliefs format
+        const beliefs = [
+          {
+            category: "Health",
+            currentRating: week.currentH || 0,
+            targetRating: week.targetH || 0,
+            problems: week.healthProblems || "",
+            currentFeelings: week.healthCurrentFeelings || "",
+            currentBelief: week.healthCurrentBelief || "",
+            currentActions: week.healthCurrentActions || "",
+            result: week.healthResult || "",
+            nextFeelings: week.healthNextFeelings || "",
+            nextWeekTarget: week.healthNextTarget || "",
+            nextActions: week.healthNextActions || "",
+            checklist: week.healthChecklist || [],
+            assignment: week.healthAssignment || { courses: [], lessons: [] },
+            problemsChecklist: week.healthProblemsChecklist || [],
+            feelingsCurrentChecklist: week.healthFeelingsCurrentChecklist || [],
+            beliefsCurrentChecklist: week.healthBeliefsCurrentChecklist || [],
+            actionsCurrentChecklist: week.healthActionsCurrentChecklist || [],
+            resultChecklist: week.healthResultChecklist || [],
+            feelingsChecklist: week.healthFeelingsChecklist || [],
+            beliefsChecklist: week.healthBeliefsChecklist || [],
+            actionsChecklist: week.healthActionsChecklist || [],
+          },
+          {
+            category: "Relationship",
+            currentRating: week.currentE || 0,
+            targetRating: week.targetE || 0,
+            problems: week.relationshipProblems || "",
+            currentFeelings: week.relationshipCurrentFeelings || "",
+            currentBelief: week.relationshipCurrentBelief || "",
+            currentActions: week.relationshipCurrentActions || "",
+            result: week.relationshipResult || "",
+            nextFeelings: week.relationshipNextFeelings || "",
+            nextWeekTarget: week.relationshipNextTarget || "",
+            nextActions: week.relationshipNextActions || "",
+            checklist: week.relationshipChecklist || [],
+            assignment: week.relationshipAssignment || {
+              courses: [],
+              lessons: [],
+            },
+            problemsChecklist: week.relationshipProblemsChecklist || [],
+            feelingsCurrentChecklist:
+              week.relationshipFeelingsCurrentChecklist || [],
+            beliefsCurrentChecklist:
+              week.relationshipBeliefsCurrentChecklist || [],
+            actionsCurrentChecklist:
+              week.relationshipActionsCurrentChecklist || [],
+            resultChecklist: week.relationshipResultChecklist || [],
+            feelingsChecklist: week.relationshipFeelingsChecklist || [],
+            beliefsChecklist: week.relationshipBeliefsChecklist || [],
+            actionsChecklist: week.relationshipActionsChecklist || [],
+          },
+          {
+            category: "Career",
+            currentRating: week.currentR || 0,
+            targetRating: week.targetR || 0,
+            problems: week.careerProblems || "",
+            currentFeelings: week.careerCurrentFeelings || "",
+            currentBelief: week.careerCurrentBelief || "",
+            currentActions: week.careerCurrentActions || "",
+            result: week.careerResult || "",
+            nextFeelings: week.careerNextFeelings || "",
+            nextWeekTarget: week.careerNextTarget || "",
+            nextActions: week.careerNextActions || "",
+            checklist: week.careerChecklist || [],
+            assignment: week.careerAssignment || { courses: [], lessons: [] },
+            problemsChecklist: week.careerProblemsChecklist || [],
+            feelingsCurrentChecklist: week.careerFeelingsCurrentChecklist || [],
+            beliefsCurrentChecklist: week.careerBeliefsCurrentChecklist || [],
+            actionsCurrentChecklist: week.careerActionsCurrentChecklist || [],
+            resultChecklist: week.careerResultChecklist || [],
+            feelingsChecklist: week.careerFeelingsChecklist || [],
+            beliefsChecklist: week.careerBeliefsChecklist || [],
+            actionsChecklist: week.careerActionsChecklist || [],
+          },
+          {
+            category: "Money",
+            currentRating: week.currentC || 0,
+            targetRating: week.targetC || 0,
+            problems: week.moneyProblems || "",
+            currentFeelings: week.moneyCurrentFeelings || "",
+            currentBelief: week.moneyCurrentBelief || "",
+            currentActions: week.moneyCurrentActions || "",
+            result: week.moneyResult || "",
+            nextFeelings: week.moneyNextFeelings || "",
+            nextWeekTarget: week.moneyNextTarget || "",
+            nextActions: week.moneyNextActions || "",
+            checklist: week.moneyChecklist || [],
+            assignment: week.moneyAssignment || { courses: [], lessons: [] },
+            problemsChecklist: week.moneyProblemsChecklist || [],
+            feelingsCurrentChecklist: week.moneyFeelingsCurrentChecklist || [],
+            beliefsCurrentChecklist: week.moneyBeliefsCurrentChecklist || [],
+            actionsCurrentChecklist: week.moneyActionsCurrentChecklist || [],
+            resultChecklist: week.moneyResultChecklist || [],
+            feelingsChecklist: week.moneyFeelingsChecklist || [],
+            beliefsChecklist: week.moneyBeliefsChecklist || [],
+            actionsChecklist: week.moneyActionsChecklist || [],
+          },
+        ];
+
+        res.json({
+          beliefs,
+          weekNumber: week.weekNumber,
+          createdAt: week.createdAt,
+          dateString: week.dateString,
+          unifiedAssignment: week.unifiedAssignment || [],
+        });
+      } catch (error) {
+        console.error("Error fetching previous day data:", error);
+        res.status(500).json({ message: "Failed to fetch previous day data" });
+      }
+    },
+  );
+
+  // Get HRCM data by specific date (like Emotional Tracker)
+  app.get(
+    "/api/hercm/by-date/:date",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        // CRITICAL: Disable ALL caching to prevent showing wrong date's data
+        res.setHeader(
+          "Cache-Control",
+          "no-store, no-cache, must-revalidate, private",
+        );
+        res.setHeader("Pragma", "no-cache");
+        res.setHeader("Expires", "0");
+
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        let user = await storage.getUser(userId);
+        if (!user && typeof userId === "string" && userId.includes("@")) {
+          user = await storage.getUserByEmail(userId);
+        }
+
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        const requestedDate = req.params.date;
+
+        // Get ALL weeks for user (no week number deduplication)
+        const allWeeks = await storage.getAllHercmWeeksByUserWithDates(user.id);
+
+        console.log(
+          `[HERCM BY-DATE] Requested date: ${requestedDate}, Total weeks found: ${allWeeks?.length || 0}`,
+        );
+
+        if (!allWeeks || allWeeks.length === 0) {
+          console.log(`[HERCM BY-DATE] No weeks found for user ${user.id}`);
+          return res.json(null);
+        }
+
+        // Log all week dates for debugging
+        allWeeks.forEach((week: any, index: number) => {
+          console.log(
+            `[HERCM BY-DATE] Week ${index + 1}: createdAt=${week.createdAt}, dateString=${week.dateString}, weekNumber=${week.weekNumber}`,
+          );
+        });
+
+        // CRITICAL: Check if requested date is in the FUTURE using LOCAL timezone (NOT UTC)
+        // Using UTC caused bug: IST 3rd Nov 1:30 AM → UTC 2nd Nov 8 PM → thought 3rd was future!
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, "0");
+        const day = String(now.getDate()).padStart(2, "0");
+        const todayStr = `${year}-${month}-${day}`; // Local date, not UTC!
+
+        const requestedDateTime = new Date(requestedDate).getTime();
+        const todayTime = new Date(todayStr).getTime();
+
+        console.log(
+          `[BY-DATE DEBUG] Today (LOCAL): ${todayStr}, Requested: ${requestedDate}, Is Future: ${requestedDateTime > todayTime}`,
+        );
+
+        if (requestedDateTime > todayTime) {
+          // FUTURE DATE - Return null (blank table)
+          console.log(`[BY-DATE DEBUG] Future date detected - returning null`);
+          return res.json(null);
+        }
+
+        // NOT FUTURE (Past or Today) - Show data
+        // IMPROVED SEARCH LOGIC for Google-level performance:
+        // Step 1: Try exact dateString match (fastest, most accurate)
+        const exactMatchWeeks = allWeeks.filter((week: any) => {
+          const isMatch = week.dateString === requestedDate;
+          console.log(
+            `[HERCM BY-DATE] Exact match check: ${week.dateString} === ${requestedDate}: ${isMatch}`,
+          );
+          return isMatch;
+        });
+
+        let week;
+
+        if (exactMatchWeeks.length > 0) {
+          // Found exact match - return most recent entry for that date
+          console.log(
+            `[BY-DATE DEBUG] ✅ Exact dateString match found for ${requestedDate}`,
+          );
+          week = exactMatchWeeks.sort(
+            (a: any, b: any) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+          )[0];
+        } else {
+          // Step 2: FALLBACK - Use createdAt to find data created on the requested date
+          // This ensures ALL historical data is accessible even if dateString wasn't set properly
+          console.log(
+            `[BY-DATE DEBUG] No exact dateString match, trying createdAt fallback...`,
+          );
+
+          const requestedDateStart = new Date(requestedDate);
+          requestedDateStart.setHours(0, 0, 0, 0);
+
+          const requestedDateEnd = new Date(requestedDate);
+          requestedDateEnd.setHours(23, 59, 59, 999);
+
+          const createdAtMatches = allWeeks.filter((week: any) => {
+            if (!week.createdAt) return false;
+            const createdDate = new Date(week.createdAt);
+            const isInRange =
+              createdDate >= requestedDateStart &&
+              createdDate <= requestedDateEnd;
+            if (isInRange) {
+              console.log(
+                `[BY-DATE DEBUG] ✅ createdAt match: ${week.createdAt} is on ${requestedDate}`,
+              );
+            }
+            return isInRange;
+          });
+
+          if (createdAtMatches.length > 0) {
+            // Found data created on this date - return most recent
+            console.log(
+              `[BY-DATE DEBUG] ✅ Found ${createdAtMatches.length} entries via createdAt for ${requestedDate}`,
+            );
+            week = createdAtMatches.sort(
+              (a: any, b: any) =>
+                new Date(b.createdAt).getTime() -
+                new Date(a.createdAt).getTime(),
+            )[0];
+          } else {
+            // No data found for this date - return null (blank table)
+            console.log(
+              `[BY-DATE DEBUG] ❌ No data found for ${requestedDate} (checked dateString and createdAt)`,
+            );
+            return res.json(null);
+          }
+        }
+
+        console.log(
+          `[BY-DATE DEBUG] Selected week - createdAt: ${week.createdAt}, healthProblems: ${week.healthProblems}, healthCurrentFeelings: ${week.healthCurrentFeelings}`,
+        );
+
+        // Transform to beliefs format (same as week endpoint)
+        const beliefs = [
+          {
+            category: "Health",
+            currentRating: week.currentH || 0,
+            targetRating: week.targetH || 0,
+            problems: week.healthProblems || "",
+            currentFeelings: week.healthCurrentFeelings || "",
+            currentBelief: week.healthCurrentBelief || "",
+            currentActions: week.healthCurrentActions || "",
+            result: week.healthResult || "",
+            nextFeelings: week.healthNextFeelings || "",
+            nextWeekTarget: week.healthNextTarget || "",
+            nextActions: week.healthNextActions || "",
+            checklist: week.healthChecklist || [],
+            assignment: week.healthAssignment || { courses: [], lessons: [] },
+            resultChecklist: week.healthResultChecklist || [],
+            feelingsChecklist: week.healthFeelingsChecklist || [],
+            beliefsChecklist: week.healthBeliefsChecklist || [],
+            actionsChecklist: week.healthActionsChecklist || [],
+            problemsChecklist: week.healthProblemsChecklist || [],
+            feelingsCurrentChecklist: week.healthFeelingsCurrentChecklist || [],
+            beliefsCurrentChecklist: week.healthBeliefsCurrentChecklist || [],
+            actionsCurrentChecklist: week.healthActionsCurrentChecklist || [],
+          },
+          {
+            category: "Relationship",
+            currentRating: week.currentE || 0,
+            targetRating: week.targetE || 0,
+            problems: week.relationshipProblems || "",
+            currentFeelings: week.relationshipCurrentFeelings || "",
+            currentBelief: week.relationshipCurrentBelief || "",
+            currentActions: week.relationshipCurrentActions || "",
+            result: week.relationshipResult || "",
+            nextFeelings: week.relationshipNextFeelings || "",
+            nextWeekTarget: week.relationshipNextTarget || "",
+            nextActions: week.relationshipNextActions || "",
+            checklist: week.relationshipChecklist || [],
+            assignment: week.relationshipAssignment || {
+              courses: [],
+              lessons: [],
+            },
+            resultChecklist: week.relationshipResultChecklist || [],
+            feelingsChecklist: week.relationshipFeelingsChecklist || [],
+            beliefsChecklist: week.relationshipBeliefsChecklist || [],
+            actionsChecklist: week.relationshipActionsChecklist || [],
+            problemsChecklist: week.relationshipProblemsChecklist || [],
+            feelingsCurrentChecklist:
+              week.relationshipFeelingsCurrentChecklist || [],
+            beliefsCurrentChecklist:
+              week.relationshipBeliefsCurrentChecklist || [],
+            actionsCurrentChecklist:
+              week.relationshipActionsCurrentChecklist || [],
+          },
+          {
+            category: "Career",
+            currentRating: week.currentR || 0,
+            targetRating: week.targetR || 0,
+            problems: week.careerProblems || "",
+            currentFeelings: week.careerCurrentFeelings || "",
+            currentBelief: week.careerCurrentBelief || "",
+            currentActions: week.careerCurrentActions || "",
+            result: week.careerResult || "",
+            nextFeelings: week.careerNextFeelings || "",
+            nextWeekTarget: week.careerNextTarget || "",
+            nextActions: week.careerNextActions || "",
+            checklist: week.careerChecklist || [],
+            assignment: week.careerAssignment || { courses: [], lessons: [] },
+            resultChecklist: week.careerResultChecklist || [],
+            feelingsChecklist: week.careerFeelingsChecklist || [],
+            beliefsChecklist: week.careerBeliefsChecklist || [],
+            actionsChecklist: week.careerActionsChecklist || [],
+            problemsChecklist: week.careerProblemsChecklist || [],
+            feelingsCurrentChecklist: week.careerFeelingsCurrentChecklist || [],
+            beliefsCurrentChecklist: week.careerBeliefsCurrentChecklist || [],
+            actionsCurrentChecklist: week.careerActionsCurrentChecklist || [],
+          },
+          {
+            category: "Money",
+            currentRating: week.currentC || 0,
+            targetRating: week.targetC || 0,
+            problems: week.moneyProblems || "",
+            currentFeelings: week.moneyCurrentFeelings || "",
+            currentBelief: week.moneyCurrentBelief || "",
+            currentActions: week.moneyCurrentActions || "",
+            result: week.moneyResult || "",
+            nextFeelings: week.moneyNextFeelings || "",
+            nextWeekTarget: week.moneyNextTarget || "",
+            nextActions: week.moneyNextActions || "",
+            checklist: week.moneyChecklist || [],
+            assignment: week.moneyAssignment || { courses: [], lessons: [] },
+            resultChecklist: week.moneyResultChecklist || [],
+            feelingsChecklist: week.moneyFeelingsChecklist || [],
+            beliefsChecklist: week.moneyBeliefsChecklist || [],
+            actionsChecklist: week.moneyActionsChecklist || [],
+            problemsChecklist: week.moneyProblemsChecklist || [],
+            feelingsCurrentChecklist: week.moneyFeelingsCurrentChecklist || [],
+            beliefsCurrentChecklist: week.moneyBeliefsCurrentChecklist || [],
+            actionsCurrentChecklist: week.moneyActionsCurrentChecklist || [],
+          },
+        ];
+
+        res.json({
+          beliefs,
+          createdAt: week.createdAt,
+          weekNumber: week.weekNumber,
+          dateString: week.dateString,
+          manualNextWeekMode: week.manualNextWeekMode || false, // 🔥 Include manualNextWeekMode in response
+        });
+      } catch (error) {
+        console.error("Error fetching HRCM data by date:", error);
+        res.status(500).json({ message: "Failed to fetch HRCM data" });
+      }
+    },
+  );
+
+  app.get(
+    "/api/hercm/week/:weekNumber",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        // Handle both OIDC auth (req.user.claims.sub) and email-based auth (req.session.userEmail)
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        // Get actual user to ensure we use correct user ID
+        let user = await storage.getUser(userId);
+        if (!user && typeof userId === "string" && userId.includes("@")) {
+          user = await storage.getUserByEmail(userId);
+        }
+
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        const weekNumber = parseInt(req.params.weekNumber);
+        let week = await storage.getHercmWeek(user.id, weekNumber);
+
+        if (!week) {
+          return res.json(null);
+        }
+
+        // Check if 7 days have passed since week creation
+        const weekCreatedAt = week.createdAt
+          ? new Date(week.createdAt)
+          : new Date();
+        const now = new Date();
+        const daysDiff = Math.floor(
+          (now.getTime() - weekCreatedAt.getTime()) / (1000 * 60 * 60 * 24),
+        );
+
+        if (daysDiff >= 7) {
+          // Auto-create new week with empty current week and prefilled next week
+          const newWeekNumber = weekNumber + 1;
+
+          // Check if next week already exists
+          const existingNextWeek = await storage.getHercmWeek(
             userId,
-            weekNumber: newWeekNumber,
-            year: now.getFullYear(),
-            
-            // Current week - empty ratings (will be set manually)
-            currentH: 0,
-            currentE: 0,
-            currentR: 0,
-            currentC: 0,
-            
-            // Next week - prefilled from previous week's next week section
-            targetH: week.targetH || 0,
-            targetE: week.targetE || 0,
-            targetR: week.targetR || 0,
-            targetC: week.targetC || 0,
-            
-            // Next week assignments and checklist from previous week
-            healthAssignment: week.healthAssignment || { courses: [], lessons: [] },
-            healthChecklist: week.healthChecklist || [],
-            relationshipAssignment: week.relationshipAssignment || { courses: [], lessons: [] },
-            relationshipChecklist: week.relationshipChecklist || [],
-            careerAssignment: week.careerAssignment || { courses: [], lessons: [] },
-            careerChecklist: week.careerChecklist || [],
-            moneyAssignment: week.moneyAssignment || { courses: [], lessons: [] },
-            moneyChecklist: week.moneyChecklist || [],
-          };
-          
-          await storage.createHercmWeek(newWeekData);
-        }
-        
-        // Return the new week data with indicator for frontend
-        week = await storage.getHercmWeek(userId, newWeekNumber) || week;
-      }
-      
-      // Transform database format back to beliefs array for frontend
-      console.log('[API DEBUG] healthChecklist from DB:', week.healthChecklist);
-      console.log('[API DEBUG] healthChecklist type:', typeof week.healthChecklist);
-      console.log('[API DEBUG] healthChecklist is array:', Array.isArray(week.healthChecklist));
-      console.log('[API DEBUG] healthChecklist length:', week.healthChecklist?.length);
-      
-      const beliefs = [
-        {
-          category: 'Health',
-          currentRating: week.currentH || 1,
-          targetRating: week.targetH || 1,
-          problems: week.healthProblems || '',
-          currentFeelings: week.healthCurrentFeelings || '',
-          currentBelief: week.healthCurrentBelief || '',
-          currentActions: week.healthCurrentActions || '',
-          result: week.healthResult || '',
-          nextFeelings: week.healthNextFeelings || '',
-          nextWeekTarget: week.healthNextTarget || '',
-          nextActions: week.healthNextActions || '',
-          checklist: week.healthChecklist || [],
-          assignment: week.healthAssignment || { courses: [], lessons: [] },
-          resultChecklist: week.healthResultChecklist || [],
-          feelingsChecklist: week.healthFeelingsChecklist || [],
-          beliefsChecklist: week.healthBeliefsChecklist || [],
-          actionsChecklist: week.healthActionsChecklist || [],
-          problemsChecklist: week.healthProblemsChecklist || [],
-          feelingsCurrentChecklist: week.healthFeelingsCurrentChecklist || [],
-          beliefsCurrentChecklist: week.healthBeliefsCurrentChecklist || [],
-          actionsCurrentChecklist: week.healthActionsCurrentChecklist || []
-        },
-        {
-          category: 'Relationship',
-          currentRating: week.currentE || 1,
-          targetRating: week.targetE || 1,
-          problems: week.relationshipProblems || '',
-          currentFeelings: week.relationshipCurrentFeelings || '',
-          currentBelief: week.relationshipCurrentBelief || '',
-          currentActions: week.relationshipCurrentActions || '',
-          result: week.relationshipResult || '',
-          nextFeelings: week.relationshipNextFeelings || '',
-          nextWeekTarget: week.relationshipNextTarget || '',
-          nextActions: week.relationshipNextActions || '',
-          checklist: week.relationshipChecklist || [],
-          assignment: week.relationshipAssignment || { courses: [], lessons: [] },
-          resultChecklist: week.relationshipResultChecklist || [],
-          feelingsChecklist: week.relationshipFeelingsChecklist || [],
-          beliefsChecklist: week.relationshipBeliefsChecklist || [],
-          actionsChecklist: week.relationshipActionsChecklist || [],
-          problemsChecklist: week.relationshipProblemsChecklist || [],
-          feelingsCurrentChecklist: week.relationshipFeelingsCurrentChecklist || [],
-          beliefsCurrentChecklist: week.relationshipBeliefsCurrentChecklist || [],
-          actionsCurrentChecklist: week.relationshipActionsCurrentChecklist || []
-        },
-        {
-          category: 'Career',
-          currentRating: week.currentR || 1,
-          targetRating: week.targetR || 1,
-          problems: week.careerProblems || '',
-          currentFeelings: week.careerCurrentFeelings || '',
-          currentBelief: week.careerCurrentBelief || '',
-          currentActions: week.careerCurrentActions || '',
-          result: week.careerResult || '',
-          nextFeelings: week.careerNextFeelings || '',
-          nextWeekTarget: week.careerNextTarget || '',
-          nextActions: week.careerNextActions || '',
-          checklist: week.careerChecklist || [],
-          assignment: week.careerAssignment || { courses: [], lessons: [] },
-          resultChecklist: week.careerResultChecklist || [],
-          feelingsChecklist: week.careerFeelingsChecklist || [],
-          beliefsChecklist: week.careerBeliefsChecklist || [],
-          actionsChecklist: week.careerActionsChecklist || [],
-          problemsChecklist: week.careerProblemsChecklist || [],
-          feelingsCurrentChecklist: week.careerFeelingsCurrentChecklist || [],
-          beliefsCurrentChecklist: week.careerBeliefsCurrentChecklist || [],
-          actionsCurrentChecklist: week.careerActionsCurrentChecklist || []
-        },
-        {
-          category: 'Money',
-          currentRating: week.currentC || 1,
-          targetRating: week.targetC || 1,
-          problems: week.moneyProblems || '',
-          currentFeelings: week.moneyCurrentFeelings || '',
-          currentBelief: week.moneyCurrentBelief || '',
-          currentActions: week.moneyCurrentActions || '',
-          result: week.moneyResult || '',
-          nextFeelings: week.moneyNextFeelings || '',
-          nextWeekTarget: week.moneyNextTarget || '',
-          nextActions: week.moneyNextActions || '',
-          checklist: week.moneyChecklist || [],
-          assignment: week.moneyAssignment || { courses: [], lessons: [] },
-          resultChecklist: week.moneyResultChecklist || [],
-          feelingsChecklist: week.moneyFeelingsChecklist || [],
-          beliefsChecklist: week.moneyBeliefsChecklist || [],
-          actionsChecklist: week.moneyActionsChecklist || [],
-          problemsChecklist: week.moneyProblemsChecklist || [],
-          feelingsCurrentChecklist: week.moneyFeelingsCurrentChecklist || [],
-          beliefsCurrentChecklist: week.moneyBeliefsCurrentChecklist || [],
-          actionsCurrentChecklist: week.moneyActionsCurrentChecklist || []
-        }
-      ];
-      
-      res.json({ ...week, beliefs });
-    } catch (error) {
-      console.error("Error fetching HERCM week:", error);
-      res.status(500).json({ message: "Failed to fetch week" });
-    }
-  });
+            newWeekNumber,
+          );
 
-  app.post('/api/hercm/weeks', isAuthenticated, async (req: any, res) => {
+          if (!existingNextWeek) {
+            // Create new week with prefilled next week data from previous week's next week section
+            const newWeekData = {
+              userId,
+              weekNumber: newWeekNumber,
+              year: now.getFullYear(),
+
+              // Current week - empty ratings (will be set manually)
+              currentH: 0,
+              currentE: 0,
+              currentR: 0,
+              currentC: 0,
+
+              // Next week - prefilled from previous week's next week section
+              targetH: week.targetH || 0,
+              targetE: week.targetE || 0,
+              targetR: week.targetR || 0,
+              targetC: week.targetC || 0,
+
+              // Next week assignments and checklist from previous week
+              healthAssignment: week.healthAssignment || {
+                courses: [],
+                lessons: [],
+              },
+              healthChecklist: week.healthChecklist || [],
+              relationshipAssignment: week.relationshipAssignment || {
+                courses: [],
+                lessons: [],
+              },
+              relationshipChecklist: week.relationshipChecklist || [],
+              careerAssignment: week.careerAssignment || {
+                courses: [],
+                lessons: [],
+              },
+              careerChecklist: week.careerChecklist || [],
+              moneyAssignment: week.moneyAssignment || {
+                courses: [],
+                lessons: [],
+              },
+              moneyChecklist: week.moneyChecklist || [],
+            };
+
+            await storage.createHercmWeek(newWeekData);
+          }
+
+          // Return the new week data with indicator for frontend
+          week = (await storage.getHercmWeek(userId, newWeekNumber)) || week;
+        }
+
+        // Transform database format back to beliefs array for frontend
+        console.log(
+          "[API DEBUG] healthChecklist from DB:",
+          week.healthChecklist,
+        );
+        console.log(
+          "[API DEBUG] healthChecklist type:",
+          typeof week.healthChecklist,
+        );
+        console.log(
+          "[API DEBUG] healthChecklist is array:",
+          Array.isArray(week.healthChecklist),
+        );
+        console.log(
+          "[API DEBUG] healthChecklist length:",
+          week.healthChecklist?.length,
+        );
+
+        const beliefs = [
+          {
+            category: "Health",
+            currentRating: week.currentH || 1,
+            targetRating: week.targetH || 1,
+            problems: week.healthProblems || "",
+            currentFeelings: week.healthCurrentFeelings || "",
+            currentBelief: week.healthCurrentBelief || "",
+            currentActions: week.healthCurrentActions || "",
+            result: week.healthResult || "",
+            nextFeelings: week.healthNextFeelings || "",
+            nextWeekTarget: week.healthNextTarget || "",
+            nextActions: week.healthNextActions || "",
+            checklist: week.healthChecklist || [],
+            assignment: week.healthAssignment || { courses: [], lessons: [] },
+            resultChecklist: week.healthResultChecklist || [],
+            feelingsChecklist: week.healthFeelingsChecklist || [],
+            beliefsChecklist: week.healthBeliefsChecklist || [],
+            actionsChecklist: week.healthActionsChecklist || [],
+            problemsChecklist: week.healthProblemsChecklist || [],
+            feelingsCurrentChecklist: week.healthFeelingsCurrentChecklist || [],
+            beliefsCurrentChecklist: week.healthBeliefsCurrentChecklist || [],
+            actionsCurrentChecklist: week.healthActionsCurrentChecklist || [],
+          },
+          {
+            category: "Relationship",
+            currentRating: week.currentE || 1,
+            targetRating: week.targetE || 1,
+            problems: week.relationshipProblems || "",
+            currentFeelings: week.relationshipCurrentFeelings || "",
+            currentBelief: week.relationshipCurrentBelief || "",
+            currentActions: week.relationshipCurrentActions || "",
+            result: week.relationshipResult || "",
+            nextFeelings: week.relationshipNextFeelings || "",
+            nextWeekTarget: week.relationshipNextTarget || "",
+            nextActions: week.relationshipNextActions || "",
+            checklist: week.relationshipChecklist || [],
+            assignment: week.relationshipAssignment || {
+              courses: [],
+              lessons: [],
+            },
+            resultChecklist: week.relationshipResultChecklist || [],
+            feelingsChecklist: week.relationshipFeelingsChecklist || [],
+            beliefsChecklist: week.relationshipBeliefsChecklist || [],
+            actionsChecklist: week.relationshipActionsChecklist || [],
+            problemsChecklist: week.relationshipProblemsChecklist || [],
+            feelingsCurrentChecklist:
+              week.relationshipFeelingsCurrentChecklist || [],
+            beliefsCurrentChecklist:
+              week.relationshipBeliefsCurrentChecklist || [],
+            actionsCurrentChecklist:
+              week.relationshipActionsCurrentChecklist || [],
+          },
+          {
+            category: "Career",
+            currentRating: week.currentR || 1,
+            targetRating: week.targetR || 1,
+            problems: week.careerProblems || "",
+            currentFeelings: week.careerCurrentFeelings || "",
+            currentBelief: week.careerCurrentBelief || "",
+            currentActions: week.careerCurrentActions || "",
+            result: week.careerResult || "",
+            nextFeelings: week.careerNextFeelings || "",
+            nextWeekTarget: week.careerNextTarget || "",
+            nextActions: week.careerNextActions || "",
+            checklist: week.careerChecklist || [],
+            assignment: week.careerAssignment || { courses: [], lessons: [] },
+            resultChecklist: week.careerResultChecklist || [],
+            feelingsChecklist: week.careerFeelingsChecklist || [],
+            beliefsChecklist: week.careerBeliefsChecklist || [],
+            actionsChecklist: week.careerActionsChecklist || [],
+            problemsChecklist: week.careerProblemsChecklist || [],
+            feelingsCurrentChecklist: week.careerFeelingsCurrentChecklist || [],
+            beliefsCurrentChecklist: week.careerBeliefsCurrentChecklist || [],
+            actionsCurrentChecklist: week.careerActionsCurrentChecklist || [],
+          },
+          {
+            category: "Money",
+            currentRating: week.currentC || 1,
+            targetRating: week.targetC || 1,
+            problems: week.moneyProblems || "",
+            currentFeelings: week.moneyCurrentFeelings || "",
+            currentBelief: week.moneyCurrentBelief || "",
+            currentActions: week.moneyCurrentActions || "",
+            result: week.moneyResult || "",
+            nextFeelings: week.moneyNextFeelings || "",
+            nextWeekTarget: week.moneyNextTarget || "",
+            nextActions: week.moneyNextActions || "",
+            checklist: week.moneyChecklist || [],
+            assignment: week.moneyAssignment || { courses: [], lessons: [] },
+            resultChecklist: week.moneyResultChecklist || [],
+            feelingsChecklist: week.moneyFeelingsChecklist || [],
+            beliefsChecklist: week.moneyBeliefsChecklist || [],
+            actionsChecklist: week.moneyActionsChecklist || [],
+            problemsChecklist: week.moneyProblemsChecklist || [],
+            feelingsCurrentChecklist: week.moneyFeelingsCurrentChecklist || [],
+            beliefsCurrentChecklist: week.moneyBeliefsCurrentChecklist || [],
+            actionsCurrentChecklist: week.moneyActionsCurrentChecklist || [],
+          },
+        ];
+
+        res.json({ ...week, beliefs });
+      } catch (error) {
+        console.error("Error fetching HERCM week:", error);
+        res.status(500).json({ message: "Failed to fetch week" });
+      }
+    },
+  );
+
+  app.post("/api/hercm/weeks", isAuthenticated, async (req: any, res) => {
     try {
       // Handle both OIDC auth (req.user.claims.sub) and email-based auth (req.session.userEmail)
       const userId = req.user?.claims?.sub || req.session.userEmail;
       if (!userId) {
         return res.status(401).json({ message: "User not authenticated" });
       }
-      
+
       const weekData = { ...req.body, userId };
       const week = await storage.createHercmWeek(weekData);
       res.json(week);
@@ -1033,413 +1214,608 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Generate Next Week - carries forward unchecked assignments
-  app.post('/api/hercm/generate-next-week', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
+  app.post(
+    "/api/hercm/generate-next-week",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        const { weekNumber, beliefs } = req.body;
+        const nextWeekNumber = weekNumber + 1;
+
+        // Get current week to preserve unifiedAssignment
+        const currentWeek = await storage.getHercmWeek(userId, weekNumber);
+
+        // Get unchecked lessons from current week's assignments
+        const uncheckedAssignments: any = {
+          health: { courses: [], lessons: [] },
+          relationship: { courses: [], lessons: [] },
+          career: { courses: [], lessons: [] },
+          money: { courses: [], lessons: [] },
+        };
+
+        if (beliefs && Array.isArray(beliefs)) {
+          beliefs.forEach((belief: any) => {
+            const category = belief.category.toLowerCase();
+            if (belief.assignment && belief.assignment.lessons) {
+              // Filter only unchecked lessons
+              const uncheckedLessons = belief.assignment.lessons.filter(
+                (l: any) => !l.completed,
+              );
+              uncheckedAssignments[category] = {
+                courses: belief.assignment.courses || [],
+                lessons: uncheckedLessons,
+              };
+            }
+          });
+        }
+
+        // Preserve unifiedAssignment from current week (filter out completed items)
+        let unifiedAssignment: any[] = [];
+        if (
+          currentWeek &&
+          currentWeek.unifiedAssignment &&
+          Array.isArray(currentWeek.unifiedAssignment)
+        ) {
+          // Carry forward only uncompleted items
+          unifiedAssignment = currentWeek.unifiedAssignment.filter(
+            (item: any) => !item.completed,
+          );
+        }
+
+        // Create new week with carried-forward assignments
+        const newWeekData = {
+          userId,
+          weekNumber: nextWeekNumber,
+          year: new Date().getFullYear(),
+          currentH: 1,
+          currentE: 1,
+          currentR: 1,
+          currentC: 1,
+          currentM: 1,
+          healthAssignment: uncheckedAssignments.health,
+          relationshipAssignment: uncheckedAssignments.relationship,
+          careerAssignment: uncheckedAssignments.career,
+          moneyAssignment: uncheckedAssignments.money,
+          unifiedAssignment: unifiedAssignment,
+        };
+
+        await storage.createHercmWeek(newWeekData as any);
+
+        res.json({ success: true, weekNumber: nextWeekNumber });
+      } catch (error) {
+        console.error("Error generating next week:", error);
+        res.status(500).json({ message: "Failed to generate next week" });
       }
-      
-      const { weekNumber, beliefs } = req.body;
-      const nextWeekNumber = weekNumber + 1;
-      
-      // Get current week to preserve unifiedAssignment
-      const currentWeek = await storage.getHercmWeek(userId, weekNumber);
-      
-      // Get unchecked lessons from current week's assignments
-      const uncheckedAssignments: any = {
-        health: { courses: [], lessons: [] },
-        relationship: { courses: [], lessons: [] },
-        career: { courses: [], lessons: [] },
-        money: { courses: [], lessons: [] }
-      };
-      
-      if (beliefs && Array.isArray(beliefs)) {
-        beliefs.forEach((belief: any) => {
-          const category = belief.category.toLowerCase();
-          if (belief.assignment && belief.assignment.lessons) {
-            // Filter only unchecked lessons
-            const uncheckedLessons = belief.assignment.lessons.filter((l: any) => !l.completed);
-            uncheckedAssignments[category] = {
-              courses: belief.assignment.courses || [],
-              lessons: uncheckedLessons
-            };
-          }
-        });
-      }
-      
-      // Preserve unifiedAssignment from current week (filter out completed items)
-      let unifiedAssignment: any[] = [];
-      if (currentWeek && currentWeek.unifiedAssignment && Array.isArray(currentWeek.unifiedAssignment)) {
-        // Carry forward only uncompleted items
-        unifiedAssignment = currentWeek.unifiedAssignment.filter((item: any) => !item.completed);
-      }
-      
-      // Create new week with carried-forward assignments
-      const newWeekData = {
-        userId,
-        weekNumber: nextWeekNumber,
-        year: new Date().getFullYear(),
-        currentH: 1,
-        currentE: 1,
-        currentR: 1,
-        currentC: 1,
-        currentM: 1,
-        healthAssignment: uncheckedAssignments.health,
-        relationshipAssignment: uncheckedAssignments.relationship,
-        careerAssignment: uncheckedAssignments.career,
-        moneyAssignment: uncheckedAssignments.money,
-        unifiedAssignment: unifiedAssignment
-      };
-      
-      await storage.createHercmWeek(newWeekData as any);
-      
-      res.json({ success: true, weekNumber: nextWeekNumber });
-    } catch (error) {
-      console.error("Error generating next week:", error);
-      res.status(500).json({ message: "Failed to generate next week" });
-    }
-  });
+    },
+  );
 
   // Auto-fill next week goals based on current week data
-  app.post('/api/hercm/auto-fill-goals', isAuthenticated, async (req: any, res) => {
-    try {
-      const { currentH, currentE, currentR, currentC, currentM } = req.body;
-      
-      // Auto-fill logic: +1 if below 5, maintain if 5, +2 if very low
-      const autoFill = (rating: number) => {
-        if (!rating) return 3; // Default if no rating
-        if (rating >= 5) return 5; // Maintain max
-        if (rating <= 2) return Math.min(rating + 2, 5); // Aggressive improvement for low ratings
-        return Math.min(rating + 1, 5); // Normal increment
-      };
-      
-      const suggestions = {
-        nextWeekH: autoFill(currentH),
-        nextWeekE: autoFill(currentE),
-        nextWeekR: autoFill(currentR),
-        nextWeekC: autoFill(currentC),
-        nextWeekM: autoFill(currentM),
-      };
-      
-      res.json(suggestions);
-    } catch (error) {
-      console.error("Error auto-filling goals:", error);
-      res.status(500).json({ message: "Failed to auto-fill goals" });
-    }
-  });
+  app.post(
+    "/api/hercm/auto-fill-goals",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const { currentH, currentE, currentR, currentC, currentM } = req.body;
+
+        // Auto-fill logic: +1 if below 5, maintain if 5, +2 if very low
+        const autoFill = (rating: number) => {
+          if (!rating) return 3; // Default if no rating
+          if (rating >= 5) return 5; // Maintain max
+          if (rating <= 2) return Math.min(rating + 2, 5); // Aggressive improvement for low ratings
+          return Math.min(rating + 1, 5); // Normal increment
+        };
+
+        const suggestions = {
+          nextWeekH: autoFill(currentH),
+          nextWeekE: autoFill(currentE),
+          nextWeekR: autoFill(currentR),
+          nextWeekC: autoFill(currentC),
+          nextWeekM: autoFill(currentM),
+        };
+
+        res.json(suggestions);
+      } catch (error) {
+        console.error("Error auto-filling goals:", error);
+        res.status(500).json({ message: "Failed to auto-fill goals" });
+      }
+    },
+  );
 
   // Save current week with comparison calculation
-  app.post('/api/hercm/save-with-comparison', isAuthenticated, async (req: any, res) => {
-    try {
-      // Handle both OIDC auth (req.user.claims.sub) and email-based auth (req.session.userEmail)
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
-      
-      // Ensure user exists in users table (create if doesn't exist) - fixes FK constraint for rating_progression
-      const existingUser = await storage.getUser(userId);
-      if (!existingUser) {
-        const userEmail = typeof userId === 'string' && userId.includes('@') ? userId : req.session.userEmail;
-        const claims = req.user?.claims;
-        await storage.upsertUser({
-          id: userId,
-          email: userEmail || userId,
-          firstName: claims?.first_name || null,
-          lastName: claims?.last_name || null,
-          profileImageUrl: claims?.profile_image_url || null,
-        });
-      }
-      
-      const weekData = { 
-        ...req.body, 
-        userId,
-        year: req.body.year || new Date().getFullYear() // Add current year if not provided
-      };
-      
-      // Map beliefs array to category-specific database columns
-      if (weekData.beliefs && Array.isArray(weekData.beliefs)) {
-        // Initialize default values for all H-E-R-C-M columns
-        weekData.currentH = 1;
-        weekData.targetH = 1;
-        weekData.currentE = 1;
-        weekData.targetE = 1;
-        weekData.currentR = 1;
-        weekData.targetR = 1;
-        weekData.currentC = 1;
-        weekData.targetC = 1;
-        weekData.currentM = 1; // Default for unused Maturity column
-        weekData.targetM = 1;
-        
-        weekData.beliefs.forEach((belief: any) => {
-          const prefix = belief.category.toLowerCase(); // 'health', 'relationship', 'career', 'money'
-          
-          // Map rating fields to H-E-R-C-M format
-          if (belief.category === 'Health') {
-            weekData.currentH = belief.currentRating || 1;
-            weekData.targetH = belief.targetRating || 1;
-          } else if (belief.category === 'Relationship') {
-            weekData.currentE = belief.currentRating || 1;
-            weekData.targetE = belief.targetRating || 1;
-          } else if (belief.category === 'Career') {
-            weekData.currentR = belief.currentRating || 1;
-            weekData.targetR = belief.targetRating || 1;
-          } else if (belief.category === 'Money') {
-            weekData.currentC = belief.currentRating || 1;
-            weekData.targetC = belief.targetRating || 1;
-          }
-          
-          // Map problems, feelings, actions fields
-          weekData[`${prefix}Problems`] = belief.problems || '';
-          weekData[`${prefix}CurrentFeelings`] = belief.currentFeelings || '';
-          weekData[`${prefix}CurrentBelief`] = belief.currentBelief || '';
-          weekData[`${prefix}CurrentActions`] = belief.currentActions || '';
-          
-          // Map next week fields (result, feelings, target, actions)
-          weekData[`${prefix}Result`] = belief.result || '';
-          weekData[`${prefix}NextFeelings`] = belief.nextFeelings || '';
-          weekData[`${prefix}NextTarget`] = belief.nextWeekTarget || '';
-          weekData[`${prefix}NextActions`] = belief.nextActions || '';
-          
-          // Map assignment
-          weekData[`${prefix}Assignment`] = belief.assignment || { courses: [], lessons: [] };
-          
-          // Map checklist (Current Week Platinum Standards)
-          weekData[`${prefix}Checklist`] = belief.checklist || [];
-          
-          // Map Next Week Target checklists
-          weekData[`${prefix}ResultChecklist`] = belief.resultChecklist || [];
-          weekData[`${prefix}FeelingsChecklist`] = belief.feelingsChecklist || [];
-          weekData[`${prefix}BeliefsChecklist`] = belief.beliefsChecklist || [];
-          weekData[`${prefix}ActionsChecklist`] = belief.actionsChecklist || [];
-          
-          // Map Current Week checkpoint checklists
-          weekData[`${prefix}ProblemsChecklist`] = belief.problemsChecklist || [];
-          weekData[`${prefix}FeelingsCurrentChecklist`] = belief.feelingsCurrentChecklist || [];
-          weekData[`${prefix}BeliefsCurrentChecklist`] = belief.beliefsCurrentChecklist || [];
-          weekData[`${prefix}ActionsCurrentChecklist`] = belief.actionsCurrentChecklist || [];
-        });
-      }
-      
-      // Apply rating caps before calculating improvements
-      if (weekData.currentH !== null) {
-        const healthResult = await validateAndCapRating(userId, 'health', weekData.currentH);
-        weekData.currentH = healthResult.cappedRating;
-      }
-      if (weekData.currentE !== null) {
-        const relationshipResult = await validateAndCapRating(userId, 'relationship', weekData.currentE);
-        weekData.currentE = relationshipResult.cappedRating;
-      }
-      if (weekData.currentR !== null) {
-        const careerResult = await validateAndCapRating(userId, 'career', weekData.currentR);
-        weekData.currentR = careerResult.cappedRating;
-      }
-      if (weekData.currentC !== null) {
-        const moneyResult = await validateAndCapRating(userId, 'money', weekData.currentC);
-        weekData.currentC = moneyResult.cappedRating;
-      }
-      
-      // Calculate improvements if targets exist
-      if (weekData.targetH !== null && weekData.currentH !== null) {
-        weekData.improvementH = weekData.currentH - (weekData.targetH || 0);
-        weekData.improvementE = weekData.currentE - (weekData.targetE || 0);
-        weekData.improvementR = weekData.currentR - (weekData.targetR || 0);
-        weekData.improvementC = weekData.currentC - (weekData.targetC || 0);
-        weekData.improvementM = weekData.currentM - (weekData.targetM || 0);
-        
-        // Calculate overall score (H, E, R, C = 4 areas, NOT 5)
-        // currentM is legacy/unused - only use H, E(Relationship), R(Career), C(Money)
-        const current = [weekData.currentH, weekData.currentE, weekData.currentR, weekData.currentC];
-        weekData.overallScore = Math.round(current.reduce((a, b) => a + (b || 0), 0) / 4);
-        
-        // Achievement rate: WEEKLY PROGRESS percentage (checklist completion across all 4 HRCM areas)
-        // This matches the "Progress" column shown in dashboard
-        const calculateChecklistProgress = (checklist: any[]): number => {
-          if (!checklist || checklist.length === 0) return 0;
-          const completed = checklist.filter((item: any) => item.checked).length;
-          return (completed / checklist.length) * 100;
-        };
-        
-        const healthProgress = calculateChecklistProgress(weekData.healthChecklist || []);
-        const relationshipProgress = calculateChecklistProgress(weekData.relationshipChecklist || []);
-        const careerProgress = calculateChecklistProgress(weekData.careerChecklist || []);
-        const moneyProgress = calculateChecklistProgress(weekData.moneyChecklist || []);
-        
-        // Average progress across all 4 areas
-        weekData.achievementRate = Math.round((healthProgress + relationshipProgress + careerProgress + moneyProgress) / 4);
-      }
-      
-      // COMPREHENSIVE LOGGING: Track text field saves + CHECKPOINT DATA
-      console.log(`[SAVE] === SAVE OPERATION START ===`);
-      console.log(`[SAVE] User: ${userId}, Week: ${weekData.weekNumber}`);
-      console.log(`[SAVE] Text fields being saved:`);
-      console.log(`[SAVE]   Health - Problems: "${weekData.healthProblems?.substring(0, 50)}..." (${weekData.healthProblems?.length || 0} chars)`);
-      console.log(`[SAVE]   Health - Feelings: "${weekData.healthCurrentFeelings?.substring(0, 50)}..." (${weekData.healthCurrentFeelings?.length || 0} chars)`);
-      console.log(`[SAVE]   Health - Actions: "${weekData.healthCurrentActions?.substring(0, 50)}..." (${weekData.healthCurrentActions?.length || 0} chars)`);
-      console.log(`[SAVE]   Relationship - Problems: "${weekData.relationshipProblems?.substring(0, 50)}..." (${weekData.relationshipProblems?.length || 0} chars)`);
-      console.log(`[SAVE]   Career - Problems: "${weekData.careerProblems?.substring(0, 50)}..." (${weekData.careerProblems?.length || 0} chars)`);
-      console.log(`[SAVE]   Money - Problems: "${weekData.moneyProblems?.substring(0, 50)}..." (${weekData.moneyProblems?.length || 0} chars)`);
-      console.log(`[SAVE] Ratings: H=${weekData.currentH}, E=${weekData.currentE}, R=${weekData.currentR}, C=${weekData.currentC}`);
-      console.log(`[SAVE] CHECKPOINT DATA RECEIVED FROM FRONTEND:`);
-      console.log(`[SAVE]   Health - ProblemsChecklist:`, weekData.healthProblemsChecklist?.length || 0, 'items');
-      console.log(`[SAVE]   Health - FeelingsCurrentChecklist:`, weekData.healthFeelingsCurrentChecklist?.length || 0, 'items');
-      console.log(`[SAVE]   Health - BeliefsCurrentChecklist:`, weekData.healthBeliefsCurrentChecklist?.length || 0, 'items');
-      console.log(`[SAVE]   Health - ActionsCurrentChecklist:`, weekData.healthActionsCurrentChecklist?.length || 0, 'items');
-      console.log(`[SAVE]   Relationship - ProblemsChecklist:`, weekData.relationshipProblemsChecklist?.length || 0, 'items');
-      console.log(`[SAVE]   Career - ProblemsChecklist:`, weekData.careerProblemsChecklist?.length || 0, 'items');
-      console.log(`[SAVE]   Money - ProblemsChecklist:`, weekData.moneyProblemsChecklist?.length || 0, 'items');
-      
-      // UPSERT logic: Check if week already exists for this user+weekNumber+dateString
-      // 🔥 CRITICAL FIX: Check by dateString too to prevent auto-copy from overwriting previous dates
-      // If exists, UPDATE it (preserves checked states across refresh)
-      // If not exists, CREATE new week
-      const existingWeek = await storage.getHercmWeekByDate(userId, weekData.weekNumber, weekData.dateString);
-      
-      // CRITICAL DEBUG: Log what dateString was received from frontend
-      console.log(`[SAVE] DEBUG - Received from frontend:`, {
-        weekNumber: weekData.weekNumber,
-        dateStringReceived: weekData.dateString,
-        hasDateString: !!weekData.dateString
-      });
-      
-      // CRITICAL FIX: Use dateString from frontend if provided, otherwise use today's date
-      // This allows historical date editing while defaulting to today for new entries
-      if (!weekData.dateString) {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        weekData.dateString = `${year}-${month}-${day}`;
-        console.log(`[SAVE] DEBUG - No dateString from frontend, using today: ${weekData.dateString}`);
-      } else {
-        console.log(`[SAVE] DEBUG - Using dateString from frontend: ${weekData.dateString}`);
-      }
-      
-      let week;
-      if (existingWeek) {
-        // Week exists - UPDATE it to preserve data and avoid duplicate rows
-        console.log(`[SAVE] Week ${weekData.weekNumber} exists (id: ${existingWeek.id}) - UPDATING`);
-        console.log(`[SAVE] Old dateString: ${existingWeek.dateString} → NEW dateString: ${weekData.dateString}`);
-        console.log(`[SAVE] Existing createdAt: ${existingWeek.createdAt} → PRESERVING`);
-        
-        // CRITICAL FIX: Update dateString to match the calendar date user is editing, preserve createdAt
-        const { createdAt, updatedAt, ...updateData } = weekData;
-        week = await storage.updateHercmWeek(existingWeek.id, updateData);
-        console.log(`[SAVE] ✅ UPDATE completed successfully`);
-      } else {
-        // Week doesn't exist - CREATE new
-        console.log(`[SAVE] Week ${weekData.weekNumber} does NOT exist - CREATING new with dateString: ${weekData.dateString}`);
-        week = await storage.createHercmWeek(weekData);
-        console.log(`[SAVE] ✅ CREATE completed successfully`);
-      }
-      
-      // Verify what was actually saved
-      console.log(`[SAVE] Verifying saved data...`);
-      console.log(`[SAVE]   Saved healthProblems: "${week.healthProblems?.substring(0, 50)}..." (${week.healthProblems?.length || 0} chars)`);
-      console.log(`[SAVE]   Saved healthCurrentFeelings: "${week.healthCurrentFeelings?.substring(0, 50)}..." (${week.healthCurrentFeelings?.length || 0} chars)`);
-      console.log(`[SAVE]   Saved healthCurrentActions: "${week.healthCurrentActions?.substring(0, 50)}..." (${week.healthCurrentActions?.length || 0} chars)`);
-      console.log(`[SAVE]   Saved currentH rating: ${week.currentH}`);
-      console.log(`[SAVE]   Saved dateString: ${week.dateString}`);
-      console.log(`[SAVE] === SAVE OPERATION END ===\n`);
-      
-      // Update rating progression after saving (pass weekNumber to prevent replay attacks)
-      if (weekData.currentH !== null) {
-        await updateRatingProgression(userId, 'health', weekData.currentH, weekData.weekNumber);
-      }
-      if (weekData.currentE !== null) {
-        await updateRatingProgression(userId, 'relationship', weekData.currentE, weekData.weekNumber);
-      }
-      if (weekData.currentR !== null) {
-        await updateRatingProgression(userId, 'career', weekData.currentR, weekData.weekNumber);
-      }
-      if (weekData.currentC !== null) {
-        await updateRatingProgression(userId, 'money', weekData.currentC, weekData.weekNumber);
-      }
-      
-      // AUTOMATIC SUPABASE BACKUP: Backup this user's data immediately after save
-      if (isSupabaseConfigured) {
-        try {
-          console.log(`[BACKUP] 🚀 Starting automatic Supabase backup for user ${userId}...`);
-          const backupResult = await backupUserData(userId);
-          if (backupResult.success) {
-            console.log(`[BACKUP] ✅ User data backed up to Supabase successfully`);
-            if (backupResult.stats) {
-              console.log(`[BACKUP] 📊 Backup Stats: HRCM=${backupResult.stats.hercmWeeks || 0} records, Emotional=${backupResult.stats.emotionalTrackers || 0}, Rituals=${backupResult.stats.ritualCompletions || 0}`);
-            }
-          } else {
-            console.warn(`[BACKUP] ⚠️ Backup failed: ${backupResult.message}`);
-          }
-        } catch (backupError) {
-          console.error('[BACKUP] ❌ Error during automatic backup:', backupError);
-          // Don't fail the save if backup fails - just log it
-        }
-      } else {
-        console.log('[BACKUP] ⚠️ Supabase not configured - skipping backup');
-      }
-      
-      // Broadcast WebSocket event to all admin panels viewing this user's dashboard
-      // This enables instant real-time sync - admins see changes immediately without delay
+  app.post(
+    "/api/hercm/save-with-comparison",
+    isAuthenticated,
+    async (req: any, res) => {
       try {
-        console.log(`[WEBSOCKET] Broadcasting HRCM data change for user ${userId}, week ${weekData.weekNumber}`);
-        wss.clients.forEach((client) => {
-          if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify({
-              type: 'hrcm_data_changed',
-              userId: userId,
-              weekNumber: weekData.weekNumber,
-              timestamp: new Date().toISOString()
-            }));
-          }
+        // Handle both OIDC auth (req.user.claims.sub) and email-based auth (req.session.userEmail)
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        // Ensure user exists in users table (create if doesn't exist) - fixes FK constraint for rating_progression
+        const existingUser = await storage.getUser(userId);
+        if (!existingUser) {
+          const userEmail =
+            typeof userId === "string" && userId.includes("@")
+              ? userId
+              : req.session.userEmail;
+          const claims = req.user?.claims;
+          await storage.upsertUser({
+            id: userId,
+            email: userEmail || userId,
+            firstName: claims?.first_name || null,
+            lastName: claims?.last_name || null,
+            profileImageUrl: claims?.profile_image_url || null,
+          });
+        }
+
+        const weekData = {
+          ...req.body,
+          userId,
+          year: req.body.year || new Date().getFullYear(), // Add current year if not provided
+        };
+
+        // Map beliefs array to category-specific database columns
+        if (weekData.beliefs && Array.isArray(weekData.beliefs)) {
+          // Initialize default values for all H-E-R-C-M columns
+          weekData.currentH = 1;
+          weekData.targetH = 1;
+          weekData.currentE = 1;
+          weekData.targetE = 1;
+          weekData.currentR = 1;
+          weekData.targetR = 1;
+          weekData.currentC = 1;
+          weekData.targetC = 1;
+          weekData.currentM = 1; // Default for unused Maturity column
+          weekData.targetM = 1;
+
+          weekData.beliefs.forEach((belief: any) => {
+            const prefix = belief.category.toLowerCase(); // 'health', 'relationship', 'career', 'money'
+
+            // Map rating fields to H-E-R-C-M format
+            if (belief.category === "Health") {
+              weekData.currentH = belief.currentRating || 1;
+              weekData.targetH = belief.targetRating || 1;
+            } else if (belief.category === "Relationship") {
+              weekData.currentE = belief.currentRating || 1;
+              weekData.targetE = belief.targetRating || 1;
+            } else if (belief.category === "Career") {
+              weekData.currentR = belief.currentRating || 1;
+              weekData.targetR = belief.targetRating || 1;
+            } else if (belief.category === "Money") {
+              weekData.currentC = belief.currentRating || 1;
+              weekData.targetC = belief.targetRating || 1;
+            }
+
+            // Map problems, feelings, actions fields
+            weekData[`${prefix}Problems`] = belief.problems || "";
+            weekData[`${prefix}CurrentFeelings`] = belief.currentFeelings || "";
+            weekData[`${prefix}CurrentBelief`] = belief.currentBelief || "";
+            weekData[`${prefix}CurrentActions`] = belief.currentActions || "";
+
+            // Map next week fields (result, feelings, target, actions)
+            weekData[`${prefix}Result`] = belief.result || "";
+            weekData[`${prefix}NextFeelings`] = belief.nextFeelings || "";
+            weekData[`${prefix}NextTarget`] = belief.nextWeekTarget || "";
+            weekData[`${prefix}NextActions`] = belief.nextActions || "";
+
+            // Map assignment
+            weekData[`${prefix}Assignment`] = belief.assignment || {
+              courses: [],
+              lessons: [],
+            };
+
+            // Map checklist (Current Week Platinum Standards)
+            weekData[`${prefix}Checklist`] = belief.checklist || [];
+
+            // Map Next Week Target checklists
+            weekData[`${prefix}ResultChecklist`] = belief.resultChecklist || [];
+            weekData[`${prefix}FeelingsChecklist`] =
+              belief.feelingsChecklist || [];
+            weekData[`${prefix}BeliefsChecklist`] =
+              belief.beliefsChecklist || [];
+            weekData[`${prefix}ActionsChecklist`] =
+              belief.actionsChecklist || [];
+
+            // Map Current Week checkpoint checklists
+            weekData[`${prefix}ProblemsChecklist`] =
+              belief.problemsChecklist || [];
+            weekData[`${prefix}FeelingsCurrentChecklist`] =
+              belief.feelingsCurrentChecklist || [];
+            weekData[`${prefix}BeliefsCurrentChecklist`] =
+              belief.beliefsCurrentChecklist || [];
+            weekData[`${prefix}ActionsCurrentChecklist`] =
+              belief.actionsCurrentChecklist || [];
+          });
+        }
+
+        // Apply rating caps before calculating improvements
+        if (weekData.currentH !== null) {
+          const healthResult = await validateAndCapRating(
+            userId,
+            "health",
+            weekData.currentH,
+          );
+          weekData.currentH = healthResult.cappedRating;
+        }
+        if (weekData.currentE !== null) {
+          const relationshipResult = await validateAndCapRating(
+            userId,
+            "relationship",
+            weekData.currentE,
+          );
+          weekData.currentE = relationshipResult.cappedRating;
+        }
+        if (weekData.currentR !== null) {
+          const careerResult = await validateAndCapRating(
+            userId,
+            "career",
+            weekData.currentR,
+          );
+          weekData.currentR = careerResult.cappedRating;
+        }
+        if (weekData.currentC !== null) {
+          const moneyResult = await validateAndCapRating(
+            userId,
+            "money",
+            weekData.currentC,
+          );
+          weekData.currentC = moneyResult.cappedRating;
+        }
+
+        // Calculate improvements if targets exist
+        if (weekData.targetH !== null && weekData.currentH !== null) {
+          weekData.improvementH = weekData.currentH - (weekData.targetH || 0);
+          weekData.improvementE = weekData.currentE - (weekData.targetE || 0);
+          weekData.improvementR = weekData.currentR - (weekData.targetR || 0);
+          weekData.improvementC = weekData.currentC - (weekData.targetC || 0);
+          weekData.improvementM = weekData.currentM - (weekData.targetM || 0);
+
+          // Calculate overall score (H, E, R, C = 4 areas, NOT 5)
+          // currentM is legacy/unused - only use H, E(Relationship), R(Career), C(Money)
+          const current = [
+            weekData.currentH,
+            weekData.currentE,
+            weekData.currentR,
+            weekData.currentC,
+          ];
+          weekData.overallScore = Math.round(
+            current.reduce((a, b) => a + (b || 0), 0) / 4,
+          );
+
+          // Achievement rate: WEEKLY PROGRESS percentage (checklist completion across all 4 HRCM areas)
+          // This matches the "Progress" column shown in dashboard
+          const calculateChecklistProgress = (checklist: any[]): number => {
+            if (!checklist || checklist.length === 0) return 0;
+            const completed = checklist.filter(
+              (item: any) => item.checked,
+            ).length;
+            return (completed / checklist.length) * 100;
+          };
+
+          const healthProgress = calculateChecklistProgress(
+            weekData.healthChecklist || [],
+          );
+          const relationshipProgress = calculateChecklistProgress(
+            weekData.relationshipChecklist || [],
+          );
+          const careerProgress = calculateChecklistProgress(
+            weekData.careerChecklist || [],
+          );
+          const moneyProgress = calculateChecklistProgress(
+            weekData.moneyChecklist || [],
+          );
+
+          // Average progress across all 4 areas
+          weekData.achievementRate = Math.round(
+            (healthProgress +
+              relationshipProgress +
+              careerProgress +
+              moneyProgress) /
+              4,
+          );
+        }
+
+        // COMPREHENSIVE LOGGING: Track text field saves + CHECKPOINT DATA
+        console.log(`[SAVE] === SAVE OPERATION START ===`);
+        console.log(`[SAVE] User: ${userId}, Week: ${weekData.weekNumber}`);
+        console.log(`[SAVE] Text fields being saved:`);
+        console.log(
+          `[SAVE]   Health - Problems: "${weekData.healthProblems?.substring(0, 50)}..." (${weekData.healthProblems?.length || 0} chars)`,
+        );
+        console.log(
+          `[SAVE]   Health - Feelings: "${weekData.healthCurrentFeelings?.substring(0, 50)}..." (${weekData.healthCurrentFeelings?.length || 0} chars)`,
+        );
+        console.log(
+          `[SAVE]   Health - Actions: "${weekData.healthCurrentActions?.substring(0, 50)}..." (${weekData.healthCurrentActions?.length || 0} chars)`,
+        );
+        console.log(
+          `[SAVE]   Relationship - Problems: "${weekData.relationshipProblems?.substring(0, 50)}..." (${weekData.relationshipProblems?.length || 0} chars)`,
+        );
+        console.log(
+          `[SAVE]   Career - Problems: "${weekData.careerProblems?.substring(0, 50)}..." (${weekData.careerProblems?.length || 0} chars)`,
+        );
+        console.log(
+          `[SAVE]   Money - Problems: "${weekData.moneyProblems?.substring(0, 50)}..." (${weekData.moneyProblems?.length || 0} chars)`,
+        );
+        console.log(
+          `[SAVE] Ratings: H=${weekData.currentH}, E=${weekData.currentE}, R=${weekData.currentR}, C=${weekData.currentC}`,
+        );
+        console.log(`[SAVE] CHECKPOINT DATA RECEIVED FROM FRONTEND:`);
+        console.log(
+          `[SAVE]   Health - ProblemsChecklist:`,
+          weekData.healthProblemsChecklist?.length || 0,
+          "items",
+        );
+        console.log(
+          `[SAVE]   Health - FeelingsCurrentChecklist:`,
+          weekData.healthFeelingsCurrentChecklist?.length || 0,
+          "items",
+        );
+        console.log(
+          `[SAVE]   Health - BeliefsCurrentChecklist:`,
+          weekData.healthBeliefsCurrentChecklist?.length || 0,
+          "items",
+        );
+        console.log(
+          `[SAVE]   Health - ActionsCurrentChecklist:`,
+          weekData.healthActionsCurrentChecklist?.length || 0,
+          "items",
+        );
+        console.log(
+          `[SAVE]   Relationship - ProblemsChecklist:`,
+          weekData.relationshipProblemsChecklist?.length || 0,
+          "items",
+        );
+        console.log(
+          `[SAVE]   Career - ProblemsChecklist:`,
+          weekData.careerProblemsChecklist?.length || 0,
+          "items",
+        );
+        console.log(
+          `[SAVE]   Money - ProblemsChecklist:`,
+          weekData.moneyProblemsChecklist?.length || 0,
+          "items",
+        );
+
+        // UPSERT logic: Check if week already exists for this user+weekNumber+dateString
+        // 🔥 CRITICAL FIX: Check by dateString too to prevent auto-copy from overwriting previous dates
+        // If exists, UPDATE it (preserves checked states across refresh)
+        // If not exists, CREATE new week
+        const existingWeek = await storage.getHercmWeekByDate(
+          userId,
+          weekData.weekNumber,
+          weekData.dateString,
+        );
+
+        // CRITICAL DEBUG: Log what dateString was received from frontend
+        console.log(`[SAVE] DEBUG - Received from frontend:`, {
+          weekNumber: weekData.weekNumber,
+          dateStringReceived: weekData.dateString,
+          hasDateString: !!weekData.dateString,
         });
-      } catch (wsError) {
-        console.error('[WEBSOCKET] Error broadcasting HRCM change:', wsError);
-        // Don't fail the save if WebSocket broadcast fails
+
+        // CRITICAL FIX: Use dateString from frontend if provided, otherwise use today's date
+        // This allows historical date editing while defaulting to today for new entries
+        if (!weekData.dateString) {
+          const now = new Date();
+          const year = now.getFullYear();
+          const month = String(now.getMonth() + 1).padStart(2, "0");
+          const day = String(now.getDate()).padStart(2, "0");
+          weekData.dateString = `${year}-${month}-${day}`;
+          console.log(
+            `[SAVE] DEBUG - No dateString from frontend, using today: ${weekData.dateString}`,
+          );
+        } else {
+          console.log(
+            `[SAVE] DEBUG - Using dateString from frontend: ${weekData.dateString}`,
+          );
+        }
+
+        let week;
+        if (existingWeek) {
+          // Week exists - UPDATE it to preserve data and avoid duplicate rows
+          console.log(
+            `[SAVE] Week ${weekData.weekNumber} exists (id: ${existingWeek.id}) - UPDATING`,
+          );
+          console.log(
+            `[SAVE] Old dateString: ${existingWeek.dateString} → NEW dateString: ${weekData.dateString}`,
+          );
+          console.log(
+            `[SAVE] Existing createdAt: ${existingWeek.createdAt} → PRESERVING`,
+          );
+
+          // CRITICAL FIX: Update dateString to match the calendar date user is editing, preserve createdAt
+          const { createdAt, updatedAt, ...updateData } = weekData;
+          week = await storage.updateHercmWeek(existingWeek.id, updateData);
+          console.log(`[SAVE] ✅ UPDATE completed successfully`);
+        } else {
+          // Week doesn't exist - CREATE new
+          console.log(
+            `[SAVE] Week ${weekData.weekNumber} does NOT exist - CREATING new with dateString: ${weekData.dateString}`,
+          );
+          week = await storage.createHercmWeek(weekData);
+          console.log(`[SAVE] ✅ CREATE completed successfully`);
+        }
+
+        // Verify what was actually saved
+        console.log(`[SAVE] Verifying saved data...`);
+        console.log(
+          `[SAVE]   Saved healthProblems: "${week.healthProblems?.substring(0, 50)}..." (${week.healthProblems?.length || 0} chars)`,
+        );
+        console.log(
+          `[SAVE]   Saved healthCurrentFeelings: "${week.healthCurrentFeelings?.substring(0, 50)}..." (${week.healthCurrentFeelings?.length || 0} chars)`,
+        );
+        console.log(
+          `[SAVE]   Saved healthCurrentActions: "${week.healthCurrentActions?.substring(0, 50)}..." (${week.healthCurrentActions?.length || 0} chars)`,
+        );
+        console.log(`[SAVE]   Saved currentH rating: ${week.currentH}`);
+        console.log(`[SAVE]   Saved dateString: ${week.dateString}`);
+        console.log(`[SAVE] === SAVE OPERATION END ===\n`);
+
+        // Update rating progression after saving (pass weekNumber to prevent replay attacks)
+        if (weekData.currentH !== null) {
+          await updateRatingProgression(
+            userId,
+            "health",
+            weekData.currentH,
+            weekData.weekNumber,
+          );
+        }
+        if (weekData.currentE !== null) {
+          await updateRatingProgression(
+            userId,
+            "relationship",
+            weekData.currentE,
+            weekData.weekNumber,
+          );
+        }
+        if (weekData.currentR !== null) {
+          await updateRatingProgression(
+            userId,
+            "career",
+            weekData.currentR,
+            weekData.weekNumber,
+          );
+        }
+        if (weekData.currentC !== null) {
+          await updateRatingProgression(
+            userId,
+            "money",
+            weekData.currentC,
+            weekData.weekNumber,
+          );
+        }
+
+        // AUTOMATIC SUPABASE BACKUP: Backup this user's data immediately after save
+        if (isSupabaseConfigured) {
+          try {
+            console.log(
+              `[BACKUP] 🚀 Starting automatic Supabase backup for user ${userId}...`,
+            );
+            const backupResult = await backupUserData(userId);
+            if (backupResult.success) {
+              console.log(
+                `[BACKUP] ✅ User data backed up to Supabase successfully`,
+              );
+              if (backupResult.stats) {
+                console.log(
+                  `[BACKUP] 📊 Backup Stats: HRCM=${backupResult.stats.hercmWeeks || 0} records, Emotional=${backupResult.stats.emotionalTrackers || 0}, Rituals=${backupResult.stats.ritualCompletions || 0}`,
+                );
+              }
+            } else {
+              console.warn(
+                `[BACKUP] ⚠️ Backup failed: ${backupResult.message}`,
+              );
+            }
+          } catch (backupError) {
+            console.error(
+              "[BACKUP] ❌ Error during automatic backup:",
+              backupError,
+            );
+            // Don't fail the save if backup fails - just log it
+          }
+        } else {
+          console.log("[BACKUP] ⚠️ Supabase not configured - skipping backup");
+        }
+
+        // Broadcast WebSocket event to all admin panels viewing this user's dashboard
+        // This enables instant real-time sync - admins see changes immediately without delay
+        try {
+          console.log(
+            `[WEBSOCKET] Broadcasting HRCM data change for user ${userId}, week ${weekData.weekNumber}`,
+          );
+          wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(
+                JSON.stringify({
+                  type: "hrcm_data_changed",
+                  userId: userId,
+                  weekNumber: weekData.weekNumber,
+                  timestamp: new Date().toISOString(),
+                }),
+              );
+            }
+          });
+        } catch (wsError) {
+          console.error("[WEBSOCKET] Error broadcasting HRCM change:", wsError);
+          // Don't fail the save if WebSocket broadcast fails
+        }
+
+        res.json(week);
+      } catch (error) {
+        console.error("Error saving week with comparison:", error);
+        res.status(500).json({ message: "Failed to save week" });
       }
-      
-      res.json(week);
-    } catch (error) {
-      console.error("Error saving week with comparison:", error);
-      res.status(500).json({ message: "Failed to save week" });
-    }
-  });
+    },
+  );
 
   // Get comparison data for a specific week
-  app.get('/api/hercm/comparison/:weekId', isAuthenticated, async (req: any, res) => {
-    try {
-      const { weekId } = req.params;
-      // Handle both OIDC auth (req.user.claims.sub) and email-based auth (req.session.userEmail)
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
+  app.get(
+    "/api/hercm/comparison/:weekId",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const { weekId } = req.params;
+        // Handle both OIDC auth (req.user.claims.sub) and email-based auth (req.session.userEmail)
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        const weeks = await storage.getHercmWeeksByUser(userId);
+        const week = weeks.find((w: any) => w.id === weekId);
+
+        if (!week) {
+          return res.status(404).json({ message: "Week not found" });
+        }
+
+        const comparison = {
+          Hope: {
+            target: week.targetH,
+            actual: week.currentH,
+            improvement: week.improvementH,
+          },
+          Energy: {
+            target: week.targetE,
+            actual: week.currentE,
+            improvement: week.improvementE,
+          },
+          Respect: {
+            target: week.targetR,
+            actual: week.currentR,
+            improvement: week.improvementR,
+          },
+          Courage: {
+            target: week.targetC,
+            actual: week.currentC,
+            improvement: week.improvementC,
+          },
+          Maturity: {
+            target: week.targetM,
+            actual: week.currentM,
+            improvement: week.improvementM,
+          },
+          overallScore: week.overallScore,
+          achievementRate: week.achievementRate,
+        };
+
+        res.json(comparison);
+      } catch (error) {
+        console.error("Error fetching comparison:", error);
+        res.status(500).json({ message: "Failed to fetch comparison" });
       }
-      
-      const weeks = await storage.getHercmWeeksByUser(userId);
-      const week = weeks.find((w: any) => w.id === weekId);
-      
-      if (!week) {
-        return res.status(404).json({ message: "Week not found" });
-      }
-      
-      const comparison = {
-        Hope: { target: week.targetH, actual: week.currentH, improvement: week.improvementH },
-        Energy: { target: week.targetE, actual: week.currentE, improvement: week.improvementE },
-        Respect: { target: week.targetR, actual: week.currentR, improvement: week.improvementR },
-        Courage: { target: week.targetC, actual: week.currentC, improvement: week.improvementC },
-        Maturity: { target: week.targetM, actual: week.currentM, improvement: week.improvementM },
-        overallScore: week.overallScore,
-        achievementRate: week.achievementRate,
-      };
-      
-      res.json(comparison);
-    } catch (error) {
-      console.error("Error fetching comparison:", error);
-      res.status(500).json({ message: "Failed to fetch comparison" });
-    }
-  });
+    },
+  );
 
   // Analytics routes
-  app.get('/api/analytics/progress', isAuthenticated, async (req: any, res) => {
+  app.get("/api/analytics/progress", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.session.userEmail;
       if (!userId) {
@@ -1449,76 +1825,109 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { viewType, year, month, week } = req.query;
       const weeks = await storage.getHercmWeeksByUser(userId);
 
-      if (viewType === 'weekly') {
+      if (viewType === "weekly") {
         // Use Progress column values (checklist completion %) - same as shown in Current Week table
-        const weeklyData: Array<{ week: string; Health: number; Relationship: number; Career: number; Money: number }> = [];
-        
+        const weeklyData: Array<{
+          week: string;
+          Health: number;
+          Relationship: number;
+          Career: number;
+          Money: number;
+        }> = [];
+
         // Calculate progress from checklist completion (matches Progress column)
         const calculateProgress = (checklistData: any) => {
           if (!checklistData) return 0;
-          const checklist = typeof checklistData === 'string' ? JSON.parse(checklistData) : checklistData;
+          const checklist =
+            typeof checklistData === "string"
+              ? JSON.parse(checklistData)
+              : checklistData;
           if (!Array.isArray(checklist) || checklist.length === 0) return 0;
           const checked = checklist.filter((c: any) => c.checked).length;
           return Math.round((checked / checklist.length) * 100);
         };
-        
+
         // Deduplication: Use scoring system to pick most complete row when duplicates exist
         const scoreWeek = (week: any) => {
           let score = 0;
           // Count non-empty checklists (each worth 10 points)
           try {
             if (week.healthChecklist) {
-              const parsed = typeof week.healthChecklist === 'string' ? JSON.parse(week.healthChecklist) : week.healthChecklist;
+              const parsed =
+                typeof week.healthChecklist === "string"
+                  ? JSON.parse(week.healthChecklist)
+                  : week.healthChecklist;
               if (Array.isArray(parsed) && parsed.length > 0) score += 10;
             }
             if (week.relationshipChecklist) {
-              const parsed = typeof week.relationshipChecklist === 'string' ? JSON.parse(week.relationshipChecklist) : week.relationshipChecklist;
+              const parsed =
+                typeof week.relationshipChecklist === "string"
+                  ? JSON.parse(week.relationshipChecklist)
+                  : week.relationshipChecklist;
               if (Array.isArray(parsed) && parsed.length > 0) score += 10;
             }
             if (week.careerChecklist) {
-              const parsed = typeof week.careerChecklist === 'string' ? JSON.parse(week.careerChecklist) : week.careerChecklist;
+              const parsed =
+                typeof week.careerChecklist === "string"
+                  ? JSON.parse(week.careerChecklist)
+                  : week.careerChecklist;
               if (Array.isArray(parsed) && parsed.length > 0) score += 10;
             }
             if (week.moneyChecklist) {
-              const parsed = typeof week.moneyChecklist === 'string' ? JSON.parse(week.moneyChecklist) : week.moneyChecklist;
+              const parsed =
+                typeof week.moneyChecklist === "string"
+                  ? JSON.parse(week.moneyChecklist)
+                  : week.moneyChecklist;
               if (Array.isArray(parsed) && parsed.length > 0) score += 10;
             }
             if (week.unifiedAssignment) score += 10;
           } catch (e) {
             // If parsing fails, just use timestamp
-            console.error('[ANALYTICS] Error scoring week:', e);
+            console.error("[ANALYTICS] Error scoring week:", e);
           }
           // Timestamp tiebreaker (most recent wins in case of tie)
           score += new Date(week.createdAt).getTime() / 10000000000000;
           return score;
         };
-        
+
         // Group by week number and pick best row
         const weekMap = new Map();
         weeks.forEach((week: any) => {
-          if (!weekMap.has(week.weekNumber) || scoreWeek(week) > scoreWeek(weekMap.get(week.weekNumber))) {
+          if (
+            !weekMap.has(week.weekNumber) ||
+            scoreWeek(week) > scoreWeek(weekMap.get(week.weekNumber))
+          ) {
             weekMap.set(week.weekNumber, week);
           }
         });
-        
+
         // Process deduplicated weeks
         const selectedWeekNumber = week ? parseInt(week as string) : null;
-        
+
         Array.from(weekMap.values()).forEach((week: any) => {
           // If specific week requested, only process that week
           if (selectedWeekNumber && week.weekNumber !== selectedWeekNumber) {
             return; // Skip weeks that don't match selection
           }
-          
+
           // Calculate progress for each area (same as Progress column)
           const healthProgress = calculateProgress(week.healthChecklist);
-          const relationshipProgress = calculateProgress(week.relationshipChecklist);
+          const relationshipProgress = calculateProgress(
+            week.relationshipChecklist,
+          );
           const careerProgress = calculateProgress(week.careerChecklist);
           const moneyProgress = calculateProgress(week.moneyChecklist);
-          
+
           // Only add week if it has ANY checklist data (skip empty weeks)
-          if (week.healthChecklist || week.relationshipChecklist || week.careerChecklist || week.moneyChecklist) {
-            console.log(`[ANALYTICS] Week ${week.weekNumber} Progress - H:${healthProgress}%, R:${relationshipProgress}%, C:${careerProgress}%, M:${moneyProgress}%`);
+          if (
+            week.healthChecklist ||
+            week.relationshipChecklist ||
+            week.careerChecklist ||
+            week.moneyChecklist
+          ) {
+            console.log(
+              `[ANALYTICS] Week ${week.weekNumber} Progress - H:${healthProgress}%, R:${relationshipProgress}%, C:${careerProgress}%, M:${moneyProgress}%`,
+            );
             weeklyData.push({
               week: `W${week.weekNumber}`,
               Health: healthProgress,
@@ -1527,58 +1936,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
               Money: moneyProgress,
             });
           } else {
-            console.log(`[ANALYTICS] Week ${week.weekNumber} - Skipping (no data)`);
+            console.log(
+              `[ANALYTICS] Week ${week.weekNumber} - Skipping (no data)`,
+            );
           }
         });
 
-        console.log('[ANALYTICS] Final weeklyData:', weeklyData);
+        console.log("[ANALYTICS] Final weeklyData:", weeklyData);
         // If specific week requested, return that week only. Otherwise return last 5 weeks
-        res.json({ weeklyData: selectedWeekNumber ? weeklyData : weeklyData.slice(-5) });
-      } else if (viewType === 'monthly') {
+        res.json({
+          weeklyData: selectedWeekNumber ? weeklyData : weeklyData.slice(-5),
+        });
+      } else if (viewType === "monthly") {
         // Use platinum standards ratings (Progress column from Current Week table)
         // Return DAILY data instead of monthly aggregates
-        const dailyData: Array<{ date: string; Health: number; Relationship: number; Career: number; Money: number }> = [];
-        
+        const dailyData: Array<{
+          date: string;
+          Health: number;
+          Relationship: number;
+          Career: number;
+          Money: number;
+        }> = [];
+
         // Get all active platinum standards
         const platinumStandards = await storage.getActivePlatinumStandards();
-        
+
         // Count standards per category (not area!)
         const standardCounts: Record<string, number> = {
           health: 0,
           relationship: 0,
           career: 0,
-          money: 0
+          money: 0,
         };
-        
+
         platinumStandards.forEach((std: any) => {
-          standardCounts[std.category] = (standardCounts[std.category] || 0) + 1;
+          standardCounts[std.category] =
+            (standardCounts[std.category] || 0) + 1;
         });
-        
-        console.log('[ANALYTICS DAILY] Standard counts:', standardCounts);
-        
+
+        console.log("[ANALYTICS DAILY] Standard counts:", standardCounts);
+
         // 🔥 NEW: Generate ALL dates for the selected month (complete month view)
-        const selectedMonth = month ? parseInt(month as string) : new Date().getMonth() + 1;
-        const selectedYear = year ? parseInt(year as string) : new Date().getFullYear();
-        
+        const selectedMonth = month
+          ? parseInt(month as string)
+          : new Date().getMonth() + 1;
+        const selectedYear = year
+          ? parseInt(year as string)
+          : new Date().getFullYear();
+
         // Calculate number of days in the selected month
         const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
-        
-        console.log(`[ANALYTICS DAILY] Generating complete month view for ${selectedYear}-${selectedMonth} (${daysInMonth} days)`);
-        
+
+        console.log(
+          `[ANALYTICS DAILY] Generating complete month view for ${selectedYear}-${selectedMonth} (${daysInMonth} days)`,
+        );
+
         // Generate all dates for the month (1st to last day)
         const allDatesInMonth: string[] = [];
         for (let day = 1; day <= daysInMonth; day++) {
-          const dateStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          const dateStr = `${selectedYear}-${String(selectedMonth).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
           allDatesInMonth.push(dateStr);
         }
-        
-        console.log(`[ANALYTICS DAILY] Processing ${allDatesInMonth.length} dates for complete month view`);
-        
+
+        console.log(
+          `[ANALYTICS DAILY] Processing ${allDatesInMonth.length} dates for complete month view`,
+        );
+
         // Calculate daily progress for ALL dates in month
         for (const dateStr of allDatesInMonth) {
           // Get platinum standard ratings for this date
-          const ratings = await storage.getUserPlatinumStandardRatingsByDate(userId, dateStr);
-          
+          const ratings = await storage.getUserPlatinumStandardRatingsByDate(
+            userId,
+            dateStr,
+          );
+
           // Create a map of standardId -> rating
           const ratingMap = new Map<string, number>();
           if (ratings && ratings.length > 0) {
@@ -1586,33 +2017,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
               ratingMap.set(r.standardId, r.rating);
             });
           }
-          
+
           // Calculate progress for each category: (average of all ratings ÷ 7) × 100%
           const calculateCategoryProgress = (category: string): number => {
-            const standardsInCategory = platinumStandards.filter((s: any) => s.category === category);
+            const standardsInCategory = platinumStandards.filter(
+              (s: any) => s.category === category,
+            );
             if (standardsInCategory.length === 0) return 0;
-            
+
             // Get all ratings for standards in this category (0 if not rated)
-            const ratings = standardsInCategory.map((s: any) => ratingMap.get(s.id) || 0);
-            
+            const ratings = standardsInCategory.map(
+              (s: any) => ratingMap.get(s.id) || 0,
+            );
+
             // Calculate average rating
-            const avgRating = ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
-            
+            const avgRating =
+              ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
+
             // Convert to percentage (out of 7)
             const progress = Math.round((avgRating / 7) * 100);
-            
+
             return progress;
           };
-          
-          const health = calculateCategoryProgress('health');
-          const relationship = calculateCategoryProgress('relationship');
-          const career = calculateCategoryProgress('career');
-          const money = calculateCategoryProgress('money');
-          
+
+          const health = calculateCategoryProgress("health");
+          const relationship = calculateCategoryProgress("relationship");
+          const career = calculateCategoryProgress("career");
+          const money = calculateCategoryProgress("money");
+
           // Format date as day number (1, 2, 3, ... 30)
           const date = new Date(dateStr);
           const formattedDate = `${date.getDate()}`;
-          
+
           // Always add date to dailyData (even if all values are 0)
           dailyData.push({
             date: formattedDate,
@@ -1621,14 +2057,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
             Career: career,
             Money: money,
           });
-          
+
           // Log only non-zero entries to reduce console noise
           if (health > 0 || relationship > 0 || career > 0 || money > 0) {
-            console.log(`[ANALYTICS DAILY] ${dateStr}: H=${health}% R=${relationship}% C=${career}% M=${money}%`);
+            console.log(
+              `[ANALYTICS DAILY] ${dateStr}: H=${health}% R=${relationship}% C=${career}% M=${money}%`,
+            );
           }
         }
-        
-        console.log(`[ANALYTICS DAILY] Complete month data generated: ${dailyData.length} dates`);
+
+        console.log(
+          `[ANALYTICS DAILY] Complete month data generated: ${dailyData.length} dates`,
+        );
 
         res.json({ monthlyData: dailyData }); // Return daily data (renamed for compatibility)
       } else {
@@ -1641,7 +2081,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Platinum Progress routes
-  app.get('/api/platinum/progress', isAuthenticated, async (req: any, res) => {
+  app.get("/api/platinum/progress", isAuthenticated, async (req: any, res) => {
     try {
       // Handle both OIDC auth (req.user.claims.sub) and email-based auth (req.session.userEmail)
       const userId = req.user?.claims?.sub || req.session.userEmail;
@@ -1649,7 +2089,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "User not authenticated" });
       }
       const progress = await storage.getPlatinumProgress(userId);
-      res.json(progress || { userId, currentStreak: 0, totalPoints: 0, badges: [] });
+      res.json(
+        progress || { userId, currentStreak: 0, totalPoints: 0, badges: [] },
+      );
     } catch (error) {
       console.error("Error fetching platinum progress:", error);
       res.status(500).json({ message: "Failed to fetch progress" });
@@ -1657,47 +2099,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Rating Progression routes
-  app.get('/api/rating-progression/caps', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
-      
-      const caps = await getRatingCaps(userId);
-      res.json(caps);
-    } catch (error) {
-      console.error("Error fetching rating caps:", error);
-      res.status(500).json({ message: "Failed to fetch rating caps" });
-    }
-  });
+  app.get(
+    "/api/rating-progression/caps",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
 
-  app.get('/api/rating-progression/status', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
+        const caps = await getRatingCaps(userId);
+        res.json(caps);
+      } catch (error) {
+        console.error("Error fetching rating caps:", error);
+        res.status(500).json({ message: "Failed to fetch rating caps" });
       }
-      
-      const status = await getRatingProgressionStatus(userId);
-      res.json(status || {
-        healthMaxRating: 7,
-        relationshipMaxRating: 7,
-        careerMaxRating: 7,
-        moneyMaxRating: 7,
-        healthWeeksAtMax: 0,
-        relationshipWeeksAtMax: 0,
-        careerWeeksAtMax: 0,
-        moneyWeeksAtMax: 0,
-      });
-    } catch (error) {
-      console.error("Error fetching rating progression status:", error);
-      res.status(500).json({ message: "Failed to fetch rating progression status" });
-    }
-  });
+    },
+  );
+
+  app.get(
+    "/api/rating-progression/status",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        const status = await getRatingProgressionStatus(userId);
+        res.json(
+          status || {
+            healthMaxRating: 7,
+            relationshipMaxRating: 7,
+            careerMaxRating: 7,
+            moneyMaxRating: 7,
+            healthWeeksAtMax: 0,
+            relationshipWeeksAtMax: 0,
+            careerWeeksAtMax: 0,
+            moneyWeeksAtMax: 0,
+          },
+        );
+      } catch (error) {
+        console.error("Error fetching rating progression status:", error);
+        res
+          .status(500)
+          .json({ message: "Failed to fetch rating progression status" });
+      }
+    },
+  );
 
   // Admin routes (protected)
-  app.get('/api/admin/users', isAdmin, async (req, res) => {
+  app.get("/api/admin/users", isAdmin, async (req, res) => {
     try {
       const users = await storage.getAllUsers();
       res.json(users);
@@ -1708,16 +2162,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin: Search user by email
-  app.get('/api/admin/search-user', isAdmin, async (req, res) => {
+  app.get("/api/admin/search-user", isAdmin, async (req, res) => {
     try {
       const { email } = req.query;
-      if (!email || typeof email !== 'string') {
+      if (!email || typeof email !== "string") {
         return res.status(400).json({ message: "Email parameter required" });
       }
 
       const users = await storage.getAllUsers();
-      const matchedUser = users.find(u => 
-        u.email?.toLowerCase().includes(email.toLowerCase())
+      const matchedUser = users.find((u) =>
+        u.email?.toLowerCase().includes(email.toLowerCase()),
       );
 
       if (!matchedUser) {
@@ -1732,40 +2186,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin: Search user by name with compact activity (searches approved emails too)
-  app.get('/api/admin/search-user-by-name', isAdmin, async (req, res) => {
+  app.get("/api/admin/search-user-by-name", isAdmin, async (req, res) => {
     try {
       const { name } = req.query;
-      if (!name || typeof name !== 'string') {
+      if (!name || typeof name !== "string") {
         return res.status(400).json({ message: "Name parameter required" });
       }
 
       const searchTerm = name.toLowerCase();
-      console.log('[SEARCH] Searching for:', searchTerm);
+      console.log("[SEARCH] Searching for:", searchTerm);
 
       // Get ALL approved emails (same as users-analytics)
       const approvedEmailsList = await storage.getAllApprovedEmails();
-      const activeApprovedEmails = approvedEmailsList.filter(ae => ae.status === 'active');
-      console.log('[SEARCH] Total approved emails:', activeApprovedEmails.length);
-      
+      const activeApprovedEmails = approvedEmailsList.filter(
+        (ae) => ae.status === "active",
+      );
+      console.log(
+        "[SEARCH] Total approved emails:",
+        activeApprovedEmails.length,
+      );
+
       // Get all registered users
       const allUsers = await storage.getAllUsers();
-      console.log('[SEARCH] Total registered users:', allUsers.length);
-      
+      console.log("[SEARCH] Total registered users:", allUsers.length);
+
       // Create a map: email -> user data (for approved emails)
       const usersByEmail = new Map<string, any>();
-      
+
       // Start with ALL approved emails (even if they haven't logged in)
       for (const approvedEmail of activeApprovedEmails) {
-        const nameParts = approvedEmail.name ? approvedEmail.name.trim().split(' ') : [];
+        const nameParts = approvedEmail.name
+          ? approvedEmail.name.trim().split(" ")
+          : [];
         usersByEmail.set(approvedEmail.email, {
           id: approvedEmail.email, // Use email as ID placeholder
           email: approvedEmail.email,
-          firstName: nameParts[0] || '',
-          lastName: nameParts.slice(1).join(' ') || '',
+          firstName: nameParts[0] || "",
+          lastName: nameParts.slice(1).join(" ") || "",
           isPlaceholder: true,
         });
       }
-      
+
       // Overlay actual user data from users table
       for (const user of allUsers) {
         const emailKey = user.email || user.id;
@@ -1776,16 +2237,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
       }
-      
+
       // Now search through all users (approved emails + registered)
       const allUsersArray = Array.from(usersByEmail.values());
-      const matchedUsers = allUsersArray.filter(u => {
-        const fullName = `${u.firstName || ''} ${u.lastName || ''}`.toLowerCase();
-        const email = (u.email || '').toLowerCase();
+      const matchedUsers = allUsersArray.filter((u) => {
+        const fullName =
+          `${u.firstName || ""} ${u.lastName || ""}`.toLowerCase();
+        const email = (u.email || "").toLowerCase();
         return fullName.includes(searchTerm) || email.includes(searchTerm);
       });
 
-      console.log('[SEARCH] Matched users:', matchedUsers.length);
+      console.log("[SEARCH] Matched users:", matchedUsers.length);
 
       if (matchedUsers.length === 0) {
         return res.status(404).json({ message: "No users found" });
@@ -1800,37 +2262,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
             try {
               weeks = await storage.getHercmWeeksByUser(user.id);
             } catch (error) {
-              console.log(`[SEARCH] Failed to fetch weeks for user ${user.id}:`, error);
+              console.log(
+                `[SEARCH] Failed to fetch weeks for user ${user.id}:`,
+                error,
+              );
               weeks = []; // Return empty array if fetch fails
             }
           }
-          
+
           const latestWeek = weeks.length > 0 ? weeks[weeks.length - 1] : null;
-          
+
           return {
             id: user.id,
             email: user.email,
             firstName: user.firstName,
             lastName: user.lastName,
-            latestWeek: latestWeek ? {
-              weekNumber: latestWeek.weekNumber,
-              healthRating: latestWeek.currentH || 0,
-              relationshipRating: latestWeek.currentE || 0,
-              careerRating: latestWeek.currentR || 0,
-              moneyRating: latestWeek.currentC || 0,
-              healthProblem: latestWeek.healthProblems || '',
-              relationshipProblem: latestWeek.relationshipProblems || '',
-              careerProblem: latestWeek.careerProblems || '',
-              moneyProblem: latestWeek.moneyProblems || '',
-              overallScore: latestWeek.overallScore || 0,
-            } : null,
+            latestWeek: latestWeek
+              ? {
+                  weekNumber: latestWeek.weekNumber,
+                  healthRating: latestWeek.currentH || 0,
+                  relationshipRating: latestWeek.currentE || 0,
+                  careerRating: latestWeek.currentR || 0,
+                  moneyRating: latestWeek.currentC || 0,
+                  healthProblem: latestWeek.healthProblems || "",
+                  relationshipProblem: latestWeek.relationshipProblems || "",
+                  careerProblem: latestWeek.careerProblems || "",
+                  moneyProblem: latestWeek.moneyProblems || "",
+                  overallScore: latestWeek.overallScore || 0,
+                }
+              : null,
             totalWeeks: weeks.length,
             isPlaceholder: user.isPlaceholder || false, // Track if user hasn't logged in
           };
-        })
+        }),
       );
 
-      console.log('[SEARCH] Returning users with activity:', usersWithActivity.length);
+      console.log(
+        "[SEARCH] Returning users with activity:",
+        usersWithActivity.length,
+      );
       res.json(usersWithActivity);
     } catch (error) {
       console.error("Error searching user by name:", error);
@@ -1839,41 +2309,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User: Search team members by name with compact activity (accessible to all authenticated users)
-  app.get('/api/team/search-users', isAuthenticated, async (req, res) => {
+  app.get("/api/team/search-users", isAuthenticated, async (req, res) => {
     try {
       const { name } = req.query;
-      if (!name || typeof name !== 'string') {
+      if (!name || typeof name !== "string") {
         return res.status(400).json({ message: "Name parameter required" });
       }
 
       const searchTerm = name.toLowerCase();
-      console.log('[TEAM SEARCH] Searching for:', searchTerm);
+      console.log("[TEAM SEARCH] Searching for:", searchTerm);
 
       // 🔥 FIX: Include approved emails who haven't logged in yet (placeholder users)
       // Get ALL approved emails (same logic as admin endpoint)
       const approvedEmailsList = await storage.getAllApprovedEmails();
-      const activeApprovedEmails = approvedEmailsList.filter(ae => ae.status === 'active');
-      console.log('[TEAM SEARCH] Total approved emails:', activeApprovedEmails.length);
-      
+      const activeApprovedEmails = approvedEmailsList.filter(
+        (ae) => ae.status === "active",
+      );
+      console.log(
+        "[TEAM SEARCH] Total approved emails:",
+        activeApprovedEmails.length,
+      );
+
       // Get all registered users
       const allUsers = await storage.getAllUsers();
-      console.log('[TEAM SEARCH] Total registered users:', allUsers.length);
-      
+      console.log("[TEAM SEARCH] Total registered users:", allUsers.length);
+
       // Create a map: email -> user data (for approved emails)
       const usersByEmail = new Map<string, any>();
-      
+
       // Start with ALL approved emails (even if they haven't logged in)
       for (const approvedEmail of activeApprovedEmails) {
-        const nameParts = approvedEmail.name ? approvedEmail.name.trim().split(' ') : [];
+        const nameParts = approvedEmail.name
+          ? approvedEmail.name.trim().split(" ")
+          : [];
         usersByEmail.set(approvedEmail.email, {
           id: approvedEmail.email, // Use email as ID placeholder
           email: approvedEmail.email,
-          firstName: nameParts[0] || '',
-          lastName: nameParts.slice(1).join(' ') || '',
+          firstName: nameParts[0] || "",
+          lastName: nameParts.slice(1).join(" ") || "",
           isPlaceholder: true,
         });
       }
-      
+
       // Overlay actual user data from users table
       for (const user of allUsers) {
         const emailKey = user.email || user.id;
@@ -1881,28 +2358,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
           usersByEmail.set(emailKey, user);
         }
       }
-      
+
       // Search through all users (both registered and placeholder)
       const allUsersArray = Array.from(usersByEmail.values());
-      const matchedUsers = allUsersArray.filter(u => {
-        const fullName = `${u.firstName || ''} ${u.lastName || ''}`.toLowerCase();
-        const email = (u.email || '').toLowerCase();
+      const matchedUsers = allUsersArray.filter((u) => {
+        const fullName =
+          `${u.firstName || ""} ${u.lastName || ""}`.toLowerCase();
+        const email = (u.email || "").toLowerCase();
         return fullName.includes(searchTerm) || email.includes(searchTerm);
       });
 
       if (matchedUsers.length === 0) {
-        console.log('[TEAM SEARCH] No users found for:', searchTerm);
+        console.log("[TEAM SEARCH] No users found for:", searchTerm);
         return res.status(404).json({ message: "No users found" });
       }
 
-      console.log('[TEAM SEARCH] Found matching users:', matchedUsers.length);
+      console.log("[TEAM SEARCH] Found matching users:", matchedUsers.length);
 
       // Get compact activity for each matched user
       const usersWithActivity = await Promise.all(
         matchedUsers.map(async (user) => {
           // Skip database queries for placeholder users (approved but not logged in)
           if (user.isPlaceholder) {
-            console.log('[TEAM SEARCH] Placeholder user found:', user.email);
+            console.log("[TEAM SEARCH] Placeholder user found:", user.email);
             return {
               id: user.id,
               email: user.email,
@@ -1919,36 +2397,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
           try {
             weeks = await storage.getHercmWeeksByUser(user.id);
           } catch (error) {
-            console.log(`[TEAM SEARCH] Failed to fetch weeks for user ${user.id}:`, error);
+            console.log(
+              `[TEAM SEARCH] Failed to fetch weeks for user ${user.id}:`,
+              error,
+            );
             weeks = []; // Return empty array if fetch fails
           }
-          
+
           const latestWeek = weeks.length > 0 ? weeks[weeks.length - 1] : null;
-          
+
           return {
             id: user.id,
             email: user.email,
             firstName: user.firstName,
             lastName: user.lastName,
-            latestWeek: latestWeek ? {
-              weekNumber: latestWeek.weekNumber,
-              healthRating: latestWeek.currentH || 0,
-              relationshipRating: latestWeek.currentE || 0,
-              careerRating: latestWeek.currentR || 0,
-              moneyRating: latestWeek.currentC || 0,
-              healthProblem: latestWeek.healthProblems || '',
-              relationshipProblem: latestWeek.relationshipProblems || '',
-              careerProblem: latestWeek.careerProblems || '',
-              moneyProblem: latestWeek.moneyProblems || '',
-              overallScore: latestWeek.overallScore || 0,
-            } : null,
+            latestWeek: latestWeek
+              ? {
+                  weekNumber: latestWeek.weekNumber,
+                  healthRating: latestWeek.currentH || 0,
+                  relationshipRating: latestWeek.currentE || 0,
+                  careerRating: latestWeek.currentR || 0,
+                  moneyRating: latestWeek.currentC || 0,
+                  healthProblem: latestWeek.healthProblems || "",
+                  relationshipProblem: latestWeek.relationshipProblems || "",
+                  careerProblem: latestWeek.careerProblems || "",
+                  moneyProblem: latestWeek.moneyProblems || "",
+                  overallScore: latestWeek.overallScore || 0,
+                }
+              : null,
             totalWeeks: weeks.length,
             isPlaceholder: false,
           };
-        })
+        }),
       );
 
-      console.log('[TEAM SEARCH] Returning users with activity:', usersWithActivity.length);
+      console.log(
+        "[TEAM SEARCH] Returning users with activity:",
+        usersWithActivity.length,
+      );
       res.json(usersWithActivity);
     } catch (error) {
       console.error("Error searching team users:", error);
@@ -1957,246 +2443,324 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Team: Get specific user's dashboard (accessible to all authenticated users)
-  app.get('/api/team/user/:userId/dashboard', isAuthenticated, async (req, res) => {
-    try {
-      const { userId } = req.params;
-      console.log('[TEAM DASHBOARD] Fetching dashboard for user:', userId);
-      
-      // 🔥 FIX: Always return dashboard data, even if user hasn't logged in yet
-      // This allows viewing approved users before their first login
-      const dashboardData = await storage.getUserDashboardData(userId);
-      
-      if (!dashboardData.user) {
-        console.log(`[TEAM DASHBOARD] User hasn't logged in yet: ${userId}, returning empty dashboard`);
-      } else {
-        console.log('[TEAM DASHBOARD] User found, dashboard data fetched successfully');
+  app.get(
+    "/api/team/user/:userId/dashboard",
+    isAuthenticated,
+    async (req, res) => {
+      try {
+        const { userId } = req.params;
+        console.log("[TEAM DASHBOARD] Fetching dashboard for user:", userId);
+
+        // 🔥 FIX: Always return dashboard data, even if user hasn't logged in yet
+        // This allows viewing approved users before their first login
+        const dashboardData = await storage.getUserDashboardData(userId);
+
+        if (!dashboardData.user) {
+          console.log(
+            `[TEAM DASHBOARD] User hasn't logged in yet: ${userId}, returning empty dashboard`,
+          );
+        } else {
+          console.log(
+            "[TEAM DASHBOARD] User found, dashboard data fetched successfully",
+          );
+        }
+
+        res.json(dashboardData);
+      } catch (error) {
+        console.error(
+          "[TEAM DASHBOARD] Error fetching user dashboard data:",
+          error,
+        );
+        res
+          .status(500)
+          .json({ message: "Failed to fetch user dashboard data" });
       }
-      
-      res.json(dashboardData);
-    } catch (error) {
-      console.error("[TEAM DASHBOARD] Error fetching user dashboard data:", error);
-      res.status(500).json({ message: "Failed to fetch user dashboard data" });
-    }
-  });
+    },
+  );
 
   // Team: Get HRCM data by specific date for viewing other user's dashboard
-  app.get('/api/team/user/:userId/hercm/by-date/:date', isAuthenticated, async (req, res) => {
-    try {
-      // CRITICAL: Disable ALL caching to prevent showing wrong date's data
-      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-      res.setHeader('Pragma', 'no-cache');
-      res.setHeader('Expires', '0');
-      
-      const { userId, date: requestedDate } = req.params;
-      
-      console.log(`[TEAM HERCM BY-DATE] Team member requesting data for userId: ${userId}, date: ${requestedDate}`);
-      
-      // Get all weeks for the specified user
-      const allWeeks = await storage.getAllHercmWeeksByUserWithDates(userId);
-      
-      console.log(`[TEAM HERCM BY-DATE] Found ${allWeeks?.length || 0} weeks for user ${userId}`);
-      
-      if (!allWeeks || allWeeks.length === 0) {
-        return res.json(null);
-      }
-      
-      // Try exact dateString match (fastest, most accurate)
-      const exactMatchWeeks = allWeeks.filter((week: any) => week.dateString === requestedDate);
-      
-      let week;
-      
-      if (exactMatchWeeks.length > 0) {
-        // Found exact match - return most recent entry for that date
-        console.log(`[TEAM HERCM BY-DATE] ✅ Exact dateString match found for ${requestedDate}`);
-        week = exactMatchWeeks.sort((a: any, b: any) => 
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        )[0];
-      } else {
-        // FALLBACK - Use createdAt to find data created on the requested date
-        console.log(`[TEAM HERCM BY-DATE] No exact dateString match, trying createdAt fallback...`);
-        
-        const requestedDateStart = new Date(requestedDate);
-        requestedDateStart.setHours(0, 0, 0, 0);
-        
-        const requestedDateEnd = new Date(requestedDate);
-        requestedDateEnd.setHours(23, 59, 59, 999);
-        
-        const createdAtMatches = allWeeks.filter((week: any) => {
-          if (!week.createdAt) return false;
-          const createdDate = new Date(week.createdAt);
-          return createdDate >= requestedDateStart && createdDate <= requestedDateEnd;
-        });
-        
-        if (createdAtMatches.length > 0) {
-          // Found data created on this date - return most recent
-          console.log(`[TEAM HERCM BY-DATE] ✅ Found ${createdAtMatches.length} entries via createdAt for ${requestedDate}`);
-          week = createdAtMatches.sort((a: any, b: any) => 
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          )[0];
-        } else {
-          // No data found for this date - return null (blank table)
-          console.log(`[TEAM HERCM BY-DATE] ❌ No data found for ${requestedDate}`);
+  app.get(
+    "/api/team/user/:userId/hercm/by-date/:date",
+    isAuthenticated,
+    async (req, res) => {
+      try {
+        // CRITICAL: Disable ALL caching to prevent showing wrong date's data
+        res.setHeader(
+          "Cache-Control",
+          "no-store, no-cache, must-revalidate, private",
+        );
+        res.setHeader("Pragma", "no-cache");
+        res.setHeader("Expires", "0");
+
+        const { userId, date: requestedDate } = req.params;
+
+        console.log(
+          `[TEAM HERCM BY-DATE] Team member requesting data for userId: ${userId}, date: ${requestedDate}`,
+        );
+
+        // Get all weeks for the specified user
+        const allWeeks = await storage.getAllHercmWeeksByUserWithDates(userId);
+
+        console.log(
+          `[TEAM HERCM BY-DATE] Found ${allWeeks?.length || 0} weeks for user ${userId}`,
+        );
+
+        if (!allWeeks || allWeeks.length === 0) {
           return res.json(null);
         }
-      }
-      
-      // Transform to beliefs format (same as admin endpoint)
-      const beliefs = [
-        {
-          category: 'Health',
-          currentRating: week.currentH || 0,
-          targetRating: week.targetH || 0,
-          problems: week.healthProblems || '',
-          currentFeelings: week.healthCurrentFeelings || '',
-          currentBelief: week.healthCurrentBelief || '',
-          currentActions: week.healthCurrentActions || '',
-          result: week.healthResult || '',
-          nextFeelings: week.healthNextFeelings || '',
-          nextWeekTarget: week.healthNextTarget || '',
-          nextActions: week.healthNextActions || '',
-          checklist: week.healthChecklist || [],
-          assignment: week.healthAssignment || { courses: [], lessons: [] },
-          resultChecklist: week.healthResultChecklist || [],
-          feelingsChecklist: week.healthFeelingsChecklist || [],
-          beliefsChecklist: week.healthBeliefsChecklist || [],
-          actionsChecklist: week.healthActionsChecklist || [],
-          problemsChecklist: week.healthProblemsChecklist || [],
-          feelingsCurrentChecklist: week.healthFeelingsCurrentChecklist || [],
-          beliefsCurrentChecklist: week.healthBeliefsCurrentChecklist || [],
-          actionsCurrentChecklist: week.healthActionsCurrentChecklist || []
-        },
-        {
-          category: 'Relationship',
-          currentRating: week.currentE || 0,
-          targetRating: week.targetE || 0,
-          problems: week.relationshipProblems || '',
-          currentFeelings: week.relationshipCurrentFeelings || '',
-          currentBelief: week.relationshipCurrentBelief || '',
-          currentActions: week.relationshipCurrentActions || '',
-          result: week.relationshipResult || '',
-          nextFeelings: week.relationshipNextFeelings || '',
-          nextWeekTarget: week.relationshipNextTarget || '',
-          nextActions: week.relationshipNextActions || '',
-          checklist: week.relationshipChecklist || [],
-          assignment: week.relationshipAssignment || { courses: [], lessons: [] },
-          resultChecklist: week.relationshipResultChecklist || [],
-          feelingsChecklist: week.relationshipFeelingsChecklist || [],
-          beliefsChecklist: week.relationshipBeliefsChecklist || [],
-          actionsChecklist: week.relationshipActionsChecklist || [],
-          problemsChecklist: week.relationshipProblemsChecklist || [],
-          feelingsCurrentChecklist: week.relationshipFeelingsCurrentChecklist || [],
-          beliefsCurrentChecklist: week.relationshipBeliefsCurrentChecklist || [],
-          actionsCurrentChecklist: week.relationshipActionsCurrentChecklist || []
-        },
-        {
-          category: 'Career',
-          currentRating: week.currentR || 0,
-          targetRating: week.targetR || 0,
-          problems: week.careerProblems || '',
-          currentFeelings: week.careerCurrentFeelings || '',
-          currentBelief: week.careerCurrentBelief || '',
-          currentActions: week.careerCurrentActions || '',
-          result: week.careerResult || '',
-          nextFeelings: week.careerNextFeelings || '',
-          nextWeekTarget: week.careerNextTarget || '',
-          nextActions: week.careerNextActions || '',
-          checklist: week.careerChecklist || [],
-          assignment: week.careerAssignment || { courses: [], lessons: [] },
-          resultChecklist: week.careerResultChecklist || [],
-          feelingsChecklist: week.careerFeelingsChecklist || [],
-          beliefsChecklist: week.careerBeliefsChecklist || [],
-          actionsChecklist: week.careerActionsChecklist || [],
-          problemsChecklist: week.careerProblemsChecklist || [],
-          feelingsCurrentChecklist: week.careerFeelingsCurrentChecklist || [],
-          beliefsCurrentChecklist: week.careerBeliefsCurrentChecklist || [],
-          actionsCurrentChecklist: week.careerActionsCurrentChecklist || []
-        },
-        {
-          category: 'Money',
-          currentRating: week.currentC || 0,
-          targetRating: week.targetC || 0,
-          problems: week.moneyProblems || '',
-          currentFeelings: week.moneyCurrentFeelings || '',
-          currentBelief: week.moneyCurrentBelief || '',
-          currentActions: week.moneyCurrentActions || '',
-          result: week.moneyResult || '',
-          nextFeelings: week.moneyNextFeelings || '',
-          nextWeekTarget: week.moneyNextTarget || '',
-          nextActions: week.moneyNextActions || '',
-          checklist: week.moneyChecklist || [],
-          assignment: week.moneyAssignment || { courses: [], lessons: [] },
-          resultChecklist: week.moneyResultChecklist || [],
-          feelingsChecklist: week.moneyFeelingsChecklist || [],
-          beliefsChecklist: week.moneyBeliefsChecklist || [],
-          actionsChecklist: week.moneyActionsChecklist || [],
-          problemsChecklist: week.moneyProblemsChecklist || [],
-          feelingsCurrentChecklist: week.moneyFeelingsCurrentChecklist || [],
-          beliefsCurrentChecklist: week.moneyBeliefsCurrentChecklist || [],
-          actionsCurrentChecklist: week.moneyActionsCurrentChecklist || []
+
+        // Try exact dateString match (fastest, most accurate)
+        const exactMatchWeeks = allWeeks.filter(
+          (week: any) => week.dateString === requestedDate,
+        );
+
+        let week;
+
+        if (exactMatchWeeks.length > 0) {
+          // Found exact match - return most recent entry for that date
+          console.log(
+            `[TEAM HERCM BY-DATE] ✅ Exact dateString match found for ${requestedDate}`,
+          );
+          week = exactMatchWeeks.sort(
+            (a: any, b: any) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+          )[0];
+        } else {
+          // FALLBACK - Use createdAt to find data created on the requested date
+          console.log(
+            `[TEAM HERCM BY-DATE] No exact dateString match, trying createdAt fallback...`,
+          );
+
+          const requestedDateStart = new Date(requestedDate);
+          requestedDateStart.setHours(0, 0, 0, 0);
+
+          const requestedDateEnd = new Date(requestedDate);
+          requestedDateEnd.setHours(23, 59, 59, 999);
+
+          const createdAtMatches = allWeeks.filter((week: any) => {
+            if (!week.createdAt) return false;
+            const createdDate = new Date(week.createdAt);
+            return (
+              createdDate >= requestedDateStart &&
+              createdDate <= requestedDateEnd
+            );
+          });
+
+          if (createdAtMatches.length > 0) {
+            // Found data created on this date - return most recent
+            console.log(
+              `[TEAM HERCM BY-DATE] ✅ Found ${createdAtMatches.length} entries via createdAt for ${requestedDate}`,
+            );
+            week = createdAtMatches.sort(
+              (a: any, b: any) =>
+                new Date(b.createdAt).getTime() -
+                new Date(a.createdAt).getTime(),
+            )[0];
+          } else {
+            // No data found for this date - return null (blank table)
+            console.log(
+              `[TEAM HERCM BY-DATE] ❌ No data found for ${requestedDate}`,
+            );
+            return res.json(null);
+          }
         }
-      ];
-      
-      res.json({ ...week, beliefs });
-    } catch (error) {
-      console.error("Error fetching team user HRCM data by date:", error);
-      res.status(500).json({ message: "Failed to fetch HRCM data" });
-    }
-  });
+
+        // Transform to beliefs format (same as admin endpoint)
+        const beliefs = [
+          {
+            category: "Health",
+            currentRating: week.currentH || 0,
+            targetRating: week.targetH || 0,
+            problems: week.healthProblems || "",
+            currentFeelings: week.healthCurrentFeelings || "",
+            currentBelief: week.healthCurrentBelief || "",
+            currentActions: week.healthCurrentActions || "",
+            result: week.healthResult || "",
+            nextFeelings: week.healthNextFeelings || "",
+            nextWeekTarget: week.healthNextTarget || "",
+            nextActions: week.healthNextActions || "",
+            checklist: week.healthChecklist || [],
+            assignment: week.healthAssignment || { courses: [], lessons: [] },
+            resultChecklist: week.healthResultChecklist || [],
+            feelingsChecklist: week.healthFeelingsChecklist || [],
+            beliefsChecklist: week.healthBeliefsChecklist || [],
+            actionsChecklist: week.healthActionsChecklist || [],
+            problemsChecklist: week.healthProblemsChecklist || [],
+            feelingsCurrentChecklist: week.healthFeelingsCurrentChecklist || [],
+            beliefsCurrentChecklist: week.healthBeliefsCurrentChecklist || [],
+            actionsCurrentChecklist: week.healthActionsCurrentChecklist || [],
+          },
+          {
+            category: "Relationship",
+            currentRating: week.currentE || 0,
+            targetRating: week.targetE || 0,
+            problems: week.relationshipProblems || "",
+            currentFeelings: week.relationshipCurrentFeelings || "",
+            currentBelief: week.relationshipCurrentBelief || "",
+            currentActions: week.relationshipCurrentActions || "",
+            result: week.relationshipResult || "",
+            nextFeelings: week.relationshipNextFeelings || "",
+            nextWeekTarget: week.relationshipNextTarget || "",
+            nextActions: week.relationshipNextActions || "",
+            checklist: week.relationshipChecklist || [],
+            assignment: week.relationshipAssignment || {
+              courses: [],
+              lessons: [],
+            },
+            resultChecklist: week.relationshipResultChecklist || [],
+            feelingsChecklist: week.relationshipFeelingsChecklist || [],
+            beliefsChecklist: week.relationshipBeliefsChecklist || [],
+            actionsChecklist: week.relationshipActionsChecklist || [],
+            problemsChecklist: week.relationshipProblemsChecklist || [],
+            feelingsCurrentChecklist:
+              week.relationshipFeelingsCurrentChecklist || [],
+            beliefsCurrentChecklist:
+              week.relationshipBeliefsCurrentChecklist || [],
+            actionsCurrentChecklist:
+              week.relationshipActionsCurrentChecklist || [],
+          },
+          {
+            category: "Career",
+            currentRating: week.currentR || 0,
+            targetRating: week.targetR || 0,
+            problems: week.careerProblems || "",
+            currentFeelings: week.careerCurrentFeelings || "",
+            currentBelief: week.careerCurrentBelief || "",
+            currentActions: week.careerCurrentActions || "",
+            result: week.careerResult || "",
+            nextFeelings: week.careerNextFeelings || "",
+            nextWeekTarget: week.careerNextTarget || "",
+            nextActions: week.careerNextActions || "",
+            checklist: week.careerChecklist || [],
+            assignment: week.careerAssignment || { courses: [], lessons: [] },
+            resultChecklist: week.careerResultChecklist || [],
+            feelingsChecklist: week.careerFeelingsChecklist || [],
+            beliefsChecklist: week.careerBeliefsChecklist || [],
+            actionsChecklist: week.careerActionsChecklist || [],
+            problemsChecklist: week.careerProblemsChecklist || [],
+            feelingsCurrentChecklist: week.careerFeelingsCurrentChecklist || [],
+            beliefsCurrentChecklist: week.careerBeliefsCurrentChecklist || [],
+            actionsCurrentChecklist: week.careerActionsCurrentChecklist || [],
+          },
+          {
+            category: "Money",
+            currentRating: week.currentC || 0,
+            targetRating: week.targetC || 0,
+            problems: week.moneyProblems || "",
+            currentFeelings: week.moneyCurrentFeelings || "",
+            currentBelief: week.moneyCurrentBelief || "",
+            currentActions: week.moneyCurrentActions || "",
+            result: week.moneyResult || "",
+            nextFeelings: week.moneyNextFeelings || "",
+            nextWeekTarget: week.moneyNextTarget || "",
+            nextActions: week.moneyNextActions || "",
+            checklist: week.moneyChecklist || [],
+            assignment: week.moneyAssignment || { courses: [], lessons: [] },
+            resultChecklist: week.moneyResultChecklist || [],
+            feelingsChecklist: week.moneyFeelingsChecklist || [],
+            beliefsChecklist: week.moneyBeliefsChecklist || [],
+            actionsChecklist: week.moneyActionsChecklist || [],
+            problemsChecklist: week.moneyProblemsChecklist || [],
+            feelingsCurrentChecklist: week.moneyFeelingsCurrentChecklist || [],
+            beliefsCurrentChecklist: week.moneyBeliefsCurrentChecklist || [],
+            actionsCurrentChecklist: week.moneyActionsCurrentChecklist || [],
+          },
+        ];
+
+        res.json({ ...week, beliefs });
+      } catch (error) {
+        console.error("Error fetching team user HRCM data by date:", error);
+        res.status(500).json({ message: "Failed to fetch HRCM data" });
+      }
+    },
+  );
 
   // Team: Get all weeks for a specific user
-  app.get('/api/team/user/:userId/hercm/weeks', isAuthenticated, async (req, res) => {
-    try {
-      const { userId } = req.params;
-      const weeks = await storage.getHercmWeeksByUser(userId);
-      res.json(weeks);
-    } catch (error) {
-      console.error("Error fetching team user all HRCM weeks:", error);
-      res.status(500).json({ message: "Failed to fetch weeks data" });
-    }
-  });
+  app.get(
+    "/api/team/user/:userId/hercm/weeks",
+    isAuthenticated,
+    async (req, res) => {
+      try {
+        const { userId } = req.params;
+        const weeks = await storage.getHercmWeeksByUser(userId);
+        res.json(weeks);
+      } catch (error) {
+        console.error("Error fetching team user all HRCM weeks:", error);
+        res.status(500).json({ message: "Failed to fetch weeks data" });
+      }
+    },
+  );
 
   // Team: Get persistent assignments for a specific user
-  app.get('/api/team/user/:userId/persistent-assignments', isAuthenticated, async (req, res) => {
-    try {
-      const { userId } = req.params;
-      const assignments = await storage.getPersistentAssignmentsByUser(userId);
-      res.json(assignments);
-    } catch (error) {
-      console.error("Error fetching team user persistent assignments:", error);
-      res.status(500).json({ message: "Failed to fetch assignments" });
-    }
-  });
+  app.get(
+    "/api/team/user/:userId/persistent-assignments",
+    isAuthenticated,
+    async (req, res) => {
+      try {
+        const { userId } = req.params;
+        const assignments =
+          await storage.getPersistentAssignmentsByUser(userId);
+        res.json(assignments);
+      } catch (error) {
+        console.error(
+          "Error fetching team user persistent assignments:",
+          error,
+        );
+        res.status(500).json({ message: "Failed to fetch assignments" });
+      }
+    },
+  );
 
   // Team: Get emotional tracker data for a specific user and date
-  app.get('/api/team/user/:userId/emotional-trackers/:date', isAuthenticated, async (req, res) => {
-    try {
-      const { userId, date } = req.params;
-      const trackers = await storage.getEmotionalTrackersByDate(userId, date);
-      res.json(trackers);
-    } catch (error) {
-      console.error("Error fetching team user emotional trackers:", error);
-      res.status(500).json({ message: "Failed to fetch emotional trackers" });
-    }
-  });
+  app.get(
+    "/api/team/user/:userId/emotional-trackers/:date",
+    isAuthenticated,
+    async (req, res) => {
+      try {
+        const { userId, date } = req.params;
+        const trackers = await storage.getEmotionalTrackersByDate(userId, date);
+        res.json(trackers);
+      } catch (error) {
+        console.error("Error fetching team user emotional trackers:", error);
+        res.status(500).json({ message: "Failed to fetch emotional trackers" });
+      }
+    },
+  );
 
   // 🔥 Team: Get platinum standard ratings for a specific user and date
-  app.get('/api/team/user/:userId/platinum-standard-ratings/:dateString', isAuthenticated, async (req, res) => {
-    try {
-      const { userId, dateString } = req.params;
-      console.log(`[TEAM PLATINUM RATINGS] Fetching ratings for user: ${userId}, date: ${dateString}`);
-      
-      const ratings = await storage.getUserPlatinumStandardRatingsByDate(userId, dateString);
-      console.log(`[TEAM PLATINUM RATINGS] Found ${ratings.length} ratings for user ${userId}`);
-      
-      res.json(ratings);
-    } catch (error) {
-      console.error("Error fetching team user platinum standard ratings:", error);
-      res.status(500).json({ message: "Failed to fetch platinum standard ratings" });
-    }
-  });
+  app.get(
+    "/api/team/user/:userId/platinum-standard-ratings/:dateString",
+    isAuthenticated,
+    async (req, res) => {
+      try {
+        const { userId, dateString } = req.params;
+        console.log(
+          `[TEAM PLATINUM RATINGS] Fetching ratings for user: ${userId}, date: ${dateString}`,
+        );
+
+        const ratings = await storage.getUserPlatinumStandardRatingsByDate(
+          userId,
+          dateString,
+        );
+        console.log(
+          `[TEAM PLATINUM RATINGS] Found ${ratings.length} ratings for user ${userId}`,
+        );
+
+        res.json(ratings);
+      } catch (error) {
+        console.error(
+          "Error fetching team user platinum standard ratings:",
+          error,
+        );
+        res
+          .status(500)
+          .json({ message: "Failed to fetch platinum standard ratings" });
+      }
+    },
+  );
 
   // Team: Get goals and affirmations for a specific user (read-only view)
-  app.get('/api/team/user/:userId/goals', isAuthenticated, async (req, res) => {
+  app.get("/api/team/user/:userId/goals", isAuthenticated, async (req, res) => {
     try {
       const { userId } = req.params;
       const goals = await storage.getGoalsAffirmations(userId);
@@ -2207,7 +2771,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/admin/user/:userId/weeks', isAdmin, async (req, res) => {
+  app.get("/api/admin/user/:userId/weeks", isAdmin, async (req, res) => {
     try {
       const { userId } = req.params;
       const weeks = await storage.getHercmWeeksByUser(userId);
@@ -2219,55 +2783,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // 🔥 Admin: Get platinum standard ratings for a specific user and date
-  app.get('/api/admin/user/:userId/platinum-standard-ratings/:dateString', isAdmin, async (req, res) => {
-    try {
-      const { userId, dateString } = req.params;
-      console.log(`[ADMIN PLATINUM RATINGS] Fetching ratings for user: ${userId}, date: ${dateString}`);
-      
-      const ratings = await storage.getUserPlatinumStandardRatingsByDate(userId, dateString);
-      console.log(`[ADMIN PLATINUM RATINGS] Found ${ratings.length} ratings for user ${userId}`);
-      
-      res.json(ratings);
-    } catch (error) {
-      console.error("Error fetching admin user platinum standard ratings:", error);
-      res.status(500).json({ message: "Failed to fetch platinum standard ratings" });
-    }
-  });
+  app.get(
+    "/api/admin/user/:userId/platinum-standard-ratings/:dateString",
+    isAdmin,
+    async (req, res) => {
+      try {
+        const { userId, dateString } = req.params;
+        console.log(
+          `[ADMIN PLATINUM RATINGS] Fetching ratings for user: ${userId}, date: ${dateString}`,
+        );
+
+        const ratings = await storage.getUserPlatinumStandardRatingsByDate(
+          userId,
+          dateString,
+        );
+        console.log(
+          `[ADMIN PLATINUM RATINGS] Found ${ratings.length} ratings for user ${userId}`,
+        );
+
+        res.json(ratings);
+      } catch (error) {
+        console.error(
+          "Error fetching admin user platinum standard ratings:",
+          error,
+        );
+        res
+          .status(500)
+          .json({ message: "Failed to fetch platinum standard ratings" });
+      }
+    },
+  );
 
   // Admin: Get specific user's detailed analytics (rituals, badges, progress)
-  app.get('/api/admin/user/:userId/analytics', isAdmin, async (req, res) => {
+  app.get("/api/admin/user/:userId/analytics", isAdmin, async (req, res) => {
     try {
       const { userId } = req.params;
-      
+
       // Get user info
       const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       // Get HRCM weeks
       const weeks = await storage.getHercmWeeksByUser(userId);
-      
+
       // Get rituals
       const rituals = await storage.getRitualsByUser(userId);
-      
+
       // Get today's completions
-      const todayDate = new Date().toISOString().split('T')[0];
-      const todayCompletions = await storage.getRitualCompletionsByDate(userId, todayDate);
-      
+      const todayDate = new Date().toISOString().split("T")[0];
+      const todayCompletions = await storage.getRitualCompletionsByDate(
+        userId,
+        todayDate,
+      );
+
       // Calculate ritual points
       const ritualPoints = rituals.reduce((sum, ritual) => {
-        const isCompleted = todayCompletions.some(c => c.ritualId === ritual.id);
+        const isCompleted = todayCompletions.some(
+          (c) => c.ritualId === ritual.id,
+        );
         if (!isCompleted || !ritual.isActive) return sum;
         const points = ritual.points || 1;
         return sum + points;
       }, 0);
-      
+
       // Get platinum progress/badges
       const platinumProgress = await storage.getPlatinumProgress(userId);
-      
+
       // Calculate weekly analytics
-      const weeklyAnalytics = weeks.map(week => ({
+      const weeklyAnalytics = weeks.map((week) => ({
         weekNumber: week.weekNumber,
         overallScore: week.overallScore,
         achievementRate: week.achievementRate,
@@ -2276,7 +2861,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         currentR: week.currentR,
         currentC: week.currentC,
       }));
-      
+
       res.json({
         user: {
           id: user.id,
@@ -2286,15 +2871,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isAdmin: user.isAdmin,
         },
         weeks: weeklyAnalytics,
-        rituals: rituals.map(r => ({
+        rituals: rituals.map((r) => ({
           id: r.id,
           title: r.title,
           frequency: r.frequency,
           isActive: r.isActive,
-          completed: todayCompletions.some(c => c.ritualId === r.id),
+          completed: todayCompletions.some((c) => c.ritualId === r.id),
         })),
         ritualPoints,
-        platinumProgress: platinumProgress || { badges: [], currentStreak: 0, totalPoints: 0 },
+        platinumProgress: platinumProgress || {
+          badges: [],
+          currentStreak: 0,
+          totalPoints: 0,
+        },
       });
     } catch (error) {
       console.error("Error fetching user analytics:", error);
@@ -2303,293 +2892,377 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin: Get enhanced user detailed analytics with emotion trends and regularity
-  app.get('/api/admin/user/:userId/detailed-analytics', isAdmin, async (req, res) => {
-    try {
-      const { userId } = req.params;
-      
-      // Get user info
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      
-      // 🔥 FIX: Get ALL HRCM weeks WITHOUT deduplication (to show first AND latest for each week)
-      const weeks = await storage.getAllHercmWeeksByUserWithDates(userId);
-      const sortedWeeks = weeks.sort((a, b) => a.weekNumber - b.weekNumber);
-      
-      console.log(`[SORTED WEEKS DEBUG] userId: ${userId}, total rows: ${sortedWeeks.length}, week numbers: ${sortedWeeks.map(w => w.weekNumber).join(', ')}, dates: ${sortedWeeks.map(w => w.dateString).join(', ')}`);
-      
-      // Get rituals and platinum progress
-      const rituals = await storage.getRitualsByUser(userId);
-      const platinumProgress = await storage.getPlatinumProgress(userId);
-      
-      // 🔥 DAY-WISE HRCM TRENDS (not week-wise) - For daily graph representation
-      // Group by dateString to get day-by-day data
-      const dayWiseData = new Map<string, typeof sortedWeeks[0]>();
-      
-      // Keep latest entry for each date (in case of multiple updates on same day)
-      sortedWeeks.forEach(week => {
-        if (week.dateString) {
-          const existing = dayWiseData.get(week.dateString);
-          if (!existing || new Date(week.createdAt as Date).getTime() > new Date(existing.createdAt as Date).getTime()) {
-            dayWiseData.set(week.dateString, week);
+  app.get(
+    "/api/admin/user/:userId/detailed-analytics",
+    isAdmin,
+    async (req, res) => {
+      try {
+        const { userId } = req.params;
+
+        // Get user info
+        const user = await storage.getUser(userId);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        // 🔥 FIX: Get ALL HRCM weeks WITHOUT deduplication (to show first AND latest for each week)
+        const weeks = await storage.getAllHercmWeeksByUserWithDates(userId);
+        const sortedWeeks = weeks.sort((a, b) => a.weekNumber - b.weekNumber);
+
+        console.log(
+          `[SORTED WEEKS DEBUG] userId: ${userId}, total rows: ${sortedWeeks.length}, week numbers: ${sortedWeeks.map((w) => w.weekNumber).join(", ")}, dates: ${sortedWeeks.map((w) => w.dateString).join(", ")}`,
+        );
+
+        // Get rituals and platinum progress
+        const rituals = await storage.getRitualsByUser(userId);
+        const platinumProgress = await storage.getPlatinumProgress(userId);
+
+        // 🔥 DAY-WISE HRCM TRENDS (not week-wise) - For daily graph representation
+        // Group by dateString to get day-by-day data
+        const dayWiseData = new Map<string, (typeof sortedWeeks)[0]>();
+
+        // Keep latest entry for each date (in case of multiple updates on same day)
+        sortedWeeks.forEach((week) => {
+          if (week.dateString) {
+            const existing = dayWiseData.get(week.dateString);
+            if (
+              !existing ||
+              new Date(week.createdAt as Date).getTime() >
+                new Date(existing.createdAt as Date).getTime()
+            ) {
+              dayWiseData.set(week.dateString, week);
+            }
+          }
+        });
+
+        // Convert to array and sort by date
+        const sortedDays = Array.from(dayWiseData.entries())
+          .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
+          .map(([date, week]) => ({ date, week }));
+
+        // Calculate emotion trends - DAY-WISE
+        const emotionTrends = sortedDays.map(({ date, week }) => ({
+          date, // YYYY-MM-DD format for daily representation
+          healthEmotion: week.currentH || 5,
+          relationshipEmotion: week.currentE || 5,
+          careerEmotion: week.currentR || 5,
+          moneyEmotion: week.currentC || 5,
+        }));
+
+        // Calculate HRCM rating trends - DAY-WISE for graph
+        const hrcmTrends = sortedDays.map(({ date, week }) => ({
+          date, // YYYY-MM-DD format for daily graph
+          health: week.currentH || 0,
+          relationship: week.currentE || 0,
+          career: week.currentR || 0,
+          money: week.currentC || 0,
+        }));
+
+        // Calculate regularity/irregularity - count unique weeks only (not duplicate entries)
+        const uniqueWeekNumbers = new Set(sortedWeeks.map((w) => w.weekNumber));
+        const totalWeeks = uniqueWeekNumbers.size;
+
+        // Calculate expected weeks based on actual time since first week
+        let expectedWeeks = 0;
+        if (
+          sortedWeeks.length > 0 &&
+          sortedWeeks[0].createdAt &&
+          sortedWeeks[sortedWeeks.length - 1].createdAt
+        ) {
+          const firstWeekDate = new Date(sortedWeeks[0].createdAt as Date);
+          const lastWeekDate = new Date(
+            sortedWeeks[sortedWeeks.length - 1].createdAt as Date,
+          );
+          const daysDiff = Math.floor(
+            (lastWeekDate.getTime() - firstWeekDate.getTime()) /
+              (1000 * 60 * 60 * 24),
+          );
+          expectedWeeks = Math.floor(daysDiff / 7) + 1; // +1 to include the first week
+        }
+
+        const regularity =
+          expectedWeeks > 0
+            ? Math.round((totalWeeks / expectedWeeks) * 100)
+            : 0;
+        const missedWeeks = Math.max(0, expectedWeeks - totalWeeks);
+
+        // Calculate weekly gaps
+        const gaps = [];
+        for (let i = 1; i < sortedWeeks.length; i++) {
+          const gap =
+            sortedWeeks[i].weekNumber - sortedWeeks[i - 1].weekNumber - 1;
+          if (gap > 0) {
+            gaps.push({
+              afterWeek: sortedWeeks[i - 1].weekNumber,
+              beforeWeek: sortedWeeks[i].weekNumber,
+              gapSize: gap,
+            });
           }
         }
-      });
-      
-      // Convert to array and sort by date
-      const sortedDays = Array.from(dayWiseData.entries())
-        .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
-        .map(([date, week]) => ({ date, week }));
-      
-      // Calculate emotion trends - DAY-WISE
-      const emotionTrends = sortedDays.map(({ date, week }) => ({
-        date, // YYYY-MM-DD format for daily representation
-        healthEmotion: week.currentH || 5,
-        relationshipEmotion: week.currentE || 5,
-        careerEmotion: week.currentR || 5,
-        moneyEmotion: week.currentC || 5,
-      }));
-      
-      // Calculate HRCM rating trends - DAY-WISE for graph
-      const hrcmTrends = sortedDays.map(({ date, week }) => ({
-        date, // YYYY-MM-DD format for daily graph
-        health: week.currentH || 0,
-        relationship: week.currentE || 0,
-        career: week.currentR || 0,
-        money: week.currentC || 0,
-      }));
-      
-      // Calculate regularity/irregularity - count unique weeks only (not duplicate entries)
-      const uniqueWeekNumbers = new Set(sortedWeeks.map(w => w.weekNumber));
-      const totalWeeks = uniqueWeekNumbers.size;
-      
-      // Calculate expected weeks based on actual time since first week
-      let expectedWeeks = 0;
-      if (sortedWeeks.length > 0 && sortedWeeks[0].createdAt && sortedWeeks[sortedWeeks.length - 1].createdAt) {
-        const firstWeekDate = new Date(sortedWeeks[0].createdAt as Date);
-        const lastWeekDate = new Date(sortedWeeks[sortedWeeks.length - 1].createdAt as Date);
-        const daysDiff = Math.floor((lastWeekDate.getTime() - firstWeekDate.getTime()) / (1000 * 60 * 60 * 24));
-        expectedWeeks = Math.floor(daysDiff / 7) + 1; // +1 to include the first week
-      }
-      
-      const regularity = expectedWeeks > 0 ? Math.round((totalWeeks / expectedWeeks) * 100) : 0;
-      const missedWeeks = Math.max(0, expectedWeeks - totalWeeks);
-      
-      // Calculate weekly gaps
-      const gaps = [];
-      for (let i = 1; i < sortedWeeks.length; i++) {
-        const gap = sortedWeeks[i].weekNumber - sortedWeeks[i - 1].weekNumber - 1;
-        if (gap > 0) {
-          gaps.push({
-            afterWeek: sortedWeeks[i - 1].weekNumber,
-            beforeWeek: sortedWeeks[i].weekNumber,
-            gapSize: gap,
+
+        // Helper to calculate checklist completion percentage
+        const calculateChecklistProgress = (checklist: any[]): number => {
+          if (!checklist || checklist.length === 0) return 0;
+          const completed = checklist.filter(
+            (item: any) => item.checked,
+          ).length;
+          return Math.round((completed / checklist.length) * 100);
+        };
+
+        // Progress summary
+        // Score Calculation: overallScore = average of (currentH + currentE + currentR + currentC) / 4
+        // Achievement Rate: achievementRate = percentage of checklist completion (matches dashboard)
+
+        // Find most recent week WITH checklist data (not just latest week number)
+        let latestWeek = null;
+        for (let i = sortedWeeks.length - 1; i >= 0; i--) {
+          const week = sortedWeeks[i];
+          // Check if week has checklist data
+          if (
+            week.healthChecklist ||
+            week.relationshipChecklist ||
+            week.careerChecklist ||
+            week.moneyChecklist
+          ) {
+            latestWeek = week;
+            break;
+          }
+        }
+
+        console.log(
+          `[DETAILED ANALYTICS DEBUG] userId: ${userId}, sortedWeeks.length: ${sortedWeeks.length}`,
+        );
+        if (latestWeek) {
+          console.log(`[DETAILED ANALYTICS DEBUG] latestWeek:`, {
+            weekNumber: latestWeek.weekNumber,
+            overallScore: latestWeek.overallScore,
+            healthChecklist: latestWeek.healthChecklist?.length,
+            relationshipChecklist: latestWeek.relationshipChecklist?.length,
+            careerChecklist: latestWeek.careerChecklist?.length,
+            moneyChecklist: latestWeek.moneyChecklist?.length,
           });
         }
-      }
-      
-      // Helper to calculate checklist completion percentage
-      const calculateChecklistProgress = (checklist: any[]): number => {
-        if (!checklist || checklist.length === 0) return 0;
-        const completed = checklist.filter((item: any) => item.checked).length;
-        return Math.round((completed / checklist.length) * 100);
-      };
-      
-      // Progress summary
-      // Score Calculation: overallScore = average of (currentH + currentE + currentR + currentC) / 4
-      // Achievement Rate: achievementRate = percentage of checklist completion (matches dashboard)
-      
-      // Find most recent week WITH checklist data (not just latest week number)
-      let latestWeek = null;
-      for (let i = sortedWeeks.length - 1; i >= 0; i--) {
-        const week = sortedWeeks[i];
-        // Check if week has checklist data
-        if (week.healthChecklist || week.relationshipChecklist || week.careerChecklist || week.moneyChecklist) {
-          latestWeek = week;
-          break;
+
+        // Count only earned badges (badges with earnedAt date)
+        const earnedBadges =
+          platinumProgress?.badges?.filter((b: any) => b.earnedAt) || [];
+
+        // RECALCULATE achievement from checklist completion (match User Analytics table)
+        let achievementRate = 0;
+        if (latestWeek) {
+          const healthProgress = calculateChecklistProgress(
+            latestWeek.healthChecklist || [],
+          );
+          const relationshipProgress = calculateChecklistProgress(
+            latestWeek.relationshipChecklist || [],
+          );
+          const careerProgress = calculateChecklistProgress(
+            latestWeek.careerChecklist || [],
+          );
+          const moneyProgress = calculateChecklistProgress(
+            latestWeek.moneyChecklist || [],
+          );
+          achievementRate = Math.round(
+            (healthProgress +
+              relationshipProgress +
+              careerProgress +
+              moneyProgress) /
+              4,
+          );
+
+          console.log(`[DETAILED ANALYTICS DEBUG] Progress calculation:`, {
+            healthProgress,
+            relationshipProgress,
+            careerProgress,
+            moneyProgress,
+            achievementRate,
+          });
         }
-      }
-      
-      console.log(`[DETAILED ANALYTICS DEBUG] userId: ${userId}, sortedWeeks.length: ${sortedWeeks.length}`);
-      if (latestWeek) {
-        console.log(`[DETAILED ANALYTICS DEBUG] latestWeek:`, {
-          weekNumber: latestWeek.weekNumber,
-          overallScore: latestWeek.overallScore,
-          healthChecklist: latestWeek.healthChecklist?.length,
-          relationshipChecklist: latestWeek.relationshipChecklist?.length,
-          careerChecklist: latestWeek.careerChecklist?.length,
-          moneyChecklist: latestWeek.moneyChecklist?.length,
-        });
-      }
-      
-      // Count only earned badges (badges with earnedAt date)
-      const earnedBadges = platinumProgress?.badges?.filter((b: any) => b.earnedAt) || [];
-      
-      // RECALCULATE achievement from checklist completion (match User Analytics table)
-      let achievementRate = 0;
-      if (latestWeek) {
-        const healthProgress = calculateChecklistProgress(latestWeek.healthChecklist || []);
-        const relationshipProgress = calculateChecklistProgress(latestWeek.relationshipChecklist || []);
-        const careerProgress = calculateChecklistProgress(latestWeek.careerChecklist || []);
-        const moneyProgress = calculateChecklistProgress(latestWeek.moneyChecklist || []);
-        achievementRate = Math.round((healthProgress + relationshipProgress + careerProgress + moneyProgress) / 4);
-        
-        console.log(`[DETAILED ANALYTICS DEBUG] Progress calculation:`, {
-          healthProgress,
-          relationshipProgress,
-          careerProgress,
-          moneyProgress,
-          achievementRate
-        });
-      }
-      
-      const progressSummary = latestWeek ? {
-        currentWeek: 1, // 🔥 ALWAYS SHOW WEEK 1 FOR EVERYONE
-        overallScore: latestWeek.overallScore || 0, // Average HRCM rating (out of 10)
-        achievementRate, // NOW: Fresh calculated from checklists (matches table)
-        currentStreak: platinumProgress?.currentStreak || 0,
-        totalBadges: earnedBadges.length, // Only count earned badges
-      } : null;
-      
-      console.log(`[DETAILED ANALYTICS DEBUG] progressSummary:`, progressSummary);
-      
-      // 🔥 NEW: Group by week number and return BOTH first and latest for each week
-      const weeksByNumber = new Map<number, Array<typeof sortedWeeks[0]>>();
-      for (const week of sortedWeeks) {
-        if (!week.weekNumber) continue;
-        const weekKey = week.weekNumber;
-        if (!weeksByNumber.has(weekKey)) {
-          weeksByNumber.set(weekKey, []);
-        }
-        weeksByNumber.get(weekKey)!.push(week);
-      }
-      
-      console.log(`[COMPACT WEEKLY DEBUG] weeksByNumber size: ${weeksByNumber.size}, keys: ${Array.from(weeksByNumber.keys()).join(', ')}`);
-      
-      // 🔥 ONLY SHOW WEEK 1 (first and latest) - Remove all other weeks
-      const compactWeeklyData: any[] = [];
-      const week1Entries = weeksByNumber.get(1); // Get only Week 1 entries
-      
-      if (week1Entries && week1Entries.length > 0) {
-        // Sort by createdAt for "first", but use dateString for "latest"
-        const sortedByCreatedAt = [...week1Entries].sort((a, b) => 
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+
+        const progressSummary = latestWeek
+          ? {
+              currentWeek: 1, // 🔥 ALWAYS SHOW WEEK 1 FOR EVERYONE
+              overallScore: latestWeek.overallScore || 0, // Average HRCM rating (out of 10)
+              achievementRate, // NOW: Fresh calculated from checklists (matches table)
+              currentStreak: platinumProgress?.currentStreak || 0,
+              totalBadges: earnedBadges.length, // Only count earned badges
+            }
+          : null;
+
+        console.log(
+          `[DETAILED ANALYTICS DEBUG] progressSummary:`,
+          progressSummary,
         );
-        
-        const sortedByDateString = [...week1Entries].sort((a, b) => {
-          const dateA = a.dateString || '1970-01-01';
-          const dateB = b.dateString || '1970-01-01';
-          return dateA.localeCompare(dateB);
-        });
-        
-        const firstWeek = sortedByCreatedAt[0];
-        const latestWeek = sortedByDateString[sortedByDateString.length - 1];
-        
-        // Helper function to create week data object
-        const createWeekData = (week: typeof sortedWeeks[0], label: string) => {
-          const healthProgress = calculateChecklistProgress(week.healthChecklist || []);
-          const relationshipProgress = calculateChecklistProgress(week.relationshipChecklist || []);
-          const careerProgress = calculateChecklistProgress(week.careerChecklist || []);
-          const moneyProgress = calculateChecklistProgress(week.moneyChecklist || []);
-          const achievement = Math.round((healthProgress + relationshipProgress + careerProgress + moneyProgress) / 4);
-          
-          // Use dateString for "latest" (most recent update), createdAt for "first" (original entry)
-          const displayDate = label === 'latest' && week.dateString 
-            ? new Date(week.dateString + 'T00:00:00') // Convert YYYY-MM-DD to Date
-            : week.createdAt;
-          
-          return {
-            week: 1, // Always Week 1
-            label, // "first" or "latest"
-            date: displayDate,
-            h: week.currentH || 0,
-            r: week.currentE || 0,
-            c: week.currentR || 0,
-            m: week.currentC || 0,
-            score: week.overallScore || 0,
-            achievement,
-          };
-        };
-        
-        // If only one entry for Week 1, show it as "only"
-        if (week1Entries.length === 1) {
-          compactWeeklyData.push(createWeekData(firstWeek, 'only'));
-        } else {
-          // Show both first and latest for Week 1
-          compactWeeklyData.push(createWeekData(firstWeek, 'first'));
-          compactWeeklyData.push(createWeekData(latestWeek, 'latest'));
+
+        // 🔥 NEW: Group by week number and return BOTH first and latest for each week
+        const weeksByNumber = new Map<number, Array<(typeof sortedWeeks)[0]>>();
+        for (const week of sortedWeeks) {
+          if (!week.weekNumber) continue;
+          const weekKey = week.weekNumber;
+          if (!weeksByNumber.has(weekKey)) {
+            weeksByNumber.set(weekKey, []);
+          }
+          weeksByNumber.get(weekKey)!.push(week);
         }
+
+        console.log(
+          `[COMPACT WEEKLY DEBUG] weeksByNumber size: ${weeksByNumber.size}, keys: ${Array.from(weeksByNumber.keys()).join(", ")}`,
+        );
+
+        // 🔥 ONLY SHOW WEEK 1 (first and latest) - Remove all other weeks
+        const compactWeeklyData: any[] = [];
+        const week1Entries = weeksByNumber.get(1); // Get only Week 1 entries
+
+        if (week1Entries && week1Entries.length > 0) {
+          // Sort by createdAt for "first", but use dateString for "latest"
+          const sortedByCreatedAt = [...week1Entries].sort(
+            (a, b) =>
+              new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+          );
+
+          const sortedByDateString = [...week1Entries].sort((a, b) => {
+            const dateA = a.dateString || "1970-01-01";
+            const dateB = b.dateString || "1970-01-01";
+            return dateA.localeCompare(dateB);
+          });
+
+          const firstWeek = sortedByCreatedAt[0];
+          const latestWeek = sortedByDateString[sortedByDateString.length - 1];
+
+          // Helper function to create week data object
+          const createWeekData = (
+            week: (typeof sortedWeeks)[0],
+            label: string,
+          ) => {
+            const healthProgress = calculateChecklistProgress(
+              week.healthChecklist || [],
+            );
+            const relationshipProgress = calculateChecklistProgress(
+              week.relationshipChecklist || [],
+            );
+            const careerProgress = calculateChecklistProgress(
+              week.careerChecklist || [],
+            );
+            const moneyProgress = calculateChecklistProgress(
+              week.moneyChecklist || [],
+            );
+            const achievement = Math.round(
+              (healthProgress +
+                relationshipProgress +
+                careerProgress +
+                moneyProgress) /
+                4,
+            );
+
+            // Use dateString for "latest" (most recent update), createdAt for "first" (original entry)
+            const displayDate =
+              label === "latest" && week.dateString
+                ? new Date(week.dateString + "T00:00:00") // Convert YYYY-MM-DD to Date
+                : week.createdAt;
+
+            return {
+              week: 1, // Always Week 1
+              label, // "first" or "latest"
+              date: displayDate,
+              h: week.currentH || 0,
+              r: week.currentE || 0,
+              c: week.currentR || 0,
+              m: week.currentC || 0,
+              score: week.overallScore || 0,
+              achievement,
+            };
+          };
+
+          // If only one entry for Week 1, show it as "only"
+          if (week1Entries.length === 1) {
+            compactWeeklyData.push(createWeekData(firstWeek, "only"));
+          } else {
+            // Show both first and latest for Week 1
+            compactWeeklyData.push(createWeekData(firstWeek, "first"));
+            compactWeeklyData.push(createWeekData(latestWeek, "latest"));
+          }
+        }
+
+        console.log(
+          `[COMPACT WEEKLY DEBUG] compactWeeklyData length: ${compactWeeklyData.length}, weeks: ${compactWeeklyData.map((w) => w.week).join(", ")}`,
+        );
+
+        res.json({
+          user: {
+            id: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+          },
+          progressSummary,
+          emotionTrends,
+          hrcmTrends,
+          regularity: {
+            percentage: regularity,
+            totalWeeks,
+            expectedWeeks,
+            missedWeeks,
+            gaps,
+            status:
+              regularity >= 80
+                ? "regular"
+                : regularity >= 50
+                  ? "semi-regular"
+                  : "irregular",
+          },
+          compactWeeklyData,
+          badges: earnedBadges, // Only return earned badges (not Platinum Standards if not earned)
+          rituals: rituals.map((r) => ({
+            id: r.id,
+            title: r.title,
+            category: r.category,
+            isActive: r.isActive,
+          })),
+        });
+      } catch (error) {
+        console.error("Error fetching detailed analytics:", error);
+        res.status(500).json({ message: "Failed to fetch detailed analytics" });
       }
-      
-      console.log(`[COMPACT WEEKLY DEBUG] compactWeeklyData length: ${compactWeeklyData.length}, weeks: ${compactWeeklyData.map(w => w.week).join(', ')}`);
-      
-      res.json({
-        user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-        },
-        progressSummary,
-        emotionTrends,
-        hrcmTrends,
-        regularity: {
-          percentage: regularity,
-          totalWeeks,
-          expectedWeeks,
-          missedWeeks,
-          gaps,
-          status: regularity >= 80 ? 'regular' : regularity >= 50 ? 'semi-regular' : 'irregular',
-        },
-        compactWeeklyData,
-        badges: earnedBadges, // Only return earned badges (not Platinum Standards if not earned)
-        rituals: rituals.map(r => ({
-          id: r.id,
-          title: r.title,
-          category: r.category,
-          isActive: r.isActive,
-        })),
-      });
-    } catch (error) {
-      console.error("Error fetching detailed analytics:", error);
-      res.status(500).json({ message: "Failed to fetch detailed analytics" });
-    }
-  });
+    },
+  );
 
   // Admin analytics - Get all users progress summary (approved users only)
-  app.get('/api/admin/users-analytics', isAdmin, async (req, res) => {
+  app.get("/api/admin/users-analytics", isAdmin, async (req, res) => {
     try {
       // Get ALL approved emails (including those who haven't logged in yet)
       const approvedEmailsList = await storage.getAllApprovedEmails();
-      const activeApprovedEmails = approvedEmailsList.filter(ae => ae.status === 'active');
-      
+      const activeApprovedEmails = approvedEmailsList.filter(
+        (ae) => ae.status === "active",
+      );
+
       // Get all users from users table
       const allUsers = await storage.getAllUsers();
-      
+
       // Create a map: email -> user data (ONLY for approved emails)
       const usersByEmail = new Map<string, any>();
-      
+
       // Start with ALL approved emails (even if they haven't logged in)
       for (const approvedEmail of activeApprovedEmails) {
-        const nameParts = approvedEmail.name ? approvedEmail.name.trim().split(' ') : [];
+        const nameParts = approvedEmail.name
+          ? approvedEmail.name.trim().split(" ")
+          : [];
         usersByEmail.set(approvedEmail.email, {
           id: approvedEmail.email, // Use email as ID placeholder (will be replaced if user exists)
           email: approvedEmail.email,
-          firstName: nameParts[0] || '',
-          lastName: nameParts.slice(1).join(' ') || '',
+          firstName: nameParts[0] || "",
+          lastName: nameParts.slice(1).join(" ") || "",
           isPlaceholder: true, // Mark as placeholder
         });
       }
-      
+
       // Now, overlay user data from users table (ONLY for approved emails)
       for (const user of allUsers) {
         const emailKey = user.email || user.id;
-        
+
         // Only process if this email is in approved list
         if (usersByEmail.has(emailKey)) {
           const existing = usersByEmail.get(emailKey);
-          
+
           // Replace placeholder with actual user data (first match wins - avoids expensive DB queries)
           if (existing.isPlaceholder) {
             usersByEmail.set(emailKey, user);
@@ -2597,38 +3270,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Skip duplicate checking - it was causing 42-second delays with thousands of DB queries
         }
       }
-      
+
       // Helper to calculate checklist completion percentage
       const calculateChecklistProgress = (checklist: any[]): number => {
         if (!checklist || checklist.length === 0) return 0;
         const completed = checklist.filter((item: any) => item.checked).length;
         return Math.round((completed / checklist.length) * 100);
       };
-      
+
       const users = Array.from(usersByEmail.values());
       const analytics = [];
-      
+
       for (const user of users) {
         const weeks = await storage.getHercmWeeksByUser(user.id);
-        
+
         // Count unique weeks (not duplicate entries)
-        const uniqueWeekNumbers = new Set(weeks.map(w => w.weekNumber));
+        const uniqueWeekNumbers = new Set(weeks.map((w) => w.weekNumber));
         const totalWeeks = uniqueWeekNumbers.size;
-        
+
         // Show all approved users, even if they haven't started tracking yet
         const latestWeek = weeks.length > 0 ? weeks[weeks.length - 1] : null;
         const overallScore = latestWeek?.overallScore || 0;
-        
+
         // RECALCULATE achievement from checklist completion (match dashboard Weekly Progress)
         let achievementRate = 0;
         if (latestWeek) {
-          const healthProgress = calculateChecklistProgress(latestWeek.healthChecklist || []);
-          const relationshipProgress = calculateChecklistProgress(latestWeek.relationshipChecklist || []);
-          const careerProgress = calculateChecklistProgress(latestWeek.careerChecklist || []);
-          const moneyProgress = calculateChecklistProgress(latestWeek.moneyChecklist || []);
-          achievementRate = Math.round((healthProgress + relationshipProgress + careerProgress + moneyProgress) / 4);
+          const healthProgress = calculateChecklistProgress(
+            latestWeek.healthChecklist || [],
+          );
+          const relationshipProgress = calculateChecklistProgress(
+            latestWeek.relationshipChecklist || [],
+          );
+          const careerProgress = calculateChecklistProgress(
+            latestWeek.careerChecklist || [],
+          );
+          const moneyProgress = calculateChecklistProgress(
+            latestWeek.moneyChecklist || [],
+          );
+          achievementRate = Math.round(
+            (healthProgress +
+              relationshipProgress +
+              careerProgress +
+              moneyProgress) /
+              4,
+          );
         }
-        
+
         // Calculate trend (compare last 2 weeks)
         let trend = 0;
         if (weeks.length >= 2) {
@@ -2648,10 +3335,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             trend = -2; // Strong negative
           }
         }
-        
+
         // Use email if available, otherwise use userId (which is often the email)
         const displayEmail = user.email || user.id;
-        
+
         analytics.push({
           userId: user.id,
           email: displayEmail,
@@ -2664,10 +3351,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           trend, // positive = improving, negative = declining
           // Status based on Achievement Rate (Weekly Progress percentage)
           // 70%+ = excellent, 50-69% = good, <50% = needs support
-          status: achievementRate >= 70 ? 'excellent' : achievementRate >= 50 ? 'good' : 'needs_support',
+          status:
+            achievementRate >= 70
+              ? "excellent"
+              : achievementRate >= 50
+                ? "good"
+                : "needs_support",
         });
       }
-      
+
       res.json(analytics);
     } catch (error) {
       console.error("Error fetching users analytics:", error);
@@ -2720,60 +3412,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "Platinum Internship Magicians",
     "Law of Attraction Basic",
     "Podcast Practical Spirituality with My Guru GD || MItesh Khatri",
-    "IMK Bonuses"
+    "IMK Bonuses",
   ];
 
   // Helper function to normalize course titles for matching
   function normalizeCourseTitle(title: string): string {
     return title
       .toLowerCase()
-      .replace(/[^a-z0-9\s]/g, '') // Remove special chars
-      .replace(/\s+/g, ' ')         // Normalize whitespace
+      .replace(/[^a-z0-9\s]/g, "") // Remove special chars
+      .replace(/\s+/g, " ") // Normalize whitespace
       .trim();
   }
 
   // Helper function to get course order index
   function getCourseOrderIndex(courseTitle: string): number {
     const normalized = normalizeCourseTitle(courseTitle);
-    const index = COURSE_ORDER.findIndex(orderTitle => {
+    const index = COURSE_ORDER.findIndex((orderTitle) => {
       const normalizedOrder = normalizeCourseTitle(orderTitle);
       // Exact match or contains match
-      return normalizedOrder === normalized || 
-             normalizedOrder.includes(normalized) || 
-             normalized.includes(normalizedOrder);
+      return (
+        normalizedOrder === normalized ||
+        normalizedOrder.includes(normalized) ||
+        normalized.includes(normalizedOrder)
+      );
     });
     // Return index if found, otherwise put at end (999999)
     return index !== -1 ? index : 999999;
   }
 
   // Google Sheets course tracking - fetch all courses and lessons
-  app.get('/api/courses/tracking', isAuthenticated, async (req: any, res) => {
+  app.get("/api/courses/tracking", isAuthenticated, async (req: any, res) => {
     try {
       // Handle both OIDC auth (req.user.claims.sub) and email-based auth (req.session.userEmail)
       const userId = req.user?.claims?.sub || req.session.userEmail;
       if (!userId) {
         return res.status(401).json({ message: "User not authenticated" });
       }
-      
-      const sheetUrl = "https://docs.google.com/spreadsheets/d/1WItwo6f0TJ9EhHYtiTt_9mlBbQGHE5nBpgiKChUOq_c/edit";
-      const { fetchCourseTrackingData, clearCourseTrackingCache } = await import('./googleSheets');
-      
+
+      const sheetUrl =
+        "https://docs.google.com/spreadsheets/d/1WItwo6f0TJ9EhHYtiTt_9mlBbQGHE5nBpgiKChUOq_c/edit";
+      const { fetchCourseTrackingData, clearCourseTrackingCache } =
+        await import("./googleSheets");
+
       console.log(`[COURSE TRACKING] Request from user: ${userId}`);
       console.log(`[COURSE TRACKING] Using sheet URL: ${sheetUrl}`);
-      
+
       // Clear cache if requested via query param
-      if (req.query.clearCache === 'true') {
-        console.log('[COURSE TRACKING] Cache clear requested');
+      if (req.query.clearCache === "true") {
+        console.log("[COURSE TRACKING] Cache clear requested");
         clearCourseTrackingCache();
       }
-      
+
       // Get user's lesson completions
       const userCompletions = await storage.getUserLessonCompletions(userId);
-      console.log(`[COURSE TRACKING] User has ${userCompletions.size} lesson completions`);
-      
+      console.log(
+        `[COURSE TRACKING] User has ${userCompletions.size} lesson completions`,
+      );
+
       // 🚀 Try fresh cache first, then fetch, then use stale cache as fallback
       let courses: any[] = [];
-      
+
       // Step 1: Try fresh cache (valid within 30 seconds)
       const cachedCourses = getCoursesCacheData();
       if (cachedCourses) {
@@ -2782,216 +3480,294 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Step 2: Try fetching fresh data from Google Sheets
         try {
           courses = await fetchCourseTrackingData(sheetUrl);
-          console.log(`[COURSE TRACKING] ✅ Successfully fetched ${courses.length} courses from Google Sheets`);
+          console.log(
+            `[COURSE TRACKING] ✅ Successfully fetched ${courses.length} courses from Google Sheets`,
+          );
           // Cache the successful fetch
           setCoursesCacheData(courses);
         } catch (sheetsError) {
-          console.error(`[COURSE TRACKING] ⚠️ Google Sheets fetch failed:`, sheetsError instanceof Error ? sheetsError.message : sheetsError);
-          
+          console.error(
+            `[COURSE TRACKING] ⚠️ Google Sheets fetch failed:`,
+            sheetsError instanceof Error ? sheetsError.message : sheetsError,
+          );
+
           // Step 3: Fall back to stale cache (even if expired - better than empty!)
           const staleCourses = getCoursesCacheDataStale();
           if (staleCourses) {
             courses = staleCourses;
-            console.log(`[COURSE TRACKING] 💾 Using stale cache fallback (${staleCourses.length} courses)`);
+            console.log(
+              `[COURSE TRACKING] 💾 Using stale cache fallback (${staleCourses.length} courses)`,
+            );
           } else {
-            console.warn(`[COURSE TRACKING] ⚠️ No cache available - returning empty courses list`);
+            console.warn(
+              `[COURSE TRACKING] ⚠️ No cache available - returning empty courses list`,
+            );
             courses = [];
           }
         }
       }
-      
+
       // Mark lessons as completed with better error handling
-      const coursesWithCompletions = courses.map((course, idx) => {
-        try {
-          // Filter out invalid lessons
-          const validLessons = (course.lessons || []).filter(lesson => {
-            if (!lesson.id) {
-              console.warn(`[COURSE TRACKING] Found lesson without ID in course "${course.title}": ${JSON.stringify(lesson)}`);
-              return false;
-            }
-            return true;
-          });
-          
-          return {
-            ...course,
-            lessons: validLessons.map(lesson => ({
-              ...lesson,
-              completed: userCompletions.has(lesson.id),
-            })),
-            subcategories: course.subcategories?.map(subcat => {
-              if (!subcat) return null;
-              const validSubLessons = (subcat.lessons || []).filter(lesson => lesson && lesson.id);
-              return {
-                ...subcat,
-                lessons: validSubLessons.map(lesson => ({
-                  ...lesson,
-                  completed: userCompletions.has(lesson.id),
-                })),
-              };
-            }).filter(Boolean),
-          };
-        } catch (err) {
-          console.error(`[COURSE TRACKING] Error processing course at index ${idx}:`, err);
-          return null;
-        }
-      }).filter(Boolean);
-      
+      const coursesWithCompletions = courses
+        .map((course, idx) => {
+          try {
+            // Filter out invalid lessons
+            const validLessons = (course.lessons || []).filter((lesson) => {
+              if (!lesson.id) {
+                console.warn(
+                  `[COURSE TRACKING] Found lesson without ID in course "${course.title}": ${JSON.stringify(lesson)}`,
+                );
+                return false;
+              }
+              return true;
+            });
+
+            return {
+              ...course,
+              lessons: validLessons.map((lesson) => ({
+                ...lesson,
+                completed: userCompletions.has(lesson.id),
+              })),
+              subcategories: course.subcategories
+                ?.map((subcat) => {
+                  if (!subcat) return null;
+                  const validSubLessons = (subcat.lessons || []).filter(
+                    (lesson) => lesson && lesson.id,
+                  );
+                  return {
+                    ...subcat,
+                    lessons: validSubLessons.map((lesson) => ({
+                      ...lesson,
+                      completed: userCompletions.has(lesson.id),
+                    })),
+                  };
+                })
+                .filter(Boolean),
+            };
+          } catch (err) {
+            console.error(
+              `[COURSE TRACKING] Error processing course at index ${idx}:`,
+              err,
+            );
+            return null;
+          }
+        })
+        .filter(Boolean);
+
       // Track courses to remove (we'll remove them at the end to avoid index shifting issues)
       const coursesToRemoveIds: string[] = [];
-      
+
       // Merge "Morning Happy Gym Dance Videos" lessons into "Health Mastery"
-      const healthMasteryIndex = coursesWithCompletions.findIndex(c => 
-        c && normalizeCourseTitle(c.title).includes('health mastery')
+      const healthMasteryIndex = coursesWithCompletions.findIndex(
+        (c) => c && normalizeCourseTitle(c.title).includes("health mastery"),
       );
-      const gymVideosIndex = coursesWithCompletions.findIndex(c => 
-        c && normalizeCourseTitle(c.title).includes('morning happy gym')
+      const gymVideosIndex = coursesWithCompletions.findIndex(
+        (c) => c && normalizeCourseTitle(c.title).includes("morning happy gym"),
       );
-      
+
       if (healthMasteryIndex !== -1 && gymVideosIndex !== -1) {
         const healthMastery = coursesWithCompletions[healthMasteryIndex];
         const gymVideos = coursesWithCompletions[gymVideosIndex];
-        
+
         if (healthMastery && gymVideos) {
-          console.log(`[COURSE MERGE] Merging "${gymVideos.title}" lessons into "${healthMastery.title}"`);
-          
+          console.log(
+            `[COURSE MERGE] Merging "${gymVideos.title}" lessons into "${healthMastery.title}"`,
+          );
+
           // Create a subcategory for gym videos within Health Mastery
           if (!healthMastery.subcategories) {
             healthMastery.subcategories = [];
           }
-          
+
           healthMastery.subcategories.push({
-            id: gymVideos.id + '-subcategory',
-            title: 'Morning Happy Gym Dance Videos',
+            id: gymVideos.id + "-subcategory",
+            title: "Morning Happy Gym Dance Videos",
             lessons: gymVideos.lessons || [],
-            subcategories: []
+            subcategories: [],
           });
-          
+
           // Mark for removal
           coursesToRemoveIds.push(gymVideos.id);
-          
-          console.log(`[COURSE MERGE] Added ${gymVideos.lessons?.length || 0} gym video lessons to Health Mastery as subcategory`);
+
+          console.log(
+            `[COURSE MERGE] Added ${gymVideos.lessons?.length || 0} gym video lessons to Health Mastery as subcategory`,
+          );
         }
       }
-      
+
       // Merge "Relationship Mastery" lessons into "Relationship Mastery with Mitesh Khatri"
-      const relationshipMasteryWithMiteshIndex = coursesWithCompletions.findIndex(c => 
-        c && normalizeCourseTitle(c.title).includes('relationship mastery') && normalizeCourseTitle(c.title).includes('mitesh')
+      const relationshipMasteryWithMiteshIndex =
+        coursesWithCompletions.findIndex(
+          (c) =>
+            c &&
+            normalizeCourseTitle(c.title).includes("relationship mastery") &&
+            normalizeCourseTitle(c.title).includes("mitesh"),
+        );
+      const relationshipMasteryIndex = coursesWithCompletions.findIndex(
+        (c) => c && normalizeCourseTitle(c.title) === "relationship mastery",
       );
-      const relationshipMasteryIndex = coursesWithCompletions.findIndex(c => 
-        c && normalizeCourseTitle(c.title) === 'relationship mastery'
-      );
-      
-      if (relationshipMasteryWithMiteshIndex !== -1 && relationshipMasteryIndex !== -1) {
-        const relationshipMasteryWithMitesh = coursesWithCompletions[relationshipMasteryWithMiteshIndex];
-        const relationshipMastery = coursesWithCompletions[relationshipMasteryIndex];
-        
+
+      if (
+        relationshipMasteryWithMiteshIndex !== -1 &&
+        relationshipMasteryIndex !== -1
+      ) {
+        const relationshipMasteryWithMitesh =
+          coursesWithCompletions[relationshipMasteryWithMiteshIndex];
+        const relationshipMastery =
+          coursesWithCompletions[relationshipMasteryIndex];
+
         if (relationshipMasteryWithMitesh && relationshipMastery) {
-          console.log(`[COURSE MERGE] Merging "${relationshipMastery.title}" lessons into "${relationshipMasteryWithMitesh.title}"`);
-          
+          console.log(
+            `[COURSE MERGE] Merging "${relationshipMastery.title}" lessons into "${relationshipMasteryWithMitesh.title}"`,
+          );
+
           // Create a subcategory for Relationship Mastery within Relationship Mastery with Mitesh Khatri
           if (!relationshipMasteryWithMitesh.subcategories) {
             relationshipMasteryWithMitesh.subcategories = [];
           }
-          
+
           relationshipMasteryWithMitesh.subcategories.push({
-            id: relationshipMastery.id + '-subcategory',
-            title: 'Relationship Mastery',
+            id: relationshipMastery.id + "-subcategory",
+            title: "Relationship Mastery",
             lessons: relationshipMastery.lessons || [],
-            subcategories: []
+            subcategories: [],
           });
-          
+
           // Mark for removal
           coursesToRemoveIds.push(relationshipMastery.id);
-          
-          console.log(`[COURSE MERGE] Added ${relationshipMastery.lessons?.length || 0} Relationship Mastery lessons to Relationship Mastery with Mitesh Khatri as subcategory`);
+
+          console.log(
+            `[COURSE MERGE] Added ${relationshipMastery.lessons?.length || 0} Relationship Mastery lessons to Relationship Mastery with Mitesh Khatri as subcategory`,
+          );
         }
       }
-      
+
       // Merge "June'25 DMP Recordings" lessons into "DMP - Daily magic practice recordings"
-      const dmpRecordingsIndex = coursesWithCompletions.findIndex(c => 
-        c && (normalizeCourseTitle(c.title).includes('dmp') || normalizeCourseTitle(c.title).includes('daily magic practice')) && normalizeCourseTitle(c.title).includes('recording')
+      const dmpRecordingsIndex = coursesWithCompletions.findIndex(
+        (c) =>
+          c &&
+          (normalizeCourseTitle(c.title).includes("dmp") ||
+            normalizeCourseTitle(c.title).includes("daily magic practice")) &&
+          normalizeCourseTitle(c.title).includes("recording"),
       );
-      const juneRecordingsIndex = coursesWithCompletions.findIndex(c => 
-        c && normalizeCourseTitle(c.title).includes('june') && normalizeCourseTitle(c.title).includes('dmp')
+      const juneRecordingsIndex = coursesWithCompletions.findIndex(
+        (c) =>
+          c &&
+          normalizeCourseTitle(c.title).includes("june") &&
+          normalizeCourseTitle(c.title).includes("dmp"),
       );
-      
+
       if (dmpRecordingsIndex !== -1 && juneRecordingsIndex !== -1) {
         const dmpRecordings = coursesWithCompletions[dmpRecordingsIndex];
         const juneRecordings = coursesWithCompletions[juneRecordingsIndex];
-        
+
         if (dmpRecordings && juneRecordings) {
-          console.log(`[COURSE MERGE] Merging "${juneRecordings.title}" lessons into "${dmpRecordings.title}"`);
-          
+          console.log(
+            `[COURSE MERGE] Merging "${juneRecordings.title}" lessons into "${dmpRecordings.title}"`,
+          );
+
           // Create a subcategory for June'25 DMP Recordings within DMP - Daily magic practice recordings
           if (!dmpRecordings.subcategories) {
             dmpRecordings.subcategories = [];
           }
-          
+
           dmpRecordings.subcategories.push({
-            id: juneRecordings.id + '-subcategory',
+            id: juneRecordings.id + "-subcategory",
             title: "June'25 DMP Recordings",
             lessons: juneRecordings.lessons || [],
-            subcategories: []
+            subcategories: [],
           });
-          
+
           // Mark for removal
           coursesToRemoveIds.push(juneRecordings.id);
-          
-          console.log(`[COURSE MERGE] Added ${juneRecordings.lessons?.length || 0} June'25 DMP Recordings lessons to DMP - Daily magic practice recordings as subcategory`);
+
+          console.log(
+            `[COURSE MERGE] Added ${juneRecordings.lessons?.length || 0} June'25 DMP Recordings lessons to DMP - Daily magic practice recordings as subcategory`,
+          );
         }
       }
-      
+
       // Remove all merged courses by filtering them out (safer than splice)
       if (coursesToRemoveIds.length > 0) {
-        console.log(`[COURSE MERGE] Removing ${coursesToRemoveIds.length} merged courses: ${coursesToRemoveIds.join(', ')}`);
+        console.log(
+          `[COURSE MERGE] Removing ${coursesToRemoveIds.length} merged courses: ${coursesToRemoveIds.join(", ")}`,
+        );
         const beforeCount = coursesWithCompletions.length;
-        const filteredCourses = coursesWithCompletions.filter(c => c && !coursesToRemoveIds.includes(c.id));
-        console.log(`[COURSE MERGE] Course count: ${beforeCount} → ${filteredCourses.length}`);
+        const filteredCourses = coursesWithCompletions.filter(
+          (c) => c && !coursesToRemoveIds.includes(c.id),
+        );
+        console.log(
+          `[COURSE MERGE] Course count: ${beforeCount} → ${filteredCourses.length}`,
+        );
         // Replace the array contents
         coursesWithCompletions.length = 0;
         coursesWithCompletions.push(...filteredCourses);
       }
-      
+
       // Use Google Sheet's natural order (no custom sorting)
       // Courses will appear in the exact order they appear in the spreadsheet
       const sortedCourses = [...coursesWithCompletions];
-      
-      console.log(`[COURSE TRACKING] Using Google Sheet's natural order for ${sortedCourses.length} courses`);
-      console.log(`[COURSE TRACKING] First 5 courses: ${sortedCourses.slice(0, 5).map(c => c?.title).filter(Boolean).join(', ')}`);
-      
+
+      console.log(
+        `[COURSE TRACKING] Using Google Sheet's natural order for ${sortedCourses.length} courses`,
+      );
+      console.log(
+        `[COURSE TRACKING] First 5 courses: ${sortedCourses
+          .slice(0, 5)
+          .map((c) => c?.title)
+          .filter(Boolean)
+          .join(", ")}`,
+      );
+
       // Filter out courses with 0 lessons
-      const coursesWithLessons = sortedCourses.filter(course => {
+      const coursesWithLessons = sortedCourses.filter((course) => {
         if (!course) return false;
         const lessonCount = (course.lessons || []).length;
-        const subcategoryLessonCount = (course.subcategories || []).reduce((total, sub) => {
-          if (!sub) return total;
-          return total + (sub.lessons || []).length;
-        }, 0);
+        const subcategoryLessonCount = (course.subcategories || []).reduce(
+          (total, sub) => {
+            if (!sub) return total;
+            return total + (sub.lessons || []).length;
+          },
+          0,
+        );
         const totalLessons = lessonCount + subcategoryLessonCount;
-        
+
         if (totalLessons === 0) {
-          console.log(`[COURSE FILTER] Removing empty course: "${course.title}" (0 lessons)`);
+          console.log(
+            `[COURSE FILTER] Removing empty course: "${course.title}" (0 lessons)`,
+          );
           return false;
         }
         return true;
       });
-      
-      console.log(`[COURSE FILTER] Filtered: ${sortedCourses.length} → ${coursesWithLessons.length} courses (removed ${sortedCourses.length - coursesWithLessons.length} empty courses)`);
-      
+
+      console.log(
+        `[COURSE FILTER] Filtered: ${sortedCourses.length} → ${coursesWithLessons.length} courses (removed ${sortedCourses.length - coursesWithLessons.length} empty courses)`,
+      );
+
       res.json(coursesWithLessons);
     } catch (error) {
-      console.error("[COURSE TRACKING] Error fetching course tracking data:", error);
+      console.error(
+        "[COURSE TRACKING] Error fetching course tracking data:",
+        error,
+      );
       if (error instanceof Error) {
         console.error("[COURSE TRACKING] Error stack:", error.stack);
       }
-      res.status(500).json({ message: "Failed to fetch courses", error: error instanceof Error ? error.message : 'Unknown error' });
+      res
+        .status(500)
+        .json({
+          message: "Failed to fetch courses",
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
     }
   });
 
   // Google Sheets course suggestions
-  app.get('/api/courses/suggestions', isAuthenticated, async (req, res) => {
+  app.get("/api/courses/suggestions", isAuthenticated, async (req, res) => {
     try {
-      const sheetUrl = "https://docs.google.com/spreadsheets/d/1WItwo6f0TJ9EhHYtiTt_9mlBbQGHE5nBpgiKChUOq_c/edit";
+      const sheetUrl =
+        "https://docs.google.com/spreadsheets/d/1WItwo6f0TJ9EhHYtiTt_9mlBbQGHE5nBpgiKChUOq_c/edit";
       const courses = await fetchCourseData(sheetUrl);
       res.json(courses);
     } catch (error) {
@@ -3000,13 +3776,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/courses/match', isAuthenticated, async (req, res) => {
+  app.post("/api/courses/match", isAuthenticated, async (req, res) => {
     try {
       const { category, currentBelief } = req.body;
-      const sheetUrl = "https://docs.google.com/spreadsheets/d/1WItwo6f0TJ9EhHYtiTt_9mlBbQGHE5nBpgiKChUOq_c/edit";
+      const sheetUrl =
+        "https://docs.google.com/spreadsheets/d/1WItwo6f0TJ9EhHYtiTt_9mlBbQGHE5nBpgiKChUOq_c/edit";
       const courses = await fetchCourseData(sheetUrl);
       const match = findMatchingCourse(courses, category, currentBelief);
-      res.json(match || { courseName: "No matching course found", description: "" });
+      res.json(
+        match || { courseName: "No matching course found", description: "" },
+      );
     } catch (error) {
       console.error("Error matching course:", error);
       res.status(500).json({ message: "Failed to match course" });
@@ -3014,15 +3793,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Toggle lesson completion
-  app.post('/api/lessons/toggle', isAuthenticated, async (req: any, res) => {
+  app.post("/api/lessons/toggle", isAuthenticated, async (req: any, res) => {
     try {
       // Handle both OIDC auth (req.user.claims.sub) and email-based auth (req.session.userEmail)
       const userId = req.user?.claims?.sub || req.session.userEmail;
       if (!userId) {
         return res.status(401).json({ message: "User not authenticated" });
       }
-      
-      const { lessonId, completed, lessonName, courseName, courseId, url, hrcmArea } = req.body;
+
+      const {
+        lessonId,
+        completed,
+        lessonName,
+        courseName,
+        courseId,
+        url,
+        hrcmArea,
+      } = req.body;
 
       if (!lessonId) {
         return res.status(400).json({ message: "lessonId is required" });
@@ -3034,17 +3821,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (completed) {
         // Desired state is checked, so mark as completed
         await storage.markLessonComplete(userId, lessonId);
-        
+
         // Add 1 point
         await storage.addPointsToUser(userId, 1);
-        console.log(`✅ Added 1 point to user ${userId} for completing lesson: ${lessonName}`);
+        console.log(
+          `✅ Added 1 point to user ${userId} for completing lesson: ${lessonName}`,
+        );
       } else {
         // Desired state is unchecked, so mark as incomplete (remove completion record)
         await storage.markLessonIncomplete(userId, lessonId);
-        
+
         // Subtract 1 point
         await storage.addPointsToUser(userId, -1);
-        console.log(`❌ Subtracted 1 point from user ${userId} for unchecking lesson: ${lessonName}`);
+        console.log(
+          `❌ Subtracted 1 point from user ${userId} for unchecking lesson: ${lessonName}`,
+        );
       }
 
       res.json({ success: true, lessonId, completed });
@@ -3056,230 +3847,281 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // 🚀 GOOGLE SHEETS WEBHOOK - Instant sync when sheet is edited
   // This endpoint is called by Google Apps Script whenever the sheet is modified
-  app.post('/api/webhooks/google-sheets-update', async (req, res) => {
+  app.post("/api/webhooks/google-sheets-update", async (req, res) => {
     try {
-      console.log('[WEBHOOK] 📢 Google Sheets update notification received');
-      console.log('[WEBHOOK] Request body:', JSON.stringify(req.body, null, 2));
-      
+      console.log("[WEBHOOK] 📢 Google Sheets update notification received");
+      console.log("[WEBHOOK] Request body:", JSON.stringify(req.body, null, 2));
+
       // Broadcast to all connected WebSocket clients to refetch course data
       if (wssInstance) {
         wssInstance.clients.forEach((client) => {
           if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify({
-              type: 'course_data_changed',
-              timestamp: new Date().toISOString(),
-              message: 'Google Sheets data updated - please refresh'
-            }));
+            client.send(
+              JSON.stringify({
+                type: "course_data_changed",
+                timestamp: new Date().toISOString(),
+                message: "Google Sheets data updated - please refresh",
+              }),
+            );
           }
         });
-        console.log('[WEBHOOK] ✅ Broadcast sent to all WebSocket clients');
+        console.log("[WEBHOOK] ✅ Broadcast sent to all WebSocket clients");
       } else {
-        console.warn('[WEBHOOK] ⚠️ WebSocket server not initialized yet');
+        console.warn("[WEBHOOK] ⚠️ WebSocket server not initialized yet");
       }
-      
-      res.json({ success: true, message: 'Notification received and broadcast to clients' });
+
+      res.json({
+        success: true,
+        message: "Notification received and broadcast to clients",
+      });
     } catch (error) {
-      console.error('[WEBHOOK] ❌ Error processing webhook:', error);
-      res.status(500).json({ success: false, message: 'Failed to process webhook' });
+      console.error("[WEBHOOK] ❌ Error processing webhook:", error);
+      res
+        .status(500)
+        .json({ success: false, message: "Failed to process webhook" });
     }
   });
 
   // 🚀 ZAPIER WEBHOOK - Auto-add Kajabi members to approved emails
   // This endpoint is called by Zapier when a new member joins Kajabi
-  app.post('/api/webhooks/zapier-member', async (req, res) => {
+  app.post("/api/webhooks/zapier-member", async (req, res) => {
     try {
-      console.log('[ZAPIER WEBHOOK] 📢 New member notification received');
-      console.log('[ZAPIER WEBHOOK] Request body:', JSON.stringify(req.body, null, 2));
-      
+      console.log("[ZAPIER WEBHOOK] 📢 New member notification received");
+      console.log(
+        "[ZAPIER WEBHOOK] Request body:",
+        JSON.stringify(req.body, null, 2),
+      );
+
       const { name, email, membershipTag, secret } = req.body;
-      
+
       // 1. Validate secret key for security
       const expectedSecret = process.env.ZAPIER_WEBHOOK_SECRET;
       if (!expectedSecret) {
-        console.error('[ZAPIER WEBHOOK] ❌ ZAPIER_WEBHOOK_SECRET not configured');
-        return res.status(500).json({ 
-          success: false, 
-          message: 'Webhook secret not configured on server' 
+        console.error(
+          "[ZAPIER WEBHOOK] ❌ ZAPIER_WEBHOOK_SECRET not configured",
+        );
+        return res.status(500).json({
+          success: false,
+          message: "Webhook secret not configured on server",
         });
       }
-      
+
       if (secret !== expectedSecret) {
-        console.error('[ZAPIER WEBHOOK] ❌ Invalid secret key provided');
-        return res.status(401).json({ 
-          success: false, 
-          message: 'Invalid secret key' 
+        console.error("[ZAPIER WEBHOOK] ❌ Invalid secret key provided");
+        return res.status(401).json({
+          success: false,
+          message: "Invalid secret key",
         });
       }
-      
+
       // 2. Validate required fields
       if (!email) {
-        console.error('[ZAPIER WEBHOOK] ❌ Email is required');
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Email is required' 
+        console.error("[ZAPIER WEBHOOK] ❌ Email is required");
+        return res.status(400).json({
+          success: false,
+          message: "Email is required",
         });
       }
-      
+
       // 3. Check if email already exists
       const normalizedEmail = email.toLowerCase().trim();
       const existingEmail = await storage.getApprovedEmail(normalizedEmail);
-      
+
       if (existingEmail) {
-        console.log(`[ZAPIER WEBHOOK] ℹ️ Email already exists: ${normalizedEmail}`);
-        return res.json({ 
-          success: true, 
-          message: 'Email already approved',
+        console.log(
+          `[ZAPIER WEBHOOK] ℹ️ Email already exists: ${normalizedEmail}`,
+        );
+        return res.json({
+          success: true,
+          message: "Email already approved",
           email: normalizedEmail,
-          alreadyExists: true
+          alreadyExists: true,
         });
       }
-      
+
       // 4. Add to approved emails
       const newApprovedEmail = await storage.addApprovedEmail({
         email: normalizedEmail,
         name: name || null,
-        status: 'active',
+        status: "active",
         accessCount: 0,
       });
-      
-      console.log(`[ZAPIER WEBHOOK] ✅ Successfully added new member: ${normalizedEmail} (${name || 'No name'})`);
-      console.log(`[ZAPIER WEBHOOK] 📋 Membership tag: ${membershipTag || 'N/A'}`);
-      
-      res.json({ 
-        success: true, 
-        message: 'Member added to approved list',
+
+      console.log(
+        `[ZAPIER WEBHOOK] ✅ Successfully added new member: ${normalizedEmail} (${name || "No name"})`,
+      );
+      console.log(
+        `[ZAPIER WEBHOOK] 📋 Membership tag: ${membershipTag || "N/A"}`,
+      );
+
+      res.json({
+        success: true,
+        message: "Member added to approved list",
         email: normalizedEmail,
         name: name || null,
         membershipTag: membershipTag || null,
-        id: newApprovedEmail.id
+        id: newApprovedEmail.id,
       });
-      
     } catch (error) {
-      console.error('[ZAPIER WEBHOOK] ❌ Error processing webhook:', error);
-      res.status(500).json({ 
-        success: false, 
-        message: 'Failed to process webhook',
-        error: error instanceof Error ? error.message : 'Unknown error'
+      console.error("[ZAPIER WEBHOOK] ❌ Error processing webhook:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to process webhook",
+        error: error instanceof Error ? error.message : "Unknown error",
       });
     }
   });
 
   // AI-powered course recommendations based on HERCM data
-  app.post('/api/courses/recommend', isAuthenticated, async (req: any, res) => {
+  app.post("/api/courses/recommend", isAuthenticated, async (req: any, res) => {
     try {
       // Validate request
       const validatedData = recommendCoursesRequestSchema.parse(req.body);
-      
+
       // Fetch courses from CSV file
       const courses = await parseCourseCSV();
-      
+
       // Get AI-powered recommendations
-      const recommendations = await getAIRecommendations(courses, {
-        category: validatedData.category,
-        rating: validatedData.currentRating,
-        problems: validatedData.problems,
-        feelings: validatedData.feelings,
-        beliefs: validatedData.beliefs,
-        actions: validatedData.actions,
-      }, 3, validatedData.excludeCourseNames || []);
-      
+      const recommendations = await getAIRecommendations(
+        courses,
+        {
+          category: validatedData.category,
+          rating: validatedData.currentRating,
+          problems: validatedData.problems,
+          feelings: validatedData.feelings,
+          beliefs: validatedData.beliefs,
+          actions: validatedData.actions,
+        },
+        3,
+        validatedData.excludeCourseNames || [],
+      );
+
       res.json(recommendations);
     } catch (error) {
       console.error("Error recommending courses:", error);
-      res.status(500).json({ message: "Failed to recommend courses", error: error instanceof Error ? error.message : 'Unknown error' });
+      res
+        .status(500)
+        .json({
+          message: "Failed to recommend courses",
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
     }
   });
 
   // Get rating-based AI course recommendations for HRCM table
-  app.post('/api/courses/recommend-single', isAuthenticated, async (req: any, res) => {
-    try {
-      const { category, currentRating, problems, feelings, beliefs, actions, excludeCourseNames } = req.body;
-      
-      // Validate inputs
-      if (!category) {
-        return res.status(400).json({ message: "Category is required" });
-      }
-      
-      // Calculate number of courses based on rating (inverse relationship)
-      // Lower rating = More courses (beginners need more options)
-      // Higher rating = Less courses (advanced need focused learning)
-      const rating = Math.max(1, Math.min(currentRating || 1, 7)); // Clamp between 1-7
-      
-      let numberOfCourses: number;
-      if (rating < 3) {
-        numberOfCourses = 5; // Rating 1-2: 5 courses
-      } else if (rating < 5) {
-        numberOfCourses = 3; // Rating 3-4: 3 courses
-      } else {
-        numberOfCourses = 2; // Rating 5-7: 2 courses
-      }
-      
-      // Fetch courses from CSV file
-      const courses = await parseCourseCSV();
-      
-      // Get AI-powered recommendations (rating-based count)
-      const recommendations = await getAIRecommendations(courses, {
-        category,
-        rating: rating,
-        problems: problems || '',
-        feelings: feelings || '',
-        beliefs: beliefs || '',
-        actions: actions || '',
-      }, numberOfCourses, excludeCourseNames || []);
-      
-      if (recommendations.length === 0) {
-        return res.json({ 
-          courses: []
+  app.post(
+    "/api/courses/recommend-single",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const {
+          category,
+          currentRating,
+          problems,
+          feelings,
+          beliefs,
+          actions,
+          excludeCourseNames,
+        } = req.body;
+
+        // Validate inputs
+        if (!category) {
+          return res.status(400).json({ message: "Category is required" });
+        }
+
+        // Calculate number of courses based on rating (inverse relationship)
+        // Lower rating = More courses (beginners need more options)
+        // Higher rating = Less courses (advanced need focused learning)
+        const rating = Math.max(1, Math.min(currentRating || 1, 7)); // Clamp between 1-7
+
+        let numberOfCourses: number;
+        if (rating < 3) {
+          numberOfCourses = 5; // Rating 1-2: 5 courses
+        } else if (rating < 5) {
+          numberOfCourses = 3; // Rating 3-4: 3 courses
+        } else {
+          numberOfCourses = 2; // Rating 5-7: 2 courses
+        }
+
+        // Fetch courses from CSV file
+        const courses = await parseCourseCSV();
+
+        // Get AI-powered recommendations (rating-based count)
+        const recommendations = await getAIRecommendations(
+          courses,
+          {
+            category,
+            rating: rating,
+            problems: problems || "",
+            feelings: feelings || "",
+            beliefs: beliefs || "",
+            actions: actions || "",
+          },
+          numberOfCourses,
+          excludeCourseNames || [],
+        );
+
+        if (recommendations.length === 0) {
+          return res.json({
+            courses: [],
+          });
+        }
+
+        // Map recommendations to course format and ensure uniqueness
+        const seenCourseNames = new Set<string>();
+        const mappedCourses = recommendations
+          .filter((rec) => {
+            // Remove duplicates by course name
+            if (seenCourseNames.has(rec.course.courseName)) {
+              return false;
+            }
+            seenCourseNames.add(rec.course.courseName);
+            return true;
+          })
+          .map((rec, index) => ({
+            id: `course-${index + 1}`,
+            name: rec.course.courseName,
+            link: rec.course.link,
+            completed: false,
+          }));
+
+        res.json({
+          courses: mappedCourses,
+        });
+      } catch (error) {
+        console.error("Error getting AI course recommendation:", error);
+        res.status(500).json({
+          message: "Failed to get course recommendation",
+          courses: [],
         });
       }
-      
-      // Map recommendations to course format and ensure uniqueness
-      const seenCourseNames = new Set<string>();
-      const mappedCourses = recommendations
-        .filter(rec => {
-          // Remove duplicates by course name
-          if (seenCourseNames.has(rec.course.courseName)) {
-            return false;
-          }
-          seenCourseNames.add(rec.course.courseName);
-          return true;
-        })
-        .map((rec, index) => ({
-          id: `course-${index + 1}`,
-          name: rec.course.courseName,
-          link: rec.course.link,
-          completed: false
-        }));
-      
-      res.json({
-        courses: mappedCourses
-      });
-    } catch (error) {
-      console.error("Error getting AI course recommendation:", error);
-      res.status(500).json({ 
-        message: "Failed to get course recommendation",
-        courses: []
-      });
-    }
-  });
+    },
+  );
 
   // AI Auto-fill next week goals based on current week data (ALL 4 HRCM areas)
-  app.post('/api/hercm/ai-autofill-next-week', isAuthenticated, async (req: any, res) => {
-    try {
-      const { beliefs } = req.body; // Array of all 4 HRCM beliefs with current week data
-      
-      console.log('[AI Auto-Fill] Starting request');
-      
-      const prompt = `Analyze current week data and suggest next week targets.
+  app.post(
+    "/api/hercm/ai-autofill-next-week",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const { beliefs } = req.body; // Array of all 4 HRCM beliefs with current week data
+
+        console.log("[AI Auto-Fill] Starting request");
+
+        const prompt = `Analyze current week data and suggest next week targets.
 
 Current Week:
-${beliefs.map((belief: any) => `
+${beliefs
+  .map(
+    (belief: any) => `
 ${belief.category}: Rating ${belief.currentRating}/10
-Problems: ${belief.problems || 'None'}
-Feelings: ${belief.currentFeelings || 'None'}
-Beliefs: ${belief.currentBelief || 'None'}  
-Actions: ${belief.currentActions || 'None'}
-`).join('\n')}
+Problems: ${belief.problems || "None"}
+Feelings: ${belief.currentFeelings || "None"}
+Beliefs: ${belief.currentBelief || "None"}  
+Actions: ${belief.currentActions || "None"}
+`,
+  )
+  .join("\n")}
 
 Return ONLY a JSON object with "suggestions" array containing 4 objects:
 {
@@ -3315,96 +4157,145 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   ]
 }`;
 
-      console.log('[AI Auto-Fill] Calling OpenAI');
-      
-      // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
-      const completion = await openai.chat.completions.create({
-        model: "gpt-5",
-        messages: [
-          { role: "system", content: "You are a life coach. Return ONLY valid JSON in the exact format requested, no markdown, no other text." },
-          { role: "user", content: prompt }
-        ],
-        response_format: { type: "json_object" }
-      });
+        console.log("[AI Auto-Fill] Calling OpenAI");
 
-      console.log('[AI Auto-Fill] Response received');
-      
-      let responseText = completion.choices[0]?.message?.content || '{"suggestions":[]}';
-      console.log('[AI Auto-Fill] Raw response:', responseText);
-      
-      // Clean and parse
-      responseText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-      
-      const parsed = JSON.parse(responseText);
-      // Handle both "suggestions" and "data" keys (OpenAI sometimes uses different keys)
-      const aiSuggestions = parsed.suggestions || parsed.data || [];
-      
-      console.log('[AI Auto-Fill] Success! Parsed', aiSuggestions.length, 'suggestions');
-      
-      res.json(aiSuggestions);
-    } catch (error) {
-      console.error("[AI Auto-Fill] ERROR:", error instanceof Error ? error.message : error);
-      
-      // Fallback: simple suggestions for all 4 areas
-      const fallback = [
-        {
-          category: "Health",
-          result: ["Improve physical energy", "Better sleep quality"],
-          feelings: ["Energetic", "Refreshed"],
-          target: ["I prioritize my health", "I make healthy choices daily"],
-          actions: ["Exercise 30 mins daily", "Eat nutritious meals", "Sleep 7-8 hours"]
-        },
-        {
-          category: "Relationship",
-          result: ["Stronger connections", "Better communication"],
-          feelings: ["Connected", "Appreciated"],
-          target: ["I nurture my relationships", "I communicate with love"],
-          actions: ["Quality time with loved ones", "Active listening", "Express appreciation daily"]
-        },
-        {
-          category: "Career",
-          result: ["Increased productivity", "Skill improvement"],
-          feelings: ["Focused", "Accomplished"],
-          target: ["I am valuable and capable", "I create meaningful impact"],
-          actions: ["Complete key projects", "Learn new skill", "Network with peers"]
-        },
-        {
-          category: "Money",
-          result: ["Better financial decisions", "Increased savings"],
-          feelings: ["Abundant", "Secure"],
-          target: ["Money flows to me easily", "I am financially wise"],
-          actions: ["Track expenses", "Save portion of income", "Invest in growth"]
-        }
-      ];
-      
-      res.json(fallback);
-    }
-  });
+        // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+        const completion = await openai.chat.completions.create({
+          model: "gpt-5",
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are a life coach. Return ONLY valid JSON in the exact format requested, no markdown, no other text.",
+            },
+            { role: "user", content: prompt },
+          ],
+          response_format: { type: "json_object" },
+        });
+
+        console.log("[AI Auto-Fill] Response received");
+
+        let responseText =
+          completion.choices[0]?.message?.content || '{"suggestions":[]}';
+        console.log("[AI Auto-Fill] Raw response:", responseText);
+
+        // Clean and parse
+        responseText = responseText
+          .replace(/```json\n?/g, "")
+          .replace(/```\n?/g, "")
+          .trim();
+
+        const parsed = JSON.parse(responseText);
+        // Handle both "suggestions" and "data" keys (OpenAI sometimes uses different keys)
+        const aiSuggestions = parsed.suggestions || parsed.data || [];
+
+        console.log(
+          "[AI Auto-Fill] Success! Parsed",
+          aiSuggestions.length,
+          "suggestions",
+        );
+
+        res.json(aiSuggestions);
+      } catch (error) {
+        console.error(
+          "[AI Auto-Fill] ERROR:",
+          error instanceof Error ? error.message : error,
+        );
+
+        // Fallback: simple suggestions for all 4 areas
+        const fallback = [
+          {
+            category: "Health",
+            result: ["Improve physical energy", "Better sleep quality"],
+            feelings: ["Energetic", "Refreshed"],
+            target: ["I prioritize my health", "I make healthy choices daily"],
+            actions: [
+              "Exercise 30 mins daily",
+              "Eat nutritious meals",
+              "Sleep 7-8 hours",
+            ],
+          },
+          {
+            category: "Relationship",
+            result: ["Stronger connections", "Better communication"],
+            feelings: ["Connected", "Appreciated"],
+            target: ["I nurture my relationships", "I communicate with love"],
+            actions: [
+              "Quality time with loved ones",
+              "Active listening",
+              "Express appreciation daily",
+            ],
+          },
+          {
+            category: "Career",
+            result: ["Increased productivity", "Skill improvement"],
+            feelings: ["Focused", "Accomplished"],
+            target: ["I am valuable and capable", "I create meaningful impact"],
+            actions: [
+              "Complete key projects",
+              "Learn new skill",
+              "Network with peers",
+            ],
+          },
+          {
+            category: "Money",
+            result: ["Better financial decisions", "Increased savings"],
+            feelings: ["Abundant", "Secure"],
+            target: ["Money flows to me easily", "I am financially wise"],
+            actions: [
+              "Track expenses",
+              "Save portion of income",
+              "Invest in growth",
+            ],
+          },
+        ];
+
+        res.json(fallback);
+      }
+    },
+  );
 
   // AI-powered affirmation generation
-  app.post('/api/affirmations/generate', isAuthenticated, async (req: any, res) => {
-    try {
-      const { category, currentRating, problems, currentFeelings, currentBelief, currentActions, nextWeekTarget } = req.body;
-      
-      const affirmation = await generateAffirmation(
-        category,
-        currentRating || 1,
-        problems || '',
-        currentFeelings || '',
-        currentBelief || '',
-        currentActions || '',
-        nextWeekTarget || ''
-      );
-      
-      res.json({ affirmation });
-    } catch (error) {
-      console.error("Error generating affirmation:", error);
-      res.status(500).json({ message: "Failed to generate affirmation", error: error instanceof Error ? error.message : 'Unknown error' });
-    }
-  });
+  app.post(
+    "/api/affirmations/generate",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const {
+          category,
+          currentRating,
+          problems,
+          currentFeelings,
+          currentBelief,
+          currentActions,
+          nextWeekTarget,
+        } = req.body;
+
+        const affirmation = await generateAffirmation(
+          category,
+          currentRating || 1,
+          problems || "",
+          currentFeelings || "",
+          currentBelief || "",
+          currentActions || "",
+          nextWeekTarget || "",
+        );
+
+        res.json({ affirmation });
+      } catch (error) {
+        console.error("Error generating affirmation:", error);
+        res
+          .status(500)
+          .json({
+            message: "Failed to generate affirmation",
+            error: error instanceof Error ? error.message : "Unknown error",
+          });
+      }
+    },
+  );
 
   // Update user's Google Sheet URL
-  app.post('/api/user/course-sheet', isAuthenticated, async (req: any, res) => {
+  app.post("/api/user/course-sheet", isAuthenticated, async (req: any, res) => {
     try {
       // Handle both OIDC auth (req.user.claims.sub) and email-based auth (req.session.userEmail)
       const userId = req.user?.claims?.sub || req.session.userEmail;
@@ -3412,7 +4303,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         return res.status(401).json({ message: "User not authenticated" });
       }
       const { sheetUrl } = req.body;
-      
+
       await storage.updateUserCourseSheet(userId, sheetUrl);
       res.json({ success: true, message: "Course sheet URL updated" });
     } catch (error) {
@@ -3422,10 +4313,10 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Email-based authentication routes
-  app.post('/api/auth/login', async (req, res) => {
+  app.post("/api/auth/login", async (req, res) => {
     try {
       const { email: rawEmail } = req.body;
-      
+
       if (!rawEmail) {
         return res.status(400).json({ message: "Email is required" });
       }
@@ -3435,54 +4326,65 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
 
       // Check if user is an admin first
       const adminUser = await storage.getAdminUser(email);
-      const isAdmin = adminUser && adminUser.status === 'active';
-      
+      const isAdmin = adminUser && adminUser.status === "active";
+
       // If not admin, check approved emails
       if (!isAdmin) {
         const approvedEmail = await storage.getApprovedEmail(email);
-        
-        if (!approvedEmail || approvedEmail.status !== 'active') {
+
+        if (!approvedEmail || approvedEmail.status !== "active") {
           // Log failed attempt
           await storage.createAccessLog({
             email,
-            status: 'failed',
-            ipAddress: req.ip || req.headers['x-forwarded-for'] as string || 'unknown',
-            userAgent: req.headers['user-agent'] || 'unknown'
+            status: "failed",
+            ipAddress:
+              req.ip || (req.headers["x-forwarded-for"] as string) || "unknown",
+            userAgent: req.headers["user-agent"] || "unknown",
           });
-          return res.status(403).json({ message: "Your email is not approved. Please contact admin." });
+          return res
+            .status(403)
+            .json({
+              message: "Your email is not approved. Please contact admin.",
+            });
         }
       }
 
       await storage.incrementAccessCount(email);
-      
+
       // Log successful attempt
       await storage.createAccessLog({
         email,
-        status: 'success',
-        ipAddress: req.ip || req.headers['x-forwarded-for'] as string || 'unknown',
-        userAgent: req.headers['user-agent'] || 'unknown'
+        status: "success",
+        ipAddress:
+          req.ip || (req.headers["x-forwarded-for"] as string) || "unknown",
+        userAgent: req.headers["user-agent"] || "unknown",
       });
-      
+
       // Get name from approved emails or admin users table
-      let userName = '';
+      let userName = "";
       if (isAdmin && adminUser) {
-        userName = adminUser.name || '';
+        userName = adminUser.name || "";
       } else {
         const approvedEmail = await storage.getApprovedEmail(email);
-        userName = approvedEmail?.name || '';
+        userName = approvedEmail?.name || "";
       }
 
       // Split name into firstName and lastName
-      const nameParts = userName.trim().split(' ');
-      const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ') || '';
+      const nameParts = userName.trim().split(" ");
+      const firstName = nameParts[0] || "";
+      const lastName = nameParts.slice(1).join(" ") || "";
 
       // Check if user exists, create or update with name
       const existingUser = await storage.getUserByEmail(email);
-      console.log(`[LOGIN] User lookup for ${email}:`, existingUser ? 'Found' : 'Not found');
-      
+      console.log(
+        `[LOGIN] User lookup for ${email}:`,
+        existingUser ? "Found" : "Not found",
+      );
+
       if (!existingUser) {
-        console.log(`[LOGIN] Creating new user with id=${email}, email=${email}, name=${userName}`);
+        console.log(
+          `[LOGIN] Creating new user with id=${email}, email=${email}, name=${userName}`,
+        );
         const newUser = await storage.upsertUser({
           id: email,
           email: email,
@@ -3502,18 +4404,20 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
           isAdmin: isAdmin || false,
         });
       }
-      
+
       req.session.userEmail = email;
       req.session.isAdmin = isAdmin || false;
-      console.log(`[LOGIN] Session set: userEmail=${email}, isAdmin=${isAdmin}`);
-      
+      console.log(
+        `[LOGIN] Session set: userEmail=${email}, isAdmin=${isAdmin}`,
+      );
+
       // Save session before responding to ensure it's written to store
       req.session.save((err) => {
         if (err) {
-          console.error('[LOGIN] Session save error:', err);
+          console.error("[LOGIN] Session save error:", err);
           return res.status(500).json({ message: "Failed to save session" });
         }
-        console.log('[LOGIN] Session saved successfully');
+        console.log("[LOGIN] Session saved successfully");
         res.json({ success: true, message: "Login successful" });
       });
     } catch (error) {
@@ -3522,48 +4426,52 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
-  app.post('/api/auth/admin-login', async (req, res) => {
+  app.post("/api/auth/admin-login", async (req, res) => {
     try {
       const { email } = req.body;
-      
+
       if (!email) {
         return res.status(400).json({ message: "Email is required" });
       }
 
       // Check admin users table first
       const adminUser = await storage.getAdminUser(email);
-      
+
       // Check if user is in admin users table with active status
-      let isAuthorized = adminUser && adminUser.status === 'active';
-      
+      let isAuthorized = adminUser && adminUser.status === "active";
+
       // If not in admin users table, check regular users table for isAdmin flag
       if (!isAuthorized) {
         const regularUser = await storage.getUserByEmail(email);
         isAuthorized = regularUser?.isAdmin === true;
       }
-      
+
       if (!isAuthorized) {
         // Log failed admin login attempt
         await storage.createAccessLog({
           email,
-          status: 'failed',
-          ipAddress: req.ip || req.headers['x-forwarded-for'] as string || 'unknown',
-          userAgent: req.headers['user-agent'] || 'unknown',
+          status: "failed",
+          ipAddress:
+            req.ip || (req.headers["x-forwarded-for"] as string) || "unknown",
+          userAgent: req.headers["user-agent"] || "unknown",
         });
-        return res.status(403).json({ message: "You are not authorized as admin" });
+        return res
+          .status(403)
+          .json({ message: "You are not authorized as admin" });
       }
 
       req.session.userEmail = email;
       req.session.isAdmin = true;
-      
+
       // Log successful admin login
       await storage.createAccessLog({
         email,
-        status: 'success',
-        ipAddress: req.ip || req.headers['x-forwarded-for'] as string || 'unknown',
-        userAgent: req.headers['user-agent'] || 'unknown',
+        status: "success",
+        ipAddress:
+          req.ip || (req.headers["x-forwarded-for"] as string) || "unknown",
+        userAgent: req.headers["user-agent"] || "unknown",
       });
-      
+
       res.json({ success: true, message: "Admin login successful" });
     } catch (error) {
       console.error("Error during admin login:", error);
@@ -3571,7 +4479,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
-  app.get('/api/auth/me', async (req, res) => {
+  app.get("/api/auth/me", async (req, res) => {
     try {
       if (!req.session.userEmail) {
         return res.status(401).json({ message: "Not authenticated" });
@@ -3580,29 +4488,29 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       // Check if admin first
       if (req.session.isAdmin) {
         const adminUser = await storage.getAdminUser(req.session.userEmail);
-        
+
         if (adminUser) {
           // Extract first name from admin's name
-          const firstName = adminUser.name.split(' ')[0];
-          return res.json({ 
-            email: adminUser.email, 
+          const firstName = adminUser.name.split(" ")[0];
+          return res.json({
+            email: adminUser.email,
             firstName,
-            lastName: adminUser.name.split(' ').slice(1).join(' ') || ''
+            lastName: adminUser.name.split(" ").slice(1).join(" ") || "",
           });
         }
       }
 
       // Regular user
       const user = await storage.getUserByEmail(req.session.userEmail);
-      
+
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      res.json({ 
-        email: user.email, 
-        firstName: user.firstName, 
-        lastName: user.lastName 
+      res.json({
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
       });
     } catch (error) {
       console.error("Error fetching current user:", error);
@@ -3611,7 +4519,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Admin email management routes
-  app.get('/api/admin/approved-emails', isAdmin, async (req, res) => {
+  app.get("/api/admin/approved-emails", isAdmin, async (req, res) => {
     try {
       const emails = await storage.getAllApprovedEmails();
       res.json(emails);
@@ -3621,43 +4529,57 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
-  app.post('/api/admin/approved-emails', isAdmin, async (req, res) => {
+  app.post("/api/admin/approved-emails", isAdmin, async (req, res) => {
     try {
       const { email, name, zoomLink } = req.body;
-      
+
       if (!email) {
         return res.status(400).json({ message: "Email is required" });
       }
 
-      const newEmail = await storage.addApprovedEmail({ email, name, zoomLink, status: 'active' });
+      const newEmail = await storage.addApprovedEmail({
+        email,
+        name,
+        zoomLink,
+        status: "active",
+      });
       res.json(newEmail);
     } catch (error: any) {
       console.error("Error adding approved email:", error);
-      if (error.message?.includes('duplicate') || error.code === '23505') {
+      if (error.message?.includes("duplicate") || error.code === "23505") {
         return res.status(400).json({ message: "Email already exists" });
       }
       res.status(500).json({ message: "Failed to add email" });
     }
   });
 
-  app.post('/api/admin/bulk-upload', uploadLimiter, isAdmin, async (req, res) => {
-    try {
-      const { entries } = req.body;
-      
-      if (!Array.isArray(entries) || entries.length === 0) {
-        return res.status(400).json({ message: "Entries array is required" });
-      }
+  app.post(
+    "/api/admin/bulk-upload",
+    uploadLimiter,
+    isAdmin,
+    async (req, res) => {
+      try {
+        const { entries } = req.body;
 
-      const results = await storage.bulkAddApprovedEmails(entries);
-      res.json({ success: true, added: results.length, message: "Emails uploaded successfully" });
-    } catch (error) {
-      console.error("Error bulk uploading emails:", error);
-      res.status(500).json({ message: "Failed to upload emails" });
-    }
-  });
+        if (!Array.isArray(entries) || entries.length === 0) {
+          return res.status(400).json({ message: "Entries array is required" });
+        }
+
+        const results = await storage.bulkAddApprovedEmails(entries);
+        res.json({
+          success: true,
+          added: results.length,
+          message: "Emails uploaded successfully",
+        });
+      } catch (error) {
+        console.error("Error bulk uploading emails:", error);
+        res.status(500).json({ message: "Failed to upload emails" });
+      }
+    },
+  );
 
   // Delete all emails - MUST come before /:id route
-  app.delete('/api/admin/approved-emails/all', isAdmin, async (req, res) => {
+  app.delete("/api/admin/approved-emails/all", isAdmin, async (req, res) => {
     try {
       await storage.deleteAllApprovedEmails();
       res.json({ success: true, message: "All emails deleted" });
@@ -3667,98 +4589,121 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
-  app.delete('/api/admin/approved-emails/:id', isAdmin, async (req, res) => {
+  app.delete("/api/admin/approved-emails/:id", isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       console.log(`[DELETE EMAIL] Starting deletion for ID: ${id}`);
-      
+
       // First, get the email to find associated user data
       const approvedEmail = await storage.getApprovedEmailById(id);
       if (!approvedEmail) {
         console.log(`[DELETE EMAIL] Email not found for ID: ${id}`);
         return res.status(404).json({ message: "Email not found" });
       }
-      
+
       const userEmail = approvedEmail.email;
       console.log(`[CASCADE DELETE] Removing all data for user: ${userEmail}`);
-      
+
       // Delete all user data (CASCADE)
       await storage.deleteAllUserData(userEmail);
       console.log(`[CASCADE DELETE] User data deleted for: ${userEmail}`);
-      
+
       // Finally, delete the approved email entry
       await storage.deleteApprovedEmail(id);
-      console.log(`[CASCADE DELETE] Approved email entry deleted for: ${userEmail}`);
-      
-      console.log(`[CASCADE DELETE] Successfully completed deletion for: ${userEmail}`);
-      res.json({ success: true, message: "Email and all associated data deleted" });
+      console.log(
+        `[CASCADE DELETE] Approved email entry deleted for: ${userEmail}`,
+      );
+
+      console.log(
+        `[CASCADE DELETE] Successfully completed deletion for: ${userEmail}`,
+      );
+      res.json({
+        success: true,
+        message: "Email and all associated data deleted",
+      });
     } catch (error: any) {
       console.error("Error deleting approved email:", error);
       console.error("Error stack:", error?.stack);
       console.error("Error message:", error?.message);
-      res.status(500).json({ 
+      res.status(500).json({
         message: "Failed to delete email",
-        error: error?.message || "Unknown error"
+        error: error?.message || "Unknown error",
       });
     }
   });
 
   // Bulk delete approved emails
-  app.post('/api/admin/approved-emails/bulk-delete', isAdmin, async (req, res) => {
-    try {
-      const { ids } = req.body;
-      
-      console.log('[BULK DELETE] Received request with body:', req.body);
-      console.log('[BULK DELETE] IDs:', ids);
-      console.log('[BULK DELETE] IDs type:', typeof ids);
-      console.log('[BULK DELETE] Is Array?', Array.isArray(ids));
-      
-      if (!Array.isArray(ids) || ids.length === 0) {
-        console.log('[BULK DELETE] Invalid IDs - not array or empty');
-        return res.status(400).json({ message: "IDs must be a non-empty array" });
-      }
+  app.post(
+    "/api/admin/approved-emails/bulk-delete",
+    isAdmin,
+    async (req, res) => {
+      try {
+        const { ids } = req.body;
 
-      console.log(`[BULK DELETE] Starting deletion of ${ids.length} approved emails:`, ids);
-      
-      // Delete each email with cascade
-      for (const id of ids) {
-        console.log(`[BULK DELETE] Processing ID: ${id}`);
-        const approvedEmail = await storage.getApprovedEmailById(id);
-        console.log(`[BULK DELETE] Found email:`, approvedEmail);
-        
-        if (approvedEmail) {
-          const userEmail = approvedEmail.email;
-          console.log(`[BULK DELETE] Deleting all data for: ${userEmail}`);
-          await storage.deleteAllUserData(userEmail);
-          console.log(`[BULK DELETE] Deleted user data for: ${userEmail}`);
-          await storage.deleteApprovedEmail(id);
-          console.log(`[BULK DELETE] Deleted approved email entry for: ${userEmail}`);
-        } else {
-          console.log(`[BULK DELETE] Email with ID ${id} not found`);
+        console.log("[BULK DELETE] Received request with body:", req.body);
+        console.log("[BULK DELETE] IDs:", ids);
+        console.log("[BULK DELETE] IDs type:", typeof ids);
+        console.log("[BULK DELETE] Is Array?", Array.isArray(ids));
+
+        if (!Array.isArray(ids) || ids.length === 0) {
+          console.log("[BULK DELETE] Invalid IDs - not array or empty");
+          return res
+            .status(400)
+            .json({ message: "IDs must be a non-empty array" });
         }
+
+        console.log(
+          `[BULK DELETE] Starting deletion of ${ids.length} approved emails:`,
+          ids,
+        );
+
+        // Delete each email with cascade
+        for (const id of ids) {
+          console.log(`[BULK DELETE] Processing ID: ${id}`);
+          const approvedEmail = await storage.getApprovedEmailById(id);
+          console.log(`[BULK DELETE] Found email:`, approvedEmail);
+
+          if (approvedEmail) {
+            const userEmail = approvedEmail.email;
+            console.log(`[BULK DELETE] Deleting all data for: ${userEmail}`);
+            await storage.deleteAllUserData(userEmail);
+            console.log(`[BULK DELETE] Deleted user data for: ${userEmail}`);
+            await storage.deleteApprovedEmail(id);
+            console.log(
+              `[BULK DELETE] Deleted approved email entry for: ${userEmail}`,
+            );
+          } else {
+            console.log(`[BULK DELETE] Email with ID ${id} not found`);
+          }
+        }
+
+        console.log(
+          `[BULK DELETE] Successfully deleted ${ids.length} approved emails`,
+        );
+        res.json({
+          success: true,
+          message: `Successfully deleted ${ids.length} approved emails and their data`,
+        });
+      } catch (error: any) {
+        console.error(
+          "[BULK DELETE] Error bulk deleting approved emails:",
+          error,
+        );
+        console.error("[BULK DELETE] Error message:", error?.message);
+        console.error("[BULK DELETE] Error stack:", error?.stack);
+        res.status(500).json({
+          message: "Failed to bulk delete approved emails",
+          error: error?.message || "Unknown error",
+        });
       }
+    },
+  );
 
-      console.log(`[BULK DELETE] Successfully deleted ${ids.length} approved emails`);
-      res.json({ 
-        success: true, 
-        message: `Successfully deleted ${ids.length} approved emails and their data` 
-      });
-    } catch (error: any) {
-      console.error("[BULK DELETE] Error bulk deleting approved emails:", error);
-      console.error("[BULK DELETE] Error message:", error?.message);
-      console.error("[BULK DELETE] Error stack:", error?.stack);
-      res.status(500).json({ 
-        message: "Failed to bulk delete approved emails",
-        error: error?.message || "Unknown error"
-      });
-    }
-  });
-
-  app.put('/api/admin/approved-emails/:id', isAdmin, async (req, res) => {
+  app.put("/api/admin/approved-emails/:id", isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       const { email, name, status } = req.body;
-      
+
       if (!email) {
         return res.status(400).json({ message: "Email is required" });
       }
@@ -3771,7 +4716,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
-  app.get('/api/admin/stats', isAdmin, async (req, res) => {
+  app.get("/api/admin/stats", isAdmin, async (req, res) => {
     try {
       const stats = await storage.getAdminStats();
       res.json(stats);
@@ -3782,7 +4727,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Admin Users (Team Management) endpoints
-  app.get('/api/admin/team', isAdmin, async (req, res) => {
+  app.get("/api/admin/team", isAdmin, async (req, res) => {
     try {
       const admins = await storage.getAllAdminUsers();
       res.json(admins);
@@ -3792,36 +4737,41 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
-  app.post('/api/admin/team', isAdmin, async (req, res) => {
+  app.post("/api/admin/team", isAdmin, async (req, res) => {
     try {
       const { name, email, role, status } = req.body;
-      
+
       if (!name || !email) {
         return res.status(400).json({ message: "Name and email are required" });
       }
 
-      const newAdmin = await storage.addAdminUser({ 
-        name, 
-        email, 
-        role: role || 'admin',
-        status: status || 'active'
+      const newAdmin = await storage.addAdminUser({
+        name,
+        email,
+        role: role || "admin",
+        status: status || "active",
       });
       res.json(newAdmin);
     } catch (error: any) {
       console.error("Error adding admin user:", error);
-      if (error.message?.includes('duplicate') || error.code === '23505') {
+      if (error.message?.includes("duplicate") || error.code === "23505") {
         return res.status(400).json({ message: "Email already exists" });
       }
       res.status(500).json({ message: "Failed to add admin user" });
     }
   });
 
-  app.put('/api/admin/team/:id', isAdmin, async (req, res) => {
+  app.put("/api/admin/team/:id", isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       const { name, email, role, status } = req.body;
-      
-      const updatedAdmin = await storage.updateAdminUser(id, { name, email, role, status });
+
+      const updatedAdmin = await storage.updateAdminUser(id, {
+        name,
+        email,
+        role,
+        status,
+      });
       res.json(updatedAdmin);
     } catch (error) {
       console.error("Error updating admin user:", error);
@@ -3829,7 +4779,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
-  app.delete('/api/admin/team/:id', isAdmin, async (req, res) => {
+  app.delete("/api/admin/team/:id", isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       await storage.deleteAdminUser(id);
@@ -3841,25 +4791,27 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Bulk delete team members
-  app.post('/api/admin/team/bulk-delete', isAdmin, async (req, res) => {
+  app.post("/api/admin/team/bulk-delete", isAdmin, async (req, res) => {
     try {
       const { ids } = req.body;
-      
+
       if (!Array.isArray(ids) || ids.length === 0) {
-        return res.status(400).json({ message: "IDs must be a non-empty array" });
+        return res
+          .status(400)
+          .json({ message: "IDs must be a non-empty array" });
       }
 
       console.log(`[BULK DELETE] Deleting ${ids.length} admin users`);
-      
+
       // Delete each admin user
       for (const id of ids) {
         await storage.deleteAdminUser(id);
         console.log(`[BULK DELETE] Deleted admin user with ID: ${id}`);
       }
 
-      res.json({ 
-        success: true, 
-        message: `Successfully deleted ${ids.length} admin users` 
+      res.json({
+        success: true,
+        message: `Successfully deleted ${ids.length} admin users`,
       });
     } catch (error) {
       console.error("Error bulk deleting admin users:", error);
@@ -3868,7 +4820,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Access Logs endpoints
-  app.get('/api/admin/access-logs', isAdmin, async (req, res) => {
+  app.get("/api/admin/access-logs", isAdmin, async (req, res) => {
     try {
       const logs = await storage.getAllAccessLogs();
       res.json(logs);
@@ -3878,10 +4830,13 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
-  app.delete('/api/admin/access-logs', isAdmin, async (req, res) => {
+  app.delete("/api/admin/access-logs", isAdmin, async (req, res) => {
     try {
       await storage.deleteAllAccessLogs();
-      res.json({ success: true, message: "All access logs deleted successfully" });
+      res.json({
+        success: true,
+        message: "All access logs deleted successfully",
+      });
     } catch (error) {
       console.error("Error deleting access logs:", error);
       res.status(500).json({ message: "Failed to delete access logs" });
@@ -3889,19 +4844,23 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // New Admin Analytics & Dashboard Routes
-  
+
   // Get user's complete dashboard data (for admin to view any user's dashboard)
-  app.get('/api/admin/user/:userId/dashboard', isAdmin, async (req, res) => {
+  app.get("/api/admin/user/:userId/dashboard", isAdmin, async (req, res) => {
     try {
       const { userId } = req.params;
-      
+
       // 🔥 FIX: Check if user exists first (prevent placeholder user issues)
       const user = await storage.getUser(userId);
       if (!user) {
-        console.log(`[DASHBOARD] User not found: ${userId} (may be placeholder user)`);
-        return res.status(404).json({ message: "User not found or hasn't logged in yet" });
+        console.log(
+          `[DASHBOARD] User not found: ${userId} (may be placeholder user)`,
+        );
+        return res
+          .status(404)
+          .json({ message: "User not found or hasn't logged in yet" });
       }
-      
+
       const dashboardData = await storage.getUserDashboardData(userId);
       res.json(dashboardData);
     } catch (error) {
@@ -3911,122 +4870,132 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Admin: Get specific user's HRCM week data
-  app.get('/api/admin/user/:userId/hercm/week/:weekNumber', isAdmin, async (req, res) => {
-    try {
-      const { userId, weekNumber: weekNumStr } = req.params;
-      const weekNumber = parseInt(weekNumStr);
-      
-      const week = await storage.getHercmWeek(userId, weekNumber);
-      
-      if (!week) {
-        return res.json(null);
-      }
-      
-      // Transform database format to beliefs array (same as regular user route)
-      const beliefs = [
-        {
-          category: 'Health',
-          currentRating: week.currentH || 1,
-          targetRating: week.targetH || 1,
-          problems: week.healthProblems || '',
-          currentFeelings: week.healthCurrentFeelings || '',
-          currentBelief: week.healthCurrentBelief || '',
-          currentActions: week.healthCurrentActions || '',
-          result: week.healthResult || '',
-          nextFeelings: week.healthNextFeelings || '',
-          nextWeekTarget: week.healthNextTarget || '',
-          nextActions: week.healthNextActions || '',
-          checklist: week.healthChecklist || [],
-          assignment: week.healthAssignment || { courses: [], lessons: [] },
-          resultChecklist: week.healthResultChecklist || [],
-          feelingsChecklist: week.healthFeelingsChecklist || [],
-          beliefsChecklist: week.healthBeliefsChecklist || [],
-          actionsChecklist: week.healthActionsChecklist || [],
-          problemsChecklist: week.healthProblemsChecklist || [],
-          feelingsCurrentChecklist: week.healthFeelingsCurrentChecklist || [],
-          beliefsCurrentChecklist: week.healthBeliefsCurrentChecklist || [],
-          actionsCurrentChecklist: week.healthActionsCurrentChecklist || []
-        },
-        {
-          category: 'Relationship',
-          currentRating: week.currentE || 1,
-          targetRating: week.targetE || 1,
-          problems: week.relationshipProblems || '',
-          currentFeelings: week.relationshipCurrentFeelings || '',
-          currentBelief: week.relationshipCurrentBelief || '',
-          currentActions: week.relationshipCurrentActions || '',
-          result: week.relationshipResult || '',
-          nextFeelings: week.relationshipNextFeelings || '',
-          nextWeekTarget: week.relationshipNextTarget || '',
-          nextActions: week.relationshipNextActions || '',
-          checklist: week.relationshipChecklist || [],
-          assignment: week.relationshipAssignment || { courses: [], lessons: [] },
-          resultChecklist: week.relationshipResultChecklist || [],
-          feelingsChecklist: week.relationshipFeelingsChecklist || [],
-          beliefsChecklist: week.relationshipBeliefsChecklist || [],
-          actionsChecklist: week.relationshipActionsChecklist || [],
-          problemsChecklist: week.relationshipProblemsChecklist || [],
-          feelingsCurrentChecklist: week.relationshipFeelingsCurrentChecklist || [],
-          beliefsCurrentChecklist: week.relationshipBeliefsCurrentChecklist || [],
-          actionsCurrentChecklist: week.relationshipActionsCurrentChecklist || []
-        },
-        {
-          category: 'Career',
-          currentRating: week.currentR || 1,
-          targetRating: week.targetR || 1,
-          problems: week.careerProblems || '',
-          currentFeelings: week.careerCurrentFeelings || '',
-          currentBelief: week.careerCurrentBelief || '',
-          currentActions: week.careerCurrentActions || '',
-          result: week.careerResult || '',
-          nextFeelings: week.careerNextFeelings || '',
-          nextWeekTarget: week.careerNextTarget || '',
-          nextActions: week.careerNextActions || '',
-          checklist: week.careerChecklist || [],
-          assignment: week.careerAssignment || { courses: [], lessons: [] },
-          resultChecklist: week.careerResultChecklist || [],
-          feelingsChecklist: week.careerFeelingsChecklist || [],
-          beliefsChecklist: week.careerBeliefsChecklist || [],
-          actionsChecklist: week.careerActionsChecklist || [],
-          problemsChecklist: week.careerProblemsChecklist || [],
-          feelingsCurrentChecklist: week.careerFeelingsCurrentChecklist || [],
-          beliefsCurrentChecklist: week.careerBeliefsCurrentChecklist || [],
-          actionsCurrentChecklist: week.careerActionsCurrentChecklist || []
-        },
-        {
-          category: 'Money',
-          currentRating: week.currentC || 1,
-          targetRating: week.targetC || 1,
-          problems: week.moneyProblems || '',
-          currentFeelings: week.moneyCurrentFeelings || '',
-          currentBelief: week.moneyCurrentBelief || '',
-          currentActions: week.moneyCurrentActions || '',
-          result: week.moneyResult || '',
-          nextFeelings: week.moneyNextFeelings || '',
-          nextWeekTarget: week.moneyNextTarget || '',
-          nextActions: week.moneyNextActions || '',
-          checklist: week.moneyChecklist || [],
-          assignment: week.moneyAssignment || { courses: [], lessons: [] },
-          resultChecklist: week.moneyResultChecklist || [],
-          feelingsChecklist: week.moneyFeelingsChecklist || [],
-          beliefsChecklist: week.moneyBeliefsChecklist || [],
-          actionsChecklist: week.moneyActionsChecklist || [],
-          problemsChecklist: week.moneyProblemsChecklist || [],
-          feelingsCurrentChecklist: week.moneyFeelingsCurrentChecklist || [],
-          beliefsCurrentChecklist: week.moneyBeliefsCurrentChecklist || [],
-          actionsCurrentChecklist: week.moneyActionsCurrentChecklist || []
+  app.get(
+    "/api/admin/user/:userId/hercm/week/:weekNumber",
+    isAdmin,
+    async (req, res) => {
+      try {
+        const { userId, weekNumber: weekNumStr } = req.params;
+        const weekNumber = parseInt(weekNumStr);
+
+        const week = await storage.getHercmWeek(userId, weekNumber);
+
+        if (!week) {
+          return res.json(null);
         }
-      ];
-      
-      res.json({ ...week, beliefs });
-    } catch (error) {
-      console.error("Error fetching admin user HRCM week:", error);
-      res.status(500).json({ message: "Failed to fetch week data" });
-    }
-  });
+
+        // Transform database format to beliefs array (same as regular user route)
+        const beliefs = [
+          {
+            category: "Health",
+            currentRating: week.currentH || 1,
+            targetRating: week.targetH || 1,
+            problems: week.healthProblems || "",
+            currentFeelings: week.healthCurrentFeelings || "",
+            currentBelief: week.healthCurrentBelief || "",
+            currentActions: week.healthCurrentActions || "",
+            result: week.healthResult || "",
+            nextFeelings: week.healthNextFeelings || "",
+            nextWeekTarget: week.healthNextTarget || "",
+            nextActions: week.healthNextActions || "",
+            checklist: week.healthChecklist || [],
+            assignment: week.healthAssignment || { courses: [], lessons: [] },
+            resultChecklist: week.healthResultChecklist || [],
+            feelingsChecklist: week.healthFeelingsChecklist || [],
+            beliefsChecklist: week.healthBeliefsChecklist || [],
+            actionsChecklist: week.healthActionsChecklist || [],
+            problemsChecklist: week.healthProblemsChecklist || [],
+            feelingsCurrentChecklist: week.healthFeelingsCurrentChecklist || [],
+            beliefsCurrentChecklist: week.healthBeliefsCurrentChecklist || [],
+            actionsCurrentChecklist: week.healthActionsCurrentChecklist || [],
+          },
+          {
+            category: "Relationship",
+            currentRating: week.currentE || 1,
+            targetRating: week.targetE || 1,
+            problems: week.relationshipProblems || "",
+            currentFeelings: week.relationshipCurrentFeelings || "",
+            currentBelief: week.relationshipCurrentBelief || "",
+            currentActions: week.relationshipCurrentActions || "",
+            result: week.relationshipResult || "",
+            nextFeelings: week.relationshipNextFeelings || "",
+            nextWeekTarget: week.relationshipNextTarget || "",
+            nextActions: week.relationshipNextActions || "",
+            checklist: week.relationshipChecklist || [],
+            assignment: week.relationshipAssignment || {
+              courses: [],
+              lessons: [],
+            },
+            resultChecklist: week.relationshipResultChecklist || [],
+            feelingsChecklist: week.relationshipFeelingsChecklist || [],
+            beliefsChecklist: week.relationshipBeliefsChecklist || [],
+            actionsChecklist: week.relationshipActionsChecklist || [],
+            problemsChecklist: week.relationshipProblemsChecklist || [],
+            feelingsCurrentChecklist:
+              week.relationshipFeelingsCurrentChecklist || [],
+            beliefsCurrentChecklist:
+              week.relationshipBeliefsCurrentChecklist || [],
+            actionsCurrentChecklist:
+              week.relationshipActionsCurrentChecklist || [],
+          },
+          {
+            category: "Career",
+            currentRating: week.currentR || 1,
+            targetRating: week.targetR || 1,
+            problems: week.careerProblems || "",
+            currentFeelings: week.careerCurrentFeelings || "",
+            currentBelief: week.careerCurrentBelief || "",
+            currentActions: week.careerCurrentActions || "",
+            result: week.careerResult || "",
+            nextFeelings: week.careerNextFeelings || "",
+            nextWeekTarget: week.careerNextTarget || "",
+            nextActions: week.careerNextActions || "",
+            checklist: week.careerChecklist || [],
+            assignment: week.careerAssignment || { courses: [], lessons: [] },
+            resultChecklist: week.careerResultChecklist || [],
+            feelingsChecklist: week.careerFeelingsChecklist || [],
+            beliefsChecklist: week.careerBeliefsChecklist || [],
+            actionsChecklist: week.careerActionsChecklist || [],
+            problemsChecklist: week.careerProblemsChecklist || [],
+            feelingsCurrentChecklist: week.careerFeelingsCurrentChecklist || [],
+            beliefsCurrentChecklist: week.careerBeliefsCurrentChecklist || [],
+            actionsCurrentChecklist: week.careerActionsCurrentChecklist || [],
+          },
+          {
+            category: "Money",
+            currentRating: week.currentC || 1,
+            targetRating: week.targetC || 1,
+            problems: week.moneyProblems || "",
+            currentFeelings: week.moneyCurrentFeelings || "",
+            currentBelief: week.moneyCurrentBelief || "",
+            currentActions: week.moneyCurrentActions || "",
+            result: week.moneyResult || "",
+            nextFeelings: week.moneyNextFeelings || "",
+            nextWeekTarget: week.moneyNextTarget || "",
+            nextActions: week.moneyNextActions || "",
+            checklist: week.moneyChecklist || [],
+            assignment: week.moneyAssignment || { courses: [], lessons: [] },
+            resultChecklist: week.moneyResultChecklist || [],
+            feelingsChecklist: week.moneyFeelingsChecklist || [],
+            beliefsChecklist: week.moneyBeliefsChecklist || [],
+            actionsChecklist: week.moneyActionsChecklist || [],
+            problemsChecklist: week.moneyProblemsChecklist || [],
+            feelingsCurrentChecklist: week.moneyFeelingsCurrentChecklist || [],
+            beliefsCurrentChecklist: week.moneyBeliefsCurrentChecklist || [],
+            actionsCurrentChecklist: week.moneyActionsCurrentChecklist || [],
+          },
+        ];
+
+        res.json({ ...week, beliefs });
+      } catch (error) {
+        console.error("Error fetching admin user HRCM week:", error);
+        res.status(500).json({ message: "Failed to fetch week data" });
+      }
+    },
+  );
 
   // Admin: Get all weeks for a specific user (for calendar history)
-  app.get('/api/admin/user/:userId/hercm/weeks', isAdmin, async (req, res) => {
+  app.get("/api/admin/user/:userId/hercm/weeks", isAdmin, async (req, res) => {
     try {
       const { userId } = req.params;
       const weeks = await storage.getHercmWeeksByUser(userId);
@@ -4038,234 +5007,296 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Admin: Get HRCM data by specific date for a user (like Emotional Tracker)
-  app.get('/api/admin/user/:userId/hercm/by-date/:date', isAdmin, async (req, res) => {
-    try {
-      // CRITICAL: Disable ALL caching to prevent showing wrong date's data
-      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-      res.setHeader('Pragma', 'no-cache');
-      res.setHeader('Expires', '0');
-      
-      const { userId, date: requestedDate } = req.params;
-      
-      console.log(`[ADMIN HERCM BY-DATE] Admin requesting data for userId: ${userId}, date: ${requestedDate}`);
-      
-      // Get all weeks for the specified user
-      const allWeeks = await storage.getAllHercmWeeksByUserWithDates(userId);
-      
-      console.log(`[ADMIN HERCM BY-DATE] Found ${allWeeks?.length || 0} weeks for user ${userId}`);
-      
-      if (!allWeeks || allWeeks.length === 0) {
-        return res.json(null);
-      }
-      
-      // Log all week dates for debugging
-      allWeeks.forEach((week: any, index: number) => {
-        console.log(`[ADMIN HERCM BY-DATE] Week ${index + 1}: dateString=${week.dateString}, weekNumber=${week.weekNumber}, healthProblems=${week.healthProblems?.substring(0, 50) || 'empty'}`);
-      });
-      
-      // IMPROVED SEARCH LOGIC for Google-level performance (same as user route)
-      // Step 1: Try exact dateString match (fastest, most accurate)
-      const exactMatchWeeks = allWeeks.filter((week: any) => {
-        const isMatch = week.dateString === requestedDate;
-        console.log(`[ADMIN HERCM BY-DATE] Exact match check: ${week.dateString} === ${requestedDate}: ${isMatch}`);
-        return isMatch;
-      });
-      
-      let week;
-      
-      if (exactMatchWeeks.length > 0) {
-        // Found exact match - return most recent entry for that date
-        console.log(`[ADMIN HERCM BY-DATE] ✅ Exact dateString match found for ${requestedDate}`);
-        week = exactMatchWeeks.sort((a: any, b: any) => 
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        )[0];
-      } else {
-        // Step 2: FALLBACK - Use createdAt to find data created on the requested date
-        console.log(`[ADMIN HERCM BY-DATE] No exact dateString match, trying createdAt fallback...`);
-        
-        const requestedDateStart = new Date(requestedDate);
-        requestedDateStart.setHours(0, 0, 0, 0);
-        
-        const requestedDateEnd = new Date(requestedDate);
-        requestedDateEnd.setHours(23, 59, 59, 999);
-        
-        const createdAtMatches = allWeeks.filter((week: any) => {
-          if (!week.createdAt) return false;
-          const createdDate = new Date(week.createdAt);
-          const isInRange = createdDate >= requestedDateStart && createdDate <= requestedDateEnd;
-          if (isInRange) {
-            console.log(`[ADMIN HERCM BY-DATE] ✅ createdAt match: ${week.createdAt} is on ${requestedDate}`);
-          }
-          return isInRange;
-        });
-        
-        if (createdAtMatches.length > 0) {
-          // Found data created on this date - return most recent
-          console.log(`[ADMIN HERCM BY-DATE] ✅ Found ${createdAtMatches.length} entries via createdAt for ${requestedDate}`);
-          week = createdAtMatches.sort((a: any, b: any) => 
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          )[0];
-        } else {
-          // No data found for this date - return null (blank table)
-          console.log(`[ADMIN HERCM BY-DATE] ❌ No data found for ${requestedDate} (checked dateString and createdAt)`);
+  app.get(
+    "/api/admin/user/:userId/hercm/by-date/:date",
+    isAdmin,
+    async (req, res) => {
+      try {
+        // CRITICAL: Disable ALL caching to prevent showing wrong date's data
+        res.setHeader(
+          "Cache-Control",
+          "no-store, no-cache, must-revalidate, private",
+        );
+        res.setHeader("Pragma", "no-cache");
+        res.setHeader("Expires", "0");
+
+        const { userId, date: requestedDate } = req.params;
+
+        console.log(
+          `[ADMIN HERCM BY-DATE] Admin requesting data for userId: ${userId}, date: ${requestedDate}`,
+        );
+
+        // Get all weeks for the specified user
+        const allWeeks = await storage.getAllHercmWeeksByUserWithDates(userId);
+
+        console.log(
+          `[ADMIN HERCM BY-DATE] Found ${allWeeks?.length || 0} weeks for user ${userId}`,
+        );
+
+        if (!allWeeks || allWeeks.length === 0) {
           return res.json(null);
         }
-      }
-      
-      console.log(`[ADMIN HERCM BY-DATE] Selected week - healthProblems: ${week.healthProblems?.substring(0, 100) || 'empty'}`);
-      
-      // Transform to beliefs format
-      const beliefs = [
-        {
-          category: 'Health',
-          currentRating: week.currentH || 0,
-          targetRating: week.targetH || 0,
-          problems: week.healthProblems || '',
-          currentFeelings: week.healthCurrentFeelings || '',
-          currentBelief: week.healthCurrentBelief || '',
-          currentActions: week.healthCurrentActions || '',
-          result: week.healthResult || '',
-          nextFeelings: week.healthNextFeelings || '',
-          nextWeekTarget: week.healthNextTarget || '',
-          nextActions: week.healthNextActions || '',
-          checklist: week.healthChecklist || [],
-          assignment: week.healthAssignment || { courses: [], lessons: [] },
-          resultChecklist: week.healthResultChecklist || [],
-          feelingsChecklist: week.healthFeelingsChecklist || [],
-          beliefsChecklist: week.healthBeliefsChecklist || [],
-          actionsChecklist: week.healthActionsChecklist || [],
-          problemsChecklist: week.healthProblemsChecklist || [],
-          feelingsCurrentChecklist: week.healthFeelingsCurrentChecklist || [],
-          beliefsCurrentChecklist: week.healthBeliefsCurrentChecklist || [],
-          actionsCurrentChecklist: week.healthActionsCurrentChecklist || []
-        },
-        {
-          category: 'Relationship',
-          currentRating: week.currentE || 0,
-          targetRating: week.targetE || 0,
-          problems: week.relationshipProblems || '',
-          currentFeelings: week.relationshipCurrentFeelings || '',
-          currentBelief: week.relationshipCurrentBelief || '',
-          currentActions: week.relationshipCurrentActions || '',
-          result: week.relationshipResult || '',
-          nextFeelings: week.relationshipNextFeelings || '',
-          nextWeekTarget: week.relationshipNextTarget || '',
-          nextActions: week.relationshipNextActions || '',
-          checklist: week.relationshipChecklist || [],
-          assignment: week.relationshipAssignment || { courses: [], lessons: [] },
-          resultChecklist: week.relationshipResultChecklist || [],
-          feelingsChecklist: week.relationshipFeelingsChecklist || [],
-          beliefsChecklist: week.relationshipBeliefsChecklist || [],
-          actionsChecklist: week.relationshipActionsChecklist || [],
-          problemsChecklist: week.relationshipProblemsChecklist || [],
-          feelingsCurrentChecklist: week.relationshipFeelingsCurrentChecklist || [],
-          beliefsCurrentChecklist: week.relationshipBeliefsCurrentChecklist || [],
-          actionsCurrentChecklist: week.relationshipActionsCurrentChecklist || []
-        },
-        {
-          category: 'Career',
-          currentRating: week.currentR || 0,
-          targetRating: week.targetR || 0,
-          problems: week.careerProblems || '',
-          currentFeelings: week.careerCurrentFeelings || '',
-          currentBelief: week.careerCurrentBelief || '',
-          currentActions: week.careerCurrentActions || '',
-          result: week.careerResult || '',
-          nextFeelings: week.careerNextFeelings || '',
-          nextWeekTarget: week.careerNextTarget || '',
-          nextActions: week.careerNextActions || '',
-          checklist: week.careerChecklist || [],
-          assignment: week.careerAssignment || { courses: [], lessons: [] },
-          resultChecklist: week.careerResultChecklist || [],
-          feelingsChecklist: week.careerFeelingsChecklist || [],
-          beliefsChecklist: week.careerBeliefsChecklist || [],
-          actionsChecklist: week.careerActionsChecklist || [],
-          problemsChecklist: week.careerProblemsChecklist || [],
-          feelingsCurrentChecklist: week.careerFeelingsCurrentChecklist || [],
-          beliefsCurrentChecklist: week.careerBeliefsCurrentChecklist || [],
-          actionsCurrentChecklist: week.careerActionsCurrentChecklist || []
-        },
-        {
-          category: 'Money',
-          currentRating: week.currentC || 0,
-          targetRating: week.targetC || 0,
-          problems: week.moneyProblems || '',
-          currentFeelings: week.moneyCurrentFeelings || '',
-          currentBelief: week.moneyCurrentBelief || '',
-          currentActions: week.moneyCurrentActions || '',
-          result: week.moneyResult || '',
-          nextFeelings: week.moneyNextFeelings || '',
-          nextWeekTarget: week.moneyNextTarget || '',
-          nextActions: week.moneyNextActions || '',
-          checklist: week.moneyChecklist || [],
-          assignment: week.moneyAssignment || { courses: [], lessons: [] },
-          resultChecklist: week.moneyResultChecklist || [],
-          feelingsChecklist: week.moneyFeelingsChecklist || [],
-          beliefsChecklist: week.moneyBeliefsChecklist || [],
-          actionsChecklist: week.moneyActionsChecklist || [],
-          problemsChecklist: week.moneyProblemsChecklist || [],
-          feelingsCurrentChecklist: week.moneyFeelingsCurrentChecklist || [],
-          beliefsCurrentChecklist: week.moneyBeliefsCurrentChecklist || [],
-          actionsCurrentChecklist: week.moneyActionsCurrentChecklist || []
+
+        // Log all week dates for debugging
+        allWeeks.forEach((week: any, index: number) => {
+          console.log(
+            `[ADMIN HERCM BY-DATE] Week ${index + 1}: dateString=${week.dateString}, weekNumber=${week.weekNumber}, healthProblems=${week.healthProblems?.substring(0, 50) || "empty"}`,
+          );
+        });
+
+        // IMPROVED SEARCH LOGIC for Google-level performance (same as user route)
+        // Step 1: Try exact dateString match (fastest, most accurate)
+        const exactMatchWeeks = allWeeks.filter((week: any) => {
+          const isMatch = week.dateString === requestedDate;
+          console.log(
+            `[ADMIN HERCM BY-DATE] Exact match check: ${week.dateString} === ${requestedDate}: ${isMatch}`,
+          );
+          return isMatch;
+        });
+
+        let week;
+
+        if (exactMatchWeeks.length > 0) {
+          // Found exact match - return most recent entry for that date
+          console.log(
+            `[ADMIN HERCM BY-DATE] ✅ Exact dateString match found for ${requestedDate}`,
+          );
+          week = exactMatchWeeks.sort(
+            (a: any, b: any) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+          )[0];
+        } else {
+          // Step 2: FALLBACK - Use createdAt to find data created on the requested date
+          console.log(
+            `[ADMIN HERCM BY-DATE] No exact dateString match, trying createdAt fallback...`,
+          );
+
+          const requestedDateStart = new Date(requestedDate);
+          requestedDateStart.setHours(0, 0, 0, 0);
+
+          const requestedDateEnd = new Date(requestedDate);
+          requestedDateEnd.setHours(23, 59, 59, 999);
+
+          const createdAtMatches = allWeeks.filter((week: any) => {
+            if (!week.createdAt) return false;
+            const createdDate = new Date(week.createdAt);
+            const isInRange =
+              createdDate >= requestedDateStart &&
+              createdDate <= requestedDateEnd;
+            if (isInRange) {
+              console.log(
+                `[ADMIN HERCM BY-DATE] ✅ createdAt match: ${week.createdAt} is on ${requestedDate}`,
+              );
+            }
+            return isInRange;
+          });
+
+          if (createdAtMatches.length > 0) {
+            // Found data created on this date - return most recent
+            console.log(
+              `[ADMIN HERCM BY-DATE] ✅ Found ${createdAtMatches.length} entries via createdAt for ${requestedDate}`,
+            );
+            week = createdAtMatches.sort(
+              (a: any, b: any) =>
+                new Date(b.createdAt).getTime() -
+                new Date(a.createdAt).getTime(),
+            )[0];
+          } else {
+            // No data found for this date - return null (blank table)
+            console.log(
+              `[ADMIN HERCM BY-DATE] ❌ No data found for ${requestedDate} (checked dateString and createdAt)`,
+            );
+            return res.json(null);
+          }
         }
-      ];
-      
-      res.json({ 
-        beliefs, 
-        createdAt: week.createdAt, 
-        weekNumber: week.weekNumber,
-        dateString: week.dateString,
-        manualNextWeekMode: week.manualNextWeekMode || false  // 🔥 Include manualNextWeekMode in response
-      });
-    } catch (error) {
-      console.error("Error fetching admin user HRCM data by date:", error);
-      res.status(500).json({ message: "Failed to fetch HRCM data" });
-    }
-  });
+
+        console.log(
+          `[ADMIN HERCM BY-DATE] Selected week - healthProblems: ${week.healthProblems?.substring(0, 100) || "empty"}`,
+        );
+
+        // Transform to beliefs format
+        const beliefs = [
+          {
+            category: "Health",
+            currentRating: week.currentH || 0,
+            targetRating: week.targetH || 0,
+            problems: week.healthProblems || "",
+            currentFeelings: week.healthCurrentFeelings || "",
+            currentBelief: week.healthCurrentBelief || "",
+            currentActions: week.healthCurrentActions || "",
+            result: week.healthResult || "",
+            nextFeelings: week.healthNextFeelings || "",
+            nextWeekTarget: week.healthNextTarget || "",
+            nextActions: week.healthNextActions || "",
+            checklist: week.healthChecklist || [],
+            assignment: week.healthAssignment || { courses: [], lessons: [] },
+            resultChecklist: week.healthResultChecklist || [],
+            feelingsChecklist: week.healthFeelingsChecklist || [],
+            beliefsChecklist: week.healthBeliefsChecklist || [],
+            actionsChecklist: week.healthActionsChecklist || [],
+            problemsChecklist: week.healthProblemsChecklist || [],
+            feelingsCurrentChecklist: week.healthFeelingsCurrentChecklist || [],
+            beliefsCurrentChecklist: week.healthBeliefsCurrentChecklist || [],
+            actionsCurrentChecklist: week.healthActionsCurrentChecklist || [],
+          },
+          {
+            category: "Relationship",
+            currentRating: week.currentE || 0,
+            targetRating: week.targetE || 0,
+            problems: week.relationshipProblems || "",
+            currentFeelings: week.relationshipCurrentFeelings || "",
+            currentBelief: week.relationshipCurrentBelief || "",
+            currentActions: week.relationshipCurrentActions || "",
+            result: week.relationshipResult || "",
+            nextFeelings: week.relationshipNextFeelings || "",
+            nextWeekTarget: week.relationshipNextTarget || "",
+            nextActions: week.relationshipNextActions || "",
+            checklist: week.relationshipChecklist || [],
+            assignment: week.relationshipAssignment || {
+              courses: [],
+              lessons: [],
+            },
+            resultChecklist: week.relationshipResultChecklist || [],
+            feelingsChecklist: week.relationshipFeelingsChecklist || [],
+            beliefsChecklist: week.relationshipBeliefsChecklist || [],
+            actionsChecklist: week.relationshipActionsChecklist || [],
+            problemsChecklist: week.relationshipProblemsChecklist || [],
+            feelingsCurrentChecklist:
+              week.relationshipFeelingsCurrentChecklist || [],
+            beliefsCurrentChecklist:
+              week.relationshipBeliefsCurrentChecklist || [],
+            actionsCurrentChecklist:
+              week.relationshipActionsCurrentChecklist || [],
+          },
+          {
+            category: "Career",
+            currentRating: week.currentR || 0,
+            targetRating: week.targetR || 0,
+            problems: week.careerProblems || "",
+            currentFeelings: week.careerCurrentFeelings || "",
+            currentBelief: week.careerCurrentBelief || "",
+            currentActions: week.careerCurrentActions || "",
+            result: week.careerResult || "",
+            nextFeelings: week.careerNextFeelings || "",
+            nextWeekTarget: week.careerNextTarget || "",
+            nextActions: week.careerNextActions || "",
+            checklist: week.careerChecklist || [],
+            assignment: week.careerAssignment || { courses: [], lessons: [] },
+            resultChecklist: week.careerResultChecklist || [],
+            feelingsChecklist: week.careerFeelingsChecklist || [],
+            beliefsChecklist: week.careerBeliefsChecklist || [],
+            actionsChecklist: week.careerActionsChecklist || [],
+            problemsChecklist: week.careerProblemsChecklist || [],
+            feelingsCurrentChecklist: week.careerFeelingsCurrentChecklist || [],
+            beliefsCurrentChecklist: week.careerBeliefsCurrentChecklist || [],
+            actionsCurrentChecklist: week.careerActionsCurrentChecklist || [],
+          },
+          {
+            category: "Money",
+            currentRating: week.currentC || 0,
+            targetRating: week.targetC || 0,
+            problems: week.moneyProblems || "",
+            currentFeelings: week.moneyCurrentFeelings || "",
+            currentBelief: week.moneyCurrentBelief || "",
+            currentActions: week.moneyCurrentActions || "",
+            result: week.moneyResult || "",
+            nextFeelings: week.moneyNextFeelings || "",
+            nextWeekTarget: week.moneyNextTarget || "",
+            nextActions: week.moneyNextActions || "",
+            checklist: week.moneyChecklist || [],
+            assignment: week.moneyAssignment || { courses: [], lessons: [] },
+            resultChecklist: week.moneyResultChecklist || [],
+            feelingsChecklist: week.moneyFeelingsChecklist || [],
+            beliefsChecklist: week.moneyBeliefsChecklist || [],
+            actionsChecklist: week.moneyActionsChecklist || [],
+            problemsChecklist: week.moneyProblemsChecklist || [],
+            feelingsCurrentChecklist: week.moneyFeelingsCurrentChecklist || [],
+            beliefsCurrentChecklist: week.moneyBeliefsCurrentChecklist || [],
+            actionsCurrentChecklist: week.moneyActionsCurrentChecklist || [],
+          },
+        ];
+
+        res.json({
+          beliefs,
+          createdAt: week.createdAt,
+          weekNumber: week.weekNumber,
+          dateString: week.dateString,
+          manualNextWeekMode: week.manualNextWeekMode || false, // 🔥 Include manualNextWeekMode in response
+        });
+      } catch (error) {
+        console.error("Error fetching admin user HRCM data by date:", error);
+        res.status(500).json({ message: "Failed to fetch HRCM data" });
+      }
+    },
+  );
 
   // Admin: Get persistent assignments for a specific user
-  app.get('/api/admin/user/:userId/persistent-assignments', isAdmin, async (req, res) => {
-    try {
-      const { userId } = req.params;
-      
-      // Get all uncompleted persistent assignments for the specified user
-      const assignments = await storage.getUserPersistentAssignments(userId);
-      
-      res.json(assignments);
-    } catch (error) {
-      console.error("Error fetching admin user persistent assignments:", error);
-      res.status(500).json({ message: "Failed to fetch persistent assignments" });
-    }
-  });
+  app.get(
+    "/api/admin/user/:userId/persistent-assignments",
+    isAdmin,
+    async (req, res) => {
+      try {
+        const { userId } = req.params;
+
+        // Get all uncompleted persistent assignments for the specified user
+        const assignments = await storage.getUserPersistentAssignments(userId);
+
+        res.json(assignments);
+      } catch (error) {
+        console.error(
+          "Error fetching admin user persistent assignments:",
+          error,
+        );
+        res
+          .status(500)
+          .json({ message: "Failed to fetch persistent assignments" });
+      }
+    },
+  );
 
   // Get user analytics with period filter (weekly/monthly/yearly)
-  app.get('/api/admin/user/:userId/analytics-period', isAdmin, async (req, res) => {
-    try {
-      const { userId } = req.params;
-      const { period = 'monthly' } = req.query;
-      
-      if (!['weekly', 'monthly', 'yearly'].includes(period as string)) {
-        return res.status(400).json({ message: "Invalid period. Use: weekly, monthly, or yearly" });
+  app.get(
+    "/api/admin/user/:userId/analytics-period",
+    isAdmin,
+    async (req, res) => {
+      try {
+        const { userId } = req.params;
+        const { period = "monthly" } = req.query;
+
+        if (!["weekly", "monthly", "yearly"].includes(period as string)) {
+          return res
+            .status(400)
+            .json({
+              message: "Invalid period. Use: weekly, monthly, or yearly",
+            });
+        }
+
+        const analytics = await storage.getUserAnalytics(
+          userId,
+          period as "weekly" | "monthly" | "yearly",
+        );
+        res.json(analytics);
+      } catch (error) {
+        console.error("Error fetching user analytics:", error);
+        res.status(500).json({ message: "Failed to fetch user analytics" });
       }
-      
-      const analytics = await storage.getUserAnalytics(userId, period as 'weekly' | 'monthly' | 'yearly');
-      res.json(analytics);
-    } catch (error) {
-      console.error("Error fetching user analytics:", error);
-      res.status(500).json({ message: "Failed to fetch user analytics" });
-    }
-  });
+    },
+  );
 
   // Get team analytics with period filter (weekly/monthly/yearly)
-  app.get('/api/admin/team-analytics', isAdmin, async (req, res) => {
+  app.get("/api/admin/team-analytics", isAdmin, async (req, res) => {
     try {
-      const { period = 'monthly' } = req.query;
-      
-      if (!['weekly', 'monthly', 'yearly'].includes(period as string)) {
-        return res.status(400).json({ message: "Invalid period. Use: weekly, monthly, or yearly" });
+      const { period = "monthly" } = req.query;
+
+      if (!["weekly", "monthly", "yearly"].includes(period as string)) {
+        return res
+          .status(400)
+          .json({ message: "Invalid period. Use: weekly, monthly, or yearly" });
       }
-      
-      const analytics = await storage.getTeamAnalytics(period as 'weekly' | 'monthly' | 'yearly');
+
+      const analytics = await storage.getTeamAnalytics(
+        period as "weekly" | "monthly" | "yearly",
+      );
       res.json(analytics);
     } catch (error) {
       console.error("Error fetching team analytics:", error);
@@ -4274,7 +5305,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Admin course recommendations - Get all recommendations
-  app.get('/api/admin/recommendations', isAdmin, async (req, res) => {
+  app.get("/api/admin/recommendations", isAdmin, async (req, res) => {
     try {
       const recommendations = await storage.getAllCourseRecommendations();
       res.json(recommendations);
@@ -4285,57 +5316,88 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Admin course recommendations - Create recommendation
-  app.post('/api/admin/recommendations', isAdmin, async (req: any, res) => {
+  app.post("/api/admin/recommendations", isAdmin, async (req: any, res) => {
     try {
-      const adminEmail = req.user?.claims?.sub || (req.session as any).userEmail;
-      console.log('[COURSE RECOMMEND] Admin email from session:', adminEmail);
-      console.log('[COURSE RECOMMEND] Session isAdmin flag:', (req.session as any).isAdmin);
-      console.log('[COURSE RECOMMEND] Full session:', JSON.stringify(req.session));
-      
+      const adminEmail =
+        req.user?.claims?.sub || (req.session as any).userEmail;
+      console.log("[COURSE RECOMMEND] Admin email from session:", adminEmail);
+      console.log(
+        "[COURSE RECOMMEND] Session isAdmin flag:",
+        (req.session as any).isAdmin,
+      );
+      console.log(
+        "[COURSE RECOMMEND] Full session:",
+        JSON.stringify(req.session),
+      );
+
       if (!adminEmail) {
-        console.error('[COURSE RECOMMEND] ❌ 401 - Admin not authenticated');
+        console.error("[COURSE RECOMMEND] ❌ 401 - Admin not authenticated");
         return res.status(401).json({ message: "Admin not authenticated" });
       }
 
       // Get admin user ID from email
       const admin = await storage.getUserByEmail(adminEmail);
-      console.log('[DEBUG] POST /api/admin/recommendations - admin user:', admin);
-      
+      console.log(
+        "[DEBUG] POST /api/admin/recommendations - admin user:",
+        admin,
+      );
+
       if (!admin) {
         return res.status(401).json({ message: "Admin user not found" });
       }
 
       const { userEmail, hrcmArea, courseName, reason } = req.body;
-      console.log('[DEBUG] POST /api/admin/recommendations - request body:', { userEmail, hrcmArea, courseName, reason });
-      
+      console.log("[DEBUG] POST /api/admin/recommendations - request body:", {
+        userEmail,
+        hrcmArea,
+        courseName,
+        reason,
+      });
+
       if (!userEmail || !hrcmArea || !courseName) {
-        return res.status(400).json({ message: "Missing required fields: userEmail, hrcmArea, courseName" });
+        return res
+          .status(400)
+          .json({
+            message: "Missing required fields: userEmail, hrcmArea, courseName",
+          });
       }
 
       // Check if email is approved first (more flexible - works for any approved user)
       const approvedEmail = await storage.getApprovedEmail(userEmail);
-      console.log('[DEBUG] POST /api/admin/recommendations - approved email check:', approvedEmail);
-      
-      if (!approvedEmail || approvedEmail.status !== 'active') {
-        return res.status(400).json({ 
-          message: "User email not found in approved list. Please add the email to Approved Emails first." 
+      console.log(
+        "[DEBUG] POST /api/admin/recommendations - approved email check:",
+        approvedEmail,
+      );
+
+      if (!approvedEmail || approvedEmail.status !== "active") {
+        return res.status(400).json({
+          message:
+            "User email not found in approved list. Please add the email to Approved Emails first.",
         });
       }
 
       // Try to get existing user, or create a placeholder user for approved emails
       let user = await storage.getUserByEmail(userEmail);
-      console.log('[DEBUG] POST /api/admin/recommendations - target user from email:', user);
-      
+      console.log(
+        "[DEBUG] POST /api/admin/recommendations - target user from email:",
+        user,
+      );
+
       let userId = userEmail;
-      
+
       if (user) {
         // If the user found is an admin, check if there's a non-admin dashboard user with id=email
         if (user.isAdmin) {
           const dashboardUser = await storage.getUser(userEmail);
-          console.log('[DEBUG] POST /api/admin/recommendations - checking for dashboard user:', dashboardUser);
-          
+          console.log(
+            "[DEBUG] POST /api/admin/recommendations - checking for dashboard user:",
+            dashboardUser,
+          );
+
           if (dashboardUser && !dashboardUser.isAdmin) {
-            console.log('[DEBUG] POST /api/admin/recommendations - using non-admin dashboard user');
+            console.log(
+              "[DEBUG] POST /api/admin/recommendations - using non-admin dashboard user",
+            );
             userId = dashboardUser.id;
           } else {
             userId = userEmail;
@@ -4346,14 +5408,17 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       } else {
         // Auto-create a placeholder user for this approved email
         // This allows recommendations to work even if the user hasn't logged in yet
-        console.log('[DEBUG] POST /api/admin/recommendations - Creating placeholder user for:', userEmail);
+        console.log(
+          "[DEBUG] POST /api/admin/recommendations - Creating placeholder user for:",
+          userEmail,
+        );
         try {
           // Split name from approved email into firstName and lastName
-          const fullName = approvedEmail.name || '';
-          const nameParts = fullName.trim().split(' ');
-          const firstName = nameParts[0] || '';
-          const lastName = nameParts.slice(1).join(' ') || '';
-          
+          const fullName = approvedEmail.name || "";
+          const nameParts = fullName.trim().split(" ");
+          const firstName = nameParts[0] || "";
+          const lastName = nameParts.slice(1).join(" ") || "";
+
           const placeholderUser = await storage.upsertUser({
             id: userEmail,
             email: userEmail,
@@ -4362,39 +5427,61 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
             isAdmin: false,
           });
           userId = placeholderUser.id;
-          console.log('[DEBUG] POST /api/admin/recommendations - Placeholder user created successfully with ID:', userId, 'Name:', firstName, lastName);
+          console.log(
+            "[DEBUG] POST /api/admin/recommendations - Placeholder user created successfully with ID:",
+            userId,
+            "Name:",
+            firstName,
+            lastName,
+          );
         } catch (error) {
-          console.error('[DEBUG] POST /api/admin/recommendations - Error creating placeholder user:', error);
+          console.error(
+            "[DEBUG] POST /api/admin/recommendations - Error creating placeholder user:",
+            error,
+          );
           // If creation fails, this is a critical error
-          return res.status(500).json({ message: "Failed to create user account for recommendation" });
+          return res
+            .status(500)
+            .json({
+              message: "Failed to create user account for recommendation",
+            });
         }
       }
 
-      console.log('[DEBUG] POST /api/admin/recommendations - Creating recommendation with userId:', userId);
-      
+      console.log(
+        "[DEBUG] POST /api/admin/recommendations - Creating recommendation with userId:",
+        userId,
+      );
+
       const recommendation = await storage.addCourseRecommendation({
         userId: userId,
         adminId: admin.id,
         hrcmArea,
-        courseId: courseName.toLowerCase().replace(/\s+/g, '-'),
+        courseId: courseName.toLowerCase().replace(/\s+/g, "-"),
         courseName,
         reason,
-        status: 'pending',
+        status: "pending",
       });
 
-      console.log('[DEBUG] POST /api/admin/recommendations - Created recommendation:', recommendation);
-      
+      console.log(
+        "[DEBUG] POST /api/admin/recommendations - Created recommendation:",
+        recommendation,
+      );
+
       // DUPLICATE FIX: Don't create assignment here!
       // Assignment will be created when user accepts the recommendation
       // This prevents duplicate assignments
-      
+
       // Send real-time notification to user
-      console.log('[WebSocket] Sending course recommendation notification to user:', userId);
-      notifyUser(userId, 'course_recommended', {
+      console.log(
+        "[WebSocket] Sending course recommendation notification to user:",
+        userId,
+      );
+      notifyUser(userId, "course_recommended", {
         recommendation,
         message: `New course recommended: ${courseName}`,
       });
-      
+
       res.json(recommendation);
     } catch (error) {
       console.error("Error adding course recommendation:", error);
@@ -4403,97 +5490,149 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Admin delete ALL course recommendations
-  app.delete('/api/admin/recommendations/all', isAdmin, async (req: any, res) => {
-    try {
-      // First get all recommendations to find related persistent assignments
-      const recommendations = await storage.getAllCourseRecommendations();
-      
-      // Delete related persistent assignments (only for accepted recommendations)
-      for (const recommendation of recommendations) {
-        // Only delete assignment if recommendation was accepted
-        if (recommendation.status === 'accepted') {
-          try {
-            const assignments = await storage.getUserPersistentAssignments(recommendation.userId);
-            const relatedAssignment = assignments.find((a: any) => 
-              a.source === 'admin' &&
-              (a.recommendationId === recommendation.id || a.courseName === recommendation.courseName)
-            );
-            
-            if (relatedAssignment) {
-              console.log('[DEBUG] Deleting accepted recommendation assignment for:', recommendation.courseName);
-              await storage.deletePersistentAssignment(relatedAssignment.id, recommendation.userId);
+  app.delete(
+    "/api/admin/recommendations/all",
+    isAdmin,
+    async (req: any, res) => {
+      try {
+        // First get all recommendations to find related persistent assignments
+        const recommendations = await storage.getAllCourseRecommendations();
+
+        // Delete related persistent assignments (only for accepted recommendations)
+        for (const recommendation of recommendations) {
+          // Only delete assignment if recommendation was accepted
+          if (recommendation.status === "accepted") {
+            try {
+              const assignments = await storage.getUserPersistentAssignments(
+                recommendation.userId,
+              );
+              const relatedAssignment = assignments.find(
+                (a: any) =>
+                  a.source === "admin" &&
+                  (a.recommendationId === recommendation.id ||
+                    a.courseName === recommendation.courseName),
+              );
+
+              if (relatedAssignment) {
+                console.log(
+                  "[DEBUG] Deleting accepted recommendation assignment for:",
+                  recommendation.courseName,
+                );
+                await storage.deletePersistentAssignment(
+                  relatedAssignment.id,
+                  recommendation.userId,
+                );
+              }
+            } catch (error) {
+              console.error(
+                "[DEBUG] Failed to delete related assignment:",
+                error,
+              );
+              // Continue with other deletions even if one fails
             }
-          } catch (error) {
-            console.error('[DEBUG] Failed to delete related assignment:', error);
-            // Continue with other deletions even if one fails
           }
         }
+
+        // Delete all recommendations
+        await storage.deleteAllRecommendations();
+        res.json({
+          message:
+            "All recommendations and related assignments deleted successfully",
+        });
+      } catch (error) {
+        console.error("Error deleting all recommendations:", error);
+        res
+          .status(500)
+          .json({ message: "Failed to delete all recommendations" });
       }
-      
-      // Delete all recommendations
-      await storage.deleteAllRecommendations();
-      res.json({ message: "All recommendations and related assignments deleted successfully" });
-    } catch (error) {
-      console.error("Error deleting all recommendations:", error);
-      res.status(500).json({ message: "Failed to delete all recommendations" });
-    }
-  });
+    },
+  );
 
   // Admin delete course recommendation
-  app.delete('/api/admin/recommendations/:id', isAdmin, async (req: any, res) => {
-    try {
-      const { id } = req.params;
-      
-      // First, get the recommendation details to find related persistent assignment
-      const recommendations = await storage.getAllCourseRecommendations();
-      const recommendation = recommendations.find((r: any) => r.id === id);
-      
-      if (recommendation) {
-        // Only delete assignment if recommendation was accepted
-        if (recommendation.status === 'accepted') {
-          // Find and delete the related persistent assignment
-          const assignments = await storage.getUserPersistentAssignments(recommendation.userId);
-          const relatedAssignment = assignments.find((a: any) => 
-            a.source === 'admin' &&
-            (a.recommendationId === recommendation.id || a.courseName === recommendation.courseName)
-          );
-          
-          if (relatedAssignment) {
-            console.log('[DEBUG] Deleting accepted recommendation assignment:', relatedAssignment.id);
-            await storage.deletePersistentAssignment(relatedAssignment.id, recommendation.userId);
+  app.delete(
+    "/api/admin/recommendations/:id",
+    isAdmin,
+    async (req: any, res) => {
+      try {
+        const { id } = req.params;
+
+        // First, get the recommendation details to find related persistent assignment
+        const recommendations = await storage.getAllCourseRecommendations();
+        const recommendation = recommendations.find((r: any) => r.id === id);
+
+        if (recommendation) {
+          // Only delete assignment if recommendation was accepted
+          if (recommendation.status === "accepted") {
+            // Find and delete the related persistent assignment
+            const assignments = await storage.getUserPersistentAssignments(
+              recommendation.userId,
+            );
+            const relatedAssignment = assignments.find(
+              (a: any) =>
+                a.source === "admin" &&
+                (a.recommendationId === recommendation.id ||
+                  a.courseName === recommendation.courseName),
+            );
+
+            if (relatedAssignment) {
+              console.log(
+                "[DEBUG] Deleting accepted recommendation assignment:",
+                relatedAssignment.id,
+              );
+              await storage.deletePersistentAssignment(
+                relatedAssignment.id,
+                recommendation.userId,
+              );
+            }
           }
+
+          // Send real-time notification to user about deletion
+          console.log(
+            "[WebSocket] Sending deletion notification to user:",
+            recommendation.userId,
+          );
+          notifyUser(recommendation.userId, "course_recommendation_deleted", {
+            courseName: recommendation.courseName,
+            hrcmArea: recommendation.hrcmArea,
+            message: `Course recommendation removed: ${recommendation.courseName}`,
+          });
+        } else {
+          console.warn(
+            "[WebSocket] Recommendation not found for deletion notification",
+          );
         }
-        
-        // Send real-time notification to user about deletion
-        console.log('[WebSocket] Sending deletion notification to user:', recommendation.userId);
-        notifyUser(recommendation.userId, 'course_recommendation_deleted', {
-          courseName: recommendation.courseName,
-          hrcmArea: recommendation.hrcmArea,
-          message: `Course recommendation removed: ${recommendation.courseName}`,
+
+        // Delete the recommendation
+        await storage.deleteRecommendation(id);
+        res.json({
+          message: "Recommendation and related assignment deleted successfully",
         });
-      } else {
-        console.warn('[WebSocket] Recommendation not found for deletion notification');
+      } catch (error) {
+        console.error("Error deleting recommendation:", error);
+        res.status(500).json({ message: "Failed to delete recommendation" });
       }
-      
-      // Delete the recommendation
-      await storage.deleteRecommendation(id);
-      res.json({ message: "Recommendation and related assignment deleted successfully" });
-    } catch (error) {
-      console.error("Error deleting recommendation:", error);
-      res.status(500).json({ message: "Failed to delete recommendation" });
-    }
-  });
+    },
+  );
 
   // Admin add course recommendation to user
-  app.post('/api/admin/recommend-course', isAdmin, async (req: any, res) => {
+  app.post("/api/admin/recommend-course", isAdmin, async (req: any, res) => {
     try {
       const adminId = req.user?.claims?.sub || req.session.userEmail;
       if (!adminId) {
         return res.status(401).json({ message: "Admin not authenticated" });
       }
 
-      const { userId, hrcmArea, courseId, courseName, lessonId, lessonName, lessonUrl, reason } = req.body;
-      
+      const {
+        userId,
+        hrcmArea,
+        courseId,
+        courseName,
+        lessonId,
+        lessonName,
+        lessonUrl,
+        reason,
+      } = req.body;
+
       if (!userId || !hrcmArea || !courseId || !courseName) {
         return res.status(400).json({ message: "Missing required fields" });
       }
@@ -4508,11 +5647,11 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         lessonName,
         lessonUrl,
         reason,
-        status: 'pending',
+        status: "pending",
       });
 
       // Send real-time notification to user
-      notifyUser(userId, 'course_recommended', {
+      notifyUser(userId, "course_recommended", {
         recommendation,
         message: `New course recommended: ${courseName}`,
       });
@@ -4525,44 +5664,57 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Get user's recommendations
-  app.get('/api/admin/user/:userId/recommendations', isAdmin, async (req, res) => {
-    try {
-      const { userId } = req.params;
-      const recommendations = await storage.getUserRecommendations(userId);
-      res.json(recommendations);
-    } catch (error) {
-      console.error("Error fetching recommendations:", error);
-      res.status(500).json({ message: "Failed to fetch recommendations" });
-    }
-  });
+  app.get(
+    "/api/admin/user/:userId/recommendations",
+    isAdmin,
+    async (req, res) => {
+      try {
+        const { userId } = req.params;
+        const recommendations = await storage.getUserRecommendations(userId);
+        res.json(recommendations);
+      } catch (error) {
+        console.error("Error fetching recommendations:", error);
+        res.status(500).json({ message: "Failed to fetch recommendations" });
+      }
+    },
+  );
 
   // Update recommendation status
-  app.put('/api/admin/recommendation/:id/status', async (req, res) => {
+  app.put("/api/admin/recommendation/:id/status", async (req, res) => {
     try {
       const { id } = req.params;
       const { status } = req.body;
-      
-      console.log('[REALTIME DEBUG] PUT /api/admin/recommendation/:id/status called:', { id, status });
-      
+
+      console.log(
+        "[REALTIME DEBUG] PUT /api/admin/recommendation/:id/status called:",
+        { id, status },
+      );
+
       // Allow pending, accepted, rejected, and completed statuses
-      if (!['pending', 'accepted', 'rejected', 'completed'].includes(status)) {
+      if (!["pending", "accepted", "rejected", "completed"].includes(status)) {
         return res.status(400).json({ message: "Invalid status" });
       }
 
-      const recommendation = await storage.updateRecommendationStatus(id, status);
-      
-      console.log('[REALTIME DEBUG] Recommendation after update:', {
+      const recommendation = await storage.updateRecommendationStatus(
+        id,
+        status,
+      );
+
+      console.log("[REALTIME DEBUG] Recommendation after update:", {
         id: recommendation.id,
         status: recommendation.status,
         adminId: recommendation.adminId,
         userId: recommendation.userId,
-        courseName: recommendation.courseName
+        courseName: recommendation.courseName,
       });
-      
+
       // Send real-time notification to admin about status change
       if (recommendation.adminId) {
-        console.log('[REALTIME DEBUG] About to send WebSocket to admin:', recommendation.adminId);
-        
+        console.log(
+          "[REALTIME DEBUG] About to send WebSocket to admin:",
+          recommendation.adminId,
+        );
+
         const wsPayload = {
           recommendationId: id,
           courseName: recommendation.courseName,
@@ -4570,37 +5722,52 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
           userId: recommendation.userId,
           message: `User ${status} course: ${recommendation.courseName}`,
         };
-        
-        console.log('[REALTIME DEBUG] WebSocket payload:', wsPayload);
-        
-        notifyUser(recommendation.adminId, 'recommendation_status_changed', wsPayload);
-        
-        console.log('[REALTIME DEBUG] WebSocket notification sent successfully!');
+
+        console.log("[REALTIME DEBUG] WebSocket payload:", wsPayload);
+
+        notifyUser(
+          recommendation.adminId,
+          "recommendation_status_changed",
+          wsPayload,
+        );
+
+        console.log(
+          "[REALTIME DEBUG] WebSocket notification sent successfully!",
+        );
       } else {
-        console.warn('[REALTIME DEBUG] ERROR: No adminId found in recommendation!', recommendation);
+        console.warn(
+          "[REALTIME DEBUG] ERROR: No adminId found in recommendation!",
+          recommendation,
+        );
       }
-      
+
       res.json(recommendation);
     } catch (error) {
-      console.error("[REALTIME DEBUG] Error updating recommendation status:", error);
-      res.status(500).json({ message: "Failed to update recommendation status" });
+      console.error(
+        "[REALTIME DEBUG] Error updating recommendation status:",
+        error,
+      );
+      res
+        .status(500)
+        .json({ message: "Failed to update recommendation status" });
     }
   });
 
   // ===== PLATINUM STANDARDS ROUTES (Admin) =====
-  
+
   // Get all platinum standards (admin view)
-  app.get('/api/admin/platinum-standards', isAdmin, async (req, res) => {
+  app.get("/api/admin/platinum-standards", isAdmin, async (req, res) => {
     try {
       // CRITICAL FIX: Disable HTTP caching to prevent 304 responses after reordering
       res.set({
-        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0',
-        'Surrogate-Control': 'no-store',
-        'ETag': `"plat-${Date.now()}"` // Unique ETag to bust cache
+        "Cache-Control":
+          "no-store, no-cache, must-revalidate, proxy-revalidate",
+        Pragma: "no-cache",
+        Expires: "0",
+        "Surrogate-Control": "no-store",
+        ETag: `"plat-${Date.now()}"`, // Unique ETag to bust cache
       });
-      
+
       const standards = await storage.getAllPlatinumStandards();
       res.json(standards);
     } catch (error) {
@@ -4610,16 +5777,17 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Get active platinum standards (public endpoint for users)
-  app.get('/api/platinum-standards', isAuthenticated, async (req, res) => {
+  app.get("/api/platinum-standards", isAuthenticated, async (req, res) => {
     try {
       // PERMANENT FIX: Disable HTTP caching for instant admin updates
       res.set({
-        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0',
-        'Surrogate-Control': 'no-store'
+        "Cache-Control":
+          "no-store, no-cache, must-revalidate, proxy-revalidate",
+        Pragma: "no-cache",
+        Expires: "0",
+        "Surrogate-Control": "no-store",
       });
-      
+
       const standards = await storage.getActivePlatinumStandards();
       res.json(standards);
     } catch (error) {
@@ -4629,34 +5797,46 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Get platinum standards by category
-  app.get('/api/platinum-standards/:category', isAuthenticated, async (req, res) => {
-    try {
-      const { category } = req.params;
-      const standards = await storage.getPlatinumStandardsByCategory(category);
-      res.json(standards);
-    } catch (error) {
-      console.error("Error fetching platinum standards by category:", error);
-      res.status(500).json({ message: "Failed to fetch platinum standards" });
-    }
-  });
+  app.get(
+    "/api/platinum-standards/:category",
+    isAuthenticated,
+    async (req, res) => {
+      try {
+        const { category } = req.params;
+        const standards =
+          await storage.getPlatinumStandardsByCategory(category);
+        res.json(standards);
+      } catch (error) {
+        console.error("Error fetching platinum standards by category:", error);
+        res.status(500).json({ message: "Failed to fetch platinum standards" });
+      }
+    },
+  );
 
   // Add new platinum standard (admin only)
-  app.post('/api/admin/platinum-standards', isAdmin, async (req: any, res) => {
+  app.post("/api/admin/platinum-standards", isAdmin, async (req: any, res) => {
     try {
-
       const { category, standardText, orderIndex, isActive } = req.body;
-      
+
       if (!category || !standardText) {
-        return res.status(400).json({ message: "Missing required fields: category, standardText" });
+        return res
+          .status(400)
+          .json({ message: "Missing required fields: category, standardText" });
       }
 
       // AUTO-ASSIGN orderIndex: If not provided, set to max+1 for this category
       let finalOrderIndex = orderIndex;
       if (!finalOrderIndex) {
-        const existingStandards = await storage.getAllPlatinumStandardsByCategory(category);
-        const maxOrder = existingStandards.reduce((max, std) => Math.max(max, std.orderIndex || 0), 0);
+        const existingStandards =
+          await storage.getAllPlatinumStandardsByCategory(category);
+        const maxOrder = existingStandards.reduce(
+          (max, std) => Math.max(max, std.orderIndex || 0),
+          0,
+        );
         finalOrderIndex = maxOrder + 1;
-        console.log(`[ADD STANDARD] Auto-assigned orderIndex ${finalOrderIndex} for category ${category}`);
+        console.log(
+          `[ADD STANDARD] Auto-assigned orderIndex ${finalOrderIndex} for category ${category}`,
+        );
       }
 
       const newStandard = await storage.addPlatinumStandard({
@@ -4674,721 +5854,947 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Update platinum standard (admin only)
-  app.put('/api/admin/platinum-standards/:id', isAdmin, async (req: any, res) => {
-    try {
+  app.put(
+    "/api/admin/platinum-standards/:id",
+    isAdmin,
+    async (req: any, res) => {
+      try {
+        const { id } = req.params;
+        const updates = req.body;
 
-      const { id } = req.params;
-      const updates = req.body;
-      
-      const updatedStandard = await storage.updatePlatinumStandard(id, updates);
-      res.json(updatedStandard);
-    } catch (error) {
-      console.error("Error updating platinum standard:", error);
-      res.status(500).json({ message: "Failed to update platinum standard" });
-    }
-  });
+        const updatedStandard = await storage.updatePlatinumStandard(
+          id,
+          updates,
+        );
+        res.json(updatedStandard);
+      } catch (error) {
+        console.error("Error updating platinum standard:", error);
+        res.status(500).json({ message: "Failed to update platinum standard" });
+      }
+    },
+  );
 
   // Delete platinum standard (admin only)
-  app.delete('/api/admin/platinum-standards/:id', isAdmin, async (req: any, res) => {
-    try {
-      const { id } = req.params;
-      
-      // CRITICAL: Get the category before deletion for re-numbering
-      const standardToDelete = await storage.getPlatinumStandardById(id);
-      if (!standardToDelete) {
-        return res.status(404).json({ message: "Platinum standard not found" });
-      }
-      
-      const deletedCategory = standardToDelete.category;
-      
-      // Delete the standard
-      await storage.deletePlatinumStandard(id);
-      
-      // AUTO RE-NUMBER: Get ALL remaining standards (active AND inactive) and re-number from 1
-      const remainingStandards = await storage.getAllPlatinumStandardsByCategory(deletedCategory);
-      const reorderUpdates = remainingStandards.map((standard, index) => ({
-        id: standard.id,
-        orderIndex: index + 1
-      }));
-      
-      if (reorderUpdates.length > 0) {
-        await storage.reorderPlatinumStandards(reorderUpdates);
-      }
-      
-      res.json({ message: "Platinum standard deleted and re-numbered successfully" });
-    } catch (error) {
-      console.error("Error deleting platinum standard:", error);
-      res.status(500).json({ message: "Failed to delete platinum standard" });
-    }
-  });
+  app.delete(
+    "/api/admin/platinum-standards/:id",
+    isAdmin,
+    async (req: any, res) => {
+      try {
+        const { id } = req.params;
 
-  // Bulk delete platinum standards (admin only)
-  app.post('/api/admin/platinum-standards/bulk-delete', isAdmin, async (req: any, res) => {
-    try {
-      const { ids } = req.body;
-      
-      if (!Array.isArray(ids) || ids.length === 0) {
-        return res.status(400).json({ message: "IDs must be a non-empty array" });
-      }
-
-      // Get categories before deletion for re-numbering
-      const affectedCategories = new Set<string>();
-      for (const id of ids) {
-        const standard = await storage.getPlatinumStandardById(id);
-        if (standard) {
-          affectedCategories.add(standard.category);
+        // CRITICAL: Get the category before deletion for re-numbering
+        const standardToDelete = await storage.getPlatinumStandardById(id);
+        if (!standardToDelete) {
+          return res
+            .status(404)
+            .json({ message: "Platinum standard not found" });
         }
-      }
 
-      // Delete all standards with the provided IDs
-      for (const id of ids) {
+        const deletedCategory = standardToDelete.category;
+
+        // Delete the standard
         await storage.deletePlatinumStandard(id);
-      }
 
-      // AUTO RE-NUMBER: Re-number all affected categories (including inactive standards)
-      for (const category of affectedCategories) {
-        const remainingStandards = await storage.getAllPlatinumStandardsByCategory(category);
+        // AUTO RE-NUMBER: Get ALL remaining standards (active AND inactive) and re-number from 1
+        const remainingStandards =
+          await storage.getAllPlatinumStandardsByCategory(deletedCategory);
         const reorderUpdates = remainingStandards.map((standard, index) => ({
           id: standard.id,
-          orderIndex: index + 1
+          orderIndex: index + 1,
         }));
-        
+
         if (reorderUpdates.length > 0) {
           await storage.reorderPlatinumStandards(reorderUpdates);
         }
-      }
 
-      res.json({ 
-        message: `Successfully deleted ${ids.length} platinum standard${ids.length > 1 ? 's' : ''} and re-numbered` 
-      });
-    } catch (error) {
-      console.error("Error bulk deleting platinum standards:", error);
-      res.status(500).json({ message: "Failed to bulk delete platinum standards" });
-    }
-  });
-
-  // Reorder platinum standards via drag and drop (admin only)
-  app.post('/api/admin/platinum-standards/reorder', isAdmin, async (req: any, res) => {
-    try {
-      const { category, orderedIds } = req.body;
-      
-      if (!category || !orderedIds) {
-        return res.status(400).json({ message: "Category and orderedIds are required" });
-      }
-      
-      if (!Array.isArray(orderedIds)) {
-        return res.status(400).json({ message: "orderedIds must be an array" });
-      }
-
-      // Convert orderedIds to updates with new orderIndex
-      const updates = orderedIds.map((id, index) => ({
-        id,
-        orderIndex: index + 1
-      }));
-      
-      await storage.reorderPlatinumStandards(updates);
-      
-      res.json({ message: "Platinum standards reordered successfully" });
-    } catch (error) {
-      console.error("Error reordering platinum standards:", error);
-      res.status(500).json({ message: "Failed to reorder platinum standards" });
-    }
-  });
-
-  // Reorder platinum standards (legacy endpoint - admin only)
-  app.put('/api/admin/platinum-standards/reorder', isAdmin, async (req: any, res) => {
-    try {
-      console.error('[REORDER] ========== REORDER ENDPOINT HIT ==========');
-      const { updates } = req.body; // Array of { id, orderIndex }
-      console.error('[REORDER] Request body:', JSON.stringify(req.body, null, 2));
-      
-      if (!updates) {
-        console.error('[REORDER] ERROR: No updates field in body');
-        return res.status(400).json({ message: "Updates field is required" });
-      }
-      
-      if (!Array.isArray(updates)) {
-        console.error('[REORDER] ERROR: Updates is not an array, type:', typeof updates);
-        return res.status(400).json({ message: "Updates must be an array" });
-      }
-
-      console.error('[REORDER] Calling storage with', updates.length, 'updates');
-      console.error('[REORDER] First update:', updates[0]);
-      
-      await storage.reorderPlatinumStandards(updates);
-      
-      console.error('[REORDER] ✅ Storage method completed successfully');
-      res.json({ message: "Platinum standards reordered successfully" });
-    } catch (error) {
-      console.error("[REORDER] ❌ FATAL ERROR:", error);
-      res.status(500).json({ message: "Failed to reorder platinum standards" });
-    }
-  });
-
-  // Move platinum standard up (admin only)
-  app.post('/api/admin/platinum-standards/:id/move-up', isAdmin, async (req: any, res) => {
-    try {
-      const { id } = req.params;
-      
-      const standard = await storage.getPlatinumStandardById(id);
-      if (!standard) {
-        return res.status(404).json({ message: "Standard not found" });
-      }
-
-      const allInCategory = await storage.getAllPlatinumStandardsByCategory(standard.category);
-      const currentIndex = allInCategory.findIndex(s => s.id === id);
-      
-      if (currentIndex <= 0) {
-        return res.status(400).json({ message: "Already at the top" });
-      }
-
-      const previousStandard = allInCategory[currentIndex - 1];
-      
-      await storage.reorderPlatinumStandards([
-        { id: standard.id, orderIndex: previousStandard.orderIndex },
-        { id: previousStandard.id, orderIndex: standard.orderIndex }
-      ]);
-
-      res.json({ message: "Standard moved up successfully" });
-    } catch (error) {
-      console.error("Error moving standard up:", error);
-      res.status(500).json({ message: "Failed to move standard up" });
-    }
-  });
-
-  // Move platinum standard down (admin only)
-  app.post('/api/admin/platinum-standards/:id/move-down', isAdmin, async (req: any, res) => {
-    try {
-      const { id } = req.params;
-      
-      const standard = await storage.getPlatinumStandardById(id);
-      if (!standard) {
-        return res.status(404).json({ message: "Standard not found" });
-      }
-
-      const allInCategory = await storage.getAllPlatinumStandardsByCategory(standard.category);
-      const currentIndex = allInCategory.findIndex(s => s.id === id);
-      
-      if (currentIndex >= allInCategory.length - 1) {
-        return res.status(400).json({ message: "Already at the bottom" });
-      }
-
-      const nextStandard = allInCategory[currentIndex + 1];
-      
-      await storage.reorderPlatinumStandards([
-        { id: standard.id, orderIndex: nextStandard.orderIndex },
-        { id: nextStandard.id, orderIndex: standard.orderIndex }
-      ]);
-
-      res.json({ message: "Standard moved down successfully" });
-    } catch (error) {
-      console.error("Error moving standard down:", error);
-      res.status(500).json({ message: "Failed to move standard down" });
-    }
-  });
-
-  // Platinum Standard Ratings - Get ratings for a specific date
-  app.get('/api/platinum-standard-ratings/:dateString', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
-
-      let user = await storage.getUser(userId);
-      if (!user && typeof userId === 'string' && userId.includes('@')) {
-        user = await storage.getUserByEmail(userId);
-      }
-
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      const { dateString } = req.params;
-      const ratings = await storage.getUserPlatinumStandardRatingsByDate(user.id, dateString);
-      
-      res.json(ratings);
-    } catch (error) {
-      console.error("Error fetching platinum standard ratings:", error);
-      res.status(500).json({ message: "Failed to fetch ratings" });
-    }
-  });
-
-  // Platinum Standard Ratings - Upsert a rating
-  app.post('/api/platinum-standard-ratings', isAuthenticated, async (req: any, res) => {
-    try {
-      console.log('[RATING SAVE] ========== POST /api/platinum-standard-ratings ==========');
-      console.log('[RATING SAVE] Request body:', JSON.stringify(req.body));
-      
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      console.log('[RATING SAVE] Extracted userId:', userId);
-      
-      if (!userId) {
-        console.log('[RATING SAVE] ❌ No userId - returning 401');
-        return res.status(401).json({ message: "User not authenticated" });
-      }
-
-      let user = await storage.getUser(userId);
-      if (!user && typeof userId === 'string' && userId.includes('@')) {
-        console.log('[RATING SAVE] User not found by ID, trying by email:', userId);
-        user = await storage.getUserByEmail(userId);
-      }
-      
-      console.log('[RATING SAVE] Found user:', user ? `${user.id} (${user.email})` : 'NOT FOUND');
-
-      if (!user) {
-        console.log('[RATING SAVE] ❌ User not found - returning 404');
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      const { standardId, dateString, rating } = req.body;
-      console.log('[RATING SAVE] Parameters: standardId=%s, dateString=%s, rating=%s', standardId, dateString, rating);
-      
-      if (!standardId || !dateString || rating === undefined || rating === null) {
-        console.log('[RATING SAVE] ❌ Missing required fields');
-        return res.status(400).json({ message: "Missing required fields" });
-      }
-
-      if (rating < 0 || rating > 7) {
-        console.log('[RATING SAVE] ❌ Invalid rating value:', rating);
-        return res.status(400).json({ message: "Rating must be between 0 and 7" });
-      }
-
-      console.log('[RATING SAVE] Calling storage.upsertPlatinumStandardRating with:', {
-        userId: user.id,
-        standardId,
-        dateString,
-        rating
-      });
-      
-      const savedRating = await storage.upsertPlatinumStandardRating({
-        userId: user.id,
-        standardId,
-        dateString,
-        rating,
-      });
-
-      console.log('[RATING SAVE] ✅ Successfully saved! Returned:', savedRating);
-      console.log(`✅ Saved platinum standard rating: user=${user.id}, standard=${standardId}, date=${dateString}, rating=${rating}`);
-      
-      // Get the category of the standard to calculate unlock status
-      const standard = await storage.getPlatinumStandardById(standardId);
-      if (standard) {
-        console.log(`[UNLOCK] Triggering unlock calculation for ${standard.category}`);
-        const unlockStatus = await storage.calculateUnlockStatus(user.id, standard.category, dateString);
-        console.log(`[UNLOCK] Unlock status updated:`, unlockStatus);
-      }
-      
-      console.log('[RATING SAVE] ========== END ==========');
-      res.json(savedRating);
-    } catch (error) {
-      console.error("[RATING SAVE] ❌ FATAL ERROR:", error);
-      res.status(500).json({ message: "Failed to save rating" });
-    }
-  });
-
-  // HRCM Unlock Progress - Get unlock status for a specific area
-  app.get('/api/hrcm-unlock-status/:area', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
-
-      let user = await storage.getUser(userId);
-      if (!user && typeof userId === 'string' && userId.includes('@')) {
-        user = await storage.getUserByEmail(userId);
-      }
-
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      const { area } = req.params;
-      const unlockProgress = await storage.getHrcmUnlockProgress(user.id, area);
-      
-      // If no progress exists, return default locked state
-      const response = unlockProgress || {
-        consecutivePerfectDays: 0,
-        isUnlocked: false,
-        lastPerfectDate: null,
-      };
-      
-      res.json(response);
-    } catch (error) {
-      console.error("Error fetching unlock status:", error);
-      res.status(500).json({ message: "Failed to fetch unlock status" });
-    }
-  });
-
-  // User-facing: Get current user's pending recommendations
-  app.get('/api/user/recommendations', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      console.log('[DEBUG] /api/user/recommendations - userId from auth:', userId);
-      
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
-
-      // Try to get user by ID first, then by email if ID doesn't work
-      let user = await storage.getUser(userId);
-      console.log('[DEBUG] /api/user/recommendations - user from getUser:', user);
-      
-      if (!user && typeof userId === 'string' && userId.includes('@')) {
-        // If userId is an email, try to find user by email
-        user = await storage.getUserByEmail(userId);
-        console.log('[DEBUG] /api/user/recommendations - user from getUserByEmail:', user);
-      }
-
-      if (!user) {
-        console.log('[DEBUG] /api/user/recommendations - no user found, returning empty array');
-        return res.json([]); // Return empty array if user not found
-      }
-
-      // Get recommendations by the user's database ID
-      const recommendations = await storage.getUserRecommendations(user.id);
-      console.log('[DEBUG] /api/user/recommendations - recommendations for user.id', user.id, ':', recommendations);
-      
-      // Filter to show only pending recommendations to the user
-      const pendingRecommendations = recommendations.filter((r: any) => r.status === 'pending');
-      console.log('[DEBUG] /api/user/recommendations - pending recommendations:', pendingRecommendations);
-      
-      // INSTANT UPDATE FIX: Disable HTTP caching to ensure admin recommendations appear immediately
-      res.set({
-        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
-      });
-      
-      res.json(pendingRecommendations);
-    } catch (error) {
-      console.error("Error fetching user recommendations:", error);
-      res.status(500).json({ message: "Failed to fetch recommendations" });
-    }
-  });
-
-  // User-facing: Accept a recommendation (changes status to accepted and adds to Assignment)
-  app.post('/api/user/recommendations/:id/accept', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
-
-      const { id } = req.params;
-      const { weekNumber = 1 } = req.body; // Get week number from request body
-      
-      // Try to get user by ID first, then by email if ID doesn't work
-      let user = await storage.getUser(userId);
-      if (!user && typeof userId === 'string' && userId.includes('@')) {
-        user = await storage.getUserByEmail(userId);
-      }
-
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      // Get the recommendation and verify it belongs to this user
-      const recommendations = await storage.getUserRecommendations(user.id);
-      const recommendation = recommendations.find((r: any) => r.id === id);
-      
-      if (!recommendation) {
-        return res.status(404).json({ message: "Recommendation not found" });
-      }
-
-      if (recommendation.userId !== user.id) {
-        return res.status(403).json({ message: "Not authorized to accept this recommendation" });
-      }
-
-      // Update status to accepted
-      const updatedRecommendation = await storage.updateRecommendationStatus(id, 'accepted');
-
-      // Create assignment in user_persistent_assignments table
-      // This adds the course to the Assignment column
-      console.log('[DEBUG] Creating assignment for accepted recommendation:', {
-        userId: user.id,
-        courseName: updatedRecommendation.courseName,
-        courseId: updatedRecommendation.courseId,
-        lessonId: updatedRecommendation.lessonId,
-        lessonName: updatedRecommendation.lessonName
-      });
-
-      await storage.addPersistentAssignment({
-        userId: user.id,
-        courseId: updatedRecommendation.courseId,
-        courseName: updatedRecommendation.courseName,
-        hrcmArea: updatedRecommendation.hrcmArea,
-        lessonId: updatedRecommendation.lessonId,
-        lessonName: updatedRecommendation.lessonName,
-        url: updatedRecommendation.lessonUrl || '',
-        completed: false,
-        source: 'admin',
-        recommendationId: id,
-      });
-
-      console.log('[REALTIME DEBUG] POST /api/user/recommendations/:id/accept - Status updated to accepted and assignment created');
-      console.log('[REALTIME DEBUG] Recommendation after update:', {
-        id: updatedRecommendation.id,
-        status: updatedRecommendation.status,
-        adminId: updatedRecommendation.adminId,
-        userId: updatedRecommendation.userId,
-        courseName: updatedRecommendation.courseName
-      });
-
-      // Send real-time notification to admin about status change
-      if (updatedRecommendation.adminId) {
-        console.log('[REALTIME DEBUG] About to send WebSocket to admin:', updatedRecommendation.adminId);
-        
-        const wsPayload = {
-          recommendationId: id,
-          courseName: updatedRecommendation.courseName,
-          status: 'accepted',
-          userId: updatedRecommendation.userId,
-          message: `User accepted course: ${updatedRecommendation.courseName}`,
-        };
-        
-        console.log('[REALTIME DEBUG] WebSocket payload:', wsPayload);
-        
-        notifyUser(updatedRecommendation.adminId, 'recommendation_status_changed', wsPayload);
-        
-        console.log('[REALTIME DEBUG] WebSocket notification sent successfully!');
-      } else {
-        console.warn('[REALTIME DEBUG] ERROR: No adminId found in recommendation!', updatedRecommendation);
-      }
-
-      res.json({ 
-        message: "Recommendation accepted", 
-        recommendation: updatedRecommendation
-      });
-    } catch (error) {
-      console.error("Error accepting recommendation:", error);
-      res.status(500).json({ message: "Failed to accept recommendation" });
-    }
-  });
-
-  // User-facing: Reject a recommendation (changes status to rejected)
-  app.post('/api/user/recommendations/:id/reject', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
-
-      const { id } = req.params;
-      
-      // Try to get user by ID first, then by email if ID doesn't work
-      let user = await storage.getUser(userId);
-      if (!user && typeof userId === 'string' && userId.includes('@')) {
-        user = await storage.getUserByEmail(userId);
-      }
-
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      // Get the recommendation and verify it belongs to this user
-      const recommendations = await storage.getUserRecommendations(user.id);
-      const recommendation = recommendations.find((r: any) => r.id === id);
-      
-      if (!recommendation) {
-        return res.status(404).json({ message: "Recommendation not found" });
-      }
-
-      if (recommendation.userId !== user.id) {
-        return res.status(403).json({ message: "Not authorized to reject this recommendation" });
-      }
-
-      // Update status to rejected
-      const updatedRecommendation = await storage.updateRecommendationStatus(id, 'rejected');
-
-      console.log('[REALTIME DEBUG] POST /api/user/recommendations/:id/reject - Status updated to rejected');
-      
-      // Send real-time notification to admin about status change
-      if (updatedRecommendation.adminId) {
-        console.log('[REALTIME DEBUG] Sending WebSocket to admin:', updatedRecommendation.adminId);
-        
-        notifyUser(updatedRecommendation.adminId, 'recommendation_status_changed', {
-          recommendationId: id,
-          courseName: updatedRecommendation.courseName,
-          status: 'rejected',
-          userId: updatedRecommendation.userId,
-          message: `User rejected course: ${updatedRecommendation.courseName}`,
+        res.json({
+          message: "Platinum standard deleted and re-numbered successfully",
         });
-        
-        console.log('[REALTIME DEBUG] WebSocket notification sent successfully!');
+      } catch (error) {
+        console.error("Error deleting platinum standard:", error);
+        res.status(500).json({ message: "Failed to delete platinum standard" });
       }
+    },
+  );
 
-      res.json({ message: "Recommendation rejected", recommendation: updatedRecommendation });
-    } catch (error) {
-      console.error("Error rejecting recommendation:", error);
-      res.status(500).json({ message: "Failed to reject recommendation" });
-    }
-  });
+  // Bulk delete platinum standards (admin only)
+  app.post(
+    "/api/admin/platinum-standards/bulk-delete",
+    isAdmin,
+    async (req: any, res) => {
+      try {
+        const { ids } = req.body;
 
-  // User-facing: Dismiss a recommendation (changes status to dismissed)
-  app.post('/api/user/recommendations/:id/dismiss', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
-
-      const { id } = req.params;
-      
-      // Try to get user by ID first, then by email if ID doesn't work
-      let user = await storage.getUser(userId);
-      if (!user && typeof userId === 'string' && userId.includes('@')) {
-        user = await storage.getUserByEmail(userId);
-      }
-
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      // Get the recommendation and verify it belongs to this user
-      const recommendations = await storage.getUserRecommendations(user.id);
-      const recommendation = recommendations.find((r: any) => r.id === id);
-      
-      if (!recommendation) {
-        return res.status(404).json({ message: "Recommendation not found" });
-      }
-
-      if (recommendation.userId !== user.id) {
-        return res.status(403).json({ message: "Not authorized to dismiss this recommendation" });
-      }
-
-      // Update status to rejected (dismissed = rejected)
-      const updatedRecommendation = await storage.updateRecommendationStatus(id, 'rejected');
-
-      console.log('[REALTIME DEBUG] POST /api/user/recommendations/:id/dismiss - Status updated to rejected');
-      
-      // Send real-time notification to admin about status change
-      if (updatedRecommendation.adminId) {
-        console.log('[REALTIME DEBUG] Sending WebSocket to admin:', updatedRecommendation.adminId);
-        
-        notifyUser(updatedRecommendation.adminId, 'recommendation_status_changed', {
-          recommendationId: id,
-          courseName: updatedRecommendation.courseName,
-          status: 'rejected',
-          userId: updatedRecommendation.userId,
-          message: `User rejected course: ${updatedRecommendation.courseName}`,
-        });
-        
-        console.log('[REALTIME DEBUG] WebSocket notification sent successfully!');
-      }
-
-      res.json({ message: "Recommendation dismissed", recommendation: updatedRecommendation });
-    } catch (error) {
-      console.error("Error dismissing recommendation:", error);
-      res.status(500).json({ message: "Failed to dismiss recommendation" });
-    }
-  });
-
-  // Admin: Sync accepted recommendations to unifiedAssignment (one-time migration)
-  app.post('/api/admin/sync-recommendations', isAdmin, async (req: any, res) => {
-    try {
-      const adminEmail = req.user?.claims?.sub || req.session.userEmail;
-      const admin = await storage.getUserByEmail(adminEmail);
-      
-      if (!admin?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      const allUsers = await storage.getAllUsers();
-      let syncedCount = 0;
-      const results: any[] = [];
-
-      for (const user of allUsers) {
-        // Get all accepted recommendations for this user
-        const recommendations = await storage.getUserRecommendations(user.id);
-        const acceptedRecs = recommendations.filter((r: any) => r.status === 'accepted');
-
-        if (acceptedRecs.length === 0) continue;
-
-        // Get current week (week 1) for this user
-        let weeks = await storage.getHercmWeeksByUser(user.id);
-        let currentWeek = weeks.find((w: any) => w.weekNumber === 1);
-
-        // If week doesn't exist, create it
-        if (!currentWeek) {
-          currentWeek = await storage.createHercmWeek({
-            userId: user.id,
-            weekNumber: 1,
-            year: new Date().getFullYear(),
-            weekStatus: 'active',
-          });
+        if (!Array.isArray(ids) || ids.length === 0) {
+          return res
+            .status(400)
+            .json({ message: "IDs must be a non-empty array" });
         }
 
-        // Build unified assignment from accepted recommendations
-        const currentUnifiedAssignment = (currentWeek as any).unifiedAssignment || [];
-        const existingIds = new Set(currentUnifiedAssignment.map((item: any) => item.id));
-        
-        const newItems = acceptedRecs
-          .filter((rec: any) => !existingIds.has(rec.lessonId || rec.courseId))
-          .map((rec: any) => ({
-            id: rec.lessonId || rec.courseId,
-            courseId: rec.courseId,
-            courseName: rec.courseName,
-            lessonName: rec.lessonName || rec.courseName,
-            url: rec.lessonUrl || '',
-            completed: false,
-            source: 'admin' as const,
-            recommendationId: rec.id,
+        // Get categories before deletion for re-numbering
+        const affectedCategories = new Set<string>();
+        for (const id of ids) {
+          const standard = await storage.getPlatinumStandardById(id);
+          if (standard) {
+            affectedCategories.add(standard.category);
+          }
+        }
+
+        // Delete all standards with the provided IDs
+        for (const id of ids) {
+          await storage.deletePlatinumStandard(id);
+        }
+
+        // AUTO RE-NUMBER: Re-number all affected categories (including inactive standards)
+        for (const category of affectedCategories) {
+          const remainingStandards =
+            await storage.getAllPlatinumStandardsByCategory(category);
+          const reorderUpdates = remainingStandards.map((standard, index) => ({
+            id: standard.id,
+            orderIndex: index + 1,
           }));
 
-        if (newItems.length > 0) {
-          const updatedUnifiedAssignment = [...currentUnifiedAssignment, ...newItems];
-          await storage.updateHercmWeek(currentWeek.id, {
-            unifiedAssignment: updatedUnifiedAssignment
-          });
-          
-          syncedCount += newItems.length;
-          results.push({
-            userId: user.id,
-            email: user.email,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            syncedItems: newItems.length
-          });
+          if (reorderUpdates.length > 0) {
+            await storage.reorderPlatinumStandards(reorderUpdates);
+          }
         }
-      }
 
-      res.json({ 
-        message: `Successfully synced ${syncedCount} accepted recommendations to unifiedAssignment`,
-        totalUsers: results.length,
-        results
-      });
-    } catch (error) {
-      console.error("Error syncing recommendations:", error);
-      res.status(500).json({ message: "Failed to sync recommendations" });
-    }
-  });
+        res.json({
+          message: `Successfully deleted ${ids.length} platinum standard${ids.length > 1 ? "s" : ""} and re-numbered`,
+        });
+      } catch (error) {
+        console.error("Error bulk deleting platinum standards:", error);
+        res
+          .status(500)
+          .json({ message: "Failed to bulk delete platinum standards" });
+      }
+    },
+  );
+
+  // Reorder platinum standards via drag and drop (admin only)
+  app.post(
+    "/api/admin/platinum-standards/reorder",
+    isAdmin,
+    async (req: any, res) => {
+      try {
+        const { category, orderedIds } = req.body;
+
+        if (!category || !orderedIds) {
+          return res
+            .status(400)
+            .json({ message: "Category and orderedIds are required" });
+        }
+
+        if (!Array.isArray(orderedIds)) {
+          return res
+            .status(400)
+            .json({ message: "orderedIds must be an array" });
+        }
+
+        // Convert orderedIds to updates with new orderIndex
+        const updates = orderedIds.map((id, index) => ({
+          id,
+          orderIndex: index + 1,
+        }));
+
+        await storage.reorderPlatinumStandards(updates);
+
+        res.json({ message: "Platinum standards reordered successfully" });
+      } catch (error) {
+        console.error("Error reordering platinum standards:", error);
+        res
+          .status(500)
+          .json({ message: "Failed to reorder platinum standards" });
+      }
+    },
+  );
+
+  // Reorder platinum standards (legacy endpoint - admin only)
+  app.put(
+    "/api/admin/platinum-standards/reorder",
+    isAdmin,
+    async (req: any, res) => {
+      try {
+        console.error("[REORDER] ========== REORDER ENDPOINT HIT ==========");
+        const { updates } = req.body; // Array of { id, orderIndex }
+        console.error(
+          "[REORDER] Request body:",
+          JSON.stringify(req.body, null, 2),
+        );
+
+        if (!updates) {
+          console.error("[REORDER] ERROR: No updates field in body");
+          return res.status(400).json({ message: "Updates field is required" });
+        }
+
+        if (!Array.isArray(updates)) {
+          console.error(
+            "[REORDER] ERROR: Updates is not an array, type:",
+            typeof updates,
+          );
+          return res.status(400).json({ message: "Updates must be an array" });
+        }
+
+        console.error(
+          "[REORDER] Calling storage with",
+          updates.length,
+          "updates",
+        );
+        console.error("[REORDER] First update:", updates[0]);
+
+        await storage.reorderPlatinumStandards(updates);
+
+        console.error("[REORDER] ✅ Storage method completed successfully");
+        res.json({ message: "Platinum standards reordered successfully" });
+      } catch (error) {
+        console.error("[REORDER] ❌ FATAL ERROR:", error);
+        res
+          .status(500)
+          .json({ message: "Failed to reorder platinum standards" });
+      }
+    },
+  );
+
+  // Move platinum standard up (admin only)
+  app.post(
+    "/api/admin/platinum-standards/:id/move-up",
+    isAdmin,
+    async (req: any, res) => {
+      try {
+        const { id } = req.params;
+
+        const standard = await storage.getPlatinumStandardById(id);
+        if (!standard) {
+          return res.status(404).json({ message: "Standard not found" });
+        }
+
+        const allInCategory = await storage.getAllPlatinumStandardsByCategory(
+          standard.category,
+        );
+        const currentIndex = allInCategory.findIndex((s) => s.id === id);
+
+        if (currentIndex <= 0) {
+          return res.status(400).json({ message: "Already at the top" });
+        }
+
+        const previousStandard = allInCategory[currentIndex - 1];
+
+        await storage.reorderPlatinumStandards([
+          { id: standard.id, orderIndex: previousStandard.orderIndex },
+          { id: previousStandard.id, orderIndex: standard.orderIndex },
+        ]);
+
+        res.json({ message: "Standard moved up successfully" });
+      } catch (error) {
+        console.error("Error moving standard up:", error);
+        res.status(500).json({ message: "Failed to move standard up" });
+      }
+    },
+  );
+
+  // Move platinum standard down (admin only)
+  app.post(
+    "/api/admin/platinum-standards/:id/move-down",
+    isAdmin,
+    async (req: any, res) => {
+      try {
+        const { id } = req.params;
+
+        const standard = await storage.getPlatinumStandardById(id);
+        if (!standard) {
+          return res.status(404).json({ message: "Standard not found" });
+        }
+
+        const allInCategory = await storage.getAllPlatinumStandardsByCategory(
+          standard.category,
+        );
+        const currentIndex = allInCategory.findIndex((s) => s.id === id);
+
+        if (currentIndex >= allInCategory.length - 1) {
+          return res.status(400).json({ message: "Already at the bottom" });
+        }
+
+        const nextStandard = allInCategory[currentIndex + 1];
+
+        await storage.reorderPlatinumStandards([
+          { id: standard.id, orderIndex: nextStandard.orderIndex },
+          { id: nextStandard.id, orderIndex: standard.orderIndex },
+        ]);
+
+        res.json({ message: "Standard moved down successfully" });
+      } catch (error) {
+        console.error("Error moving standard down:", error);
+        res.status(500).json({ message: "Failed to move standard down" });
+      }
+    },
+  );
+
+  // Platinum Standard Ratings - Get ratings for a specific date
+  app.get(
+    "/api/platinum-standard-ratings/:dateString",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        let user = await storage.getUser(userId);
+        if (!user && typeof userId === "string" && userId.includes("@")) {
+          user = await storage.getUserByEmail(userId);
+        }
+
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        const { dateString } = req.params;
+        const ratings = await storage.getUserPlatinumStandardRatingsByDate(
+          user.id,
+          dateString,
+        );
+
+        res.json(ratings);
+      } catch (error) {
+        console.error("Error fetching platinum standard ratings:", error);
+        res.status(500).json({ message: "Failed to fetch ratings" });
+      }
+    },
+  );
+
+  // Platinum Standard Ratings - Upsert a rating
+  app.post(
+    "/api/platinum-standard-ratings",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        console.log(
+          "[RATING SAVE] ========== POST /api/platinum-standard-ratings ==========",
+        );
+        console.log("[RATING SAVE] Request body:", JSON.stringify(req.body));
+
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        console.log("[RATING SAVE] Extracted userId:", userId);
+
+        if (!userId) {
+          console.log("[RATING SAVE] ❌ No userId - returning 401");
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        let user = await storage.getUser(userId);
+        if (!user && typeof userId === "string" && userId.includes("@")) {
+          console.log(
+            "[RATING SAVE] User not found by ID, trying by email:",
+            userId,
+          );
+          user = await storage.getUserByEmail(userId);
+        }
+
+        console.log(
+          "[RATING SAVE] Found user:",
+          user ? `${user.id} (${user.email})` : "NOT FOUND",
+        );
+
+        if (!user) {
+          console.log("[RATING SAVE] ❌ User not found - returning 404");
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        const { standardId, dateString, rating } = req.body;
+        console.log(
+          "[RATING SAVE] Parameters: standardId=%s, dateString=%s, rating=%s",
+          standardId,
+          dateString,
+          rating,
+        );
+
+        if (
+          !standardId ||
+          !dateString ||
+          rating === undefined ||
+          rating === null
+        ) {
+          console.log("[RATING SAVE] ❌ Missing required fields");
+          return res.status(400).json({ message: "Missing required fields" });
+        }
+
+        if (rating < 0 || rating > 7) {
+          console.log("[RATING SAVE] ❌ Invalid rating value:", rating);
+          return res
+            .status(400)
+            .json({ message: "Rating must be between 0 and 7" });
+        }
+
+        console.log(
+          "[RATING SAVE] Calling storage.upsertPlatinumStandardRating with:",
+          {
+            userId: user.id,
+            standardId,
+            dateString,
+            rating,
+          },
+        );
+
+        const savedRating = await storage.upsertPlatinumStandardRating({
+          userId: user.id,
+          standardId,
+          dateString,
+          rating,
+        });
+
+        console.log(
+          "[RATING SAVE] ✅ Successfully saved! Returned:",
+          savedRating,
+        );
+        console.log(
+          `✅ Saved platinum standard rating: user=${user.id}, standard=${standardId}, date=${dateString}, rating=${rating}`,
+        );
+
+        // Get the category of the standard to calculate unlock status
+        const standard = await storage.getPlatinumStandardById(standardId);
+        if (standard) {
+          console.log(
+            `[UNLOCK] Triggering unlock calculation for ${standard.category}`,
+          );
+          const unlockStatus = await storage.calculateUnlockStatus(
+            user.id,
+            standard.category,
+            dateString,
+          );
+          console.log(`[UNLOCK] Unlock status updated:`, unlockStatus);
+        }
+
+        console.log("[RATING SAVE] ========== END ==========");
+        res.json(savedRating);
+      } catch (error) {
+        console.error("[RATING SAVE] ❌ FATAL ERROR:", error);
+        res.status(500).json({ message: "Failed to save rating" });
+      }
+    },
+  );
+
+  // HRCM Unlock Progress - Get unlock status for a specific area
+  app.get(
+    "/api/hrcm-unlock-status/:area",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        let user = await storage.getUser(userId);
+        if (!user && typeof userId === "string" && userId.includes("@")) {
+          user = await storage.getUserByEmail(userId);
+        }
+
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        const { area } = req.params;
+        const unlockProgress = await storage.getHrcmUnlockProgress(
+          user.id,
+          area,
+        );
+
+        // If no progress exists, return default locked state
+        const response = unlockProgress || {
+          consecutivePerfectDays: 0,
+          isUnlocked: false,
+          lastPerfectDate: null,
+        };
+
+        res.json(response);
+      } catch (error) {
+        console.error("Error fetching unlock status:", error);
+        res.status(500).json({ message: "Failed to fetch unlock status" });
+      }
+    },
+  );
+
+  // User-facing: Get current user's pending recommendations
+  app.get(
+    "/api/user/recommendations",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        console.log(
+          "[DEBUG] /api/user/recommendations - userId from auth:",
+          userId,
+        );
+
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        // Try to get user by ID first, then by email if ID doesn't work
+        let user = await storage.getUser(userId);
+        console.log(
+          "[DEBUG] /api/user/recommendations - user from getUser:",
+          user,
+        );
+
+        if (!user && typeof userId === "string" && userId.includes("@")) {
+          // If userId is an email, try to find user by email
+          user = await storage.getUserByEmail(userId);
+          console.log(
+            "[DEBUG] /api/user/recommendations - user from getUserByEmail:",
+            user,
+          );
+        }
+
+        if (!user) {
+          console.log(
+            "[DEBUG] /api/user/recommendations - no user found, returning empty array",
+          );
+          return res.json([]); // Return empty array if user not found
+        }
+
+        // Get recommendations by the user's database ID
+        const recommendations = await storage.getUserRecommendations(user.id);
+        console.log(
+          "[DEBUG] /api/user/recommendations - recommendations for user.id",
+          user.id,
+          ":",
+          recommendations,
+        );
+
+        // Filter to show only pending recommendations to the user
+        const pendingRecommendations = recommendations.filter(
+          (r: any) => r.status === "pending",
+        );
+        console.log(
+          "[DEBUG] /api/user/recommendations - pending recommendations:",
+          pendingRecommendations,
+        );
+
+        // INSTANT UPDATE FIX: Disable HTTP caching to ensure admin recommendations appear immediately
+        res.set({
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+        });
+
+        res.json(pendingRecommendations);
+      } catch (error) {
+        console.error("Error fetching user recommendations:", error);
+        res.status(500).json({ message: "Failed to fetch recommendations" });
+      }
+    },
+  );
+
+  // User-facing: Accept a recommendation (changes status to accepted and adds to Assignment)
+  app.post(
+    "/api/user/recommendations/:id/accept",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        const { id } = req.params;
+        const { weekNumber = 1 } = req.body; // Get week number from request body
+
+        // Try to get user by ID first, then by email if ID doesn't work
+        let user = await storage.getUser(userId);
+        if (!user && typeof userId === "string" && userId.includes("@")) {
+          user = await storage.getUserByEmail(userId);
+        }
+
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        // Get the recommendation and verify it belongs to this user
+        const recommendations = await storage.getUserRecommendations(user.id);
+        const recommendation = recommendations.find((r: any) => r.id === id);
+
+        if (!recommendation) {
+          return res.status(404).json({ message: "Recommendation not found" });
+        }
+
+        if (recommendation.userId !== user.id) {
+          return res
+            .status(403)
+            .json({ message: "Not authorized to accept this recommendation" });
+        }
+
+        // Update status to accepted
+        const updatedRecommendation = await storage.updateRecommendationStatus(
+          id,
+          "accepted",
+        );
+
+        // Create assignment in user_persistent_assignments table
+        // This adds the course to the Assignment column
+        console.log(
+          "[DEBUG] Creating assignment for accepted recommendation:",
+          {
+            userId: user.id,
+            courseName: updatedRecommendation.courseName,
+            courseId: updatedRecommendation.courseId,
+            lessonId: updatedRecommendation.lessonId,
+            lessonName: updatedRecommendation.lessonName,
+          },
+        );
+
+        await storage.addPersistentAssignment({
+          userId: user.id,
+          courseId: updatedRecommendation.courseId,
+          courseName: updatedRecommendation.courseName,
+          hrcmArea: updatedRecommendation.hrcmArea,
+          lessonId: updatedRecommendation.lessonId,
+          lessonName: updatedRecommendation.lessonName,
+          url: updatedRecommendation.lessonUrl || "",
+          completed: false,
+          source: "admin",
+          recommendationId: id,
+        });
+
+        console.log(
+          "[REALTIME DEBUG] POST /api/user/recommendations/:id/accept - Status updated to accepted and assignment created",
+        );
+        console.log("[REALTIME DEBUG] Recommendation after update:", {
+          id: updatedRecommendation.id,
+          status: updatedRecommendation.status,
+          adminId: updatedRecommendation.adminId,
+          userId: updatedRecommendation.userId,
+          courseName: updatedRecommendation.courseName,
+        });
+
+        // Send real-time notification to admin about status change
+        if (updatedRecommendation.adminId) {
+          console.log(
+            "[REALTIME DEBUG] About to send WebSocket to admin:",
+            updatedRecommendation.adminId,
+          );
+
+          const wsPayload = {
+            recommendationId: id,
+            courseName: updatedRecommendation.courseName,
+            status: "accepted",
+            userId: updatedRecommendation.userId,
+            message: `User accepted course: ${updatedRecommendation.courseName}`,
+          };
+
+          console.log("[REALTIME DEBUG] WebSocket payload:", wsPayload);
+
+          notifyUser(
+            updatedRecommendation.adminId,
+            "recommendation_status_changed",
+            wsPayload,
+          );
+
+          console.log(
+            "[REALTIME DEBUG] WebSocket notification sent successfully!",
+          );
+        } else {
+          console.warn(
+            "[REALTIME DEBUG] ERROR: No adminId found in recommendation!",
+            updatedRecommendation,
+          );
+        }
+
+        res.json({
+          message: "Recommendation accepted",
+          recommendation: updatedRecommendation,
+        });
+      } catch (error) {
+        console.error("Error accepting recommendation:", error);
+        res.status(500).json({ message: "Failed to accept recommendation" });
+      }
+    },
+  );
+
+  // User-facing: Reject a recommendation (changes status to rejected)
+  app.post(
+    "/api/user/recommendations/:id/reject",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        const { id } = req.params;
+
+        // Try to get user by ID first, then by email if ID doesn't work
+        let user = await storage.getUser(userId);
+        if (!user && typeof userId === "string" && userId.includes("@")) {
+          user = await storage.getUserByEmail(userId);
+        }
+
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        // Get the recommendation and verify it belongs to this user
+        const recommendations = await storage.getUserRecommendations(user.id);
+        const recommendation = recommendations.find((r: any) => r.id === id);
+
+        if (!recommendation) {
+          return res.status(404).json({ message: "Recommendation not found" });
+        }
+
+        if (recommendation.userId !== user.id) {
+          return res
+            .status(403)
+            .json({ message: "Not authorized to reject this recommendation" });
+        }
+
+        // Update status to rejected
+        const updatedRecommendation = await storage.updateRecommendationStatus(
+          id,
+          "rejected",
+        );
+
+        console.log(
+          "[REALTIME DEBUG] POST /api/user/recommendations/:id/reject - Status updated to rejected",
+        );
+
+        // Send real-time notification to admin about status change
+        if (updatedRecommendation.adminId) {
+          console.log(
+            "[REALTIME DEBUG] Sending WebSocket to admin:",
+            updatedRecommendation.adminId,
+          );
+
+          notifyUser(
+            updatedRecommendation.adminId,
+            "recommendation_status_changed",
+            {
+              recommendationId: id,
+              courseName: updatedRecommendation.courseName,
+              status: "rejected",
+              userId: updatedRecommendation.userId,
+              message: `User rejected course: ${updatedRecommendation.courseName}`,
+            },
+          );
+
+          console.log(
+            "[REALTIME DEBUG] WebSocket notification sent successfully!",
+          );
+        }
+
+        res.json({
+          message: "Recommendation rejected",
+          recommendation: updatedRecommendation,
+        });
+      } catch (error) {
+        console.error("Error rejecting recommendation:", error);
+        res.status(500).json({ message: "Failed to reject recommendation" });
+      }
+    },
+  );
+
+  // User-facing: Dismiss a recommendation (changes status to dismissed)
+  app.post(
+    "/api/user/recommendations/:id/dismiss",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        const { id } = req.params;
+
+        // Try to get user by ID first, then by email if ID doesn't work
+        let user = await storage.getUser(userId);
+        if (!user && typeof userId === "string" && userId.includes("@")) {
+          user = await storage.getUserByEmail(userId);
+        }
+
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        // Get the recommendation and verify it belongs to this user
+        const recommendations = await storage.getUserRecommendations(user.id);
+        const recommendation = recommendations.find((r: any) => r.id === id);
+
+        if (!recommendation) {
+          return res.status(404).json({ message: "Recommendation not found" });
+        }
+
+        if (recommendation.userId !== user.id) {
+          return res
+            .status(403)
+            .json({ message: "Not authorized to dismiss this recommendation" });
+        }
+
+        // Update status to rejected (dismissed = rejected)
+        const updatedRecommendation = await storage.updateRecommendationStatus(
+          id,
+          "rejected",
+        );
+
+        console.log(
+          "[REALTIME DEBUG] POST /api/user/recommendations/:id/dismiss - Status updated to rejected",
+        );
+
+        // Send real-time notification to admin about status change
+        if (updatedRecommendation.adminId) {
+          console.log(
+            "[REALTIME DEBUG] Sending WebSocket to admin:",
+            updatedRecommendation.adminId,
+          );
+
+          notifyUser(
+            updatedRecommendation.adminId,
+            "recommendation_status_changed",
+            {
+              recommendationId: id,
+              courseName: updatedRecommendation.courseName,
+              status: "rejected",
+              userId: updatedRecommendation.userId,
+              message: `User rejected course: ${updatedRecommendation.courseName}`,
+            },
+          );
+
+          console.log(
+            "[REALTIME DEBUG] WebSocket notification sent successfully!",
+          );
+        }
+
+        res.json({
+          message: "Recommendation dismissed",
+          recommendation: updatedRecommendation,
+        });
+      } catch (error) {
+        console.error("Error dismissing recommendation:", error);
+        res.status(500).json({ message: "Failed to dismiss recommendation" });
+      }
+    },
+  );
+
+  // Admin: Sync accepted recommendations to unifiedAssignment (one-time migration)
+  app.post(
+    "/api/admin/sync-recommendations",
+    isAdmin,
+    async (req: any, res) => {
+      try {
+        const adminEmail = req.user?.claims?.sub || req.session.userEmail;
+        const admin = await storage.getUserByEmail(adminEmail);
+
+        if (!admin?.isAdmin) {
+          return res.status(403).json({ message: "Admin access required" });
+        }
+
+        const allUsers = await storage.getAllUsers();
+        let syncedCount = 0;
+        const results: any[] = [];
+
+        for (const user of allUsers) {
+          // Get all accepted recommendations for this user
+          const recommendations = await storage.getUserRecommendations(user.id);
+          const acceptedRecs = recommendations.filter(
+            (r: any) => r.status === "accepted",
+          );
+
+          if (acceptedRecs.length === 0) continue;
+
+          // Get current week (week 1) for this user
+          let weeks = await storage.getHercmWeeksByUser(user.id);
+          let currentWeek = weeks.find((w: any) => w.weekNumber === 1);
+
+          // If week doesn't exist, create it
+          if (!currentWeek) {
+            currentWeek = await storage.createHercmWeek({
+              userId: user.id,
+              weekNumber: 1,
+              year: new Date().getFullYear(),
+              weekStatus: "active",
+            });
+          }
+
+          // Build unified assignment from accepted recommendations
+          const currentUnifiedAssignment =
+            (currentWeek as any).unifiedAssignment || [];
+          const existingIds = new Set(
+            currentUnifiedAssignment.map((item: any) => item.id),
+          );
+
+          const newItems = acceptedRecs
+            .filter(
+              (rec: any) => !existingIds.has(rec.lessonId || rec.courseId),
+            )
+            .map((rec: any) => ({
+              id: rec.lessonId || rec.courseId,
+              courseId: rec.courseId,
+              courseName: rec.courseName,
+              lessonName: rec.lessonName || rec.courseName,
+              url: rec.lessonUrl || "",
+              completed: false,
+              source: "admin" as const,
+              recommendationId: rec.id,
+            }));
+
+          if (newItems.length > 0) {
+            const updatedUnifiedAssignment = [
+              ...currentUnifiedAssignment,
+              ...newItems,
+            ];
+            await storage.updateHercmWeek(currentWeek.id, {
+              unifiedAssignment: updatedUnifiedAssignment,
+            });
+
+            syncedCount += newItems.length;
+            results.push({
+              userId: user.id,
+              email: user.email,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              syncedItems: newItems.length,
+            });
+          }
+        }
+
+        res.json({
+          message: `Successfully synced ${syncedCount} accepted recommendations to unifiedAssignment`,
+          totalUsers: results.length,
+          results,
+        });
+      } catch (error) {
+        console.error("Error syncing recommendations:", error);
+        res.status(500).json({ message: "Failed to sync recommendations" });
+      }
+    },
+  );
 
   // Rituals endpoints
-  app.get('/api/rituals', isAuthenticated, async (req: any, res) => {
+  app.get("/api/rituals", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.session.userEmail;
       if (!userId) {
         return res.status(401).json({ message: "User not authenticated" });
       }
-      
+
       // Get actual user to ensure we use correct user ID
       let user = await storage.getUser(userId);
-      if (!user && typeof userId === 'string' && userId.includes('@')) {
+      if (!user && typeof userId === "string" && userId.includes("@")) {
         user = await storage.getUserByEmail(userId);
       }
-      
+
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       // Ensure all default rituals exist and are marked as default
       await storage.seedDefaultRituals(user.id);
-      
+
       // Get all rituals
       const allRituals = await storage.getRitualsByUser(user.id);
-      
+
       res.json(allRituals);
     } catch (error) {
       console.error("Error fetching rituals:", error);
@@ -5396,23 +6802,23 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
-  app.post('/api/rituals', isAuthenticated, async (req: any, res) => {
+  app.post("/api/rituals", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.session.userEmail;
       if (!userId) {
         return res.status(401).json({ message: "User not authenticated" });
       }
-      
+
       // Get actual user to ensure we use correct user ID
       let user = await storage.getUser(userId);
-      if (!user && typeof userId === 'string' && userId.includes('@')) {
+      if (!user && typeof userId === "string" && userId.includes("@")) {
         user = await storage.getUserByEmail(userId);
       }
-      
+
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       const ritualData = { ...req.body, userId: user.id };
       const ritual = await storage.createRitual(ritualData);
       res.json(ritual);
@@ -5422,20 +6828,22 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
-  app.patch('/api/rituals/:id', isAuthenticated, async (req: any, res) => {
+  app.patch("/api/rituals/:id", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.session.userEmail;
       if (!userId) {
         return res.status(401).json({ message: "User not authenticated" });
       }
-      
+
       const { id } = req.params;
       const ritual = await storage.updateRitual(id, userId, req.body);
-      
+
       if (!ritual) {
-        return res.status(404).json({ message: "Ritual not found or access denied" });
+        return res
+          .status(404)
+          .json({ message: "Ritual not found or access denied" });
       }
-      
+
       res.json(ritual);
     } catch (error) {
       console.error("Error updating ritual:", error);
@@ -5443,246 +6851,325 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
     }
   });
 
-  app.delete('/api/rituals/:id', isAuthenticated, async (req: any, res) => {
+  app.delete("/api/rituals/:id", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.session.userEmail;
       if (!userId) {
         return res.status(401).json({ message: "User not authenticated" });
       }
-      
+
       // Get actual user to ensure we use correct user ID
       let user = await storage.getUser(userId);
-      if (!user && typeof userId === 'string' && userId.includes('@')) {
+      if (!user && typeof userId === "string" && userId.includes("@")) {
         user = await storage.getUserByEmail(userId);
       }
-      
+
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       const { id } = req.params;
-      console.log(`[RITUAL DELETE] Attempting to delete ritual ${id} for user ${user.id}`);
-      
+      console.log(
+        `[RITUAL DELETE] Attempting to delete ritual ${id} for user ${user.id}`,
+      );
+
       try {
         const deletedCount = await storage.deleteRitual(id, user.id);
         console.log(`[RITUAL DELETE] Deleted ${deletedCount} ritual(s)`);
-        
+
         if (deletedCount === 0) {
-          return res.status(404).json({ message: "Ritual not found or access denied" });
+          return res
+            .status(404)
+            .json({ message: "Ritual not found or access denied" });
         }
-        
+
         res.json({ success: true, message: "Ritual deleted" });
       } catch (storageError) {
-        console.error(`[RITUAL DELETE] Storage error: ${(storageError as Error).message}`);
-        if ((storageError as Error).message === 'Cannot delete default rituals') {
-          return res.status(403).json({ message: "Cannot delete default rituals" });
+        console.error(
+          `[RITUAL DELETE] Storage error: ${(storageError as Error).message}`,
+        );
+        if (
+          (storageError as Error).message === "Cannot delete default rituals"
+        ) {
+          return res
+            .status(403)
+            .json({ message: "Cannot delete default rituals" });
         }
         throw storageError;
       }
     } catch (error) {
       console.error("Error deleting ritual:", error);
-      res.status(500).json({ message: "Failed to delete ritual: " + ((error as Error).message || 'Unknown error') });
+      res
+        .status(500)
+        .json({
+          message:
+            "Failed to delete ritual: " +
+            ((error as Error).message || "Unknown error"),
+        });
     }
   });
 
   // Seed default rituals
-  app.post('/api/rituals/seed-defaults', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
+  app.post(
+    "/api/rituals/seed-defaults",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        let user = await storage.getUser(userId);
+        if (!user && typeof userId === "string" && userId.includes("@")) {
+          user = await storage.getUserByEmail(userId);
+        }
+
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        await storage.seedDefaultRituals(user.id);
+        res.json({ success: true, message: "Default rituals seeded" });
+      } catch (error) {
+        console.error("Error seeding default rituals:", error);
+        res.status(500).json({ message: "Failed to seed default rituals" });
       }
-      
-      let user = await storage.getUser(userId);
-      if (!user && typeof userId === 'string' && userId.includes('@')) {
-        user = await storage.getUserByEmail(userId);
-      }
-      
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      
-      await storage.seedDefaultRituals(user.id);
-      res.json({ success: true, message: "Default rituals seeded" });
-    } catch (error) {
-      console.error("Error seeding default rituals:", error);
-      res.status(500).json({ message: "Failed to seed default rituals" });
-    }
-  });
+    },
+  );
 
   // Ritual Completions endpoints
   // Get all ritual completions for user (for history navigation)
-  app.get('/api/ritual-completions', isAuthenticated, async (req: any, res) => {
+  app.get("/api/ritual-completions", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.session.userEmail;
       if (!userId) {
         return res.status(401).json({ message: "User not authenticated" });
       }
-      
+
       const completions = await storage.getAllRitualCompletions(userId);
       res.json(completions);
     } catch (error) {
       console.error("Error fetching all ritual completions:", error);
-      res.status(500).json({ message: "Failed to fetch all ritual completions" });
+      res
+        .status(500)
+        .json({ message: "Failed to fetch all ritual completions" });
     }
   });
 
-  app.get('/api/ritual-completions/:date', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
-      
-      const { date } = req.params;
-      const completions = await storage.getRitualCompletionsByDate(userId, date);
-      res.json(completions);
-    } catch (error) {
-      console.error("Error fetching ritual completions:", error);
-      res.status(500).json({ message: "Failed to fetch ritual completions" });
-    }
-  });
+  app.get(
+    "/api/ritual-completions/:date",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
 
-  app.get('/api/ritual-completions/month/:year/:month', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
+        const { date } = req.params;
+        const completions = await storage.getRitualCompletionsByDate(
+          userId,
+          date,
+        );
+        res.json(completions);
+      } catch (error) {
+        console.error("Error fetching ritual completions:", error);
+        res.status(500).json({ message: "Failed to fetch ritual completions" });
       }
-      
-      const { year, month } = req.params;
-      const completions = await storage.getRitualCompletionsByMonth(userId, parseInt(year), parseInt(month));
-      res.json(completions);
-    } catch (error) {
-      console.error("Error fetching monthly ritual completions:", error);
-      res.status(500).json({ message: "Failed to fetch monthly ritual completions" });
-    }
-  });
+    },
+  );
+
+  app.get(
+    "/api/ritual-completions/month/:year/:month",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        const { year, month } = req.params;
+        const completions = await storage.getRitualCompletionsByMonth(
+          userId,
+          parseInt(year),
+          parseInt(month),
+        );
+        res.json(completions);
+      } catch (error) {
+        console.error("Error fetching monthly ritual completions:", error);
+        res
+          .status(500)
+          .json({ message: "Failed to fetch monthly ritual completions" });
+      }
+    },
+  );
 
   // Get ritual completions for a date range (used for weekly cumulative points)
-  app.get('/api/ritual-completions/week/:startDate/:endDate', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
-      
-      const { startDate, endDate } = req.params;
-      const completions = await storage.getRitualCompletionsByDateRange(userId, startDate, endDate);
-      res.json(completions);
-    } catch (error) {
-      console.error("Error fetching weekly ritual completions:", error);
-      res.status(500).json({ message: "Failed to fetch weekly ritual completions" });
-    }
-  });
+  app.get(
+    "/api/ritual-completions/week/:startDate/:endDate",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
 
-  app.post('/api/ritual-completions', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
+        const { startDate, endDate } = req.params;
+        const completions = await storage.getRitualCompletionsByDateRange(
+          userId,
+          startDate,
+          endDate,
+        );
+        res.json(completions);
+      } catch (error) {
+        console.error("Error fetching weekly ritual completions:", error);
+        res
+          .status(500)
+          .json({ message: "Failed to fetch weekly ritual completions" });
       }
-      
-      const completionData = { ...req.body, userId };
-      const completion = await storage.createRitualCompletion(completionData);
-      res.json(completion);
-    } catch (error) {
-      console.error("Error creating ritual completion:", error);
-      res.status(500).json({ message: "Failed to create ritual completion" });
-    }
-  });
+    },
+  );
 
-  app.delete('/api/ritual-completions/:ritualId/:date', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
+  app.post(
+    "/api/ritual-completions",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        const completionData = { ...req.body, userId };
+        const completion = await storage.createRitualCompletion(completionData);
+        res.json(completion);
+      } catch (error) {
+        console.error("Error creating ritual completion:", error);
+        res.status(500).json({ message: "Failed to create ritual completion" });
       }
-      
-      const { ritualId, date } = req.params;
-      const deletedCount = await storage.deleteRitualCompletion(ritualId, userId, date);
-      
-      if (deletedCount === 0) {
-        return res.status(404).json({ message: "Ritual completion not found or access denied" });
+    },
+  );
+
+  app.delete(
+    "/api/ritual-completions/:ritualId/:date",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        const { ritualId, date } = req.params;
+        const deletedCount = await storage.deleteRitualCompletion(
+          ritualId,
+          userId,
+          date,
+        );
+
+        if (deletedCount === 0) {
+          return res
+            .status(404)
+            .json({ message: "Ritual completion not found or access denied" });
+        }
+
+        res.json({ success: true, message: "Ritual completion deleted" });
+      } catch (error) {
+        console.error("Error deleting ritual completion:", error);
+        res.status(500).json({ message: "Failed to delete ritual completion" });
       }
-      
-      res.json({ success: true, message: "Ritual completion deleted" });
-    } catch (error) {
-      console.error("Error deleting ritual completion:", error);
-      res.status(500).json({ message: "Failed to delete ritual completion" });
-    }
-  });
+    },
+  );
 
   // Leaderboard endpoint - Multi-user ritual points (Approved users only) - WEEKLY CUMULATIVE
-  app.get('/api/leaderboard', isAuthenticated, async (req: any, res) => {
+  app.get("/api/leaderboard", isAuthenticated, async (req: any, res) => {
     try {
       const currentUserId = req.user?.claims?.sub || req.session.userEmail;
-      
+
       // Calculate current week's start and end dates (Monday to Sunday)
       const today = new Date();
       const day = today.getDay();
       const diffToMonday = day === 0 ? -6 : 1 - day;
       const diffToSunday = day === 0 ? 0 : 7 - day;
-      
+
       const weekStart = new Date(today);
       weekStart.setDate(today.getDate() + diffToMonday);
-      const weekStartDate = weekStart.toISOString().split('T')[0];
-      
+      const weekStartDate = weekStart.toISOString().split("T")[0];
+
       const weekEnd = new Date(today);
       weekEnd.setDate(today.getDate() + diffToSunday);
-      const weekEndDate = weekEnd.toISOString().split('T')[0];
-      
+      const weekEndDate = weekEnd.toISOString().split("T")[0];
+
       // Get approved emails and filter for active users only
       const approvedEmailsList = await storage.getAllApprovedEmails();
-      const approvedEmailSet = new Set(approvedEmailsList.filter(ae => ae.status === 'active').map(ae => ae.email));
-      
+      const approvedEmailSet = new Set(
+        approvedEmailsList
+          .filter((ae) => ae.status === "active")
+          .map((ae) => ae.email),
+      );
+
       // Get all users and filter by approved emails
       const allUsers = await storage.getAllUsers();
-      const approvedUsers = allUsers.filter(u => 
-        (u.email && approvedEmailSet.has(u.email)) || approvedEmailSet.has(u.id)
+      const approvedUsers = allUsers.filter(
+        (u) =>
+          (u.email && approvedEmailSet.has(u.email)) ||
+          approvedEmailSet.has(u.id),
       );
-      
+
       // Calculate ALL-TIME TOTAL points for each approved user (same as header)
       const leaderboardData = await Promise.all(
         approvedUsers.map(async (user) => {
           const userRituals = await storage.getRitualsByUser(user.id);
-          const allRitualCompletions = await storage.getAllRitualCompletions(user.id);
-          
+          const allRitualCompletions = await storage.getAllRitualCompletions(
+            user.id,
+          );
+
           // Calculate total ritual points from ALL completions (not just weekly)
-          const ritualPoints = allRitualCompletions.reduce((sum, completion) => {
-            const ritual = userRituals.find(r => r.id === completion.ritualId);
-            if (!ritual || !ritual.isActive) return sum;
-            
-            // Use custom points from database, fallback to 1 if not set
-            const points = ritual.points || 1;
-            return sum + points;
-          }, 0);
-          
+          const ritualPoints = allRitualCompletions.reduce(
+            (sum, completion) => {
+              const ritual = userRituals.find(
+                (r) => r.id === completion.ritualId,
+              );
+              if (!ritual || !ritual.isActive) return sum;
+
+              // Use custom points from database, fallback to 1 if not set
+              const points = ritual.points || 1;
+              return sum + points;
+            },
+            0,
+          );
+
           // Get all course lesson completions for this user (each lesson = 1 point)
-          const lessonCompletions = await storage.getAllCourseVideoCompletions(user.id);
+          const lessonCompletions = await storage.getAllCourseVideoCompletions(
+            user.id,
+          );
           const lessonPoints = lessonCompletions.length * 1;
-          
+
           // Total all-time points = ritual points + lesson points (same as header)
           const points = ritualPoints + lessonPoints;
-          
+
           // Get display name - prioritize firstName/lastName, then approved email name, then email
-          let displayName = '';
-          const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
-          
+          let displayName = "";
+          const fullName =
+            `${user.firstName || ""} ${user.lastName || ""}`.trim();
+
           if (fullName) {
             displayName = fullName;
           } else {
             // If no firstName/lastName, try to get name from approved_emails
-            const approvedEmail = approvedEmailsList.find(ae => 
-              ae.email === user.email || ae.email === user.id
+            const approvedEmail = approvedEmailsList.find(
+              (ae) => ae.email === user.email || ae.email === user.id,
             );
             if (approvedEmail && approvedEmail.name) {
               displayName = approvedEmail.name;
             } else {
-              displayName = user.email || 'Unknown User';
+              displayName = user.email || "Unknown User";
             }
           }
-          
+
           return {
             userId: user.id,
             name: displayName,
@@ -5690,30 +7177,34 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
             points,
             isCurrentUser: user.id === currentUserId,
           };
-        })
+        }),
       );
-      
+
       // Filter out users with 0 points (only show active participants)
-      const activeParticipants = leaderboardData.filter(entry => entry.points > 0);
-      
+      const activeParticipants = leaderboardData.filter(
+        (entry) => entry.points > 0,
+      );
+
       // Sort by points descending (highest first)
       activeParticipants.sort((a, b) => b.points - a.points);
-      
+
       // Add rank to ALL active users first
       const rankedLeaderboard = activeParticipants.map((entry, index) => ({
         rank: index + 1,
         ...entry,
       }));
-      
+
       // Return only top 10 OR include current user if not in top 10
       const top10 = rankedLeaderboard.slice(0, 10);
-      const currentUserEntry = rankedLeaderboard.find(entry => entry.userId === currentUserId);
-      
+      const currentUserEntry = rankedLeaderboard.find(
+        (entry) => entry.userId === currentUserId,
+      );
+
       // If current user not in top 10, add them at the end
       if (currentUserEntry && currentUserEntry.rank > 10) {
         top10.push(currentUserEntry);
       }
-      
+
       res.json(top10);
     } catch (error) {
       console.error("Error fetching leaderboard:", error);
@@ -5722,7 +7213,7 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Get user's all-time cumulative points (all ritual completions + all course lessons)
-  app.get('/api/user/total-points', isAuthenticated, async (req: any, res) => {
+  app.get("/api/user/total-points", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.session.userEmail;
       if (!userId) {
@@ -5731,29 +7222,34 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
 
       // Get ALL ritual completions (not just current week)
       const userRituals = await storage.getRitualsByUser(userId);
-      const allRitualCompletions = await storage.getAllRitualCompletions(userId);
-      
+      const allRitualCompletions =
+        await storage.getAllRitualCompletions(userId);
+
       // Calculate total ritual points from ALL completions
-      const ritualPoints = allRitualCompletions.reduce((sum: number, completion: RitualCompletion) => {
-        const ritual = userRituals.find(r => r.id === completion.ritualId);
-        if (!ritual || !ritual.isActive) return sum;
-        const points = ritual.points || 0;
-        return sum + points;
-      }, 0);
-      
+      const ritualPoints = allRitualCompletions.reduce(
+        (sum: number, completion: RitualCompletion) => {
+          const ritual = userRituals.find((r) => r.id === completion.ritualId);
+          if (!ritual || !ritual.isActive) return sum;
+          const points = ritual.points || 0;
+          return sum + points;
+        },
+        0,
+      );
+
       // Get all course lesson completions (each lesson = 0 points for fresh start)
-      const lessonCompletions = await storage.getAllCourseVideoCompletions(userId);
+      const lessonCompletions =
+        await storage.getAllCourseVideoCompletions(userId);
       const lessonPoints = 0;
-      
+
       // Total all-time points
       const totalPoints = ritualPoints + lessonPoints;
-      
-      res.json({ 
+
+      res.json({
         totalPoints,
         ritualPoints,
         lessonPoints,
         ritualCount: allRitualCompletions.length,
-        lessonCount: lessonCompletions.length
+        lessonCount: lessonCompletions.length,
       });
     } catch (error) {
       console.error("Error fetching total points:", error);
@@ -5762,166 +7258,211 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Team: Get user's all-time cumulative points for team view
-  app.get('/api/team/user/:userId/total-points', isAuthenticated, async (req, res) => {
-    try {
-      const { userId } = req.params;
+  app.get(
+    "/api/team/user/:userId/total-points",
+    isAuthenticated,
+    async (req, res) => {
+      try {
+        const { userId } = req.params;
 
-      // Get ALL ritual completions (not just current week)
-      const userRituals = await storage.getRitualsByUser(userId);
-      const allRitualCompletions = await storage.getAllRitualCompletions(userId);
-      
-      // Calculate total ritual points from ALL completions
-      const ritualPoints = allRitualCompletions.reduce((sum: number, completion: RitualCompletion) => {
-        const ritual = userRituals.find(r => r.id === completion.ritualId);
-        if (!ritual || !ritual.isActive) return sum;
-        const points = ritual.points || 0;
-        return sum + points;
-      }, 0);
-      
-      // Get all course lesson completions (each lesson = 0 points for fresh start)
-      const lessonCompletions = await storage.getAllCourseVideoCompletions(userId);
-      const lessonPoints = 0;
-      
-      // Total all-time points
-      const totalPoints = ritualPoints + lessonPoints;
-      
-      res.json({ 
-        totalPoints,
-        ritualPoints,
-        lessonPoints,
-        ritualCount: allRitualCompletions.length,
-        lessonCount: lessonCompletions.length
-      });
-    } catch (error) {
-      console.error("Error fetching team user total points:", error);
-      res.status(500).json({ message: "Failed to fetch total points" });
-    }
-  });
+        // Get ALL ritual completions (not just current week)
+        const userRituals = await storage.getRitualsByUser(userId);
+        const allRitualCompletions =
+          await storage.getAllRitualCompletions(userId);
+
+        // Calculate total ritual points from ALL completions
+        const ritualPoints = allRitualCompletions.reduce(
+          (sum: number, completion: RitualCompletion) => {
+            const ritual = userRituals.find(
+              (r) => r.id === completion.ritualId,
+            );
+            if (!ritual || !ritual.isActive) return sum;
+            const points = ritual.points || 0;
+            return sum + points;
+          },
+          0,
+        );
+
+        // Get all course lesson completions (each lesson = 0 points for fresh start)
+        const lessonCompletions =
+          await storage.getAllCourseVideoCompletions(userId);
+        const lessonPoints = 0;
+
+        // Total all-time points
+        const totalPoints = ritualPoints + lessonPoints;
+
+        res.json({
+          totalPoints,
+          ritualPoints,
+          lessonPoints,
+          ritualCount: allRitualCompletions.length,
+          lessonCount: lessonCompletions.length,
+        });
+      } catch (error) {
+        console.error("Error fetching team user total points:", error);
+        res.status(500).json({ message: "Failed to fetch total points" });
+      }
+    },
+  );
 
   // Get Health Mastery course modules from CSV (MUST be before /:weekNumber route!)
-  app.get('/api/courses/health-mastery-modules', isAuthenticated, async (req: any, res) => {
-    try {
-      // Fetch all courses from CSV
-      const courses = await parseCourseCSV();
-      
-      // Filter for Health Mastery courses only
-      const healthMasteryCourses = courses.filter(course => 
-        course.courseName.toLowerCase().includes('health mastery')
-      );
-      
-      // Map to module format
-      const modules = healthMasteryCourses.map((course, index) => ({
-        id: `hm-module-${index + 1}`,
-        title: course.courseName,
-        url: course.link && !course.link.includes('April') ? course.link : undefined // Exclude placeholder links
-      }));
-      
-      res.json({ modules });
-    } catch (error) {
-      console.error("Error fetching Health Mastery modules:", error);
-      res.status(500).json({ message: "Failed to fetch modules", modules: [] });
-    }
-  });
+  app.get(
+    "/api/courses/health-mastery-modules",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        // Fetch all courses from CSV
+        const courses = await parseCourseCSV();
+
+        // Filter for Health Mastery courses only
+        const healthMasteryCourses = courses.filter((course) =>
+          course.courseName.toLowerCase().includes("health mastery"),
+        );
+
+        // Map to module format
+        const modules = healthMasteryCourses.map((course, index) => ({
+          id: `hm-module-${index + 1}`,
+          title: course.courseName,
+          url:
+            course.link && !course.link.includes("April")
+              ? course.link
+              : undefined, // Exclude placeholder links
+        }));
+
+        res.json({ modules });
+      } catch (error) {
+        console.error("Error fetching Health Mastery modules:", error);
+        res
+          .status(500)
+          .json({ message: "Failed to fetch modules", modules: [] });
+      }
+    },
+  );
 
   // Get Wealth Mastery course modules from CSV (MUST be before /:weekNumber route!)
-  app.get('/api/courses/wealth-mastery-modules', isAuthenticated, async (req: any, res) => {
-    try {
-      // Fetch all courses from CSV
-      const courses = await parseCourseCSV();
-      
-      // Filter for Wealth Mastery courses only
-      const wealthMasteryCourses = courses.filter(course => 
-        course.courseName.toLowerCase().includes('wealth mastery')
-      );
-      
-      // Map to module format
-      const modules = wealthMasteryCourses.map((course, index) => ({
-        id: `wm-module-${index + 1}`,
-        title: course.courseName,
-        url: course.link || undefined
-      }));
-      
-      res.json({ modules });
-    } catch (error) {
-      console.error("Error fetching Wealth Mastery modules:", error);
-      res.status(500).json({ message: "Failed to fetch modules", modules: [] });
-    }
-  });
+  app.get(
+    "/api/courses/wealth-mastery-modules",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        // Fetch all courses from CSV
+        const courses = await parseCourseCSV();
+
+        // Filter for Wealth Mastery courses only
+        const wealthMasteryCourses = courses.filter((course) =>
+          course.courseName.toLowerCase().includes("wealth mastery"),
+        );
+
+        // Map to module format
+        const modules = wealthMasteryCourses.map((course, index) => ({
+          id: `wm-module-${index + 1}`,
+          title: course.courseName,
+          url: course.link || undefined,
+        }));
+
+        res.json({ modules });
+      } catch (error) {
+        console.error("Error fetching Wealth Mastery modules:", error);
+        res
+          .status(500)
+          .json({ message: "Failed to fetch modules", modules: [] });
+      }
+    },
+  );
 
   // Get Relationship Mastery course modules from CSV (MUST be before /:weekNumber route!)
-  app.get('/api/courses/relationship-mastery-modules', isAuthenticated, async (req: any, res) => {
-    try {
-      // Fetch all courses from CSV
-      const courses = await parseCourseCSV();
-      
-      // Filter for Relationship Mastery courses only
-      const relationshipMasteryCourses = courses.filter(course => 
-        course.courseName.toLowerCase().includes('relationship mastery')
-      );
-      
-      // Map to module format
-      const modules = relationshipMasteryCourses.map((course, index) => ({
-        id: `rm-module-${index + 1}`,
-        title: course.courseName,
-        url: course.link || undefined
-      }));
-      
-      res.json({ modules });
-    } catch (error) {
-      console.error("Error fetching Relationship Mastery modules:", error);
-      res.status(500).json({ message: "Failed to fetch modules", modules: [] });
-    }
-  });
+  app.get(
+    "/api/courses/relationship-mastery-modules",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        // Fetch all courses from CSV
+        const courses = await parseCourseCSV();
+
+        // Filter for Relationship Mastery courses only
+        const relationshipMasteryCourses = courses.filter((course) =>
+          course.courseName.toLowerCase().includes("relationship mastery"),
+        );
+
+        // Map to module format
+        const modules = relationshipMasteryCourses.map((course, index) => ({
+          id: `rm-module-${index + 1}`,
+          title: course.courseName,
+          url: course.link || undefined,
+        }));
+
+        res.json({ modules });
+      } catch (error) {
+        console.error("Error fetching Relationship Mastery modules:", error);
+        res
+          .status(500)
+          .json({ message: "Failed to fetch modules", modules: [] });
+      }
+    },
+  );
 
   // Get Career Mastery course modules from CSV (MUST be before /:weekNumber route!)
-  app.get('/api/courses/career-mastery-modules', isAuthenticated, async (req: any, res) => {
-    try {
-      // Fetch all courses from CSV
-      const courses = await parseCourseCSV();
-      
-      // Filter for Career Mastery courses only
-      const careerMasteryCourses = courses.filter(course => 
-        course.courseName.toLowerCase().includes('career mastery')
-      );
-      
-      // Map to module format
-      const modules = careerMasteryCourses.map((course, index) => ({
-        id: `cm-module-${index + 1}`,
-        title: course.courseName,
-        url: course.link && course.link !== '#' ? course.link : undefined
-      }));
-      
-      res.json({ modules });
-    } catch (error) {
-      console.error("Error fetching Career Mastery modules:", error);
-      res.status(500).json({ message: "Failed to fetch modules", modules: [] });
-    }
-  });
+  app.get(
+    "/api/courses/career-mastery-modules",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        // Fetch all courses from CSV
+        const courses = await parseCourseCSV();
+
+        // Filter for Career Mastery courses only
+        const careerMasteryCourses = courses.filter((course) =>
+          course.courseName.toLowerCase().includes("career mastery"),
+        );
+
+        // Map to module format
+        const modules = careerMasteryCourses.map((course, index) => ({
+          id: `cm-module-${index + 1}`,
+          title: course.courseName,
+          url: course.link && course.link !== "#" ? course.link : undefined,
+        }));
+
+        res.json({ modules });
+      } catch (error) {
+        console.error("Error fetching Career Mastery modules:", error);
+        res
+          .status(500)
+          .json({ message: "Failed to fetch modules", modules: [] });
+      }
+    },
+  );
 
   // Courses endpoints
-  app.get('/api/courses/:weekNumber', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
-      
-      const weekNumber = parseInt(req.params.weekNumber);
-      const courses = await storage.getCoursesByUserAndWeek(userId, weekNumber);
-      res.json(courses);
-    } catch (error) {
-      console.error("Error fetching courses:", error);
-      res.status(500).json({ message: "Failed to fetch courses" });
-    }
-  });
+  app.get(
+    "/api/courses/:weekNumber",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
 
-  app.post('/api/courses', isAuthenticated, async (req: any, res) => {
+        const weekNumber = parseInt(req.params.weekNumber);
+        const courses = await storage.getCoursesByUserAndWeek(
+          userId,
+          weekNumber,
+        );
+        res.json(courses);
+      } catch (error) {
+        console.error("Error fetching courses:", error);
+        res.status(500).json({ message: "Failed to fetch courses" });
+      }
+    },
+  );
+
+  app.post("/api/courses", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.session.userEmail;
       if (!userId) {
         return res.status(401).json({ message: "User not authenticated" });
       }
-      
+
       const courseData = { ...req.body, userId };
       const course = await storage.createCourse(courseData);
       res.json(course);
@@ -5932,18 +7473,22 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Course Videos endpoints
-  app.get('/api/course-videos/:courseId', isAuthenticated, async (req: any, res) => {
-    try {
-      const courseId = req.params.courseId;
-      const videos = await storage.getCourseVideos(courseId);
-      res.json(videos);
-    } catch (error) {
-      console.error("Error fetching course videos:", error);
-      res.status(500).json({ message: "Failed to fetch course videos" });
-    }
-  });
+  app.get(
+    "/api/course-videos/:courseId",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const courseId = req.params.courseId;
+        const videos = await storage.getCourseVideos(courseId);
+        res.json(videos);
+      } catch (error) {
+        console.error("Error fetching course videos:", error);
+        res.status(500).json({ message: "Failed to fetch course videos" });
+      }
+    },
+  );
 
-  app.post('/api/course-videos', isAuthenticated, async (req: any, res) => {
+  app.post("/api/course-videos", isAuthenticated, async (req: any, res) => {
     try {
       const videoData = insertCourseVideoSchema.parse(req.body);
       const video = await storage.createCourseVideo(videoData);
@@ -5955,183 +7500,242 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Course Video Completions endpoints
-  app.get('/api/course-video-completions/:courseId', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
-      
-      const courseId = req.params.courseId;
-      const completions = await storage.getCourseVideoCompletions(userId, courseId);
-      res.json(completions);
-    } catch (error) {
-      console.error("Error fetching video completions:", error);
-      res.status(500).json({ message: "Failed to fetch video completions" });
-    }
-  });
+  app.get(
+    "/api/course-video-completions/:courseId",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
 
-  app.post('/api/course-video-completions/toggle', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
+        const courseId = req.params.courseId;
+        const completions = await storage.getCourseVideoCompletions(
+          userId,
+          courseId,
+        );
+        res.json(completions);
+      } catch (error) {
+        console.error("Error fetching video completions:", error);
+        res.status(500).json({ message: "Failed to fetch video completions" });
       }
-      
-      const { videoId, courseId, courseName, lessonName, lessonUrl, completed, weekNumber } = req.body;
-      if (!videoId || !courseId) {
-        return res.status(400).json({ message: "videoId and courseId are required" });
-      }
-      
-      // Toggle the completion (no need to verify course as courses are frontend-only)
-      const result = await storage.toggleVideoCompletion(userId, videoId);
-      
-      // Get completed count for this course
-      const completedVideos = await storage.getCourseVideoCompletions(userId, courseId);
-      
-      // ALSO update unifiedAssignment if lesson details provided
-      if (weekNumber && courseName && lessonName) {
-        const weeks = await storage.getHercmWeeksByUser(userId);
-        const week = weeks.find((w: any) => w.weekNumber === weekNumber);
-        
-        if (week) {
-          const currentAssignment = (week.unifiedAssignment as any) || [];
-          const lessonId = videoId; // Use videoId as unique lesson ID
-          
-          if (completed) {
-            // ADD lesson to unifiedAssignment (if not already present)
-            const lessonExists = currentAssignment.some((item: any) => item.id === lessonId);
-            if (!lessonExists) {
-              const newLesson = {
-                id: lessonId,
-                courseId,
-                courseName,
-                lessonName,
-                url: lessonUrl || '',
-                completed: false, // Start as unchecked in Assignment column
-                source: 'user', // User-selected lesson (cyan color)
-              };
-              const updatedAssignment = [...currentAssignment, newLesson];
-              await storage.updateHercmWeek(week.id, { unifiedAssignment: updatedAssignment });
-              console.log(`[COURSE] Added "${lessonName}" to Assignment column for Week ${weekNumber}`);
+    },
+  );
+
+  app.post(
+    "/api/course-video-completions/toggle",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        const {
+          videoId,
+          courseId,
+          courseName,
+          lessonName,
+          lessonUrl,
+          completed,
+          weekNumber,
+        } = req.body;
+        if (!videoId || !courseId) {
+          return res
+            .status(400)
+            .json({ message: "videoId and courseId are required" });
+        }
+
+        // Toggle the completion (no need to verify course as courses are frontend-only)
+        const result = await storage.toggleVideoCompletion(userId, videoId);
+
+        // Get completed count for this course
+        const completedVideos = await storage.getCourseVideoCompletions(
+          userId,
+          courseId,
+        );
+
+        // ALSO update unifiedAssignment if lesson details provided
+        if (weekNumber && courseName && lessonName) {
+          const weeks = await storage.getHercmWeeksByUser(userId);
+          const week = weeks.find((w: any) => w.weekNumber === weekNumber);
+
+          if (week) {
+            const currentAssignment = (week.unifiedAssignment as any) || [];
+            const lessonId = videoId; // Use videoId as unique lesson ID
+
+            if (completed) {
+              // ADD lesson to unifiedAssignment (if not already present)
+              const lessonExists = currentAssignment.some(
+                (item: any) => item.id === lessonId,
+              );
+              if (!lessonExists) {
+                const newLesson = {
+                  id: lessonId,
+                  courseId,
+                  courseName,
+                  lessonName,
+                  url: lessonUrl || "",
+                  completed: false, // Start as unchecked in Assignment column
+                  source: "user", // User-selected lesson (cyan color)
+                };
+                const updatedAssignment = [...currentAssignment, newLesson];
+                await storage.updateHercmWeek(week.id, {
+                  unifiedAssignment: updatedAssignment,
+                });
+                console.log(
+                  `[COURSE] Added "${lessonName}" to Assignment column for Week ${weekNumber}`,
+                );
+              }
+            } else {
+              // REMOVE lesson from unifiedAssignment
+              const updatedAssignment = currentAssignment.filter(
+                (item: any) => item.id !== lessonId,
+              );
+              await storage.updateHercmWeek(week.id, {
+                unifiedAssignment: updatedAssignment,
+              });
+              console.log(
+                `[COURSE] Removed "${lessonName}" from Assignment column for Week ${weekNumber}`,
+              );
             }
-          } else {
-            // REMOVE lesson from unifiedAssignment
-            const updatedAssignment = currentAssignment.filter((item: any) => item.id !== lessonId);
-            await storage.updateHercmWeek(week.id, { unifiedAssignment: updatedAssignment });
-            console.log(`[COURSE] Removed "${lessonName}" from Assignment column for Week ${weekNumber}`);
           }
         }
+
+        res.json({
+          ...result,
+          completedCount: completedVideos.length,
+        });
+      } catch (error) {
+        console.error("Error toggling video completion:", error);
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Failed to toggle video completion";
+        res.status(500).json({ message: errorMessage });
       }
-      
-      res.json({ 
-        ...result, 
-        completedCount: completedVideos.length
-      });
-    } catch (error) {
-      console.error("Error toggling video completion:", error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to toggle video completion";
-      res.status(500).json({ message: errorMessage });
-    }
-  });
+    },
+  );
 
   // Sync existing checked lessons to Assignment column (one-time migration)
-  app.post('/api/course-video-completions/sync-to-assignment', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
-      
-      const { coursesData, weekNumber } = req.body;
-      if (!coursesData || !weekNumber) {
-        return res.status(400).json({ message: "coursesData and weekNumber required" });
-      }
-      
-      // Get current week
-      const weeks = await storage.getHercmWeeksByUser(userId);
-      const week = weeks.find((w: any) => w.weekNumber === weekNumber);
-      
-      if (!week) {
-        return res.status(404).json({ message: "Week not found" });
-      }
-      
-      // Get all video completions for this user
-      const allCompletions: Record<string, any[]> = {};
-      for (const course of coursesData) {
-        const completions = await storage.getCourseVideoCompletions(userId, course.id);
-        allCompletions[course.id] = completions;
-      }
-      
-      // Build lessons to add to unifiedAssignment
-      const lessonsToAdd: any[] = [];
-      for (const course of coursesData) {
-        const courseCompletions = allCompletions[course.id] || [];
-        
-        for (const completion of courseCompletions) {
-          const videoId = completion.videoId;
-          const moduleId = videoId.replace(`${course.id}-`, '');
-          const lesson = course.lessons?.find((l: any) => l.id === moduleId);
-          
-          if (lesson) {
-            lessonsToAdd.push({
-              id: videoId,
-              courseId: course.id,
-              courseName: course.title,
-              lessonName: lesson.title,
-              url: lesson.url || '',
-              completed: false, // Start as unchecked in Assignment column
-              source: 'user', // User-selected lesson
-            });
+  app.post(
+    "/api/course-video-completions/sync-to-assignment",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        const { coursesData, weekNumber } = req.body;
+        if (!coursesData || !weekNumber) {
+          return res
+            .status(400)
+            .json({ message: "coursesData and weekNumber required" });
+        }
+
+        // Get current week
+        const weeks = await storage.getHercmWeeksByUser(userId);
+        const week = weeks.find((w: any) => w.weekNumber === weekNumber);
+
+        if (!week) {
+          return res.status(404).json({ message: "Week not found" });
+        }
+
+        // Get all video completions for this user
+        const allCompletions: Record<string, any[]> = {};
+        for (const course of coursesData) {
+          const completions = await storage.getCourseVideoCompletions(
+            userId,
+            course.id,
+          );
+          allCompletions[course.id] = completions;
+        }
+
+        // Build lessons to add to unifiedAssignment
+        const lessonsToAdd: any[] = [];
+        for (const course of coursesData) {
+          const courseCompletions = allCompletions[course.id] || [];
+
+          for (const completion of courseCompletions) {
+            const videoId = completion.videoId;
+            const moduleId = videoId.replace(`${course.id}-`, "");
+            const lesson = course.lessons?.find((l: any) => l.id === moduleId);
+
+            if (lesson) {
+              lessonsToAdd.push({
+                id: videoId,
+                courseId: course.id,
+                courseName: course.title,
+                lessonName: lesson.title,
+                url: lesson.url || "",
+                completed: false, // Start as unchecked in Assignment column
+                source: "user", // User-selected lesson
+              });
+            }
           }
         }
+
+        // Add to unifiedAssignment (avoid duplicates)
+        const currentAssignment = (week.unifiedAssignment as any) || [];
+        const existingIds = new Set(
+          currentAssignment.map((item: any) => item.id),
+        );
+        const newLessons = lessonsToAdd.filter(
+          (lesson) => !existingIds.has(lesson.id),
+        );
+
+        if (newLessons.length > 0) {
+          const updatedAssignment = [...currentAssignment, ...newLessons];
+          await storage.updateHercmWeek(week.id, {
+            unifiedAssignment: updatedAssignment,
+          });
+          console.log(
+            `[SYNC] Added ${newLessons.length} lessons to Assignment column for Week ${weekNumber}`,
+          );
+        }
+
+        res.json({
+          success: true,
+          addedCount: newLessons.length,
+          totalLessons: lessonsToAdd.length,
+        });
+      } catch (error) {
+        console.error("Error syncing lessons to assignment:", error);
+        res.status(500).json({ message: "Failed to sync lessons" });
       }
-      
-      // Add to unifiedAssignment (avoid duplicates)
-      const currentAssignment = (week.unifiedAssignment as any) || [];
-      const existingIds = new Set(currentAssignment.map((item: any) => item.id));
-      const newLessons = lessonsToAdd.filter(lesson => !existingIds.has(lesson.id));
-      
-      if (newLessons.length > 0) {
-        const updatedAssignment = [...currentAssignment, ...newLessons];
-        await storage.updateHercmWeek(week.id, { unifiedAssignment: updatedAssignment });
-        console.log(`[SYNC] Added ${newLessons.length} lessons to Assignment column for Week ${weekNumber}`);
-      }
-      
-      res.json({ 
-        success: true, 
-        addedCount: newLessons.length,
-        totalLessons: lessonsToAdd.length
-      });
-    } catch (error) {
-      console.error("Error syncing lessons to assignment:", error);
-      res.status(500).json({ message: "Failed to sync lessons" });
-    }
-  });
+    },
+  );
 
   // AI auto-fill endpoint for Problems/Feelings/Actions
-  app.post('/api/ai/auto-fill', isAuthenticated, async (req: any, res) => {
+  app.post("/api/ai/auto-fill", isAuthenticated, async (req: any, res) => {
     try {
-      const { category, currentRating, problems, feelings, beliefs, actions } = req.body;
-      
+      const { category, currentRating, problems, feelings, beliefs, actions } =
+        req.body;
+
       // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
       const completion = await openai.chat.completions.create({
         model: "gpt-5",
         messages: [
           {
             role: "system",
-            content: `You are a personal development coach helping users improve their ${category}. Based on the current state, suggest specific improvements for Problems, Feelings, and Actions. Be concise and actionable.`
+            content: `You are a personal development coach helping users improve their ${category}. Based on the current state, suggest specific improvements for Problems, Feelings, and Actions. Be concise and actionable.`,
           },
           {
             role: "user",
-            content: `Category: ${category}\nCurrent Rating: ${currentRating}/10\nProblems: ${problems || 'Not specified'}\nFeelings: ${feelings || 'Not specified'}\nBeliefs: ${beliefs || 'Not specified'}\nActions: ${actions || 'Not specified'}\n\nSuggest improvements for the next week.`
-          }
+            content: `Category: ${category}\nCurrent Rating: ${currentRating}/10\nProblems: ${problems || "Not specified"}\nFeelings: ${feelings || "Not specified"}\nBeliefs: ${beliefs || "Not specified"}\nActions: ${actions || "Not specified"}\n\nSuggest improvements for the next week.`,
+          },
         ],
         response_format: { type: "json_object" },
-        max_completion_tokens: 8192
+        max_completion_tokens: 8192,
       });
 
-      const suggestions = JSON.parse(completion.choices[0].message.content || '{}');
+      const suggestions = JSON.parse(
+        completion.choices[0].message.content || "{}",
+      );
       res.json(suggestions);
     } catch (error) {
       console.error("Error generating AI suggestions:", error);
@@ -6140,104 +7744,135 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // AI course recommendation endpoint
-  app.post('/api/ai/recommend-course', isAuthenticated, async (req: any, res) => {
-    try {
-      const { category, currentRating, problems, feelings, beliefs, actions } = req.body;
-      
-      // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
-      const completion = await openai.chat.completions.create({
-        model: "gpt-5",
-        messages: [
-          {
-            role: "system",
-            content: `You are a course recommendation expert. Based on the user's ${category} goals and challenges, recommend ONE specific online course that would help them most. Include course name, a brief description, and match percentage (0-100).`
-          },
-          {
-            role: "user",
-            content: `Category: ${category}\nCurrent Rating: ${currentRating}/10\nProblems: ${problems || 'Not specified'}\nFeelings: ${feelings || 'Not specified'}\nBeliefs/Reasons: ${beliefs || 'Not specified'}\nCurrent Actions: ${actions || 'Not specified'}\n\nRecommend the best course. Return JSON with: { "courseName": "...", "description": "...", "matchScore": 85 }`
-          }
-        ],
-        response_format: { type: "json_object" },
-        max_completion_tokens: 8192
-      });
+  app.post(
+    "/api/ai/recommend-course",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const {
+          category,
+          currentRating,
+          problems,
+          feelings,
+          beliefs,
+          actions,
+        } = req.body;
 
-      const recommendation = JSON.parse(completion.choices[0].message.content || '{}');
-      res.json(recommendation);
-    } catch (error) {
-      console.error("Error generating course recommendation:", error);
-      res.status(500).json({ message: "Failed to generate course recommendation" });
-    }
-  });
+        // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+        const completion = await openai.chat.completions.create({
+          model: "gpt-5",
+          messages: [
+            {
+              role: "system",
+              content: `You are a course recommendation expert. Based on the user's ${category} goals and challenges, recommend ONE specific online course that would help them most. Include course name, a brief description, and match percentage (0-100).`,
+            },
+            {
+              role: "user",
+              content: `Category: ${category}\nCurrent Rating: ${currentRating}/10\nProblems: ${problems || "Not specified"}\nFeelings: ${feelings || "Not specified"}\nBeliefs/Reasons: ${beliefs || "Not specified"}\nCurrent Actions: ${actions || "Not specified"}\n\nRecommend the best course. Return JSON with: { "courseName": "...", "description": "...", "matchScore": 85 }`,
+            },
+          ],
+          response_format: { type: "json_object" },
+          max_completion_tokens: 8192,
+        });
+
+        const recommendation = JSON.parse(
+          completion.choices[0].message.content || "{}",
+        );
+        res.json(recommendation);
+      } catch (error) {
+        console.error("Error generating course recommendation:", error);
+        res
+          .status(500)
+          .json({ message: "Failed to generate course recommendation" });
+      }
+    },
+  );
 
   // PDF Export endpoints
-  app.get('/api/export/week/:weekNumber/pdf', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
+  app.get(
+    "/api/export/week/:weekNumber/pdf",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        const weekNumber = parseInt(req.params.weekNumber);
+        const user = await storage.getUser(userId);
+        const week = await storage.getHercmWeek(userId, weekNumber);
+
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        if (!week) {
+          return res.status(404).json({ message: "Week not found" });
+        }
+
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader(
+          "Content-Disposition",
+          `attachment; filename="HRCM-Week-${weekNumber}.pdf"`,
+        );
+
+        generateHRCMWeeklyPDF(user, week, res);
+      } catch (error) {
+        console.error("Error generating weekly PDF:", error);
+        res.status(500).json({ message: "Failed to generate PDF" });
       }
+    },
+  );
 
-      const weekNumber = parseInt(req.params.weekNumber);
-      const user = await storage.getUser(userId);
-      const week = await storage.getHercmWeek(userId, weekNumber);
+  app.get(
+    "/api/export/monthly/:month/:year/pdf",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
 
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
+        const month = parseInt(req.params.month);
+        const year = parseInt(req.params.year);
+        const user = await storage.getUser(userId);
+        const allWeeks = await storage.getHercmWeeksByUser(userId);
+
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        // Filter weeks for the specified month/year
+        const monthlyWeeks = allWeeks.filter((w) => {
+          if (!w.createdAt) return false;
+          const weekDate = new Date(w.createdAt);
+          return (
+            weekDate.getMonth() + 1 === month && weekDate.getFullYear() === year
+          );
+        });
+
+        if (monthlyWeeks.length === 0) {
+          return res.status(404).json({ message: "No data for this month" });
+        }
+
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader(
+          "Content-Disposition",
+          `attachment; filename="HRCM-Monthly-${month}-${year}.pdf"`,
+        );
+
+        generateMonthlyProgressPDF(user, monthlyWeeks, month, year, res);
+      } catch (error) {
+        console.error("Error generating monthly PDF:", error);
+        res.status(500).json({ message: "Failed to generate PDF" });
       }
-
-      if (!week) {
-        return res.status(404).json({ message: "Week not found" });
-      }
-
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="HRCM-Week-${weekNumber}.pdf"`);
-
-      generateHRCMWeeklyPDF(user, week, res);
-    } catch (error) {
-      console.error("Error generating weekly PDF:", error);
-      res.status(500).json({ message: "Failed to generate PDF" });
-    }
-  });
-
-  app.get('/api/export/monthly/:month/:year/pdf', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
-
-      const month = parseInt(req.params.month);
-      const year = parseInt(req.params.year);
-      const user = await storage.getUser(userId);
-      const allWeeks = await storage.getHercmWeeksByUser(userId);
-
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      
-      // Filter weeks for the specified month/year
-      const monthlyWeeks = allWeeks.filter(w => {
-        if (!w.createdAt) return false;
-        const weekDate = new Date(w.createdAt);
-        return weekDate.getMonth() + 1 === month && weekDate.getFullYear() === year;
-      });
-
-      if (monthlyWeeks.length === 0) {
-        return res.status(404).json({ message: "No data for this month" });
-      }
-
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="HRCM-Monthly-${month}-${year}.pdf"`);
-
-      generateMonthlyProgressPDF(user, monthlyWeeks, month, year, res);
-    } catch (error) {
-      console.error("Error generating monthly PDF:", error);
-      res.status(500).json({ message: "Failed to generate PDF" });
-    }
-  });
+    },
+  );
 
   // Smart Insights endpoint - ML-based analysis
-  app.get('/api/insights/smart', isAuthenticated, async (req: any, res) => {
+  app.get("/api/insights/smart", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.session.userEmail;
       if (!userId) {
@@ -6245,12 +7880,12 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       }
 
       const weeks = await storage.getHercmWeeksByUser(userId);
-      
+
       if (weeks.length < 2) {
         return res.json({
           insights: ["Start tracking for at least 2 weeks to get AI insights"],
           trends: [],
-          recommendations: []
+          recommendations: [],
         });
       }
 
@@ -6260,13 +7895,14 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         messages: [
           {
             role: "system",
-            content: "You are an expert life coach analyzing HRCM (Health, Relationship, Career, Money) progress data. Provide actionable insights, identify patterns, and predict future outcomes based on historical data."
+            content:
+              "You are an expert life coach analyzing HRCM (Health, Relationship, Career, Money) progress data. Provide actionable insights, identify patterns, and predict future outcomes based on historical data.",
           },
           {
             role: "user",
             content: `Analyze this user's HRCM progress data and provide smart insights:
             
-${weeks.map((w, i) => `Week ${w.weekNumber}: Health=${w.currentH}/5, Relationship=${w.currentE}/5, Career=${w.currentR}/5, Money=${w.currentC}/5, Achievement=${w.achievementRate}%`).join('\n')}
+${weeks.map((w, i) => `Week ${w.weekNumber}: Health=${w.currentH}/5, Relationship=${w.currentE}/5, Career=${w.currentR}/5, Money=${w.currentC}/5, Achievement=${w.achievementRate}%`).join("\n")}
 
 Return JSON with:
 {
@@ -6274,14 +7910,16 @@ Return JSON with:
   "trends": [{ "category": "Health|Relationship|Career|Money", "direction": "improving|declining|stable", "confidence": 0-100 }],
   "predictions": [{ "category": "...", "nextWeekPrediction": 1-5, "reasoning": "..." }],
   "recommendations": ["actionable recommendation 1", ...]
-}`
-          }
+}`,
+          },
         ],
         response_format: { type: "json_object" },
-        max_completion_tokens: 8192
+        max_completion_tokens: 8192,
       });
 
-      const analysis = JSON.parse(completion.choices[0].message.content || '{}');
+      const analysis = JSON.parse(
+        completion.choices[0].message.content || "{}",
+      );
       res.json(analysis);
     } catch (error) {
       console.error("Error generating smart insights:", error);
@@ -6290,33 +7928,39 @@ Return JSON with:
   });
 
   // ML-based target recommendations
-  app.post('/api/insights/ml-targets', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
+  app.post(
+    "/api/insights/ml-targets",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
 
-      const { category, currentRating, historicalData } = req.body;
-      
-      if (!category || currentRating === undefined) {
-        return res.status(400).json({ message: "Category and currentRating are required" });
-      }
+        const { category, currentRating, historicalData } = req.body;
 
-      const weeks = await storage.getHercmWeeksByUser(userId);
+        if (!category || currentRating === undefined) {
+          return res
+            .status(400)
+            .json({ message: "Category and currentRating are required" });
+        }
 
-      // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
-      const completion = await Promise.race([
-        openai.chat.completions.create({
-          model: "gpt-5",
-          messages: [
-            {
-              role: "system",
-              content: "You are a machine learning expert specializing in goal-setting and achievement prediction. Based on historical performance data, recommend realistic yet challenging targets."
-            },
-            {
-              role: "user",
-              content: `Category: ${category}
+        const weeks = await storage.getHercmWeeksByUser(userId);
+
+        // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+        const completion = await Promise.race([
+          openai.chat.completions.create({
+            model: "gpt-5",
+            messages: [
+              {
+                role: "system",
+                content:
+                  "You are a machine learning expert specializing in goal-setting and achievement prediction. Based on historical performance data, recommend realistic yet challenging targets.",
+              },
+              {
+                role: "user",
+                content: `Category: ${category}
 Current Rating: ${currentRating}/5
 Historical Data: ${JSON.stringify(historicalData || weeks.slice(-4))}
 
@@ -6326,640 +7970,784 @@ Recommend a target rating for next week based on ML analysis. Consider:
 3. Realistic achievability (80% probability of success)
 4. Challenge level to maintain engagement
 
-Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "...", "tips": ["tip1", "tip2"] }`
-            }
-          ],
-          response_format: { type: "json_object" },
-          max_completion_tokens: 8192
-        }),
-        new Promise<never>((_, reject) => 
-          setTimeout(() => reject(new Error('Request timeout')), 25000)
-        )
-      ]);
+Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "...", "tips": ["tip1", "tip2"] }`,
+              },
+            ],
+            response_format: { type: "json_object" },
+            max_completion_tokens: 8192,
+          }),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error("Request timeout")), 25000),
+          ),
+        ]);
 
-      const recommendation = JSON.parse(completion.choices[0].message.content || '{}');
-      res.json(recommendation);
-    } catch (error: any) {
-      console.error("Error generating ML target:", error);
-      if (error.message === 'Request timeout') {
-        return res.status(504).json({ message: "AI request timeout - please try again" });
+        const recommendation = JSON.parse(
+          completion.choices[0].message.content || "{}",
+        );
+        res.json(recommendation);
+      } catch (error: any) {
+        console.error("Error generating ML target:", error);
+        if (error.message === "Request timeout") {
+          return res
+            .status(504)
+            .json({ message: "AI request timeout - please try again" });
+        }
+        res
+          .status(500)
+          .json({ message: "Failed to generate target recommendation" });
       }
-      res.status(500).json({ message: "Failed to generate target recommendation" });
-    }
-  });
+    },
+  );
 
   // Badge check and award - Check consecutive 4 weeks with rating 8+ and award Platinum badge
-  app.post('/api/badges/check-platinum', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
-
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      
-      const allWeeks = await storage.getHercmWeeksByUser(userId);
-      
-      // Group by weekNumber and keep only the latest snapshot per week
-      const weekMap = new Map<number, typeof allWeeks[0]>();
-      allWeeks.forEach(week => {
-        const existing = weekMap.get(week.weekNumber);
-        if (!existing || (week.createdAt && existing.createdAt && new Date(week.createdAt) > new Date(existing.createdAt))) {
-          weekMap.set(week.weekNumber, week);
+  app.post(
+    "/api/badges/check-platinum",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
         }
-      });
-      
-      // Sort unique weeks by week number
-      const uniqueWeeks = Array.from(weekMap.values()).sort((a, b) => a.weekNumber - b.weekNumber);
 
-      if (uniqueWeeks.length < 4) {
-        return res.json({ 
-          eligible: false, 
-          progress: 0, 
-          weeksCount: uniqueWeeks.length,
-          message: uniqueWeeks.length === 0 
-            ? "Complete your first week to start tracking progress" 
-            : `${uniqueWeeks.length}/4 weeks completed. Keep going!`
+        const user = await storage.getUser(userId);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        const allWeeks = await storage.getHercmWeeksByUser(userId);
+
+        // Group by weekNumber and keep only the latest snapshot per week
+        const weekMap = new Map<number, (typeof allWeeks)[0]>();
+        allWeeks.forEach((week) => {
+          const existing = weekMap.get(week.weekNumber);
+          if (
+            !existing ||
+            (week.createdAt &&
+              existing.createdAt &&
+              new Date(week.createdAt) > new Date(existing.createdAt))
+          ) {
+            weekMap.set(week.weekNumber, week);
+          }
         });
-      }
 
-      // Calculate average rating for each unique week (Health, Relationship, Career, Money)
-      const weeksWithAvgRating = uniqueWeeks.map(week => {
-        const ratings = [
-          week.currentH || 0,
-          week.currentE || 0, 
-          week.currentR || 0,
-          week.currentC || 0
-        ];
-        const avgRating = ratings.reduce((sum, r) => sum + r, 0) / 4;
-        return {
-          weekNumber: week.weekNumber,
-          avgRating,
-          createdAt: week.createdAt
-        };
-      });
+        // Sort unique weeks by week number
+        const uniqueWeeks = Array.from(weekMap.values()).sort(
+          (a, b) => a.weekNumber - b.weekNumber,
+        );
 
-      // Find consecutive 4 weeks with rating 8+
-      let consecutiveCount = 0;
-      let startWeek = 0;
-      let isPlatinum = false;
-
-      for (let i = 0; i < weeksWithAvgRating.length; i++) {
-        if (weeksWithAvgRating[i].avgRating >= 8) {
-          if (consecutiveCount === 0) {
-            startWeek = weeksWithAvgRating[i].weekNumber;
-          }
-          consecutiveCount++;
-          
-          // Check if consecutive (week numbers should be sequential)
-          if (i > 0 && weeksWithAvgRating[i].weekNumber !== weeksWithAvgRating[i - 1].weekNumber + 1) {
-            consecutiveCount = 1; // Reset if not consecutive
-            startWeek = weeksWithAvgRating[i].weekNumber;
-          }
-          
-          if (consecutiveCount >= 4) {
-            isPlatinum = true;
-            break;
-          }
-        } else {
-          consecutiveCount = 0;
-        }
-      }
-
-      // Calculate current progress (last 4 weeks average rating)
-      const last4Weeks = weeksWithAvgRating.slice(-4);
-      const currentProgress = last4Weeks.reduce((sum, w) => sum + w.avgRating, 0) / last4Weeks.length;
-
-      if (isPlatinum) {
-        // Award Platinum badge
-        const progress = await storage.getPlatinumProgress(userId) || await storage.createPlatinumProgress({ userId });
-        
-        const platinumBadge = {
-          id: `platinum-consecutive-${startWeek}-${startWeek + 3}`,
-          name: 'Platinum Standards',
-          achievedAt: new Date().toISOString(),
-          description: `Achieved 8+ rating for 4 consecutive weeks (Week ${startWeek}-${startWeek + 3})`
-        };
-
-        const existingBadges = progress.badges || [];
-        const alreadyHas = existingBadges.some(b => b.id === platinumBadge.id);
-
-        if (!alreadyHas) {
-          await storage.updatePlatinumProgress(userId, {
-            badges: [...existingBadges, platinumBadge],
-            platinumAchieved: true,
-            platinumAchievedAt: new Date()
+        if (uniqueWeeks.length < 4) {
+          return res.json({
+            eligible: false,
+            progress: 0,
+            weeksCount: uniqueWeeks.length,
+            message:
+              uniqueWeeks.length === 0
+                ? "Complete your first week to start tracking progress"
+                : `${uniqueWeeks.length}/4 weeks completed. Keep going!`,
           });
-
-          // Send email notification
-          await emailService.sendPlatinumBadgeNotification(user);
         }
 
-        res.json({ 
-          eligible: true, 
-          progress: currentProgress, 
-          badge: platinumBadge,
-          alreadyAwarded: alreadyHas 
+        // Calculate average rating for each unique week (Health, Relationship, Career, Money)
+        const weeksWithAvgRating = uniqueWeeks.map((week) => {
+          const ratings = [
+            week.currentH || 0,
+            week.currentE || 0,
+            week.currentR || 0,
+            week.currentC || 0,
+          ];
+          const avgRating = ratings.reduce((sum, r) => sum + r, 0) / 4;
+          return {
+            weekNumber: week.weekNumber,
+            avgRating,
+            createdAt: week.createdAt,
+          };
         });
-      } else {
-        res.json({ 
-          eligible: false, 
-          progress: currentProgress,
-          consecutiveWeeks: consecutiveCount,
-          message: `${consecutiveCount}/4 consecutive weeks with 8+ rating`
-        });
+
+        // Find consecutive 4 weeks with rating 8+
+        let consecutiveCount = 0;
+        let startWeek = 0;
+        let isPlatinum = false;
+
+        for (let i = 0; i < weeksWithAvgRating.length; i++) {
+          if (weeksWithAvgRating[i].avgRating >= 8) {
+            if (consecutiveCount === 0) {
+              startWeek = weeksWithAvgRating[i].weekNumber;
+            }
+            consecutiveCount++;
+
+            // Check if consecutive (week numbers should be sequential)
+            if (
+              i > 0 &&
+              weeksWithAvgRating[i].weekNumber !==
+                weeksWithAvgRating[i - 1].weekNumber + 1
+            ) {
+              consecutiveCount = 1; // Reset if not consecutive
+              startWeek = weeksWithAvgRating[i].weekNumber;
+            }
+
+            if (consecutiveCount >= 4) {
+              isPlatinum = true;
+              break;
+            }
+          } else {
+            consecutiveCount = 0;
+          }
+        }
+
+        // Calculate current progress (last 4 weeks average rating)
+        const last4Weeks = weeksWithAvgRating.slice(-4);
+        const currentProgress =
+          last4Weeks.reduce((sum, w) => sum + w.avgRating, 0) /
+          last4Weeks.length;
+
+        if (isPlatinum) {
+          // Award Platinum badge
+          const progress =
+            (await storage.getPlatinumProgress(userId)) ||
+            (await storage.createPlatinumProgress({ userId }));
+
+          const platinumBadge = {
+            id: `platinum-consecutive-${startWeek}-${startWeek + 3}`,
+            name: "Platinum Standards",
+            achievedAt: new Date().toISOString(),
+            description: `Achieved 8+ rating for 4 consecutive weeks (Week ${startWeek}-${startWeek + 3})`,
+          };
+
+          const existingBadges = progress.badges || [];
+          const alreadyHas = existingBadges.some(
+            (b) => b.id === platinumBadge.id,
+          );
+
+          if (!alreadyHas) {
+            await storage.updatePlatinumProgress(userId, {
+              badges: [...existingBadges, platinumBadge],
+              platinumAchieved: true,
+              platinumAchievedAt: new Date(),
+            });
+
+            // Send email notification
+            await emailService.sendPlatinumBadgeNotification(user);
+          }
+
+          res.json({
+            eligible: true,
+            progress: currentProgress,
+            badge: platinumBadge,
+            alreadyAwarded: alreadyHas,
+          });
+        } else {
+          res.json({
+            eligible: false,
+            progress: currentProgress,
+            consecutiveWeeks: consecutiveCount,
+            message: `${consecutiveCount}/4 consecutive weeks with 8+ rating`,
+          });
+        }
+      } catch (error) {
+        console.error("Error checking platinum badge:", error);
+        res.status(500).json({ message: "Failed to check badge eligibility" });
       }
-    } catch (error) {
-      console.error("Error checking platinum badge:", error);
-      res.status(500).json({ message: "Failed to check badge eligibility" });
-    }
-  });
+    },
+  );
 
   // Add course lessons to Assignment column (using weekNumber)
-  app.post('/api/assignment/add-lessons', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
-
-      const { weekNumber, category, lessons } = req.body;
-
-      if (!weekNumber || !category || !lessons || !Array.isArray(lessons)) {
-        return res.status(400).json({ message: "Missing required fields" });
-      }
-
-      // Fetch the week by weekNumber
-      const weeks = await storage.getHercmWeeksByUser(userId);
-      const week = weeks.find((w: any) => w.weekNumber === weekNumber);
-      
-      if (!week) {
-        return res.status(404).json({ message: "Week not found" });
-      }
-
-      // Get the assignment field for the category
-      const prefix = category.toLowerCase();
-      const assignmentField = `${prefix}Assignment` as keyof typeof week;
-      const currentAssignment = (week[assignmentField] as any) || { courses: [], lessons: [] };
-
-      // Add lessons to the assignment
-      // Merge with existing lessons (avoid duplicates)
-      const existingLessonIds = new Set(currentAssignment.lessons?.map((l: any) => l.id) || []);
-      const filteredNewLessons = lessons.filter((l: any) => !existingLessonIds.has(l.id));
-
-      const updatedAssignment = {
-        courses: currentAssignment.courses || [],
-        lessons: [...(currentAssignment.lessons || []), ...filteredNewLessons]
-      };
-
-      // Update the week
-      const updateData: any = {};
-      updateData[assignmentField] = updatedAssignment;
-      
-      await storage.updateHercmWeek(week.id, updateData);
-
-      res.json({ success: true, assignment: updatedAssignment });
-    } catch (error) {
-      console.error("Error adding lessons to assignment:", error);
-      res.status(500).json({ message: "Failed to add lessons" });
-    }
-  });
-
-  // Legacy endpoint (using weekId) - keeping for compatibility
-  app.post('/api/hercm/assignment/add-lessons', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
-
-      const { weekId, category, courseId, courseName, lessons } = req.body;
-
-      if (!weekId || !category || !lessons || !Array.isArray(lessons)) {
-        return res.status(400).json({ message: "Missing required fields" });
-      }
-
-      // Fetch the current week
-      const week = await storage.getHercmWeekById(weekId);
-      if (!week) {
-        return res.status(404).json({ message: "Week not found" });
-      }
-
-      // Get the assignment field for the category
-      const prefix = category.toLowerCase();
-      const assignmentField = `${prefix}Assignment` as keyof typeof week;
-      const currentAssignment = (week[assignmentField] as any) || { courses: [], lessons: [] };
-
-      // Add lessons to the assignment
-      const newLessons = lessons.map((lesson: any) => ({
-        id: lesson.id,
-        courseId: courseId,
-        courseName: courseName,
-        lessonName: lesson.title,
-        url: lesson.url,
-        completed: false
-      }));
-
-      // Merge with existing lessons (avoid duplicates)
-      const existingLessonIds = new Set(currentAssignment.lessons?.map((l: any) => l.id) || []);
-      const filteredNewLessons = newLessons.filter((l: any) => !existingLessonIds.has(l.id));
-
-      const updatedAssignment = {
-        courses: currentAssignment.courses || [],
-        lessons: [...(currentAssignment.lessons || []), ...filteredNewLessons]
-      };
-
-      // Update the week
-      const updateData: any = {};
-      updateData[assignmentField] = updatedAssignment;
-      
-      await storage.updateHercmWeek(weekId, updateData);
-
-      res.json({ success: true, assignment: updatedAssignment });
-    } catch (error) {
-      console.error("Error adding lessons to assignment:", error);
-      res.status(500).json({ message: "Failed to add lessons" });
-    }
-  });
-
-  // Toggle assignment lesson completion
-  app.post('/api/hercm/assignment/toggle-lesson', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
-
-      const { weekId, category, lessonId } = req.body;
-
-      if (!weekId || !category || !lessonId) {
-        return res.status(400).json({ message: "Missing required fields" });
-      }
-
-      // Fetch the current week
-      const week = await storage.getHercmWeekById(weekId);
-      if (!week) {
-        return res.status(404).json({ message: "Week not found" });
-      }
-
-      // Get the assignment field for the category
-      const prefix = category.toLowerCase();
-      const assignmentField = `${prefix}Assignment` as keyof typeof week;
-      const currentAssignment = (week[assignmentField] as any) || { courses: [], lessons: [] };
-
-      // Toggle the lesson completion
-      const updatedLessons = (currentAssignment.lessons || []).map((lesson: any) => 
-        lesson.id === lessonId ? { ...lesson, completed: !lesson.completed } : lesson
-      );
-
-      const updatedAssignment = {
-        ...currentAssignment,
-        lessons: updatedLessons
-      };
-
-      // Update the week
-      const updateData: any = {};
-      updateData[assignmentField] = updatedAssignment;
-      
-      await storage.updateHercmWeek(weekId, updateData);
-
-      res.json({ success: true, assignment: updatedAssignment });
-    } catch (error) {
-      console.error("Error toggling lesson:", error);
-      res.status(500).json({ message: "Failed to toggle lesson" });
-    }
-  });
-
-  // Get AI course recommendations for Assignment (Next Week)
-  app.post('/api/courses/recommend-assignment', isAuthenticated, async (req: any, res) => {
-    try {
-      const { category, currentRating, problems, feelings, beliefs, actions } = req.body;
-      
-      if (!category) {
-        return res.status(400).json({ message: "Category is required" });
-      }
-      
-      // Use same logic as Current Week AI Course recommendations
-      const rating = Math.max(1, Math.min(currentRating || 1, 7));
-      
-      let numberOfCourses: number;
-      if (rating < 3) {
-        numberOfCourses = 5;
-      } else if (rating < 5) {
-        numberOfCourses = 3;
-      } else {
-        numberOfCourses = 2;
-      }
-      
-      const courses = await parseCourseCSV();
-      const recommendations = await getAIRecommendations(courses, {
-        category,
-        rating: rating,
-        problems: problems || '',
-        feelings: feelings || '',
-        beliefs: beliefs || '',
-        actions: actions || '',
-      }, numberOfCourses, []);
-      
-      if (recommendations.length === 0) {
-        return res.json({ courses: [] });
-      }
-      
-      const seenCourseNames = new Set<string>();
-      const mappedCourses = recommendations
-        .filter(rec => {
-          if (seenCourseNames.has(rec.course.courseName)) {
-            return false;
-          }
-          seenCourseNames.add(rec.course.courseName);
-          return true;
-        })
-        .map((rec, index) => ({
-          id: `assignment-course-${index + 1}`,
-          courseName: rec.course.courseName,
-          link: rec.course.link,
-          completed: false
-        }));
-      
-      res.json({ courses: mappedCourses });
-    } catch (error) {
-      console.error("Error getting assignment course recommendation:", error);
-      res.status(500).json({ 
-        message: "Failed to get course recommendation",
-        courses: []
-      });
-    }
-  });
-
-  // Unified Assignment Endpoints (single column for all HRCM areas)
-  
-  // Add lesson to category assignment (auto-add when checked in Course Tracker)
-  app.post('/api/unified-assignment/add-lesson', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
-
-      const { weekNumber, lesson, category } = req.body;
-
-      if (!weekNumber || !lesson) {
-        return res.status(400).json({ message: "Missing required fields" });
-      }
-
-      // Fetch the week by weekNumber
-      const weeks = await storage.getHercmWeeksByUser(userId);
-      const week = weeks.find((w: any) => w.weekNumber === weekNumber);
-      
-      if (!week) {
-        return res.status(404).json({ message: "Week not found" });
-      }
-
-      // Map category to assignment field name
-      const categoryMap: Record<string, string> = {
-        'Health': 'healthAssignment',
-        'Relationship': 'relationshipAssignment',
-        'Career': 'careerAssignment',
-        'Money': 'moneyAssignment'
-      };
-
-      const assignmentField = category ? categoryMap[category] : null;
-      
-      if (!assignmentField) {
-        // If no category, fall back to unified assignment
-        const currentAssignment = (week.unifiedAssignment as any) || [];
-        const lessonExists = currentAssignment.some((l: any) => l.id === lesson.id);
-        
-        if (lessonExists) {
-          return res.json({ success: true, assignment: currentAssignment, message: "Lesson already in assignment" });
+  app.post(
+    "/api/assignment/add-lessons",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
         }
 
-        const updatedAssignment = [...currentAssignment, { 
+        const { weekNumber, category, lessons } = req.body;
+
+        if (!weekNumber || !category || !lessons || !Array.isArray(lessons)) {
+          return res.status(400).json({ message: "Missing required fields" });
+        }
+
+        // Fetch the week by weekNumber
+        const weeks = await storage.getHercmWeeksByUser(userId);
+        const week = weeks.find((w: any) => w.weekNumber === weekNumber);
+
+        if (!week) {
+          return res.status(404).json({ message: "Week not found" });
+        }
+
+        // Get the assignment field for the category
+        const prefix = category.toLowerCase();
+        const assignmentField = `${prefix}Assignment` as keyof typeof week;
+        const currentAssignment = (week[assignmentField] as any) || {
+          courses: [],
+          lessons: [],
+        };
+
+        // Add lessons to the assignment
+        // Merge with existing lessons (avoid duplicates)
+        const existingLessonIds = new Set(
+          currentAssignment.lessons?.map((l: any) => l.id) || [],
+        );
+        const filteredNewLessons = lessons.filter(
+          (l: any) => !existingLessonIds.has(l.id),
+        );
+
+        const updatedAssignment = {
+          courses: currentAssignment.courses || [],
+          lessons: [
+            ...(currentAssignment.lessons || []),
+            ...filteredNewLessons,
+          ],
+        };
+
+        // Update the week
+        const updateData: any = {};
+        updateData[assignmentField] = updatedAssignment;
+
+        await storage.updateHercmWeek(week.id, updateData);
+
+        res.json({ success: true, assignment: updatedAssignment });
+      } catch (error) {
+        console.error("Error adding lessons to assignment:", error);
+        res.status(500).json({ message: "Failed to add lessons" });
+      }
+    },
+  );
+
+  // Legacy endpoint (using weekId) - keeping for compatibility
+  app.post(
+    "/api/hercm/assignment/add-lessons",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        const { weekId, category, courseId, courseName, lessons } = req.body;
+
+        if (!weekId || !category || !lessons || !Array.isArray(lessons)) {
+          return res.status(400).json({ message: "Missing required fields" });
+        }
+
+        // Fetch the current week
+        const week = await storage.getHercmWeekById(weekId);
+        if (!week) {
+          return res.status(404).json({ message: "Week not found" });
+        }
+
+        // Get the assignment field for the category
+        const prefix = category.toLowerCase();
+        const assignmentField = `${prefix}Assignment` as keyof typeof week;
+        const currentAssignment = (week[assignmentField] as any) || {
+          courses: [],
+          lessons: [],
+        };
+
+        // Add lessons to the assignment
+        const newLessons = lessons.map((lesson: any) => ({
           id: lesson.id,
-          courseId: lesson.courseId,
-          courseName: lesson.courseName,
-          lessonName: lesson.lessonName,
-          url: lesson.url || '',
+          courseId: courseId,
+          courseName: courseName,
+          lessonName: lesson.title,
+          url: lesson.url,
           completed: false,
-          source: 'user' as const
-        }];
+        }));
 
-        await storage.updateHercmWeek(week.id, { unifiedAssignment: updatedAssignment });
-        return res.json({ success: true, assignment: updatedAssignment });
+        // Merge with existing lessons (avoid duplicates)
+        const existingLessonIds = new Set(
+          currentAssignment.lessons?.map((l: any) => l.id) || [],
+        );
+        const filteredNewLessons = newLessons.filter(
+          (l: any) => !existingLessonIds.has(l.id),
+        );
+
+        const updatedAssignment = {
+          courses: currentAssignment.courses || [],
+          lessons: [
+            ...(currentAssignment.lessons || []),
+            ...filteredNewLessons,
+          ],
+        };
+
+        // Update the week
+        const updateData: any = {};
+        updateData[assignmentField] = updatedAssignment;
+
+        await storage.updateHercmWeek(weekId, updateData);
+
+        res.json({ success: true, assignment: updatedAssignment });
+      } catch (error) {
+        console.error("Error adding lessons to assignment:", error);
+        res.status(500).json({ message: "Failed to add lessons" });
       }
+    },
+  );
 
-      // Get current category assignment
-      const currentAssignment = (week[assignmentField as keyof typeof week] as any) || { courses: [], lessons: [] };
-      const currentLessons = currentAssignment.lessons || [];
+  // Toggle assignment lesson completion
+  app.post(
+    "/api/hercm/assignment/toggle-lesson",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
 
-      // Check if lesson already exists
-      const lessonExists = currentLessons.some((l: any) => l.id === lesson.id);
-      
-      if (lessonExists) {
-        return res.json({ success: true, assignment: currentAssignment, message: "Lesson already in assignment" });
+        const { weekId, category, lessonId } = req.body;
+
+        if (!weekId || !category || !lessonId) {
+          return res.status(400).json({ message: "Missing required fields" });
+        }
+
+        // Fetch the current week
+        const week = await storage.getHercmWeekById(weekId);
+        if (!week) {
+          return res.status(404).json({ message: "Week not found" });
+        }
+
+        // Get the assignment field for the category
+        const prefix = category.toLowerCase();
+        const assignmentField = `${prefix}Assignment` as keyof typeof week;
+        const currentAssignment = (week[assignmentField] as any) || {
+          courses: [],
+          lessons: [],
+        };
+
+        // Toggle the lesson completion
+        const updatedLessons = (currentAssignment.lessons || []).map(
+          (lesson: any) =>
+            lesson.id === lessonId
+              ? { ...lesson, completed: !lesson.completed }
+              : lesson,
+        );
+
+        const updatedAssignment = {
+          ...currentAssignment,
+          lessons: updatedLessons,
+        };
+
+        // Update the week
+        const updateData: any = {};
+        updateData[assignmentField] = updatedAssignment;
+
+        await storage.updateHercmWeek(weekId, updateData);
+
+        res.json({ success: true, assignment: updatedAssignment });
+      } catch (error) {
+        console.error("Error toggling lesson:", error);
+        res.status(500).json({ message: "Failed to toggle lesson" });
       }
+    },
+  );
 
-      // Add lesson to category assignment
-      const updatedAssignment = {
-        courses: currentAssignment.courses || [],
-        lessons: [...currentLessons, { 
-          id: lesson.id,
-          courseId: lesson.courseId,
-          courseName: lesson.courseName,
-          lessonName: lesson.lessonName,
-          url: lesson.url || '',
-          completed: false
-        }]
-      };
+  // Get AI course recommendations for Assignment (Next Week)
+  app.post(
+    "/api/courses/recommend-assignment",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const {
+          category,
+          currentRating,
+          problems,
+          feelings,
+          beliefs,
+          actions,
+        } = req.body;
 
-      // Update the week with category-specific assignment
-      const updateData: any = {};
-      updateData[assignmentField] = updatedAssignment;
-      await storage.updateHercmWeek(week.id, updateData);
+        if (!category) {
+          return res.status(400).json({ message: "Category is required" });
+        }
 
-      res.json({ success: true, assignment: updatedAssignment });
-    } catch (error) {
-      console.error("Error adding lesson to assignment:", error);
-      res.status(500).json({ message: "Failed to add lesson" });
-    }
-  });
+        // Use same logic as Current Week AI Course recommendations
+        const rating = Math.max(1, Math.min(currentRating || 1, 7));
+
+        let numberOfCourses: number;
+        if (rating < 3) {
+          numberOfCourses = 5;
+        } else if (rating < 5) {
+          numberOfCourses = 3;
+        } else {
+          numberOfCourses = 2;
+        }
+
+        const courses = await parseCourseCSV();
+        const recommendations = await getAIRecommendations(
+          courses,
+          {
+            category,
+            rating: rating,
+            problems: problems || "",
+            feelings: feelings || "",
+            beliefs: beliefs || "",
+            actions: actions || "",
+          },
+          numberOfCourses,
+          [],
+        );
+
+        if (recommendations.length === 0) {
+          return res.json({ courses: [] });
+        }
+
+        const seenCourseNames = new Set<string>();
+        const mappedCourses = recommendations
+          .filter((rec) => {
+            if (seenCourseNames.has(rec.course.courseName)) {
+              return false;
+            }
+            seenCourseNames.add(rec.course.courseName);
+            return true;
+          })
+          .map((rec, index) => ({
+            id: `assignment-course-${index + 1}`,
+            courseName: rec.course.courseName,
+            link: rec.course.link,
+            completed: false,
+          }));
+
+        res.json({ courses: mappedCourses });
+      } catch (error) {
+        console.error("Error getting assignment course recommendation:", error);
+        res.status(500).json({
+          message: "Failed to get course recommendation",
+          courses: [],
+        });
+      }
+    },
+  );
+
+  // Unified Assignment Endpoints (single column for all HRCM areas)
+
+  // Add lesson to category assignment (auto-add when checked in Course Tracker)
+  app.post(
+    "/api/unified-assignment/add-lesson",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        const { weekNumber, lesson, category } = req.body;
+
+        if (!weekNumber || !lesson) {
+          return res.status(400).json({ message: "Missing required fields" });
+        }
+
+        // Fetch the week by weekNumber
+        const weeks = await storage.getHercmWeeksByUser(userId);
+        const week = weeks.find((w: any) => w.weekNumber === weekNumber);
+
+        if (!week) {
+          return res.status(404).json({ message: "Week not found" });
+        }
+
+        // Map category to assignment field name
+        const categoryMap: Record<string, string> = {
+          Health: "healthAssignment",
+          Relationship: "relationshipAssignment",
+          Career: "careerAssignment",
+          Money: "moneyAssignment",
+        };
+
+        const assignmentField = category ? categoryMap[category] : null;
+
+        if (!assignmentField) {
+          // If no category, fall back to unified assignment
+          const currentAssignment = (week.unifiedAssignment as any) || [];
+          const lessonExists = currentAssignment.some(
+            (l: any) => l.id === lesson.id,
+          );
+
+          if (lessonExists) {
+            return res.json({
+              success: true,
+              assignment: currentAssignment,
+              message: "Lesson already in assignment",
+            });
+          }
+
+          const updatedAssignment = [
+            ...currentAssignment,
+            {
+              id: lesson.id,
+              courseId: lesson.courseId,
+              courseName: lesson.courseName,
+              lessonName: lesson.lessonName,
+              url: lesson.url || "",
+              completed: false,
+              source: "user" as const,
+            },
+          ];
+
+          await storage.updateHercmWeek(week.id, {
+            unifiedAssignment: updatedAssignment,
+          });
+          return res.json({ success: true, assignment: updatedAssignment });
+        }
+
+        // Get current category assignment
+        const currentAssignment = (week[
+          assignmentField as keyof typeof week
+        ] as any) || { courses: [], lessons: [] };
+        const currentLessons = currentAssignment.lessons || [];
+
+        // Check if lesson already exists
+        const lessonExists = currentLessons.some(
+          (l: any) => l.id === lesson.id,
+        );
+
+        if (lessonExists) {
+          return res.json({
+            success: true,
+            assignment: currentAssignment,
+            message: "Lesson already in assignment",
+          });
+        }
+
+        // Add lesson to category assignment
+        const updatedAssignment = {
+          courses: currentAssignment.courses || [],
+          lessons: [
+            ...currentLessons,
+            {
+              id: lesson.id,
+              courseId: lesson.courseId,
+              courseName: lesson.courseName,
+              lessonName: lesson.lessonName,
+              url: lesson.url || "",
+              completed: false,
+            },
+          ],
+        };
+
+        // Update the week with category-specific assignment
+        const updateData: any = {};
+        updateData[assignmentField] = updatedAssignment;
+        await storage.updateHercmWeek(week.id, updateData);
+
+        res.json({ success: true, assignment: updatedAssignment });
+      } catch (error) {
+        console.error("Error adding lesson to assignment:", error);
+        res.status(500).json({ message: "Failed to add lesson" });
+      }
+    },
+  );
 
   // Toggle lesson completion in unified assignment
-  app.post('/api/unified-assignment/toggle-lesson', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
+  app.post(
+    "/api/unified-assignment/toggle-lesson",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        const { weekNumber, lessonId } = req.body;
+
+        if (!weekNumber || !lessonId) {
+          return res.status(400).json({ message: "Missing required fields" });
+        }
+
+        // Fetch the week by weekNumber
+        const weeks = await storage.getHercmWeeksByUser(userId);
+        const week = weeks.find((w: any) => w.weekNumber === weekNumber);
+
+        if (!week) {
+          return res.status(404).json({ message: "Week not found" });
+        }
+
+        // Get current unified assignment
+        const currentAssignment = (week.unifiedAssignment as any) || [];
+
+        // Toggle the lesson completion
+        const updatedAssignment = currentAssignment.map((lesson: any) =>
+          lesson.id === lessonId
+            ? { ...lesson, completed: !lesson.completed }
+            : lesson,
+        );
+
+        // Update the week
+        await storage.updateHercmWeek(week.id, {
+          unifiedAssignment: updatedAssignment,
+        });
+
+        res.json({ success: true, assignment: updatedAssignment });
+      } catch (error) {
+        console.error("Error toggling lesson in unified assignment:", error);
+        res.status(500).json({ message: "Failed to toggle lesson" });
       }
-
-      const { weekNumber, lessonId } = req.body;
-
-      if (!weekNumber || !lessonId) {
-        return res.status(400).json({ message: "Missing required fields" });
-      }
-
-      // Fetch the week by weekNumber
-      const weeks = await storage.getHercmWeeksByUser(userId);
-      const week = weeks.find((w: any) => w.weekNumber === weekNumber);
-      
-      if (!week) {
-        return res.status(404).json({ message: "Week not found" });
-      }
-
-      // Get current unified assignment
-      const currentAssignment = (week.unifiedAssignment as any) || [];
-
-      // Toggle the lesson completion
-      const updatedAssignment = currentAssignment.map((lesson: any) => 
-        lesson.id === lessonId ? { ...lesson, completed: !lesson.completed } : lesson
-      );
-
-      // Update the week
-      await storage.updateHercmWeek(week.id, { unifiedAssignment: updatedAssignment });
-
-      res.json({ success: true, assignment: updatedAssignment });
-    } catch (error) {
-      console.error("Error toggling lesson in unified assignment:", error);
-      res.status(500).json({ message: "Failed to toggle lesson" });
-    }
-  });
+    },
+  );
 
   // Remove lesson from category assignment
-  app.post('/api/unified-assignment/remove-lesson', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
+  app.post(
+    "/api/unified-assignment/remove-lesson",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        const { weekNumber, lessonId, category } = req.body;
+
+        if (!weekNumber || !lessonId) {
+          return res.status(400).json({ message: "Missing required fields" });
+        }
+
+        // Fetch the week by weekNumber
+        const weeks = await storage.getHercmWeeksByUser(userId);
+        const week = weeks.find((w: any) => w.weekNumber === weekNumber);
+
+        if (!week) {
+          return res.status(404).json({ message: "Week not found" });
+        }
+
+        // Map category to assignment field name
+        const categoryMap: Record<string, string> = {
+          Health: "healthAssignment",
+          Relationship: "relationshipAssignment",
+          Career: "careerAssignment",
+          Money: "moneyAssignment",
+        };
+
+        const assignmentField = category ? categoryMap[category] : null;
+
+        if (!assignmentField) {
+          // If no category, fall back to unified assignment
+          const currentAssignment = (week.unifiedAssignment as any) || [];
+          const updatedAssignment = currentAssignment.filter(
+            (lesson: any) => lesson.id !== lessonId,
+          );
+          await storage.updateHercmWeek(week.id, {
+            unifiedAssignment: updatedAssignment,
+          });
+          return res.json({ success: true, assignment: updatedAssignment });
+        }
+
+        // Get current category assignment
+        const currentAssignment = (week[
+          assignmentField as keyof typeof week
+        ] as any) || { courses: [], lessons: [] };
+        const currentLessons = currentAssignment.lessons || [];
+
+        // Remove the lesson
+        const updatedAssignment = {
+          courses: currentAssignment.courses || [],
+          lessons: currentLessons.filter(
+            (lesson: any) => lesson.id !== lessonId,
+          ),
+        };
+
+        // Update the week with category-specific assignment
+        const updateData: any = {};
+        updateData[assignmentField] = updatedAssignment;
+        await storage.updateHercmWeek(week.id, updateData);
+
+        res.json({ success: true, assignment: updatedAssignment });
+      } catch (error) {
+        console.error("Error removing lesson from assignment:", error);
+        res.status(500).json({ message: "Failed to remove lesson" });
       }
-
-      const { weekNumber, lessonId, category } = req.body;
-
-      if (!weekNumber || !lessonId) {
-        return res.status(400).json({ message: "Missing required fields" });
-      }
-
-      // Fetch the week by weekNumber
-      const weeks = await storage.getHercmWeeksByUser(userId);
-      const week = weeks.find((w: any) => w.weekNumber === weekNumber);
-      
-      if (!week) {
-        return res.status(404).json({ message: "Week not found" });
-      }
-
-      // Map category to assignment field name
-      const categoryMap: Record<string, string> = {
-        'Health': 'healthAssignment',
-        'Relationship': 'relationshipAssignment',
-        'Career': 'careerAssignment',
-        'Money': 'moneyAssignment'
-      };
-
-      const assignmentField = category ? categoryMap[category] : null;
-      
-      if (!assignmentField) {
-        // If no category, fall back to unified assignment
-        const currentAssignment = (week.unifiedAssignment as any) || [];
-        const updatedAssignment = currentAssignment.filter((lesson: any) => lesson.id !== lessonId);
-        await storage.updateHercmWeek(week.id, { unifiedAssignment: updatedAssignment });
-        return res.json({ success: true, assignment: updatedAssignment });
-      }
-
-      // Get current category assignment
-      const currentAssignment = (week[assignmentField as keyof typeof week] as any) || { courses: [], lessons: [] };
-      const currentLessons = currentAssignment.lessons || [];
-
-      // Remove the lesson
-      const updatedAssignment = {
-        courses: currentAssignment.courses || [],
-        lessons: currentLessons.filter((lesson: any) => lesson.id !== lessonId)
-      };
-
-      // Update the week with category-specific assignment
-      const updateData: any = {};
-      updateData[assignmentField] = updatedAssignment;
-      await storage.updateHercmWeek(week.id, updateData);
-
-      res.json({ success: true, assignment: updatedAssignment });
-    } catch (error) {
-      console.error("Error removing lesson from assignment:", error);
-      res.status(500).json({ message: "Failed to remove lesson" });
-    }
-  });
+    },
+  );
 
   // Emotional Tracker endpoints
-  app.get('/api/emotional-trackers/:date', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      const { date } = req.params;
-      
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
+  app.get(
+    "/api/emotional-trackers/:date",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        const { date } = req.params;
+
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        const trackers = await storage.getEmotionalTrackersByDate(userId, date);
+        res.json(trackers);
+      } catch (error) {
+        console.error("Error fetching emotional trackers:", error);
+        res.status(500).json({ message: "Failed to fetch emotional trackers" });
       }
+    },
+  );
 
-      const trackers = await storage.getEmotionalTrackersByDate(userId, date);
-      res.json(trackers);
-    } catch (error) {
-      console.error("Error fetching emotional trackers:", error);
-      res.status(500).json({ message: "Failed to fetch emotional trackers" });
-    }
-  });
+  app.post(
+    "/api/emotional-trackers",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
 
-  app.post('/api/emotional-trackers', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        const tracker = await storage.upsertEmotionalTracker({
+          ...req.body,
+          userId,
+        });
+
+        res.json(tracker);
+      } catch (error) {
+        console.error("Error upserting emotional tracker:", error);
+        res.status(500).json({ message: "Failed to save emotional tracker" });
       }
+    },
+  );
 
-      const tracker = await storage.upsertEmotionalTracker({
-        ...req.body,
-        userId,
-      });
-      
-      res.json(tracker);
-    } catch (error) {
-      console.error("Error upserting emotional tracker:", error);
-      res.status(500).json({ message: "Failed to save emotional tracker" });
-    }
-  });
+  app.delete(
+    "/api/emotional-trackers/:id",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        const { id } = req.params;
 
-  app.delete('/api/emotional-trackers/:id', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      const { id } = req.params;
-      
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        await storage.deleteEmotionalTracker(id, userId);
+        res.json({ success: true });
+      } catch (error) {
+        console.error("Error deleting emotional tracker:", error);
+        res.status(500).json({ message: "Failed to delete emotional tracker" });
       }
-
-      await storage.deleteEmotionalTracker(id, userId);
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Error deleting emotional tracker:", error);
-      res.status(500).json({ message: "Failed to delete emotional tracker" });
-    }
-  });
+    },
+  );
 
   // Admin: Get emotional trackers for any user
-  app.get('/api/admin/emotional-trackers/:userId/:date', isAdmin, async (req: any, res) => {
-    try {
+  app.get(
+    "/api/admin/emotional-trackers/:userId/:date",
+    isAdmin,
+    async (req: any, res) => {
+      try {
+        const { userId, date } = req.params;
 
-      const { userId, date } = req.params;
-      
-      const trackers = await storage.getEmotionalTrackersByDate(userId, date);
-      res.json(trackers);
-    } catch (error) {
-      console.error("Error fetching emotional trackers for admin:", error);
-      res.status(500).json({ message: "Failed to fetch emotional trackers" });
-    }
-  });
+        const trackers = await storage.getEmotionalTrackersByDate(userId, date);
+        res.json(trackers);
+      } catch (error) {
+        console.error("Error fetching emotional trackers for admin:", error);
+        res.status(500).json({ message: "Failed to fetch emotional trackers" });
+      }
+    },
+  );
 
   // Get emotional statistics (daily, weekly, monthly, yearly positivity percentages)
-  app.get('/api/emotional-stats', isAuthenticated, async (req: any, res) => {
+  app.get("/api/emotional-stats", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.session.userEmail;
       if (!userId) {
@@ -6970,54 +8758,210 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
 
       const formatDate = (d: Date) => {
         const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
         return `${year}-${month}-${day}`;
       };
 
       // Get all trackers for today
-      const allTrackers = await storage.getEmotionalTrackersByDate(userId, formatDate(today));
-      
+      const allTrackers = await storage.getEmotionalTrackersByDate(
+        userId,
+        formatDate(today),
+      );
+
       // Known positive emotions list (for categorizing Repeating/Missing columns)
       const POSITIVE_EMOTIONS = [
-        'happy', 'joyful', 'excited', 'grateful', 'thankful', 'content', 'peaceful', 'calm',
-        'relaxed', 'hopeful', 'optimistic', 'confident', 'proud', 'loved', 'loving', 'caring',
-        'compassionate', 'inspired', 'motivated', 'energized', 'enthusiastic', 'cheerful',
-        'delighted', 'blissful', 'serene', 'satisfied', 'fulfilled', 'empowered', 'brave',
-        'courageous', 'curious', 'amazed', 'fascinated', 'passionate', 'determined', 'focused',
-        'present', 'mindful', 'free', 'liberated', 'appreciated', 'valued', 'respected',
-        'secure', 'safe', 'comfortable', 'warm', 'affectionate', 'tender', 'kind', 'generous',
-        'forgiving', 'accepting', 'understanding', 'patient', 'trusting', 'faithful', 'devoted',
-        'committed', 'loyal', 'connected', 'belonging', 'included', 'supported', 'encouraged',
-        'uplifted', 'alive', 'vibrant', 'playful', 'amused', 'entertained', 'relieved', 'refreshed',
-        'renewed', 'restored', 'balanced', 'centered', 'grounded', 'stable', 'steady', 'resilient'
+        "happy",
+        "joyful",
+        "excited",
+        "grateful",
+        "thankful",
+        "content",
+        "peaceful",
+        "calm",
+        "relaxed",
+        "hopeful",
+        "optimistic",
+        "confident",
+        "proud",
+        "loved",
+        "loving",
+        "caring",
+        "compassionate",
+        "inspired",
+        "motivated",
+        "energized",
+        "enthusiastic",
+        "cheerful",
+        "delighted",
+        "blissful",
+        "serene",
+        "satisfied",
+        "fulfilled",
+        "empowered",
+        "brave",
+        "courageous",
+        "curious",
+        "amazed",
+        "fascinated",
+        "passionate",
+        "determined",
+        "focused",
+        "present",
+        "mindful",
+        "free",
+        "liberated",
+        "appreciated",
+        "valued",
+        "respected",
+        "secure",
+        "safe",
+        "comfortable",
+        "warm",
+        "affectionate",
+        "tender",
+        "kind",
+        "generous",
+        "forgiving",
+        "accepting",
+        "understanding",
+        "patient",
+        "trusting",
+        "faithful",
+        "devoted",
+        "committed",
+        "loyal",
+        "connected",
+        "belonging",
+        "included",
+        "supported",
+        "encouraged",
+        "uplifted",
+        "alive",
+        "vibrant",
+        "playful",
+        "amused",
+        "entertained",
+        "relieved",
+        "refreshed",
+        "renewed",
+        "restored",
+        "balanced",
+        "centered",
+        "grounded",
+        "stable",
+        "steady",
+        "resilient",
       ];
 
       // Known negative emotions list
       const NEGATIVE_EMOTIONS = [
-        'sad', 'unhappy', 'depressed', 'anxious', 'worried', 'stressed', 'overwhelmed', 'frustrated',
-        'angry', 'furious', 'irritated', 'annoyed', 'resentful', 'bitter', 'jealous', 'envious',
-        'guilty', 'ashamed', 'embarrassed', 'humiliated', 'lonely', 'isolated', 'abandoned',
-        'rejected', 'hurt', 'heartbroken', 'disappointed', 'discouraged', 'hopeless', 'helpless',
-        'powerless', 'weak', 'vulnerable', 'insecure', 'uncertain', 'confused', 'lost', 'stuck',
-        'trapped', 'suffocated', 'exhausted', 'drained', 'tired', 'fatigued', 'bored', 'restless',
-        'impatient', 'tense', 'nervous', 'scared', 'fearful', 'terrified', 'panicked', 'paranoid',
-        'suspicious', 'distrustful', 'cynical', 'pessimistic', 'negative', 'critical', 'judgmental',
-        'contemptuous', 'disgusted', 'repulsed', 'numb', 'empty', 'hollow', 'detached', 'disconnected',
-        'apathetic', 'indifferent', 'unmotivated', 'lazy', 'procrastinating', 'distracted', 'unfocused',
-        'scattered', 'chaotic', 'unstable', 'unbalanced', 'off-center', 'shaky', 'fragile', 'broken'
+        "sad",
+        "unhappy",
+        "depressed",
+        "anxious",
+        "worried",
+        "stressed",
+        "overwhelmed",
+        "frustrated",
+        "angry",
+        "furious",
+        "irritated",
+        "annoyed",
+        "resentful",
+        "bitter",
+        "jealous",
+        "envious",
+        "guilty",
+        "ashamed",
+        "embarrassed",
+        "humiliated",
+        "lonely",
+        "isolated",
+        "abandoned",
+        "rejected",
+        "hurt",
+        "heartbroken",
+        "disappointed",
+        "discouraged",
+        "hopeless",
+        "helpless",
+        "powerless",
+        "weak",
+        "vulnerable",
+        "insecure",
+        "uncertain",
+        "confused",
+        "lost",
+        "stuck",
+        "trapped",
+        "suffocated",
+        "exhausted",
+        "drained",
+        "tired",
+        "fatigued",
+        "bored",
+        "restless",
+        "impatient",
+        "tense",
+        "nervous",
+        "scared",
+        "fearful",
+        "terrified",
+        "panicked",
+        "paranoid",
+        "suspicious",
+        "distrustful",
+        "cynical",
+        "pessimistic",
+        "negative",
+        "critical",
+        "judgmental",
+        "contemptuous",
+        "disgusted",
+        "repulsed",
+        "numb",
+        "empty",
+        "hollow",
+        "detached",
+        "disconnected",
+        "apathetic",
+        "indifferent",
+        "unmotivated",
+        "lazy",
+        "procrastinating",
+        "distracted",
+        "unfocused",
+        "scattered",
+        "chaotic",
+        "unstable",
+        "unbalanced",
+        "off-center",
+        "shaky",
+        "fragile",
+        "broken",
       ];
 
       // Smart categorization function
-      const categorizeEmotion = (emotion: string): 'positive' | 'negative' | 'neutral' => {
+      const categorizeEmotion = (
+        emotion: string,
+      ): "positive" | "negative" | "neutral" => {
         const lowerEmotion = emotion.toLowerCase().trim();
-        if (POSITIVE_EMOTIONS.some(pe => lowerEmotion.includes(pe) || pe.includes(lowerEmotion))) {
-          return 'positive';
+        if (
+          POSITIVE_EMOTIONS.some(
+            (pe) => lowerEmotion.includes(pe) || pe.includes(lowerEmotion),
+          )
+        ) {
+          return "positive";
         }
-        if (NEGATIVE_EMOTIONS.some(ne => lowerEmotion.includes(ne) || ne.includes(lowerEmotion))) {
-          return 'negative';
+        if (
+          NEGATIVE_EMOTIONS.some(
+            (ne) => lowerEmotion.includes(ne) || ne.includes(lowerEmotion),
+          )
+        ) {
+          return "negative";
         }
-        return 'neutral';
+        return "neutral";
       };
 
       // Count emotions from trackers - returns {positive, negative, hasData}
@@ -7029,32 +8973,48 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
         trackers.forEach((tracker: any) => {
           // Each column stores a SINGLE emotion string (not array)
           // Positive column - count as positive if exists
-          if (tracker.positiveEmotions && typeof tracker.positiveEmotions === 'string' && tracker.positiveEmotions.trim()) {
+          if (
+            tracker.positiveEmotions &&
+            typeof tracker.positiveEmotions === "string" &&
+            tracker.positiveEmotions.trim()
+          ) {
             positiveCount++;
             hasData = true;
           }
 
           // Negative column - count as negative if exists
-          if (tracker.negativeEmotions && typeof tracker.negativeEmotions === 'string' && tracker.negativeEmotions.trim()) {
+          if (
+            tracker.negativeEmotions &&
+            typeof tracker.negativeEmotions === "string" &&
+            tracker.negativeEmotions.trim()
+          ) {
             negativeCount++;
             hasData = true;
           }
 
           // Repeating column - categorize the emotion
-          if (tracker.repeatingEmotions && typeof tracker.repeatingEmotions === 'string' && tracker.repeatingEmotions.trim()) {
+          if (
+            tracker.repeatingEmotions &&
+            typeof tracker.repeatingEmotions === "string" &&
+            tracker.repeatingEmotions.trim()
+          ) {
             const category = categorizeEmotion(tracker.repeatingEmotions);
-            if (category === 'positive') positiveCount++;
-            else if (category === 'negative') negativeCount++;
+            if (category === "positive") positiveCount++;
+            else if (category === "negative") negativeCount++;
             hasData = true;
           }
 
           // Missing column - these are emotions user wants but doesn't have
-          if (tracker.missingEmotions && typeof tracker.missingEmotions === 'string' && tracker.missingEmotions.trim()) {
+          if (
+            tracker.missingEmotions &&
+            typeof tracker.missingEmotions === "string" &&
+            tracker.missingEmotions.trim()
+          ) {
             const category = categorizeEmotion(tracker.missingEmotions);
             // Missing positive emotions = user feels absence of good feelings
-            if (category === 'positive') negativeCount += 0.5;
+            if (category === "positive") negativeCount += 0.5;
             // Missing negative emotions = user is free from bad feelings
-            else if (category === 'negative') positiveCount += 0.5;
+            else if (category === "negative") positiveCount += 0.5;
             hasData = true;
           }
         });
@@ -7063,23 +9023,34 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
       };
 
       // Calculate positivity percentage from counts
-      const calculatePercentage = (positiveCount: number, negativeCount: number, hasData: boolean) => {
+      const calculatePercentage = (
+        positiveCount: number,
+        negativeCount: number,
+        hasData: boolean,
+      ) => {
         if (!hasData) return null; // No data = null (not 50%)
-        
+
         const total = positiveCount + negativeCount;
         if (total === 0) return null; // No emotions = null
-        
-        return Math.min(100, Math.max(0, Math.round((positiveCount / total) * 100)));
+
+        return Math.min(
+          100,
+          Math.max(0, Math.round((positiveCount / total) * 100)),
+        );
       };
 
       // ===== CALCULATE TODAY'S DATA =====
       const todayCounts = countEmotions(allTrackers);
-      const dailyPercentage = calculatePercentage(todayCounts.positiveCount, todayCounts.negativeCount, todayCounts.hasData);
+      const dailyPercentage = calculatePercentage(
+        todayCounts.positiveCount,
+        todayCounts.negativeCount,
+        todayCounts.hasData,
+      );
 
       // ===== CALCULATE WEEKLY DATA (Cumulative - last 7 days) =====
       const weeklyEmotions = [];
-      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      
+      const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
       let weeklyPositive = 0;
       let weeklyNegative = 0;
       let weeklyHasData = false;
@@ -7087,8 +9058,11 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
       for (let i = 6; i >= 0; i--) {
         const date = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
         const dateStr = formatDate(date);
-        const dayTrackers = await storage.getEmotionalTrackersByDate(userId, dateStr);
-        
+        const dayTrackers = await storage.getEmotionalTrackersByDate(
+          userId,
+          dateStr,
+        );
+
         // Accumulate counts for weekly cumulative
         const dayCounts = countEmotions(dayTrackers);
         weeklyPositive += dayCounts.positiveCount;
@@ -7111,7 +9085,7 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
               target.push(str);
             }
           };
-          
+
           addEmotion(tracker.positiveEmotions, dayEmotions.positive);
           addEmotion(tracker.negativeEmotions, dayEmotions.negative);
           addEmotion(tracker.repeatingEmotions, dayEmotions.repeating);
@@ -7124,7 +9098,11 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
         });
       }
 
-      const weeklyPercentage = calculatePercentage(weeklyPositive, weeklyNegative, weeklyHasData);
+      const weeklyPercentage = calculatePercentage(
+        weeklyPositive,
+        weeklyNegative,
+        weeklyHasData,
+      );
 
       // ===== CALCULATE MONTHLY DATA (Cumulative - last 30 days) =====
       let monthlyPositive = weeklyPositive; // Start with weekly data
@@ -7135,15 +9113,22 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
       for (let i = 7; i < 30; i++) {
         const date = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
         const dateStr = formatDate(date);
-        const dayTrackers = await storage.getEmotionalTrackersByDate(userId, dateStr);
-        
+        const dayTrackers = await storage.getEmotionalTrackersByDate(
+          userId,
+          dateStr,
+        );
+
         const dayCounts = countEmotions(dayTrackers);
         monthlyPositive += dayCounts.positiveCount;
         monthlyNegative += dayCounts.negativeCount;
         if (dayCounts.hasData) monthlyHasData = true;
       }
 
-      const monthlyPercentage = calculatePercentage(monthlyPositive, monthlyNegative, monthlyHasData);
+      const monthlyPercentage = calculatePercentage(
+        monthlyPositive,
+        monthlyNegative,
+        monthlyHasData,
+      );
 
       // ===== YEARLY DATA - Only show if we have monthly data =====
       // For now, yearly is same as monthly (would need more historical data)
@@ -7170,24 +9155,28 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
 
   // ========== Gratitude Journal Routes ==========
   // Get gratitude entry for a specific date
-  app.get('/api/gratitude-journal/:date', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
+  app.get(
+    "/api/gratitude-journal/:date",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
 
-      const { date } = req.params;
-      const entry = await storage.getGratitudeEntry(userId, date);
-      res.json(entry || { date, gratitudeText: '' });
-    } catch (error) {
-      console.error("Error fetching gratitude entry:", error);
-      res.status(500).json({ message: "Failed to fetch gratitude entry" });
-    }
-  });
+        const { date } = req.params;
+        const entry = await storage.getGratitudeEntry(userId, date);
+        res.json(entry || { date, gratitudeText: "" });
+      } catch (error) {
+        console.error("Error fetching gratitude entry:", error);
+        res.status(500).json({ message: "Failed to fetch gratitude entry" });
+      }
+    },
+  );
 
   // Get all gratitude entries for user
-  app.get('/api/gratitude-journal', isAuthenticated, async (req: any, res) => {
+  app.get("/api/gratitude-journal", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.session.userEmail;
       if (!userId) {
@@ -7203,7 +9192,7 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
   });
 
   // Save/Update gratitude entry
-  app.post('/api/gratitude-journal', isAuthenticated, async (req: any, res) => {
+  app.post("/api/gratitude-journal", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.session.userEmail;
       if (!userId) {
@@ -7218,7 +9207,7 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
       const entry = await storage.upsertGratitudeEntry({
         userId,
         date,
-        gratitudeText: gratitudeText || '',
+        gratitudeText: gratitudeText || "",
       });
 
       res.json(entry);
@@ -7230,11 +9219,11 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
 
   // ========== Gratitude Posts (Shared Feed) Routes ==========
   // Get recent public gratitude posts (last 30 days, archived old ones)
-  app.get('/api/gratitude-posts', isAuthenticated, async (req: any, res) => {
+  app.get("/api/gratitude-posts", isAuthenticated, async (req: any, res) => {
     try {
       // Archive old posts (30+ days old) before fetching
       await storage.archiveOldPosts();
-      
+
       const limit = parseInt(req.query.limit as string) || 50;
       const posts = await storage.getGratitudePosts(limit);
       res.json(posts);
@@ -7245,7 +9234,7 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
   });
 
   // Create a new gratitude post
-  app.post('/api/gratitude-posts', isAuthenticated, async (req: any, res) => {
+  app.post("/api/gratitude-posts", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.session.userEmail;
       if (!userId) {
@@ -7258,21 +9247,23 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
       }
 
       if (content.length > 1000) {
-        return res.status(400).json({ message: "Content must be 1000 characters or less" });
+        return res
+          .status(400)
+          .json({ message: "Content must be 1000 characters or less" });
       }
 
       // Get user details for caching in post
       const user = await storage.getUserByEmail(userId);
-      const userName = user?.firstName 
-        ? `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}`
-        : userId.split('@')[0];
+      const userName = user?.firstName
+        ? `${user.firstName}${user.lastName ? " " + user.lastName : ""}`
+        : userId.split("@")[0];
 
       const post = await storage.createGratitudePost({
         userId,
         userName,
         userEmail: userId,
         content: content.trim(),
-        category: category || 'gratitude',
+        category: category || "gratitude",
         isPublic: true,
       });
 
@@ -7284,44 +9275,52 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
   });
 
   // Get archived gratitude posts (past testimonials older than 30 days)
-  app.get('/api/gratitude-posts/archived', isAuthenticated, async (req: any, res) => {
-    try {
-      const page = parseInt(req.query.page as string) || 0;
-      const limit = 20;
-      const offset = page * limit;
-      
-      const [posts, totalCount] = await Promise.all([
-        storage.getArchivedPosts(limit, offset),
-        storage.getArchivedPostsCount()
-      ]);
-      
-      res.json({ posts, totalCount, page, limit });
-    } catch (error) {
-      console.error("Error fetching archived gratitude posts:", error);
-      res.status(500).json({ message: "Failed to fetch archived posts" });
-    }
-  });
+  app.get(
+    "/api/gratitude-posts/archived",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const page = parseInt(req.query.page as string) || 0;
+        const limit = 20;
+        const offset = page * limit;
+
+        const [posts, totalCount] = await Promise.all([
+          storage.getArchivedPosts(limit, offset),
+          storage.getArchivedPostsCount(),
+        ]);
+
+        res.json({ posts, totalCount, page, limit });
+      } catch (error) {
+        console.error("Error fetching archived gratitude posts:", error);
+        res.status(500).json({ message: "Failed to fetch archived posts" });
+      }
+    },
+  );
 
   // Delete own gratitude post
-  app.delete('/api/gratitude-posts/:id', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
+  app.delete(
+    "/api/gratitude-posts/:id",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
 
-      const { id } = req.params;
-      await storage.deleteGratitudePost(id, userId);
-      res.json({ success: true, message: "Post deleted successfully" });
-    } catch (error) {
-      console.error("Error deleting gratitude post:", error);
-      res.status(500).json({ message: "Failed to delete gratitude post" });
-    }
-  });
+        const { id } = req.params;
+        await storage.deleteGratitudePost(id, userId);
+        res.json({ success: true, message: "Post deleted successfully" });
+      } catch (error) {
+        console.error("Error deleting gratitude post:", error);
+        res.status(500).json({ message: "Failed to delete gratitude post" });
+      }
+    },
+  );
 
   // ========== Goals & Affirmations Routes ==========
   // Get user's goals and affirmations
-  app.get('/api/goals', isAuthenticated, async (req: any, res) => {
+  app.get("/api/goals", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.session.userEmail;
       if (!userId) {
@@ -7337,7 +9336,7 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
   });
 
   // Create a new goal or affirmation
-  app.post('/api/goals', isAuthenticated, async (req: any, res) => {
+  app.post("/api/goals", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.session.userEmail;
       if (!userId) {
@@ -7345,13 +9344,16 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
       }
 
       const { text, targetDate, category } = req.body;
-      
+
       if (!text || text.trim().length === 0) {
         return res.status(400).json({ message: "Goal text is required" });
       }
-      
+
       // Category and targetDate are optional - validate only if provided
-      if (category && !['health', 'relationship', 'career', 'money'].includes(category)) {
+      if (
+        category &&
+        !["health", "relationship", "career", "money"].includes(category)
+      ) {
         return res.status(400).json({ message: "Invalid category" });
       }
 
@@ -7370,7 +9372,7 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
   });
 
   // Update goal text
-  app.patch('/api/goals/:id', isAuthenticated, async (req: any, res) => {
+  app.patch("/api/goals/:id", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.session.userEmail;
       if (!userId) {
@@ -7393,24 +9395,28 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
   });
 
   // Toggle goal completion
-  app.patch('/api/goals/:id/complete', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
+  app.patch(
+    "/api/goals/:id/complete",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
 
-      const { id } = req.params;
-      const updated = await storage.toggleGoalCompletion(id, userId);
-      res.json(updated);
-    } catch (error) {
-      console.error("Error toggling goal completion:", error);
-      res.status(500).json({ message: "Failed to update goal" });
-    }
-  });
+        const { id } = req.params;
+        const updated = await storage.toggleGoalCompletion(id, userId);
+        res.json(updated);
+      } catch (error) {
+        console.error("Error toggling goal completion:", error);
+        res.status(500).json({ message: "Failed to update goal" });
+      }
+    },
+  );
 
   // Delete a goal
-  app.delete('/api/goals/:id', isAuthenticated, async (req: any, res) => {
+  app.delete("/api/goals/:id", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.session.userEmail;
       if (!userId) {
@@ -7428,309 +9434,414 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
 
   // ========== User Persistent Assignments Routes ==========
   // Get user's persistent assignments (date-independent)
-  app.get('/api/persistent-assignments', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
+  app.get(
+    "/api/persistent-assignments",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
 
-      // INSTANT UPDATE FIX: Disable HTTP caching to ensure admin changes appear immediately
-      res.set({
-        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
-      });
-
-      const assignments = await storage.getUserPersistentAssignments(userId);
-      res.json(assignments);
-    } catch (error) {
-      console.error("Error fetching persistent assignments:", error);
-      res.status(500).json({ message: "Failed to fetch persistent assignments" });
-    }
-  });
-
-  // Add new persistent assignment
-  app.post('/api/persistent-assignments', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
-
-      const assignmentData = {
-        ...req.body,
-        userId,
-        completed: req.body.completed !== undefined ? req.body.completed : false
-      };
-
-      const newAssignment = await storage.addPersistentAssignment(assignmentData);
-      res.json(newAssignment);
-    } catch (error) {
-      console.error("Error adding persistent assignment:", error);
-      res.status(500).json({ message: "Failed to add persistent assignment" });
-    }
-  });
-  
-  // Add custom text assignment
-  app.post('/api/persistent-assignments/custom', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
-      
-      const { customText } = req.body;
-      
-      if (!customText || typeof customText !== 'string' || customText.trim().length === 0) {
-        return res.status(400).json({ message: "Custom text is required" });
-      }
-
-      const assignmentData = {
-        userId,
-        customText: customText.trim(),
-        hrcmArea: 'general',  // Default area for custom assignments
-        source: 'custom',
-        completed: false
-      };
-
-      const newAssignment = await storage.addPersistentAssignment(assignmentData);
-      res.json(newAssignment);
-    } catch (error) {
-      console.error("Error adding custom assignment:", error);
-      res.status(500).json({ message: "Failed to add custom assignment" });
-    }
-  });
-  
-  // Update custom text assignment
-  app.patch('/api/persistent-assignments/:id', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      const { id } = req.params;
-      
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
-      
-      const { customText } = req.body;
-      
-      if (!customText || typeof customText !== 'string' || customText.trim().length === 0) {
-        return res.status(400).json({ message: "Custom text is required" });
-      }
-
-      const updated = await storage.updateCustomAssignment(id, userId, customText.trim());
-      res.json(updated);
-    } catch (error) {
-      console.error("Error updating custom assignment:", error);
-      res.status(500).json({ message: "Failed to update custom assignment" });
-    }
-  });
-
-  // Toggle assignment completion
-  app.put('/api/persistent-assignments/:id/toggle', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      const { id } = req.params;
-      
-      console.log('[ASSIGNMENT SERVER] 🟢 PUT /api/persistent-assignments/:id/toggle called');
-      console.log('[ASSIGNMENT SERVER] 🟢 Assignment ID:', id);
-      console.log('[ASSIGNMENT SERVER] 🟢 User ID:', userId);
-      
-      if (!userId) {
-        console.log('[ASSIGNMENT SERVER] ❌ User not authenticated');
-        return res.status(401).json({ message: "User not authenticated" });
-      }
-
-      console.log('[ASSIGNMENT SERVER] 🟢 Calling togglePersistentAssignmentCompletion...');
-      const updated = await storage.togglePersistentAssignmentCompletion(id, userId);
-      console.log('[ASSIGNMENT SERVER] ✅ Assignment toggled successfully:', {
-        id: updated.id,
-        completed: updated.completed,
-        lessonName: updated.lessonName
-      });
-      
-      res.json(updated);
-    } catch (error) {
-      console.error("[ASSIGNMENT SERVER] ❌ Error toggling assignment completion:", error);
-      res.status(500).json({ message: "Failed to toggle assignment completion" });
-    }
-  });
-
-  // Delete all assignments (used by Reset button in Next Week Target table)
-  app.delete('/api/persistent-assignments/all', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
-
-      await storage.deleteAllPersistentAssignments(userId);
-      res.json({ success: true, message: "All assignments deleted" });
-    } catch (error) {
-      console.error("Error deleting all persistent assignments:", error);
-      res.status(500).json({ message: "Failed to delete all assignments" });
-    }
-  });
-
-  // Delete single assignment
-  app.delete('/api/persistent-assignments/:id', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      const { id } = req.params;
-      
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
-
-      await storage.deletePersistentAssignment(id, userId);
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Error deleting persistent assignment:", error);
-      res.status(500).json({ message: "Failed to delete persistent assignment" });
-    }
-  });
-
-  // Delete all completed assignments
-  app.delete('/api/persistent-assignments/completed', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
-
-      await storage.deleteCompletedAssignments(userId);
-      res.json({ success: true, message: "All completed assignments deleted" });
-    } catch (error) {
-      console.error("Error deleting completed assignments:", error);
-      res.status(500).json({ message: "Failed to delete completed assignments" });
-    }
-  });
-
-  // One-time migration endpoint: Migrate old unified_assignment data to persistent assignments
-  app.post('/api/migrate-assignments', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
-
-      // Get user's latest HRCM week with unified_assignment data
-      const weeks = await storage.getHercmWeeksByUser(userId);
-      
-      if (!weeks || weeks.length === 0) {
-        return res.json({ success: true, migratedCount: 0, message: "No week data found to migrate" });
-      }
-
-      // Find most recent week with unified_assignment data
-      const weekWithAssignments = weeks
-        .filter((w: any) => w.unifiedAssignment && Array.isArray(w.unifiedAssignment) && w.unifiedAssignment.length > 0)
-        .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
-
-      if (!weekWithAssignments) {
-        return res.json({ success: true, migratedCount: 0, message: "No assignments found to migrate" });
-      }
-
-      const oldAssignments = weekWithAssignments.unifiedAssignment || [];
-      
-      // Check existing persistent assignments to avoid duplicates
-      const existingAssignments = await storage.getUserPersistentAssignments(userId);
-      const existingLessonIds = new Set(existingAssignments.map((a: any) => a.lessonId || a.id));
-
-      let migratedCount = 0;
-
-      // Migrate each assignment that doesn't already exist
-      for (const assignment of oldAssignments) {
-        // Skip if already migrated
-        if (existingLessonIds.has(assignment.id)) {
-          continue;
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
         }
 
-        // Determine hrcmArea based on course name or default to 'health'
-        let hrcmArea = 'health';
-        const courseLower = (assignment.courseName || '').toLowerCase();
-        if (courseLower.includes('relationship') || courseLower.includes('communication')) {
-          hrcmArea = 'relationship';
-        } else if (courseLower.includes('career') || courseLower.includes('business')) {
-          hrcmArea = 'career';
-        } else if (courseLower.includes('money') || courseLower.includes('wealth') || courseLower.includes('financial')) {
-          hrcmArea = 'money';
-        }
-
-        // Create persistent assignment
-        await storage.addPersistentAssignment({
-          userId,
-          hrcmArea,
-          courseId: assignment.courseId || '',
-          courseName: assignment.courseName || '',
-          lessonId: assignment.id || '',
-          lessonName: assignment.lessonName || '',
-          url: assignment.url || '',
-          source: assignment.source || 'user',
-          completed: assignment.completed || false,
-          recommendationId: assignment.recommendationId || null
+        // INSTANT UPDATE FIX: Disable HTTP caching to ensure admin changes appear immediately
+        res.set({
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
         });
 
-        migratedCount++;
+        const assignments = await storage.getUserPersistentAssignments(userId);
+        res.json(assignments);
+      } catch (error) {
+        console.error("Error fetching persistent assignments:", error);
+        res
+          .status(500)
+          .json({ message: "Failed to fetch persistent assignments" });
       }
+    },
+  );
 
-      res.json({ 
-        success: true, 
-        migratedCount, 
-        message: `Successfully migrated ${migratedCount} assignments to persistent storage` 
-      });
-    } catch (error) {
-      console.error("Error migrating assignments:", error);
-      res.status(500).json({ message: "Failed to migrate assignments" });
-    }
-  });
+  // Add new persistent assignment
+  app.post(
+    "/api/persistent-assignments",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        const assignmentData = {
+          ...req.body,
+          userId,
+          completed:
+            req.body.completed !== undefined ? req.body.completed : false,
+        };
+
+        const newAssignment =
+          await storage.addPersistentAssignment(assignmentData);
+        res.json(newAssignment);
+      } catch (error) {
+        console.error("Error adding persistent assignment:", error);
+        res
+          .status(500)
+          .json({ message: "Failed to add persistent assignment" });
+      }
+    },
+  );
+
+  // Add custom text assignment
+  app.post(
+    "/api/persistent-assignments/custom",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        const { customText } = req.body;
+
+        if (
+          !customText ||
+          typeof customText !== "string" ||
+          customText.trim().length === 0
+        ) {
+          return res.status(400).json({ message: "Custom text is required" });
+        }
+
+        const assignmentData = {
+          userId,
+          customText: customText.trim(),
+          hrcmArea: "general", // Default area for custom assignments
+          source: "custom",
+          completed: false,
+        };
+
+        const newAssignment =
+          await storage.addPersistentAssignment(assignmentData);
+        res.json(newAssignment);
+      } catch (error) {
+        console.error("Error adding custom assignment:", error);
+        res.status(500).json({ message: "Failed to add custom assignment" });
+      }
+    },
+  );
+
+  // Update custom text assignment
+  app.patch(
+    "/api/persistent-assignments/:id",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        const { id } = req.params;
+
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        const { customText } = req.body;
+
+        if (
+          !customText ||
+          typeof customText !== "string" ||
+          customText.trim().length === 0
+        ) {
+          return res.status(400).json({ message: "Custom text is required" });
+        }
+
+        const updated = await storage.updateCustomAssignment(
+          id,
+          userId,
+          customText.trim(),
+        );
+        res.json(updated);
+      } catch (error) {
+        console.error("Error updating custom assignment:", error);
+        res.status(500).json({ message: "Failed to update custom assignment" });
+      }
+    },
+  );
+
+  // Toggle assignment completion
+  app.put(
+    "/api/persistent-assignments/:id/toggle",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        const { id } = req.params;
+
+        console.log(
+          "[ASSIGNMENT SERVER] 🟢 PUT /api/persistent-assignments/:id/toggle called",
+        );
+        console.log("[ASSIGNMENT SERVER] 🟢 Assignment ID:", id);
+        console.log("[ASSIGNMENT SERVER] 🟢 User ID:", userId);
+
+        if (!userId) {
+          console.log("[ASSIGNMENT SERVER] ❌ User not authenticated");
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        console.log(
+          "[ASSIGNMENT SERVER] 🟢 Calling togglePersistentAssignmentCompletion...",
+        );
+        const updated = await storage.togglePersistentAssignmentCompletion(
+          id,
+          userId,
+        );
+        console.log("[ASSIGNMENT SERVER] ✅ Assignment toggled successfully:", {
+          id: updated.id,
+          completed: updated.completed,
+          lessonName: updated.lessonName,
+        });
+
+        res.json(updated);
+      } catch (error) {
+        console.error(
+          "[ASSIGNMENT SERVER] ❌ Error toggling assignment completion:",
+          error,
+        );
+        res
+          .status(500)
+          .json({ message: "Failed to toggle assignment completion" });
+      }
+    },
+  );
+
+  // Delete all assignments (used by Reset button in Next Week Target table)
+  app.delete(
+    "/api/persistent-assignments/all",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        await storage.deleteAllPersistentAssignments(userId);
+        res.json({ success: true, message: "All assignments deleted" });
+      } catch (error) {
+        console.error("Error deleting all persistent assignments:", error);
+        res.status(500).json({ message: "Failed to delete all assignments" });
+      }
+    },
+  );
+
+  // Delete single assignment
+  app.delete(
+    "/api/persistent-assignments/:id",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+        const { id } = req.params;
+
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        await storage.deletePersistentAssignment(id, userId);
+        res.json({ success: true });
+      } catch (error) {
+        console.error("Error deleting persistent assignment:", error);
+        res
+          .status(500)
+          .json({ message: "Failed to delete persistent assignment" });
+      }
+    },
+  );
+
+  // Delete all completed assignments
+  app.delete(
+    "/api/persistent-assignments/completed",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        await storage.deleteCompletedAssignments(userId);
+        res.json({
+          success: true,
+          message: "All completed assignments deleted",
+        });
+      } catch (error) {
+        console.error("Error deleting completed assignments:", error);
+        res
+          .status(500)
+          .json({ message: "Failed to delete completed assignments" });
+      }
+    },
+  );
+
+  // One-time migration endpoint: Migrate old unified_assignment data to persistent assignments
+  app.post(
+    "/api/migrate-assignments",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.claims?.sub || req.session.userEmail;
+
+        if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        // Get user's latest HRCM week with unified_assignment data
+        const weeks = await storage.getHercmWeeksByUser(userId);
+
+        if (!weeks || weeks.length === 0) {
+          return res.json({
+            success: true,
+            migratedCount: 0,
+            message: "No week data found to migrate",
+          });
+        }
+
+        // Find most recent week with unified_assignment data
+        const weekWithAssignments = weeks
+          .filter(
+            (w: any) =>
+              w.unifiedAssignment &&
+              Array.isArray(w.unifiedAssignment) &&
+              w.unifiedAssignment.length > 0,
+          )
+          .sort(
+            (a: any, b: any) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+          )[0];
+
+        if (!weekWithAssignments) {
+          return res.json({
+            success: true,
+            migratedCount: 0,
+            message: "No assignments found to migrate",
+          });
+        }
+
+        const oldAssignments = weekWithAssignments.unifiedAssignment || [];
+
+        // Check existing persistent assignments to avoid duplicates
+        const existingAssignments =
+          await storage.getUserPersistentAssignments(userId);
+        const existingLessonIds = new Set(
+          existingAssignments.map((a: any) => a.lessonId || a.id),
+        );
+
+        let migratedCount = 0;
+
+        // Migrate each assignment that doesn't already exist
+        for (const assignment of oldAssignments) {
+          // Skip if already migrated
+          if (existingLessonIds.has(assignment.id)) {
+            continue;
+          }
+
+          // Determine hrcmArea based on course name or default to 'health'
+          let hrcmArea = "health";
+          const courseLower = (assignment.courseName || "").toLowerCase();
+          if (
+            courseLower.includes("relationship") ||
+            courseLower.includes("communication")
+          ) {
+            hrcmArea = "relationship";
+          } else if (
+            courseLower.includes("career") ||
+            courseLower.includes("business")
+          ) {
+            hrcmArea = "career";
+          } else if (
+            courseLower.includes("money") ||
+            courseLower.includes("wealth") ||
+            courseLower.includes("financial")
+          ) {
+            hrcmArea = "money";
+          }
+
+          // Create persistent assignment
+          await storage.addPersistentAssignment({
+            userId,
+            hrcmArea,
+            courseId: assignment.courseId || "",
+            courseName: assignment.courseName || "",
+            lessonId: assignment.id || "",
+            lessonName: assignment.lessonName || "",
+            url: assignment.url || "",
+            source: assignment.source || "user",
+            completed: assignment.completed || false,
+            recommendationId: assignment.recommendationId || null,
+          });
+
+          migratedCount++;
+        }
+
+        res.json({
+          success: true,
+          migratedCount,
+          message: `Successfully migrated ${migratedCount} assignments to persistent storage`,
+        });
+      } catch (error) {
+        console.error("Error migrating assignments:", error);
+        res.status(500).json({ message: "Failed to migrate assignments" });
+      }
+    },
+  );
 
   // ==========================================
   // DATABASE HEALTH CHECK (Public)
   // ==========================================
 
   // Database health check endpoint - helps detect crashes
-  app.get('/api/health/database', async (req, res) => {
+  app.get("/api/health/database", async (req, res) => {
     try {
       const startTime = Date.now();
-      
+
       // Try a simple query to verify database connectivity
       await storage.getAllApprovedEmails();
-      
+
       const responseTime = Date.now() - startTime;
-      
+
       res.json({
-        status: 'healthy',
-        database: 'connected',
+        status: "healthy",
+        database: "connected",
         responseTime: `${responseTime}ms`,
         timestamp: new Date().toISOString(),
-        message: 'Replit database is operational'
+        message: "Replit database is operational",
       });
     } catch (error) {
       console.error("[HEALTH CHECK] Database error:", error);
       res.status(503).json({
-        status: 'unhealthy',
-        database: 'disconnected',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        status: "unhealthy",
+        database: "disconnected",
+        error: error instanceof Error ? error.message : "Unknown error",
         timestamp: new Date().toISOString(),
-        message: '🚨 DATABASE CRASH DETECTED! Consider switching to Supabase backup.'
+        message:
+          "🚨 DATABASE CRASH DETECTED! Consider switching to Supabase backup.",
       });
     }
   });
 
   // Supabase backup database health check endpoint
-  app.get('/api/health/supabase', async (req, res) => {
+  app.get("/api/health/supabase", async (req, res) => {
     try {
       const healthStatus = await checkSupabaseHealth();
-      
-      if (healthStatus.status === 'healthy') {
+
+      if (healthStatus.status === "healthy") {
         res.json(healthStatus);
-      } else if (healthStatus.status === 'unconfigured') {
+      } else if (healthStatus.status === "unconfigured") {
         res.status(503).json(healthStatus);
       } else {
         res.status(503).json(healthStatus);
@@ -7738,9 +9849,9 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
     } catch (error) {
       console.error("[SUPABASE HEALTH] Error:", error);
       res.status(500).json({
-        status: 'error',
-        message: 'Failed to check Supabase health',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        status: "error",
+        message: "Failed to check Supabase health",
+        error: error instanceof Error ? error.message : "Unknown error",
       });
     }
   });
@@ -7750,13 +9861,13 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
   // ==========================================
 
   // Get backup configuration status
-  app.get('/api/backup/status', isAuthenticated, isAdmin, async (req, res) => {
+  app.get("/api/backup/status", isAuthenticated, isAdmin, async (req, res) => {
     try {
       res.json({
         configured: isSupabaseConfigured,
-        message: isSupabaseConfigured 
-          ? 'Supabase backup is configured and ready' 
-          : 'Supabase credentials not found. Add SUPABASE_URL and SUPABASE_ANON_KEY to enable backup.'
+        message: isSupabaseConfigured
+          ? "Supabase backup is configured and ready"
+          : "Supabase credentials not found. Add SUPABASE_URL and SUPABASE_ANON_KEY to enable backup.",
       });
     } catch (error) {
       console.error("Error checking backup status:", error);
@@ -7765,7 +9876,7 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
   });
 
   // Get backup statistics
-  app.get('/api/backup/stats', isAuthenticated, isAdmin, async (req, res) => {
+  app.get("/api/backup/stats", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const result = await getBackupStats();
       res.json(result);
@@ -7776,46 +9887,51 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
   });
 
   // Manual full backup - all users and data
-  app.post('/api/backup/full', isAuthenticated, isAdmin, async (req, res) => {
+  app.post("/api/backup/full", isAuthenticated, isAdmin, async (req, res) => {
     try {
-      console.log('[BACKUP] Starting full backup to Supabase...');
+      console.log("[BACKUP] Starting full backup to Supabase...");
       const result = await backupAllData();
-      console.log('[BACKUP] Full backup completed:', result);
+      console.log("[BACKUP] Full backup completed:", result);
       res.json(result);
     } catch (error) {
       console.error("Error during full backup:", error);
-      res.status(500).json({ 
+      res.status(500).json({
         success: false,
         message: "Failed to complete backup",
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : "Unknown error",
       });
     }
   });
 
   // Backup specific user data
-  app.post('/api/backup/user/:userId', isAuthenticated, isAdmin, async (req, res) => {
-    try {
-      const { userId } = req.params;
-      console.log(`[BACKUP] Starting backup for user ${userId}...`);
-      const result = await backupUserData(userId);
-      console.log(`[BACKUP] User backup completed:`, result);
-      res.json(result);
-    } catch (error) {
-      console.error("Error during user backup:", error);
-      res.status(500).json({ 
-        success: false,
-        message: "Failed to backup user data",
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  });
+  app.post(
+    "/api/backup/user/:userId",
+    isAuthenticated,
+    isAdmin,
+    async (req, res) => {
+      try {
+        const { userId } = req.params;
+        console.log(`[BACKUP] Starting backup for user ${userId}...`);
+        const result = await backupUserData(userId);
+        console.log(`[BACKUP] User backup completed:`, result);
+        res.json(result);
+      } catch (error) {
+        console.error("Error during user backup:", error);
+        res.status(500).json({
+          success: false,
+          message: "Failed to backup user data",
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
+    },
+  );
 
   // ========== User Feedback Routes ==========
   // Submit user feedback
-  app.post('/api/feedback', isAuthenticated, async (req: any, res) => {
+  app.post("/api/feedback", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.session.userEmail;
-      
+
       if (!userId) {
         return res.status(401).json({ message: "User not authenticated" });
       }
@@ -7834,10 +9950,10 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
   });
 
   // Get user's own feedback
-  app.get('/api/feedback', isAuthenticated, async (req: any, res) => {
+  app.get("/api/feedback", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.session.userEmail;
-      
+
       if (!userId) {
         return res.status(401).json({ message: "User not authenticated" });
       }
@@ -7851,7 +9967,7 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
   });
 
   // Admin: Get all feedback
-  app.get('/api/admin/feedback', isAdmin, async (req: any, res) => {
+  app.get("/api/admin/feedback", isAdmin, async (req: any, res) => {
     try {
       const feedback = await storage.getAllFeedback();
       res.json(feedback);
@@ -7862,12 +9978,17 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
   });
 
   // Admin: Update feedback status
-  app.patch('/api/admin/feedback/:id', isAdmin, async (req: any, res) => {
+  app.patch("/api/admin/feedback/:id", isAdmin, async (req: any, res) => {
     try {
       const { id } = req.params;
       const { status, adminResponse, priority } = req.body;
 
-      const updated = await storage.updateFeedbackStatus(id, status, adminResponse, priority);
+      const updated = await storage.updateFeedbackStatus(
+        id,
+        status,
+        adminResponse,
+        priority,
+      );
       res.json(updated);
     } catch (error) {
       console.error("Error updating feedback status:", error);
@@ -7876,18 +9997,25 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
   });
 
   // Admin: Clear all feedback (must be before :id route)
-  app.delete('/api/admin/feedback/clear-all', isAdmin, async (req: any, res) => {
-    try {
-      await storage.clearAllFeedback();
-      res.json({ success: true, message: "All feedback cleared successfully" });
-    } catch (error) {
-      console.error("Error clearing all feedback:", error);
-      res.status(500).json({ message: "Failed to clear all feedback" });
-    }
-  });
+  app.delete(
+    "/api/admin/feedback/clear-all",
+    isAdmin,
+    async (req: any, res) => {
+      try {
+        await storage.clearAllFeedback();
+        res.json({
+          success: true,
+          message: "All feedback cleared successfully",
+        });
+      } catch (error) {
+        console.error("Error clearing all feedback:", error);
+        res.status(500).json({ message: "Failed to clear all feedback" });
+      }
+    },
+  );
 
   // Admin: Delete feedback
-  app.delete('/api/admin/feedback/:id', isAdmin, async (req: any, res) => {
+  app.delete("/api/admin/feedback/:id", isAdmin, async (req: any, res) => {
     try {
       const { id } = req.params;
       await storage.deleteFeedback(id);
@@ -7900,7 +10028,7 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
 
   // Next Week Snapshot routes - Friday continuity system
   // Get active snapshot (latest unarchived)
-  app.get('/api/snapshots/active', isAuthenticated, async (req: any, res) => {
+  app.get("/api/snapshots/active", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.email;
       const snapshot = await storage.getActiveSnapshot(userId);
@@ -7912,7 +10040,7 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
   });
 
   // Create new snapshot
-  app.post('/api/snapshots', isAuthenticated, async (req: any, res) => {
+  app.post("/api/snapshots", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.email;
       const { snapshotDate, snapshotData } = req.body;
@@ -7921,7 +10049,7 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
         userId,
         snapshotDate,
         snapshotData,
-        archived: false
+        archived: false,
       });
 
       res.json(newSnapshot);
@@ -7932,62 +10060,73 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
   });
 
   // Archive snapshot (Update button clicked)
-  app.post('/api/snapshots/:id/archive', isAuthenticated, async (req: any, res) => {
-    try {
-      const { id } = req.params;
-      await storage.archiveSnapshot(id);
-      res.json({ success: true, message: "Snapshot archived successfully" });
-    } catch (error) {
-      console.error("Error archiving snapshot:", error);
-      res.status(500).json({ message: "Failed to archive snapshot" });
-    }
-  });
+  app.post(
+    "/api/snapshots/:id/archive",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const { id } = req.params;
+        await storage.archiveSnapshot(id);
+        res.json({ success: true, message: "Snapshot archived successfully" });
+      } catch (error) {
+        console.error("Error archiving snapshot:", error);
+        res.status(500).json({ message: "Failed to archive snapshot" });
+      }
+    },
+  );
 
   // Archive all user snapshots
-  app.post('/api/snapshots/archive-all', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.email;
-      await storage.archiveAllUserSnapshots(userId);
-      res.json({ success: true, message: "All snapshots archived successfully" });
-    } catch (error) {
-      console.error("Error archiving all snapshots:", error);
-      res.status(500).json({ message: "Failed to archive snapshots" });
-    }
-  });
+  app.post(
+    "/api/snapshots/archive-all",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.email;
+        await storage.archiveAllUserSnapshots(userId);
+        res.json({
+          success: true,
+          message: "All snapshots archived successfully",
+        });
+      } catch (error) {
+        console.error("Error archiving all snapshots:", error);
+        res.status(500).json({ message: "Failed to archive snapshots" });
+      }
+    },
+  );
 
   // ========== Chatbot Page Route ==========
   // Serve chatbot.html page (authenticated users only)
-  app.get('/chatbot', isAuthenticated, (req, res) => {
-    res.sendFile(__dirname + '/../public/chatbot.html');
+  app.get("/chatbot", isAuthenticated, (req, res) => {
+    res.sendFile(__dirname + "/../public/chatbot.html");
   });
 
   const httpServer = createServer(app);
-  
+
   // Setup WebSocket server for real-time notifications
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
-  
+  const wss = new WebSocketServer({ server: httpServer, path: "/ws" });
+
   // Store wss instance globally so webhook can broadcast to all clients
   wssInstance = wss;
-  
-  wss.on('connection', (ws: WebSocket, req) => {
-    console.log('[WebSocket] New client connected');
-    
-    ws.on('message', (message: string) => {
+
+  wss.on("connection", (ws: WebSocket, req) => {
+    console.log("[WebSocket] New client connected");
+
+    ws.on("message", (message: string) => {
       try {
         const data = JSON.parse(message.toString());
-        
+
         // Register client with userId
-        if (data.type === 'register' && data.userId) {
+        if (data.type === "register" && data.userId) {
           wsClients.set(data.userId, ws);
           console.log(`[WebSocket] Client registered: ${data.userId}`);
-          ws.send(JSON.stringify({ type: 'registered', userId: data.userId }));
+          ws.send(JSON.stringify({ type: "registered", userId: data.userId }));
         }
       } catch (error) {
-        console.error('[WebSocket] Error parsing message:', error);
+        console.error("[WebSocket] Error parsing message:", error);
       }
     });
-    
-    ws.on('close', () => {
+
+    ws.on("close", () => {
       // Remove client from map
       for (const [userId, client] of Array.from(wsClients.entries())) {
         if (client === ws) {
@@ -7997,14 +10136,14 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
         }
       }
     });
-    
-    ws.on('error', (error) => {
-      console.error('[WebSocket] Error:', error);
+
+    ws.on("error", (error) => {
+      console.error("[WebSocket] Error:", error);
     });
   });
-  
-  console.log('[WebSocket] Server initialized');
-  
+
+  console.log("[WebSocket] Server initialized");
+
   return httpServer;
 }
 
