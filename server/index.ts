@@ -5,8 +5,10 @@ import { setupScheduledTasks } from "./scheduler";
 import { startBackupScheduler } from "./backupScheduler";
 
 const app = express();
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: false, limit: '10mb' }));
+app.set("trust proxy", 1); // REQUIRED when running behind Railway/any reverse proxy
+
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -37,6 +39,30 @@ app.use((req, res, next) => {
 
   next();
 });
+import session from "express-session";
+import connectPgSimple from "connect-pg-simple";
+
+// session store
+const PgSession = connectPgSimple(session);
+
+app.use(
+  session({
+    store: new PgSession({
+      // Railway/Neon Postgres connection string
+      conString: process.env.DATABASE_URL,
+      createTableIfMissing: true,
+    }),
+    secret: process.env.SESSION_SECRET || "dev-secret", // make sure this exists in Railway Vars
+    resave: false,
+    saveUninitialized: false,
+    proxy: true, // IMPORTANT: allow secure cookies behind proxy
+    cookie: {
+      secure: process.env.NODE_ENV === "production", // true in production (Railway uses HTTPS)
+      sameSite: "none", // allow cross-site cookie for SPA + API on same domain
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    },
+  }),
+);
 
 (async () => {
   const server = await registerRoutes(app);
@@ -59,21 +85,24 @@ app.use((req, res, next) => {
   }
 
   // Setup scheduled tasks (email reminders, badge checks)
-  setupScheduledTasks();
-  
+  // setupScheduledTasks();
+
   // Setup automated Supabase backups (daily at 2 AM IST)
-  startBackupScheduler();
+  // startBackupScheduler();
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
   // Other ports are firewalled. Default to 5000 if not specified.
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || '5000', 10);
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-  });
+  const port = parseInt(process.env.PORT || "5000", 10);
+  server.listen(
+    {
+      port,
+      host: "0.0.0.0",
+      reusePort: true,
+    },
+    () => {
+      log(`serving on port ${port}`);
+    },
+  );
 })();
