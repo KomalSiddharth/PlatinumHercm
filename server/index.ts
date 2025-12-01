@@ -50,7 +50,7 @@ app.use(
     store: new PgSession({
       // Railway/Neon Postgres connection string
       conString: process.env.DATABASE_URL,
-      createTableIfMissing: true,
+      createTableIfMissing: false,
     }),
     secret: process.env.SESSION_SECRET || "dev-secret", // make sure this exists in Railway Vars
     resave: false,
