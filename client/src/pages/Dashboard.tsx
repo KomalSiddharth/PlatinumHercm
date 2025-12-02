@@ -1008,7 +1008,13 @@ useEffect(() => {
 
         {/* Course Tracker Section - Moved below HRCM */}
         <section ref={coursesRef} id="courses" className="scroll-mt-20">
-          <LifeSkillsMap />
+          {/* <LifeSkillsMap /> */}
+          <LifeSkillsMap 
+  externalCourses={courses}
+  loading={coursesLoading}
+  error={coursesError}
+/>
+
         </section>
 
         {/* Emotional Tracker Section */}
