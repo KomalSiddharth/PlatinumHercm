@@ -42,6 +42,8 @@ app.use((req, res, next) => {
 
 // -------------------- SESSION SETUP --------------------
 
+// -------------------- SESSION SETUP --------------------
+
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 
