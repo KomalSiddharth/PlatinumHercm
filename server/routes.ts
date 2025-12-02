@@ -10087,46 +10087,46 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
   const httpServer = createServer(app);
 
   // Setup WebSocket server for real-time notifications
-  const wss = new WebSocketServer({ server: httpServer, path: "/ws" });
+  // const wss = new WebSocketServer({ server: httpServer, path: "/ws" });
 
-  // Store wss instance globally so webhook can broadcast to all clients
-  wssInstance = wss;
+  // // Store wss instance globally so webhook can broadcast to all clients
+  // wssInstance = wss;
 
-  wss.on("connection", (ws: WebSocket, req) => {
-    console.log("[WebSocket] New client connected");
+  // wss.on("connection", (ws: WebSocket, req) => {
+  //   console.log("[WebSocket] New client connected");
 
-    ws.on("message", (message: string) => {
-      try {
-        const data = JSON.parse(message.toString());
+  //   ws.on("message", (message: string) => {
+  //     try {
+  //       const data = JSON.parse(message.toString());
 
-        // Register client with userId
-        if (data.type === "register" && data.userId) {
-          wsClients.set(data.userId, ws);
-          console.log(`[WebSocket] Client registered: ${data.userId}`);
-          ws.send(JSON.stringify({ type: "registered", userId: data.userId }));
-        }
-      } catch (error) {
-        console.error("[WebSocket] Error parsing message:", error);
-      }
-    });
+  //       // Register client with userId
+  //       if (data.type === "register" && data.userId) {
+  //         wsClients.set(data.userId, ws);
+  //         console.log(`[WebSocket] Client registered: ${data.userId}`);
+  //         ws.send(JSON.stringify({ type: "registered", userId: data.userId }));
+  //       }
+  //     } catch (error) {
+  //       console.error("[WebSocket] Error parsing message:", error);
+  //     }
+  //   });
 
-    ws.on("close", () => {
-      // Remove client from map
-      for (const [userId, client] of Array.from(wsClients.entries())) {
-        if (client === ws) {
-          wsClients.delete(userId);
-          console.log(`[WebSocket] Client disconnected: ${userId}`);
-          break;
-        }
-      }
-    });
+  //   ws.on("close", () => {
+  //     // Remove client from map
+  //     for (const [userId, client] of Array.from(wsClients.entries())) {
+  //       if (client === ws) {
+  //         wsClients.delete(userId);
+  //         console.log(`[WebSocket] Client disconnected: ${userId}`);
+  //         break;
+  //       }
+  //     }
+  //   });
 
-    ws.on("error", (error) => {
-      console.error("[WebSocket] Error:", error);
-    });
-  });
+  //   ws.on("error", (error) => {
+  //     console.error("[WebSocket] Error:", error);
+  //   });
+  // });
 
-  console.log("[WebSocket] Server initialized");
+  // console.log("[WebSocket] Server initialized");
 
   return httpServer;
 }
