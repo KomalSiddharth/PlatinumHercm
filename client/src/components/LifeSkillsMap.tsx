@@ -82,37 +82,39 @@ const coursesData = externalCourses;
 const isLoading = loading;
 const isError = !!error;
 
-  // 🚀 INSTANT GOOGLE SHEETS SYNC - Listen for webhook notifications
-  const { lastMessage } = useWebSocket(currentUser?.id);
+  // // 🚀 INSTANT GOOGLE SHEETS SYNC - Listen for webhook notifications
+  // const { lastMessage } = useWebSocket(currentUser?.id);
   
-  useEffect(() => {
-    if (lastMessage?.type === 'course_data_changed') {
-      console.log('[LifeSkillsMap] 📢 Received course data change notification from Google Sheets webhook');
-      console.log('[LifeSkillsMap] ⏳ Waiting 10 seconds for Google Sheets API cache to clear...');
+  // useEffect(() => {
+  //   if (lastMessage?.type === 'course_data_changed') {
+  //     console.log('[LifeSkillsMap] 📢 Received course data change notification from Google Sheets webhook');
+  //     console.log('[LifeSkillsMap] ⏳ Waiting 10 seconds for Google Sheets API cache to clear...');
       
-      toast({
-        title: "📢 Courses Syncing...",
-        description: "Updating from Google Sheets (10 sec delay for API cache)...",
-        duration: 10000,
-      });
+  //     toast({
+  //       title: "📢 Courses Syncing...",
+  //       description: "Updating from Google Sheets (10 sec delay for API cache)...",
+  //       duration: 10000,
+  //     });
       
-      // Wait 10 seconds for Google Sheets API cache to clear
-      setTimeout(async () => {
-        console.log('[LifeSkillsMap] 🔄 Force refetching with cache bypass...');
+  //     // Wait 10 seconds for Google Sheets API cache to clear
+  //     setTimeout(async () => {
+  //       console.log('[LifeSkillsMap] 🔄 Force refetching with cache bypass...');
         
-        // FORCE fresh fetch - bypass all caches
-        await queryClient.resetQueries({ queryKey: ['/api/courses/tracking'] });
-        await refetch();
+  //       // FORCE fresh fetch - bypass all caches
+  //       await queryClient.resetQueries({ queryKey: ['/api/courses/tracking'] });
+  //       await refetch();
         
-        console.log('[LifeSkillsMap] ✅ Fresh data fetched!');
-        toast({
-          title: "✅ Courses Updated!",
-          description: "Google Sheets data synced successfully!",
-          duration: 3000,
-        });
-      }, 10000);
-    }
-  }, [lastMessage, toast, refetch]);
+  //       console.log('[LifeSkillsMap] ✅ Fresh data fetched!');
+  //       toast({
+  //         title: "✅ Courses Updated!",
+  //         description: "Google Sheets data synced successfully!",
+  //         duration: 3000,
+  //       });
+  //     }, 10000);
+  //   }
+  // }, [lastMessage, toast, refetch]);
+  // REMOVE WEBHOOK SYNC (not needed for direct Google Sheet fetching)
+
 
   // Force refetch on mount to clear any cached errors
   useEffect(() => {
