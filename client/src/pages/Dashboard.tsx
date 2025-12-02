@@ -719,6 +719,67 @@ export default function Dashboard() {
     url: string;
     completed: boolean;
   }
+async function fetchCoursesDirectFromGoogleSheet() {
+  const url =
+    "https://docs.google.com/spreadsheets/d/1WItwo6f0TJ9EhHYtiTt_9mlBbQGHE5nBpgiKChUOq_c/gviz/tq?tqx=out:json";
+
+  try {
+    const response = await fetch(url);
+    const text = await response.text();
+
+    const json = JSON.parse(text.substring(47, text.length - 2));
+
+    const rows = json.table.rows.map((row: any) =>
+      row.c.map((cell: any) => (cell ? cell.v : ""))
+    );
+
+    return rows;
+  } catch (error) {
+    console.error("Failed to load Google Sheet:", error);
+    return [];
+  }
+}
+function parseGoogleSheetToCourseStructure(rows: any[][]) {
+  const courses: any[] = [];
+  let currentCourse: any = null;
+
+  for (const row of rows) {
+    const question = row[0] || "";
+    const answer = row[1] || "";
+
+    // A row with only bold text → course name
+    const isCourseTitle =
+      question &&
+      answer === "" &&
+      !question.toLowerCase().includes("lesson");
+
+    if (isCourseTitle) {
+      currentCourse = {
+        id: question.replace(/\s+/g, "-").toLowerCase(),
+        title: question,
+        url: "",
+        tags: [],
+        source: "Google Sheet",
+        estimatedHours: 0,
+        status: "not_started",
+        progressPercent: 0,
+        category: "General",
+        lessons: [],
+      };
+      courses.push(currentCourse);
+    } else if (currentCourse && question && answer) {
+      // A normal row with text + URL → lesson
+      currentCourse.lessons.push({
+        id: `${currentCourse.lessons.length + 1}`,
+        title: question,
+        url: answer,
+        completed: false,
+      });
+    }
+  }
+
+  return courses;
+}
 
   // Courses state - initially empty, populated from Google Sheets API
   const [courses, setCourses] = useState<Array<{
@@ -735,31 +796,52 @@ export default function Dashboard() {
   }>>([]);
 
   // Fetch courses from Google Sheets with auto-polling for instant updates
-  const { data: googleSheetsCourses, isLoading: coursesLoading, error: coursesError } = useQuery<Array<{
-    id: string;
-    title: string;
-    url: string;
-    tags: string[];
-    source: string;
-    estimatedHours: number;
-    status: 'not_started' | 'in_progress' | 'completed';
-    progressPercent: number;
-    category: string;
-    lessons: CourseLesson[];
-  }>>({
-    queryKey: ['/api/courses/tracking'],
-    enabled: !!currentUser,
-    refetchInterval: 30000, // Auto-refresh every 30 seconds for instant Google Sheets updates
-    refetchIntervalInBackground: true, // Continue polling even when tab is not focused
-  });
+  const {
+  data: googleSheetsRaw,
+  isLoading: coursesLoading,
+  error: coursesError,
+} = useQuery({
+  queryKey: ["googleSheetCourses"],
+  queryFn: fetchCoursesDirectFromGoogleSheet,
+  enabled: !!currentUser,
+  refetchInterval: 30000,
+  refetchIntervalInBackground: true,
+});
+useEffect(() => {
+  if (!googleSheetsRaw || googleSheetsRaw.length === 0) return;
 
-  // Initialize courses from Google Sheets data
-  useEffect(() => {
-    if (googleSheetsCourses && googleSheetsCourses.length > 0) {
-      console.log('[Course Tracker] Loaded', googleSheetsCourses.length, 'courses from Google Sheets');
-      setCourses(googleSheetsCourses);
-    }
-  }, [googleSheetsCourses]);
+  const rows = googleSheetsRaw.slice(1);
+
+  const formattedCourses = parseGoogleSheetToCourseStructure(rows);
+
+  setCourses(formattedCourses);
+}, [googleSheetsRaw]);
+
+  // const { data: googleSheetsCourses, isLoading: coursesLoading, error: coursesError } = useQuery<Array<{
+  //   id: string;
+  //   title: string;
+  //   url: string;
+  //   tags: string[];
+  //   source: string;
+  //   estimatedHours: number;
+  //   status: 'not_started' | 'in_progress' | 'completed';
+  //   progressPercent: number;
+  //   category: string;
+  //   lessons: CourseLesson[];
+  // }>>({
+  //   queryKey: ['/api/courses/tracking'],
+  //   enabled: !!currentUser,
+  //   refetchInterval: 30000, // Auto-refresh every 30 seconds for instant Google Sheets updates
+  //   refetchIntervalInBackground: true, // Continue polling even when tab is not focused
+  // });
+
+  // // Initialize courses from Google Sheets data
+  // useEffect(() => {
+  //   if (googleSheetsCourses && googleSheetsCourses.length > 0) {
+  //     console.log('[Course Tracker] Loaded', googleSheetsCourses.length, 'courses from Google Sheets');
+  //     setCourses(googleSheetsCourses);
+  //   }
+  // }, [googleSheetsCourses]);
 
   // Load lesson completions from database on mount
   useEffect(() => {
