@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 
 export interface WebSocketMessage {
   type: string;
@@ -16,44 +16,47 @@ export function useWebSocket(userId: string | undefined) {
   useEffect(() => {
     if (!userId) return;
 
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    // const wsUrl = `${protocol}//${window.location.host}/ws`;
+    const wsUrl = import.meta.env.DEV
+      ? "ws://localhost:5000/ws"
+      : "wss://platinumhercm-production.up.railway.app/ws";
 
     function connect() {
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 
       ws.onopen = () => {
-        console.log('[WebSocket] Connected');
+        console.log("[WebSocket] Connected");
         setIsConnected(true);
-        
+
         // Register with server
-        ws.send(JSON.stringify({ type: 'register', userId }));
+        ws.send(JSON.stringify({ type: "register", userId }));
       };
 
       ws.onmessage = (event) => {
         try {
           const message = JSON.parse(event.data);
-          console.log('[WebSocket] Message received:', message);
+          console.log("[WebSocket] Message received:", message);
           setLastMessage(message);
         } catch (error) {
-          console.error('[WebSocket] Error parsing message:', error);
+          console.error("[WebSocket] Error parsing message:", error);
         }
       };
 
       ws.onclose = () => {
-        console.log('[WebSocket] Disconnected');
+        console.log("[WebSocket] Disconnected");
         setIsConnected(false);
-        
+
         // Reconnect after 3 seconds
         reconnectTimeoutRef.current = setTimeout(() => {
-          console.log('[WebSocket] Reconnecting...');
+          console.log("[WebSocket] Reconnecting...");
           connect();
         }, 3000);
       };
 
       ws.onerror = (error) => {
-        console.error('[WebSocket] Error:', error);
+        console.error("[WebSocket] Error:", error);
       };
     }
 
