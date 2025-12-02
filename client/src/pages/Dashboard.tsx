@@ -743,17 +743,31 @@ function parseGoogleSheetToCourseStructure(rows: any[][]) {
   const courses: any[] = [];
   let currentCourse: any = null;
 
-  for (const row of rows) {
+  function isCourseTitle(question: string, answer: string, nextRow: any[]) {
+    const q = question.trim();
+
+    // RULE 1: Bold titles always course titles (Google keeps bold text under p[0].s!=null, but we removed JSON)
+    const looksLikeCourseTitle =
+      q.toLowerCase().includes("by mitesh khatri") ||
+      (!/^\d/.test(q) && answer === "");
+
+    // RULE 2: Lookahead → if next row begins with Lesson → this row is title
+    const nextQ = nextRow?.[0] || "";
+    const nextLooksLikeLesson = /^lesson/i.test(nextQ);
+
+    return looksLikeCourseTitle || nextLooksLikeLesson;
+  }
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const nextRow = rows[i + 1] || [];
     const question = row[0] || "";
     const answer = row[1] || "";
 
-    // A row with only bold text → course name
-    const isCourseTitle =
-      question &&
-      answer === "" &&
-      !question.toLowerCase().includes("lesson");
+    if (!question.trim()) continue;
 
-    if (isCourseTitle) {
+    // COURSE TITLE
+    if (isCourseTitle(question, answer, nextRow)) {
       currentCourse = {
         id: question.replace(/\s+/g, "-").toLowerCase(),
         title: question,
@@ -767,12 +781,15 @@ function parseGoogleSheetToCourseStructure(rows: any[][]) {
         lessons: [],
       };
       courses.push(currentCourse);
-    } else if (currentCourse && question && answer) {
-      // A normal row with text + URL → lesson
+      continue;
+    }
+
+    // LESSON ROW
+    if (currentCourse) {
       currentCourse.lessons.push({
         id: `${currentCourse.lessons.length + 1}`,
         title: question,
-        url: answer,
+        url: answer || "",
         completed: false,
       });
     }
