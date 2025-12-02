@@ -3754,12 +3754,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof Error) {
         console.error("[COURSE TRACKING] Error stack:", error.stack);
       }
-      res
-        .status(500)
-        .json({
-          message: "Failed to fetch courses",
-          error: error instanceof Error ? error.message : "Unknown error",
-        });
+      res.status(500).json({
+        message: "Failed to fetch courses",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
     }
   });
 
@@ -3999,12 +3997,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(recommendations);
     } catch (error) {
       console.error("Error recommending courses:", error);
-      res
-        .status(500)
-        .json({
-          message: "Failed to recommend courses",
-          error: error instanceof Error ? error.message : "Unknown error",
-        });
+      res.status(500).json({
+        message: "Failed to recommend courses",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
     }
   });
 
@@ -4284,12 +4280,10 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         res.json({ affirmation });
       } catch (error) {
         console.error("Error generating affirmation:", error);
-        res
-          .status(500)
-          .json({
-            message: "Failed to generate affirmation",
-            error: error instanceof Error ? error.message : "Unknown error",
-          });
+        res.status(500).json({
+          message: "Failed to generate affirmation",
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
       }
     },
   );
@@ -4341,11 +4335,9 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
               req.ip || (req.headers["x-forwarded-for"] as string) || "unknown",
             userAgent: req.headers["user-agent"] || "unknown",
           });
-          return res
-            .status(403)
-            .json({
-              message: "Your email is not approved. Please contact admin.",
-            });
+          return res.status(403).json({
+            message: "Your email is not approved. Please contact admin.",
+          });
         }
       }
 
@@ -5264,11 +5256,9 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         const { period = "monthly" } = req.query;
 
         if (!["weekly", "monthly", "yearly"].includes(period as string)) {
-          return res
-            .status(400)
-            .json({
-              message: "Invalid period. Use: weekly, monthly, or yearly",
-            });
+          return res.status(400).json({
+            message: "Invalid period. Use: weekly, monthly, or yearly",
+          });
         }
 
         const analytics = await storage.getUserAnalytics(
@@ -5355,11 +5345,9 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       });
 
       if (!userEmail || !hrcmArea || !courseName) {
-        return res
-          .status(400)
-          .json({
-            message: "Missing required fields: userEmail, hrcmArea, courseName",
-          });
+        return res.status(400).json({
+          message: "Missing required fields: userEmail, hrcmArea, courseName",
+        });
       }
 
       // Check if email is approved first (more flexible - works for any approved user)
@@ -5440,11 +5428,9 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
             error,
           );
           // If creation fails, this is a critical error
-          return res
-            .status(500)
-            .json({
-              message: "Failed to create user account for recommendation",
-            });
+          return res.status(500).json({
+            message: "Failed to create user account for recommendation",
+          });
         }
       }
 
@@ -6899,13 +6885,11 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
       }
     } catch (error) {
       console.error("Error deleting ritual:", error);
-      res
-        .status(500)
-        .json({
-          message:
-            "Failed to delete ritual: " +
-            ((error as Error).message || "Unknown error"),
-        });
+      res.status(500).json({
+        message:
+          "Failed to delete ritual: " +
+          ((error as Error).message || "Unknown error"),
+      });
     }
   });
 
