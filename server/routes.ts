@@ -4307,27 +4307,150 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
   });
 
   // Email-based authentication routes
+  // app.post("/api/auth/login", async (req, res) => {
+  //   try {
+  //     const { email: rawEmail } = req.body;
+
+  //     if (!rawEmail) {
+  //       return res.status(400).json({ message: "Email is required" });
+  //     }
+
+  //     // Normalize email to lowercase for case-insensitive matching
+  //     const email = rawEmail.toLowerCase().trim();
+
+  //     // Check if user is an admin first
+  //     const adminUser = await storage.getAdminUser(email);
+  //     const isAdmin = adminUser && adminUser.status === "active";
+
+  //     // If not admin, check approved emails
+  //     if (!isAdmin) {
+  //       const approvedEmail = await storage.getApprovedEmail(email);
+
+  //       if (!approvedEmail || approvedEmail.status !== "active") {
+  //         // Log failed attempt
+  //         await storage.createAccessLog({
+  //           email,
+  //           status: "failed",
+  //           ipAddress:
+  //             req.ip || (req.headers["x-forwarded-for"] as string) || "unknown",
+  //           userAgent: req.headers["user-agent"] || "unknown",
+  //         });
+  //         return res.status(403).json({
+  //           message: "Your email is not approved. Please contact admin.",
+  //         });
+  //       }
+  //     }
+
+  //     await storage.incrementAccessCount(email);
+
+  //     // Log successful attempt
+  //     await storage.createAccessLog({
+  //       email,
+  //       status: "success",
+  //       ipAddress:
+  //         req.ip || (req.headers["x-forwarded-for"] as string) || "unknown",
+  //       userAgent: req.headers["user-agent"] || "unknown",
+  //     });
+
+  //     // Get name from approved emails or admin users table
+  //     let userName = "";
+  //     if (isAdmin && adminUser) {
+  //       userName = adminUser.name || "";
+  //     } else {
+  //       const approvedEmail = await storage.getApprovedEmail(email);
+  //       userName = approvedEmail?.name || "";
+  //     }
+
+  //     // Split name into firstName and lastName
+  //     const nameParts = userName.trim().split(" ");
+  //     const firstName = nameParts[0] || "";
+  //     const lastName = nameParts.slice(1).join(" ") || "";
+
+  //     // Check if user exists, create or update with name
+  //     const existingUser = await storage.getUserByEmail(email);
+  //     console.log(
+  //       `[LOGIN] User lookup for ${email}:`,
+  //       existingUser ? "Found" : "Not found",
+  //     );
+
+  //     if (!existingUser) {
+  //       console.log(
+  //         `[LOGIN] Creating new user with id=${email}, email=${email}, name=${userName}`,
+  //       );
+  //       const newUser = await storage.upsertUser({
+  //         id: email,
+  //         email: email,
+  //         firstName: firstName,
+  //         lastName: lastName,
+  //         isAdmin: isAdmin || false,
+  //       });
+  //       console.log(`[LOGIN] User created:`, newUser);
+  //     } else {
+  //       // Update existing user with latest name from approved_emails
+  //       console.log(`[LOGIN] Updating user ${email} with name=${userName}`);
+  //       await storage.upsertUser({
+  //         id: email,
+  //         email: email,
+  //         firstName: firstName,
+  //         lastName: lastName,
+  //         isAdmin: isAdmin || false,
+  //       });
+  //     }
+
+  //     req.session.userEmail = email;
+  //     req.session.isAdmin = isAdmin || false;
+  //     console.log(
+  //       `[LOGIN] Session set: userEmail=${email}, isAdmin=${isAdmin}`,
+  //     );
+
+  //     // Save session before responding to ensure it's written to store
+  //     req.session.save((err) => {
+  //       if (err) {
+  //         console.error("[LOGIN] Session save error:", err);
+  //         return res.status(500).json({ message: "Failed to save session" });
+  //       }
+  //       console.log("[LOGIN] Session saved successfully");
+  //       res.json({ success: true, message: "Login successful" });
+  //     });
+  //   } catch (error) {
+  //     console.error("Error during login:", error);
+  //     res.status(500).json({ message: "Login failed" });
+  //   }
+  // });
   app.post("/api/auth/login", async (req, res) => {
+    console.log("=== 🔵 LOGIN START ===");
+
     try {
       const { email: rawEmail } = req.body;
+      console.log("📧 Raw email received:", rawEmail);
 
       if (!rawEmail) {
+        console.log("❌ ERROR: No email provided");
         return res.status(400).json({ message: "Email is required" });
       }
 
       // Normalize email to lowercase for case-insensitive matching
       const email = rawEmail.toLowerCase().trim();
+      console.log("📧 Normalized email:", email);
 
-      // Check if user is an admin first
+      // STEP 1: Check if user is an admin first
+      console.log("🔍 STEP 1: Checking admin users table...");
       const adminUser = await storage.getAdminUser(email);
+      console.log("📊 Admin user result:", JSON.stringify(adminUser));
       const isAdmin = adminUser && adminUser.status === "active";
+      console.log("👑 Is admin?", isAdmin);
 
       // If not admin, check approved emails
       if (!isAdmin) {
+        console.log("🔍 STEP 2: Checking approved_emails table...");
         const approvedEmail = await storage.getApprovedEmail(email);
+        console.log("📊 Approved email result:", JSON.stringify(approvedEmail));
 
         if (!approvedEmail || approvedEmail.status !== "active") {
+          console.log("❌ ERROR: Email not approved or inactive");
+
           // Log failed attempt
+          console.log("📝 Logging failed access attempt...");
           await storage.createAccessLog({
             email,
             status: "failed",
@@ -4335,15 +4458,20 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
               req.ip || (req.headers["x-forwarded-for"] as string) || "unknown",
             userAgent: req.headers["user-agent"] || "unknown",
           });
+          console.log("✅ Failed access logged");
+
           return res.status(403).json({
             message: "Your email is not approved. Please contact admin.",
           });
         }
       }
 
+      console.log("🔍 STEP 3: Incrementing access count...");
       await storage.incrementAccessCount(email);
+      console.log("✅ Access count incremented");
 
       // Log successful attempt
+      console.log("📝 STEP 4: Logging successful access...");
       await storage.createAccessLog({
         email,
         status: "success",
@@ -4351,8 +4479,10 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
           req.ip || (req.headers["x-forwarded-for"] as string) || "unknown",
         userAgent: req.headers["user-agent"] || "unknown",
       });
+      console.log("✅ Access logged successfully");
 
       // Get name from approved emails or admin users table
+      console.log("🔍 STEP 5: Getting user name...");
       let userName = "";
       if (isAdmin && adminUser) {
         userName = adminUser.name || "";
@@ -4360,23 +4490,25 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
         const approvedEmail = await storage.getApprovedEmail(email);
         userName = approvedEmail?.name || "";
       }
+      console.log("📛 User name:", userName);
 
       // Split name into firstName and lastName
       const nameParts = userName.trim().split(" ");
       const firstName = nameParts[0] || "";
       const lastName = nameParts.slice(1).join(" ") || "";
+      console.log("👤 First name:", firstName, "| Last name:", lastName);
 
       // Check if user exists, create or update with name
+      console.log("🔍 STEP 6: Looking up existing user...");
       const existingUser = await storage.getUserByEmail(email);
-      console.log(
-        `[LOGIN] User lookup for ${email}:`,
-        existingUser ? "Found" : "Not found",
-      );
+      console.log("📊 Existing user:", existingUser ? "Found" : "Not found");
 
       if (!existingUser) {
+        console.log("🔍 STEP 6b: Creating new user...");
         console.log(
-          `[LOGIN] Creating new user with id=${email}, email=${email}, name=${userName}`,
+          `Creating with: id=${email}, email=${email}, firstName=${firstName}, lastName=${lastName}, isAdmin=${isAdmin}`,
         );
+
         const newUser = await storage.upsertUser({
           id: email,
           email: email,
@@ -4384,10 +4516,9 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
           lastName: lastName,
           isAdmin: isAdmin || false,
         });
-        console.log(`[LOGIN] User created:`, newUser);
+        console.log("✅ User created:", JSON.stringify(newUser));
       } else {
-        // Update existing user with latest name from approved_emails
-        console.log(`[LOGIN] Updating user ${email} with name=${userName}`);
+        console.log("🔍 STEP 6c: Updating existing user...");
         await storage.upsertUser({
           id: email,
           email: email,
@@ -4395,26 +4526,86 @@ Return ONLY a JSON object with "suggestions" array containing 4 objects:
           lastName: lastName,
           isAdmin: isAdmin || false,
         });
+        console.log("✅ User updated");
       }
 
+      // STEP 7: Set session
+      console.log("🔍 STEP 7: Setting session data...");
       req.session.userEmail = email;
       req.session.isAdmin = isAdmin || false;
       console.log(
-        `[LOGIN] Session set: userEmail=${email}, isAdmin=${isAdmin}`,
+        `📊 Session data set: userEmail=${email}, isAdmin=${isAdmin}`,
       );
 
-      // Save session before responding to ensure it's written to store
+      // STEP 8: Save session before responding
+      console.log("🔍 STEP 8: Saving session to database...");
       req.session.save((err) => {
         if (err) {
-          console.error("[LOGIN] Session save error:", err);
+          console.error("❌❌❌ Session save error:", err);
+          console.error("❌ Error stack:", err.stack);
           return res.status(500).json({ message: "Failed to save session" });
         }
-        console.log("[LOGIN] Session saved successfully");
+        console.log("✅ Session saved successfully");
+        console.log("🆔 Session ID:", req.sessionID);
+        console.log("=== ✅✅✅ LOGIN SUCCESS ✅✅✅ ===");
         res.json({ success: true, message: "Login successful" });
       });
-    } catch (error) {
-      console.error("Error during login:", error);
-      res.status(500).json({ message: "Login failed" });
+    } catch (error: any) {
+      console.error("=== ❌❌❌ LOGIN ERROR ❌❌❌ ===");
+      console.error("🔴 Error name:", error?.name);
+      console.error("🔴 Error message:", error?.message);
+      console.error("🔴 Error stack:", error?.stack);
+      console.error(
+        "🔴 Full error:",
+        JSON.stringify(error, Object.getOwnPropertyNames(error)),
+      );
+
+      res.status(500).json({
+        message: "Login failed",
+        error: error?.message || "Unknown error",
+        errorType: error?.name,
+      });
+    }
+  });
+  // Database health check route - ADD THIS
+  app.get("/api/health/db", async (req, res) => {
+    try {
+      console.log("🏥 === DATABASE HEALTH CHECK START ===");
+
+      // Test 1: Check approved_emails table
+      console.log("🔍 Test 1: Checking approved_emails...");
+      const approvedEmails = await storage.getAllApprovedEmails();
+      console.log("📊 Approved emails count:", approvedEmails.length);
+      console.log("📊 First 3 emails:", approvedEmails.slice(0, 3));
+
+      // Test 2: Check admin users
+      console.log("🔍 Test 2: Checking admin_users...");
+      const adminUsers = await storage.getAllAdminUsers();
+      console.log("📊 Admin users count:", adminUsers.length);
+
+      console.log("=== ✅ DATABASE HEALTH CHECK COMPLETE ===");
+
+      res.json({
+        success: true,
+        database: "Connected ✅",
+        counts: {
+          approvedEmails: approvedEmails.length,
+          adminUsers: adminUsers.length,
+        },
+        sampleApprovedEmails: approvedEmails.slice(0, 3),
+        message: "Database is working perfectly!",
+      });
+    } catch (error: any) {
+      console.error("=== ❌ DATABASE HEALTH CHECK FAILED ===");
+      console.error("🔴 Error:", error);
+      console.error("🔴 Error message:", error?.message);
+      console.error("🔴 Error stack:", error?.stack);
+
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        errorType: error.name,
+      });
     }
   });
 
