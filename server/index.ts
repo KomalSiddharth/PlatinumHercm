@@ -45,13 +45,33 @@ import connectPgSimple from "connect-pg-simple";
 // session store
 const PgSession = connectPgSimple(session);
 
+// app.use(
+//   session({
+//     store: new PgSession({
+//       // Railway/Neon Postgres connection string
+//       conString: process.env.DATABASE_URL,
+//       createTableIfMissing: true,
+//     }),
 app.use(
   session({
     store: new PgSession({
-      // Railway/Neon Postgres connection string
       conString: process.env.DATABASE_URL,
-      createTableIfMissing: true,
+      tableName: "session",
+      createTableIfMissing: false,
     }),
+    secret: process.env.SESSION_SECRET || "dev-secret",
+    resave: false,
+    saveUninitialized: false,
+    proxy: true,
+    cookie: {
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
+      httpOnly: true,
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    },
+  })
+);
+
     secret: process.env.SESSION_SECRET || "dev-secret", // make sure this exists in Railway Vars
     resave: false,
     saveUninitialized: false,
