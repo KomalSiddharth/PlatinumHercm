@@ -821,31 +821,31 @@ async function fetchCoursesDirectFromGoogleSheet() {
   // -----------------------------
 // FIXED COURSE TITLE DETECTOR
 // -----------------------------
-function isCourseTitle(
-  question: string,
-  answer: string,
-  nextRow: any[]
-) {
-  const q = question.trim();
+// function isCourseTitle(
+//   question: string,
+//   answer: string,
+//   nextRow: any[]
+// ) {
+//   const q = question.trim();
 
-  // RULE 1 — If it starts with a number: It's ALWAYS a lesson
-  if (/^\d/.test(q)) return false;
+//   // RULE 1 — If it starts with a number: It's ALWAYS a lesson
+//   if (/^\d/.test(q)) return false;
 
-  // RULE 2 — If question contains "by Mitesh Khatri" → always a course
-  if (q.toLowerCase().includes("by mitesh khatri")) return true;
+//   // RULE 2 — If question contains "by Mitesh Khatri" → always a course
+//   if (q.toLowerCase().includes("by mitesh khatri")) return true;
 
-  // RULE 3 — If next row looks like a lesson (number or "Lesson")
-  const nextQ = (nextRow?.[0] || "").trim();
-  if (/^(\d+|lesson\s*\d*)/i.test(nextQ)) return true;
+//   // RULE 3 — If next row looks like a lesson (number or "Lesson")
+//   const nextQ = (nextRow?.[0] || "").trim();
+//   if (/^(\d+|lesson\s*\d*)/i.test(nextQ)) return true;
 
-  // RULE 4 — If this row has a URL in the Answer column → it's a lesson
-  if (answer && answer.startsWith("http")) return false;
+//   // RULE 4 — If this row has a URL in the Answer column → it's a lesson
+//   if (answer && answer.startsWith("http")) return false;
 
-  // RULE 5 — If Answer empty + doesn't start with number → most likely a section title
-  if (answer === "" && !/^\d/.test(q)) return true;
+//   // RULE 5 — If Answer empty + doesn't start with number → most likely a section title
+//   if (answer === "" && !/^\d/.test(q)) return true;
 
-  return false;
-}
+//   return false;
+// }
 
 ------------------------------------
 FIXED PARSER FOR GOOGLE SHEET COURSES
