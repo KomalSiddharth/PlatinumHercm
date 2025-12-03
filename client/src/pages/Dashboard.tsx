@@ -847,9 +847,9 @@ async function fetchCoursesDirectFromGoogleSheet() {
 //   return false;
 // }
 
-------------------------------------
-FIXED PARSER FOR GOOGLE SHEET COURSES
-------------------------------------
+// ------------------------------------
+// FIXED PARSER FOR GOOGLE SHEET COURSES
+// ------------------------------------
 function parseGoogleSheetToCourseStructure(rows: any[][]) {
   const courses: any[] = [];
   let currentCourse: any = null;
