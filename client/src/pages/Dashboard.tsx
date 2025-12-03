@@ -847,161 +847,77 @@ function isCourseTitle(
   return false;
 }
 
-// ------------------------------------
-// FIXED PARSER FOR GOOGLE SHEET COURSES
-// ------------------------------------
-// function parseGoogleSheetToCourseStructure(rows: any[][]) {
-//   const courses: any[] = [];
-//   let currentCourse: any = null;
-
-//   // Strong course title detection
-//   function isCourseTitle(question: string, answer: string) {
-//     const q = question.trim();
-
-//     // MUST: answer should be empty for course title
-//     if (answer && answer.trim() !== "") return false;
-
-//     // Contains special course keywords
-//     const keywords = [
-//       "by mitesh khatri",
-//       "platinum",
-//       "dmp",
-//       "one day miracle",
-//       "chakra",
-//       "ai course"
-//     ];
-
-//     const isKeywordTitle = keywords.some(k => q.toLowerCase().includes(k));
-
-//     // If contains keywords → definitely a course
-//     if (isKeywordTitle) return true;
-
-//     // If begins with number → it is NOT a course
-//     if (/^\d/.test(q)) return false;
-
-//     // If begins with Lesson/Day/Part → NOT a course
-//     if (/^(lesson|day|part)/i.test(q)) return false;
-
-//     // If next rows start with Lesson/Day/Part → this row is a title
-//     return true;
-//   }
-
-//   for (let i = 0; i < rows.length; i++) {
-//     const row = rows[i];
-//     const question = row[0] || "";
-//     const answer = row[1] || "";
-
-//     if (!question.trim()) continue;
-
-//     // Check if this is a COURSE
-//     if (isCourseTitle(question, answer)) {
-//       currentCourse = {
-//         id: question.replace(/\s+/g, "-").toLowerCase(),
-//         title: question,
-//         lessons: [],
-//       };
-//       courses.push(currentCourse);
-//       continue;
-//     }
-
-//     // Otherwise → LESSON
-//     if (currentCourse) {
-//       currentCourse.lessons.push({
-//         id: `${currentCourse.lessons.length + 1}`,
-//         title: question,
-//         url: answer || "",
-//         completed: false
-//       });
-//     }
-//   }
-
-//   return courses;
-// }
+------------------------------------
+FIXED PARSER FOR GOOGLE SHEET COURSES
+------------------------------------
 function parseGoogleSheetToCourseStructure(rows: any[][]) {
   const courses: any[] = [];
   let currentCourse: any = null;
-  let currentSubcategory: any = null;
 
-  function isCourseTitle(question: string, answer: string, nextRow: any[]) {
+  // Strong course title detection
+  function isCourseTitle(question: string, answer: string) {
     const q = question.trim();
 
-    // RULE 1 — Anything starting with a number is a lesson (not a course)
+    // MUST: answer should be empty for course title
+    if (answer && answer.trim() !== "") return false;
+
+    // Contains special course keywords
+    const keywords = [
+      "by mitesh khatri",
+      "platinum",
+      "dmp",
+      "one day miracle",
+      "chakra",
+      "ai course"
+    ];
+
+    const isKeywordTitle = keywords.some(k => q.toLowerCase().includes(k));
+
+    // If contains keywords → definitely a course
+    if (isKeywordTitle) return true;
+
+    // If begins with number → it is NOT a course
     if (/^\d/.test(q)) return false;
 
-    // RULE 2 — Titles containing “by Mitesh Khatri”
-    if (q.toLowerCase().includes("by mitesh khatri")) return true;
+    // If begins with Lesson/Day/Part → NOT a course
+    if (/^(lesson|day|part)/i.test(q)) return false;
 
-    // RULE 3 — If next row looks like a lesson (starts with number or "Lesson")
-    const nextQ = (nextRow?.[0] || "").trim();
-    if (/^(\d+|lesson\s*\d*)/i.test(nextQ)) return true;
-
-    // RULE 4 — If answer column has a URL → it's a lesson
-    if (answer && answer.startsWith("http")) return false;
-
-    // RULE 5 — If question is non-empty + answer empty + not numeric → course title
-    if (q.length > 0 && answer === "") return true;
-
-    return false;
+    // If next rows start with Lesson/Day/Part → this row is a title
+    return true;
   }
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
-    const nextRow = rows[i + 1] || [];
     const question = row[0] || "";
     const answer = row[1] || "";
 
     if (!question.trim()) continue;
 
-    // ---------- COURSE TITLE ----------
-    if (isCourseTitle(question, answer, nextRow)) {
+    // Check if this is a COURSE
+    if (isCourseTitle(question, answer)) {
       currentCourse = {
         id: question.replace(/\s+/g, "-").toLowerCase(),
         title: question,
-        url: "",
-        tags: [],
-        source: "Google Sheet",
-        estimatedHours: 0,
-        status: "not_started",
-        progressPercent: 0,
-        category: "General",
         lessons: [],
-        subcategories: [],
       };
       courses.push(currentCourse);
-      currentSubcategory = null;
       continue;
     }
 
-    // ---------- SUBCATEGORY (MODULE) ----------
-    if (/^module/i.test(question)) {
-      currentSubcategory = {
-        id: question.replace(/\s+/g, "-").toLowerCase(),
+    // Otherwise → LESSON
+    if (currentCourse) {
+      currentCourse.lessons.push({
+        id: `${currentCourse.lessons.length + 1}`,
         title: question,
-        lessons: [],
-      };
-      currentCourse.subcategories.push(currentSubcategory);
-      continue;
-    }
-
-    // ---------- LESSON ----------
-    const uniqueLessonId = `lesson-${i}`; // 💥 UNIQUE EVERY TIME!
-
-    const lesson = {
-      id: uniqueLessonId,
-      title: question,
-      url: answer || "",
-      completed: false,
-    };
-
-    if (currentSubcategory) {
-      currentSubcategory.lessons.push(lesson);
-    } else {
-      currentCourse.lessons.push(lesson);
+        url: answer || "",
+        completed: false
+      });
     }
   }
 
   return courses;
 }
+
 
 
 
