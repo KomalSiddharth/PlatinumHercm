@@ -720,8 +720,11 @@ export default function Dashboard() {
     completed: boolean;
   }
 async function fetchCoursesDirectFromGoogleSheet() {
+  // const url =
+  //   "https://docs.google.com/spreadsheets/d/1WItwo6f0TJ9EhHYtiTt_9mlBbQGHE5nBpgiKChUOq_c/gviz/tq?tqx=out:json";
   const url =
-    "https://docs.google.com/spreadsheets/d/1WItwo6f0TJ9EhHYtiTt_9mlBbQGHE5nBpgiKChUOq_c/gviz/tq?tqx=out:json";
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vT85feFCc0U7pxnxRqnEEZB1Hvsq9SnvlOckk2YH-9pXaR7caIkw1zzeCN59FTeRE-u5rXlqYqtS3Wy/gviz/tq?tqx=out:json";
+
 
   try {
     const response = await fetch(url);
