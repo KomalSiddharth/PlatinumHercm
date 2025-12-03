@@ -241,6 +241,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch user" });
     }
   });
+  // LOGOUT ROUTE — clears session + redirects to login
+  app.get("/api/logout", async (req: any, res) => {
+    try {
+      // Destroy session
+      req.session.destroy(() => {
+        console.log("User logged out, session destroyed.");
+
+        // Redirect back to login page (frontend)
+        return res.redirect("/login");
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+      return res.redirect("/login");
+    }
+  });
 
   // User HRCM routes (protected)
   app.get("/api/hercm/weeks", isAuthenticated, async (req: any, res) => {
