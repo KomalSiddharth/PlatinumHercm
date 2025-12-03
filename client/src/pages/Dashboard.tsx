@@ -739,19 +739,18 @@ async function fetchCoursesDirectFromGoogleSheet() {
     return [];
   }
 }
-function parseGoogleSheetToCourseStructure(rows: any[][]) {
+  function parseGoogleSheetToCourseStructure(rows: any[][]) {
   const courses: any[] = [];
   let currentCourse: any = null;
+  let currentSubcategory: any = null;
 
   function isCourseTitle(question: string, answer: string, nextRow: any[]) {
     const q = question.trim();
 
-    // RULE 1: Bold titles always course titles (Google keeps bold text under p[0].s!=null, but we removed JSON)
     const looksLikeCourseTitle =
       q.toLowerCase().includes("by mitesh khatri") ||
       (!/^\d/.test(q) && answer === "");
 
-    // RULE 2: Lookahead → if next row begins with Lesson → this row is title
     const nextQ = nextRow?.[0] || "";
     const nextLooksLikeLesson = /^lesson/i.test(nextQ);
 
@@ -779,24 +778,102 @@ function parseGoogleSheetToCourseStructure(rows: any[][]) {
         progressPercent: 0,
         category: "General",
         lessons: [],
+        subcategories: [],
       };
       courses.push(currentCourse);
+      currentSubcategory = null;
+      continue;
+    }
+
+    // SUBCATEGORY ("Module ..." or similar)
+    if (/^module/i.test(question)) {
+      currentSubcategory = {
+        id: question.replace(/\s+/g, "-").toLowerCase(),
+        title: question,
+        lessons: [],
+      };
+      currentCourse.subcategories.push(currentSubcategory);
       continue;
     }
 
     // LESSON ROW
-    if (currentCourse) {
-      currentCourse.lessons.push({
-        id: `${currentCourse.lessons.length + 1}`,
-        title: question,
-        url: answer || "",
-        completed: false,
-      });
+    const lesson = {
+      id: currentSubcategory
+        ? `${currentSubcategory.lessons.length + 1}`
+        : `${currentCourse.lessons.length + 1}`,
+      title: question,
+      url: answer || "",
+      completed: false,
+    };
+
+    if (currentSubcategory) {
+      currentSubcategory.lessons.push(lesson);
+    } else {
+      currentCourse.lessons.push(lesson);
     }
   }
 
   return courses;
 }
+
+// function parseGoogleSheetToCourseStructure(rows: any[][]) {
+//   const courses: any[] = [];
+//   let currentCourse: any = null;
+
+//   function isCourseTitle(question: string, answer: string, nextRow: any[]) {
+//     const q = question.trim();
+
+//     // RULE 1: Bold titles always course titles (Google keeps bold text under p[0].s!=null, but we removed JSON)
+//     const looksLikeCourseTitle =
+//       q.toLowerCase().includes("by mitesh khatri") ||
+//       (!/^\d/.test(q) && answer === "");
+
+//     // RULE 2: Lookahead → if next row begins with Lesson → this row is title
+//     const nextQ = nextRow?.[0] || "";
+//     const nextLooksLikeLesson = /^lesson/i.test(nextQ);
+
+//     return looksLikeCourseTitle || nextLooksLikeLesson;
+//   }
+
+//   for (let i = 0; i < rows.length; i++) {
+//     const row = rows[i];
+//     const nextRow = rows[i + 1] || [];
+//     const question = row[0] || "";
+//     const answer = row[1] || "";
+
+//     if (!question.trim()) continue;
+
+//     // COURSE TITLE
+//     if (isCourseTitle(question, answer, nextRow)) {
+//       currentCourse = {
+//         id: question.replace(/\s+/g, "-").toLowerCase(),
+//         title: question,
+//         url: "",
+//         tags: [],
+//         source: "Google Sheet",
+//         estimatedHours: 0,
+//         status: "not_started",
+//         progressPercent: 0,
+//         category: "General",
+//         lessons: [],
+//       };
+//       courses.push(currentCourse);
+//       continue;
+//     }
+
+//     // LESSON ROW
+//     if (currentCourse) {
+//       currentCourse.lessons.push({
+//         id: `${currentCourse.lessons.length + 1}`,
+//         title: question,
+//         url: answer || "",
+//         completed: false,
+//       });
+//     }
+//   }
+
+//   return courses;
+// }
 
   // Courses state - initially empty, populated from Google Sheets API
   const [courses, setCourses] = useState<Array<{
