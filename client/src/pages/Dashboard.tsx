@@ -742,33 +742,132 @@ async function fetchCoursesDirectFromGoogleSheet() {
     return [];
   }
 }
-  function parseGoogleSheetToCourseStructure(rows: any[][]) {
+//   function parseGoogleSheetToCourseStructure(rows: any[][]) {
+//   const courses: any[] = [];
+//   let currentCourse: any = null;
+//   let currentSubcategory: any = null;
+
+//   function isCourseTitle(question: string, answer: string, nextRow: any[]) {
+//     const q = question.trim();
+
+//     const looksLikeCourseTitle =
+//       q.toLowerCase().includes("by mitesh khatri") ||
+//       (!/^\d/.test(q) && answer === "");
+
+//     const nextQ = nextRow?.[0] || "";
+//     const nextLooksLikeLesson = /^lesson/i.test(nextQ);
+
+//     return looksLikeCourseTitle || nextLooksLikeLesson;
+//   }
+
+//   for (let i = 0; i < rows.length; i++) {
+//     const row = rows[i];
+//     const nextRow = rows[i + 1] || [];
+//     const question = row[0] || "";
+//     const answer = row[1] || "";
+
+//     if (!question.trim()) continue;
+
+//     // COURSE TITLE
+//     if (isCourseTitle(question, answer, nextRow)) {
+//       currentCourse = {
+//         id: question.replace(/\s+/g, "-").toLowerCase(),
+//         title: question,
+//         url: "",
+//         tags: [],
+//         source: "Google Sheet",
+//         estimatedHours: 0,
+//         status: "not_started",
+//         progressPercent: 0,
+//         category: "General",
+//         lessons: [],
+//         subcategories: [],
+//       };
+//       courses.push(currentCourse);
+//       currentSubcategory = null;
+//       continue;
+//     }
+
+//     // SUBCATEGORY ("Module ..." or similar)
+//     if (/^module/i.test(question)) {
+//       currentSubcategory = {
+//         id: question.replace(/\s+/g, "-").toLowerCase(),
+//         title: question,
+//         lessons: [],
+//       };
+//       currentCourse.subcategories.push(currentSubcategory);
+//       continue;
+//     }
+
+//     // LESSON ROW
+//     const lesson = {
+//       id: currentSubcategory
+//         ? `${currentSubcategory.lessons.length + 1}`
+//         : `${currentCourse.lessons.length + 1}`,
+//       title: question,
+//       url: answer || "",
+//       completed: false,
+//     };
+
+//     if (currentSubcategory) {
+//       currentSubcategory.lessons.push(lesson);
+//     } else {
+//       currentCourse.lessons.push(lesson);
+//     }
+//   }
+
+//   return courses;
+// }
+  // -----------------------------
+// FIXED COURSE TITLE DETECTOR
+// -----------------------------
+function isCourseTitle(
+  question: string,
+  answer: string,
+  nextRow: any[]
+) {
+  const q = question.trim();
+
+  // RULE 1 — If it starts with a number: It's ALWAYS a lesson
+  if (/^\d/.test(q)) return false;
+
+  // RULE 2 — If question contains "by Mitesh Khatri" → always a course
+  if (q.toLowerCase().includes("by mitesh khatri")) return true;
+
+  // RULE 3 — If next row looks like a lesson (number or "Lesson")
+  const nextQ = (nextRow?.[0] || "").trim();
+  if (/^(\d+|lesson\s*\d*)/i.test(nextQ)) return true;
+
+  // RULE 4 — If this row has a URL in the Answer column → it's a lesson
+  if (answer && answer.startsWith("http")) return false;
+
+  // RULE 5 — If Answer empty + doesn't start with number → most likely a section title
+  if (answer === "" && !/^\d/.test(q)) return true;
+
+  return false;
+}
+
+// ------------------------------------
+// FIXED PARSER FOR GOOGLE SHEET COURSES
+// ------------------------------------
+function parseGoogleSheetToCourseStructure(rows: any[][]) {
   const courses: any[] = [];
+
   let currentCourse: any = null;
   let currentSubcategory: any = null;
-
-  function isCourseTitle(question: string, answer: string, nextRow: any[]) {
-    const q = question.trim();
-
-    const looksLikeCourseTitle =
-      q.toLowerCase().includes("by mitesh khatri") ||
-      (!/^\d/.test(q) && answer === "");
-
-    const nextQ = nextRow?.[0] || "";
-    const nextLooksLikeLesson = /^lesson/i.test(nextQ);
-
-    return looksLikeCourseTitle || nextLooksLikeLesson;
-  }
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
     const nextRow = rows[i + 1] || [];
+
     const question = row[0] || "";
     const answer = row[1] || "";
 
     if (!question.trim()) continue;
 
-    // COURSE TITLE
+    // ----------------------
+    // COURSE TITLE DETECTED
+    // ----------------------
     if (isCourseTitle(question, answer, nextRow)) {
       currentCourse = {
         id: question.replace(/\s+/g, "-").toLowerCase(),
@@ -780,44 +879,57 @@ async function fetchCoursesDirectFromGoogleSheet() {
         status: "not_started",
         progressPercent: 0,
         category: "General",
+
         lessons: [],
-        subcategories: [],
+        subcategories: []
       };
+
       courses.push(currentCourse);
       currentSubcategory = null;
       continue;
     }
 
-    // SUBCATEGORY ("Module ..." or similar)
+    // ----------------------
+    // SUBCATEGORY (Module)
+    // ----------------------
     if (/^module/i.test(question)) {
+      if (!currentCourse) continue;
+
       currentSubcategory = {
         id: question.replace(/\s+/g, "-").toLowerCase(),
         title: question,
-        lessons: [],
+        lessons: []
       };
+
       currentCourse.subcategories.push(currentSubcategory);
       continue;
     }
 
-    // LESSON ROW
-    const lesson = {
-      id: currentSubcategory
-        ? `${currentSubcategory.lessons.length + 1}`
-        : `${currentCourse.lessons.length + 1}`,
-      title: question,
-      url: answer || "",
-      completed: false,
-    };
+    // ----------------------
+    // LESSON
+    // ----------------------
+    if (currentCourse) {
+      const lesson = {
+        id: currentSubcategory
+          ? `${currentSubcategory.lessons.length + 1}`
+          : `${currentCourse.lessons.length + 1}`,
 
-    if (currentSubcategory) {
-      currentSubcategory.lessons.push(lesson);
-    } else {
-      currentCourse.lessons.push(lesson);
+        title: question,
+        url: answer || "",
+        completed: false
+      };
+
+      if (currentSubcategory) {
+        currentSubcategory.lessons.push(lesson);
+      } else {
+        currentCourse.lessons.push(lesson);
+      }
     }
   }
 
   return courses;
 }
+
 
 // function parseGoogleSheetToCourseStructure(rows: any[][]) {
 //   const courses: any[] = [];
