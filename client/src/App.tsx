@@ -41,11 +41,11 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <ChatBubbleProvider>
+        {/* <ChatBubbleProvider> */}
           <Toaster />
           <Router />
-          <ChatBubbleWrapper />
-        </ChatBubbleProvider>
+          {/* <ChatBubbleWrapper /> */}
+        {/* </ChatBubbleProvider> */}
       </TooltipProvider>
     </QueryClientProvider>
   );
