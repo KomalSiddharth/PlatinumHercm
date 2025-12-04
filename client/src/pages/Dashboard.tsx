@@ -579,7 +579,11 @@ export default function Dashboard() {
           if (response.ok) {
             const completions = await response.json();
             // Extract module IDs from videoId (format: courseId-moduleId)
-            const moduleIds = completions.map((c: any) => c.videoId.replace(`${course.id}-`, ''));
+            // const moduleIds = completions.map((c: any) => c.videoId.replace(`${course.id}-`, ''));
+            const moduleIds = completions.map((c: any) =>
+  c.video_id.replace(`${course.id}-`, '')
+);
+
             // const moduleIds = completions.map(c => c.videoId);
 
             allCompletions[course.id] = moduleIds;
