@@ -3541,7 +3541,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
               ...course,
               lessons: validLessons.map((lesson) => ({
                 ...lesson,
-                completed: userCompletions.has(lesson.id),
+                // completed: userCompletions.has(lesson.id),
+                completed: userCompletions.has(`${course.id}-${lesson.id}`)
+      || userCompletions.has(lesson.id) , // backward compatibility
+
               })),
               subcategories: course.subcategories
                 ?.map((subcat) => {
@@ -3553,7 +3556,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     ...subcat,
                     lessons: validSubLessons.map((lesson) => ({
                       ...lesson,
-                      completed: userCompletions.has(lesson.id),
+                      // completed: userCompletions.has(lesson.id),
+                      completed: userCompletions.has(`${course.id}-${lesson.id}`)
+      || userCompletions.has(lesson.id) , // backward compatibility
+
                     })),
                   };
                 })
