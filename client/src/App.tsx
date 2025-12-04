@@ -3,13 +3,13 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { ChatBubbleProvider, useChatBubble } from "@/contexts/ChatBubbleContext";
+// import { ChatBubbleProvider, useChatBubble } from "@/contexts/ChatBubbleContext";
 import Dashboard from "@/pages/Dashboard";
 import Login from "@/pages/Login";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminPanel from "@/pages/AdminPanel";
 import NotFound from "@/pages/not-found";
-import ChatBubble from "@/components/ChatBubble";
+// import ChatBubble from "@/components/ChatBubble";
 
 function Router() {
   return (
