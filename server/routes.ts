@@ -3806,57 +3806,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Toggle lesson completion
-  app.post("/api/lessons/toggle", isAuthenticated, async (req: any, res) => {
-    try {
-      // Handle both OIDC auth (req.user.claims.sub) and email-based auth (req.session.userEmail)
-      const userId = req.user?.claims?.sub || req.session.userEmail;
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
+  // app.post("/api/lessons/toggle", isAuthenticated, async (req: any, res) => {
+  //   try {
+  //     // Handle both OIDC auth (req.user.claims.sub) and email-based auth (req.session.userEmail)
+  //     const userId = req.user?.claims?.sub || req.session.userEmail;
+  //     if (!userId) {
+  //       return res.status(401).json({ message: "User not authenticated" });
+  //     }
 
-      const {
-        lessonId,
-        completed,
-        lessonName,
-        courseName,
-        courseId,
-        url,
-        hrcmArea,
-      } = req.body;
+  //     const {
+  //       lessonId,
+  //       completed,
+  //       lessonName,
+  //       courseName,
+  //       courseId,
+  //       url,
+  //       hrcmArea,
+  //     } = req.body;
 
-      if (!lessonId) {
-        return res.status(400).json({ message: "lessonId is required" });
-      }
+  //     if (!lessonId) {
+  //       return res.status(400).json({ message: "lessonId is required" });
+  //     }
 
-      // Frontend sends DESIRED state (toggled state)
-      // If completed=true, mark as complete (add points)
-      // If completed=false, mark as incomplete (subtract points)
-      if (completed) {
-        // Desired state is checked, so mark as completed
-        await storage.markLessonComplete(userId, lessonId);
+  //     // Frontend sends DESIRED state (toggled state)
+  //     // If completed=true, mark as complete (add points)
+  //     // If completed=false, mark as incomplete (subtract points)
+  //     if (completed) {
+  //       // Desired state is checked, so mark as completed
+  //       await storage.markLessonComplete(userId, lessonId);
 
-        // Add 1 point
-        await storage.addPointsToUser(userId, 1);
-        console.log(
-          `✅ Added 1 point to user ${userId} for completing lesson: ${lessonName}`,
-        );
-      } else {
-        // Desired state is unchecked, so mark as incomplete (remove completion record)
-        await storage.markLessonIncomplete(userId, lessonId);
+  //       // Add 1 point
+  //       await storage.addPointsToUser(userId, 1);
+  //       console.log(
+  //         `✅ Added 1 point to user ${userId} for completing lesson: ${lessonName}`,
+  //       );
+  //     } else {
+  //       // Desired state is unchecked, so mark as incomplete (remove completion record)
+  //       await storage.markLessonIncomplete(userId, lessonId);
 
-        // Subtract 1 point
-        await storage.addPointsToUser(userId, -1);
-        console.log(
-          `❌ Subtracted 1 point from user ${userId} for unchecking lesson: ${lessonName}`,
-        );
-      }
+  //       // Subtract 1 point
+  //       await storage.addPointsToUser(userId, -1);
+  //       console.log(
+  //         `❌ Subtracted 1 point from user ${userId} for unchecking lesson: ${lessonName}`,
+  //       );
+  //     }
 
-      res.json({ success: true, lessonId, completed });
-    } catch (error) {
-      console.error("Error toggling lesson completion:", error);
-      res.status(500).json({ message: "Failed to toggle lesson completion" });
+  //     res.json({ success: true, lessonId, completed });
+  //   } catch (error) {
+  //     console.error("Error toggling lesson completion:", error);
+  //     res.status(500).json({ message: "Failed to toggle lesson completion" });
+  //   }
+  // });
+  // Toggle lesson completion
+app.post("/api/lessons/toggle", isAuthenticated, async (req: any, res) => {
+  try {
+    const userId = req.user?.claims?.sub || req.session.userEmail;
+    if (!userId) {
+      return res.status(401).json({ message: "User not authenticated" });
     }
-  });
+
+    const {
+      lessonId,
+      completed,
+      lessonName,
+      courseName,
+      courseId,   // REQUIRED
+      url,
+      hrcmArea,
+    } = req.body;
+
+    if (!lessonId || !courseId) {
+      return res.status(400).json({ message: "lessonId and courseId are required" });
+    }
+
+    // Convert lessonId -> videoId format used in DB
+    const videoId = `${courseId}-${lessonId}`;
+
+    if (completed) {
+      await storage.markLessonComplete(userId, videoId);
+      await storage.addPointsToUser(userId, 1);
+    } else {
+      await storage.markLessonIncomplete(userId, videoId);
+      await storage.addPointsToUser(userId, -1);
+    }
+
+    res.json({ success: true, videoId, completed });
+  } catch (error) {
+    console.error("Error toggling lesson completion:", error);
+    res.status(500).json({ message: "Failed to toggle lesson completion" });
+  }
+});
+
 
   // 🚀 GOOGLE SHEETS WEBHOOK - Instant sync when sheet is edited
   // This endpoint is called by Google Apps Script whenever the sheet is modified
