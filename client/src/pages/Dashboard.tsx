@@ -580,6 +580,8 @@ export default function Dashboard() {
             const completions = await response.json();
             // Extract module IDs from videoId (format: courseId-moduleId)
             const moduleIds = completions.map((c: any) => c.videoId.replace(`${course.id}-`, ''));
+            // const moduleIds = completions.map(c => c.videoId);
+
             allCompletions[course.id] = moduleIds;
           }
         } catch (error) {
@@ -1043,54 +1045,54 @@ useEffect(() => {
   // }, [googleSheetsCourses]);
 
   // Load lesson completions from database on mount
-  useEffect(() => {
-    const loadCompletions = async () => {
-      if (!currentUser || courses.length === 0) return;
+  // useEffect(() => {
+  //   const loadCompletions = async () => {
+  //     if (!currentUser || courses.length === 0) return;
       
-      try {
-        console.log('[Course Tracker] Loading completions for user:', currentUser.id);
-        // Fetch completions for all courses
-        const allCompletions: Record<string, string[]> = {};
+  //     try {
+  //       console.log('[Course Tracker] Loading completions for user:', currentUser.id);
+  //       // Fetch completions for all courses
+  //       const allCompletions: Record<string, string[]> = {};
         
-        for (const course of courses) {
-          try {
-            const response = await fetch(`/api/course-video-completions/${course.id}`);
-            if (response.ok) {
-              const completions = await response.json();
-              // Store video IDs that are completed
-              allCompletions[course.id] = completions.map((c: any) => c.videoId);
-              console.log(`[Course Tracker] ${course.id}:`, allCompletions[course.id].length, 'completions loaded');
-            }
-          } catch (error) {
-            console.error(`Failed to fetch completions for ${course.id}:`, error);
-          }
-        }
+  //       for (const course of courses) {
+  //         try {
+  //           const response = await fetch(`/api/course-video-completions/${course.id}`);
+  //           if (response.ok) {
+  //             const completions = await response.json();
+  //             // Store video IDs that are completed
+  //             allCompletions[course.id] = completions.map((c: any) => c.videoId);
+  //             console.log(`[Course Tracker] ${course.id}:`, allCompletions[course.id].length, 'completions loaded');
+  //           }
+  //         } catch (error) {
+  //           console.error(`Failed to fetch completions for ${course.id}:`, error);
+  //         }
+  //       }
         
-        console.log('[Course Tracker] All completions loaded:', allCompletions);
+  //       console.log('[Course Tracker] All completions loaded:', allCompletions);
         
-        // Update courses state with completion status
-        setCourses(prevCourses => 
-          prevCourses.map(course => ({
-            ...course,
-            lessons: course.lessons.map(lesson => {
-              const isCompleted = allCompletions[course.id]?.includes(`${course.id}-${lesson.id}`) || false;
-              if (isCompleted) {
-                console.log(`[Course Tracker] Marking ${course.id}-${lesson.id} as completed`);
-              }
-              return {
-                ...lesson,
-                completed: isCompleted
-              };
-            })
-          }))
-        );
-      } catch (error) {
-        console.error('Error loading lesson completions:', error);
-      }
-    };
+  //       // Update courses state with completion status
+  //       setCourses(prevCourses => 
+  //         prevCourses.map(course => ({
+  //           ...course,
+  //           lessons: course.lessons.map(lesson => {
+  //             const isCompleted = allCompletions[course.id]?.includes(`${course.id}-${lesson.id}`) || false;
+  //             if (isCompleted) {
+  //               console.log(`[Course Tracker] Marking ${course.id}-${lesson.id} as completed`);
+  //             }
+  //             return {
+  //               ...lesson,
+  //               completed: isCompleted
+  //             };
+  //           })
+  //         }))
+  //       );
+  //     } catch (error) {
+  //       console.error('Error loading lesson completions:', error);
+  //     }
+  //   };
     
-    loadCompletions();
-  }, [currentUser]); // Only run when user is loaded
+  //   loadCompletions();
+  // }, [currentUser]); // Only run when user is loaded
 
   // Fetch ALL-TIME cumulative points (all ritual completions + all course lessons)
   const { data: totalPointsData, dataUpdatedAt } = useQuery<{
