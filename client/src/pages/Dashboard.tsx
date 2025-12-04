@@ -3,7 +3,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { format } from 'date-fns';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { useChatBubble } from '@/contexts/ChatBubbleContext';
+// import { useChatBubble } from '@/contexts/ChatBubbleContext';
 import DashboardHeader from '@/components/DashboardHeader';
 import UnifiedHRCMTable from '@/components/UnifiedHRCMTable';
 import AddRitualForm from '@/components/AddRitualForm';
