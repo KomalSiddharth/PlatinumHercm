@@ -1510,7 +1510,9 @@ useEffect(() => {
         </DialogContent>
       </Dialog>
 
-      <GoalsAffirmationsDialog open={goalsDialogOpen} onOpenChange={setGoalsDialogOpen} isChatBubbleOpen={isChatBubbleOpen} />
+      {/* <GoalsAffirmationsDialog open={goalsDialogOpen} onOpenChange={setGoalsDialogOpen} isChatBubbleOpen={isChatBubbleOpen} /> */}
+      <GoalsAffirmationsDialog open={goalsDialogOpen} onOpenChange={setGoalsDialogOpen} />
+
       <GratitudeJournalDialog open={gratitudeJournalOpen} onOpenChange={setGratitudeJournalOpen} />
       <FeedbackButton />
     </div>
