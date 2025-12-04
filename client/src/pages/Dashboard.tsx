@@ -96,7 +96,7 @@ const calculatePoints = (frequency: string): number => {
 export default function Dashboard() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
-  const { isChatBubbleOpen } = useChatBubble();
+  // const { isChatBubbleOpen } = useChatBubble();
   const [activeSection, setActiveSection] = useState('hrcm');
   
   const [profileOpen, setProfileOpen] = useState(false);
