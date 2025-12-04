@@ -1158,38 +1158,65 @@ export class DatabaseStorage implements IStorage {
       // Create completion (complete)
       await db
         .insert(courseVideoCompletions)
-        .values({ userId, videoId } as any);
+        .values({ userId, videoId } );
       return { completed: true };
     }
   }
 
-  async markLessonComplete(userId: string, lessonId: string): Promise<void> {
-    // Check if already exists
-    const [existing] = await db
-      .select()
-      .from(courseVideoCompletions)
-      .where(and(
-        eq(courseVideoCompletions.userId, userId),
-        eq(courseVideoCompletions.videoId, lessonId)
-      ));
+  // async markLessonComplete(userId: string, lessonId: string): Promise<void> {
+  //   // Check if already exists
+  //   const [existing] = await db
+  //     .select()
+  //     .from(courseVideoCompletions)
+  //     .where(and(
+  //       eq(courseVideoCompletions.userId, userId),
+  //       eq(courseVideoCompletions.videoId, lessonId)
+  //     ));
 
-    if (!existing) {
-      // Create completion record
-      await db
-        .insert(courseVideoCompletions)
-        .values({ userId, videoId: lessonId } as any);
-    }
-  }
+  //   if (!existing) {
+  //     // Create completion record
+  //     await db
+  //       .insert(courseVideoCompletions)
+  //       .values({ userId, videoId: lessonId } as any);
+  //   }
+  // }
 
-  async markLessonIncomplete(userId: string, lessonId: string): Promise<void> {
-    // Delete completion record
+  // async markLessonIncomplete(userId: string, lessonId: string): Promise<void> {
+  //   // Delete completion record
+  //   await db
+  //     .delete(courseVideoCompletions)
+  //     .where(and(
+  //       eq(courseVideoCompletions.userId, userId),
+  //       eq(courseVideoCompletions.videoId, lessonId)
+  //     ));
+  // }
+  // Mark lesson as completed
+async markLessonComplete(userId: string, videoId: string): Promise<void> {
+  const [existing] = await db
+    .select()
+    .from(courseVideoCompletions)
+    .where(and(
+      eq(courseVideoCompletions.userId, userId),
+      eq(courseVideoCompletions.videoId, videoId)
+    ));
+
+  if (!existing) {
     await db
-      .delete(courseVideoCompletions)
-      .where(and(
-        eq(courseVideoCompletions.userId, userId),
-        eq(courseVideoCompletions.videoId, lessonId)
-      ));
+      .insert(courseVideoCompletions)
+      .values({ userId, videoId });
   }
+}
+
+// Mark lesson as incomplete
+async markLessonIncomplete(userId: string, videoId: string): Promise<void> {
+  await db
+    .delete(courseVideoCompletions)
+    .where(and(
+      eq(courseVideoCompletions.userId, userId),
+      eq(courseVideoCompletions.videoId, videoId)
+    ));
+}
+
 
   async getUserLessonCompletions(userId: string): Promise<Set<string>> {
     const completions = await this.getAllCourseVideoCompletions(userId);
