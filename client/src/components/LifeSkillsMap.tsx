@@ -22,7 +22,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-// import { useWebSocket } from "@/hooks/useWebSocket";
+import { useWebSocket } from "@/hooks/useWebSocket";
 
 interface CourseLesson {
   id: string;
