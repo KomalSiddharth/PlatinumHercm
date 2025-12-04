@@ -126,88 +126,147 @@ const isError = !!error;
 
   const toggleLessonMutation = useMutation({
     mutationFn: async ({ 
-      lessonId, 
-      completed, 
-      lessonName, 
-      courseName, 
-      courseId, 
-      url, 
-      hrcmArea 
-    }: { 
-      lessonId: string; 
-      completed: boolean;
-      lessonName?: string;
-      courseName?: string;
-      courseId?: string;
-      url?: string;
-      hrcmArea?: string;
-    }) => {
-      return await apiRequest('/api/lessons/toggle', 'POST', { 
-        lessonId, 
-        completed, 
-        lessonName, 
-        courseName, 
-        courseId, 
-        url, 
-        hrcmArea 
-      });
-    },
-    onMutate: async ({ lessonId, completed }) => {
-      // Cancel outgoing refetches to avoid overwriting our optimistic update
-      await queryClient.cancelQueries({ queryKey: ['/api/courses/tracking'] });
-      await queryClient.cancelQueries({ queryKey: ['/api/user/total-points'] });
+  lessonId, 
+  completed, 
+  lessonName, 
+  courseName, 
+  courseId, 
+  url, 
+  hrcmArea 
+}) => {
+  return await apiRequest('/api/lessons/toggle', 'POST', { 
+    videoId: `${courseId}-${lessonId}`,   // ⭐ FIXED
+    completed, 
+    lessonName, 
+    courseName, 
+    courseId, 
+    url, 
+    hrcmArea 
+  });
+},
+
+onMutate: async ({ lessonId, completed, courseId }) => {
+
+  const normalizedLessonId = lessonId.includes(`${courseId}-`)
+    ? lessonId.split(`${courseId}-`)[1]
+    : lessonId;
+
+  await queryClient.cancelQueries({ queryKey: ['/api/courses/tracking'] });
+
+  const previousCourses = queryClient.getQueryData(['/api/courses/tracking']);
+
+  queryClient.setQueryData(['/api/courses/tracking'], (old) => {
+    if (!old) return old;
+
+    return old.map(course => {
+      const updateLessons = (lessons) =>
+        lessons.map(lesson =>
+          lesson.id === normalizedLessonId 
+            ? { ...lesson, completed }
+            : lesson
+        );
+
+      const updateSubcategories = (subs) =>
+        subs?.map(sub => ({
+          ...sub,
+          lessons: updateLessons(sub.lessons),
+          subcategories: updateSubcategories(sub.subcategories)
+        }));
+
+      return {
+        ...course,
+        lessons: updateLessons(course.lessons),
+        subcategories: updateSubcategories(course.subcategories)
+      };
+    });
+  });
+
+  return { previousCourses };
+},
+
+    // mutationFn: async ({ 
+    //   lessonId, 
+    //   completed, 
+    //   lessonName, 
+    //   courseName, 
+    //   courseId, 
+    //   url, 
+    //   hrcmArea 
+    // }: { 
+    //   lessonId: string; 
+    //   completed: boolean;
+    //   lessonName?: string;
+    //   courseName?: string;
+    //   courseId?: string;
+    //   url?: string;
+    //   hrcmArea?: string;
+    // }) => {
+    //   return await apiRequest('/api/lessons/toggle', 'POST', { 
+    //     lessonId, 
+    //     completed, 
+    //     lessonName, 
+    //     courseName, 
+    //     courseId, 
+    //     url, 
+    //     hrcmArea 
+    //   });
+    // },
+    // onMutate: async ({ lessonId, completed }) => {
+    //   // Cancel outgoing refetches to avoid overwriting our optimistic update
+    //   await queryClient.cancelQueries({ queryKey: ['/api/courses/tracking'] });
+    //   await queryClient.cancelQueries({ queryKey: ['/api/user/total-points'] });
       
-      // Snapshot the previous values
-      const previousCourses = queryClient.getQueryData<CourseTrackingData[]>(['/api/courses/tracking']);
-      const previousPoints = queryClient.getQueryData<{ totalPoints: number }>(['/api/user/total-points']);
+    //   // Snapshot the previous values
+    //   const previousCourses = queryClient.getQueryData<CourseTrackingData[]>(['/api/courses/tracking']);
+    //   const previousPoints = queryClient.getQueryData<{ totalPoints: number }>(['/api/user/total-points']);
       
-      // Optimistically update the UI
-      queryClient.setQueryData<CourseTrackingData[]>(
-        ['/api/courses/tracking'],
-        (old) => {
-          if (!old) return old;
+    //   // Optimistically update the UI
+    //   queryClient.setQueryData<CourseTrackingData[]>(
+    //     ['/api/courses/tracking'],
+    //     (old) => {
+    //       if (!old) return old;
           
-          return old.map(course => {
-            // Helper function to update lessons recursively
-            const updateLessons = (lessons: CourseLesson[]): CourseLesson[] => {
-              return lessons.map(lesson => 
-                lesson.id === lessonId 
-                  ? { ...lesson, completed: completed }
-                  : lesson
-              );
-            };
+    //       return old.map(course => {
+    //         // Helper function to update lessons recursively
+    //         const updateLessons = (lessons: CourseLesson[]): CourseLesson[] => {
+    //           return lessons.map(lesson => 
+    //             lesson.id === lessonId 
+    //               ? { ...lesson, completed: completed }
+    //               : lesson
+    //           );
+    //         };
             
-            // Helper function to update subcategories recursively
-            const updateSubcategories = (subcats?: CourseSubcategory[]): CourseSubcategory[] | undefined => {
-              if (!subcats) return subcats;
-              return subcats.map(subcat => ({
-                ...subcat,
-                lessons: updateLessons(subcat.lessons),
-                subcategories: updateSubcategories(subcat.subcategories)
-              }));
-            };
+    //         // Helper function to update subcategories recursively
+    //         const updateSubcategories = (subcats?: CourseSubcategory[]): CourseSubcategory[] | undefined => {
+    //           if (!subcats) return subcats;
+    //           return subcats.map(subcat => ({
+    //             ...subcat,
+    //             lessons: updateLessons(subcat.lessons),
+    //             subcategories: updateSubcategories(subcat.subcategories)
+    //           }));
+    //         };
             
-            return {
-              ...course,
-              lessons: updateLessons(course.lessons),
-              subcategories: updateSubcategories(course.subcategories)
-            };
-          });
-        }
-      );
+    //         return {
+    //           ...course,
+    //           lessons: updateLessons(course.lessons),
+    //           subcategories: updateSubcategories(course.subcategories)
+    //         };
+    //       });
+    //     }
+    //   );
       
       // INSTANT POINTS UPDATE: +1 when checking, -1 when unchecking
-      if (previousPoints) {
-        const pointsChange = completed ? 1 : -1;
-        queryClient.setQueryData<{ totalPoints: number }>(
-          ['/api/user/total-points'],
-          { totalPoints: previousPoints.totalPoints + pointsChange }
-        );
-        console.log('[Course Tracker] ⚡ Instant points update:', pointsChange > 0 ? '+1' : '-1');
-      }
+      // if (previousPoints) {
+      //   const pointsChange = completed ? 1 : -1;
+      //   queryClient.setQueryData<{ totalPoints: number }>(
+      //     ['/api/user/total-points'],
+      //     { totalPoints: previousPoints.totalPoints + pointsChange }
+      //   );
+      //   console.log('[Course Tracker] ⚡ Instant points update:', pointsChange > 0 ? '+1' : '-1');
+      // }
       
-      return { previousCourses, previousPoints };
-    },
+      // return { previousCourses, previousPoints };
+    // },
     onSuccess: () => {
       // Refetch to ensure we have the latest data from the server
       queryClient.invalidateQueries({ queryKey: ['/api/courses/tracking'] });
