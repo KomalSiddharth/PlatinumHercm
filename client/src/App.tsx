@@ -27,15 +27,15 @@ function Router() {
   );
 }
 
-function ChatBubbleWrapper() {
-  const [location] = useLocation();
-  const { isChatBubbleOpen, setChatBubbleOpen } = useChatBubble();
-  const showOnPages = ['/dashboard', '/admin/panel'];
-  const shouldShow = showOnPages.some(page => location.startsWith(page));
+// function ChatBubbleWrapper() {
+//   const [location] = useLocation();
+//   const { isChatBubbleOpen, setChatBubbleOpen } = useChatBubble();
+//   const showOnPages = ['/dashboard', '/admin/panel'];
+//   const shouldShow = showOnPages.some(page => location.startsWith(page));
   
-  if (!shouldShow) return null;
-  return <ChatBubble isOpen={isChatBubbleOpen} onOpenChange={setChatBubbleOpen} />;
-}
+//   if (!shouldShow) return null;
+//   return <ChatBubble isOpen={isChatBubbleOpen} onOpenChange={setChatBubbleOpen} />;
+// }
 
 function App() {
   return (
