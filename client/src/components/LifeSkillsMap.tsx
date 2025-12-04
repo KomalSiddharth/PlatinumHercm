@@ -417,7 +417,7 @@ const isError = !!error;
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button
+          {/* <Button
             variant="default"
             size="sm"
             className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white"
@@ -425,7 +425,7 @@ const isError = !!error;
             onClick={() => window.open('https://coaching.miteshkhatri.com/products/mitesh-ai', '_blank')}
           >
             MiteshAI
-          </Button>
+          </Button> */}
           <Button
             variant="default"
             size="sm"
