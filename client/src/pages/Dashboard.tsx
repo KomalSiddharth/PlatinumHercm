@@ -578,11 +578,15 @@ export default function Dashboard() {
           const response = await fetch(`/api/course-video-completions/${course.id}`);
           if (response.ok) {
             const completions = await response.json();
+            // FIXED: use DB value directly
+      const moduleIds = completions.map((c: any) => 
+        c.video_id || c.videoId
+      );
             // Extract module IDs from videoId (format: courseId-moduleId)
             // const moduleIds = completions.map((c: any) => c.videoId.replace(`${course.id}-`, ''));
-            const moduleIds = completions.map((c: any) =>
-  c.video_id.replace(`${course.id}-`, '')
-);
+//             const moduleIds = completions.map((c: any) =>
+//   c.video_id.replace(`${course.id}-`, '')
+// );
 
             // const moduleIds = completions.map(c => c.videoId);
 
