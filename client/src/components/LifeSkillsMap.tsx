@@ -53,7 +53,7 @@ interface CourseTrackingData {
 }
 
 // export default function LifeSkillsMap() {
-export default function LifeSkillsMap({ externalCourses, loading, error: queryError }) {
+export default function LifeSkillsMap({ externalCourses, loading, error }) {
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
   const [openSubcategories, setOpenSubcategories] = useState<Record<string, boolean>>({});
   const [searchQuery, setSearchQuery] = useState('');
@@ -67,25 +67,25 @@ export default function LifeSkillsMap({ externalCourses, loading, error: queryEr
     queryKey: ['/api/auth/user'],
   });
   
-  // const { data: coursesData, isLoading, iserror: queryError, error: queryError, refetch } = useQuery<CourseTrackingData[]>({
+  // const { data: coursesData, isLoading, isError, error, refetch } = useQuery<CourseTrackingData[]>({
   //   queryKey: ['/api/courses/tracking'],
   //   retry: 3,
   //   retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
   //   staleTime: 25 * 1000, // Consider fresh for 25 seconds (server cache is 30s)
-  //   gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes (fallback for offline/error: queryErrors)
+  //   gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes (fallback for offline/errors)
   //   refetchInterval: 30000, // Auto-refresh every 30 seconds
   //   refetchIntervalInBackground: true,
   //   // 🚀 CRITICAL: Reuse stale cache if refetch fails - prevents empty states during API outages
-  //   throwOnerror: queryError: false,
+  //   throwOnError: false,
   // });
 // const coursesData = externalCourses;
 // const isLoading = loading;
-// const iserror: queryError = !!error: queryError;
+// const isError = !!error;
   const {
   data: coursesData,
   isLoading,
-  iserror: queryError,
-  error: queryError,
+  isError,
+  error,
   refetch
 } = useQuery<CourseTrackingData[]>({
   queryKey: ['/api/courses/tracking'],
@@ -95,9 +95,8 @@ export default function LifeSkillsMap({ externalCourses, loading, error: queryEr
   gcTime: 5 * 60 * 1000,
   refetchInterval: 30000,
   refetchIntervalInBackground: true,
-  throwOnerror: queryError: false,
+  throwOnError: false,
 });
-
 
 
   // // 🚀 INSTANT GOOGLE SHEETS SYNC - Listen for webhook notifications
@@ -134,13 +133,13 @@ export default function LifeSkillsMap({ externalCourses, loading, error: queryEr
   // REMOVE WEBHOOK SYNC (not needed for direct Google Sheet fetching)
 
 
-  // Force refetch on mount to clear any cached error: queryErrors
+  // Force refetch on mount to clear any cached errors
   useEffect(() => {
     console.log('[LifeSkillsMap] Forcing refetch on mount');
     queryClient.invalidateQueries({ queryKey: ['/api/courses/tracking'] });
   }, []);
 
-  console.log('[LifeSkillsMap] Query state:', { isLoading, iserror: queryError, hasData: !!coursesData, error: queryError });
+  console.log('[LifeSkillsMap] Query state:', { isLoading, isError, hasData: !!coursesData, error });
 const toggleLessonMutation = useMutation({
   mutationFn: async ({
     lessonId,
@@ -251,12 +250,12 @@ const toggleLessonMutation = useMutation({
     queryClient.refetchQueries({ queryKey: ['/api/user/total-points'] });
   },
 
-  onerror: queryError: (error: queryError, variables, context) => {
-    // Rollback on error: queryError
+  onError: (error, variables, context) => {
+    // Rollback on error
     if (context?.previousCourses) {
       queryClient.setQueryData(['/api/courses/tracking'], context.previousCourses);
     }
-    console.error: queryError('[Lesson Toggle] Mutation failed:', error: queryError);
+    console.error('[Lesson Toggle] Mutation failed:', error);
   },
 });
 
@@ -408,15 +407,15 @@ const toggleLessonMutation = useMutation({
   //     queryClient.invalidateQueries({ queryKey: ['/api/courses/tracking'] });
   //     queryClient.refetchQueries({ queryKey: ['/api/user/total-points'] });
   //   },
-  //   onerror: queryError: (error: queryError, variables, context) => {
-  //     // Rollback to previous state on error: queryError
+  //   onError: (error, variables, context) => {
+  //     // Rollback to previous state on error
   //     if (context?.previousCourses) {
   //       queryClient.setQueryData(['/api/courses/tracking'], context.previousCourses);
   //     }
   //     if (context?.previousPoints) {
   //       queryClient.setQueryData(['/api/user/total-points'], context.previousPoints);
   //     }
-  //     console.error: queryError('[Lesson Toggle] Mutation failed:', error: queryError);
+  //     console.error('[Lesson Toggle] Mutation failed:', error);
   //   },
   // });
 
@@ -475,10 +474,10 @@ const toggleLessonMutation = useMutation({
         description: "Lesson has been added to Next Week Target Assignment column",
       });
     },
-    onerror: queryError: (error: queryError: any) => {
+    onError: (error: any) => {
       toast({
         title: "Failed to Add",
-        description: error: queryError.message || "Failed to add lesson to assignments",
+        description: error.message || "Failed to add lesson to assignments",
         variant: "destructive",
       });
     },
@@ -661,16 +660,16 @@ const toggleLessonMutation = useMutation({
               <p className="text-gray-400">Loading courses...</p>
             </div>
           </div>
-        ) : iserror: queryError ? (
+        ) : isError ? (
           <div 
             className="bg-white dark:bg-white rounded-lg border border-gray-300 py-16 px-6"
-            data-testid="container-error: queryError-state"
+            data-testid="container-error-state"
           >
-            <p className="text-center text-red-600 mb-4" data-testid="text-error: queryError-state">
-              error: queryError loading courses from Google Sheets
+            <p className="text-center text-red-600 mb-4" data-testid="text-error-state">
+              Error loading courses from Google Sheets
             </p>
-            <p className="text-center text-gray-600 text-sm" data-testid="text-error: queryError-details">
-              {error: queryError instanceof error: queryError ? error: queryError.message : 'Unknown error: queryError occurred'}
+            <p className="text-center text-gray-600 text-sm" data-testid="text-error-details">
+              {error instanceof Error ? error.message : 'Unknown error occurred'}
             </p>
             <div className="flex justify-center mt-4">
               <Button 
