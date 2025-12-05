@@ -1,5 +1,6 @@
 // Google Sheets integration for course knowledge base
 import { google } from 'googleapis';
+import slugify from "slugify";
 
 let connectionSettings: any;
 
@@ -453,19 +454,42 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
         console.log(`🎓 NEW COURSE (empty URL): "${question}" at row ${index + 1}`);
       } 
       // If Column B (Answer) has a URL = it's a LESSON
-      else if (answer) {
-        if (currentCourse !== null) {
-          lessonCounter++;
-          const lessonId = `${currentCourse.id}-${lessonCounter}`;
-          currentCourse.lessons.push({
-            id: lessonId,
-            title: question,
-            url: answer,
-            completed: false,
-          });
-          console.log(`  📝 Lesson ${lessonCounter}: "${question.substring(0, 40)}..." → ${answer.substring(0, 30)}...`);
-        }
-      }
+      // else if (answer) {
+      //   if (currentCourse !== null) {
+      //     lessonCounter++;
+      //     const lessonId = `${currentCourse.id}-${lessonCounter}`;
+      //     currentCourse.lessons.push({
+      //       id: lessonId,
+      //       title: question,
+      //       url: answer,
+      //       completed: false,
+      //     });
+      //     console.log(`  📝 Lesson ${lessonCounter}: "${question.substring(0, 40)}..." → ${answer.substring(0, 30)}...`);
+      //   }
+      // }
+      // import slugify from "slugify"; // if not present, add at top
+
+else if (answer) {
+  if (currentCourse !== null) {
+
+    // generate a stable ID based only on the lesson title
+    const lessonId = slugify(question, {
+      lower: true,
+      strict: true,
+      trim: true
+    });
+
+    currentCourse.lessons.push({
+      id: lessonId,
+      title: question,
+      url: answer,
+      completed: false,
+    });
+
+    console.log(`📝 Lesson: ${question} → ${lessonId}`);
+  }
+}
+
     });
     
     // Add last course if exists
