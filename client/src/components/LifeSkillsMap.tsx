@@ -81,21 +81,38 @@ export default function LifeSkillsMap({ externalCourses, loading, error: queryEr
 // const coursesData = externalCourses;
 // const isLoading = loading;
 // const iserror: queryError = !!error: queryError;
-  const {
+//   const {
+//   data: coursesData,
+//   isLoading,
+//   iserror: queryError,
+//   error: queryError,
+//   refetch
+// } = useQuery<CourseTrackingData[]>({
+//   queryKey: ['/api/courses/tracking'],
+//   retry: 3,
+//   retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+//   staleTime: 25 * 1000,
+//   gcTime: 5 * 60 * 1000,
+//   refetchInterval: 30000,
+//   refetchIntervalInBackground: true,
+//   throwOnerror: queryError: false,
+// });
+const {
   data: coursesData,
   isLoading,
-  iserror: queryError,
-  error: queryError,
+  isError,
+  error: apiError,
   refetch
 } = useQuery<CourseTrackingData[]>({
   queryKey: ['/api/courses/tracking'],
+  queryFn: () => fetch('/api/courses/tracking').then(r => r.json()),
   retry: 3,
   retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   staleTime: 25 * 1000,
   gcTime: 5 * 60 * 1000,
   refetchInterval: 30000,
   refetchIntervalInBackground: true,
-  throwOnerror: queryError: false,
+  throwOnError: false,
 });
 
 
