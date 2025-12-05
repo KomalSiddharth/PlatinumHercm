@@ -78,9 +78,26 @@ export default function LifeSkillsMap({ externalCourses, loading, error }) {
   //   // 🚀 CRITICAL: Reuse stale cache if refetch fails - prevents empty states during API outages
   //   throwOnError: false,
   // });
-const coursesData = externalCourses;
-const isLoading = loading;
-const isError = !!error;
+// const coursesData = externalCourses;
+// const isLoading = loading;
+// const isError = !!error;
+  const {
+  data: coursesData,
+  isLoading,
+  isError,
+  error,
+  refetch
+} = useQuery<CourseTrackingData[]>({
+  queryKey: ['/api/courses/tracking'],
+  retry: 3,
+  retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+  staleTime: 25 * 1000,
+  gcTime: 5 * 60 * 1000,
+  refetchInterval: 30000,
+  refetchIntervalInBackground: true,
+  throwOnError: false,
+});
+
 
   // // 🚀 INSTANT GOOGLE SHEETS SYNC - Listen for webhook notifications
   // const { lastMessage } = useWebSocket(currentUser?.id);
@@ -169,10 +186,44 @@ const toggleLessonMutation = useMutation({
       if (!old) return old;
       return old.map((course: any) => {
         // Helper to update lessons recursively
-        const updateLessons = (lessons: any[]) =>
-          lessons.map(lesson =>
-            lesson.id === lessonId ? { ...lesson, completed } : lesson
-          );
+        // const updateLessons = (lessons: any[]) =>
+        //   lessons.map(lesson =>
+        //     lesson.id === lessonId || lesson.id === `${courseId}-${lessonId}` || lesson.id === `${courseId}-${lessonId}` || lesson.id === `${courseId}-${lessonId}` ? { ...lesson, completed } : lesson
+        //   );
+  //       const updateLessons = (lessons: any[]) =>
+  // lessons.map(lesson => {
+  //   const normalized = [
+  //     lessonId,
+  //     `${courseId}-${lessonId}`,
+  //     `${courseId}-${lessonId}`.trim()
+  //   ];
+
+  //   return normalized.includes(lesson.id)
+  //     ? { ...lesson, completed }
+  //     : lesson;
+  // });
+    const updateLessons = (lessons: any[]) =>
+  lessons.map(lesson => {
+    const cleanedLessonId = lesson.id?.replace(/\s+/g, '').trim();
+    const cleanedIncomingId = lessonId?.replace(/\s+/g, '').trim();
+    const cleanedCourseId = courseId?.replace(/\s+/g, '').trim();
+
+    const normalized = [
+      cleanedIncomingId,
+      `${cleanedCourseId}-${cleanedIncomingId}`,
+      `${cleanedCourseId}${cleanedIncomingId}`,
+      `${cleanedCourseId} - ${cleanedIncomingId}`.replace(/\s+/g, '').trim(),
+      `${cleanedCourseId}-${cleanedIncomingId}`.replace(/\s+/g, '').trim()
+    ];
+
+    return normalized.includes(cleanedLessonId)
+      ? { ...lesson, completed }
+      : lesson;
+  });
+
+
+
+
 
         const updateSubcategories = (subs: any[] | undefined) =>
           subs?.map(sub => ({
@@ -314,7 +365,7 @@ const toggleLessonMutation = useMutation({
     //         // Helper function to update lessons recursively
     //         const updateLessons = (lessons: CourseLesson[]): CourseLesson[] => {
     //           return lessons.map(lesson => 
-    //             lesson.id === lessonId 
+    //             lesson.id === lessonId || lesson.id === `${courseId}-${lessonId}` 
     //               ? { ...lesson, completed: completed }
     //               : lesson
     //           );
