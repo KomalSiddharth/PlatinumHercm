@@ -140,7 +140,11 @@ const toggleLessonMutation = useMutation({
     courseId?: string;
     url?: string;
     hrcmArea?: string;
-  }) => {
+  }) => { console.log("🚀 Mutation Fired → Sending to backend", {
+    lessonId,
+    completed,
+    courseId
+  });
     // IMPORTANT: backend expects `lessonId` (not videoId) for /api/lessons/toggle
     return await apiRequest('/api/lessons/toggle', 'POST', {
       lessonId,
@@ -190,6 +194,7 @@ const toggleLessonMutation = useMutation({
 
   onSuccess: () => {
     // Ensure fresh data after server processed the change
+    console.log("✅ Backend Success: Lesson toggled successfully");
     queryClient.invalidateQueries({ queryKey: ['/api/courses/tracking'] });
     queryClient.refetchQueries({ queryKey: ['/api/user/total-points'] });
   },
@@ -387,6 +392,7 @@ const toggleLessonMutation = useMutation({
       lessonName,
       url
     }: {
+      
       hrcmArea: string;
       courseId: string;
       courseName: string;
@@ -394,6 +400,11 @@ const toggleLessonMutation = useMutation({
       lessonName: string;
       url: string;
     }) => {
+      console.log("🚀 addToAssignment Mutation Fired → Sending to backend", {
+      courseId,
+      lessonId,
+      lessonName
+    });
       return await apiRequest('/api/persistent-assignments', 'POST', {
         hrcmArea,
         courseId,
@@ -448,6 +459,12 @@ const toggleLessonMutation = useMutation({
     url?: string,
     hrcmArea?: string
   ) => {
+    console.log("🔥 Checkbox Clicked → handleLessonToggle fired", {
+    courseId,
+    lessonId,
+    currentCompleted,
+    lessonName
+  });
     toggleLessonMutation.mutate({ 
       lessonId, 
       completed: !currentCompleted,
