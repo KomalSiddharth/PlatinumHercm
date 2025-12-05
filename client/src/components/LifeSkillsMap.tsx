@@ -53,7 +53,7 @@ interface CourseTrackingData {
 }
 
 // export default function LifeSkillsMap() {
-export default function LifeSkillsMap({ externalCourses, loading, error }) {
+export default function LifeSkillsMap({ externalCourses, loading, externalError }) {
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
   const [openSubcategories, setOpenSubcategories] = useState<Record<string, boolean>>({});
   const [searchQuery, setSearchQuery] = useState('');
@@ -82,22 +82,21 @@ export default function LifeSkillsMap({ externalCourses, loading, error }) {
 // const isLoading = loading;
 // const isError = !!error;
   const {
-  data: coursesData,
-  isLoading,
-  isError,
-  error,
-  refetch
-} = useQuery<CourseTrackingData[]>({
-  queryKey: ['/api/courses/tracking'],
-  retry: 3,
-  retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-  staleTime: 25 * 1000,
-  gcTime: 5 * 60 * 1000,
-  refetchInterval: 30000,
-  refetchIntervalInBackground: true,
-  throwOnError: false,
-});
-
+    data: coursesData,
+    isLoading,
+    isError,
+    error: coursesError,
+    refetch
+  } = useQuery<CourseTrackingData[]>({
+    queryKey: ['/api/courses/tracking'],
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    staleTime: 25 * 1000,
+    gcTime: 5 * 60 * 1000,
+    refetchInterval: 30000,
+    refetchIntervalInBackground: true,
+    throwOnError: false,
+  });
 
   // // 🚀 INSTANT GOOGLE SHEETS SYNC - Listen for webhook notifications
   // const { lastMessage } = useWebSocket(currentUser?.id);
@@ -139,7 +138,8 @@ export default function LifeSkillsMap({ externalCourses, loading, error }) {
     queryClient.invalidateQueries({ queryKey: ['/api/courses/tracking'] });
   }, []);
 
-  console.log('[LifeSkillsMap] Query state:', { isLoading, isError, hasData: !!coursesData, error });
+  console.log('[LifeSkillsMap] Query state:', { isLoading, isError, hasData: !!coursesData, coursesError
+ });
 const toggleLessonMutation = useMutation({
   mutationFn: async ({
     lessonId,
@@ -669,7 +669,8 @@ const toggleLessonMutation = useMutation({
               Error loading courses from Google Sheets
             </p>
             <p className="text-center text-gray-600 text-sm" data-testid="text-error-details">
-              {error instanceof Error ? error.message : 'Unknown error occurred'}
+              {coursesError instanceof Error ? coursesError.message : 'Unknown error occurred'}
+
             </p>
             <div className="flex justify-center mt-4">
               <Button 
