@@ -453,7 +453,7 @@ export async function fetchCourseTrackingData(sheetUrl: string): Promise<CourseT
         lessonCounter = 0;
         console.log(`🎓 NEW COURSE (empty URL): "${question}" at row ${index + 1}`);
       } 
-      If Column B (Answer) has a URL = it's a LESSON
+      // If Column B (Answer) has a URL = it's a LESSON
       else if (answer) {
         if (currentCourse !== null) {
           lessonCounter++;
