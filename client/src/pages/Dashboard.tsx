@@ -182,11 +182,7 @@ export default function Dashboard() {
     enabled: !!currentUser,
     staleTime: 60 * 1000, // 60 seconds for history (less frequently accessed)
   });
-  // Fetch upcoming events for the user
-const { data: activeEvents = [], isLoading: eventsLoading } = useQuery({
-  queryKey: ['/api/events'],
-  staleTime: 60 * 1000,
-});
+ 
 
 
 
@@ -196,6 +192,12 @@ const { data: activeEvents = [], isLoading: eventsLoading } = useQuery({
     enabled: !!currentUser,
     staleTime: 30 * 1000, // 30 seconds for HRCM data
   });
+
+   // Fetch upcoming events for the user
+const { data: activeEvents = [], isLoading: eventsLoading } = useQuery({
+  queryKey: ['/api/events'],
+  staleTime: 60 * 1000,
+});
   
   // 🌙 AUTOMATIC MIDNIGHT RESET - Check every minute for date change (IST timezone)
   useEffect(() => {
@@ -274,6 +276,7 @@ const { data: activeEvents = [], isLoading: eventsLoading } = useQuery({
   const coursesRef = useRef<HTMLDivElement>(null);
   const achievementsRef = useRef<HTMLDivElement>(null);
   const teamRef = useRef<HTMLDivElement>(null);
+  const eventsRef = useRef<HTMLDivElement>(null);
 
   const [currentWeek, setCurrentWeek] = useState(1);
 
@@ -284,7 +287,8 @@ const { data: activeEvents = [], isLoading: eventsLoading } = useQuery({
       emotional: emotionalRef,
       courses: coursesRef,
       achievements: achievementsRef,
-      team: teamRef
+      team: teamRef,
+      events: eventsRef,
     };
 
     refs[section as keyof typeof refs]?.current?.scrollIntoView({
