@@ -33,7 +33,9 @@ import {
   Check,
   ChevronsUpDown,
   Moon,
-  Sun
+  Sun,
+  Calendar as CalendarIcon,
+  X
 } from 'lucide-react';
 import type { ApprovedEmail, AdminUser, AccessLog } from '@shared/schema';
 import {
@@ -260,24 +262,24 @@ export default function AdminPanel() {
   const [newStandardText, setNewStandardText] = useState('');
   const [editingStandard, setEditingStandard] = useState<any>(null);
   const [selectedStandardIds, setSelectedStandardIds] = useState<Set<string>>(new Set());
-
+  
   // Events management states
-const [showAddEventDialog, setShowAddEventDialog] = useState(false);
-const [editingEvent, setEditingEvent] = useState<any>(null);
-const [eventForm, setEventForm] = useState({
-  title: '',
-  description: '',
-  imageUrl: '',
-  imagePreview: '',
-  schedulingType: 'daily',
-  specificDays: [] as string[],
-  startDate: '',
-  endDate: '',
-  startTime: '',
-  endTime: '',
-  externalLink: '',
-  isActive: true,
-});
+  const [showAddEventDialog, setShowAddEventDialog] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<any>(null);
+  const [eventForm, setEventForm] = useState({
+    title: '',
+    description: '',
+    imageUrl: '',
+    imagePreview: '',
+    schedulingType: 'daily',
+    specificDays: [] as string[],
+    startDate: '',
+    endDate: '',
+    startTime: '',
+    endTime: '',
+    externalLink: '',
+    isActive: true,
+  });
   
   // Dark/Light mode state
   const [darkMode, setDarkMode] = useState(() => {
@@ -419,131 +421,138 @@ const [eventForm, setEventForm] = useState({
     queryKey: [`/api/admin/team-analytics?period=${teamAnalyticsPeriod}`],
     staleTime: 30000, // Cache for 30 seconds to improve performance
   });
+
   // Events query
-const { data: adminEvents = [], isLoading: isLoadingEvents } = useQuery<any[]>({
-  queryKey: ['/api/admin/events'],
-  enabled: activeTab === 'events',
-});
+  const { data: adminEvents = [], isLoading: isLoadingEvents } = useQuery<any[]>({
+    queryKey: ['/api/admin/events'],
+    enabled: activeTab === 'events',
+  });
 
   // Create event mutation
-const createEventMutation = useMutation({
-  mutationFn: async (data: any) => {
-    return apiRequest('/api/admin/events', 'POST', data);
-  },
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ['/api/admin/events'] });
-    toast({ title: "Event Created", description: "Event has been created successfully" });
-    setShowAddEventDialog(false);
-    resetEventForm();
-  },
-  onError: (error: any) => {
-    toast({ title: "Error", description: error.message || "Failed to create event", variant: "destructive" });
-  }
-});
-  // Update event mutation
-const updateEventMutation = useMutation({
-  mutationFn: async ({ id, data }: { id: string; data: any }) => {
-    return apiRequest(`/api/admin/events/${id}`, 'PATCH', data);
-  },
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ['/api/admin/events'] });
-    toast({ title: "Event Updated", description: "Event has been updated successfully" });
-    setEditingEvent(null);
-    resetEventForm();
-  },
-  onError: (error: any) => {
-    toast({ title: "Error", description: error.message || "Failed to update event", variant: "destructive" });
-  }
-});
-  // Delete event mutation
-const deleteEventMutation = useMutation({
-  mutationFn: async (id: string) => {
-    return apiRequest(`/api/admin/events/${id}`, 'DELETE');
-  },
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ['/api/admin/events'] });
-    toast({ title: "Event Deleted", description: "Event has been deleted successfully" });
-  },
-  onError: (error: any) => {
-    toast({ title: "Error", description: error.message || "Failed to delete event", variant: "destructive" });
-  }
-});
-  const resetEventForm = () => {
-  setEventForm({
-    title: '',
-    description: '',
-    imageUrl: '',
-    imagePreview: '',
-    schedulingType: 'daily',
-    specificDays: [],
-    startDate: '',
-    endDate: '',
-    startTime: '',
-    endTime: '',
-    externalLink: '',
-    isActive: true,
+  const createEventMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return apiRequest('/api/admin/events', 'POST', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/events'] });
+      toast({ title: "Event Created", description: "Event has been created successfully" });
+      setShowAddEventDialog(false);
+      resetEventForm();
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message || "Failed to create event", variant: "destructive" });
+    }
   });
-};
-  const handleEventImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const file = e.target.files?.[0];
-  if (file) {
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast({ title: "Error", description: "Please select a valid image file", variant: "destructive" });
-      return;
-    }
-    
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast({ title: "Error", description: "Image size must be less than 5MB", variant: "destructive" });
-      return;
-    }
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64 = reader.result as string;
-      setEventForm({ ...eventForm, imageUrl: base64, imagePreview: base64 });
-      toast({ title: "Success", description: "Image uploaded successfully" });
-    };
-    reader.readAsDataURL(file);
-  }
-};
-  const handleEventSubmit = () => {
-  if (!eventForm.title || !eventForm.startDate || !eventForm.endDate || !eventForm.startTime || !eventForm.endTime) {
-    toast({ title: "Error", description: "Please fill in all required fields", variant: "destructive" });
-    return;
-  }
+  // Update event mutation
+  const updateEventMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      return apiRequest(`/api/admin/events/${id}`, 'PATCH', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/events'] });
+      toast({ title: "Event Updated", description: "Event has been updated successfully" });
+      setEditingEvent(null);
+      resetEventForm();
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message || "Failed to update event", variant: "destructive" });
+    }
+  });
 
-  const eventData = {
-    ...eventForm,
-    specificDays: eventForm.schedulingType === 'weekly' || eventForm.schedulingType === 'specific_days' 
-      ? eventForm.specificDays 
-      : null,
+  // Delete event mutation
+  const deleteEventMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return apiRequest(`/api/admin/events/${id}`, 'DELETE');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/events'] });
+      toast({ title: "Event Deleted", description: "Event has been deleted successfully" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message || "Failed to delete event", variant: "destructive" });
+    }
+  });
+
+  const resetEventForm = () => {
+    setEventForm({
+      title: '',
+      description: '',
+      imageUrl: '',
+      imagePreview: '',
+      schedulingType: 'daily',
+      specificDays: [],
+      startDate: '',
+      endDate: '',
+      startTime: '',
+      endTime: '',
+      externalLink: '',
+      isActive: true,
+    });
   };
 
-  if (editingEvent) {
-    updateEventMutation.mutate({ id: editingEvent.id, data: eventData });
-  } else {
-    createEventMutation.mutate(eventData);
-  }
-};
+  const handleEventImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast({ title: "Error", description: "Please select a valid image file", variant: "destructive" });
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({ title: "Error", description: "Image size must be less than 5MB", variant: "destructive" });
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = reader.result as string;
+        setEventForm({ ...eventForm, imageUrl: base64, imagePreview: base64 });
+        toast({ title: "Success", description: "Image uploaded successfully" });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleEventSubmit = () => {
+    if (!eventForm.title || !eventForm.startDate || !eventForm.endDate || !eventForm.startTime || !eventForm.endTime) {
+      toast({ title: "Error", description: "Please fill in all required fields", variant: "destructive" });
+      return;
+    }
+
+    const eventData = {
+      ...eventForm,
+      specificDays: eventForm.schedulingType === 'weekly' || eventForm.schedulingType === 'specific_days' 
+        ? eventForm.specificDays 
+        : null,
+    };
+
+    if (editingEvent) {
+      updateEventMutation.mutate({ id: editingEvent.id, data: eventData });
+    } else {
+      createEventMutation.mutate(eventData);
+    }
+  };
+
   const openEditEvent = (event: any) => {
-  setEditingEvent(event);
-  setEventForm({
-    title: event.title || '',
-    description: event.description || '',
-    imageUrl: event.imageUrl || '',
-    imagePreview: event.imageUrl || '',
-    schedulingType: event.schedulingType || 'daily',
-    specificDays: event.specificDays || [],
-    startDate: event.startDate || '',
-    endDate: event.endDate || '',
-    startTime: event.startTime || '',
-    endTime: event.endTime || '',
-    externalLink: event.externalLink || '',
-    isActive: event.isActive !== undefined ? event.isActive : true,
-  });
-};
+    setEditingEvent(event);
+    setEventForm({
+      title: event.title || '',
+      description: event.description || '',
+      imageUrl: event.imageUrl || '',
+      imagePreview: event.imageUrl || '',
+      schedulingType: event.schedulingType || 'daily',
+      specificDays: event.specificDays || [],
+      startDate: event.startDate || '',
+      endDate: event.endDate || '',
+      startTime: event.startTime || '',
+      endTime: event.endTime || '',
+      externalLink: event.externalLink || '',
+      isActive: event.isActive !== undefined ? event.isActive : true,
+    });
+  };
 
   const searchUserMutation = useMutation({
     mutationFn: async (query: string) => {
@@ -1559,16 +1568,16 @@ const deleteEventMutation = useMutation({
                 Integration
               </button>
               <button 
-  onClick={() => setActiveTab('events')}
-  className={`px-4 py-3 rounded-md text-left transition-colors ${
-    activeTab === 'events' 
-      ? 'bg-blue-600 text-white font-medium' 
-      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'
-  }`}
-  data-testid="tab-events"
->
-  Events
-</button>
+                onClick={() => setActiveTab('events')}
+                className={`px-4 py-3 rounded-md text-left transition-colors ${
+                  activeTab === 'events' 
+                    ? 'bg-blue-600 text-white font-medium' 
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'
+                }`}
+                data-testid="tab-events"
+              >
+                Events
+              </button>
             </div>
           </div>
 
@@ -3569,7 +3578,8 @@ const deleteEventMutation = useMutation({
               </div>
             </div>
           )}
-             {/* Events Tab Content */}
+
+          {/* Events Tab Content */}
           {activeTab === 'events' && (
             <div className="p-6">
               <div className="space-y-6">
@@ -4127,6 +4137,208 @@ const deleteEventMutation = useMutation({
         userId={selectedUserForDetail}
         onClose={() => setSelectedUserForDetail(null)}
       />
+
+      {/* Add/Edit Event Dialog */}
+      <Dialog open={showAddEventDialog || !!editingEvent} onOpenChange={(open) => {
+        if (!open) {
+          setShowAddEventDialog(false);
+          setEditingEvent(null);
+          resetEventForm();
+        }
+      }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" data-testid="dialog-event">
+          <DialogHeader>
+            <DialogTitle>{editingEvent ? 'Edit Event' : 'Create New Event'}</DialogTitle>
+            <DialogDescription>
+              {editingEvent ? 'Update event details' : 'Create a new event that will appear on user dashboards'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Event Title *</label>
+              <Input
+                placeholder="Enter event title..."
+                value={eventForm.title}
+                onChange={(e) => setEventForm({...eventForm, title: e.target.value})}
+                data-testid="input-event-title"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Description</label>
+              <Textarea
+                placeholder="Enter event description..."
+                value={eventForm.description}
+                onChange={(e) => setEventForm({...eventForm, description: e.target.value})}
+                data-testid="input-event-description"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Event Image</label>
+              <div className="space-y-3">
+                {eventForm.imagePreview && (
+                  <div className="relative w-full h-40 rounded-lg overflow-hidden border border-input bg-gray-100 dark:bg-gray-900">
+                    <img
+                      src={eventForm.imagePreview}
+                      alt="Event preview"
+                      className="w-full h-full object-cover"
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => setEventForm({...eventForm, imageUrl: '', imagePreview: ''})}
+                      className="absolute top-2 right-2"
+                      data-testid="button-remove-image"
+                    >
+                      <X className="w-4 h-4 mr-1" />
+                      Remove
+                    </Button>
+                  </div>
+                )}
+                <div className="border-2 border-dashed border-input rounded-lg p-4 bg-gray-50 dark:bg-gray-950 hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleEventImageUpload}
+                    className="hidden"
+                    id="event-image-upload"
+                    data-testid="input-event-image-upload"
+                  />
+                  <label
+                    htmlFor="event-image-upload"
+                    className="flex flex-col items-center gap-2 cursor-pointer"
+                  >
+                    <Upload className="w-6 h-6 text-muted-foreground" />
+                    <div className="text-center">
+                      <p className="text-sm font-medium">Click to upload image</p>
+                      <p className="text-xs text-muted-foreground">Max 5MB • JPG, PNG, GIF</p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Scheduling Type *</label>
+              <select
+                value={eventForm.schedulingType}
+                onChange={(e) => setEventForm({...eventForm, schedulingType: e.target.value, specificDays: []})}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                data-testid="select-event-scheduling"
+              >
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly (Select Days)</option>
+                <option value="specific_days">Specific Days</option>
+              </select>
+            </div>
+            {(eventForm.schedulingType === 'weekly' || eventForm.schedulingType === 'specific_days') && (
+              <div>
+                <label className="text-sm font-medium mb-2 block">Select Days</label>
+                <div className="flex flex-wrap gap-2">
+                  {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => (
+                    <Button
+                      key={day}
+                      type="button"
+                      variant={eventForm.specificDays.includes(day) ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => {
+                        const newDays = eventForm.specificDays.includes(day)
+                          ? eventForm.specificDays.filter(d => d !== day)
+                          : [...eventForm.specificDays, day];
+                        setEventForm({...eventForm, specificDays: newDays});
+                      }}
+                      data-testid={`button-day-${day.toLowerCase()}`}
+                    >
+                      {day.slice(0, 3)}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Start Date *</label>
+                <Input
+                  type="date"
+                  value={eventForm.startDate}
+                  onChange={(e) => setEventForm({...eventForm, startDate: e.target.value})}
+                  data-testid="input-event-start-date"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">End Date *</label>
+                <Input
+                  type="date"
+                  value={eventForm.endDate}
+                  onChange={(e) => setEventForm({...eventForm, endDate: e.target.value})}
+                  data-testid="input-event-end-date"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Start Time *</label>
+                <Input
+                  type="time"
+                  value={eventForm.startTime}
+                  onChange={(e) => setEventForm({...eventForm, startTime: e.target.value})}
+                  data-testid="input-event-start-time"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">End Time *</label>
+                <Input
+                  type="time"
+                  value={eventForm.endTime}
+                  onChange={(e) => setEventForm({...eventForm, endTime: e.target.value})}
+                  data-testid="input-event-end-time"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">External Link</label>
+              <Input
+                placeholder="https://example.com/event"
+                value={eventForm.externalLink}
+                onChange={(e) => setEventForm({...eventForm, externalLink: e.target.value})}
+                data-testid="input-event-link"
+              />
+              <p className="text-xs text-muted-foreground mt-1">Link will open in a new tab</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="event-active"
+                checked={eventForm.isActive}
+                onCheckedChange={(checked) => setEventForm({...eventForm, isActive: !!checked})}
+                data-testid="checkbox-event-active"
+              />
+              <label htmlFor="event-active" className="text-sm font-medium">Active (visible to users)</label>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowAddEventDialog(false);
+                setEditingEvent(null);
+                resetEventForm();
+              }}
+              data-testid="button-cancel-event"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleEventSubmit}
+              disabled={createEventMutation.isPending || updateEventMutation.isPending}
+              className="bg-teal-600 hover:bg-teal-700"
+              data-testid="button-submit-event"
+            >
+              {(createEventMutation.isPending || updateEventMutation.isPending) 
+                ? 'Saving...' 
+                : editingEvent ? 'Update Event' : 'Create Event'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
