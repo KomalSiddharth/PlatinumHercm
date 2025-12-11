@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 // import { ChatBubbleProvider, useChatBubble } from "@/contexts/ChatBubbleContext";
 import Dashboard from "@/pages/Dashboard";
+import Events from "@/pages/Events";
 import Login from "@/pages/Login";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminPanel from "@/pages/AdminPanel";
@@ -22,6 +23,7 @@ function Router() {
       <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin/panel" component={AdminPanel} />
       <Route path="/dashboard" component={Dashboard} />
+      <Route path="/events" component={Events} />
       <Route component={NotFound} />
     </Switch>
   );
