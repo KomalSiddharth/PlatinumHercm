@@ -193,11 +193,12 @@ export default function Dashboard() {
     staleTime: 30 * 1000, // 30 seconds for HRCM data
   });
 
-   // Fetch upcoming events for the user
-const { data: activeEvents = [], isLoading: eventsLoading } = useQuery({
-  queryKey: ['/api/events'],
-  staleTime: 60 * 1000,
-});
+// Fetch active events for user dashboard
+  const { data: activeEvents = [] } = useQuery<any[]>({
+    queryKey: ["/api/events"],
+    enabled: !!currentUser,
+    staleTime: 60 * 1000, // 60 seconds for events (stable data)
+  });
   
   // 🌙 AUTOMATIC MIDNIGHT RESET - Check every minute for date change (IST timezone)
   useEffect(() => {
