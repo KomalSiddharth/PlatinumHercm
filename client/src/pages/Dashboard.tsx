@@ -1419,6 +1419,75 @@ useEffect(() => {
             currentUserId={currentUser?.id}
           />
         </section>
+ {/* Events Section */}
+        {activeEvents.length > 0 && (
+          <section
+            ref={eventsRef}
+            id="events"
+            className="scroll-mt-20 p-8 rounded-lg border-2"
+            style={{
+              backgroundColor: '#bc000015',
+              borderColor: '#bc0000'
+            }}
+            data-testid="section-events"
+          >
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-3xl font-bold" style={{ color: '#bc0000' }}>
+                  Upcoming Events
+                </h2>
+                <p className="text-muted-foreground mt-2">Stay connected with scheduled sessions and events</p>
+              </div>
+              <div className="grid gap-6 grid-cols-3">
+                {activeEvents.map((event: any) => (
+                  <Card key={event.id} className="overflow-hidden hover-elevate flex flex-col shadow-md" data-testid={`event-user-card-${event.id}`}>
+                    {event.imageUrl && (
+                      <img 
+                        src={event.imageUrl} 
+                        alt={event.title}
+                        className="w-full h-40 object-cover"
+                      />
+                    )}
+                    <CardContent className="p-5 flex flex-col flex-1">
+                      <h3 className="font-bold text-lg mb-3 line-clamp-2" data-testid={`event-user-title-${event.id}`} style={{ color: '#00008c' }}>
+                        {event.title}
+                      </h3>
+                      <div className="flex flex-wrap gap-2 mb-4 flex-1">
+                        <Badge 
+                          style={{ backgroundColor: '#00008c', color: 'white' }} 
+                          className="text-xs py-1 px-2"
+                          data-testid={`event-user-time-${event.id}`}
+                        >
+                          {event.startTime} - {event.endTime}
+                        </Badge>
+                        <Badge 
+                          variant="outline" 
+                          className="text-xs py-1 px-2"
+                          data-testid={`event-user-scheduling-${event.id}`}
+                        >
+                          {event.schedulingType === 'daily' ? 'Daily' : 
+                           event.schedulingType === 'weekly' ? `Weekly: ${event.specificDays?.join(', ')}` :
+                           `Days: ${event.specificDays?.join(', ')}`}
+                        </Badge>
+                      </div>
+                      {event.externalLink && (
+                        <Button
+                          className="w-full text-white font-semibold mt-auto"
+                          style={{ backgroundColor: '#bc0000' }}
+                          onClick={() => window.open(event.externalLink, '_blank')}
+                          data-testid={`button-event-link-${event.id}`}
+                        >
+                          <ExternalLink className="w-4 h-4 mr-2" />
+                          Join Event
+                        </Button>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Platinum User Progress Section */}
         <section className="scroll-mt-20 bg-purple-50 dark:bg-purple-950/40 p-6 rounded-lg border-2 border-purple-200 dark:border-purple-800">
