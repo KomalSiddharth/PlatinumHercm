@@ -9667,7 +9667,82 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
       res.status(500).json({ message: "Failed to delete goal" });
     }
   });
+// ========== Events Routes ==========
+  // Get all events (admin)
+  app.get("/api/admin/events", isAdmin, async (req: any, res) => {
+    try {
+      const events = await storage.getAllEvents();
+      res.json(events);
+    } catch (error) {
+      console.error("Error fetching all events:", error);
+      res.status(500).json({ message: "Failed to fetch events" });
+    }
+  });
 
+  // Get active events for user dashboard
+  app.get("/api/events", isAuthenticated, async (req: any, res) => {
+    try {
+      const events = await storage.getActiveEvents();
+      res.json(events);
+    } catch (error) {
+      console.error("Error fetching events:", error);
+      res.status(500).json({ message: "Failed to fetch events" });
+    }
+  });
+
+  // Create event (admin only)
+  app.post("/api/admin/events", isAdmin, async (req: any, res) => {
+    try {
+      const { title, description, imageUrl, schedulingType, specificDays, startDate, endDate, startTime, endTime, externalLink, isActive } = req.body;
+
+      if (!title || !schedulingType || !startDate || !endDate || !startTime || !endTime) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      const event = await storage.createEvent({
+        title,
+        description: description || null,
+        imageUrl: imageUrl || null,
+        schedulingType,
+        specificDays: specificDays || null,
+        startDate,
+        endDate,
+        startTime,
+        endTime,
+        externalLink: externalLink || null,
+        isActive: isActive !== undefined ? isActive : true,
+      });
+
+      res.json(event);
+    } catch (error) {
+      console.error("Error creating event:", error);
+      res.status(500).json({ message: "Failed to create event" });
+    }
+  });
+
+  // Update event (admin only)
+  app.patch("/api/admin/events/:id", isAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const updated = await storage.updateEvent(id, req.body);
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating event:", error);
+      res.status(500).json({ message: "Failed to update event" });
+    }
+  });
+
+  // Delete event (admin only)
+  app.delete("/api/admin/events/:id", isAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteEvent(id);
+      res.json({ success: true, message: "Event deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting event:", error);
+      res.status(500).json({ message: "Failed to delete event" });
+    }
+  });
   // ========== User Persistent Assignments Routes ==========
   // Get user's persistent assignments (date-independent)
   app.get(
