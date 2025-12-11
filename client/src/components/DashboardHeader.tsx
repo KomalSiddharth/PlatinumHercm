@@ -98,7 +98,17 @@ export default function DashboardHeader({
               </Button>
             ))}
           </nav>
-
+         <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/events')}
+              data-testid="button-events"
+              className="hidden sm:inline-flex bg-gradient-to-r from-teal-500/10 to-cyan-500/10 border-teal-300/30 hover:from-teal-500/20 hover:to-cyan-500/20 text-xs sm:text-sm text-teal-700 dark:text-teal-300"
+            >
+              <Calendar className="w-4 h-4 mr-1.5" />
+              Events
+            </Button>
           <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
             <Button
               variant="outline"
