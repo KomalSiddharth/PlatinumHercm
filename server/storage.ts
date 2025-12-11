@@ -69,10 +69,6 @@ import {
   goalsAffirmations,
   type GoalAffirmation,
   type InsertGoalAffirmation,
-  // ---- Added for Events
-  events,
-  type Event,
-  type InsertEvent,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, asc, and, or, count, sql, gte, lte, offset } from "drizzle-orm";
@@ -268,13 +264,6 @@ export interface IStorage {
   updateGoalText(id: string, userId: string, text: string): Promise<GoalAffirmation>;
   toggleGoalCompletion(id: string, userId: string): Promise<GoalAffirmation>;
   deleteGoalAffirmation(id: string, userId: string): Promise<void>;
-
-  // Events operations
-  getAllEvents(): Promise<Event[]>;
-  getActiveEvents(): Promise<Event[]>;
-  createEvent(data: InsertEvent | any): Promise<Event>;
-  updateEvent(id: string, data: Partial<InsertEvent> | any): Promise<Event>;
-  deleteEvent(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1174,32 +1163,60 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // async markLessonComplete(userId: string, lessonId: string): Promise<void> {
+  //   // Check if already exists
+  //   const [existing] = await db
+  //     .select()
+  //     .from(courseVideoCompletions)
+  //     .where(and(
+  //       eq(courseVideoCompletions.userId, userId),
+  //       eq(courseVideoCompletions.videoId, lessonId)
+  //     ));
+
+  //   if (!existing) {
+  //     // Create completion record
+  //     await db
+  //       .insert(courseVideoCompletions)
+  //       .values({ userId, videoId: lessonId } as any);
+  //   }
+  // }
+
+  // async markLessonIncomplete(userId: string, lessonId: string): Promise<void> {
+  //   // Delete completion record
+  //   await db
+  //     .delete(courseVideoCompletions)
+  //     .where(and(
+  //       eq(courseVideoCompletions.userId, userId),
+  //       eq(courseVideoCompletions.videoId, lessonId)
+  //     ));
+  // }
   // Mark lesson as completed
-  async markLessonComplete(userId: string, videoId: string): Promise<void> {
-    const [existing] = await db
-      .select()
-      .from(courseVideoCompletions)
-      .where(and(
-        eq(courseVideoCompletions.userId, userId),
-        eq(courseVideoCompletions.videoId, videoId)
-      ));
+async markLessonComplete(userId: string, videoId: string): Promise<void> {
+  const [existing] = await db
+    .select()
+    .from(courseVideoCompletions)
+    .where(and(
+      eq(courseVideoCompletions.userId, userId),
+      eq(courseVideoCompletions.videoId, videoId)
+    ));
 
-    if (!existing) {
-      await db
-        .insert(courseVideoCompletions)
-        .values({ userId, videoId });
-    }
-  }
-
-  // Mark lesson as incomplete
-  async markLessonIncomplete(userId: string, videoId: string): Promise<void> {
+  if (!existing) {
     await db
-      .delete(courseVideoCompletions)
-      .where(and(
-        eq(courseVideoCompletions.userId, userId),
-        eq(courseVideoCompletions.videoId, videoId)
-      ));
+      .insert(courseVideoCompletions)
+      .values({ userId, videoId });
   }
+}
+
+// Mark lesson as incomplete
+async markLessonIncomplete(userId: string, videoId: string): Promise<void> {
+  await db
+    .delete(courseVideoCompletions)
+    .where(and(
+      eq(courseVideoCompletions.userId, userId),
+      eq(courseVideoCompletions.videoId, videoId)
+    ));
+}
+
 
   async getUserLessonCompletions(userId: string): Promise<Set<string>> {
     const completions = await this.getAllCourseVideoCompletions(userId);
@@ -2327,100 +2344,7 @@ export class DatabaseStorage implements IStorage {
         )
       );
   }
-
-  // =====================
-  // EVENTS STORAGE LOGIC
-  // =====================
-
-  async getAllEvents(): Promise<Event[]> {
-    return await db
-      .select()
-      .from(events)
-      .orderBy(desc(events.created_at)); // keep newest first
-  }
-
-  async getActiveEvents(): Promise<Event[]> {
-    return await db
-      .select()
-      .from(events)
-      .where(eq(events.is_active, true))
-      .orderBy(desc(events.created_at));
-  }
-
-  // Accept both frontend payload styles (camelCase) and snake_case to be safe
-  async createEvent(data: InsertEvent | any): Promise<Event> {
-    const title = data.title || data.name || '';
-    const description = data.description ?? data.desc ?? null;
-    const image_url = data.imageUrl ?? data.image_url ?? null;
-    const scheduling_type = data.schedulingType ?? data.scheduling_type;
-    const specific_days = data.specificDays ?? data.specific_days ?? null;
-    const start_date = data.startDate ?? data.start_date;
-    const end_date = data.endDate ?? data.end_date;
-    const start_time = data.startTime ?? data.start_time;
-    const end_time = data.endTime ?? data.end_time;
-    const external_link = data.externalLink ?? data.external_link ?? null;
-    const is_active = data.isActive ?? data.is_active ?? true;
-
-    const [created] = await db.insert(events).values({
-      title,
-      description,
-      image_url,
-      scheduling_type,
-      specific_days,
-      start_date,
-      end_date,
-      start_time,
-      end_time,
-      external_link,
-      is_active,
-      created_at: new Date(),
-      updated_at: new Date(),
-    } as any).returning();
-
-    return created;
-  }
-
-  async updateEvent(id: string, data: Partial<InsertEvent> | any): Promise<Event> {
-    const title = data.title ?? data.name;
-    const description = data.description ?? data.desc ?? null;
-    const image_url = data.imageUrl ?? data.image_url ?? null;
-    const scheduling_type = data.schedulingType ?? data.scheduling_type;
-    const specific_days = data.specificDays ?? data.specific_days ?? null;
-    const start_date = data.startDate ?? data.start_date;
-    const end_date = data.endDate ?? data.end_date;
-    const start_time = data.startTime ?? data.start_time;
-    const end_time = data.endTime ?? data.end_time;
-    const external_link = data.externalLink ?? data.external_link ?? null;
-    const is_active = data.isActive ?? data.is_active ?? true;
-
-    const [updated] = await db.update(events)
-      .set({
-        ...(title !== undefined ? { title } : {}),
-        description,
-        image_url,
-        scheduling_type,
-        specific_days,
-        start_date,
-        end_date,
-        start_time,
-        end_time,
-        external_link,
-        is_active,
-        updated_at: new Date(),
-      } as any)
-      .where(eq(events.id, id))
-      .returning();
-
-    return updated;
-  }
-
-  async deleteEvent(id: string): Promise<void> {
-    await db.delete(events)
-      .where(eq(events.id, id));
-  }
 }
-// =====================
-// export storage
-// =====================
+
 
 export const storage = new DatabaseStorage();
