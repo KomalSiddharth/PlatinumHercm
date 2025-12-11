@@ -182,6 +182,12 @@ export default function Dashboard() {
     enabled: !!currentUser,
     staleTime: 60 * 1000, // 60 seconds for history (less frequently accessed)
   });
+  // Fetch upcoming events for the user
+const { data: activeEvents = [], isLoading: eventsLoading } = useQuery({
+  queryKey: ['/api/events'],
+  staleTime: 60 * 1000,
+});
+
 
 
   // Fetch user's HRCM weeks to check 7-day restriction
