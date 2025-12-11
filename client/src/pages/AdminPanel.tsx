@@ -207,7 +207,7 @@ function StandardItem({
 
 export default function AdminPanel() {
   const [, setLocation] = useLocation();
-  const [activeTab, setActiveTab] = useState<'approved' | 'team' | 'logs' | 'analytics' | 'dashboard-viewer' | 'team-analytics' | 'recommendations' | 'platinum-standards' | 'feedback' | 'integration'>('analytics');
+  const [activeTab, setActiveTab] = useState<'approved' | 'team' | 'logs' | 'analytics' | 'dashboard-viewer' | 'team-analytics' | 'recommendations' | 'platinum-standards' | 'feedback' | 'integration' | 'events'>('analytics');
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showBulkDialog, setShowBulkDialog] = useState(false);
@@ -260,6 +260,24 @@ export default function AdminPanel() {
   const [newStandardText, setNewStandardText] = useState('');
   const [editingStandard, setEditingStandard] = useState<any>(null);
   const [selectedStandardIds, setSelectedStandardIds] = useState<Set<string>>(new Set());
+
+  // Events management states
+const [showAddEventDialog, setShowAddEventDialog] = useState(false);
+const [editingEvent, setEditingEvent] = useState<any>(null);
+const [eventForm, setEventForm] = useState({
+  title: '',
+  description: '',
+  imageUrl: '',
+  imagePreview: '',
+  schedulingType: 'daily',
+  specificDays: [] as string[],
+  startDate: '',
+  endDate: '',
+  startTime: '',
+  endTime: '',
+  externalLink: '',
+  isActive: true,
+});
   
   // Dark/Light mode state
   const [darkMode, setDarkMode] = useState(() => {
@@ -401,6 +419,131 @@ export default function AdminPanel() {
     queryKey: [`/api/admin/team-analytics?period=${teamAnalyticsPeriod}`],
     staleTime: 30000, // Cache for 30 seconds to improve performance
   });
+  // Events query
+const { data: adminEvents = [], isLoading: isLoadingEvents } = useQuery<any[]>({
+  queryKey: ['/api/admin/events'],
+  enabled: activeTab === 'events',
+});
+
+  // Create event mutation
+const createEventMutation = useMutation({
+  mutationFn: async (data: any) => {
+    return apiRequest('/api/admin/events', 'POST', data);
+  },
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['/api/admin/events'] });
+    toast({ title: "Event Created", description: "Event has been created successfully" });
+    setShowAddEventDialog(false);
+    resetEventForm();
+  },
+  onError: (error: any) => {
+    toast({ title: "Error", description: error.message || "Failed to create event", variant: "destructive" });
+  }
+});
+  // Update event mutation
+const updateEventMutation = useMutation({
+  mutationFn: async ({ id, data }: { id: string; data: any }) => {
+    return apiRequest(`/api/admin/events/${id}`, 'PATCH', data);
+  },
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['/api/admin/events'] });
+    toast({ title: "Event Updated", description: "Event has been updated successfully" });
+    setEditingEvent(null);
+    resetEventForm();
+  },
+  onError: (error: any) => {
+    toast({ title: "Error", description: error.message || "Failed to update event", variant: "destructive" });
+  }
+});
+  // Delete event mutation
+const deleteEventMutation = useMutation({
+  mutationFn: async (id: string) => {
+    return apiRequest(`/api/admin/events/${id}`, 'DELETE');
+  },
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['/api/admin/events'] });
+    toast({ title: "Event Deleted", description: "Event has been deleted successfully" });
+  },
+  onError: (error: any) => {
+    toast({ title: "Error", description: error.message || "Failed to delete event", variant: "destructive" });
+  }
+});
+  const resetEventForm = () => {
+  setEventForm({
+    title: '',
+    description: '',
+    imageUrl: '',
+    imagePreview: '',
+    schedulingType: 'daily',
+    specificDays: [],
+    startDate: '',
+    endDate: '',
+    startTime: '',
+    endTime: '',
+    externalLink: '',
+    isActive: true,
+  });
+};
+  const handleEventImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (file) {
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({ title: "Error", description: "Please select a valid image file", variant: "destructive" });
+      return;
+    }
+    
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "Error", description: "Image size must be less than 5MB", variant: "destructive" });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64 = reader.result as string;
+      setEventForm({ ...eventForm, imageUrl: base64, imagePreview: base64 });
+      toast({ title: "Success", description: "Image uploaded successfully" });
+    };
+    reader.readAsDataURL(file);
+  }
+};
+  const handleEventSubmit = () => {
+  if (!eventForm.title || !eventForm.startDate || !eventForm.endDate || !eventForm.startTime || !eventForm.endTime) {
+    toast({ title: "Error", description: "Please fill in all required fields", variant: "destructive" });
+    return;
+  }
+
+  const eventData = {
+    ...eventForm,
+    specificDays: eventForm.schedulingType === 'weekly' || eventForm.schedulingType === 'specific_days' 
+      ? eventForm.specificDays 
+      : null,
+  };
+
+  if (editingEvent) {
+    updateEventMutation.mutate({ id: editingEvent.id, data: eventData });
+  } else {
+    createEventMutation.mutate(eventData);
+  }
+};
+  const openEditEvent = (event: any) => {
+  setEditingEvent(event);
+  setEventForm({
+    title: event.title || '',
+    description: event.description || '',
+    imageUrl: event.imageUrl || '',
+    imagePreview: event.imageUrl || '',
+    schedulingType: event.schedulingType || 'daily',
+    specificDays: event.specificDays || [],
+    startDate: event.startDate || '',
+    endDate: event.endDate || '',
+    startTime: event.startTime || '',
+    endTime: event.endTime || '',
+    externalLink: event.externalLink || '',
+    isActive: event.isActive !== undefined ? event.isActive : true,
+  });
+};
 
   const searchUserMutation = useMutation({
     mutationFn: async (query: string) => {
@@ -1415,6 +1558,17 @@ export default function AdminPanel() {
               >
                 Integration
               </button>
+              <button 
+  onClick={() => setActiveTab('events')}
+  className={`px-4 py-3 rounded-md text-left transition-colors ${
+    activeTab === 'events' 
+      ? 'bg-blue-600 text-white font-medium' 
+      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'
+  }`}
+  data-testid="tab-events"
+>
+  Events
+</button>
             </div>
           </div>
 
@@ -3412,6 +3566,143 @@ export default function AdminPanel() {
                   </CardContent>
                 </Card>
 
+              </div>
+            </div>
+          )}
+             {/* Events Tab Content */}
+          {activeTab === 'events' && (
+            <div className="p-6">
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+                      Events Management
+                    </h2>
+                    <p className="text-muted-foreground mt-1">
+                      Create and manage events that appear on user dashboards
+                    </p>
+                  </div>
+                  <Button
+                    onClick={() => {
+                      resetEventForm();
+                      setEditingEvent(null);
+                      setShowAddEventDialog(true);
+                    }}
+                    className="bg-teal-600 hover:bg-teal-700"
+                    data-testid="button-add-event"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Event
+                  </Button>
+                </div>
+
+                {/* Events List */}
+                {isLoadingEvents ? (
+                  <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-teal-200 border-t-teal-600 mx-auto"></div>
+                    <p className="text-muted-foreground mt-4">Loading events...</p>
+                  </div>
+                ) : adminEvents.length === 0 ? (
+                  <Card className="border-2 border-dashed border-teal-200 dark:border-teal-800">
+                    <CardContent className="py-12 text-center">
+                      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center">
+                        <Plus className="w-8 h-8 text-teal-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold mb-2">No Events Yet</h3>
+                      <p className="text-muted-foreground mb-4">Create your first event to get started</p>
+                      <Button
+                        onClick={() => {
+                          resetEventForm();
+                          setShowAddEventDialog(true);
+                        }}
+                        className="bg-teal-600 hover:bg-teal-700"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create Event
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="grid gap-4">
+                    {adminEvents.map((event: any) => (
+                      <Card key={event.id} className={`border-l-4 ${event.isActive ? 'border-l-teal-500' : 'border-l-gray-400'}`} data-testid={`event-card-${event.id}`}>
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-4">
+                            {event.imageUrl && (
+                              <img 
+                                src={event.imageUrl} 
+                                alt={event.title}
+                                className="w-24 h-24 object-cover rounded-lg"
+                              />
+                            )}
+                            <div className="flex-1">
+                              <div className="flex items-start justify-between">
+                                <div>
+                                  <h3 className="font-semibold text-lg" data-testid={`event-title-${event.id}`}>{event.title}</h3>
+                                  {event.description && (
+                                    <p className="text-sm text-muted-foreground mt-1">{event.description}</p>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Badge className={event.isActive ? 'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'}>
+                                    {event.isActive ? 'Active' : 'Inactive'}
+                                  </Badge>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => openEditEvent(event)}
+                                    data-testid={`button-edit-event-${event.id}`}
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-red-600 hover:text-red-700"
+                                    onClick={() => {
+                                      if (window.confirm('Are you sure you want to delete this event?')) {
+                                        deleteEventMutation.mutate(event.id);
+                                      }
+                                    }}
+                                    data-testid={`button-delete-event-${event.id}`}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                              <div className="flex flex-wrap gap-4 mt-3 text-sm text-muted-foreground">
+                                <span className="flex items-center gap-1" data-testid={`event-date-range-${event.id}`}>
+                                  <CalendarIcon className="w-4 h-4" />
+                                  {event.startDate} - {event.endDate}
+                                </span>
+                                <span data-testid={`event-time-range-${event.id}`}>
+                                  {event.startTime} - {event.endTime}
+                                </span>
+                                <Badge variant="outline" data-testid={`event-scheduling-${event.id}`}>
+                                  {event.schedulingType === 'daily' ? 'Daily' : 
+                                   event.schedulingType === 'weekly' ? `Weekly: ${event.specificDays?.join(', ')}` :
+                                   `Specific Days: ${event.specificDays?.join(', ')}`}
+                                </Badge>
+                                {event.externalLink && (
+                                  <a 
+                                    href={event.externalLink} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1 text-teal-600 hover:text-teal-700"
+                                    data-testid={`event-external-link-${event.id}`}
+                                  >
+                                    <ExternalLink className="w-4 h-4" />
+                                    External Link
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}
