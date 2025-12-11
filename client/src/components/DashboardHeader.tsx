@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Menu, X, Trophy, Moon, Sun, User as UserIcon, Target } from 'lucide-react';
+import { useLocation } from 'wouter';
+import { Menu, X, Trophy, Moon, Sun, User as UserIcon, Target, Calendar } from 'lucide-react';
 import Logo from './Logo';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -24,6 +25,7 @@ export default function DashboardHeader({
   onGoalsClick = () => {},
   profileImageUrl = ''
 }: DashboardHeaderProps) {
+  const [, navigate] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
     // Load theme preference from localStorage on initial mount
@@ -98,8 +100,19 @@ export default function DashboardHeader({
               </Button>
             ))}
           </nav>
-         
+
           <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/events')}
+              data-testid="button-events"
+              className="hidden sm:inline-flex bg-gradient-to-r from-teal-500/10 to-cyan-500/10 border-teal-300/30 hover:from-teal-500/20 hover:to-cyan-500/20 text-xs sm:text-sm text-teal-700 dark:text-teal-300"
+            >
+              <Calendar className="w-4 h-4 mr-1.5" />
+              Events
+            </Button>
+
             <Button
               variant="outline"
               size="sm"
@@ -175,6 +188,18 @@ export default function DashboardHeader({
                   {item.label}
                 </Button>
               ))}
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  navigate('/events');
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full justify-start text-sm"
+                data-testid="nav-mobile-events"
+              >
+                <Calendar className="w-4 h-4 mr-2" />
+                Events
+              </Button>
               <Button
                 variant="ghost"
                 onClick={() => {
