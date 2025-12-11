@@ -735,3 +735,31 @@ export const insertGoalAffirmationSchema = createInsertSchema(goalsAffirmations)
 
 export type InsertGoalAffirmation = z.infer<typeof insertGoalAffirmationSchema>;
 export type GoalAffirmation = typeof goalsAffirmations.$inferSelect;
+
+// Events - Admin-created events shown on user dashboard
+export const events = pgTable("events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: varchar("title", { length: 200 }).notNull(),
+  description: varchar("description", { length: 1000 }),
+  imageUrl: varchar("image_url"),
+  schedulingType: varchar("scheduling_type").notNull(), // 'daily', 'weekly', 'specific_days'
+  specificDays: jsonb("specific_days").$type<string[]>(), // ['Monday', 'Wednesday', 'Friday'] for weekly/specific
+  startDate: varchar("start_date").notNull(), // YYYY-MM-DD format
+  endDate: varchar("end_date").notNull(), // YYYY-MM-DD format
+  startTime: varchar("start_time").notNull(), // HH:MM format (24-hour)
+  endTime: varchar("end_time").notNull(), // HH:MM format (24-hour)
+  externalLink: varchar("external_link"),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertEventSchema = createInsertSchema(events).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertEvent = z.infer<typeof insertEventSchema>;
+export type Event = typeof events.$inferSelect;
+
