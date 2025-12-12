@@ -23,6 +23,17 @@ import LifeSkillsMap from '@/components/LifeSkillsMap';
 import { GoalsAffirmationsDialog } from '@/components/GoalsAffirmationsDialog';
 import { GratitudeJournalDialog } from '@/components/GratitudeJournalDialog';
 import { useToast } from '@/hooks/use-toast';
+// Utility function to convert 24-hour format to 12-hour format with AM/PM
+const formatTimeWith12Hour = (time: string): string => {
+  if (!time) return '';
+  const [hours, minutes] = time.split(':');
+  let hour = parseInt(hours);
+  const min = minutes;
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  if (hour > 12) hour -= 12;
+  if (hour === 0) hour = 12;
+  return `${hour}:${min} ${ampm}`;
+};
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -1469,7 +1480,7 @@ useEffect(() => {
                           className="text-xs py-1 px-2"
                           data-testid={`event-user-time-${event.id}`}
                         >
-                          {event.startTime} - {event.endTime}
+                          {formatTimeWith12Hour(event.startTime)} - {formatTimeWith12Hour(event.endTime)}
                         </Badge>
                         <Badge 
                           variant="outline" 
