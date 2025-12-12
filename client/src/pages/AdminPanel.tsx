@@ -38,6 +38,18 @@ import {
   X,
 } from "lucide-react";
 import type { ApprovedEmail, AdminUser, AccessLog } from "@shared/schema";
+
+// Utility function to convert 24-hour format to 12-hour format with AM/PM
+const formatTimeWith12Hour = (time: string): string => {
+  if (!time) return '';
+  const [hours, minutes] = time.split(':');
+  let hour = parseInt(hours);
+  const min = minutes;
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  if (hour > 12) hour -= 12;
+  if (hour === 0) hour = 12;
+  return `${hour}:${min} ${ampm}`;
+};
 import {
   Dialog,
   DialogContent,
@@ -4999,7 +5011,7 @@ export default function AdminPanel() {
                                   <span
                                     data-testid={`event-time-range-${event.id}`}
                                   >
-                                    {event.startTime} - {event.endTime}
+                                    {formatTimeWith12Hour(event.startTime)} - {formatTimeWith12Hour(event.endTime)}
                                   </span>
                                   <Badge
                                     variant="outline"
