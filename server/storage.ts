@@ -266,7 +266,7 @@ export interface IStorage {
   updateGoalText(id: string, userId: string, text: string): Promise<GoalAffirmation>;
   toggleGoalCompletion(id: string, userId: string): Promise<GoalAffirmation>;
   deleteGoalAffirmation(id: string, userId: string): Promise<void>;
-}
+
  // Events operations (Admin-created events)
   getAllEvents(): Promise<Event[]>;
   getActiveEvents(): Promise<Event[]>;
