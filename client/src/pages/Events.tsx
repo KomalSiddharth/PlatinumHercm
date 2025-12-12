@@ -7,6 +7,18 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Calendar as CalendarIcon, ExternalLink } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
+// Utility function to convert 24-hour format to 12-hour format with AM/PM
+const formatTimeWith12Hour = (time: string): string => {
+  if (!time) return '';
+  const [hours, minutes] = time.split(':');
+  let hour = parseInt(hours);
+  const min = minutes;
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  if (hour > 12) hour -= 12;
+  if (hour === 0) hour = 12;
+  return `${hour}:${min} ${ampm}`;
+};
+
 export default function Events() {
   const [, navigate] = useLocation();
   
@@ -64,10 +76,9 @@ export default function Events() {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Dashboard
           </Button>
-          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">
-          Upcoming Events
+          <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent mb-2">
+            Upcoming Events
           </h1>
-
           <p className="text-muted-foreground">Stay connected with all scheduled sessions and events</p>
         </div>
 
@@ -107,7 +118,7 @@ export default function Events() {
                       className="text-xs py-1 px-2"
                       data-testid={`event-page-time-${event.id}`}
                     >
-                      {event.startTime} - {event.endTime}
+                      {formatTimeWith12Hour(event.startTime)} - {formatTimeWith12Hour(event.endTime)}
                     </Badge>
                     <Badge 
                       variant="outline"
