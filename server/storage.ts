@@ -68,7 +68,8 @@ import {
   type InsertGratitudePost,
   goalsAffirmations,
   type GoalAffirmation,
-  type InsertGoalAffirmation,events,
+  type InsertGoalAffirmation,
+  events,
   type Event,
   type InsertEvent,
 } from "@shared/schema";
@@ -266,8 +267,8 @@ export interface IStorage {
   updateGoalText(id: string, userId: string, text: string): Promise<GoalAffirmation>;
   toggleGoalCompletion(id: string, userId: string): Promise<GoalAffirmation>;
   deleteGoalAffirmation(id: string, userId: string): Promise<void>;
-
- // Events operations (Admin-created events)
+  
+  // Events operations (Admin-created events)
   getAllEvents(): Promise<Event[]>;
   getActiveEvents(): Promise<Event[]>;
   getEventById(id: string): Promise<Event | undefined>;
@@ -1168,65 +1169,38 @@ export class DatabaseStorage implements IStorage {
       // Create completion (complete)
       await db
         .insert(courseVideoCompletions)
-        .values({ userId, videoId } );
+        .values({ userId, videoId } as any);
       return { completed: true };
     }
   }
 
-  // async markLessonComplete(userId: string, lessonId: string): Promise<void> {
-  //   // Check if already exists
-  //   const [existing] = await db
-  //     .select()
-  //     .from(courseVideoCompletions)
-  //     .where(and(
-  //       eq(courseVideoCompletions.userId, userId),
-  //       eq(courseVideoCompletions.videoId, lessonId)
-  //     ));
+  async markLessonComplete(userId: string, lessonId: string): Promise<void> {
+    // Check if already exists
+    const [existing] = await db
+      .select()
+      .from(courseVideoCompletions)
+      .where(and(
+        eq(courseVideoCompletions.userId, userId),
+        eq(courseVideoCompletions.videoId, lessonId)
+      ));
 
-  //   if (!existing) {
-  //     // Create completion record
-  //     await db
-  //       .insert(courseVideoCompletions)
-  //       .values({ userId, videoId: lessonId } as any);
-  //   }
-  // }
-
-  // async markLessonIncomplete(userId: string, lessonId: string): Promise<void> {
-  //   // Delete completion record
-  //   await db
-  //     .delete(courseVideoCompletions)
-  //     .where(and(
-  //       eq(courseVideoCompletions.userId, userId),
-  //       eq(courseVideoCompletions.videoId, lessonId)
-  //     ));
-  // }
-  // Mark lesson as completed
-async markLessonComplete(userId: string, videoId: string): Promise<void> {
-  const [existing] = await db
-    .select()
-    .from(courseVideoCompletions)
-    .where(and(
-      eq(courseVideoCompletions.userId, userId),
-      eq(courseVideoCompletions.videoId, videoId)
-    ));
-
-  if (!existing) {
-    await db
-      .insert(courseVideoCompletions)
-      .values({ userId, videoId });
+    if (!existing) {
+      // Create completion record
+      await db
+        .insert(courseVideoCompletions)
+        .values({ userId, videoId: lessonId } as any);
+    }
   }
-}
 
-// Mark lesson as incomplete
-async markLessonIncomplete(userId: string, videoId: string): Promise<void> {
-  await db
-    .delete(courseVideoCompletions)
-    .where(and(
-      eq(courseVideoCompletions.userId, userId),
-      eq(courseVideoCompletions.videoId, videoId)
-    ));
-}
-
+  async markLessonIncomplete(userId: string, lessonId: string): Promise<void> {
+    // Delete completion record
+    await db
+      .delete(courseVideoCompletions)
+      .where(and(
+        eq(courseVideoCompletions.userId, userId),
+        eq(courseVideoCompletions.videoId, lessonId)
+      ));
+  }
 
   async getUserLessonCompletions(userId: string): Promise<Set<string>> {
     const completions = await this.getAllCourseVideoCompletions(userId);
@@ -2354,6 +2328,7 @@ async markLessonIncomplete(userId: string, videoId: string): Promise<void> {
         )
       );
   }
+
   // Events operations (Admin-created events)
   async getAllEvents(): Promise<Event[]> {
     return await db
@@ -2408,8 +2383,6 @@ async markLessonIncomplete(userId: string, videoId: string): Promise<void> {
       .delete(events)
       .where(eq(events.id, id));
   }
-
 }
-
 
 export const storage = new DatabaseStorage();
