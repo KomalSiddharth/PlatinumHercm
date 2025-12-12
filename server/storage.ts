@@ -68,7 +68,9 @@ import {
   type InsertGratitudePost,
   goalsAffirmations,
   type GoalAffirmation,
-  type InsertGoalAffirmation,
+  type InsertGoalAffirmation,events,
+  type Event,
+  type InsertEvent,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, asc, and, or, count, sql, gte, lte, offset } from "drizzle-orm";
@@ -264,6 +266,14 @@ export interface IStorage {
   updateGoalText(id: string, userId: string, text: string): Promise<GoalAffirmation>;
   toggleGoalCompletion(id: string, userId: string): Promise<GoalAffirmation>;
   deleteGoalAffirmation(id: string, userId: string): Promise<void>;
+}
+ // Events operations (Admin-created events)
+  getAllEvents(): Promise<Event[]>;
+  getActiveEvents(): Promise<Event[]>;
+  getEventById(id: string): Promise<Event | undefined>;
+  createEvent(event: InsertEvent): Promise<Event>;
+  updateEvent(id: string, event: Partial<InsertEvent>): Promise<Event>;
+  deleteEvent(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2344,6 +2354,61 @@ async markLessonIncomplete(userId: string, videoId: string): Promise<void> {
         )
       );
   }
+  // Events operations (Admin-created events)
+  async getAllEvents(): Promise<Event[]> {
+    return await db
+      .select()
+      .from(events)
+      .orderBy(desc(events.createdAt));
+  }
+
+  async getActiveEvents(): Promise<Event[]> {
+    return await db
+      .select()
+      .from(events)
+      .where(eq(events.isActive, true))
+      .orderBy(asc(events.startDate), asc(events.startTime));
+  }
+
+  async getEventById(id: string): Promise<Event | undefined> {
+    const [event] = await db
+      .select()
+      .from(events)
+      .where(eq(events.id, id));
+    return event;
+  }
+
+  async createEvent(event: InsertEvent): Promise<Event> {
+    const [newEvent] = await db
+      .insert(events)
+      .values(event)
+      .returning();
+    return newEvent;
+  }
+
+  async updateEvent(id: string, event: Partial<InsertEvent>): Promise<Event> {
+    const [updated] = await db
+      .update(events)
+      .set({
+        ...event,
+        updatedAt: new Date()
+      })
+      .where(eq(events.id, id))
+      .returning();
+    
+    if (!updated) {
+      throw new Error('Event not found');
+    }
+    
+    return updated;
+  }
+
+  async deleteEvent(id: string): Promise<void> {
+    await db
+      .delete(events)
+      .where(eq(events.id, id));
+  }
+
 }
 
 
