@@ -323,3 +323,184 @@ export async function fetchCourseData(sheetUrl: string): Promise<CourseSuggestio
     throw new Error(`Failed to fetch course data from Google Sheets`);
   }
 }
+
+// Find best matching course based on belief and category
+export function findMatchingCourse(
+  courses: CourseSuggestion[],
+  category: string,
+  currentBelief: string
+): CourseSuggestion | null {
+  // Filter by category first
+  const categoryMatches = courses.filter(
+    (c) => c.category.toLowerCase() === category.toLowerCase()
+  );
+
+  if (categoryMatches.length === 0) {
+    return null;
+  }
+
+  // Find best match by belief similarity (simple keyword matching)
+  const beliefKeywords = currentBelief.toLowerCase().split(' ');
+  
+  let bestMatch = categoryMatches[0];
+  let bestScore = 0;
+
+  categoryMatches.forEach((course) => {
+    const courseBeliefKeywords = course.belief.toLowerCase().split(' ');
+    let score = 0;
+
+    beliefKeywords.forEach((keyword) => {
+      if (courseBeliefKeywords.some(ck => ck.includes(keyword) || keyword.includes(ck))) {
+        score++;
+      }
+    });
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestMatch = course;
+    }
+  });
+
+  return bestMatch;
+}
+
+// Enhanced: Find top matching courses based on comprehensive HERCM data
+interface MatchingInput {
+  category: string;
+  problems: string;
+  feelings: string;
+  beliefs: string;
+  actions: string;
+}
+
+interface ScoredCourse {
+  course: EnhancedCourseData;
+  score: number;
+  matchReasons: string[];
+}
+
+export async function fetchEnhancedCourseData(sheetUrl: string): Promise<EnhancedCourseData[]> {
+  const now = Date.now();
+  if (cachedCourses.length > 0 && (now - cacheTimestamp) < CACHE_TTL) {
+    console.log('Using cached enhanced course data');
+    return cachedCourses;
+  }
+
+  try {
+    const sheets = await getGoogleSheetsClient();
+    const spreadsheetId = extractSpreadsheetId(sheetUrl);
+    
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: 'EnhancedCourses!A2:J1000',
+    });
+
+    const rows = response.data.values || [];
+    
+    const courses: EnhancedCourseData[] = rows.map((row) => ({
+      courseName: row[0] || '',
+      link: row[1] || '',
+      hercmAreas: (row[2] || '').split(',').map((s: string) => s.trim()).filter(Boolean),
+      keywords: (row[3] || '').split(',').map((s: string) => s.trim()).filter(Boolean),
+      targetProblems: (row[4] || '').split(',').map((s: string) => s.trim()).filter(Boolean),
+      targetFeelings: (row[5] || '').split(',').map((s: string) => s.trim()).filter(Boolean),
+      beliefTargets: (row[6] || '').split(',').map((s: string) => s.trim()).filter(Boolean),
+      actionSuggestions: (row[7] || '').split(',').map((s: string) => s.trim()).filter(Boolean),
+      difficulty: row[8] || '',
+      duration: row[9] || '',
+    }));
+
+    cachedCourses = courses;
+    cacheTimestamp = now;
+    
+    return courses;
+  } catch (error) {
+    console.error('Error fetching enhanced course data:', error);
+    if (cachedCourses.length > 0) {
+      console.log('Returning stale cache due to error');
+      return cachedCourses;
+    }
+    throw error;
+  }
+}
+
+export async function recommendCourses(
+  sheetUrl: string,
+  input: MatchingInput,
+  topN: number = 3
+): Promise<ScoredCourse[]> {
+  const courses = await fetchEnhancedCourseData(sheetUrl);
+  
+  // Filter by HERCM area first
+  const relevantCourses = courses.filter(course =>
+    course.hercmAreas.some(area => area.toLowerCase() === input.category.toLowerCase())
+  );
+
+  if (relevantCourses.length === 0) {
+    return [];
+  }
+
+  // Helper function for keyword matching
+  const matchKeywords = (text: string, keywords: string[]): number => {
+    const lowerText = text.toLowerCase();
+    let matches = 0;
+    keywords.forEach(keyword => {
+      if (lowerText.includes(keyword.toLowerCase())) {
+        matches++;
+      }
+    });
+    return matches;
+  };
+
+  // Score each course
+  const scoredCourses: ScoredCourse[] = relevantCourses.map(course => {
+    let score = 0;
+    const matchReasons: string[] = [];
+
+    // 1. Match Problems (Weight: 3)
+    const problemMatches = matchKeywords(input.problems, course.targetProblems);
+    if (problemMatches > 0) {
+      score += problemMatches * 3;
+      matchReasons.push(`Addresses ${problemMatches} of your problems`);
+    }
+
+    // 2. Match Feelings (Weight: 2)
+    const feelingMatches = matchKeywords(input.feelings, course.targetFeelings);
+    if (feelingMatches > 0) {
+      score += feelingMatches * 2;
+      matchReasons.push(`Targets ${feelingMatches} of your feelings`);
+    }
+
+    // 3. Match Beliefs (Weight: 3)
+    const beliefMatches = matchKeywords(input.beliefs, course.beliefTargets);
+    if (beliefMatches > 0) {
+      score += beliefMatches * 3;
+      matchReasons.push(`Transforms ${beliefMatches} limiting beliefs`);
+    }
+
+    // 4. Match Actions (Weight: 2)
+    const actionMatches = matchKeywords(input.actions, course.actionSuggestions);
+    if (actionMatches > 0) {
+      score += actionMatches * 2;
+      matchReasons.push(`Suggests ${actionMatches} aligned actions`);
+    }
+
+    // 5. General keyword match (Weight: 1)
+    const keywordMatches = matchKeywords(
+      `${input.problems} ${input.feelings} ${input.beliefs} ${input.actions}`,
+      course.keywords
+    );
+    if (keywordMatches > 0) {
+      score += keywordMatches;
+      matchReasons.push(`${keywordMatches} keyword matches`);
+    }
+
+    return { course, score, matchReasons };
+  });
+
+  // Sort by score and return top N
+  return scoredCourses
+    .filter(sc => sc.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, topN);
+}
