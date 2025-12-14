@@ -412,6 +412,14 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
   // Inline editing state for Current Week Checkpoint Popup
   const [inlineEditingId, setInlineEditingId] = useState<string | null>(null);
   const [inlineEditText, setInlineEditText] = useState('');
+  const [isAddingNewInPopup, setIsAddingNewInPopup] = useState(false);
+  const [newPopupItemText, setNewPopupItemText] = useState('');
+  
+  // Inline editing state for Next Week Checkpoint Popup
+  const [nextWeekInlineEditingId, setNextWeekInlineEditingId] = useState<string | null>(null);
+  const [nextWeekInlineEditText, setNextWeekInlineEditText] = useState('');
+  const [isAddingNewInNextWeekPopup, setIsAddingNewInNextWeekPopup] = useState(false);
+  const [newNextWeekPopupItemText, setNewNextWeekPopupItemText] = useState('');
 
   // Next Week Target Checkpoint Dialog State
   const [showNextWeekCheckpointDialog, setShowNextWeekCheckpointDialog] = useState(false);
@@ -3994,12 +4002,9 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     
     return (
       <>
-        {/* 🔥 NEW: Clickable preview that opens master dialog */}
-        <div 
-          onClick={!disabled ? openMasterDialog : undefined}
-          className={`space-y-1 max-w-full max-h-full overflow-hidden ${!disabled ? 'cursor-pointer' : 'cursor-not-allowed'}`}
-        >
-          {/* Compact View - Shows only first item */}
+        {/* Compact View with INLINE editing */}
+        <div className="space-y-1 max-w-full max-h-full overflow-hidden">
+          {/* Visible Items - Click text to edit inline */}
           {visibleItems.map((item) => (
             <div key={item.id} className="flex items-center gap-2 min-w-0">
               <Checkbox
@@ -4007,29 +4012,70 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 onCheckedChange={() => !disabled && onToggle(item.id)}
                 disabled={disabled}
                 className="h-3 w-3 shrink-0"
-                onClick={(e) => e.stopPropagation()}
                 data-testid={`checkbox-${checklistType}-${category.toLowerCase()}-${item.id}`}
               />
-              <span className="text-xs line-clamp-1 break-all min-w-0">
-                {item.text}
-              </span>
+              {editingItemId === item.id ? (
+                <Input
+                  value={editingText}
+                  onChange={(e) => setEditingText(e.target.value)}
+                  onKeyDown={(e) => handleEditKeyDown(e, item.id)}
+                  onBlur={() => handleSaveEdit(item.id)}
+                  autoFocus
+                  className="flex-1 h-5 text-xs px-1 min-w-0"
+                  data-testid={`input-edit-compact-${checklistType}-${item.id}`}
+                />
+              ) : (
+                <span 
+                  onClick={() => !disabled && handleStartEdit(item.id, item.text)}
+                  className={`text-xs line-clamp-1 break-all min-w-0 ${!disabled ? 'cursor-text hover:bg-muted/50 rounded px-1 -mx-1' : ''}`}
+                >
+                  {item.text}
+                </span>
+              )}
             </div>
           ))}
           
-          {/* Show "X more items" if more than 1 */}
+          {/* Show "X more items" - opens dialog for full list */}
           {hasMoreItems && (
-            <div className="text-xs text-muted-foreground italic pl-5 cursor-pointer hover:underline">
+            <div 
+              onClick={!disabled ? openMasterDialog : undefined}
+              className="text-xs text-muted-foreground italic pl-5 cursor-pointer hover:underline"
+            >
               + {hiddenCount} more item{hiddenCount > 1 ? 's' : ''}...
+            </div>
+          )}
+          
+          {/* Inline Add Input - appears when adding */}
+          {isAddingNew && !disabled && (
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="h-3 w-3 shrink-0" />
+              <Input
+                ref={inputRef}
+                value={newItemText}
+                onChange={(e) => setNewItemText(e.target.value)}
+                onKeyDown={handleKeyDown}
+                onBlur={() => {
+                  if (newItemText.trim()) {
+                    handleAddNewItem();
+                  } else {
+                    setIsAddingNew(false);
+                  }
+                }}
+                placeholder={`Type ${buttonLabel.toLowerCase()}...`}
+                autoFocus
+                className="flex-1 h-5 text-xs px-1 min-w-0"
+                data-testid={`input-add-compact-${checklistType}`}
+              />
             </div>
           )}
         </div>
         
-        {/* Add Button - When no items exist */}
-        {!disabled && items.length === 0 && (
+        {/* Add Button - Shows inline input */}
+        {!disabled && !isAddingNew && (
           <Button
             size="sm"
             variant="ghost"
-            onClick={openMasterDialog}
+            onClick={handleStartAddingNew}
             className="h-6 w-full text-xs text-muted-foreground hover:text-foreground gap-1"
             data-testid={`button-add-checkpoint-${checklistType}-${category.toLowerCase()}`}
           >
@@ -4038,76 +4084,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
           </Button>
         )}
 
-        {/* Add/Edit Item Dialog - Separate popup (renders on top) */}
-        <Dialog 
-          open={isAddingNew} 
-          onOpenChange={(open) => {
-            // 🔥 AUTO-SAVE: When closing dialog (backdrop click), save data if textarea has content
-            if (!open) {
-              // Check if there's unsaved content
-              if (newItemText.trim()) {
-                if (editingItemId) {
-                  // Editing existing item - save it
-                  onUpdateText(editingItemId, newItemText.trim());
-                } else {
-                  // Adding new item - save it
-                  onAddCheckpoint(newItemText.trim());
-                }
-              }
-              // Clear state after save
-              setIsAddingNew(false);
-              setNewItemText('');
-              setEditingItemId(null);
-            }
-          }}
-        >
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle className="text-base font-semibold">
-                {editingItemId ? `Edit ${buttonLabel}` : `Add ${buttonLabel}`}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className={`p-4 rounded-lg border-2 ${colorScheme.gradient} ${colorScheme.border}`}>
-                <Textarea
-                  value={newItemText}
-                  onChange={(e) => setNewItemText(e.target.value)}
-                  placeholder={`Enter your ${buttonLabel.toLowerCase()}...`}
-                  className="min-h-[100px] text-sm bg-white dark:bg-gray-950 border-muted"
-                  autoFocus
-                  data-testid={`textarea-new-checkpoint-${checklistType}`}
-                />
-              </div>
-              <div className="flex gap-2 justify-end">
-                <Button
-                  variant="outline"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsAddingNew(false);
-                    setNewItemText('');
-                    setEditingItemId(null);
-                  }}
-                  data-testid={`button-cancel-checkpoint-${checklistType}`}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleAddNewItem();
-                  }}
-                  disabled={!newItemText.trim()}
-                  className={`${colorScheme.bar} text-white hover:opacity-90`}
-                  data-testid={`button-save-checkpoint-${checklistType}`}
-                >
-                  {editingItemId ? `Update ${buttonLabel}` : `Add ${buttonLabel}`}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* Main List Dialog - Assignment Style */}
+        {/* Main List Dialog - Assignment Style with Inline Editing */}
         <Dialog 
           open={showMasterDialog} 
           onOpenChange={setShowMasterDialog}
@@ -4123,16 +4100,101 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             </DialogHeader>
             
             <div className="space-y-4 py-4">
-              {/* Add Button - Opens separate dialog */}
-              {!disabled && (
+              {/* List of items with inline editing */}
+              <div className="space-y-2">
+                {items.map((item, index) => (
+                  <div 
+                    key={item.id} 
+                    className="flex items-start gap-3 py-2 px-3 rounded-lg hover:bg-muted/30 transition-all duration-200 ease-in-out group/item animate-in fade-in slide-in-from-top-2"
+                  >
+                    <span className="text-sm font-semibold text-muted-foreground min-w-[24px] mt-0.5 shrink-0 transition-all duration-200">
+                      {index + 1}.
+                    </span>
+                    <Checkbox
+                      checked={item.checked}
+                      onCheckedChange={() => onToggle(item.id)}
+                      onClick={(e) => e.stopPropagation()}
+                      disabled={disabled}
+                      className="h-5 w-5 mt-0.5 shrink-0 transition-all duration-200"
+                      data-testid={`checkbox-dialog-${checklistType}-${item.id}`}
+                    />
+                    {editingItemId === item.id ? (
+                      <Input
+                        value={editingText}
+                        onChange={(e) => setEditingText(e.target.value)}
+                        onKeyDown={(e) => handleEditKeyDown(e, item.id)}
+                        onBlur={() => handleSaveEdit(item.id)}
+                        autoFocus
+                        className="flex-1 h-7 text-sm"
+                        data-testid={`input-edit-${checklistType}-${item.id}`}
+                      />
+                    ) : (
+                      <span
+                        onClick={() => !disabled && handleStartEdit(item.id, item.text)}
+                        className={`text-sm flex-1 ${colorScheme.text} leading-relaxed break-words transition-all duration-200 ${!disabled ? 'cursor-text hover:bg-muted/50 rounded px-1 -mx-1' : ''}`}
+                        data-testid={`text-dialog-${checklistType}-${item.id}`}
+                      >
+                        {item.text}
+                      </span>
+                    )}
+                    {!disabled && editingItemId !== item.id && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteCheckpoint(item.id);
+                        }}
+                        className="h-6 w-6 p-0 shrink-0 opacity-0 group-hover/item:opacity-100 transition-opacity"
+                        data-testid={`button-delete-dialog-${checklistType}-${item.id}`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+                
+                {/* Inline Add Input - appears at bottom when adding */}
+                {isAddingNew && !disabled && (
+                  <div className="flex items-start gap-3 py-2 px-3 rounded-lg bg-muted/20 animate-in fade-in slide-in-from-top-2">
+                    <span className="text-sm font-semibold text-muted-foreground min-w-[24px] mt-0.5 shrink-0">
+                      {items.length + 1}.
+                    </span>
+                    <div className="h-5 w-5 mt-0.5 shrink-0" />
+                    <Input
+                      ref={inputRef}
+                      value={newItemText}
+                      onChange={(e) => setNewItemText(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      onBlur={() => {
+                        if (newItemText.trim()) {
+                          handleAddNewItem();
+                        } else {
+                          setIsAddingNew(false);
+                        }
+                      }}
+                      placeholder={`Type ${buttonLabel.toLowerCase()} and press Enter...`}
+                      autoFocus
+                      className="flex-1 h-7 text-sm"
+                      data-testid={`input-add-${checklistType}`}
+                    />
+                  </div>
+                )}
+                
+                {/* Empty state */}
+                {items.length === 0 && !isAddingNew && (
+                  <p className="text-sm text-muted-foreground italic text-center py-4">
+                    No {colorScheme.label.toLowerCase()} yet. Click "+ Add {buttonLabel}" below!
+                  </p>
+                )}
+              </div>
+              
+              {/* Add Button - Shows inline input */}
+              {!disabled && !isAddingNew && (
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={(e) => {
-                    e.stopPropagation(); // ✅ Prevent main dialog close
-                    setNewItemText('');
-                    setIsAddingNew(true);
-                  }}
+                  onClick={handleStartAddingNew}
                   className={`w-full h-9 text-sm border-dashed ${colorScheme.border} ${colorScheme.text} hover:bg-muted/30`}
                   data-testid={`button-add-checkpoint-dialog-${checklistType}`}
                 >
@@ -4140,93 +4202,6 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   Add {buttonLabel}
                 </Button>
               )}
-              
-              {/* List of items */}
-              {(() => {
-                if (items.length === 0) {
-                  return (
-                    <p className="text-sm text-muted-foreground italic text-center py-4">
-                      No {colorScheme.label.toLowerCase()} yet. Click "+ Add {buttonLabel}" to create your first one!
-                    </p>
-                  );
-                }
-                
-                return (
-                  <div className="space-y-2">
-                    {items.map((item, index) => (
-                      <div 
-                        key={item.id} 
-                        className="flex items-start gap-3 py-2 px-3 rounded-lg hover:bg-muted/30 transition-all duration-200 ease-in-out group/item animate-in fade-in slide-in-from-top-2"
-                      >
-                        {/* 🔢 Auto-numbering */}
-                        <span className="text-sm font-semibold text-muted-foreground min-w-[24px] mt-0.5 shrink-0 transition-all duration-200">
-                          {index + 1}.
-                        </span>
-                        <Checkbox
-                          checked={item.checked}
-                          onCheckedChange={() => onToggle(item.id)}
-                          onClick={(e) => e.stopPropagation()} // ✅ Prevent main dialog close
-                          disabled={disabled}
-                          className="h-5 w-5 mt-0.5 shrink-0 transition-all duration-200"
-                          data-testid={`checkbox-dialog-${checklistType}-${item.id}`}
-                        />
-                        <span
-                          className={`text-sm flex-1 ${colorScheme.text} leading-relaxed break-words transition-all duration-200`}
-                          data-testid={`text-dialog-${checklistType}-${item.id}`}
-                        >
-                          {item.text}
-                        </span>
-                        {!disabled && (
-                          <>
-                            {/* ✅ Quick Add Button - Always visible for easy access */}
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setEditingItemId(null);
-                                setNewItemText('');
-                                setIsAddingNew(true);
-                              }}
-                              className={`h-6 w-6 p-0 shrink-0 ${colorScheme.text} hover:bg-muted/50`}
-                              data-testid={`button-quick-add-${checklistType}-${item.id}`}
-                              title={`Add new ${buttonLabel}`}
-                            >
-                              <Plus className="w-3.5 h-3.5" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={(e) => {
-                                e.stopPropagation(); // ✅ Prevent main dialog close
-                                setEditingItemId(item.id);
-                                setNewItemText(item.text);
-                                setIsAddingNew(true);
-                              }}
-                              className="h-6 w-6 p-0 shrink-0 opacity-0 group-hover/item:opacity-100 transition-opacity"
-                              data-testid={`button-edit-dialog-${checklistType}-${item.id}`}
-                            >
-                              <Pencil className="w-3.5 h-3.5" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={(e) => {
-                                e.stopPropagation(); // ✅ Prevent main dialog close
-                                onDeleteCheckpoint(item.id);
-                              }}
-                              className="h-6 w-6 p-0 shrink-0 opacity-0 group-hover/item:opacity-100 transition-opacity"
-                              data-testid={`button-delete-dialog-${checklistType}-${item.id}`}
-                            >
-                              <Trash2 className="w-3.5 h-3.5 text-destructive" />
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                );
-              })()}
             </div>
           </DialogContent>
         </Dialog>
@@ -6293,7 +6268,13 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       <Dialog 
         open={currentWeekCheckpointPopup.open} 
         onOpenChange={(open) => {
-          if (!open) setSelectedCurrentWeekItems(new Set()); // Clear selection on close
+          if (!open) {
+            setSelectedCurrentWeekItems(new Set()); // Clear selection on close
+            setIsAddingNewInPopup(false); // Reset inline add state
+            setNewPopupItemText('');
+            setInlineEditingId(null); // Reset inline edit state
+            setInlineEditText('');
+          }
           setCurrentWeekCheckpointPopup({ ...currentWeekCheckpointPopup, open });
         }}
       >
@@ -6307,30 +6288,64 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             </p>
           </DialogHeader>
           
-          {/* Add New Checkpoint Button */}
+          {/* Add New Checkpoint - Inline Input */}
           {!isAdminView && !viewingHistory && !viewAsUserId && (
             <div className="pt-4 pb-2 border-b">
-              <Button
-                onClick={() => {
-                  setEditingCurrentWeekCheckpointId(null);
-                  setCurrentWeekCheckpointData({
-                    category: currentWeekCheckpointPopup.category,
-                    checklistType: currentWeekCheckpointPopup.type,
-                    text: ''
-                  });
-                  setShowCurrentWeekCheckpointDialog(true);
-                }}
-                className="w-full bg-gradient-to-r from-primary to-accent text-white hover:opacity-90"
-                data-testid="button-add-checkpoint-from-popup"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add {
-                  currentWeekCheckpointPopup.type === 'problems' ? 'Problem' :
-                  currentWeekCheckpointPopup.type === 'currentFeelings' ? 'Feeling' :
-                  currentWeekCheckpointPopup.type === 'currentBeliefs' ? 'Belief' :
-                  'Action'
-                }
-              </Button>
+              {isAddingNewInPopup ? (
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={newPopupItemText}
+                    onChange={(e) => setNewPopupItemText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        if (newPopupItemText.trim()) {
+                          const mappedType = currentWeekCheckpointPopup.type === 'currentFeelings' ? 'currentFeelings' :
+                                            currentWeekCheckpointPopup.type === 'currentBeliefs' ? 'currentBeliefs' :
+                                            currentWeekCheckpointPopup.type === 'currentActions' ? 'currentActions' :
+                                            'problems';
+                          handleCurrentWeekCheckpointAdd(currentWeekCheckpointPopup.category, mappedType, newPopupItemText.trim());
+                          setNewPopupItemText('');
+                          // Keep input open for rapid entry
+                        }
+                      }
+                      if (e.key === 'Escape') {
+                        setIsAddingNewInPopup(false);
+                        setNewPopupItemText('');
+                      }
+                    }}
+                    onBlur={() => {
+                      if (newPopupItemText.trim()) {
+                        const mappedType = currentWeekCheckpointPopup.type === 'currentFeelings' ? 'currentFeelings' :
+                                          currentWeekCheckpointPopup.type === 'currentBeliefs' ? 'currentBeliefs' :
+                                          currentWeekCheckpointPopup.type === 'currentActions' ? 'currentActions' :
+                                          'problems';
+                        handleCurrentWeekCheckpointAdd(currentWeekCheckpointPopup.category, mappedType, newPopupItemText.trim());
+                      }
+                      setNewPopupItemText('');
+                      setIsAddingNewInPopup(false);
+                    }}
+                    placeholder={`Type ${currentWeekCheckpointPopup.type === 'problems' ? 'problem' : currentWeekCheckpointPopup.type === 'currentFeelings' ? 'feeling' : currentWeekCheckpointPopup.type === 'currentBeliefs' ? 'belief' : 'action'} and press Enter...`}
+                    autoFocus
+                    className="flex-1 h-9"
+                    data-testid="input-add-inline-popup"
+                  />
+                </div>
+              ) : (
+                <Button
+                  onClick={() => setIsAddingNewInPopup(true)}
+                  className="w-full bg-gradient-to-r from-primary to-accent text-white hover:opacity-90"
+                  data-testid="button-add-checkpoint-from-popup"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add {
+                    currentWeekCheckpointPopup.type === 'problems' ? 'Problem' :
+                    currentWeekCheckpointPopup.type === 'currentFeelings' ? 'Feeling' :
+                    currentWeekCheckpointPopup.type === 'currentBeliefs' ? 'Belief' :
+                    'Action'
+                  }
+                </Button>
+              )}
             </div>
           )}
           
@@ -6389,30 +6404,64 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   className="h-4 w-4 shrink-0"
                   data-testid={`checkbox-popup-current-week-${currentWeekCheckpointPopup.type}-${index}`}
                 />
-                <span 
-                  className={`text-sm flex-1 leading-relaxed break-words cursor-pointer hover:underline ${
-                    currentWeekCheckpointPopup.type === 'problems' ? 'text-coral-red' :
-                    currentWeekCheckpointPopup.type === 'currentFeelings' ? 'text-emerald-green' :
-                    currentWeekCheckpointPopup.type === 'currentBeliefs' ? 'text-golden-yellow' :
-                    'text-blue-500'
-                  }`}
-                  onClick={() => {
-                    if (!isAdminView && !viewingHistory && !viewAsUserId) {
-                      // Open popup dialog for editing (same as add experience)
-                      setEditingCurrentWeekCheckpointId(item.id);
-                      setCurrentWeekCheckpointData({
-                        category: currentWeekCheckpointPopup.category,
-                        checklistType: currentWeekCheckpointPopup.type,
-                        text: item.text
-                      });
-                      setShowCurrentWeekCheckpointDialog(true);
-                    }
-                  }}
-                  data-testid={`text-edit-popup-current-week-${currentWeekCheckpointPopup.type}-${index}`}
-                >
-                  {item.text}
-                </span>
-                {!isAdminView && !viewingHistory && !viewAsUserId && (
+                {/* Inline editing - no separate dialog */}
+                {inlineEditingId === item.id ? (
+                  <Input
+                    value={inlineEditText}
+                    onChange={(e) => setInlineEditText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        if (inlineEditText.trim()) {
+                          const mappedType = currentWeekCheckpointPopup.type === 'currentFeelings' ? 'currentFeelings' :
+                                            currentWeekCheckpointPopup.type === 'currentBeliefs' ? 'currentBeliefs' :
+                                            currentWeekCheckpointPopup.type === 'currentActions' ? 'currentActions' :
+                                            'problems';
+                          handleCurrentWeekCheckpointUpdateText(currentWeekCheckpointPopup.category, mappedType, item.id, inlineEditText.trim());
+                        }
+                        setInlineEditingId(null);
+                        setInlineEditText('');
+                      }
+                      if (e.key === 'Escape') {
+                        setInlineEditingId(null);
+                        setInlineEditText('');
+                      }
+                    }}
+                    onBlur={() => {
+                      if (inlineEditText.trim()) {
+                        const mappedType = currentWeekCheckpointPopup.type === 'currentFeelings' ? 'currentFeelings' :
+                                          currentWeekCheckpointPopup.type === 'currentBeliefs' ? 'currentBeliefs' :
+                                          currentWeekCheckpointPopup.type === 'currentActions' ? 'currentActions' :
+                                          'problems';
+                        handleCurrentWeekCheckpointUpdateText(currentWeekCheckpointPopup.category, mappedType, item.id, inlineEditText.trim());
+                      }
+                      setInlineEditingId(null);
+                      setInlineEditText('');
+                    }}
+                    autoFocus
+                    className="flex-1 h-7 text-sm"
+                    data-testid={`input-inline-edit-current-week-${currentWeekCheckpointPopup.type}-${index}`}
+                  />
+                ) : (
+                  <span 
+                    className={`text-sm flex-1 leading-relaxed break-words ${!isAdminView && !viewingHistory && !viewAsUserId ? 'cursor-text hover:bg-muted/50 rounded px-1 -mx-1' : ''} ${
+                      currentWeekCheckpointPopup.type === 'problems' ? 'text-coral-red' :
+                      currentWeekCheckpointPopup.type === 'currentFeelings' ? 'text-emerald-green' :
+                      currentWeekCheckpointPopup.type === 'currentBeliefs' ? 'text-golden-yellow' :
+                      'text-blue-500'
+                    }`}
+                    onClick={() => {
+                      if (!isAdminView && !viewingHistory && !viewAsUserId) {
+                        setInlineEditingId(item.id);
+                        setInlineEditText(item.text);
+                      }
+                    }}
+                    data-testid={`text-edit-popup-current-week-${currentWeekCheckpointPopup.type}-${index}`}
+                  >
+                    {item.text}
+                  </span>
+                )}
+                {!isAdminView && !viewingHistory && !viewAsUserId && inlineEditingId !== item.id && (
                   <Button
                     size="sm"
                     variant="ghost"
@@ -6426,19 +6475,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               </div>
             ))}
             
-            {/* ✅ Bottom Quick Add Button - After last checkpoint */}
-            {!isAdminView && !viewingHistory && !viewAsUserId && currentWeekCheckpointPopup.items.length > 0 && (
+            {/* ✅ Bottom Quick Add - Inline Input */}
+            {!isAdminView && !viewingHistory && !viewAsUserId && currentWeekCheckpointPopup.items.length > 0 && !isAddingNewInPopup && (
               <div 
                 className="flex items-center justify-center py-3 mt-2 border-t border-dashed cursor-pointer hover:bg-muted/30 rounded-lg transition-colors"
-                onClick={() => {
-                  setEditingCurrentWeekCheckpointId(null);
-                  setCurrentWeekCheckpointData({
-                    category: currentWeekCheckpointPopup.category,
-                    checklistType: currentWeekCheckpointPopup.type,
-                    text: ''
-                  });
-                  setShowCurrentWeekCheckpointDialog(true);
-                }}
+                onClick={() => setIsAddingNewInPopup(true)}
                 data-testid="button-quick-add-bottom-current-week"
               >
                 <Plus className={`w-5 h-5 mr-2 ${
@@ -6638,7 +6679,13 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       <Dialog 
         open={nextWeekCheckpointPopup.open} 
         onOpenChange={(open) => {
-          if (!open) setSelectedNextWeekItems(new Set()); // Clear selection on close
+          if (!open) {
+            setSelectedNextWeekItems(new Set()); // Clear selection on close
+            setIsAddingNewInNextWeekPopup(false); // Reset inline add state
+            setNewNextWeekPopupItemText('');
+            setNextWeekInlineEditingId(null); // Reset inline edit state
+            setNextWeekInlineEditText('');
+          }
           setNextWeekCheckpointPopup({ ...nextWeekCheckpointPopup, open });
         }}
       >
@@ -6652,30 +6699,56 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             </p>
           </DialogHeader>
           
-          {/* Add New Checkpoint Button */}
+          {/* Add New Checkpoint - Inline Input */}
           {!isAdminView && !viewingHistory && !viewAsUserId && (
             <div className="pt-4 pb-2 border-b">
-              <Button
-                onClick={() => {
-                  setEditingNextWeekCheckpointId(null);
-                  setNextWeekCheckpointData({
-                    category: nextWeekCheckpointPopup.category,
-                    checklistType: nextWeekCheckpointPopup.type,
-                    text: ''
-                  });
-                  setShowNextWeekCheckpointDialog(true);
-                }}
-                className="w-full bg-gradient-to-r from-primary to-accent text-white hover:opacity-90"
-                data-testid="button-add-checkpoint-from-next-week-popup"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add {
-                  nextWeekCheckpointPopup.type === 'result' ? 'Result' :
-                  nextWeekCheckpointPopup.type === 'feelings' ? 'Feeling' :
-                  nextWeekCheckpointPopup.type === 'beliefs' ? 'Belief' :
-                  'Action'
-                }
-              </Button>
+              {isAddingNewInNextWeekPopup ? (
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={newNextWeekPopupItemText}
+                    onChange={(e) => setNewNextWeekPopupItemText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        if (newNextWeekPopupItemText.trim()) {
+                          handleNextWeekCheckpointAdd(nextWeekCheckpointPopup.category, nextWeekCheckpointPopup.type, newNextWeekPopupItemText.trim());
+                          setNewNextWeekPopupItemText('');
+                          // Keep input open for rapid entry
+                        }
+                      }
+                      if (e.key === 'Escape') {
+                        setIsAddingNewInNextWeekPopup(false);
+                        setNewNextWeekPopupItemText('');
+                      }
+                    }}
+                    onBlur={() => {
+                      if (newNextWeekPopupItemText.trim()) {
+                        handleNextWeekCheckpointAdd(nextWeekCheckpointPopup.category, nextWeekCheckpointPopup.type, newNextWeekPopupItemText.trim());
+                      }
+                      setNewNextWeekPopupItemText('');
+                      setIsAddingNewInNextWeekPopup(false);
+                    }}
+                    placeholder={`Type ${nextWeekCheckpointPopup.type === 'result' ? 'result' : nextWeekCheckpointPopup.type === 'feelings' ? 'feeling' : nextWeekCheckpointPopup.type === 'beliefs' ? 'belief' : 'action'} and press Enter...`}
+                    autoFocus
+                    className="flex-1 h-9"
+                    data-testid="input-add-inline-next-week-popup"
+                  />
+                </div>
+              ) : (
+                <Button
+                  onClick={() => setIsAddingNewInNextWeekPopup(true)}
+                  className="w-full bg-gradient-to-r from-primary to-accent text-white hover:opacity-90"
+                  data-testid="button-add-checkpoint-from-next-week-popup"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add {
+                    nextWeekCheckpointPopup.type === 'result' ? 'Result' :
+                    nextWeekCheckpointPopup.type === 'feelings' ? 'Feeling' :
+                    nextWeekCheckpointPopup.type === 'beliefs' ? 'Belief' :
+                    'Action'
+                  }
+                </Button>
+              )}
             </div>
           )}
           
@@ -6734,30 +6807,56 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   className="h-4 w-4 shrink-0"
                   data-testid={`checkbox-popup-next-week-${nextWeekCheckpointPopup.type}-${index}`}
                 />
-                <span 
-                  className={`text-sm flex-1 leading-relaxed break-words cursor-pointer hover:underline ${
-                    nextWeekCheckpointPopup.type === 'result' ? 'text-teal-600 dark:text-teal-400' :
-                    nextWeekCheckpointPopup.type === 'feelings' ? 'text-emerald-green' :
-                    nextWeekCheckpointPopup.type === 'beliefs' ? 'text-golden-yellow' :
-                    'text-blue-500'
-                  }`}
-                  onClick={() => {
-                    if (!isAdminView && !viewingHistory && !viewAsUserId) {
-                      // Open popup dialog for editing (same as add experience)
-                      setEditingNextWeekCheckpointId(item.id);
-                      setNextWeekCheckpointData({
-                        category: nextWeekCheckpointPopup.category,
-                        checklistType: nextWeekCheckpointPopup.type,
-                        text: item.text
-                      });
-                      setShowNextWeekCheckpointDialog(true);
-                    }
-                  }}
-                  data-testid={`text-edit-popup-next-week-${nextWeekCheckpointPopup.type}-${index}`}
-                >
-                  {item.text}
-                </span>
-                {!isAdminView && !viewingHistory && !viewAsUserId && (
+                {/* Inline editing - no separate dialog */}
+                {nextWeekInlineEditingId === item.id ? (
+                  <Input
+                    value={nextWeekInlineEditText}
+                    onChange={(e) => setNextWeekInlineEditText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        if (nextWeekInlineEditText.trim()) {
+                          handleNextWeekCheckpointUpdateText(nextWeekCheckpointPopup.category, nextWeekCheckpointPopup.type, item.id, nextWeekInlineEditText.trim());
+                        }
+                        setNextWeekInlineEditingId(null);
+                        setNextWeekInlineEditText('');
+                      }
+                      if (e.key === 'Escape') {
+                        setNextWeekInlineEditingId(null);
+                        setNextWeekInlineEditText('');
+                      }
+                    }}
+                    onBlur={() => {
+                      if (nextWeekInlineEditText.trim()) {
+                        handleNextWeekCheckpointUpdateText(nextWeekCheckpointPopup.category, nextWeekCheckpointPopup.type, item.id, nextWeekInlineEditText.trim());
+                      }
+                      setNextWeekInlineEditingId(null);
+                      setNextWeekInlineEditText('');
+                    }}
+                    autoFocus
+                    className="flex-1 h-7 text-sm"
+                    data-testid={`input-inline-edit-next-week-${nextWeekCheckpointPopup.type}-${index}`}
+                  />
+                ) : (
+                  <span 
+                    className={`text-sm flex-1 leading-relaxed break-words ${!isAdminView && !viewingHistory && !viewAsUserId ? 'cursor-text hover:bg-muted/50 rounded px-1 -mx-1' : ''} ${
+                      nextWeekCheckpointPopup.type === 'result' ? 'text-teal-600 dark:text-teal-400' :
+                      nextWeekCheckpointPopup.type === 'feelings' ? 'text-emerald-green' :
+                      nextWeekCheckpointPopup.type === 'beliefs' ? 'text-golden-yellow' :
+                      'text-blue-500'
+                    }`}
+                    onClick={() => {
+                      if (!isAdminView && !viewingHistory && !viewAsUserId) {
+                        setNextWeekInlineEditingId(item.id);
+                        setNextWeekInlineEditText(item.text);
+                      }
+                    }}
+                    data-testid={`text-edit-popup-next-week-${nextWeekCheckpointPopup.type}-${index}`}
+                  >
+                    {item.text}
+                  </span>
+                )}
+                {!isAdminView && !viewingHistory && !viewAsUserId && nextWeekInlineEditingId !== item.id && (
                   <Button
                     size="sm"
                     variant="ghost"
@@ -6771,19 +6870,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               </div>
             ))}
             
-            {/* ✅ Bottom Quick Add Button - After last checkpoint */}
-            {!isAdminView && !viewingHistory && !viewAsUserId && nextWeekCheckpointPopup.items.length > 0 && (
+            {/* ✅ Bottom Quick Add - Inline Input */}
+            {!isAdminView && !viewingHistory && !viewAsUserId && nextWeekCheckpointPopup.items.length > 0 && !isAddingNewInNextWeekPopup && (
               <div 
                 className="flex items-center justify-center py-3 mt-2 border-t border-dashed cursor-pointer hover:bg-muted/30 rounded-lg transition-colors"
-                onClick={() => {
-                  setEditingNextWeekCheckpointId(null);
-                  setNextWeekCheckpointData({
-                    category: nextWeekCheckpointPopup.category,
-                    checklistType: nextWeekCheckpointPopup.type,
-                    text: ''
-                  });
-                  setShowNextWeekCheckpointDialog(true);
-                }}
+                onClick={() => setIsAddingNewInNextWeekPopup(true)}
                 data-testid="button-quick-add-bottom-next-week"
               >
                 <Plus className={`w-5 h-5 mr-2 ${
