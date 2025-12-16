@@ -1,6 +1,7 @@
-import express, { type Request, Response, NextFunction } from "express";
+import express from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { setupScheduledTasks } from "./scheduler"; // ✅ ADD
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 
@@ -10,34 +11,6 @@ app.set("trust proxy", 1);
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 
-// ---------------------------------------------------
-// Logging for API routes
-// ---------------------------------------------------
-app.use((req, res, next) => {
-  const start = Date.now();
-  const path = req.path;
-  let captured = undefined;
-
-  const json = res.json;
-  res.json = function (body, ...args) {
-    captured = body;
-    return json.apply(res, [body, ...args]);
-  };
-
-  res.on("finish", () => {
-    if (path.startsWith("/api")) {
-      log(
-        `${req.method} ${path} ${res.statusCode} in ${Date.now() - start}ms :: ${JSON.stringify(captured)}`,
-      );
-    }
-  });
-
-  next();
-});
-
-// ---------------------------------------------------
-// SESSION SETUP
-// ---------------------------------------------------
 const PgSession = connectPgSimple(session);
 
 app.use(
@@ -57,279 +30,33 @@ app.use(
       httpOnly: true,
       maxAge: 30 * 24 * 60 * 60 * 1000,
     },
-  }),
+  })
 );
 
-// ---------------------------------------------------
-// MAIN APP LOGIC
-// ---------------------------------------------------
 (async () => {
-  // ---------------------------------------------------
-  // 🔥 REGISTER ROUTES FIRST (VERY IMPORTANT)
-  // ---------------------------------------------------
+  // 1️⃣ Register routes
   const server = await registerRoutes(app);
 
-  // ---------------------------------------------------
-  // ERROR HANDLER (must be after routes)
-  // ---------------------------------------------------
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    res
-      .status(status)
-      .json({ message: err.message || "Internal Server Error" });
+  // 2️⃣ 🔥 START CRON JOBS (MOST IMPORTANT)
+  setupScheduledTasks();
+
+  // 3️⃣ Error handler
+  app.use((err, _req, res, _next) => {
+    const status = err.status || 500;
+    res.status(status).json({ message: err.message || "Internal Server Error" });
   });
 
-  // ---------------------------------------------------
-  // 🔥 ONLY NOW serve frontend (after routes)
-  // ---------------------------------------------------
+  // 4️⃣ Serve frontend
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
     serveStatic(app);
   }
 
+  // 5️⃣ Start server
   const port = parseInt(process.env.PORT || "5000", 10);
   server.listen(
-    {
-      port,
-      host: "0.0.0.0",
-      reusePort: true,
-    },
-    () => log(`serving on port ${port}`),
+    { port, host: "0.0.0.0", reusePort: true },
+    () => log(`serving on port ${port}`)
   );
 })();
-
-// import express, { type Request, Response, NextFunction } from "express";
-// import { registerRoutes } from "./routes";
-// import { setupVite, serveStatic, log } from "./vite";
-// import { setupScheduledTasks } from "./scheduler";
-// import { startBackupScheduler } from "./backupScheduler";
-
-// const app = express();
-// app.set("trust proxy", 1); // REQUIRED when running behind Railway/any reverse proxy
-
-// app.use(express.json({ limit: "10mb" }));
-// app.use(express.urlencoded({ extended: false, limit: "10mb" }));
-
-// app.use((req, res, next) => {
-//   const start = Date.now();
-//   const path = req.path;
-//   let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-//   const originalResJson = res.json;
-//   res.json = function (bodyJson, ...args) {
-//     capturedJsonResponse = bodyJson;
-//     return originalResJson.apply(res, [bodyJson, ...args]);
-//   };
-
-//   res.on("finish", () => {
-//     const duration = Date.now() - start;
-//     if (path.startsWith("/api")) {
-//       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-//       if (capturedJsonResponse) {
-//         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-//       }
-
-//       if (logLine.length > 80) {
-//         logLine = logLine.slice(0, 79) + "…";
-//       }
-
-//       log(logLine);
-//     }
-//   });
-
-//   next();
-// });
-
-// // -------------------- SESSION SETUP --------------------
-
-// // -------------------- SESSION SETUP --------------------
-
-// import session from "express-session";
-// import connectPgSimple from "connect-pg-simple";
-
-// const PgSession = connectPgSimple(session);
-
-// app.use(
-//   session({
-//     store: new PgSession({
-//       conString: process.env.DATABASE_URL,
-//       tableName: "session",
-//       createTableIfMissing: false,
-//     }),
-//     secret: process.env.SESSION_SECRET || "dev-secret",
-//     resave: false,
-//     saveUninitialized: false,
-//     proxy: true,
-//     cookie: {
-//       secure: process.env.NODE_ENV === "production",
-//       sameSite: "none",
-//       httpOnly: true,
-//       maxAge: 30 * 24 * 60 * 60 * 1000,
-//     },
-//   }),
-// );
-
-// // --------------------------------------------------------
-
-// (async () => {
-//   const server = await registerRoutes(app);
-
-//   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-//     const status = err.status || err.statusCode || 500;
-//     const message = err.message || "Internal Server Error";
-
-//     res.status(status).json({ message });
-//     throw err;
-//   });
-
-//   if (app.get("env") === "development") {
-//     await setupVite(app, server);
-//   } else {
-//     serveStatic(app);
-//   }
-
-//   // setupScheduledTasks();
-//   // startBackupScheduler();
-
-//   const port = parseInt(process.env.PORT || "5000", 10);
-//   server.listen(
-//     {
-//       port,
-//       host: "0.0.0.0",
-//       reusePort: true,
-//     },
-//     () => {
-//       log(`serving on port ${port}`);
-//     },
-//   );
-// })();
-
-// // import express, { type Request, Response, NextFunction } from "express";
-// // import { registerRoutes } from "./routes";
-// // import { setupVite, serveStatic, log } from "./vite";
-// // import { setupScheduledTasks } from "./scheduler";
-// // import { startBackupScheduler } from "./backupScheduler";
-
-// // const app = express();
-// // app.set("trust proxy", 1); // REQUIRED when running behind Railway/any reverse proxy
-
-// // app.use(express.json({ limit: "10mb" }));
-// // app.use(express.urlencoded({ extended: false, limit: "10mb" }));
-
-// // app.use((req, res, next) => {
-// //   const start = Date.now();
-// //   const path = req.path;
-// //   let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-// //   const originalResJson = res.json;
-// //   res.json = function (bodyJson, ...args) {
-// //     capturedJsonResponse = bodyJson;
-// //     return originalResJson.apply(res, [bodyJson, ...args]);
-// //   };
-
-// //   res.on("finish", () => {
-// //     const duration = Date.now() - start;
-// //     if (path.startsWith("/api")) {
-// //       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-// //       if (capturedJsonResponse) {
-// //         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-// //       }
-
-// //       if (logLine.length > 80) {
-// //         logLine = logLine.slice(0, 79) + "…";
-// //       }
-
-// //       log(logLine);
-// //     }
-// //   });
-
-// //   next();
-// // });
-// // import session from "express-session";
-// // import connectPgSimple from "connect-pg-simple";
-
-// // // session store
-// // const PgSession = connectPgSimple(session);
-
-// // // app.use(
-// // //   session({
-// // //     store: new PgSession({
-// // //       // Railway/Neon Postgres connection string
-// // //       conString: process.env.DATABASE_URL,
-// // //       createTableIfMissing: true,
-// // //     }),
-// // app.use(
-// //   session({
-// //     store: new PgSession({
-// //       conString: process.env.DATABASE_URL,
-// //       tableName: "session",
-// //       createTableIfMissing: false,
-// //     }),
-// //     secret: process.env.SESSION_SECRET || "dev-secret",
-// //     resave: false,
-// //     saveUninitialized: false,
-// //     proxy: true,
-// //     cookie: {
-// //       secure: process.env.NODE_ENV === "production",
-// //       sameSite: "none",
-// //       httpOnly: true,
-// //       maxAge: 30 * 24 * 60 * 60 * 1000,
-// //     },
-// //   }),
-// // );
-
-// // //     secret: process.env.SESSION_SECRET || "dev-secret", // make sure this exists in Railway Vars
-// // //     resave: false,
-// // //     saveUninitialized: false,
-// // //     proxy: true, // IMPORTANT: allow secure cookies behind proxy
-// // //     cookie: {
-// // //       secure: process.env.NODE_ENV === "production", // true in production (Railway uses HTTPS)
-// // //       sameSite: "none", // allow cross-site cookie for SPA + API on same domain
-// // //       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-// // //     },
-// // //   }),
-// // // );
-
-// // (async () => {
-// //   const server = await registerRoutes(app);
-
-// //   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-// //     const status = err.status || err.statusCode || 500;
-// //     const message = err.message || "Internal Server Error";
-
-// //     res.status(status).json({ message });
-// //     throw err;
-// //   });
-
-// //   // importantly only setup vite in development and after
-// //   // setting up all the other routes so the catch-all route
-// //   // doesn't interfere with the other routes
-// //   if (app.get("env") === "development") {
-// //     await setupVite(app, server);
-// //   } else {
-// //     serveStatic(app);
-// //   }
-
-// //   // Setup scheduled tasks (email reminders, badge checks)
-// //   // setupScheduledTasks();
-
-// //   // Setup automated Supabase backups (daily at 2 AM IST)
-// //   // startBackupScheduler();
-
-// //   // ALWAYS serve the app on the port specified in the environment variable PORT
-// //   // Other ports are firewalled. Default to 5000 if not specified.
-// //   // this serves both the API and the client.
-// //   // It is the only port that is not firewalled.
-// //   const port = parseInt(process.env.PORT || "5000", 10);
-// //   server.listen(
-// //     {
-// //       port,
-// //       host: "0.0.0.0",
-// //       reusePort: true,
-// //     },
-// //     () => {
-// //       log(`serving on port ${port}`);
-// //     },
-// //   );
-// // })();
