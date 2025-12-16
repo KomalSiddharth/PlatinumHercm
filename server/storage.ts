@@ -2386,7 +2386,10 @@ export class DatabaseStorage implements IStorage {
   }
 
  async deleteExpiredEvents(): Promise<number> {
-  const now = new Date();
+  const now = new Date(
+    new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+  );
+
   let deletedCount = 0;
 
   const activeEvents = await db
@@ -2396,7 +2399,7 @@ export class DatabaseStorage implements IStorage {
 
   for (const event of activeEvents) {
     const eventEndDateTime = new Date(
-      `${event.endDate}T${event.endTime}:00+05:30`
+      `${event.endDate}T${event.endTime}:00`
     );
 
     if (eventEndDateTime <= now) {
