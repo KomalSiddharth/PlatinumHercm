@@ -2379,51 +2379,33 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
- async deleteEvent(id: string): Promise<void> {
-  await db
-    .delete(events)
-    .where(eq(events.id, id));
-}
+  async deleteEvent(id: string): Promise<void> {
+    await db
+      .delete(events)
+      .where(eq(events.id, id));
+  }
 
-async deleteExpiredEvents(): Promise<number> {
-  try {
+  async deleteExpiredEvents(): Promise<number> {
     const now = new Date();
-    const istOffset = 5.5 * 60 * 60 * 1000;
-    const istTime = new Date(now.getTime() + istOffset);
-    const currentDate = istTime.toISOString().split('T')[0];
-    const hours = String(istTime.getUTCHours()).padStart(2, '0');
-    const minutes = String(istTime.getUTCMinutes()).padStart(2, '0');
-    const currentTime = `${hours}:${minutes}`;
+    const currentDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     
-    console.log(`[SCHEDULER] Checking expired events at ${currentDate} ${currentTime} IST`);
-    
-    const allEvents = await db.select().from(events);
+    const allEvents = await this.getAllEvents();
     let deletedCount = 0;
     
     for (const event of allEvents) {
-      const { id, endDate, endTime, title } = event;
+      const isExpired = 
+        event.endDate < currentDate || 
+        (event.endDate === currentDate && event.endTime <= currentTime);
       
-      if (endDate < currentDate) {
-        await db.delete(events).where(eq(events.id, id));
+      if (isExpired) {
+        await this.deleteEvent(event.id);
         deletedCount++;
-        console.log(`[SCHEDULER] Deleted expired event: "${title}" (ended on ${endDate})`);
-      } else if (endDate === currentDate && endTime <= currentTime) {
-        await db.delete(events).where(eq(events.id, id));
-        deletedCount++;
-        console.log(`[SCHEDULER] Deleted expired event: "${title}" (ended at ${endTime})`);
+        console.log(`[AUTO-DELETE] Deleted expired event: "${event.title}" (ended ${event.endDate} ${event.endTime})`);
       }
     }
     
-    if (deletedCount > 0) {
-      console.log(`[SCHEDULER] ✅ Deleted ${deletedCount} expired event(s)`);
-    } else {
-      console.log(`[SCHEDULER] ℹ️ No expired events found`);
-    }
-    
     return deletedCount;
-  } catch (error) {
-    console.error('[SCHEDULER] ❌ Error deleting expired events:', error);
-    return 0;
   }
 }
 
