@@ -1221,13 +1221,22 @@ useEffect(() => {
         </section>
 
         {/* Course Tracker Section - Moved below HRCM */}
-        <section ref={coursesRef} id="courses" className="scroll-mt-20">
-          {/* <LifeSkillsMap /> */}
-          <LifeSkillsMap 
-  externalCourses={courses}
-  loading={coursesLoading}
-  error={coursesError}
-/>
+        <section ref={coursesRef} id="courses" className="scroll-mt-20 p-3 sm:p-4 md:p-6 rounded-lg border-2" style={{ backgroundColor: '#00008c', borderColor: '#0000cc' }}>
+  <div className="space-y-4 sm:space-y-6">
+    <div>
+      <h2 className="text-2xl sm:text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+        Course Tracker
+      </h2>
+      <p className="text-sm sm:text-base text-white/80">Track your learning journey and skill development</p>
+    </div>
+    
+    <LifeSkillsMap 
+      externalCourses={courses}
+      loading={coursesLoading}
+      error={coursesError}
+    />
+  </div>
+</section>
 
         </section>
 
