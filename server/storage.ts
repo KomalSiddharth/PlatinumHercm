@@ -275,6 +275,7 @@ export interface IStorage {
   createEvent(event: InsertEvent): Promise<Event>;
   updateEvent(id: string, event: Partial<InsertEvent>): Promise<Event>;
   deleteEvent(id: string): Promise<void>;
+  deleteExpiredEvents(): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2378,11 +2379,52 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
-  async deleteEvent(id: string): Promise<void> {
-    await db
-      .delete(events)
-      .where(eq(events.id, id));
-  }
+ async deleteEvent(id: string): Promise<void> {
+  await db
+    .delete(events)
+    .where(eq(events.id, id));
 }
 
+// ← ADD THIS COMPLETE METHOD BELOW
+async deleteExpiredEvents(): Promise<number> {
+  try {
+    const now = new Date();
+    const istOffset = 5.5 * 60 * 60 * 1000;
+    const istTime = new Date(now.getTime() + istOffset);
+    const currentDate = istTime.toISOString().split('T')[0];
+    const hours = String(istTime.getUTCHours()).padStart(2, '0');
+    const minutes = String(istTime.getUTCMinutes()).padStart(2, '0');
+    const currentTime = `${hours}:${minutes}`;
+    
+    console.log(`[SCHEDULER] Checking expired events at ${currentDate} ${currentTime} IST`);
+    
+    const allEvents = await db.select().from(events);
+    let deletedCount = 0;
+    
+    for (const event of allEvents) {
+      const { id, endDate, endTime, title } = event;
+      
+      if (endDate < currentDate) {
+        await db.delete(events).where(eq(events.id, id));
+        deletedCount++;
+        console.log(`[SCHEDULER] Deleted expired event: "${title}" (ended on ${endDate})`);
+      } else if (endDate === currentDate && endTime <= currentTime) {
+        await db.delete(events).where(eq(events.id, id));
+        deletedCount++;
+        console.log(`[SCHEDULER] Deleted expired event: "${title}" (ended at ${endTime})`);
+      }
+    }
+    
+    if (deletedCount > 0) {
+      console.log(`[SCHEDULER] ✅ Deleted ${deletedCount} expired event(s)`);
+    } else {
+      console.log(`[SCHEDULER] ℹ️ No expired events found`);
+    }
+    
+    return deletedCount;
+  } catch (error) {
+    console.error('[SCHEDULER] ❌ Error deleting expired events:', error);
+    return 0;
+  }
+}
 export const storage = new DatabaseStorage();
