@@ -342,6 +342,20 @@ export function setupScheduledTasks() {
     timezone: 'Asia/Kolkata'
   });
 
+  // 🗑️ AUTO-DELETE EXPIRED EVENTS - Runs every hour
+  cron.schedule('0 * * * *', async () => {
+    console.log('[SCHEDULER] Running expired events cleanup...');
+    try {
+      const deletedCount = await storage.deleteExpiredEvents();
+      if (deletedCount > 0) {
+        console.log(`[SCHEDULER] ✅ Deleted ${deletedCount} expired event(s)`);
+      }
+    } catch (error) {
+      console.error('[SCHEDULER] ❌ Failed to delete expired events:', error);
+    }
+  }, {
+    timezone: 'Asia/Kolkata'
+  });
   console.log('Scheduled tasks initialized:');
   console.log('  - Weekly HRCM reminders: Every Monday 9:00 AM IST');
   console.log('  - Platinum badge check: Every Sunday 11:59 PM IST');
