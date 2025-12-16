@@ -2385,28 +2385,33 @@ export class DatabaseStorage implements IStorage {
       .where(eq(events.id, id));
   }
 
-  async deleteExpiredEvents(): Promise<number> {
-    const now = new Date();
-    const currentDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-    
-    const allEvents = await this.getAllEvents();
-    let deletedCount = 0;
-    
-    for (const event of allEvents) {
-      const isExpired = 
-        event.endDate < currentDate || 
-        (event.endDate === currentDate && event.endTime <= currentTime);
-      
-      if (isExpired) {
-        await this.deleteEvent(event.id);
-        deletedCount++;
-        console.log(`[AUTO-DELETE] Deleted expired event: "${event.title}" (ended ${event.endDate} ${event.endTime})`);
-      }
+ async deleteExpiredEvents(): Promise<number> {
+  const now = new Date();
+  let deletedCount = 0;
+
+  const activeEvents = await db
+    .select()
+    .from(events)
+    .where(eq(events.isActive, true));
+
+  for (const event of activeEvents) {
+    const eventEndDateTime = new Date(
+      `${event.endDate}T${event.endTime}:00+05:30`
+    );
+
+    if (eventEndDateTime <= now) {
+      await this.deleteEvent(event.id);
+      deletedCount++;
+
+      console.log(
+        `[AUTO-DELETE] Deleted expired event: "${event.title}" | Ended at ${eventEndDateTime.toISOString()}`
+      );
     }
-    
-    return deletedCount;
   }
+
+  return deletedCount;
+}
+
 }
 
 export const storage = new DatabaseStorage();
