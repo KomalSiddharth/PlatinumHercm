@@ -287,7 +287,7 @@ export function setupScheduledTasks() {
             moneyBeliefsChecklist: sourceData.moneyBeliefsChecklist,
             moneyActionsChecklist: sourceData.moneyActionsChecklist,
             unifiedAssignment: sourceData.unifiedAssignment,
-            manualNextWeekMode: detectedManualMode  // 🔥 SMART DETECTION: Set based on previous day's CW==NWT comparison
+            manualNextWeekMode: detectedManualMode
           };
           
           // Save the new record (UPSERT logic: delete existing + create new)
@@ -356,8 +356,10 @@ export function setupScheduledTasks() {
   }, {
     timezone: 'Asia/Kolkata'
   });
+
   console.log('Scheduled tasks initialized:');
   console.log('  - Weekly HRCM reminders: Every Monday 9:00 AM IST');
   console.log('  - Platinum badge check: Every Sunday 11:59 PM IST');
   console.log('  - Daily auto-copy data: Every day at 12:01 AM IST');
+  console.log('  - Expired events cleanup: Every hour at :00 IST');
 }
