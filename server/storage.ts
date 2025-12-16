@@ -2385,7 +2385,6 @@ export class DatabaseStorage implements IStorage {
     .where(eq(events.id, id));
 }
 
-// ← ADD THIS COMPLETE METHOD BELOW
 async deleteExpiredEvents(): Promise<number> {
   try {
     const now = new Date();
@@ -2427,4 +2426,5 @@ async deleteExpiredEvents(): Promise<number> {
     return 0;
   }
 }
+
 export const storage = new DatabaseStorage();
