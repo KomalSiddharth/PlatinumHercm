@@ -287,7 +287,7 @@ export function setupScheduledTasks() {
             moneyBeliefsChecklist: sourceData.moneyBeliefsChecklist,
             moneyActionsChecklist: sourceData.moneyActionsChecklist,
             unifiedAssignment: sourceData.unifiedAssignment,
-            manualNextWeekMode: detectedManualMode
+            manualNextWeekMode: detectedManualMode  // 🔥 SMART DETECTION: Set based on previous day's CW==NWT comparison
           };
           
           // Save the new record (UPSERT logic: delete existing + create new)
@@ -342,16 +342,20 @@ export function setupScheduledTasks() {
     timezone: 'Asia/Kolkata'
   });
 
-  // 🗑️ AUTO-DELETE EXPIRED EVENTS - Runs every hour
+  // 🔥 NEW: Auto-delete expired events - Every hour
   cron.schedule('0 * * * *', async () => {
-    console.log('[SCHEDULER] Running expired events cleanup...');
     try {
+      console.log('[EVENT AUTO-DELETE] Checking for expired events...');
+      
       const deletedCount = await storage.deleteExpiredEvents();
+      
       if (deletedCount > 0) {
-        console.log(`[SCHEDULER] ✅ Deleted ${deletedCount} expired event(s)`);
+        console.log(`[EVENT AUTO-DELETE] ✅ Deleted ${deletedCount} expired event(s)`);
+      } else {
+        console.log('[EVENT AUTO-DELETE] No expired events found');
       }
     } catch (error) {
-      console.error('[SCHEDULER] ❌ Failed to delete expired events:', error);
+      console.error('[EVENT AUTO-DELETE] Error in auto-delete job:', error);
     }
   }, {
     timezone: 'Asia/Kolkata'
@@ -361,5 +365,5 @@ export function setupScheduledTasks() {
   console.log('  - Weekly HRCM reminders: Every Monday 9:00 AM IST');
   console.log('  - Platinum badge check: Every Sunday 11:59 PM IST');
   console.log('  - Daily auto-copy data: Every day at 12:01 AM IST');
-  console.log('  - Expired events cleanup: Every hour at :00 IST');
+  console.log('  - Event auto-delete: Every hour (checks for expired events)');
 }
