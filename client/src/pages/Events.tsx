@@ -19,14 +19,45 @@ const formatTimeWith12Hour = (time: string): string => {
   return `${hour}:${min} ${ampm}`;
 };
 
-// Sort events by date first, then by time
+// Get today's day name (e.g., "Monday", "Tuesday")
+const getTodayDayName = (): string => {
+  return new Date().toLocaleDateString('en-US', { weekday: 'long' });
+};
+
+// Check if event runs today
+const eventRunsToday = (event: any): boolean => {
+  const todayDay = getTodayDayName();
+  
+  // Daily events always run today
+  if (event.schedulingType === 'daily') return true;
+  
+  // Weekly/specific_days events run if today matches their specificDays
+  if (event.specificDays && Array.isArray(event.specificDays)) {
+    return event.specificDays.includes(todayDay);
+  }
+  
+  return false;
+};
+
+// Sort events: TODAY's events first (by time), then other events (by date, then time)
 const sortEventsByDateTime = (events: any[]): any[] => {
   return [...events].sort((a, b) => {
-    // First compare by startDate (YYYY-MM-DD format)
+    const aRunsToday = eventRunsToday(a);
+    const bRunsToday = eventRunsToday(b);
+    
+    // 1. Events running today come first
+    if (aRunsToday && !bRunsToday) return -1;
+    if (!aRunsToday && bRunsToday) return 1;
+    
+    // 2. If both run today (or both don't), sort by time
+    if (aRunsToday && bRunsToday) {
+      return (a.startTime || '').localeCompare(b.startTime || '');
+    }
+    
+    // 3. For events not running today, sort by date then time
     const dateCompare = (a.startDate || '').localeCompare(b.startDate || '');
     if (dateCompare !== 0) return dateCompare;
     
-    // If same date, compare by startTime (HH:MM format)
     return (a.startTime || '').localeCompare(b.startTime || '');
   });
 };
