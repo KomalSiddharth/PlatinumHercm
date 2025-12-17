@@ -774,7 +774,114 @@ async function fetchCoursesDirectFromGoogleSheet() {
     return [];
   }
 }
+//   function parseGoogleSheetToCourseStructure(rows: any[][]) {
+//   const courses: any[] = [];
+//   let currentCourse: any = null;
+//   let currentSubcategory: any = null;
 
+//   function isCourseTitle(question: string, answer: string, nextRow: any[]) {
+//     const q = question.trim();
+
+//     const looksLikeCourseTitle =
+//       q.toLowerCase().includes("by mitesh khatri") ||
+//       (!/^\d/.test(q) && answer === "");
+
+//     const nextQ = nextRow?.[0] || "";
+//     const nextLooksLikeLesson = /^lesson/i.test(nextQ);
+
+//     return looksLikeCourseTitle || nextLooksLikeLesson;
+//   }
+
+//   for (let i = 0; i < rows.length; i++) {
+//     const row = rows[i];
+//     const nextRow = rows[i + 1] || [];
+//     const question = row[0] || "";
+//     const answer = row[1] || "";
+
+//     if (!question.trim()) continue;
+
+//     // COURSE TITLE
+//     if (isCourseTitle(question, answer, nextRow)) {
+//       currentCourse = {
+//         id: question.replace(/\s+/g, "-").toLowerCase(),
+//         title: question,
+//         url: "",
+//         tags: [],
+//         source: "Google Sheet",
+//         estimatedHours: 0,
+//         status: "not_started",
+//         progressPercent: 0,
+//         category: "General",
+//         lessons: [],
+//         subcategories: [],
+//       };
+//       courses.push(currentCourse);
+//       currentSubcategory = null;
+//       continue;
+//     }
+
+//     // SUBCATEGORY ("Module ..." or similar)
+//     if (/^module/i.test(question)) {
+//       currentSubcategory = {
+//         id: question.replace(/\s+/g, "-").toLowerCase(),
+//         title: question,
+//         lessons: [],
+//       };
+//       currentCourse.subcategories.push(currentSubcategory);
+//       continue;
+//     }
+
+//     // LESSON ROW
+//     const lesson = {
+//       id: currentSubcategory
+//         ? `${currentSubcategory.lessons.length + 1}`
+//         : `${currentCourse.lessons.length + 1}`,
+//       title: question,
+//       url: answer || "",
+//       completed: false,
+//     };
+
+//     if (currentSubcategory) {
+//       currentSubcategory.lessons.push(lesson);
+//     } else {
+//       currentCourse.lessons.push(lesson);
+//     }
+//   }
+
+//   return courses;
+// }
+  // -----------------------------
+// FIXED COURSE TITLE DETECTOR
+// -----------------------------
+// function isCourseTitle(
+//   question: string,
+//   answer: string,
+//   nextRow: any[]
+// ) {
+//   const q = question.trim();
+
+//   // RULE 1 — If it starts with a number: It's ALWAYS a lesson
+//   if (/^\d/.test(q)) return false;
+
+//   // RULE 2 — If question contains "by Mitesh Khatri" → always a course
+//   if (q.toLowerCase().includes("by mitesh khatri")) return true;
+
+//   // RULE 3 — If next row looks like a lesson (number or "Lesson")
+//   const nextQ = (nextRow?.[0] || "").trim();
+//   if (/^(\d+|lesson\s*\d*)/i.test(nextQ)) return true;
+
+//   // RULE 4 — If this row has a URL in the Answer column → it's a lesson
+//   if (answer && answer.startsWith("http")) return false;
+
+//   // RULE 5 — If Answer empty + doesn't start with number → most likely a section title
+//   if (answer === "" && !/^\d/.test(q)) return true;
+
+//   return false;
+// }
+
+// ------------------------------------
+// FIXED PARSER FOR GOOGLE SHEET COURSES
+// ------------------------------------
 function parseGoogleSheetToCourseStructure(rows: any[][]) {
   const courses: any[] = [];
   let currentCourse: any = null;
@@ -843,6 +950,68 @@ function parseGoogleSheetToCourseStructure(rows: any[][]) {
   return courses;
 }
 
+
+
+
+// function parseGoogleSheetToCourseStructure(rows: any[][]) {
+//   const courses: any[] = [];
+//   let currentCourse: any = null;
+
+//   function isCourseTitle(question: string, answer: string, nextRow: any[]) {
+//     const q = question.trim();
+
+//     // RULE 1: Bold titles always course titles (Google keeps bold text under p[0].s!=null, but we removed JSON)
+//     const looksLikeCourseTitle =
+//       q.toLowerCase().includes("by mitesh khatri") ||
+//       (!/^\d/.test(q) && answer === "");
+
+//     // RULE 2: Lookahead → if next row begins with Lesson → this row is title
+//     const nextQ = nextRow?.[0] || "";
+//     const nextLooksLikeLesson = /^lesson/i.test(nextQ);
+
+//     return looksLikeCourseTitle || nextLooksLikeLesson;
+//   }
+
+//   for (let i = 0; i < rows.length; i++) {
+//     const row = rows[i];
+//     const nextRow = rows[i + 1] || [];
+//     const question = row[0] || "";
+//     const answer = row[1] || "";
+
+//     if (!question.trim()) continue;
+
+//     // COURSE TITLE
+//     if (isCourseTitle(question, answer, nextRow)) {
+//       currentCourse = {
+//         id: question.replace(/\s+/g, "-").toLowerCase(),
+//         title: question,
+//         url: "",
+//         tags: [],
+//         source: "Google Sheet",
+//         estimatedHours: 0,
+//         status: "not_started",
+//         progressPercent: 0,
+//         category: "General",
+//         lessons: [],
+//       };
+//       courses.push(currentCourse);
+//       continue;
+//     }
+
+//     // LESSON ROW
+//     if (currentCourse) {
+//       currentCourse.lessons.push({
+//         id: `${currentCourse.lessons.length + 1}`,
+//         title: question,
+//         url: answer || "",
+//         completed: false,
+//       });
+//     }
+//   }
+
+//   return courses;
+// }
+
   // Courses state - initially empty, populated from Google Sheets API
   const [courses, setCourses] = useState<Array<{
     id: string;
@@ -878,6 +1047,82 @@ useEffect(() => {
 
   setCourses(formattedCourses);
 }, [googleSheetsRaw]);
+
+  // const { data: googleSheetsCourses, isLoading: coursesLoading, error: coursesError } = useQuery<Array<{
+  //   id: string;
+  //   title: string;
+  //   url: string;
+  //   tags: string[];
+  //   source: string;
+  //   estimatedHours: number;
+  //   status: 'not_started' | 'in_progress' | 'completed';
+  //   progressPercent: number;
+  //   category: string;
+  //   lessons: CourseLesson[];
+  // }>>({
+  //   queryKey: ['/api/courses/tracking'],
+  //   enabled: !!currentUser,
+  //   refetchInterval: 30000, // Auto-refresh every 30 seconds for instant Google Sheets updates
+  //   refetchIntervalInBackground: true, // Continue polling even when tab is not focused
+  // });
+
+  // // Initialize courses from Google Sheets data
+  // useEffect(() => {
+  //   if (googleSheetsCourses && googleSheetsCourses.length > 0) {
+  //     console.log('[Course Tracker] Loaded', googleSheetsCourses.length, 'courses from Google Sheets');
+  //     setCourses(googleSheetsCourses);
+  //   }
+  // }, [googleSheetsCourses]);
+
+  // Load lesson completions from database on mount
+  // useEffect(() => {
+  //   const loadCompletions = async () => {
+  //     if (!currentUser || courses.length === 0) return;
+      
+  //     try {
+  //       console.log('[Course Tracker] Loading completions for user:', currentUser.id);
+  //       // Fetch completions for all courses
+  //       const allCompletions: Record<string, string[]> = {};
+        
+  //       for (const course of courses) {
+  //         try {
+  //           const response = await fetch(`/api/course-video-completions/${course.id}`);
+  //           if (response.ok) {
+  //             const completions = await response.json();
+  //             // Store video IDs that are completed
+  //             allCompletions[course.id] = completions.map((c: any) => c.videoId);
+  //             console.log(`[Course Tracker] ${course.id}:`, allCompletions[course.id].length, 'completions loaded');
+  //           }
+  //         } catch (error) {
+  //           console.error(`Failed to fetch completions for ${course.id}:`, error);
+  //         }
+  //       }
+        
+  //       console.log('[Course Tracker] All completions loaded:', allCompletions);
+        
+  //       // Update courses state with completion status
+  //       setCourses(prevCourses => 
+  //         prevCourses.map(course => ({
+  //           ...course,
+  //           lessons: course.lessons.map(lesson => {
+  //             const isCompleted = allCompletions[course.id]?.includes(`${course.id}-${lesson.id}`) || false;
+  //             if (isCompleted) {
+  //               console.log(`[Course Tracker] Marking ${course.id}-${lesson.id} as completed`);
+  //             }
+  //             return {
+  //               ...lesson,
+  //               completed: isCompleted
+  //             };
+  //           })
+  //         }))
+  //       );
+  //     } catch (error) {
+  //       console.error('Error loading lesson completions:', error);
+  //     }
+  //   };
+    
+  //   loadCompletions();
+  // }, [currentUser]); // Only run when user is loaded
 
   // Fetch ALL-TIME cumulative points (all ritual completions + all course lessons)
   const { data: totalPointsData, dataUpdatedAt } = useQuery<{
@@ -977,11 +1222,19 @@ useEffect(() => {
 
         {/* Course Tracker Section - Moved below HRCM */}
         <section ref={coursesRef} id="courses" className="scroll-mt-20">
+
+          {/* <LifeSkillsMap /> */}
+
           <LifeSkillsMap 
-            externalCourses={courses}
-            loading={coursesLoading}
-            error={coursesError}
-          />
+
+  externalCourses={courses}
+
+  loading={coursesLoading}
+
+  error={coursesError}
+
+/>
+
         </section>
 
         {/* Emotional Tracker Section */}
@@ -989,36 +1242,33 @@ useEffect(() => {
           <EmotionalTracker />
         </section>
 
-        {/* Daily Rituals Section - MOBILE RESPONSIVE */}
-        <section ref={ritualsRef} id="rituals" className="scroll-mt-20 p-4 sm:p-5 md:p-6 rounded-lg border-2" style={{ backgroundColor: '#00008c', borderColor: '#0000cc' }}>
+        <section ref={ritualsRef} id="rituals" className="scroll-mt-20 p-3 sm:p-4 md:p-6 rounded-lg border-2" style={{ backgroundColor: '#00008c', borderColor: '#0000cc' }}>
           <div className="space-y-4 sm:space-y-6">
             <div>
-              {/* Header - Responsive Stack */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 mb-4">
-                {/* Gratitude Journal Button - Full width on mobile */}
-                <div className="w-full sm:w-auto">
+              {/* Header Row with Gratitude Journal button left-aligned */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex-1 flex justify-start">
                   <Button
                     onClick={() => setGratitudeJournalOpen(true)}
-                    className="w-full sm:w-auto bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white border-0"
+                    className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white border-0"
                     data-testid="button-gratitude-journal"
                   >
                     <BookOpen className="w-4 h-4 mr-2" />
                     Gratitude Journal
                   </Button>
                 </div>
-                
-                {/* Title with Points Badge - Responsive */}
-                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-3">
-                  <span>Daily Rituals</span>
-                  <Badge className="gap-1.5 bg-gradient-to-r from-pink-500 to-purple-600 text-white border-0 text-sm sm:text-base px-2.5 sm:px-3 py-1">
-                    <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <h2 className="text-2xl sm:text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+                  Daily Rituals
+                  <Badge className="gap-1.5 bg-gradient-to-r from-pink-500 to-purple-600 text-white border-0 text-base px-3 py-1">
+                    <Trophy className="w-4 h-4" />
                     {totalPoints} Points
                   </Badge>
                 </h2>
+                <div className="flex-1" />
               </div>
               
-              {/* Date Picker - Mobile Optimized */}
-              <div className="flex items-center justify-center gap-2 sm:gap-3 mb-4">
+              {/* Date Picker */}
+              <div className="flex items-center justify-center gap-3 mb-4">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -1027,20 +1277,20 @@ useEffect(() => {
                     newDate.setDate(newDate.getDate() - 1);
                     setSelectedRitualDate(newDate);
                   }}
-                  className="text-white hover:bg-white/10 h-9 w-9 sm:h-10 sm:w-10"
+                  className="text-white hover:bg-white/10"
                   data-testid="button-ritual-date-prev"
                 >
-                  <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <ChevronLeft className="w-5 h-5" />
                 </Button>
 
                 <Popover open={ritualCalendarOpen} onOpenChange={setRitualCalendarOpen}>
                   <PopoverTrigger asChild>
                     <Button
                       variant="ghost"
-                      className="text-white hover:bg-white/10 min-w-fit text-base sm:text-lg font-semibold px-3 sm:px-4"
+                      className="text-white hover:bg-white/10 min-w-fit text-lg font-semibold"
                       data-testid="button-ritual-date-picker"
                     >
-                      {format(selectedRitualDate, 'MMM dd, yyyy')}
+                      {format(selectedRitualDate, 'MMMM dd, yyyy')}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="center">
@@ -1066,17 +1316,17 @@ useEffect(() => {
                     newDate.setDate(newDate.getDate() + 1);
                     setSelectedRitualDate(newDate);
                   }}
-                  className="text-white hover:bg-white/10 h-9 w-9 sm:h-10 sm:w-10"
+                  className="text-white hover:bg-white/10"
                   data-testid="button-ritual-date-next"
                 >
-                  <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <ChevronRight className="w-5 h-5" />
                 </Button>
               </div>
               
-              <p className="text-xs sm:text-sm md:text-base text-white/80 text-center">Build consistent habits and earn points</p>
+              <p className="text-sm sm:text-base text-white/80 text-center">Build consistent habits and earn points</p>
             </div>
 
-            {/* Add Ritual Form - Full width */}
+            {/* Add Ritual Form - Full width to match ritual cards */}
             <div className="mb-4">
               <AddRitualForm onAdd={handleAddRitual} />
             </div>
@@ -1091,8 +1341,8 @@ useEffect(() => {
             ) : (
               <>
                 {rituals.length === 0 ? (
-                  <div className="text-center py-8 sm:py-12 border-2 border-dashed rounded-lg border-white/30">
-                    <p className="text-sm sm:text-base text-white/80 px-4">No rituals yet. Add your first ritual above!</p>
+                  <div className="text-center py-12 border-2 border-dashed rounded-lg border-white/30">
+                    <p className="text-white/80">No rituals yet. Add your first ritual above!</p>
                   </div>
                 ) : (
                   <Card>
@@ -1100,22 +1350,20 @@ useEffect(() => {
                       {rituals.map((ritual) => (
                         <div 
                           key={ritual.id} 
-                          className={`flex items-start sm:items-center gap-2 sm:gap-3 md:gap-4 p-3 sm:p-4 hover:bg-muted/30 transition-colors ${!ritual.active ? 'opacity-40' : ''}`}
+                          className={`flex items-center gap-2 sm:gap-3 md:gap-4 p-2 sm:p-3 md:p-4 hover:bg-muted/30 transition-colors ${!ritual.active ? 'opacity-40' : ''}`}
                           data-testid={`ritual-row-${ritual.id}`}
                         >
-                          {/* Checkbox - Touch-friendly size */}
                           <Checkbox
                             checked={ritual.completed}
                             onCheckedChange={() => handleToggleComplete(ritual.id)}
                             disabled={!ritual.active}
-                            className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0 mt-0.5 sm:mt-0"
+                            className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0"
                             data-testid={`checkbox-ritual-${ritual.id}`}
                           />
                           
-                          {/* Title - Wraps on mobile */}
                           <div className="flex-1 min-w-0">
                             <h3 
-                              className={`text-sm sm:text-base font-medium break-words ${ritual.url ? 'cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors' : ''} ${ritual.completed ? 'text-muted-foreground' : 'text-foreground'}`}
+                              className={`text-sm sm:text-base font-medium ${ritual.url ? 'cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors' : ''} ${ritual.completed ? 'text-muted-foreground' : 'text-foreground'}`}
                               onClick={() => ritual.url && window.open(ritual.url, '_blank')}
                               data-testid={`link-ritual-${ritual.id}`}
                             >
@@ -1123,18 +1371,17 @@ useEffect(() => {
                             </h3>
                           </div>
                           
-                          {/* Badges and Actions - Responsive */}
-                          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0 flex-wrap sm:flex-nowrap justify-end">
+                          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                             {!ritual.active && (
-                              <Badge variant="secondary" className="text-xs gap-1 px-2 py-0.5">
-                                <Pause className="w-3 h-3" />
-                                <span className="hidden xs:inline">Paused</span>
+                              <Badge variant="secondary" className="text-[10px] sm:text-xs gap-0.5 sm:gap-1 px-1 sm:px-2">
+                                <Pause className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                                <span className="hidden sm:inline">Paused</span>
                               </Badge>
                             )}
                             
-                            <Badge className="gap-1 bg-gradient-to-r from-primary to-accent text-white border-0 text-xs px-2 py-0.5">
-                              <Trophy className="w-3 h-3" />
-                              <span>{ritual.points}</span>
+                            <Badge className="gap-0.5 sm:gap-1 bg-gradient-to-r from-primary to-accent text-white border-0 smooth-transition text-xs px-1.5 sm:px-2">
+                              <Trophy className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                              <span className="text-[10px] sm:text-xs">{ritual.points}</span>
                             </Badge>
                             
                             <TooltipProvider>
@@ -1145,9 +1392,9 @@ useEffect(() => {
                                     size="icon"
                                     onClick={() => handleViewHistory(ritual.id)}
                                     data-testid={`button-history-${ritual.id}`}
-                                    className="w-8 h-8 sm:w-9 sm:h-9"
+                                    className="w-7 h-7 sm:w-8 sm:h-8"
                                   >
-                                    <HistoryIcon className="w-4 h-4" />
+                                    <HistoryIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                   </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>View history</TooltipContent>
@@ -1161,9 +1408,9 @@ useEffect(() => {
                                       size="icon"
                                       onClick={() => handleDeleteRitual(ritual.id)}
                                       data-testid={`button-delete-${ritual.id}`}
-                                      className="w-8 h-8 sm:w-9 sm:h-9"
+                                      className="w-7 h-7 sm:w-8 sm:h-8"
                                     >
-                                      <Trash2 className="w-4 h-4" />
+                                      <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                     </Button>
                                   </TooltipTrigger>
                                   <TooltipContent>Delete</TooltipContent>
@@ -1181,48 +1428,59 @@ useEffect(() => {
           </div>
         </section>
 
-        {/* Achievements Section - MOBILE RESPONSIVE */}
-        <section ref={achievementsRef} id="achievements" className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-4 sm:p-5 md:p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
+        {/* Team Activity Section - Hidden as per user request */}
+        {/* <section ref={teamRef} id="team" className="scroll-mt-20 bg-purple-50 dark:bg-purple-950/40 p-6 rounded-lg border-2 border-purple-200 dark:border-purple-800">
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-3xl font-bold">Team Activity</h2>
+              <p className="text-muted-foreground mt-1">Search and monitor team members' HRCM progress</p>
+            </div>
+
+            <UserActivitySearch />
+          </div>
+        </section> */}
+
+        {/* Achievements, Badges & Leaderboard Section */}
+        <section ref={achievementsRef} id="achievements" className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
           <BadgeDisplayCard 
             leaderboardEntries={leaderboardEntries} 
             currentUserId={currentUser?.id}
           />
         </section>
-
-        {/* Events Section - MOBILE RESPONSIVE */}
+ {/* Events Section */}
         {activeEvents.length > 0 && (
           <section
             ref={eventsRef}
             id="events"
-            className="scroll-mt-20 p-4 sm:p-6 md:p-8 rounded-lg border-2"
+            className="scroll-mt-20 p-8 rounded-lg border-2"
             style={{
               backgroundColor: '#bc000015',
               borderColor: '#bc0000'
             }}
             data-testid="section-events"
           >
-            <div className="space-y-4 sm:space-y-6">
+            <div className="space-y-6">
               <div>
-                <h2 className="text-2xl sm:text-3xl font-bold" style={{ color: '#bc0000' }}>
+                <h2 className="text-3xl font-bold" style={{ color: '#bc0000' }}>
                   Upcoming Events
                 </h2>
-                <p className="text-sm sm:text-base text-muted-foreground mt-2">Stay connected with scheduled sessions and events</p>
+                <p className="text-muted-foreground mt-2">Stay connected with scheduled sessions and events</p>
               </div>
-              {/* Responsive Grid: 1 col mobile, 2 cols tablet, 3 cols desktop */}
-              <div className="grid gap-4 sm:gap-5 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-6 grid-cols-3">
                 {activeEvents.map((event: any) => (
                   <Card key={event.id} className="overflow-hidden hover-elevate flex flex-col shadow-md" data-testid={`event-user-card-${event.id}`}>
                     {event.imageUrl && (
                       <img 
                         src={event.imageUrl} 
                         alt={event.title}
-                        className="w-full h-36 sm:h-40 object-cover"
+                        className="w-full h-40 object-cover"
                       />
                     )}
-                    <CardContent className="p-4 sm:p-5 flex flex-col flex-1">
-                      <h3 className="font-bold text-base sm:text-lg mb-3 line-clamp-2 text-black dark:text-white">
-                        {event.title}
-                      </h3>
+                    <CardContent className="p-5 flex flex-col flex-1">
+                     
+<h3 className="font-bold text-lg mb-3 line-clamp-2 text-black dark:text-white">
+  {event.title}
+</h3>
                       <div className="flex flex-wrap gap-2 mb-4 flex-1">
                         <Badge 
                           style={{ backgroundColor: '#00008c', color: 'white' }} 
@@ -1243,7 +1501,7 @@ useEffect(() => {
                       </div>
                       {event.externalLink && (
                         <Button
-                          className="w-full text-white font-semibold mt-auto text-sm sm:text-base"
+                          className="w-full text-white font-semibold mt-auto"
                           style={{ backgroundColor: '#bc0000' }}
                           onClick={() => window.open(event.externalLink, '_blank')}
                           data-testid={`button-event-link-${event.id}`}
@@ -1260,12 +1518,12 @@ useEffect(() => {
           </section>
         )}
 
-        {/* Platinum User Progress Section - MOBILE RESPONSIVE */}
-        <section className="scroll-mt-20 bg-purple-50 dark:bg-purple-950/40 p-4 sm:p-5 md:p-6 rounded-lg border-2 border-purple-200 dark:border-purple-800">
-          <div className="space-y-4 sm:space-y-6">
+        {/* Platinum User Progress Section */}
+        <section className="scroll-mt-20 bg-purple-50 dark:bg-purple-950/40 p-6 rounded-lg border-2 border-purple-200 dark:border-purple-800">
+          <div className="space-y-6">
             <div>
-              <h2 className="text-2xl sm:text-3xl font-bold">Platinum User Progress</h2>
-              <p className="text-sm sm:text-base text-muted-foreground mt-1">Search and view team members' complete dashboards</p>
+              <h2 className="text-3xl font-bold">Platinum User Progress</h2>
+              <p className="text-muted-foreground mt-1">Search and view team members' complete dashboards</p>
             </div>
 
             <UserDashboardSearch isAdmin={currentUser?.isAdmin || false} />
@@ -1307,12 +1565,12 @@ useEffect(() => {
         />
       )}
 
-      {/* Assignment Category Selection Dialog - MOBILE RESPONSIVE */}
+      {/* Assignment Category Selection Dialog */}
       <Dialog open={assignmentDialogOpen} onOpenChange={setAssignmentDialogOpen}>
-        <DialogContent className="sm:max-w-md w-[95vw] max-w-[425px]">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-lg sm:text-xl">Select HRCM Category</DialogTitle>
-            <DialogDescription className="text-sm">
+            <DialogTitle>Select HRCM Category</DialogTitle>
+            <DialogDescription>
               Choose which category to add these {pendingAssignmentLessons.length} lessons to in the Assignment column
             </DialogDescription>
           </DialogHeader>
@@ -1321,7 +1579,7 @@ useEffect(() => {
               <Button
                 key={category}
                 variant="outline"
-                className="h-16 sm:h-20 text-base sm:text-lg font-semibold hover-elevate"
+                className="h-20 text-lg font-semibold hover-elevate"
                 onClick={async () => {
                   try {
                     const response = await apiRequest('/api/assignment/add-lessons', 'POST', {
@@ -1360,6 +1618,7 @@ useEffect(() => {
         </DialogContent>
       </Dialog>
 
+      {/* <GoalsAffirmationsDialog open={goalsDialogOpen} onOpenChange={setGoalsDialogOpen} isChatBubbleOpen={isChatBubbleOpen} /> */}
       <GoalsAffirmationsDialog open={goalsDialogOpen} onOpenChange={setGoalsDialogOpen} />
 
       <GratitudeJournalDialog open={gratitudeJournalOpen} onOpenChange={setGratitudeJournalOpen} />
