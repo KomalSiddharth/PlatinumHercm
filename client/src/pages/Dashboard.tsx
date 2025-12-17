@@ -1466,7 +1466,8 @@ useEffect(() => {
                 </h2>
                 <p className="text-muted-foreground mt-2">Stay connected with scheduled sessions and events</p>
               </div>
-              <div className="grid gap-6 grid-cols-3">
+              {/* <div className="grid gap-6 grid-cols-3"> */}
+              <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 {activeEvents.map((event: any) => (
                   <Card key={event.id} className="overflow-hidden hover-elevate flex flex-col shadow-md" data-testid={`event-user-card-${event.id}`}>
                     {event.imageUrl && (
