@@ -578,9 +578,9 @@ const toggleLessonMutation = useMutation({
       className="w-full border-2 border-blue-500/40 bg-[#1a2942] dark:bg-[#1a2942]" 
       data-testid="card-course-tracker"
     >
-      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-4">
-        <div className="flex-1">
-          <div className="flex items-center gap-3 mb-1">
+      <CardHeader className="flex flex-col sm:flex-row items-start justify-between gap-4">
+        <div className="flex-1 w-full">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
             <h2 className="text-2xl font-bold text-white" data-testid="text-course-tracker-title">
               Course Tracker
             </h2>
@@ -589,7 +589,7 @@ const toggleLessonMutation = useMutation({
               className="gap-1.5 bg-gradient-to-r from-primary to-accent text-white border-0 text-base px-3 py-1 rounded-full flex items-center cursor-pointer hover:opacity-90 transition-opacity"
               data-testid="badge-course-points"
             >
-              <Trophy className="w-4 h-4" />
+              <Trophy className="w-3 h-3 sm:w-4 sm:h-4" />
               {overallProgress.completed} Points
             </button>
           </div>
