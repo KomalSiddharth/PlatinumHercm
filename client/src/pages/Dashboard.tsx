@@ -34,6 +34,14 @@ const formatTimeWith12Hour = (time: string): string => {
   if (hour === 0) hour = 12;
   return `${hour}:${min} ${ampm}`;
 };
+// Sort events by date first, then by time (chronological order)
+const sortEventsByDateTime = (events: any[]): any[] => {
+  return [...events].sort((a, b) => {
+    const dateCompare = (a.startDate || '').localeCompare(b.startDate || '');
+    if (dateCompare !== 0) return dateCompare;
+    return (a.startTime || '').localeCompare(b.startTime || '');
+  });
+};
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -1468,7 +1476,7 @@ useEffect(() => {
               </div>
               {/* <div className="grid gap-6 grid-cols-3"> */}
               <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                {activeEvents.map((event: any) => (
+                {sortEventsByDateTime(activeEvents).map((event: any) => (
                   <Card key={event.id} className="overflow-hidden hover-elevate flex flex-col shadow-md" data-testid={`event-user-card-${event.id}`}>
                     {event.imageUrl && (
                       <img 
