@@ -84,7 +84,7 @@ export default function Events() {
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Dashboard
             </Button>
-            <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent mb-2">
+            <h1 className="text-3xl sm:text-4xl font-bold text-black dark:text-white mb-2">
               Upcoming Events
             </h1>
             <p className="text-muted-foreground">Loading events...</p>
@@ -119,7 +119,7 @@ export default function Events() {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Dashboard
           </Button>
-          <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent mb-2">
+          <h1 className="text-3xl sm:text-4xl font-bold text-black dark:text-white mb-2">
             Upcoming Events
           </h1>
           <p className="text-muted-foreground">Stay connected with all scheduled sessions and events</p>
