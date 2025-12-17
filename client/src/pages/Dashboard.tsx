@@ -1477,7 +1477,7 @@ useEffect(() => {
                       />
                     )}
                     <CardContent className="p-5 flex flex-col flex-1">
-                     // Line 1421 - Dashboard Event Card Title
+                     
 <h3 className="font-bold text-lg mb-3 line-clamp-2 text-black dark:text-white">
   {event.title}
 </h3>
