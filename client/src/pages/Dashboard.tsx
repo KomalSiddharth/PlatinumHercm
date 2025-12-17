@@ -1,28 +1,28 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { useLocation } from 'wouter';
-import { format } from 'date-fns';
-import { apiRequest, queryClient } from '@/lib/queryClient';
-// import { useChatBubble } from '@/contexts/ChatBubbleContext';
-import DashboardHeader from '@/components/DashboardHeader';
-import UnifiedHRCMTable from '@/components/UnifiedHRCMTable';
-import AddRitualForm from '@/components/AddRitualForm';
-import RitualCard from '@/components/RitualCard';
-import CourseCard from '@/components/CourseCard';
-import ProfileModal from '@/components/ProfileModal';
-import RitualHistoryModal from '@/components/RitualHistoryModal';
-import UpdateProgressModal from '@/components/UpdateProgressModal';
-import BadgeDisplayCard from '@/components/BadgeDisplayCard';
-import UserActivitySearch from '@/components/UserActivitySearch';
-import UserDashboardSearch from '@/components/UserDashboardSearch';
-import EmotionalTracker from '@/components/EmotionalTracker';
-import { CourseRecommendations } from '@/components/CourseRecommendations';
-import { CourseRecommendationNotification } from '@/components/CourseRecommendationNotification';
-import FeedbackButton from '@/components/FeedbackButton';
-import LifeSkillsMap from '@/components/LifeSkillsMap';
-import { GoalsAffirmationsDialog } from '@/components/GoalsAffirmationsDialog';
-import { GratitudeJournalDialog } from '@/components/GratitudeJournalDialog';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useRef, useEffect, useMemo } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useLocation } from "wouter";
+import { format } from "date-fns";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import DashboardHeader from "@/components/DashboardHeader";
+import UnifiedHRCMTable from "@/components/UnifiedHRCMTable";
+import AddRitualForm from "@/components/AddRitualForm";
+import RitualCard from "@/components/RitualCard";
+import CourseCard from "@/components/CourseCard";
+import ProfileModal from "@/components/ProfileModal";
+import RitualHistoryModal from "@/components/RitualHistoryModal";
+import UpdateProgressModal from "@/components/UpdateProgressModal";
+import BadgeDisplayCard from "@/components/BadgeDisplayCard";
+import UserActivitySearch from "@/components/UserActivitySearch";
+import UserDashboardSearch from "@/components/UserDashboardSearch";
+import EmotionalTracker from "@/components/EmotionalTracker";
+import { CourseRecommendations } from "@/components/CourseRecommendations";
+import { CourseRecommendationNotification } from "@/components/CourseRecommendationNotification";
+import FeedbackButton from "@/components/FeedbackButton";
+import LifeSkillsMap from "@/components/LifeSkillsMap";
+import { GoalsAffirmationsDialog } from "@/components/GoalsAffirmationsDialog";
+import { GratitudeJournalDialog } from "@/components/GratitudeJournalDialog";
+import { useToast } from "@/hooks/use-toast";
+
 // Utility function to convert 24-hour format to 12-hour format with AM/PM
 const formatTimeWith12Hour = (time: string): string => {
   if (!time) return '';
@@ -34,31 +34,104 @@ const formatTimeWith12Hour = (time: string): string => {
   if (hour === 0) hour = 12;
   return `${hour}:${min} ${ampm}`;
 };
-// Sort events by date first, then by time (chronological order)
+
+// Get today's day name (e.g., "Monday", "Tuesday")
+const getTodayDayName = (): string => {
+  return new Date().toLocaleDateString('en-US', { weekday: 'long' });
+};
+
+// Check if event runs today
+const eventRunsToday = (event: any): boolean => {
+  const todayDay = getTodayDayName();
+  
+  // Daily events always run today
+  if (event.schedulingType === 'daily') return true;
+  
+  // Weekly/specific_days events run if today matches their specificDays
+  if (event.specificDays && Array.isArray(event.specificDays)) {
+    return event.specificDays.includes(todayDay);
+  }
+  
+  return false;
+};
+
+// Sort events: TODAY's events first (by time), then other events (by date, then time)
 const sortEventsByDateTime = (events: any[]): any[] => {
   return [...events].sort((a, b) => {
+    const aRunsToday = eventRunsToday(a);
+    const bRunsToday = eventRunsToday(b);
+    
+    // 1. Events running today come first
+    if (aRunsToday && !bRunsToday) return -1;
+    if (!aRunsToday && bRunsToday) return 1;
+    
+    // 2. If both run today (or both don't), sort by time
+    if (aRunsToday && bRunsToday) {
+      return (a.startTime || '').localeCompare(b.startTime || '');
+    }
+    
+    // 3. For events not running today, sort by date then time
     const dateCompare = (a.startDate || '').localeCompare(b.startDate || '');
     if (dateCompare !== 0) return dateCompare;
+    
     return (a.startTime || '').localeCompare(b.startTime || '');
   });
 };
-import { Skeleton } from '@/components/ui/skeleton';
-import { Card, CardContent } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Trophy, Pause, History as HistoryIcon, Trash2, ChevronDown, Book, RefreshCw, Map, ChevronRight, Folder, FolderOpen, FileText, CheckCircle2, BookOpen, ExternalLink, ChevronLeft, Calendar as CalendarIcon } from 'lucide-react';
-import type { Ritual as DbRitual, RitualCompletion } from '@shared/schema';
+
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipProvider,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Trophy,
+  Pause,
+  History as HistoryIcon,
+  Trash2,
+  ChevronDown,
+  Book,
+  RefreshCw,
+  Map,
+  ChevronRight,
+  Folder,
+  FolderOpen,
+  FileText,
+  CheckCircle2,
+  BookOpen,
+  ExternalLink,
+  ChevronLeft,
+  Calendar as CalendarIcon,
+} from "lucide-react";
+import type { Ritual as DbRitual, RitualCompletion } from "@shared/schema";
 
 interface Ritual {
   id: string;
   title: string;
-  recurrence: 'daily' | 'mon-fri' | 'custom';
+  recurrence: "daily" | "mon-fri" | "custom";
   points: number;
   active: boolean;
   completed: boolean;
@@ -70,9 +143,9 @@ interface Ritual {
 const getTodayDate = () => {
   const today = new Date();
   const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;  // IST local date
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`; // IST local date
 };
 
 // Helper function to get current week's start date (Monday) in YYYY-MM-DD format (LOCAL timezone)
@@ -83,8 +156,8 @@ const getWeekStartDate = () => {
   const monday = new Date(today);
   monday.setDate(today.getDate() + diff);
   const year = monday.getFullYear();
-  const month = String(monday.getMonth() + 1).padStart(2, '0');
-  const dayOfMonth = String(monday.getDate()).padStart(2, '0');
+  const month = String(monday.getMonth() + 1).padStart(2, "0");
+  const dayOfMonth = String(monday.getDate()).padStart(2, "0");
   return `${year}-${month}-${dayOfMonth}`;
 };
 
@@ -96,15 +169,17 @@ const getWeekEndDate = () => {
   const sunday = new Date(today);
   sunday.setDate(today.getDate() + diff);
   const year = sunday.getFullYear();
-  const month = String(sunday.getMonth() + 1).padStart(2, '0');
-  const dayOfMonth = String(sunday.getDate()).padStart(2, '0');
+  const month = String(sunday.getMonth() + 1).padStart(2, "0");
+  const dayOfMonth = String(sunday.getDate()).padStart(2, "0");
   return `${year}-${month}-${dayOfMonth}`;
 };
 
 // Map frequency to recurrence
-const mapFrequencyToRecurrence = (frequency: string): 'daily' | 'mon-fri' | 'custom' => {
-  if (frequency === 'weekly') return 'mon-fri';
-  return 'daily';
+const mapFrequencyToRecurrence = (
+  frequency: string,
+): "daily" | "mon-fri" | "custom" => {
+  if (frequency === "weekly") return "mon-fri";
+  return "daily";
 };
 
 // 1-point reward system for all rituals
@@ -115,9 +190,8 @@ const calculatePoints = (frequency: string): number => {
 export default function Dashboard() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
-  // const { isChatBubbleOpen } = useChatBubble();
-  const [activeSection, setActiveSection] = useState('hrcm');
-  
+  const [activeSection, setActiveSection] = useState("hrcm");
+
   const [profileOpen, setProfileOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [progressOpen, setProgressOpen] = useState(false);
@@ -126,54 +200,77 @@ export default function Dashboard() {
   const [selectedRitual, setSelectedRitual] = useState<Ritual | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const [assignmentDialogOpen, setAssignmentDialogOpen] = useState(false);
-  const [pendingAssignmentLessons, setPendingAssignmentLessons] = useState<AssignmentLesson[]>([]);
+  const [pendingAssignmentLessons, setPendingAssignmentLessons] = useState<
+    AssignmentLesson[]
+  >([]);
   const [openCourses, setOpenCourses] = useState<Record<string, boolean>>({});
-  const [openCourseSubcategories, setOpenCourseSubcategories] = useState<Record<string, boolean>>({});
-  
-  const [userName, setUserName] = useState('User');
-  const [userEmail, setUserEmail] = useState('');
+  const [openCourseSubcategories, setOpenCourseSubcategories] = useState<
+    Record<string, boolean>
+  >({});
+
+  const [userName, setUserName] = useState("User");
+  const [userEmail, setUserEmail] = useState("");
   const [totalPoints, setTotalPoints] = useState(0);
-  const [recentLessonPoints, setRecentLessonPoints] = useState<string | null>(null);
-  
+  const [recentLessonPoints, setRecentLessonPoints] = useState<string | null>(
+    null,
+  );
+
   // Use useState instead of useMemo so it can be updated when date changes at midnight
   const [todayDate, setTodayDate] = useState(getTodayDate());
-  
+
   // Daily Rituals date picker
-  const [selectedRitualDate, setSelectedRitualDate] = useState<Date>(new Date());
+  const [selectedRitualDate, setSelectedRitualDate] = useState<Date>(
+    new Date(),
+  );
   const [ritualCalendarOpen, setRitualCalendarOpen] = useState(false);
-  
+
   // Helper to convert Date to YYYY-MM-DD format
   const getDateString = (date: Date): string => {
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
-  
+
   const selectedRitualDateStr = getDateString(selectedRitualDate);
   const weekStartDate = useMemo(() => getWeekStartDate(), []);
   const weekEndDate = useMemo(() => getWeekEndDate(), []);
   const currentMonth = useMemo(() => new Date().getMonth(), []);
   const currentYear = useMemo(() => new Date().getFullYear(), []);
-  
+
   // Fetch current user data
-  const { data: currentUser, isLoading: userLoading, error: userError } = useQuery<{ id: string; email: string; firstName?: string; lastName?: string; isAdmin?: boolean }>({
-    queryKey: ['/api/auth/user'],
+  const {
+    data: currentUser,
+    isLoading: userLoading,
+    error: userError,
+  } = useQuery<{
+    id: string;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+    isAdmin?: boolean;
+  }>({
+    queryKey: ["/api/auth/user"],
     retry: false,
   });
-  
+
   // Fetch rituals from database
-  const { data: dbRituals = [], isLoading: ritualsLoading } = useQuery<DbRitual[]>({
-    queryKey: ['/api/rituals'],
+  const { data: dbRituals = [], isLoading: ritualsLoading } = useQuery<
+    DbRitual[]
+  >({
+    queryKey: ["/api/rituals"],
     enabled: !!currentUser,
     staleTime: 2 * 60 * 1000, // 2 minutes for rituals (stable data)
   });
-  
+
   // Fetch selected date's ritual completions (for checkbox status)
   const { data: todayCompletions = [] } = useQuery<RitualCompletion[]>({
-    queryKey: ['/api/ritual-completions', selectedRitualDateStr],
+    queryKey: ["/api/ritual-completions", selectedRitualDateStr],
     queryFn: async () => {
-      const response = await apiRequest(`/api/ritual-completions/${selectedRitualDateStr}`, 'GET');
+      const response = await apiRequest(
+        `/api/ritual-completions/${selectedRitualDateStr}`,
+        "GET",
+      );
       return response.json();
     },
     enabled: !!currentUser,
@@ -182,9 +279,12 @@ export default function Dashboard() {
 
   // Fetch current week's ritual completions (for cumulative weekly points)
   const { data: weeklyCompletions = [] } = useQuery<RitualCompletion[]>({
-    queryKey: ['/api/ritual-completions/week', weekStartDate, weekEndDate],
+    queryKey: ["/api/ritual-completions/week", weekStartDate, weekEndDate],
     queryFn: async () => {
-      const response = await apiRequest(`/api/ritual-completions/week/${weekStartDate}/${weekEndDate}`, 'GET');
+      const response = await apiRequest(
+        `/api/ritual-completions/week/${weekStartDate}/${weekEndDate}`,
+        "GET",
+      );
       return response.json();
     },
     enabled: !!currentUser,
@@ -193,43 +293,48 @@ export default function Dashboard() {
 
   // Fetch ALL ritual completions (for history navigation across months)
   const { data: allRitualCompletions = [] } = useQuery<RitualCompletion[]>({
-    queryKey: ['/api/ritual-completions'],
+    queryKey: ["/api/ritual-completions"],
     queryFn: async () => {
-      const response = await apiRequest('/api/ritual-completions', 'GET');
+      const response = await apiRequest("/api/ritual-completions", "GET");
       return response.json();
     },
     enabled: !!currentUser,
     staleTime: 60 * 1000, // 60 seconds for history (less frequently accessed)
   });
- 
-
-
 
   // Fetch user's HRCM weeks to check 7-day restriction
-  const { data: userWeeks = [], isLoading: loadingWeeks, isError: weeksError } = useQuery<any[]>({
-    queryKey: ['/api/hercm/weeks'],
+  const {
+    data: userWeeks = [],
+    isLoading: loadingWeeks,
+    isError: weeksError,
+  } = useQuery<any[]>({
+    queryKey: ["/api/hercm/weeks"],
     enabled: !!currentUser,
     staleTime: 30 * 1000, // 30 seconds for HRCM data
   });
 
-// Fetch active events for user dashboard
+  // Fetch active events for user dashboard
   const { data: activeEvents = [] } = useQuery<any[]>({
     queryKey: ["/api/events"],
     enabled: !!currentUser,
     staleTime: 60 * 1000, // 60 seconds for events (stable data)
   });
-  
+
   // 🌙 AUTOMATIC MIDNIGHT RESET - Check every minute for date change (IST timezone)
   useEffect(() => {
     const checkDateChange = () => {
       const newDate = getTodayDate();
       if (newDate !== todayDate) {
-        console.log(`[MIDNIGHT RESET] Date changed from ${todayDate} to ${newDate} - Resetting daily rituals...`);
+        console.log(
+          `[MIDNIGHT RESET] Date changed from ${todayDate} to ${newDate} - Resetting daily rituals...`,
+        );
         setTodayDate(newDate);
         // Invalidate ritual completions to refetch for new day (checkboxes will auto-uncheck)
-        queryClient.invalidateQueries({ queryKey: ['/api/ritual-completions'] });
+        queryClient.invalidateQueries({
+          queryKey: ["/api/ritual-completions"],
+        });
         toast({
-          title: '🌅 New Day Started!',
+          title: "🌅 New Day Started!",
           description: `Daily rituals reset for ${newDate}`,
           duration: 5000,
         });
@@ -238,18 +343,20 @@ export default function Dashboard() {
 
     // Check immediately on mount
     checkDateChange();
-    
+
     // Check every 60 seconds (1 minute) for date change
     const intervalId = setInterval(checkDateChange, 60000);
-    
+
     // Cleanup interval on unmount
     return () => clearInterval(intervalId);
   }, [todayDate, toast]);
-  
+
   // Seed default rituals on mount
   useEffect(() => {
     if (dbRituals.length === 0) {
-      apiRequest('/api/rituals/seed-defaults', 'POST').catch(err => console.error('Failed to seed default rituals:', err));
+      apiRequest("/api/rituals/seed-defaults", "POST").catch((err) =>
+        console.error("Failed to seed default rituals:", err),
+      );
     }
   }, []);
 
@@ -259,24 +366,29 @@ export default function Dashboard() {
   // Filter rituals so they only show from their creation date onwards
   const rituals: Ritual[] = useMemo(() => {
     return dbRituals
-      .filter(dbRitual => {
+      .filter((dbRitual) => {
         // Convert ritual's createdAt to YYYY-MM-DD format
         if (!dbRitual.createdAt) return true; // Show if no creation date (shouldn't happen)
-        
+
         const createdDate = new Date(dbRitual.createdAt);
         const createdYear = createdDate.getFullYear();
-        const createdMonth = String(createdDate.getMonth() + 1).padStart(2, '0');
-        const createdDay = String(createdDate.getDate()).padStart(2, '0');
+        const createdMonth = String(createdDate.getMonth() + 1).padStart(
+          2,
+          "0",
+        );
+        const createdDay = String(createdDate.getDate()).padStart(2, "0");
         const createdDateStr = `${createdYear}-${createdMonth}-${createdDay}`;
-        
+
         // Only show ritual if selectedRitualDateStr >= createdDateStr
         return selectedRitualDateStr >= createdDateStr;
       })
-      .map(dbRitual => {
+      .map((dbRitual) => {
         // Use points from database instead of calculating
         const points = dbRitual.points || calculatePoints(dbRitual.frequency);
-        const isCompleted = todayCompletions.some(c => c.ritualId === dbRitual.id);
-        
+        const isCompleted = todayCompletions.some(
+          (c) => c.ritualId === dbRitual.id,
+        );
+
         return {
           id: dbRitual.id,
           title: dbRitual.title,
@@ -285,7 +397,7 @@ export default function Dashboard() {
           active: dbRitual.isActive,
           completed: isCompleted,
           url: dbRitual.url,
-          isDefault: dbRitual.isDefault
+          isDefault: dbRitual.isDefault,
         };
       });
   }, [dbRituals, todayCompletions, selectedRitualDateStr]);
@@ -312,54 +424,70 @@ export default function Dashboard() {
     };
 
     refs[section as keyof typeof refs]?.current?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start'
+      behavior: "smooth",
+      block: "start",
     });
     setActiveSection(section);
   };
 
   // Mutation: Add ritual
   const addRitualMutation = useMutation({
-    mutationFn: async (newRitual: { title: string; recurrence: string; points: number }) => {
-      const frequency = newRitual.recurrence === 'mon-fri' ? 'weekly' : 'daily';
-      const response = await apiRequest('/api/rituals', 'POST', {
+    mutationFn: async (newRitual: {
+      title: string;
+      recurrence: string;
+      points: number;
+    }) => {
+      const frequency = newRitual.recurrence === "mon-fri" ? "weekly" : "daily";
+      const response = await apiRequest("/api/rituals", "POST", {
         title: newRitual.title,
-        description: '',
-        category: 'Health', // Default category
+        description: "",
+        category: "Health", // Default category
         frequency,
         points: newRitual.points,
       });
       return response.json();
     },
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/rituals'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/rituals"] });
       toast({
-        title: 'Ritual Added',
-        description: `${variables.title} has been added to your daily rituals.`
+        title: "Ritual Added",
+        description: `${variables.title} has been added to your daily rituals.`,
       });
     },
     onError: (error: Error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to add ritual',
-        variant: 'destructive'
+        title: "Error",
+        description: error.message || "Failed to add ritual",
+        variant: "destructive",
       });
-    }
+    },
   });
-  
-  const handleAddRitual = (newRitual: { title: string; recurrence: string; points: number }) => {
+
+  const handleAddRitual = (newRitual: {
+    title: string;
+    recurrence: string;
+    points: number;
+  }) => {
     addRitualMutation.mutate(newRitual);
   };
 
   // Mutation: Toggle ritual completion for selected date
   const toggleCompleteMutation = useMutation({
-    mutationFn: async ({ id, isCompleted, date }: { id: string; isCompleted: boolean; date: string }) => {
+    mutationFn: async ({
+      id,
+      isCompleted,
+      date,
+    }: {
+      id: string;
+      isCompleted: boolean;
+      date: string;
+    }) => {
       if (isCompleted) {
         // Delete completion for the selected date
-        await apiRequest(`/api/ritual-completions/${id}/${date}`, 'DELETE');
+        await apiRequest(`/api/ritual-completions/${id}/${date}`, "DELETE");
       } else {
         // Create completion for the selected date
-        await apiRequest('/api/ritual-completions', 'POST', {
+        await apiRequest("/api/ritual-completions", "POST", {
           ritualId: id,
           date: date,
         });
@@ -367,66 +495,90 @@ export default function Dashboard() {
     },
     onMutate: async ({ id, isCompleted, date }) => {
       // Cancel outgoing refetches to avoid overwriting our optimistic update
-      await queryClient.cancelQueries({ queryKey: ['/api/ritual-completions', date] });
-      await queryClient.cancelQueries({ queryKey: ['/api/user/total-points'] });
-      
+      await queryClient.cancelQueries({
+        queryKey: ["/api/ritual-completions", date],
+      });
+      await queryClient.cancelQueries({ queryKey: ["/api/user/total-points"] });
+
       // Snapshot the previous values
-      const previousCompletions = queryClient.getQueryData<RitualCompletion[]>(['/api/ritual-completions', date]);
+      const previousCompletions = queryClient.getQueryData<RitualCompletion[]>([
+        "/api/ritual-completions",
+        date,
+      ]);
       const previousPoints = queryClient.getQueryData<{
         totalPoints: number;
         ritualPoints: number;
         lessonPoints: number;
         ritualCount: number;
         lessonCount: number;
-      }>(['/api/user/total-points']);
-      
+      }>(["/api/user/total-points"]);
+
       // Optimistically update the UI
       queryClient.setQueryData<RitualCompletion[]>(
-        ['/api/ritual-completions', date],
+        ["/api/ritual-completions", date],
         (old = []) => {
           if (isCompleted) {
             // Remove completion (unchecking)
-            return old.filter(c => c.ritualId !== id);
+            return old.filter((c) => c.ritualId !== id);
           } else {
             // Add completion (checking)
-            return [...old, { id: `temp-${id}`, ritualId: id, userId: '', date: date, completedAt: new Date(), createdAt: new Date() }];
+            return [
+              ...old,
+              {
+                id: `temp-${id}`,
+                ritualId: id,
+                userId: "",
+                date: date,
+                completedAt: new Date(),
+                createdAt: new Date(),
+              },
+            ];
           }
-        }
+        },
       );
-      
+
       // INSTANT POINTS UPDATE: +points when checking, -points when unchecking
-      const ritual = rituals.find(r => r.id === id);
+      const ritual = rituals.find((r) => r.id === id);
       if (previousPoints && ritual) {
         const pointsChange = isCompleted ? -ritual.points : ritual.points;
         const countChange = isCompleted ? -1 : 1;
-        queryClient.setQueryData(
-          ['/api/user/total-points'],
-          {
-            ...previousPoints,
-            totalPoints: previousPoints.totalPoints + pointsChange,
-            ritualPoints: (previousPoints.ritualPoints || 0) + pointsChange,
-            ritualCount: Math.max(0, (previousPoints.ritualCount || 0) + countChange)
-          }
+        queryClient.setQueryData(["/api/user/total-points"], {
+          ...previousPoints,
+          totalPoints: previousPoints.totalPoints + pointsChange,
+          ritualPoints: (previousPoints.ritualPoints || 0) + pointsChange,
+          ritualCount: Math.max(
+            0,
+            (previousPoints.ritualCount || 0) + countChange,
+          ),
+        });
+        console.log(
+          "[Daily Rituals] ⚡ Instant points update:",
+          pointsChange > 0 ? `+${pointsChange}` : pointsChange,
         );
-        console.log('[Daily Rituals] ⚡ Instant points update:', pointsChange > 0 ? `+${pointsChange}` : pointsChange);
       }
-      
+
       return { previousCompletions, previousPoints, date };
     },
     onSuccess: (_, variables) => {
       // Invalidate all ritual completion queries
-      queryClient.invalidateQueries({ queryKey: ['/api/ritual-completions'] }); // Base query for ALL completions (history modal)
-      queryClient.invalidateQueries({ queryKey: ['/api/ritual-completions', variables.date] });
-      queryClient.invalidateQueries({ queryKey: ['/api/ritual-completions/month', currentYear, currentMonth] });
-      queryClient.invalidateQueries({ queryKey: ['/api/ritual-completions/week', weekStartDate, weekEndDate] });
-      
+      queryClient.invalidateQueries({ queryKey: ["/api/ritual-completions"] }); // Base query for ALL completions (history modal)
+      queryClient.invalidateQueries({
+        queryKey: ["/api/ritual-completions", variables.date],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/ritual-completions/month", currentYear, currentMonth],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/ritual-completions/week", weekStartDate, weekEndDate],
+      });
+
       // INSTANT REAL-TIME HEADER UPDATE: Invalidate total points query
-      queryClient.invalidateQueries({ queryKey: ['/api/user/total-points'] });
-      
-      const ritual = rituals.find(r => r.id === variables.id);
+      queryClient.invalidateQueries({ queryKey: ["/api/user/total-points"] });
+
+      const ritual = rituals.find((r) => r.id === variables.id);
       if (ritual && !variables.isCompleted) {
         toast({
-          title: 'Points Earned!',
+          title: "Points Earned!",
           description: `+${ritual.points} points for completing ${ritual.title}`,
         });
       }
@@ -434,28 +586,38 @@ export default function Dashboard() {
     onError: (error: Error, variables, context) => {
       // Rollback to previous state on error
       if (context?.previousCompletions && context?.date) {
-        queryClient.setQueryData(['/api/ritual-completions', context.date], context.previousCompletions);
+        queryClient.setQueryData(
+          ["/api/ritual-completions", context.date],
+          context.previousCompletions,
+        );
       }
       if (context?.previousPoints) {
-        queryClient.setQueryData(['/api/user/total-points'], context.previousPoints);
+        queryClient.setQueryData(
+          ["/api/user/total-points"],
+          context.previousPoints,
+        );
       }
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to update completion',
-        variant: 'destructive'
+        title: "Error",
+        description: error.message || "Failed to update completion",
+        variant: "destructive",
       });
-    }
+    },
   });
-  
+
   const handleToggleComplete = (id: string) => {
-    const ritual = rituals.find(r => r.id === id);
+    const ritual = rituals.find((r) => r.id === id);
     if (ritual && ritual.active) {
-      toggleCompleteMutation.mutate({ id, isCompleted: ritual.completed, date: selectedRitualDateStr });
+      toggleCompleteMutation.mutate({
+        id,
+        isCompleted: ritual.completed,
+        date: selectedRitualDateStr,
+      });
     }
   };
 
   const handleViewHistory = (id: string) => {
-    const ritual = rituals.find(r => r.id === id);
+    const ritual = rituals.find((r) => r.id === id);
     if (ritual) {
       setSelectedRitual(ritual);
       setHistoryOpen(true);
@@ -465,12 +627,12 @@ export default function Dashboard() {
   // Mutation: Delete ritual
   const deleteRitualMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiRequest(`/api/rituals/${id}`, 'DELETE');
+      await apiRequest(`/api/rituals/${id}`, "DELETE");
     },
     onMutate: async (id: string) => {
       // Cancel outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['/api/user/total-points'] });
-      
+      await queryClient.cancelQueries({ queryKey: ["/api/user/total-points"] });
+
       // Snapshot the previous points
       const previousPoints = queryClient.getQueryData<{
         totalPoints: number;
@@ -478,85 +640,98 @@ export default function Dashboard() {
         lessonPoints: number;
         ritualCount: number;
         lessonCount: number;
-      }>(['/api/user/total-points']);
-      
+      }>(["/api/user/total-points"]);
+
       // Check if ritual was completed - if so, deduct points optimistically
-      const ritual = rituals.find(r => r.id === id);
+      const ritual = rituals.find((r) => r.id === id);
       if (previousPoints && ritual && ritual.completed) {
-        queryClient.setQueryData(['/api/user/total-points'], {
+        queryClient.setQueryData(["/api/user/total-points"], {
           ...previousPoints,
           totalPoints: previousPoints.totalPoints - ritual.points,
           ritualPoints: previousPoints.ritualPoints - ritual.points,
-          ritualCount: Math.max(0, previousPoints.ritualCount - 1)
+          ritualCount: Math.max(0, previousPoints.ritualCount - 1),
         });
-        console.log('[Daily Rituals] ⚡ Instant points deduction on delete:', -ritual.points);
+        console.log(
+          "[Daily Rituals] ⚡ Instant points deduction on delete:",
+          -ritual.points,
+        );
       }
-      
+
       return { previousPoints, ritual };
     },
     onSuccess: (_, id, context) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/rituals'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/ritual-completions'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/user/total-points'] });
-      
+      queryClient.invalidateQueries({ queryKey: ["/api/rituals"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ritual-completions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/total-points"] });
+
       toast({
-        title: 'Ritual Deleted',
-        description: `${context?.ritual?.title} has been removed.`
+        title: "Ritual Deleted",
+        description: `${context?.ritual?.title} has been removed.`,
       });
     },
     onError: (error: Error, _, context) => {
       // Rollback on error
       if (context?.previousPoints) {
-        queryClient.setQueryData(['/api/user/total-points'], context.previousPoints);
+        queryClient.setQueryData(
+          ["/api/user/total-points"],
+          context.previousPoints,
+        );
       }
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete ritual',
-        variant: 'destructive'
+        title: "Error",
+        description: error.message || "Failed to delete ritual",
+        variant: "destructive",
       });
-    }
+    },
   });
-  
+
   const handleDeleteRitual = (id: string) => {
     deleteRitualMutation.mutate(id);
   };
 
-  const handleSaveProfile = async (data: { name: string; email: string; bio: string; profession: string; city: string; profileImageUrl: string }) => {
+  const handleSaveProfile = async (data: {
+    name: string;
+    email: string;
+    bio: string;
+    profession: string;
+    city: string;
+    profileImageUrl: string;
+  }) => {
     try {
-      const response = await apiRequest('/api/user/profile', 'PATCH', {
+      const response = await apiRequest("/api/user/profile", "PATCH", {
         firstName: data.name,
         bio: data.bio,
         profession: data.profession,
         city: data.city,
-        profileImageUrl: data.profileImageUrl
+        profileImageUrl: data.profileImageUrl,
       });
-      
+
       setUserName(data.name);
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
-      
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+
       toast({
-        title: 'Profile Updated',
-        description: 'Your profile has been successfully updated.'
+        title: "Profile Updated",
+        description: "Your profile has been successfully updated.",
       });
     } catch (error: any) {
       toast({
-        title: 'Update Failed',
-        description: error.message || 'Failed to update profile',
-        variant: 'destructive'
+        title: "Update Failed",
+        description: error.message || "Failed to update profile",
+        variant: "destructive",
       });
     }
   };
 
   const handleLogout = () => {
-    console.log('Logout clicked');
+    console.log("Logout clicked");
     toast({
-      title: 'Logging Out',
-      description: 'Please wait...'
+      title: "Logging Out",
+      description: "Please wait...",
     });
-    
+
     // Navigate to logout endpoint which handles session clearing and OIDC redirect
     // This must be a full page navigation (not fetch) to properly handle OIDC logout flow
-    window.location.href = '/api/logout';
+    window.location.href = "/api/logout";
   };
 
   const handleWeekChange = (newWeek: number) => {
@@ -564,93 +739,108 @@ export default function Dashboard() {
   };
 
   const handleUpdateCourseProgress = (id: string) => {
-    const course = courses.find(c => c.id === id);
+    const course = courses.find((c) => c.id === id);
     if (course) {
       setSelectedCourse(course);
       setProgressOpen(true);
     }
   };
 
-  const handleSaveCourseProgress = (progress: number, status: 'not_started' | 'in_progress' | 'completed') => {
+  const handleSaveCourseProgress = (
+    progress: number,
+    status: "not_started" | "in_progress" | "completed",
+  ) => {
     if (selectedCourse) {
-      setCourses(courses.map(course =>
-        course.id === selectedCourse.id
-          ? { ...course, progressPercent: progress, status }
-          : course
-      ));
+      setCourses(
+        courses.map((course) =>
+          course.id === selectedCourse.id
+            ? { ...course, progressPercent: progress, status }
+            : course,
+        ),
+      );
       toast({
-        title: 'Progress Updated',
-        description: `${selectedCourse.title} progress updated to ${progress}%`
+        title: "Progress Updated",
+        description: `${selectedCourse.title} progress updated to ${progress}%`,
       });
     }
   };
 
   const handleVisitCourse = (id: string) => {
-    const course = courses.find(c => c.id === id);
+    const course = courses.find((c) => c.id === id);
     if (course) {
       toast({
-        title: 'Opening Course',
-        description: `Redirecting to ${course.title}...`
+        title: "Opening Course",
+        description: `Redirecting to ${course.title}...`,
       });
     }
   };
 
   // Track completed modules for each course
-  const [completedModules, setCompletedModules] = useState<Record<string, string[]>>({});
+  const [completedModules, setCompletedModules] = useState<
+    Record<string, string[]>
+  >({});
 
   // Load completed videos from database on mount
   useEffect(() => {
     const loadCompletedVideos = async () => {
       const allCompletions: Record<string, string[]> = {};
-      
+
       for (const course of courses) {
         try {
-          const response = await fetch(`/api/course-video-completions/${course.id}`);
+          const response = await fetch(
+            `/api/course-video-completions/${course.id}`,
+          );
           if (response.ok) {
             const completions = await response.json();
-            // FIXED: use DB value directly
-      const moduleIds = completions.map((c: any) => 
-        c.video_id || c.videoId
-      );
             // Extract module IDs from videoId (format: courseId-moduleId)
-            // const moduleIds = completions.map((c: any) => c.videoId.replace(`${course.id}-`, ''));
-//             const moduleIds = completions.map((c: any) =>
-//   c.video_id.replace(`${course.id}-`, '')
-// );
-
-            // const moduleIds = completions.map(c => c.videoId);
-
+            const moduleIds = completions.map((c: any) =>
+              c.videoId.replace(`${course.id}-`, ""),
+            );
             allCompletions[course.id] = moduleIds;
           }
         } catch (error) {
           console.error(`Failed to load completions for ${course.id}:`, error);
         }
       }
-      
+
       setCompletedModules(allCompletions);
-      
+
       // SYNC existing checked lessons to Assignment column (one-time on page load)
       try {
-        await apiRequest('/api/course-video-completions/sync-to-assignment', 'POST', {
-          coursesData: courses,
-          weekNumber: currentWeek
-        });
-        console.log('[SYNC] Successfully synced checked lessons to Assignment column');
+        await apiRequest(
+          "/api/course-video-completions/sync-to-assignment",
+          "POST",
+          {
+            coursesData: courses,
+            weekNumber: currentWeek,
+          },
+        );
+        console.log(
+          "[SYNC] Successfully synced checked lessons to Assignment column",
+        );
         // Refresh HRCM data to show updated Assignment column
-        queryClient.invalidateQueries({ queryKey: ['/api/hercm'] });
+        queryClient.invalidateQueries({ queryKey: ["/api/hercm"] });
       } catch (error) {
-        console.error('[SYNC] Failed to sync lessons:', error);
+        console.error("[SYNC] Failed to sync lessons:", error);
       }
     };
-    
+
     loadCompletedVideos();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run once on mount - courses array is static
 
   // Mutation to persist course video completions to database
   const toggleVideoCompletionMutation = useMutation({
-    mutationFn: async ({ videoId, courseId, courseName, lessonName, lessonUrl, completed, currentWeekNumber }: { 
-      videoId: string; 
+    mutationFn: async ({
+      videoId,
+      courseId,
+      courseName,
+      lessonName,
+      lessonUrl,
+      completed,
+      currentWeekNumber,
+    }: {
+      videoId: string;
       courseId: string;
       courseName: string;
       lessonName: string;
@@ -658,86 +848,92 @@ export default function Dashboard() {
       completed: boolean;
       currentWeekNumber: number;
     }) => {
-      return await apiRequest('/api/course-video-completions/toggle', 'POST', { 
-        videoId, 
+      return await apiRequest("/api/course-video-completions/toggle", "POST", {
+        videoId,
         courseId,
         courseName,
         lessonName,
         lessonUrl,
         completed,
-        weekNumber: currentWeekNumber
+        weekNumber: currentWeekNumber,
       });
     },
   });
 
-  const handleModuleToggle = async (courseId: string, moduleId: string, completed: boolean) => {
+  const handleModuleToggle = async (
+    courseId: string,
+    moduleId: string,
+    completed: boolean,
+  ) => {
     // Get course and lesson details
-    const course = courses.find(c => c.id === courseId);
-    const lesson = course?.lessons.find(l => l.id === moduleId);
-    
+    const course = courses.find((c) => c.id === courseId);
+    const lesson = course?.lessons.find((l) => l.id === moduleId);
+
     if (!course || !lesson) {
-      console.error('Course or lesson not found');
+      console.error("Course or lesson not found");
       return;
     }
-    
+
     // Update local state immediately for responsive UI
-    setCompletedModules(prev => {
+    setCompletedModules((prev) => {
       const current = prev[courseId] || [];
-      const updated = completed 
+      const updated = completed
         ? [...current, moduleId]
-        : current.filter(id => id !== moduleId);
-      
+        : current.filter((id) => id !== moduleId);
+
       return {
         ...prev,
-        [courseId]: updated
+        [courseId]: updated,
       };
     });
 
     // Persist to database AND add to Assignment column
     const videoId = `${courseId}-${moduleId}`;
     try {
-      await toggleVideoCompletionMutation.mutateAsync({ 
-        videoId, 
+      await toggleVideoCompletionMutation.mutateAsync({
+        videoId,
         courseId,
         courseName: course.title,
         lessonName: lesson.title,
         lessonUrl: lesson.url,
         completed,
-        currentWeekNumber: currentWeek
+        currentWeekNumber: currentWeek,
       });
-      
+
       // Invalidate HRCM data to refresh Assignment column
-      queryClient.invalidateQueries({ queryKey: ['/api/hercm'] });
-      
+      queryClient.invalidateQueries({ queryKey: ["/api/hercm"] });
+
       // Auto-save toast
       toast({
-        title: completed ? 'Module Completed!' : 'Module Unmarked',
-        description: completed ? 'Added to Assignment column' : 'Removed from Assignment column',
+        title: completed ? "Module Completed!" : "Module Unmarked",
+        description: completed
+          ? "Added to Assignment column"
+          : "Removed from Assignment column",
       });
-      
+
       // Show points awarded for lesson completion
       if (completed) {
-        setRecentLessonPoints('+1 pt');
+        setRecentLessonPoints("+1 pt");
         setTimeout(() => setRecentLessonPoints(null), 2000);
       }
     } catch (error) {
-      console.error('Failed to save progress:', error);
+      console.error("Failed to save progress:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to save progress. Please try again.',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to save progress. Please try again.",
+        variant: "destructive",
       });
-      
+
       // Revert local state on error
-      setCompletedModules(prev => {
+      setCompletedModules((prev) => {
         const current = prev[courseId] || [];
-        const reverted = !completed 
+        const reverted = !completed
           ? [...current, moduleId]
-          : current.filter(id => id !== moduleId);
-        
+          : current.filter((id) => id !== moduleId);
+
         return {
           ...prev,
-          [courseId]: reverted
+          [courseId]: reverted,
         };
       });
     }
@@ -759,378 +955,128 @@ export default function Dashboard() {
     url: string;
     completed: boolean;
   }
-async function fetchCoursesDirectFromGoogleSheet() {
-  // const url =
-  //   "https://docs.google.com/spreadsheets/d/1WItwo6f0TJ9EhHYtiTt_9mlBbQGHE5nBpgiKChUOq_c/gviz/tq?tqx=out:json";
- const url =
-  "https://docs.google.com/spreadsheets/d/1WItwo6f0TJ9EhHYtiTt_9mlBbQGHE5nBpgiKChUOq_c/gviz/tq?tqx=out:json";
-
-
-  try {
-    const response = await fetch(url);
-    const text = await response.text();
-
-    const json = JSON.parse(text.substring(47, text.length - 2));
-
-    const rows = json.table.rows.map((row: any) =>
-      row.c.map((cell: any) => (cell ? cell.v : ""))
-    );
-
-    return rows;
-  } catch (error) {
-    console.error("Failed to load Google Sheet:", error);
-    return [];
-  }
-}
-//   function parseGoogleSheetToCourseStructure(rows: any[][]) {
-//   const courses: any[] = [];
-//   let currentCourse: any = null;
-//   let currentSubcategory: any = null;
-
-//   function isCourseTitle(question: string, answer: string, nextRow: any[]) {
-//     const q = question.trim();
-
-//     const looksLikeCourseTitle =
-//       q.toLowerCase().includes("by mitesh khatri") ||
-//       (!/^\d/.test(q) && answer === "");
-
-//     const nextQ = nextRow?.[0] || "";
-//     const nextLooksLikeLesson = /^lesson/i.test(nextQ);
-
-//     return looksLikeCourseTitle || nextLooksLikeLesson;
-//   }
-
-//   for (let i = 0; i < rows.length; i++) {
-//     const row = rows[i];
-//     const nextRow = rows[i + 1] || [];
-//     const question = row[0] || "";
-//     const answer = row[1] || "";
-
-//     if (!question.trim()) continue;
-
-//     // COURSE TITLE
-//     if (isCourseTitle(question, answer, nextRow)) {
-//       currentCourse = {
-//         id: question.replace(/\s+/g, "-").toLowerCase(),
-//         title: question,
-//         url: "",
-//         tags: [],
-//         source: "Google Sheet",
-//         estimatedHours: 0,
-//         status: "not_started",
-//         progressPercent: 0,
-//         category: "General",
-//         lessons: [],
-//         subcategories: [],
-//       };
-//       courses.push(currentCourse);
-//       currentSubcategory = null;
-//       continue;
-//     }
-
-//     // SUBCATEGORY ("Module ..." or similar)
-//     if (/^module/i.test(question)) {
-//       currentSubcategory = {
-//         id: question.replace(/\s+/g, "-").toLowerCase(),
-//         title: question,
-//         lessons: [],
-//       };
-//       currentCourse.subcategories.push(currentSubcategory);
-//       continue;
-//     }
-
-//     // LESSON ROW
-//     const lesson = {
-//       id: currentSubcategory
-//         ? `${currentSubcategory.lessons.length + 1}`
-//         : `${currentCourse.lessons.length + 1}`,
-//       title: question,
-//       url: answer || "",
-//       completed: false,
-//     };
-
-//     if (currentSubcategory) {
-//       currentSubcategory.lessons.push(lesson);
-//     } else {
-//       currentCourse.lessons.push(lesson);
-//     }
-//   }
-
-//   return courses;
-// }
-  // -----------------------------
-// FIXED COURSE TITLE DETECTOR
-// -----------------------------
-// function isCourseTitle(
-//   question: string,
-//   answer: string,
-//   nextRow: any[]
-// ) {
-//   const q = question.trim();
-
-//   // RULE 1 — If it starts with a number: It's ALWAYS a lesson
-//   if (/^\d/.test(q)) return false;
-
-//   // RULE 2 — If question contains "by Mitesh Khatri" → always a course
-//   if (q.toLowerCase().includes("by mitesh khatri")) return true;
-
-//   // RULE 3 — If next row looks like a lesson (number or "Lesson")
-//   const nextQ = (nextRow?.[0] || "").trim();
-//   if (/^(\d+|lesson\s*\d*)/i.test(nextQ)) return true;
-
-//   // RULE 4 — If this row has a URL in the Answer column → it's a lesson
-//   if (answer && answer.startsWith("http")) return false;
-
-//   // RULE 5 — If Answer empty + doesn't start with number → most likely a section title
-//   if (answer === "" && !/^\d/.test(q)) return true;
-
-//   return false;
-// }
-
-// ------------------------------------
-// FIXED PARSER FOR GOOGLE SHEET COURSES
-// ------------------------------------
-function parseGoogleSheetToCourseStructure(rows: any[][]) {
-  const courses: any[] = [];
-  let currentCourse: any = null;
-
-  // Strong course title detection
-  function isCourseTitle(question: string, answer: string) {
-    const q = question.trim();
-
-    // MUST: answer should be empty for course title
-    if (answer && answer.trim() !== "") return false;
-
-    // Contains special course keywords
-    const keywords = [
-      "by mitesh khatri",
-      "platinum",
-      "dmp",
-      "one day miracle",
-      "chakra",
-      "ai course"
-    ];
-
-    const isKeywordTitle = keywords.some(k => q.toLowerCase().includes(k));
-
-    // If contains keywords → definitely a course
-    if (isKeywordTitle) return true;
-
-    // If begins with number → it is NOT a course
-    if (/^\d/.test(q)) return false;
-
-    // If begins with Lesson/Day/Part → NOT a course
-    if (/^(lesson|day|part)/i.test(q)) return false;
-
-    // If next rows start with Lesson/Day/Part → this row is a title
-    return true;
-  }
-
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i];
-    const question = row[0] || "";
-    const answer = row[1] || "";
-
-    if (!question.trim()) continue;
-
-    // Check if this is a COURSE
-    if (isCourseTitle(question, answer)) {
-      currentCourse = {
-        id: question.replace(/\s+/g, "-").toLowerCase(),
-        title: question,
-        lessons: [],
-      };
-      courses.push(currentCourse);
-      continue;
-    }
-
-    // Otherwise → LESSON
-    if (currentCourse) {
-      currentCourse.lessons.push({
-        id: `${currentCourse.lessons.length + 1}`,
-        title: question,
-        url: answer || "",
-        completed: false
-      });
-    }
-  }
-
-  return courses;
-}
-
-
-
-
-// function parseGoogleSheetToCourseStructure(rows: any[][]) {
-//   const courses: any[] = [];
-//   let currentCourse: any = null;
-
-//   function isCourseTitle(question: string, answer: string, nextRow: any[]) {
-//     const q = question.trim();
-
-//     // RULE 1: Bold titles always course titles (Google keeps bold text under p[0].s!=null, but we removed JSON)
-//     const looksLikeCourseTitle =
-//       q.toLowerCase().includes("by mitesh khatri") ||
-//       (!/^\d/.test(q) && answer === "");
-
-//     // RULE 2: Lookahead → if next row begins with Lesson → this row is title
-//     const nextQ = nextRow?.[0] || "";
-//     const nextLooksLikeLesson = /^lesson/i.test(nextQ);
-
-//     return looksLikeCourseTitle || nextLooksLikeLesson;
-//   }
-
-//   for (let i = 0; i < rows.length; i++) {
-//     const row = rows[i];
-//     const nextRow = rows[i + 1] || [];
-//     const question = row[0] || "";
-//     const answer = row[1] || "";
-
-//     if (!question.trim()) continue;
-
-//     // COURSE TITLE
-//     if (isCourseTitle(question, answer, nextRow)) {
-//       currentCourse = {
-//         id: question.replace(/\s+/g, "-").toLowerCase(),
-//         title: question,
-//         url: "",
-//         tags: [],
-//         source: "Google Sheet",
-//         estimatedHours: 0,
-//         status: "not_started",
-//         progressPercent: 0,
-//         category: "General",
-//         lessons: [],
-//       };
-//       courses.push(currentCourse);
-//       continue;
-//     }
-
-//     // LESSON ROW
-//     if (currentCourse) {
-//       currentCourse.lessons.push({
-//         id: `${currentCourse.lessons.length + 1}`,
-//         title: question,
-//         url: answer || "",
-//         completed: false,
-//       });
-//     }
-//   }
-
-//   return courses;
-// }
 
   // Courses state - initially empty, populated from Google Sheets API
-  const [courses, setCourses] = useState<Array<{
-    id: string;
-    title: string;
-    url: string;
-    tags: string[];
-    source: string;
-    estimatedHours: number;
-    status: 'not_started' | 'in_progress' | 'completed';
-    progressPercent: number;
-    category: string;
-    lessons: CourseLesson[];
-  }>>([]);
+  const [courses, setCourses] = useState<
+    Array<{
+      id: string;
+      title: string;
+      url: string;
+      tags: string[];
+      source: string;
+      estimatedHours: number;
+      status: "not_started" | "in_progress" | "completed";
+      progressPercent: number;
+      category: string;
+      lessons: CourseLesson[];
+    }>
+  >([]);
 
   // Fetch courses from Google Sheets with auto-polling for instant updates
   const {
-  data: googleSheetsRaw,
-  isLoading: coursesLoading,
-  error: coursesError,
-} = useQuery({
-  queryKey: ["googleSheetCourses"],
-  queryFn: fetchCoursesDirectFromGoogleSheet,
-  enabled: !!currentUser,
-  refetchInterval: 30000,
-  refetchIntervalInBackground: true,
-});
-useEffect(() => {
-  if (!googleSheetsRaw || googleSheetsRaw.length === 0) return;
+    data: googleSheetsCourses,
+    isLoading: coursesLoading,
+    error: coursesError,
+  } = useQuery<
+    Array<{
+      id: string;
+      title: string;
+      url: string;
+      tags: string[];
+      source: string;
+      estimatedHours: number;
+      status: "not_started" | "in_progress" | "completed";
+      progressPercent: number;
+      category: string;
+      lessons: CourseLesson[];
+    }>
+  >({
+    queryKey: ["/api/courses/tracking"],
+    enabled: !!currentUser,
+    refetchInterval: 30000, // Auto-refresh every 30 seconds for instant Google Sheets updates
+    refetchIntervalInBackground: true, // Continue polling even when tab is not focused
+  });
 
-  const rows = googleSheetsRaw.slice(1);
-
-  const formattedCourses = parseGoogleSheetToCourseStructure(rows);
-
-  setCourses(formattedCourses);
-}, [googleSheetsRaw]);
-
-  // const { data: googleSheetsCourses, isLoading: coursesLoading, error: coursesError } = useQuery<Array<{
-  //   id: string;
-  //   title: string;
-  //   url: string;
-  //   tags: string[];
-  //   source: string;
-  //   estimatedHours: number;
-  //   status: 'not_started' | 'in_progress' | 'completed';
-  //   progressPercent: number;
-  //   category: string;
-  //   lessons: CourseLesson[];
-  // }>>({
-  //   queryKey: ['/api/courses/tracking'],
-  //   enabled: !!currentUser,
-  //   refetchInterval: 30000, // Auto-refresh every 30 seconds for instant Google Sheets updates
-  //   refetchIntervalInBackground: true, // Continue polling even when tab is not focused
-  // });
-
-  // // Initialize courses from Google Sheets data
-  // useEffect(() => {
-  //   if (googleSheetsCourses && googleSheetsCourses.length > 0) {
-  //     console.log('[Course Tracker] Loaded', googleSheetsCourses.length, 'courses from Google Sheets');
-  //     setCourses(googleSheetsCourses);
-  //   }
-  // }, [googleSheetsCourses]);
+  // Initialize courses from Google Sheets data
+  useEffect(() => {
+    if (googleSheetsCourses && googleSheetsCourses.length > 0) {
+      console.log(
+        "[Course Tracker] Loaded",
+        googleSheetsCourses.length,
+        "courses from Google Sheets",
+      );
+      setCourses(googleSheetsCourses);
+    }
+  }, [googleSheetsCourses]);
 
   // Load lesson completions from database on mount
-  // useEffect(() => {
-  //   const loadCompletions = async () => {
-  //     if (!currentUser || courses.length === 0) return;
-      
-  //     try {
-  //       console.log('[Course Tracker] Loading completions for user:', currentUser.id);
-  //       // Fetch completions for all courses
-  //       const allCompletions: Record<string, string[]> = {};
-        
-  //       for (const course of courses) {
-  //         try {
-  //           const response = await fetch(`/api/course-video-completions/${course.id}`);
-  //           if (response.ok) {
-  //             const completions = await response.json();
-  //             // Store video IDs that are completed
-  //             allCompletions[course.id] = completions.map((c: any) => c.videoId);
-  //             console.log(`[Course Tracker] ${course.id}:`, allCompletions[course.id].length, 'completions loaded');
-  //           }
-  //         } catch (error) {
-  //           console.error(`Failed to fetch completions for ${course.id}:`, error);
-  //         }
-  //       }
-        
-  //       console.log('[Course Tracker] All completions loaded:', allCompletions);
-        
-  //       // Update courses state with completion status
-  //       setCourses(prevCourses => 
-  //         prevCourses.map(course => ({
-  //           ...course,
-  //           lessons: course.lessons.map(lesson => {
-  //             const isCompleted = allCompletions[course.id]?.includes(`${course.id}-${lesson.id}`) || false;
-  //             if (isCompleted) {
-  //               console.log(`[Course Tracker] Marking ${course.id}-${lesson.id} as completed`);
-  //             }
-  //             return {
-  //               ...lesson,
-  //               completed: isCompleted
-  //             };
-  //           })
-  //         }))
-  //       );
-  //     } catch (error) {
-  //       console.error('Error loading lesson completions:', error);
-  //     }
-  //   };
-    
-  //   loadCompletions();
-  // }, [currentUser]); // Only run when user is loaded
+  useEffect(() => {
+    const loadCompletions = async () => {
+      if (!currentUser || courses.length === 0) return;
+
+      try {
+        console.log(
+          "[Course Tracker] Loading completions for user:",
+          currentUser.id,
+        );
+        // Fetch completions for all courses
+        const allCompletions: Record<string, string[]> = {};
+
+        for (const course of courses) {
+          try {
+            const response = await fetch(
+              `/api/course-video-completions/${course.id}`,
+            );
+            if (response.ok) {
+              const completions = await response.json();
+              // Store video IDs that are completed
+              allCompletions[course.id] = completions.map(
+                (c: any) => c.videoId,
+              );
+              console.log(
+                `[Course Tracker] ${course.id}:`,
+                allCompletions[course.id].length,
+                "completions loaded",
+              );
+            }
+          } catch (error) {
+            console.error(
+              `Failed to fetch completions for ${course.id}:`,
+              error,
+            );
+          }
+        }
+
+        console.log("[Course Tracker] All completions loaded:", allCompletions);
+
+        // Update courses state with completion status
+        setCourses((prevCourses) =>
+          prevCourses.map((course) => ({
+            ...course,
+            lessons: course.lessons.map((lesson) => {
+              const isCompleted =
+                allCompletions[course.id]?.includes(
+                  `${course.id}-${lesson.id}`,
+                ) || false;
+              if (isCompleted) {
+                console.log(
+                  `[Course Tracker] Marking ${course.id}-${lesson.id} as completed`,
+                );
+              }
+              return {
+                ...lesson,
+                completed: isCompleted,
+              };
+            }),
+          })),
+        );
+      } catch (error) {
+        console.error("Error loading lesson completions:", error);
+      }
+    };
+
+    loadCompletions();
+  }, [currentUser]); // Only run when user is loaded
 
   // Fetch ALL-TIME cumulative points (all ritual completions + all course lessons)
   const { data: totalPointsData, dataUpdatedAt } = useQuery<{
@@ -1140,28 +1086,35 @@ useEffect(() => {
     ritualCount: number;
     lessonCount: number;
   }>({
-    queryKey: ['/api/user/total-points'],
+    queryKey: ["/api/user/total-points"],
     enabled: !!currentUser,
   });
 
   // Update totalPoints when data is fetched
   useEffect(() => {
     if (totalPointsData) {
-      console.log('[Dashboard Points] Updating totalPoints:', totalPointsData.totalPoints, 'at', new Date(dataUpdatedAt).toISOString());
+      console.log(
+        "[Dashboard Points] Updating totalPoints:",
+        totalPointsData.totalPoints,
+        "at",
+        new Date(dataUpdatedAt).toISOString(),
+      );
       setTotalPoints(totalPointsData.totalPoints);
     }
   }, [totalPointsData, dataUpdatedAt]);
 
   // Fetch live leaderboard data
-  const { data: leaderboardData = [] } = useQuery<Array<{
-    rank: number;
-    userId: string;
-    name: string;
-    email: string;
-    points: number;
-    isCurrentUser: boolean;
-  }>>({
-    queryKey: ['/api/leaderboard'],
+  const { data: leaderboardData = [] } = useQuery<
+    Array<{
+      rank: number;
+      userId: string;
+      name: string;
+      email: string;
+      points: number;
+      isCurrentUser: boolean;
+    }>
+  >({
+    queryKey: ["/api/leaderboard"],
   });
 
   const leaderboardEntries = leaderboardData;
@@ -1169,22 +1122,26 @@ useEffect(() => {
   // Redirect to login if not authenticated (but not while loading or if there's an error with retry disabled)
   useEffect(() => {
     if (!userLoading && userError && !currentUser) {
-      setLocation('/');
+      setLocation("/");
     }
   }, [currentUser, userLoading, userError, setLocation]);
-  
+
   // Update userName and userEmail when user data is fetched
   useEffect(() => {
     if (currentUser) {
-      console.log('[DASHBOARD DEBUG] currentUser object:', currentUser);
-      console.log('[DASHBOARD DEBUG] firstName:', currentUser.firstName);
-      console.log('[DASHBOARD DEBUG] lastName:', currentUser.lastName);
-      const fullName = currentUser.firstName && currentUser.lastName 
-        ? `${currentUser.firstName} ${currentUser.lastName}`
-        : currentUser.firstName || currentUser.lastName || currentUser.email || 'User';
-      console.log('[DASHBOARD DEBUG] fullName:', fullName);
-      setUserName(fullName || 'User');
-      setUserEmail(currentUser.email || '');
+      console.log("[DASHBOARD DEBUG] currentUser object:", currentUser);
+      console.log("[DASHBOARD DEBUG] firstName:", currentUser.firstName);
+      console.log("[DASHBOARD DEBUG] lastName:", currentUser.lastName);
+      const fullName =
+        currentUser.firstName && currentUser.lastName
+          ? `${currentUser.firstName} ${currentUser.lastName}`
+          : currentUser.firstName ||
+            currentUser.lastName ||
+            currentUser.email ||
+            "User";
+      console.log("[DASHBOARD DEBUG] fullName:", fullName);
+      setUserName(fullName || "User");
+      setUserEmail(currentUser.email || "");
     }
   }, [currentUser]);
 
@@ -1196,7 +1153,7 @@ useEffect(() => {
       </div>
     );
   }
-  
+
   // Don't render dashboard if not authenticated
   if (!currentUser) {
     return null;
@@ -1213,16 +1170,20 @@ useEffect(() => {
         onGoalsClick={() => setGoalsDialogOpen(true)}
         profileImageUrl={currentUser?.profileImageUrl}
       />
-      
+
       {/* Real-time notification for course recommendations */}
       <CourseRecommendationNotification userId={currentUser?.id} />
 
       <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 space-y-6 sm:space-y-8 md:space-y-12">
         {/* Course Recommendations Card - REMOVED: User wants ONLY popup dialog, not this card */}
         {/* <CourseRecommendations currentWeek={currentWeek} /> */}
-        
-        <section ref={hrcmRef} id="hrcm" className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-3 sm:p-4 md:p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
-          <UnifiedHRCMTable 
+
+        <section
+          ref={hrcmRef}
+          id="hrcm"
+          className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-3 sm:p-4 md:p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800"
+        >
+          <UnifiedHRCMTable
             weekNumber={currentWeek}
             onWeekChange={handleWeekChange}
           />
@@ -1230,19 +1191,7 @@ useEffect(() => {
 
         {/* Course Tracker Section - Moved below HRCM */}
         <section ref={coursesRef} id="courses" className="scroll-mt-20">
-
-          {/* <LifeSkillsMap /> */}
-
-          <LifeSkillsMap 
-
-  externalCourses={courses}
-
-  loading={coursesLoading}
-
-  error={coursesError}
-
-/>
-
+          <LifeSkillsMap />
         </section>
 
         {/* Emotional Tracker Section */}
@@ -1250,31 +1199,36 @@ useEffect(() => {
           <EmotionalTracker />
         </section>
 
-        <section ref={ritualsRef} id="rituals" className="scroll-mt-20 p-3 sm:p-4 md:p-6 rounded-lg border-2" style={{ backgroundColor: '#00008c', borderColor: '#0000cc' }}>
+        <section
+          ref={ritualsRef}
+          id="rituals"
+          className="scroll-mt-20 p-3 sm:p-4 md:p-6 rounded-lg border-2"
+          style={{ backgroundColor: "#00008c", borderColor: "#0000cc" }}
+        >
           <div className="space-y-4 sm:space-y-6">
             <div>
-              {/* Header Row with Gratitude Journal button left-aligned */}
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex-1 flex justify-start">
+              {/* Header Row with Gratitude Journal button - Mobile responsive */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 mb-4">
+                <div className="w-full sm:w-auto sm:flex-1 flex justify-center sm:justify-start">
                   <Button
                     onClick={() => setGratitudeJournalOpen(true)}
-                    className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white border-0"
+                    className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white border-0 w-full sm:w-auto"
                     data-testid="button-gratitude-journal"
                   >
                     <BookOpen className="w-4 h-4 mr-2" />
                     Gratitude Journal
                   </Button>
                 </div>
-                <h2 className="text-2xl sm:text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white flex flex-col sm:flex-row items-center gap-2 sm:gap-3 text-center">
                   Daily Rituals
-                  <Badge className="gap-1.5 bg-gradient-to-r from-pink-500 to-purple-600 text-white border-0 text-base px-3 py-1">
-                    <Trophy className="w-4 h-4" />
+                  <Badge className="gap-1.5 bg-gradient-to-r from-pink-500 to-purple-600 text-white border-0 text-sm sm:text-base px-2 sm:px-3 py-1">
+                    <Trophy className="w-3 h-3 sm:w-4 sm:h-4" />
                     {totalPoints} Points
                   </Badge>
                 </h2>
-                <div className="flex-1" />
+                <div className="hidden sm:block sm:flex-1" />
               </div>
-              
+
               {/* Date Picker */}
               <div className="flex items-center justify-center gap-3 mb-4">
                 <Button
@@ -1291,14 +1245,17 @@ useEffect(() => {
                   <ChevronLeft className="w-5 h-5" />
                 </Button>
 
-                <Popover open={ritualCalendarOpen} onOpenChange={setRitualCalendarOpen}>
+                <Popover
+                  open={ritualCalendarOpen}
+                  onOpenChange={setRitualCalendarOpen}
+                >
                   <PopoverTrigger asChild>
                     <Button
                       variant="ghost"
                       className="text-white hover:bg-white/10 min-w-fit text-lg font-semibold"
                       data-testid="button-ritual-date-picker"
                     >
-                      {format(selectedRitualDate, 'MMMM dd, yyyy')}
+                      {format(selectedRitualDate, "MMMM dd, yyyy")}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="center">
@@ -1330,8 +1287,10 @@ useEffect(() => {
                   <ChevronRight className="w-5 h-5" />
                 </Button>
               </div>
-              
-              <p className="text-sm sm:text-base text-white/80 text-center">Build consistent habits and earn points</p>
+
+              <p className="text-sm sm:text-base text-white/80 text-center">
+                Build consistent habits and earn points
+              </p>
             </div>
 
             {/* Add Ritual Form - Full width to match ritual cards */}
@@ -1350,48 +1309,59 @@ useEffect(() => {
               <>
                 {rituals.length === 0 ? (
                   <div className="text-center py-12 border-2 border-dashed rounded-lg border-white/30">
-                    <p className="text-white/80">No rituals yet. Add your first ritual above!</p>
+                    <p className="text-white/80">
+                      No rituals yet. Add your first ritual above!
+                    </p>
                   </div>
                 ) : (
                   <Card>
                     <div className="divide-y">
                       {rituals.map((ritual) => (
-                        <div 
-                          key={ritual.id} 
-                          className={`flex items-center gap-2 sm:gap-3 md:gap-4 p-2 sm:p-3 md:p-4 hover:bg-muted/30 transition-colors ${!ritual.active ? 'opacity-40' : ''}`}
+                        <div
+                          key={ritual.id}
+                          className={`flex items-center gap-2 sm:gap-3 md:gap-4 p-2 sm:p-3 md:p-4 hover:bg-muted/30 transition-colors ${!ritual.active ? "opacity-40" : ""}`}
                           data-testid={`ritual-row-${ritual.id}`}
                         >
                           <Checkbox
                             checked={ritual.completed}
-                            onCheckedChange={() => handleToggleComplete(ritual.id)}
+                            onCheckedChange={() =>
+                              handleToggleComplete(ritual.id)
+                            }
                             disabled={!ritual.active}
                             className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0"
                             data-testid={`checkbox-ritual-${ritual.id}`}
                           />
-                          
+
                           <div className="flex-1 min-w-0">
-                            <h3 
-                              className={`text-sm sm:text-base font-medium ${ritual.url ? 'cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors' : ''} ${ritual.completed ? 'text-muted-foreground' : 'text-foreground'}`}
-                              onClick={() => ritual.url && window.open(ritual.url, '_blank')}
+                            <h3
+                              className={`text-sm sm:text-base font-medium ${ritual.url ? "cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors" : ""} ${ritual.completed ? "text-muted-foreground" : "text-foreground"}`}
+                              onClick={() =>
+                                ritual.url && window.open(ritual.url, "_blank")
+                              }
                               data-testid={`link-ritual-${ritual.id}`}
                             >
                               {ritual.title}
                             </h3>
                           </div>
-                          
+
                           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                             {!ritual.active && (
-                              <Badge variant="secondary" className="text-[10px] sm:text-xs gap-0.5 sm:gap-1 px-1 sm:px-2">
+                              <Badge
+                                variant="secondary"
+                                className="text-[10px] sm:text-xs gap-0.5 sm:gap-1 px-1 sm:px-2"
+                              >
                                 <Pause className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                                 <span className="hidden sm:inline">Paused</span>
                               </Badge>
                             )}
-                            
+
                             <Badge className="gap-0.5 sm:gap-1 bg-gradient-to-r from-primary to-accent text-white border-0 smooth-transition text-xs px-1.5 sm:px-2">
                               <Trophy className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                              <span className="text-[10px] sm:text-xs">{ritual.points}</span>
+                              <span className="text-[10px] sm:text-xs">
+                                {ritual.points}
+                              </span>
                             </Badge>
-                            
+
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
@@ -1407,14 +1377,16 @@ useEffect(() => {
                                 </TooltipTrigger>
                                 <TooltipContent>View history</TooltipContent>
                               </Tooltip>
-                              
+
                               {!ritual.isDefault && (
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      onClick={() => handleDeleteRitual(ritual.id)}
+                                      onClick={() =>
+                                        handleDeleteRitual(ritual.id)
+                                      }
                                       data-testid={`button-delete-${ritual.id}`}
                                       className="w-7 h-7 sm:w-8 sm:h-8"
                                     >
@@ -1449,13 +1421,18 @@ useEffect(() => {
         </section> */}
 
         {/* Achievements, Badges & Leaderboard Section */}
-        <section ref={achievementsRef} id="achievements" className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
-          <BadgeDisplayCard 
-            leaderboardEntries={leaderboardEntries} 
+        <section
+          ref={achievementsRef}
+          id="achievements"
+          className="scroll-mt-20 bg-blue-50 dark:bg-blue-950/40 p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800"
+        >
+          <BadgeDisplayCard
+            leaderboardEntries={leaderboardEntries}
             currentUserId={currentUser?.id}
           />
         </section>
- {/* Events Section */}
+
+        {/* Events Section */}
         {activeEvents.length > 0 && (
           <section
             ref={eventsRef}
@@ -1474,7 +1451,6 @@ useEffect(() => {
                 </h2>
                 <p className="text-muted-foreground mt-2">Stay connected with scheduled sessions and events</p>
               </div>
-              {/* <div className="grid gap-6 grid-cols-3"> */}
               <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 {sortEventsByDateTime(activeEvents).map((event: any) => (
                   <Card key={event.id} className="overflow-hidden hover-elevate flex flex-col shadow-md" data-testid={`event-user-card-${event.id}`}>
@@ -1486,10 +1462,9 @@ useEffect(() => {
                       />
                     )}
                     <CardContent className="p-5 flex flex-col flex-1">
-                     
-<h3 className="font-bold text-lg mb-3 line-clamp-2 text-black dark:text-white">
-  {event.title}
-</h3>
+                      <h3 className="font-bold text-lg mb-3 line-clamp-2 text-black dark:text-white" data-testid={`event-user-title-${event.id}`}>
+                        {event.title}
+                      </h3>
                       <div className="flex flex-wrap gap-2 mb-4 flex-1">
                         <Badge 
                           style={{ backgroundColor: '#00008c', color: 'white' }} 
@@ -1532,7 +1507,9 @@ useEffect(() => {
           <div className="space-y-6">
             <div>
               <h2 className="text-3xl font-bold">Platinum User Progress</h2>
-              <p className="text-muted-foreground mt-1">Search and view team members' complete dashboards</p>
+              <p className="text-muted-foreground mt-1">
+                Search and view team members' complete dashboards
+              </p>
             </div>
 
             <UserDashboardSearch isAdmin={currentUser?.isAdmin || false} />
@@ -1575,46 +1552,57 @@ useEffect(() => {
       )}
 
       {/* Assignment Category Selection Dialog */}
-      <Dialog open={assignmentDialogOpen} onOpenChange={setAssignmentDialogOpen}>
+      <Dialog
+        open={assignmentDialogOpen}
+        onOpenChange={setAssignmentDialogOpen}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Select HRCM Category</DialogTitle>
             <DialogDescription>
-              Choose which category to add these {pendingAssignmentLessons.length} lessons to in the Assignment column
+              Choose which category to add these{" "}
+              {pendingAssignmentLessons.length} lessons to in the Assignment
+              column
             </DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-3 mt-4">
-            {['Health', 'Relationship', 'Career', 'Money'].map((category) => (
+            {["Health", "Relationship", "Career", "Money"].map((category) => (
               <Button
                 key={category}
                 variant="outline"
                 className="h-20 text-lg font-semibold hover-elevate"
                 onClick={async () => {
                   try {
-                    const response = await apiRequest('/api/assignment/add-lessons', 'POST', {
-                      weekNumber: currentWeek,
-                      category,
-                      lessons: pendingAssignmentLessons,
-                    });
+                    const response = await apiRequest(
+                      "/api/assignment/add-lessons",
+                      "POST",
+                      {
+                        weekNumber: currentWeek,
+                        category,
+                        lessons: pendingAssignmentLessons,
+                      },
+                    );
 
                     if (response.ok) {
                       // Invalidate the HRCM query to refresh the data
-                      queryClient.invalidateQueries({ queryKey: ['/api/hercm', currentWeek] });
-                      
+                      queryClient.invalidateQueries({
+                        queryKey: ["/api/hercm", currentWeek],
+                      });
+
                       toast({
-                        title: 'Lessons Added!',
+                        title: "Lessons Added!",
                         description: `${pendingAssignmentLessons.length} lessons added to ${category} Assignment`,
                       });
-                      
+
                       setAssignmentDialogOpen(false);
                       setPendingAssignmentLessons([]);
                     }
                   } catch (error) {
-                    console.error('Error adding lessons:', error);
+                    console.error("Error adding lessons:", error);
                     toast({
-                      title: 'Error',
-                      description: 'Failed to add lessons. Please try again.',
-                      variant: 'destructive',
+                      title: "Error",
+                      description: "Failed to add lessons. Please try again.",
+                      variant: "destructive",
                     });
                   }
                 }}
@@ -1627,10 +1615,14 @@ useEffect(() => {
         </DialogContent>
       </Dialog>
 
-      {/* <GoalsAffirmationsDialog open={goalsDialogOpen} onOpenChange={setGoalsDialogOpen} isChatBubbleOpen={isChatBubbleOpen} /> */}
-      <GoalsAffirmationsDialog open={goalsDialogOpen} onOpenChange={setGoalsDialogOpen} />
-
-      <GratitudeJournalDialog open={gratitudeJournalOpen} onOpenChange={setGratitudeJournalOpen} />
+      <GoalsAffirmationsDialog
+        open={goalsDialogOpen}
+        onOpenChange={setGoalsDialogOpen}
+      />
+      <GratitudeJournalDialog
+        open={gratitudeJournalOpen}
+        onOpenChange={setGratitudeJournalOpen}
+      />
       <FeedbackButton />
     </div>
   );
