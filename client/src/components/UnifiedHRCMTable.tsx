@@ -4579,10 +4579,10 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
       </div>
 
       {/* Current Week Table */}
-      <div className="border-2 border-coral-red/70 dark:border-coral-red/50 rounded-lg overflow-x-auto shadow-lg">
+      <div className="border-2 border-coral-red/70 dark:border-coral-red/50 rounded-lg overflow-hidden shadow-lg">
         <div className="px-2 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-b-2 border-coral-red/80 dark:border-coral-red/60 bg-coral-red">
-          <div className="flex items-center justify-between">
-            <div className="flex-1"></div>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-0">
+            <div className="hidden sm:flex flex-1"></div>
             {/* Centered: Clickable Date with Calendar Popup */}
             <Popover open={calendarPopoverOpen} onOpenChange={setCalendarPopoverOpen}>
               <PopoverTrigger asChild>
@@ -4591,7 +4591,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   data-testid="button-date-text"
                 >
                   <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
-                  {format(selectedDate, 'MMMM dd, yyyy')}
+                  {format(selectedDate, 'MMM dd, yyyy')}
                 </h3>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="center">
@@ -4623,7 +4623,8 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </div>
               </PopoverContent>
             </Popover>
-            <div className="flex-1 flex justify-end items-center gap-2">
+            {/* Desktop: Reset button on right */}
+            <div className="hidden sm:flex flex-1 justify-end items-center gap-2">
               {!isAdminView && (
                 <Button
                   size="sm"
@@ -4631,19 +4632,40 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   onClick={handleClearCurrentWeek}
                   disabled={saveWeekMutation.isPending}
                   data-testid="button-reset-current-week"
-                  className="bg-orange-500 border-orange-600 text-white hover:bg-orange-600 hover:border-orange-700 shadow-lg h-8 font-semibold"
+                  className="bg-orange-500 border-orange-600 text-white hover:bg-orange-600 hover:border-orange-700 shadow-lg h-7 sm:h-8 text-xs sm:text-sm font-semibold"
                 >
                   {saveWeekMutation.isPending ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
                   ) : (
-                    <RefreshCw className="w-4 h-4" />
+                    <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4" />
                   )}
-                  <span className="ml-1.5">Reset</span>
+                  <span className="ml-1 sm:ml-1.5">Reset</span>
+                </Button>
+              )}
+            </div>
+            {/* Mobile: Reset button below date */}
+            <div className="flex sm:hidden items-center justify-center w-full">
+              {!isAdminView && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleClearCurrentWeek}
+                  disabled={saveWeekMutation.isPending}
+                  data-testid="button-reset-current-week-mobile"
+                  className="bg-orange-500 border-orange-600 text-white hover:bg-orange-600 hover:border-orange-700 shadow-lg h-7 text-xs font-semibold"
+                >
+                  {saveWeekMutation.isPending ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <RefreshCw className="w-3 h-3" />
+                  )}
+                  <span className="ml-1">Reset</span>
                 </Button>
               )}
             </div>
           </div>
         </div>
+        <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow className="bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-950/30 dark:to-pink-950/30">
@@ -4884,14 +4906,15 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             ))}
           </TableBody>
         </Table>
+        </div>
       </div>
 
       {/* Next Week Table */}
-      <div className="border-2 border-emerald-green/70 dark:border-emerald-green/50 rounded-lg overflow-x-auto shadow-lg">
-        <div className="bg-emerald-green dark:bg-emerald-green/90 py-3 border-b-2 border-emerald-green/80 dark:border-emerald-green/60 px-4">
-          <div className="flex items-center justify-between">
+      <div className="border-2 border-emerald-green/70 dark:border-emerald-green/50 rounded-lg overflow-hidden shadow-lg">
+        <div className="bg-emerald-green dark:bg-emerald-green/90 py-2 sm:py-2.5 md:py-3 border-b-2 border-emerald-green/80 dark:border-emerald-green/60 px-2 sm:px-3 md:px-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-0">
             {/* Left Side: Weekly Performance Dropdown */}
-            <div className="flex-1 flex items-center">
+            <div className="hidden sm:flex flex-1 items-center">
               <WeeklyPerformanceDropdown />
             </div>
             {/* Clickable Date with Calendar Popup for Next Week */}
@@ -4899,11 +4922,11 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
               <PopoverTrigger asChild>
                 <div className="flex flex-col items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity">
                   <h3 
-                    className="font-bold text-white text-xl drop-shadow-md flex items-center gap-2"
+                    className="font-bold text-white text-sm sm:text-base md:text-lg lg:text-xl drop-shadow-md flex items-center gap-1 sm:gap-2"
                     data-testid="button-next-week-date-text"
                   >
-                    <TrendingUp className="w-5 h-5" />
-                    {format(new Date(selectedDate.getTime() + 7 * 24 * 60 * 60 * 1000), 'MMMM dd, yyyy')}
+                    <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
+                    {format(new Date(selectedDate.getTime() + 7 * 24 * 60 * 60 * 1000), 'MMM dd, yyyy')}
                   </h3>
                 </div>
               </PopoverTrigger>
@@ -4942,7 +4965,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                 </div>
               </PopoverContent>
             </Popover>
-            <div className="flex-1 flex justify-end items-center gap-2">
+            <div className="hidden sm:flex flex-1 justify-end items-center gap-2">
               {!isAdminView && (
                 <Button
                   size="sm"
@@ -4950,24 +4973,46 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   onClick={handleClearNextWeekTarget}
                   disabled={saveWeekMutation.isPending}
                   data-testid="button-reset-next-week"
-                  className="bg-orange-500 border-orange-600 text-white hover:bg-orange-600 hover:border-orange-700 shadow-lg h-8 font-semibold"
+                  className="bg-orange-500 border-orange-600 text-white hover:bg-orange-600 hover:border-orange-700 shadow-lg h-7 sm:h-8 text-xs sm:text-sm font-semibold"
                 >
                   {saveWeekMutation.isPending ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
                   ) : (
-                    <RefreshCw className="w-4 h-4" />
+                    <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4" />
                   )}
-                  <span className="ml-1.5">Reset</span>
+                  <span className="ml-1 sm:ml-1.5">Reset</span>
                 </Button>
               )}
               {!viewingHistory && !isAdminView && activeSnapshot && (
-                <Badge variant="outline" className="bg-white/10 border-white/30 text-white text-xs">
+                <Badge variant="outline" className="bg-white/10 border-white/30 text-white text-[10px] sm:text-xs">
                   Friday {format(new Date(activeSnapshot.snapshotDate), 'MMM d')}
                 </Badge>
               )}
             </div>
+            {/* Mobile: Show buttons below date */}
+            <div className="flex sm:hidden items-center justify-center gap-2 w-full">
+              <WeeklyPerformanceDropdown />
+              {!isAdminView && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleClearNextWeekTarget}
+                  disabled={saveWeekMutation.isPending}
+                  data-testid="button-reset-next-week-mobile"
+                  className="bg-orange-500 border-orange-600 text-white hover:bg-orange-600 hover:border-orange-700 shadow-lg h-7 text-xs font-semibold"
+                >
+                  {saveWeekMutation.isPending ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <RefreshCw className="w-3 h-3" />
+                  )}
+                  <span className="ml-1">Reset</span>
+                </Button>
+              )}
+            </div>
           </div>
         </div>
+        <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30">
@@ -5315,6 +5360,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
             ))}
           </TableBody>
         </Table>
+        </div>
       </div>
 
       {/* Standards Dialog (All Categories) */}
