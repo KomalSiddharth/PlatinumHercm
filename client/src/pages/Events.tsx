@@ -19,6 +19,18 @@ const formatTimeWith12Hour = (time: string): string => {
   return `${hour}:${min} ${ampm}`;
 };
 
+// Sort events by date first, then by time
+const sortEventsByDateTime = (events: any[]): any[] => {
+  return [...events].sort((a, b) => {
+    // First compare by startDate (YYYY-MM-DD format)
+    const dateCompare = (a.startDate || '').localeCompare(b.startDate || '');
+    if (dateCompare !== 0) return dateCompare;
+    
+    // If same date, compare by startTime (HH:MM format)
+    return (a.startTime || '').localeCompare(b.startTime || '');
+  });
+};
+
 export default function Events() {
   const [, navigate] = useLocation();
   
@@ -46,7 +58,7 @@ export default function Events() {
             </h1>
             <p className="text-muted-foreground">Loading events...</p>
           </div>
-          <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3].map((i) => (
               <Card key={i} className="overflow-hidden">
                 <Skeleton className="h-40 w-full" />
@@ -76,10 +88,9 @@ export default function Events() {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Dashboard
           </Button>
-          <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
-  Upcoming Events
-</h1>
-
+          <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent mb-2">
+            Upcoming Events
+          </h1>
           <p className="text-muted-foreground">Stay connected with all scheduled sessions and events</p>
         </div>
 
@@ -94,8 +105,8 @@ export default function Events() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-6 grid-cols-3">
-            {events.map((event: any) => (
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            {sortEventsByDateTime(events).map((event: any) => (
               <Card 
                 key={event.id} 
                 className="overflow-hidden hover-elevate transition-all flex flex-col shadow-md" 
@@ -109,10 +120,9 @@ export default function Events() {
                   />
                 )}
                 <CardContent className="p-5 flex flex-col flex-1">
-                 
-<h3 className="font-bold text-lg mb-3 line-clamp-2 text-black dark:text-white">
-  {event.title}
-</h3>
+                  <h3 className="font-bold text-lg mb-3 line-clamp-2 text-black dark:text-white" data-testid={`event-page-title-${event.id}`}>
+                    {event.title}
+                  </h3>
 
                   <div className="flex flex-wrap gap-2 mb-4 flex-1">
                     <Badge 
