@@ -5768,6 +5768,7 @@ export default function AdminPanel() {
                   onChange={(e) =>
                     setEventForm({ ...eventForm, startDate: e.target.value })
                   }
+                  className="[&::-webkit-calendar-picker-indicator]:dark:invert [&::-webkit-calendar-picker-indicator]:dark:brightness-100"
                   data-testid="input-event-start-date"
                 />
               </div>
@@ -5781,6 +5782,7 @@ export default function AdminPanel() {
                   onChange={(e) =>
                     setEventForm({ ...eventForm, endDate: e.target.value })
                   }
+                  className="[&::-webkit-calendar-picker-indicator]:dark:invert [&::-webkit-calendar-picker-indicator]:dark:brightness-100"
                   data-testid="input-event-end-date"
                 />
               </div>
