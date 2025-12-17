@@ -46,7 +46,7 @@ export default function Events() {
             </h1>
             <p className="text-muted-foreground">Loading events...</p>
           </div>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3].map((i) => (
               <Card key={i} className="overflow-hidden">
                 <Skeleton className="h-40 w-full" />
