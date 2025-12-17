@@ -1477,9 +1477,10 @@ useEffect(() => {
                       />
                     )}
                     <CardContent className="p-5 flex flex-col flex-1">
-                      <h3 className="font-bold text-lg mb-3 line-clamp-2" data-testid={`event-user-title-${event.id}`} style={{ color: '#00008c' }}>
-                        {event.title}
-                      </h3>
+                     // Line 1421 - Dashboard Event Card Title
+<h3 className="font-bold text-lg mb-3 line-clamp-2 text-black dark:text-white">
+  {event.title}
+</h3>
                       <div className="flex flex-wrap gap-2 mb-4 flex-1">
                         <Badge 
                           style={{ backgroundColor: '#00008c', color: 'white' }} 
