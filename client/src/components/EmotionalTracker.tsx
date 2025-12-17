@@ -700,7 +700,7 @@ export default function EmotionalTracker() {
               <CardTitle className="flex items-center gap-1.5 sm:gap-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent text-base sm:text-lg md:text-xl lg:text-2xl">
                 <Heart className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-primary flex-shrink-0" />
                 <span className="hidden xs:inline">Daily Emotional Tracker</span>
-                <span className="xs:hidden">Emotional Tracker</span>
+                <span className="xs:hidden"> Daily Emotional Tracker</span>
               </CardTitle>
               
               {/* Center: Date Navigation - Centered on mobile */}
