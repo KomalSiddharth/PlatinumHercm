@@ -1192,11 +1192,11 @@ export default function UnifiedHRCMTable({
                 data-testid={`${testIdPrefix}-checkbox-${item.id}`}
               />
               <span
-                className={`text-[11px] leading-tight flex-1 ${colorClass} ${item.checked ? "line-through opacity-60" : ""}`}
-                data-testid={`${testIdPrefix}-text-${item.id}`}
-              >
-                {item.text}
-              </span>
+  className={`text-[11px] leading-tight flex-1 ${colorClass}`}
+  data-testid={`${testIdPrefix}-text-${item.id}`}
+>
+  {item.text}
+</span>
               {!disabled && (
                 <button
                   onClick={() => handleDelete(item.id)}
