@@ -129,6 +129,10 @@ interface InlineChecklistProps {
   showCheckbox?: boolean; // Option to hide checkboxes (e.g., for Problems column)
 }
 
+interface InlineChecklistWithEditProps extends InlineChecklistProps {
+  onEdit?: (itemId: string, newText: string) => void;
+}
+
 const InlineChecklist = ({ 
   items, 
   onToggle, 
@@ -138,9 +142,22 @@ const InlineChecklist = ({
   placeholder = "Add item...",
   textColorClass = "text-foreground",
   testIdPrefix = "checklist",
-  showCheckbox = true
-}: InlineChecklistProps) => {
+  showCheckbox = true,
+  onEdit
+}: InlineChecklistWithEditProps) => {
   const [newItemText, setNewItemText] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editText, setEditText] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+  const prevItemsLengthRef = useRef(items.length);
+
+  // Auto-focus input when items are added (for rapid entry)
+  useEffect(() => {
+    if (items.length > prevItemsLengthRef.current && !disabled) {
+      inputRef.current?.focus();
+    }
+    prevItemsLengthRef.current = items.length;
+  }, [items.length, disabled]);
 
   const handleAddItem = () => {
     if (newItemText.trim()) {
@@ -156,10 +173,31 @@ const InlineChecklist = ({
     }
   };
 
+  const handleEditKeyDown = (e: React.KeyboardEvent, itemId: string) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (editText.trim() && onEdit) {
+        onEdit(itemId, editText.trim());
+      }
+      setEditingId(null);
+      setEditText('');
+    }
+    if (e.key === 'Escape') {
+      setEditingId(null);
+      setEditText('');
+    }
+  };
+
+  const startEditing = (item: ChecklistItem) => {
+    if (disabled) return;
+    setEditingId(item.id);
+    setEditText(item.text);
+  };
+
   return (
     <div className="w-full min-h-[80px] p-1.5 flex flex-col">
-      {/* Scrollable Checklist Items - max 3 visible, then scroll */}
-      <div className="max-h-[54px] overflow-y-auto space-y-0.5 flex-1">
+      {/* Scrollable Checklist Items - max 5 visible, then scroll */}
+      <div className="max-h-[90px] overflow-y-auto space-y-0.5 flex-1">
         {items.map((item) => (
           <div 
             key={item.id} 
@@ -173,12 +211,31 @@ const InlineChecklist = ({
               className="mt-0.5 h-4 w-4 shrink-0 border-2 border-red-500 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500 data-[state=checked]:text-white"
               data-testid={`${testIdPrefix}-checkbox-${item.id}`}
             />
-            <span 
-              className={`text-[11px] leading-tight flex-1 ${textColorClass}`}
-              data-testid={`${testIdPrefix}-text-${item.id}`}
-            >
-              {item.text}
-            </span>
+            {editingId === item.id ? (
+              <input
+                value={editText}
+                onChange={(e) => setEditText(e.target.value)}
+                onKeyDown={(e) => handleEditKeyDown(e, item.id)}
+                onBlur={() => {
+                  if (editText.trim() && onEdit) {
+                    onEdit(item.id, editText.trim());
+                  }
+                  setEditingId(null);
+                  setEditText('');
+                }}
+                autoFocus
+                className={`text-[11px] leading-tight flex-1 bg-transparent border-b border-dashed outline-none ${textColorClass}`}
+                data-testid={`${testIdPrefix}-edit-${item.id}`}
+              />
+            ) : (
+              <span 
+                className={`text-[11px] leading-tight flex-1 ${textColorClass} ${!disabled ? 'cursor-pointer hover:underline' : ''}`}
+                onClick={() => startEditing(item)}
+                data-testid={`${testIdPrefix}-text-${item.id}`}
+              >
+                {item.text}
+              </span>
+            )}
             {!disabled && (
               <button
                 onClick={() => onDelete(item.id)}
@@ -192,30 +249,23 @@ const InlineChecklist = ({
         ))}
       </div>
       
-      {/* Add Input Row - Placeholder with plus icon */}
+      {/* Add Input Row - Type and Enter to add */}
       {!disabled && (
         <div className="pt-1 shrink-0 flex items-center gap-1.5">
-          <span 
-            className="text-[11px] text-muted-foreground flex-1 cursor-text"
-            onClick={() => document.getElementById(`${testIdPrefix}-input-add`)?.focus()}
-          >
-            <input
-              id={`${testIdPrefix}-input-add`}
-              value={newItemText}
-              onChange={(e) => setNewItemText(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={placeholder}
-              className="w-full bg-transparent border-none outline-none text-[11px] text-muted-foreground placeholder:text-muted-foreground/70"
-              data-testid={`${testIdPrefix}-input-add`}
-            />
-          </span>
-          <button
-            onClick={handleAddItem}
-            className="p-0.5 text-muted-foreground hover:text-foreground transition-colors"
-            data-testid={`${testIdPrefix}-button-add`}
-          >
-            <Plus className="h-3 w-3" />
-          </button>
+          <Checkbox
+            checked={false}
+            disabled
+            className="mt-0.5 h-4 w-4 shrink-0 border-2 border-red-500/40 opacity-50"
+          />
+          <input
+            ref={inputRef}
+            value={newItemText}
+            onChange={(e) => setNewItemText(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            className={`flex-1 bg-transparent border-none outline-none text-[11px] placeholder:text-muted-foreground/70 ${textColorClass}`}
+            data-testid={`${testIdPrefix}-input-add`}
+          />
         </div>
       )}
     </div>
@@ -4935,6 +4985,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     onToggle={(itemId) => handleCurrentWeekCheckpointToggle(belief.category, 'problems', itemId)}
                     onAdd={(text) => handleCurrentWeekCheckpointAdd(belief.category, 'problems', text)}
                     onDelete={(itemId) => handleCurrentWeekCheckpointDelete(belief.category, 'problems', itemId)}
+                    onEdit={(itemId, text) => handleCurrentWeekCheckpointUpdateText(belief.category, 'problems', itemId, text)}
                     disabled={!!viewAsUserId || isAdminView}
                     placeholder="Add problem..."
                     textColorClass="text-blue-600 dark:text-blue-400"
@@ -4952,6 +5003,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     onToggle={(itemId) => handleCurrentWeekCheckpointToggle(belief.category, 'currentFeelings', itemId)}
                     onAdd={(text) => handleCurrentWeekCheckpointAdd(belief.category, 'currentFeelings', text)}
                     onDelete={(itemId) => handleCurrentWeekCheckpointDelete(belief.category, 'currentFeelings', itemId)}
+                    onEdit={(itemId, text) => handleCurrentWeekCheckpointUpdateText(belief.category, 'currentFeelings', itemId, text)}
                     disabled={!!viewAsUserId || isAdminView}
                     placeholder="Add feeling..."
                     textColorClass="text-rose-600 dark:text-rose-400"
@@ -4969,6 +5021,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     onToggle={(itemId) => handleCurrentWeekCheckpointToggle(belief.category, 'currentBeliefs', itemId)}
                     onAdd={(text) => handleCurrentWeekCheckpointAdd(belief.category, 'currentBeliefs', text)}
                     onDelete={(itemId) => handleCurrentWeekCheckpointDelete(belief.category, 'currentBeliefs', itemId)}
+                    onEdit={(itemId, text) => handleCurrentWeekCheckpointUpdateText(belief.category, 'currentBeliefs', itemId, text)}
                     disabled={!!viewAsUserId || isAdminView}
                     placeholder="Add belief..."
                     textColorClass="text-purple-600 dark:text-purple-400"
@@ -4986,6 +5039,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     onToggle={(itemId) => handleCurrentWeekCheckpointToggle(belief.category, 'currentActions', itemId)}
                     onAdd={(text) => handleCurrentWeekCheckpointAdd(belief.category, 'currentActions', text)}
                     onDelete={(itemId) => handleCurrentWeekCheckpointDelete(belief.category, 'currentActions', itemId)}
+                    onEdit={(itemId, text) => handleCurrentWeekCheckpointUpdateText(belief.category, 'currentActions', itemId, text)}
                     disabled={!!viewAsUserId || isAdminView}
                     placeholder="Add action..."
                     textColorClass="text-emerald-600 dark:text-emerald-400"
@@ -5184,6 +5238,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     onToggle={(itemId) => handleNextWeekCheckpointToggle(belief.category, 'result', itemId)}
                     onAdd={(text) => handleNextWeekCheckpointAdd(belief.category, 'result', text)}
                     onDelete={(itemId) => handleNextWeekCheckpointDelete(belief.category, 'result', itemId)}
+                    onEdit={(itemId, text) => handleNextWeekCheckpointUpdateText(belief.category, 'result', itemId, text)}
                     disabled={!!viewAsUserId || isAdminView}
                     placeholder="Add result..."
                     textColorClass="text-blue-600 dark:text-blue-400"
@@ -5201,6 +5256,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     onToggle={(itemId) => handleNextWeekCheckpointToggle(belief.category, 'feelings', itemId)}
                     onAdd={(text) => handleNextWeekCheckpointAdd(belief.category, 'feelings', text)}
                     onDelete={(itemId) => handleNextWeekCheckpointDelete(belief.category, 'feelings', itemId)}
+                    onEdit={(itemId, text) => handleNextWeekCheckpointUpdateText(belief.category, 'feelings', itemId, text)}
                     disabled={!!viewAsUserId || isAdminView}
                     placeholder="Add feeling..."
                     textColorClass="text-rose-600 dark:text-rose-400"
@@ -5218,6 +5274,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     onToggle={(itemId) => handleNextWeekCheckpointToggle(belief.category, 'beliefs', itemId)}
                     onAdd={(text) => handleNextWeekCheckpointAdd(belief.category, 'beliefs', text)}
                     onDelete={(itemId) => handleNextWeekCheckpointDelete(belief.category, 'beliefs', itemId)}
+                    onEdit={(itemId, text) => handleNextWeekCheckpointUpdateText(belief.category, 'beliefs', itemId, text)}
                     disabled={!!viewAsUserId || isAdminView}
                     placeholder="Add belief..."
                     textColorClass="text-purple-600 dark:text-purple-400"
@@ -5235,6 +5292,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     onToggle={(itemId) => handleNextWeekCheckpointToggle(belief.category, 'actions', itemId)}
                     onAdd={(text) => handleNextWeekCheckpointAdd(belief.category, 'actions', text)}
                     onDelete={(itemId) => handleNextWeekCheckpointDelete(belief.category, 'actions', itemId)}
+                    onEdit={(itemId, text) => handleNextWeekCheckpointUpdateText(belief.category, 'actions', itemId, text)}
                     disabled={!!viewAsUserId || isAdminView}
                     placeholder="Add action..."
                     textColorClass="text-emerald-600 dark:text-emerald-400"
