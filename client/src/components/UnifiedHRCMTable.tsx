@@ -151,10 +151,10 @@ const InlineChecklist = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const prevItemsLengthRef = useRef(items.length);
 
-  // Auto-focus input when items are added (for rapid entry)
+  // Auto-focus input when items are added (for rapid entry) - prevent scroll jump
   useEffect(() => {
     if (items.length > prevItemsLengthRef.current && !disabled) {
-      inputRef.current?.focus();
+      inputRef.current?.focus({ preventScroll: true });
     }
     prevItemsLengthRef.current = items.length;
   }, [items.length, disabled]);
