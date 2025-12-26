@@ -820,6 +820,127 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
     }
   };
 
+  // 🔥 CHECKBOX CHECKPOINT COMPONENT - Replaces bullet point textareas
+  const CheckboxCheckpoints = ({ 
+    items, 
+    onUpdate, 
+    colorClass, 
+    placeholder,
+    disabled,
+    testIdPrefix
+  }: { 
+    items: ChecklistItem[]; 
+    onUpdate: (items: ChecklistItem[]) => void;
+    colorClass: string;
+    placeholder: string;
+    disabled: boolean;
+    testIdPrefix: string;
+  }) => {
+    const [newItemText, setNewItemText] = useState('');
+    
+    // Toggle checkbox
+    const handleToggle = (id: string) => {
+      if (disabled) return;
+      const updatedItems = items.map(item => 
+        item.id === id ? { ...item, checked: !item.checked } : item
+      );
+      onUpdate(updatedItems);
+      // Auto-save after toggle
+      setTimeout(() => handleEnterKeySave(), 100);
+    };
+    
+    // Add new item
+    const handleAddItem = () => {
+      if (!newItemText.trim() || disabled) return;
+      const newItem: ChecklistItem = {
+        id: `cp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        text: newItemText.trim(),
+        checked: false
+      };
+      onUpdate([...items, newItem]);
+      setNewItemText('');
+      // Auto-save after adding
+      setTimeout(() => handleEnterKeySave(), 100);
+    };
+    
+    // Handle Enter key to add item
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleAddItem();
+      }
+    };
+    
+    // Delete item
+    const handleDelete = (id: string) => {
+      if (disabled) return;
+      const updatedItems = items.filter(item => item.id !== id);
+      onUpdate(updatedItems);
+      setTimeout(() => handleEnterKeySave(), 100);
+    };
+    
+    return (
+      <div className="flex flex-col h-full min-h-[80px] max-h-[120px] overflow-y-auto p-1.5" data-testid={testIdPrefix}>
+        {/* Existing items with checkboxes */}
+        <div className="flex-1 space-y-0.5">
+          {items.map((item) => (
+            <div 
+              key={item.id} 
+              className="flex items-start gap-1 group"
+              data-testid={`${testIdPrefix}-item-${item.id}`}
+            >
+              <Checkbox
+                checked={item.checked}
+                onCheckedChange={() => handleToggle(item.id)}
+                disabled={disabled}
+                className="mt-0.5 h-3.5 w-3.5 shrink-0"
+                data-testid={`${testIdPrefix}-checkbox-${item.id}`}
+              />
+              <span 
+                className={`text-[11px] leading-tight flex-1 ${colorClass} ${item.checked ? 'line-through opacity-60' : ''}`}
+                data-testid={`${testIdPrefix}-text-${item.id}`}
+              >
+                {item.text}
+              </span>
+              {!disabled && (
+                <button
+                  onClick={() => handleDelete(item.id)}
+                  className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 text-xs px-0.5"
+                  data-testid={`${testIdPrefix}-delete-${item.id}`}
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+        
+        {/* Add new item input */}
+        {!disabled && (
+          <div className="mt-1 flex items-center gap-1 border-t border-gray-200 dark:border-gray-700 pt-1">
+            <input
+              type="text"
+              value={newItemText}
+              onChange={(e) => setNewItemText(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={placeholder}
+              className={`flex-1 text-[10px] bg-transparent border-0 outline-none p-0.5 ${colorClass} placeholder:text-gray-400`}
+              data-testid={`${testIdPrefix}-input`}
+            />
+            <button
+              onClick={handleAddItem}
+              disabled={!newItemText.trim()}
+              className="text-xs text-primary hover:text-primary/80 disabled:opacity-30 px-1"
+              data-testid={`${testIdPrefix}-add-btn`}
+            >
+              +
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   // 🔥 HELPER: Calculate TOTAL checkpoints from BOTH Current Week + Next Week Target tables
   const calculateTotalCheckpoints = (beliefsData: HRCMBelief[]) => {
     let totalCheckpoints = 0;
@@ -4819,215 +4940,91 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   />
                 </TableCell>
 
-                {/* Current Week - Problems */}
+                {/* Current Week - Problems (Checkbox Checkpoints) */}
                 <TableCell 
                   className="p-0 border border-gray-400 dark:border-gray-500 align-top w-[180px] min-w-[180px] max-w-[180px]"
                   data-testid={`cell-current-week-problems-${belief.category.toLowerCase()}`}
                 >
-                  <Textarea
-                    value={belief.problems || ''}
-                    onChange={(e) => {
-                      if (!isAdminView && !viewAsUserId) {
-                        handleBulletInput(e.target.value, (val) => {
-                          const newBeliefs = beliefs.map(b => 
-                            b.category === belief.category 
-                              ? { ...b, problems: val }
-                              : b
-                          );
-                          updateBeliefsCache(newBeliefs);
-                        });
-                        handleTextareaAutoResize(e);
-                      }
+                  <CheckboxCheckpoints
+                    items={belief.problemsChecklist || []}
+                    onUpdate={(items) => {
+                      const newBeliefs = beliefs.map(b => 
+                        b.category === belief.category 
+                          ? { ...b, problemsChecklist: items }
+                          : b
+                      );
+                      updateBeliefsCache(newBeliefs);
                     }}
-                    onFocus={(e) => {
-                      if (!isAdminView && !viewAsUserId) {
-                        handleBulletFocus(belief.problems || '', (newValue) => {
-                          const newBeliefs = beliefs.map(b => 
-                            b.category === belief.category 
-                              ? { ...b, problems: newValue }
-                              : b
-                          );
-                          updateBeliefsCache(newBeliefs);
-                        });
-                        handleTextareaAutoResize(e);
-                      }
-                    }}
-                    onKeyDown={(e) => {
-                      if (!isAdminView && !viewAsUserId) {
-                        handleBulletEnter(e, belief.problems || '', (newValue) => {
-                          const newBeliefs = beliefs.map(b => 
-                            b.category === belief.category 
-                              ? { ...b, problems: newValue }
-                              : b
-                          );
-                          updateBeliefsCache(newBeliefs);
-                        });
-                      }
-                    }}
+                    colorClass="text-blue-600 dark:text-blue-400"
+                    placeholder="Add problem..."
                     disabled={!!viewAsUserId || isAdminView}
-                    placeholder="• Enter problems..."
-                    className="w-full min-h-[80px] max-h-[240px] text-xs border-0 rounded-none resize-none focus:ring-1 focus:ring-primary bg-transparent p-2"
-                    style={{ height: '80px', overflowY: 'hidden' }}
-                    data-testid={`textarea-problems-${belief.category.toLowerCase()}`}
+                    testIdPrefix={`checkpoint-problems-${belief.category.toLowerCase()}`}
                   />
                 </TableCell>
 
-                {/* Current Week - Feelings */}
+                {/* Current Week - Feelings (Checkbox Checkpoints) */}
                 <TableCell 
                   className="p-0 border border-gray-400 dark:border-gray-500 align-top w-[180px] min-w-[180px] max-w-[180px]"
                   data-testid={`cell-current-week-feelings-${belief.category.toLowerCase()}`}
                 >
-                  <Textarea
-                    value={belief.currentFeelings || ''}
-                    onChange={(e) => {
-                      if (!isAdminView && !viewAsUserId) {
-                        handleBulletInput(e.target.value, (val) => {
-                          const newBeliefs = beliefs.map(b => 
-                            b.category === belief.category 
-                              ? { ...b, currentFeelings: val }
-                              : b
-                          );
-                          updateBeliefsCache(newBeliefs);
-                        });
-                        handleTextareaAutoResize(e);
-                      }
+                  <CheckboxCheckpoints
+                    items={belief.feelingsCurrentChecklist || []}
+                    onUpdate={(items) => {
+                      const newBeliefs = beliefs.map(b => 
+                        b.category === belief.category 
+                          ? { ...b, feelingsCurrentChecklist: items }
+                          : b
+                      );
+                      updateBeliefsCache(newBeliefs);
                     }}
-                    onFocus={(e) => {
-                      if (!isAdminView && !viewAsUserId) {
-                        handleBulletFocus(belief.currentFeelings || '', (newValue) => {
-                          const newBeliefs = beliefs.map(b => 
-                            b.category === belief.category 
-                              ? { ...b, currentFeelings: newValue }
-                              : b
-                          );
-                          updateBeliefsCache(newBeliefs);
-                        });
-                        handleTextareaAutoResize(e);
-                      }
-                    }}
-                    onKeyDown={(e) => {
-                      if (!isAdminView && !viewAsUserId) {
-                        handleBulletEnter(e, belief.currentFeelings || '', (newValue) => {
-                          const newBeliefs = beliefs.map(b => 
-                            b.category === belief.category 
-                              ? { ...b, currentFeelings: newValue }
-                              : b
-                          );
-                          updateBeliefsCache(newBeliefs);
-                        });
-                      }
-                    }}
+                    colorClass="text-rose-600 dark:text-rose-400"
+                    placeholder="Add feeling..."
                     disabled={!!viewAsUserId || isAdminView}
-                    placeholder="• Enter feelings..."
-                    className="w-full min-h-[80px] max-h-[240px] text-xs border-0 rounded-none resize-none focus:ring-1 focus:ring-primary bg-transparent p-2"
-                    style={{ height: '80px', overflowY: 'hidden' }}
-                    data-testid={`textarea-feelings-${belief.category.toLowerCase()}`}
+                    testIdPrefix={`checkpoint-feelings-${belief.category.toLowerCase()}`}
                   />
                 </TableCell>
 
-                {/* Current Week - Beliefs */}
+                {/* Current Week - Beliefs (Checkbox Checkpoints) */}
                 <TableCell 
                   className="p-0 border border-gray-400 dark:border-gray-500 align-top w-[180px] min-w-[180px] max-w-[180px]"
                   data-testid={`cell-current-week-beliefs-${belief.category.toLowerCase()}`}
                 >
-                  <Textarea
-                    value={belief.currentBelief || ''}
-                    onChange={(e) => {
-                      if (!isAdminView && !viewAsUserId) {
-                        handleBulletInput(e.target.value, (val) => {
-                          const newBeliefs = beliefs.map(b => 
-                            b.category === belief.category 
-                              ? { ...b, currentBelief: val }
-                              : b
-                          );
-                          updateBeliefsCache(newBeliefs);
-                        });
-                        handleTextareaAutoResize(e);
-                      }
+                  <CheckboxCheckpoints
+                    items={belief.beliefsCurrentChecklist || []}
+                    onUpdate={(items) => {
+                      const newBeliefs = beliefs.map(b => 
+                        b.category === belief.category 
+                          ? { ...b, beliefsCurrentChecklist: items }
+                          : b
+                      );
+                      updateBeliefsCache(newBeliefs);
                     }}
-                    onFocus={(e) => {
-                      if (!isAdminView && !viewAsUserId) {
-                        handleBulletFocus(belief.currentBelief || '', (newValue) => {
-                          const newBeliefs = beliefs.map(b => 
-                            b.category === belief.category 
-                              ? { ...b, currentBelief: newValue }
-                              : b
-                          );
-                          updateBeliefsCache(newBeliefs);
-                        });
-                        handleTextareaAutoResize(e);
-                      }
-                    }}
-                    onKeyDown={(e) => {
-                      if (!isAdminView && !viewAsUserId) {
-                        handleBulletEnter(e, belief.currentBelief || '', (newValue) => {
-                          const newBeliefs = beliefs.map(b => 
-                            b.category === belief.category 
-                              ? { ...b, currentBelief: newValue }
-                              : b
-                          );
-                          updateBeliefsCache(newBeliefs);
-                        });
-                      }
-                    }}
+                    colorClass="text-purple-600 dark:text-purple-400"
+                    placeholder="Add belief..."
                     disabled={!!viewAsUserId || isAdminView}
-                    placeholder="• Enter beliefs..."
-                    className="w-full min-h-[80px] max-h-[240px] text-xs border-0 rounded-none resize-none focus:ring-1 focus:ring-primary bg-transparent p-2"
-                    style={{ height: '80px', overflowY: 'hidden' }}
-                    data-testid={`textarea-beliefs-${belief.category.toLowerCase()}`}
+                    testIdPrefix={`checkpoint-beliefs-${belief.category.toLowerCase()}`}
                   />
                 </TableCell>
 
-                {/* Current Week - Actions */}
+                {/* Current Week - Actions (Checkbox Checkpoints) */}
                 <TableCell 
                   className="p-0 border border-gray-400 dark:border-gray-500 align-top w-[180px] min-w-[180px] max-w-[180px]"
                   data-testid={`cell-current-week-actions-${belief.category.toLowerCase()}`}
                 >
-                  <Textarea
-                    value={belief.currentActions || ''}
-                    onChange={(e) => {
-                      if (!isAdminView && !viewAsUserId) {
-                        handleBulletInput(e.target.value, (val) => {
-                          const newBeliefs = beliefs.map(b => 
-                            b.category === belief.category 
-                              ? { ...b, currentActions: val }
-                              : b
-                          );
-                          updateBeliefsCache(newBeliefs);
-                        });
-                        handleTextareaAutoResize(e);
-                      }
+                  <CheckboxCheckpoints
+                    items={belief.actionsCurrentChecklist || []}
+                    onUpdate={(items) => {
+                      const newBeliefs = beliefs.map(b => 
+                        b.category === belief.category 
+                          ? { ...b, actionsCurrentChecklist: items }
+                          : b
+                      );
+                      updateBeliefsCache(newBeliefs);
                     }}
-                    onFocus={(e) => {
-                      if (!isAdminView && !viewAsUserId) {
-                        handleBulletFocus(belief.currentActions || '', (newValue) => {
-                          const newBeliefs = beliefs.map(b => 
-                            b.category === belief.category 
-                              ? { ...b, currentActions: newValue }
-                              : b
-                          );
-                          updateBeliefsCache(newBeliefs);
-                        });
-                        handleTextareaAutoResize(e);
-                      }
-                    }}
-                    onKeyDown={(e) => {
-                      if (!isAdminView && !viewAsUserId) {
-                        handleBulletEnter(e, belief.currentActions || '', (newValue) => {
-                          const newBeliefs = beliefs.map(b => 
-                            b.category === belief.category 
-                              ? { ...b, currentActions: newValue }
-                              : b
-                          );
-                          updateBeliefsCache(newBeliefs);
-                        });
-                      }
-                    }}
+                    colorClass="text-emerald-600 dark:text-emerald-400"
+                    placeholder="Add action..."
                     disabled={!!viewAsUserId || isAdminView}
-                    placeholder="• Enter actions..."
-                    className="w-full min-h-[80px] max-h-[240px] text-xs border-0 rounded-none resize-none focus:ring-1 focus:ring-primary bg-transparent p-2"
-                    style={{ height: '80px', overflowY: 'hidden' }}
-                    data-testid={`textarea-actions-${belief.category.toLowerCase()}`}
+                    testIdPrefix={`checkpoint-actions-${belief.category.toLowerCase()}`}
                   />
                 </TableCell>
               </TableRow>
@@ -5212,215 +5209,91 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                   </div>
                 </TableCell>
 
-                {/* Next Week - Results (Excel-style Textarea with bullet points) */}
+                {/* Next Week - Results (Checkbox Checkpoints) */}
                 <TableCell 
                   className="p-0 border border-gray-400 dark:border-gray-500 align-top w-[180px] min-w-[180px] max-w-[180px]"
                   data-testid={`cell-next-result-${belief.category.toLowerCase()}`}
                 >
-                  <Textarea
-                    value={belief.result || ''}
-                    onChange={(e) => {
-                      if (!isAdminView && !viewAsUserId) {
-                        handleBulletInput(e.target.value, (val) => {
-                          const newBeliefs = beliefs.map(b => 
-                            b.category === belief.category 
-                              ? { ...b, result: val }
-                              : b
-                          );
-                          updateBeliefsCache(newBeliefs);
-                        });
-                        handleTextareaAutoResize(e);
-                      }
+                  <CheckboxCheckpoints
+                    items={belief.resultChecklist || []}
+                    onUpdate={(items) => {
+                      const newBeliefs = beliefs.map(b => 
+                        b.category === belief.category 
+                          ? { ...b, resultChecklist: items }
+                          : b
+                      );
+                      updateBeliefsCache(newBeliefs);
                     }}
-                    onFocus={(e) => {
-                      if (!isAdminView && !viewAsUserId) {
-                        handleBulletFocus(belief.result || '', (newValue) => {
-                          const newBeliefs = beliefs.map(b => 
-                            b.category === belief.category 
-                              ? { ...b, result: newValue }
-                              : b
-                          );
-                          updateBeliefsCache(newBeliefs);
-                        });
-                        handleTextareaAutoResize(e);
-                      }
-                    }}
-                    onKeyDown={(e) => {
-                      if (!isAdminView && !viewAsUserId) {
-                        handleBulletEnter(e, belief.result || '', (newValue) => {
-                          const newBeliefs = beliefs.map(b => 
-                            b.category === belief.category 
-                              ? { ...b, result: newValue }
-                              : b
-                          );
-                          updateBeliefsCache(newBeliefs);
-                        });
-                      }
-                    }}
+                    colorClass="text-blue-600 dark:text-blue-400"
+                    placeholder="Add target result..."
                     disabled={!!viewAsUserId || isAdminView}
-                    placeholder="• Enter target results..."
-                    className="w-full min-h-[80px] max-h-[240px] text-xs border-0 rounded-none resize-none focus:ring-1 focus:ring-primary bg-transparent p-2"
-                    style={{ height: '80px', overflowY: 'hidden' }}
-                    data-testid={`textarea-next-result-${belief.category.toLowerCase()}`}
+                    testIdPrefix={`checkpoint-next-results-${belief.category.toLowerCase()}`}
                   />
                 </TableCell>
 
-                {/* Next Week - Feelings (Excel-style Textarea with bullet points) */}
+                {/* Next Week - Feelings (Checkbox Checkpoints) */}
                 <TableCell 
                   className="p-0 border border-gray-400 dark:border-gray-500 align-top w-[180px] min-w-[180px] max-w-[180px]"
                   data-testid={`cell-next-feelings-${belief.category.toLowerCase()}`}
                 >
-                  <Textarea
-                    value={belief.nextFeelings || ''}
-                    onChange={(e) => {
-                      if (!isAdminView && !viewAsUserId) {
-                        handleBulletInput(e.target.value, (val) => {
-                          const newBeliefs = beliefs.map(b => 
-                            b.category === belief.category 
-                              ? { ...b, nextFeelings: val }
-                              : b
-                          );
-                          updateBeliefsCache(newBeliefs);
-                        });
-                        handleTextareaAutoResize(e);
-                      }
+                  <CheckboxCheckpoints
+                    items={belief.feelingsChecklist || []}
+                    onUpdate={(items) => {
+                      const newBeliefs = beliefs.map(b => 
+                        b.category === belief.category 
+                          ? { ...b, feelingsChecklist: items }
+                          : b
+                      );
+                      updateBeliefsCache(newBeliefs);
                     }}
-                    onFocus={(e) => {
-                      if (!isAdminView && !viewAsUserId) {
-                        handleBulletFocus(belief.nextFeelings || '', (newValue) => {
-                          const newBeliefs = beliefs.map(b => 
-                            b.category === belief.category 
-                              ? { ...b, nextFeelings: newValue }
-                              : b
-                          );
-                          updateBeliefsCache(newBeliefs);
-                        });
-                        handleTextareaAutoResize(e);
-                      }
-                    }}
-                    onKeyDown={(e) => {
-                      if (!isAdminView && !viewAsUserId) {
-                        handleBulletEnter(e, belief.nextFeelings || '', (newValue) => {
-                          const newBeliefs = beliefs.map(b => 
-                            b.category === belief.category 
-                              ? { ...b, nextFeelings: newValue }
-                              : b
-                          );
-                          updateBeliefsCache(newBeliefs);
-                        });
-                      }
-                    }}
+                    colorClass="text-rose-600 dark:text-rose-400"
+                    placeholder="Add target feeling..."
                     disabled={!!viewAsUserId || isAdminView}
-                    placeholder="• Enter target feelings..."
-                    className="w-full min-h-[80px] max-h-[240px] text-xs border-0 rounded-none resize-none focus:ring-1 focus:ring-primary bg-transparent p-2"
-                    style={{ height: '80px', overflowY: 'hidden' }}
-                    data-testid={`textarea-next-feelings-${belief.category.toLowerCase()}`}
+                    testIdPrefix={`checkpoint-next-feelings-${belief.category.toLowerCase()}`}
                   />
                 </TableCell>
 
-                {/* Next Week - Beliefs/Reasons (Excel-style Textarea with bullet points) */}
+                {/* Next Week - Beliefs/Reasons (Checkbox Checkpoints) */}
                 <TableCell 
                   className="p-0 border border-gray-400 dark:border-gray-500 align-top w-[180px] min-w-[180px] max-w-[180px]"
                   data-testid={`cell-next-beliefs-${belief.category.toLowerCase()}`}
                 >
-                  <Textarea
-                    value={belief.nextWeekTarget || ''}
-                    onChange={(e) => {
-                      if (!isAdminView && !viewAsUserId) {
-                        handleBulletInput(e.target.value, (val) => {
-                          const newBeliefs = beliefs.map(b => 
-                            b.category === belief.category 
-                              ? { ...b, nextWeekTarget: val }
-                              : b
-                          );
-                          updateBeliefsCache(newBeliefs);
-                        });
-                        handleTextareaAutoResize(e);
-                      }
+                  <CheckboxCheckpoints
+                    items={belief.beliefsChecklist || []}
+                    onUpdate={(items) => {
+                      const newBeliefs = beliefs.map(b => 
+                        b.category === belief.category 
+                          ? { ...b, beliefsChecklist: items }
+                          : b
+                      );
+                      updateBeliefsCache(newBeliefs);
                     }}
-                    onFocus={(e) => {
-                      if (!isAdminView && !viewAsUserId) {
-                        handleBulletFocus(belief.nextWeekTarget || '', (newValue) => {
-                          const newBeliefs = beliefs.map(b => 
-                            b.category === belief.category 
-                              ? { ...b, nextWeekTarget: newValue }
-                              : b
-                          );
-                          updateBeliefsCache(newBeliefs);
-                        });
-                        handleTextareaAutoResize(e);
-                      }
-                    }}
-                    onKeyDown={(e) => {
-                      if (!isAdminView && !viewAsUserId) {
-                        handleBulletEnter(e, belief.nextWeekTarget || '', (newValue) => {
-                          const newBeliefs = beliefs.map(b => 
-                            b.category === belief.category 
-                              ? { ...b, nextWeekTarget: newValue }
-                              : b
-                          );
-                          updateBeliefsCache(newBeliefs);
-                        });
-                      }
-                    }}
+                    colorClass="text-purple-600 dark:text-purple-400"
+                    placeholder="Add target belief..."
                     disabled={!!viewAsUserId || isAdminView}
-                    placeholder="• Enter target beliefs..."
-                    className="w-full min-h-[80px] max-h-[240px] text-xs border-0 rounded-none resize-none focus:ring-1 focus:ring-primary bg-transparent p-2"
-                    style={{ height: '80px', overflowY: 'hidden' }}
-                    data-testid={`textarea-next-beliefs-${belief.category.toLowerCase()}`}
+                    testIdPrefix={`checkpoint-next-beliefs-${belief.category.toLowerCase()}`}
                   />
                 </TableCell>
 
-                {/* Next Week - Actions (Excel-style Textarea with bullet points) */}
+                {/* Next Week - Actions (Checkbox Checkpoints) */}
                 <TableCell 
                   className="p-0 border border-gray-400 dark:border-gray-500 align-top w-[180px] min-w-[180px] max-w-[180px] border-r"
                   data-testid={`cell-next-actions-${belief.category.toLowerCase()}`}
                 >
-                  <Textarea
-                    value={belief.nextActions || ''}
-                    onChange={(e) => {
-                      if (!isAdminView && !viewAsUserId) {
-                        handleBulletInput(e.target.value, (val) => {
-                          const newBeliefs = beliefs.map(b => 
-                            b.category === belief.category 
-                              ? { ...b, nextActions: val }
-                              : b
-                          );
-                          updateBeliefsCache(newBeliefs);
-                        });
-                        handleTextareaAutoResize(e);
-                      }
+                  <CheckboxCheckpoints
+                    items={belief.actionsChecklist || []}
+                    onUpdate={(items) => {
+                      const newBeliefs = beliefs.map(b => 
+                        b.category === belief.category 
+                          ? { ...b, actionsChecklist: items }
+                          : b
+                      );
+                      updateBeliefsCache(newBeliefs);
                     }}
-                    onFocus={(e) => {
-                      if (!isAdminView && !viewAsUserId) {
-                        handleBulletFocus(belief.nextActions || '', (newValue) => {
-                          const newBeliefs = beliefs.map(b => 
-                            b.category === belief.category 
-                              ? { ...b, nextActions: newValue }
-                              : b
-                          );
-                          updateBeliefsCache(newBeliefs);
-                        });
-                        handleTextareaAutoResize(e);
-                      }
-                    }}
-                    onKeyDown={(e) => {
-                      if (!isAdminView && !viewAsUserId) {
-                        handleBulletEnter(e, belief.nextActions || '', (newValue) => {
-                          const newBeliefs = beliefs.map(b => 
-                            b.category === belief.category 
-                              ? { ...b, nextActions: newValue }
-                              : b
-                          );
-                          updateBeliefsCache(newBeliefs);
-                        });
-                      }
-                    }}
+                    colorClass="text-emerald-600 dark:text-emerald-400"
+                    placeholder="Add target action..."
                     disabled={!!viewAsUserId || isAdminView}
-                    placeholder="• Enter target actions..."
-                    className="w-full min-h-[80px] max-h-[240px] text-xs border-0 rounded-none resize-none focus:ring-1 focus:ring-primary bg-transparent p-2"
-                    style={{ height: '80px', overflowY: 'hidden' }}
-                    data-testid={`textarea-next-actions-${belief.category.toLowerCase()}`}
+                    testIdPrefix={`checkpoint-next-actions-${belief.category.toLowerCase()}`}
                   />
                 </TableCell>
 
