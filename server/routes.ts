@@ -731,6 +731,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // Get HRCM data by specific date (like Emotional Tracker)
+ // Get HRCM data by specific date (like Emotional Tracker)
   app.get(
     "/api/hercm/by-date/:date",
     isAuthenticated,
@@ -769,7 +770,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         if (!allWeeks || allWeeks.length === 0) {
           console.log(`[HERCM BY-DATE] No weeks found for user ${user.id}`);
-          return res.json(null);
+          return res.json({
+            beliefs: [],
+            createdAt: null,
+            weekNumber: null,
+            dateString: requestedDate,
+            manualNextWeekMode: false,
+          });
         }
 
         // Log all week dates for debugging
@@ -780,12 +787,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
 
         // CRITICAL: Check if requested date is in the FUTURE using LOCAL timezone (NOT UTC)
-        // Using UTC caused bug: IST 3rd Nov 1:30 AM → UTC 2nd Nov 8 PM → thought 3rd was future!
         const now = new Date();
         const year = now.getFullYear();
         const month = String(now.getMonth() + 1).padStart(2, "0");
         const day = String(now.getDate()).padStart(2, "0");
-        const todayStr = `${year}-${month}-${day}`; // Local date, not UTC!
+        const todayStr = `${year}-${month}-${day}`;
 
         const requestedDateTime = new Date(requestedDate).getTime();
         const todayTime = new Date(todayStr).getTime();
@@ -795,14 +801,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
 
         if (requestedDateTime > todayTime) {
-          // FUTURE DATE - Return null (blank table)
-          console.log(`[BY-DATE DEBUG] Future date detected - returning null`);
-          return res.json(null);
+          // FUTURE DATE - Return empty beliefs array
+          console.log(`[BY-DATE DEBUG] Future date detected - returning empty beliefs`);
+          return res.json({
+            beliefs: [],
+            createdAt: null,
+            weekNumber: null,
+            dateString: requestedDate,
+            manualNextWeekMode: false,
+          });
         }
 
-        // NOT FUTURE (Past or Today) - Show data
-        // IMPROVED SEARCH LOGIC for Google-level performance:
-        // Step 1: Try exact dateString match (fastest, most accurate)
+        // Try exact dateString match (fastest, most accurate)
         const exactMatchWeeks = allWeeks.filter((week: any) => {
           const isMatch = week.dateString === requestedDate;
           console.log(
@@ -823,8 +833,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
           )[0];
         } else {
-          // Step 2: FALLBACK - Use createdAt to find data created on the requested date
-          // This ensures ALL historical data is accessible even if dateString wasn't set properly
+          // FALLBACK - Use createdAt to find data created on the requested date
           console.log(
             `[BY-DATE DEBUG] No exact dateString match, trying createdAt fallback...`,
           );
@@ -860,19 +869,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 new Date(a.createdAt).getTime(),
             )[0];
           } else {
-            // No data found for this date - return null (blank table)
+            // No data found for this date - return empty beliefs array
             console.log(
               `[BY-DATE DEBUG] ❌ No data found for ${requestedDate} (checked dateString and createdAt)`,
             );
-            return res.json(null);
+            return res.json({
+              beliefs: [],
+              createdAt: null,
+              weekNumber: null,
+              dateString: requestedDate,
+              manualNextWeekMode: false,
+            });
           }
         }
 
         console.log(
-          `[BY-DATE DEBUG] Selected week - createdAt: ${week.createdAt}, healthProblems: ${week.healthProblems}, healthCurrentFeelings: ${week.healthCurrentFeelings}`,
+          `[BY-DATE DEBUG] Selected week - createdAt: ${week.createdAt}, healthProblems: ${week.healthProblems}`,
         );
 
-        // Transform to beliefs format (same as week endpoint)
+        // 🔥 FIXED: Transform to beliefs format with ALL checkpoint columns
         const beliefs = [
           {
             category: "Health",
@@ -979,7 +994,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           createdAt: week.createdAt,
           weekNumber: week.weekNumber,
           dateString: week.dateString,
-          manualNextWeekMode: week.manualNextWeekMode || false, // 🔥 Include manualNextWeekMode in response
+          manualNextWeekMode: week.manualNextWeekMode || false,
         });
       } catch (error) {
         console.error("Error fetching HRCM data by date:", error);
