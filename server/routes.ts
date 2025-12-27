@@ -194,6 +194,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Auth routes - no rate limiting to allow immediate re-login after logout
+  
+  // Logout route - clear session and redirect to login
+  app.get("/api/logout", (req: any, res) => {
+    console.log('[LOGOUT] Processing logout request');
+    
+    req.session.destroy((err: any) => {
+      if (err) {
+        console.error('[LOGOUT] Session destroy error:', err);
+      }
+      console.log('[LOGOUT] Session destroyed, redirecting to /login');
+      res.redirect('/login');
+    });
+  });
+
   app.get("/api/auth/user", isAuthenticated, async (req: any, res) => {
     try {
       // Prioritize email-based session auth to match login flow
@@ -239,21 +253,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
-  // LOGOUT ROUTE — clears session + redirects to login
-  app.get("/api/logout", async (req: any, res) => {
-    try {
-      // Destroy session
-      req.session.destroy(() => {
-        console.log("User logged out, session destroyed.");
-
-        // Redirect back to login page (frontend)
-        return res.redirect("/login");
-      });
-    } catch (error) {
-      console.error("Logout error:", error);
-      return res.redirect("/login");
     }
   });
 
@@ -731,7 +730,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // Get HRCM data by specific date (like Emotional Tracker)
- // Get HRCM data by specific date (like Emotional Tracker)
   app.get(
     "/api/hercm/by-date/:date",
     isAuthenticated,
@@ -770,13 +768,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         if (!allWeeks || allWeeks.length === 0) {
           console.log(`[HERCM BY-DATE] No weeks found for user ${user.id}`);
-          return res.json({
-            beliefs: [],
-            createdAt: null,
-            weekNumber: null,
-            dateString: requestedDate,
-            manualNextWeekMode: false,
-          });
+          return res.json(null);
         }
 
         // Log all week dates for debugging
@@ -787,11 +779,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
 
         // CRITICAL: Check if requested date is in the FUTURE using LOCAL timezone (NOT UTC)
+        // Using UTC caused bug: IST 3rd Nov 1:30 AM → UTC 2nd Nov 8 PM → thought 3rd was future!
         const now = new Date();
         const year = now.getFullYear();
         const month = String(now.getMonth() + 1).padStart(2, "0");
         const day = String(now.getDate()).padStart(2, "0");
-        const todayStr = `${year}-${month}-${day}`;
+        const todayStr = `${year}-${month}-${day}`; // Local date, not UTC!
 
         const requestedDateTime = new Date(requestedDate).getTime();
         const todayTime = new Date(todayStr).getTime();
@@ -801,18 +794,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
 
         if (requestedDateTime > todayTime) {
-          // FUTURE DATE - Return empty beliefs array
-          console.log(`[BY-DATE DEBUG] Future date detected - returning empty beliefs`);
-          return res.json({
-            beliefs: [],
-            createdAt: null,
-            weekNumber: null,
-            dateString: requestedDate,
-            manualNextWeekMode: false,
-          });
+          // FUTURE DATE - Return null (blank table)
+          console.log(`[BY-DATE DEBUG] Future date detected - returning null`);
+          return res.json(null);
         }
 
-        // Try exact dateString match (fastest, most accurate)
+        // NOT FUTURE (Past or Today) - Show data
+        // IMPROVED SEARCH LOGIC for Google-level performance:
+        // Step 1: Try exact dateString match (fastest, most accurate)
         const exactMatchWeeks = allWeeks.filter((week: any) => {
           const isMatch = week.dateString === requestedDate;
           console.log(
@@ -833,7 +822,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
           )[0];
         } else {
-          // FALLBACK - Use createdAt to find data created on the requested date
+          // Step 2: FALLBACK - Use createdAt to find data created on the requested date
+          // This ensures ALL historical data is accessible even if dateString wasn't set properly
           console.log(
             `[BY-DATE DEBUG] No exact dateString match, trying createdAt fallback...`,
           );
@@ -869,25 +859,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 new Date(a.createdAt).getTime(),
             )[0];
           } else {
-            // No data found for this date - return empty beliefs array
+            // No data found for this date - return null (blank table)
             console.log(
               `[BY-DATE DEBUG] ❌ No data found for ${requestedDate} (checked dateString and createdAt)`,
             );
-            return res.json({
-              beliefs: [],
-              createdAt: null,
-              weekNumber: null,
-              dateString: requestedDate,
-              manualNextWeekMode: false,
-            });
+            return res.json(null);
           }
         }
 
         console.log(
-          `[BY-DATE DEBUG] Selected week - createdAt: ${week.createdAt}, healthProblems: ${week.healthProblems}`,
+          `[BY-DATE DEBUG] Selected week - createdAt: ${week.createdAt}, healthProblems: ${week.healthProblems}, healthCurrentFeelings: ${week.healthCurrentFeelings}`,
         );
 
-        // 🔥 FIXED: Transform to beliefs format with ALL checkpoint columns
+        // Transform to beliefs format (same as week endpoint)
         const beliefs = [
           {
             category: "Health",
@@ -994,7 +978,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           createdAt: week.createdAt,
           weekNumber: week.weekNumber,
           dateString: week.dateString,
-          manualNextWeekMode: week.manualNextWeekMode || false,
+          manualNextWeekMode: week.manualNextWeekMode || false, // 🔥 Include manualNextWeekMode in response
         });
       } catch (error) {
         console.error("Error fetching HRCM data by date:", error);
@@ -3556,10 +3540,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               ...course,
               lessons: validLessons.map((lesson) => ({
                 ...lesson,
-                // completed: userCompletions.has(lesson.id),
-                completed: userCompletions.has(`${course.id}-${lesson.id}`)
-      || userCompletions.has(lesson.id) , // backward compatibility
-
+                completed: userCompletions.has(lesson.id),
               })),
               subcategories: course.subcategories
                 ?.map((subcat) => {
@@ -3571,10 +3552,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     ...subcat,
                     lessons: validSubLessons.map((lesson) => ({
                       ...lesson,
-                      // completed: userCompletions.has(lesson.id),
-                      completed: userCompletions.has(`${course.id}-${lesson.id}`)
-      || userCompletions.has(lesson.id) , // backward compatibility
-
+                      completed: userCompletions.has(lesson.id),
                     })),
                   };
                 })
@@ -3827,97 +3805,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Toggle lesson completion
-  // app.post("/api/lessons/toggle", isAuthenticated, async (req: any, res) => {
-  //   try {
-  //     // Handle both OIDC auth (req.user.claims.sub) and email-based auth (req.session.userEmail)
-  //     const userId = req.user?.claims?.sub || req.session.userEmail;
-  //     if (!userId) {
-  //       return res.status(401).json({ message: "User not authenticated" });
-  //     }
+  app.post("/api/lessons/toggle", isAuthenticated, async (req: any, res) => {
+    try {
+      // Handle both OIDC auth (req.user.claims.sub) and email-based auth (req.session.userEmail)
+      const userId = req.user?.claims?.sub || req.session.userEmail;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
 
-  //     const {
-  //       lessonId,
-  //       completed,
-  //       lessonName,
-  //       courseName,
-  //       courseId,
-  //       url,
-  //       hrcmArea,
-  //     } = req.body;
+      const {
+        lessonId,
+        completed,
+        lessonName,
+        courseName,
+        courseId,
+        url,
+        hrcmArea,
+      } = req.body;
 
-  //     if (!lessonId) {
-  //       return res.status(400).json({ message: "lessonId is required" });
-  //     }
+      if (!lessonId) {
+        return res.status(400).json({ message: "lessonId is required" });
+      }
 
-  //     // Frontend sends DESIRED state (toggled state)
-  //     // If completed=true, mark as complete (add points)
-  //     // If completed=false, mark as incomplete (subtract points)
-  //     if (completed) {
-  //       // Desired state is checked, so mark as completed
-  //       await storage.markLessonComplete(userId, lessonId);
+      // Frontend sends DESIRED state (toggled state)
+      // If completed=true, mark as complete (add points)
+      // If completed=false, mark as incomplete (subtract points)
+      if (completed) {
+        // Desired state is checked, so mark as completed
+        await storage.markLessonComplete(userId, lessonId);
 
-  //       // Add 1 point
-  //       await storage.addPointsToUser(userId, 1);
-  //       console.log(
-  //         `✅ Added 1 point to user ${userId} for completing lesson: ${lessonName}`,
-  //       );
-  //     } else {
-  //       // Desired state is unchecked, so mark as incomplete (remove completion record)
-  //       await storage.markLessonIncomplete(userId, lessonId);
+        // Add 1 point
+        await storage.addPointsToUser(userId, 1);
+        console.log(
+          `✅ Added 1 point to user ${userId} for completing lesson: ${lessonName}`,
+        );
+      } else {
+        // Desired state is unchecked, so mark as incomplete (remove completion record)
+        await storage.markLessonIncomplete(userId, lessonId);
 
-  //       // Subtract 1 point
-  //       await storage.addPointsToUser(userId, -1);
-  //       console.log(
-  //         `❌ Subtracted 1 point from user ${userId} for unchecking lesson: ${lessonName}`,
-  //       );
-  //     }
+        // Subtract 1 point
+        await storage.addPointsToUser(userId, -1);
+        console.log(
+          `❌ Subtracted 1 point from user ${userId} for unchecking lesson: ${lessonName}`,
+        );
+      }
 
-  //     res.json({ success: true, lessonId, completed });
-  //   } catch (error) {
-  //     console.error("Error toggling lesson completion:", error);
-  //     res.status(500).json({ message: "Failed to toggle lesson completion" });
-  //   }
-  // });
-  // Toggle lesson completion
-app.post("/api/lessons/toggle", isAuthenticated, async (req: any, res) => {
-  try {
-    const userId = req.user?.claims?.sub || req.session.userEmail;
-    if (!userId) {
-      return res.status(401).json({ message: "User not authenticated" });
+      res.json({ success: true, lessonId, completed });
+    } catch (error) {
+      console.error("Error toggling lesson completion:", error);
+      res.status(500).json({ message: "Failed to toggle lesson completion" });
     }
-
-    const {
-      lessonId,
-      completed,
-      lessonName,
-      courseName,
-      courseId,   // REQUIRED
-      url,
-      hrcmArea,
-    } = req.body;
-
-    if (!lessonId || !courseId) {
-      return res.status(400).json({ message: "lessonId and courseId are required" });
-    }
-
-    // Convert lessonId -> videoId format used in DB
-    const videoId = `${courseId}-${lessonId}`;
-
-    if (completed) {
-      await storage.markLessonComplete(userId, videoId);
-      await storage.addPointsToUser(userId, 1);
-    } else {
-      await storage.markLessonIncomplete(userId, videoId);
-      await storage.addPointsToUser(userId, -1);
-    }
-
-    res.json({ success: true, videoId, completed });
-  } catch (error) {
-    console.error("Error toggling lesson completion:", error);
-    res.status(500).json({ message: "Failed to toggle lesson completion" });
-  }
-});
-
+  });
 
   // 🚀 GOOGLE SHEETS WEBHOOK - Instant sync when sheet is edited
   // This endpoint is called by Google Apps Script whenever the sheet is modified
@@ -9682,7 +9620,8 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
       res.status(500).json({ message: "Failed to delete goal" });
     }
   });
-// ========== Events Routes ==========
+
+  // ========== Events Routes ==========
   // Get all events (admin)
   app.get("/api/admin/events", isAdmin, async (req: any, res) => {
     try {
@@ -9758,6 +9697,7 @@ Return JSON: { "recommendedTarget": 1-5, "confidence": 0-100, "reasoning": "..."
       res.status(500).json({ message: "Failed to delete event" });
     }
   });
+
   // ========== User Persistent Assignments Routes ==========
   // Get user's persistent assignments (date-independent)
   app.get(
