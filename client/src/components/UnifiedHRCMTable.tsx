@@ -131,6 +131,7 @@ interface InlineChecklistProps {
 
 interface InlineChecklistWithEditProps extends InlineChecklistProps {
   onEdit?: (itemId: string, newText: string) => void;
+  autoFocusOnAdd?: boolean; // Disable auto-focus for auto-synced components (Next Week Target)
 }
 
 const InlineChecklist = ({ 
@@ -143,7 +144,8 @@ const InlineChecklist = ({
   textColorClass = "text-foreground",
   testIdPrefix = "checklist",
   showCheckbox = true,
-  onEdit
+  onEdit,
+  autoFocusOnAdd = true // Default true for Current Week, false for Next Week Target
 }: InlineChecklistWithEditProps) => {
   const [newItemText, setNewItemText] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -152,12 +154,13 @@ const InlineChecklist = ({
   const prevItemsLengthRef = useRef(items.length);
 
   // Auto-focus input when items are added (for rapid entry) - prevent scroll jump
+  // Only auto-focus if autoFocusOnAdd is true (disabled for auto-synced Next Week Target)
   useEffect(() => {
-    if (items.length > prevItemsLengthRef.current && !disabled) {
+    if (autoFocusOnAdd && items.length > prevItemsLengthRef.current && !disabled) {
       inputRef.current?.focus({ preventScroll: true });
     }
     prevItemsLengthRef.current = items.length;
-  }, [items.length, disabled]);
+  }, [items.length, disabled, autoFocusOnAdd]);
 
   const handleAddItem = () => {
     if (newItemText.trim()) {
@@ -5243,6 +5246,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     placeholder="Add result..."
                     textColorClass="text-blue-600 dark:text-blue-400"
                     testIdPrefix={`next-result-${belief.category.toLowerCase()}`}
+                    autoFocusOnAdd={false}
                   />
                 </TableCell>
 
@@ -5261,6 +5265,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     placeholder="Add feeling..."
                     textColorClass="text-rose-600 dark:text-rose-400"
                     testIdPrefix={`next-feelings-${belief.category.toLowerCase()}`}
+                    autoFocusOnAdd={false}
                   />
                 </TableCell>
 
@@ -5279,6 +5284,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     placeholder="Add belief..."
                     textColorClass="text-purple-600 dark:text-purple-400"
                     testIdPrefix={`next-beliefs-${belief.category.toLowerCase()}`}
+                    autoFocusOnAdd={false}
                   />
                 </TableCell>
 
@@ -5297,6 +5303,7 @@ export default function UnifiedHRCMTable({ weekNumber = 1, onWeekChange, viewAsU
                     placeholder="Add action..."
                     textColorClass="text-emerald-600 dark:text-emerald-400"
                     testIdPrefix={`next-actions-${belief.category.toLowerCase()}`}
+                    autoFocusOnAdd={false}
                   />
                 </TableCell>
 
