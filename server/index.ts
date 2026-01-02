@@ -465,7 +465,7 @@ app.post('/admin/run-autocopy-now', async (req, res) => {
   setupScheduledTasks();
 
   // 3️⃣ Error handler
-  app.use((err, _req, res, _next) => {
+  app.use((err: any, _req: any, res: any, _next: any) => {
     const status = err.status || 500;
     res.status(status).json({ message: err.message || "Internal Server Error" });
   });
@@ -481,6 +481,6 @@ app.post('/admin/run-autocopy-now', async (req, res) => {
   const port = parseInt(process.env.PORT || "5000", 10);
   server.listen(
     { port, host: "0.0.0.0", reusePort: true },
-    () => log`serving on port ${port}`)
+    () => log`serving on port ${port}`
   );
 })();
