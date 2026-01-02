@@ -31,7 +31,7 @@ app.use(
   })
 );
 
-// 🔥 MANUAL AUTO-COPY TRIGGER (ONE-TIME USE)
+// 🔥 MANUAL AUTO-COPY TRIGGER WITH DATE PICKER
 app.get('/admin/autocopy-trigger', (req, res) => {
   res.send(`
     <!DOCTYPE html>
@@ -76,6 +76,22 @@ app.get('/admin/autocopy-trigger', (req, res) => {
           border-radius: 5px;
           font-size: 14px;
           color: #856404;
+        }
+        .info-box {
+          background: #e7f3ff;
+          border-left: 4px solid #2196F3;
+          padding: 12px;
+          margin-bottom: 20px;
+          border-radius: 5px;
+          font-size: 13px;
+          color: #014361;
+        }
+        label {
+          display: block;
+          font-weight: 600;
+          margin-bottom: 8px;
+          color: #333;
+          font-size: 14px;
         }
         input {
           width: 100%;
@@ -156,13 +172,24 @@ app.get('/admin/autocopy-trigger', (req, res) => {
     <body>
       <div class="container">
         <h1>🔥 Manual Auto-Copy</h1>
-        <p class="subtitle">Copy yesterday's data to today for all users</p>
+        <p class="subtitle">Copy data from a specific date to today for all users</p>
         
         <div class="warning">
-          ⚠️ <strong>ONE-TIME USE ONLY</strong><br>
-          Use this only once to copy yesterday's data. After this, automatic midnight cron will handle daily copies.
+          ⚠️ <strong>OVERWRITE MODE</strong><br>
+          This will REPLACE today's existing data with data from the selected date. Use carefully!
         </div>
         
+        <div class="info-box">
+          💡 <strong>Tip:</strong> Leave date blank to automatically copy from the last available date (within 7 days).
+        </div>
+        
+        <label for="sourceDate">📅 Copy From Date (Optional):</label>
+        <input type="date" 
+               id="sourceDate" 
+               placeholder="YYYY-MM-DD (e.g., 2025-12-27)"
+               max="${new Date().toISOString().split('T')[0]}">
+        
+        <label for="adminKey">🔐 Admin Password:</label>
         <input type="password" 
                id="adminKey" 
                placeholder="Enter Admin Password"
@@ -178,6 +205,7 @@ app.get('/admin/autocopy-trigger', (req, res) => {
       <script>
         async function runAutoCopy() {
           const adminKey = document.getElementById('adminKey').value;
+          const sourceDate = document.getElementById('sourceDate').value;
           const resultDiv = document.getElementById('result');
           const runBtn = document.getElementById('runBtn');
           
@@ -192,13 +220,18 @@ app.get('/admin/autocopy-trigger', (req, res) => {
           runBtn.textContent = '⏳ Processing...';
           resultDiv.className = 'loading';
           resultDiv.style.display = 'block';
-          resultDiv.innerHTML = '<strong>⏳ Running auto-copy...</strong><br>Please wait, this may take a few seconds...';
+          
+          const sourceDateText = sourceDate || 'last available date';
+          resultDiv.innerHTML = \`<strong>⏳ Running auto-copy from \${sourceDateText}...</strong><br>Please wait, this may take a few seconds...\`;
           
           try {
             const response = await fetch('/admin/run-autocopy-now', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ adminKey })
+              body: JSON.stringify({ 
+                adminKey,
+                sourceDate: sourceDate || null
+              })
             });
             
             const data = await response.json();
@@ -207,6 +240,9 @@ app.get('/admin/autocopy-trigger', (req, res) => {
               resultDiv.className = 'success';
               resultDiv.innerHTML = \`
                 <strong>✅ SUCCESS! Auto-copy completed!</strong>
+                <div style="margin-top: 10px; font-size: 13px;">
+                  <strong>Source Date:</strong> \${data.sourceDate || 'auto-detected'}
+                </div>
                 <div style="margin-top: 15px;">
                   <div class="stat">
                     <span class="stat-label">✅ Users Copied:</span>
@@ -254,7 +290,7 @@ app.get('/admin/autocopy-trigger', (req, res) => {
 app.post('/admin/run-autocopy-now', async (req, res) => {
   try {
     const { storage } = await import('./storage');
-    const { adminKey } = req.body;
+    const { adminKey, sourceDate } = req.body;
     
     if (adminKey !== process.env.ADMIN_SECRET_KEY) {
       return res.status(403).json({ error: 'Invalid admin password' });
@@ -265,6 +301,8 @@ app.post('/admin/run-autocopy-now', async (req, res) => {
     const now = new Date();
     const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     
+    let targetSourceDate = sourceDate || null;
+    
     const allUsers = await storage.getAllUsers();
     let copiedCount = 0;
     let skippedCount = 0;
@@ -273,29 +311,38 @@ app.post('/admin/run-autocopy-now', async (req, res) => {
     for (const user of allUsers) {
       try {
         const allWeeks = await storage.getAllHercmWeeksByUserWithDates(user.id);
-        const todayData = allWeeks?.filter((w: any) => w.dateString === todayStr);
-        
-        if (todayData && todayData.length > 0) {
-          skippedCount++;
-          continue;
-        }
         
         let sourceData = null;
-        let sourceDate = '';
+        let foundSourceDate = '';
         
-        for (let i = 1; i <= 7; i++) {
-          const searchDateTime = new Date(todayStr);
-          searchDateTime.setDate(searchDateTime.getDate() - i);
-          const searchDate = `${searchDateTime.getFullYear()}-${String(searchDateTime.getMonth() + 1).padStart(2, '0')}-${String(searchDateTime.getDate()).padStart(2, '0')}`;
+        if (targetSourceDate) {
+          const specificData = allWeeks?.filter((w: any) => w.dateString === targetSourceDate);
           
-          const previousData = allWeeks?.filter((w: any) => w.dateString === searchDate);
-          
-          if (previousData && previousData.length > 0) {
-            sourceData = previousData.sort((a: any, b: any) => 
+          if (specificData && specificData.length > 0) {
+            sourceData = specificData.sort((a: any, b: any) => 
               new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
             )[0];
-            sourceDate = searchDate;
-            break;
+            foundSourceDate = targetSourceDate;
+          } else {
+            console.log(`[MANUAL AUTO-COPY] User ${user.email}: No data found for ${targetSourceDate}, skipping`);
+            skippedCount++;
+            continue;
+          }
+        } else {
+          for (let i = 1; i <= 7; i++) {
+            const searchDateTime = new Date(todayStr);
+            searchDateTime.setDate(searchDateTime.getDate() - i);
+            const searchDate = `${searchDateTime.getFullYear()}-${String(searchDateTime.getMonth() + 1).padStart(2, '0')}-${String(searchDateTime.getDate()).padStart(2, '0')}`;
+            
+            const previousData = allWeeks?.filter((w: any) => w.dateString === searchDate);
+            
+            if (previousData && previousData.length > 0) {
+              sourceData = previousData.sort((a: any, b: any) => 
+                new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+              )[0];
+              foundSourceDate = searchDate;
+              break;
+            }
           }
         }
         
@@ -303,6 +350,8 @@ app.post('/admin/run-autocopy-now', async (req, res) => {
           skippedCount++;
           continue;
         }
+        
+        console.log(`[MANUAL AUTO-COPY] User ${user.email}: Copying data from ${foundSourceDate} to ${todayStr}`);
         
         const hadAutoSync = (
           sourceData.healthProblems === sourceData.healthResult &&
@@ -414,10 +463,15 @@ app.post('/admin/run-autocopy-now', async (req, res) => {
           manualNextWeekMode: detectedManualMode
         };
         
-        await storage.createHercmWeek(newWeekData);
+        const existingTodayData = await storage.getHercmWeekByDate(user.id, newWeekData.weekNumber, todayStr);
+        if (existingTodayData) {
+          await storage.updateHercmWeek(existingTodayData.id, newWeekData);
+        } else {
+          await storage.createHercmWeek(newWeekData);
+        }
         
         try {
-          const sourcePlatinumRatings = await storage.getUserPlatinumStandardRatingsByDate(user.id, sourceDate);
+          const sourcePlatinumRatings = await storage.getUserPlatinumStandardRatingsByDate(user.id, foundSourceDate);
           
           if (sourcePlatinumRatings && sourcePlatinumRatings.length > 0) {
             for (const rating of sourcePlatinumRatings) {
@@ -444,6 +498,7 @@ app.post('/admin/run-autocopy-now', async (req, res) => {
     res.json({
       success: true,
       message: 'Manual auto-copy completed',
+      sourceDate: targetSourceDate || 'last available',
       stats: {
         copied: copiedCount,
         skipped: skippedCount,
@@ -458,26 +513,21 @@ app.post('/admin/run-autocopy-now', async (req, res) => {
 });
 
 (async () => {
-  // 1️⃣ Register routes
   const server = await registerRoutes(app);
 
-  // 2️⃣ 🔥 START CRON JOBS (MOST IMPORTANT)
   setupScheduledTasks();
 
-  // 3️⃣ Error handler
   app.use((err: any, _req: any, res: any, _next: any) => {
     const status = err.status || 500;
     res.status(status).json({ message: err.message || "Internal Server Error" });
   });
 
-  // 4️⃣ Serve frontend
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
     serveStatic(app);
   }
 
-  // 5️⃣ Start server
   const port = parseInt(process.env.PORT || "5000", 10);
   server.listen(
     { port, host: "0.0.0.0", reusePort: true },
