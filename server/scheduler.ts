@@ -96,7 +96,8 @@ export function setupScheduledTasks() {
     timezone: 'Asia/Kolkata'
   });
 
-  // 🔥 NEW: Daily auto-copy data for all users - Every day at 12:01 AM IST
+  // 🔥 Daily auto-copy data for all users - Every day at 12:01 AM IST
+  // ✅ FIX: Now processes users in batches of 50 to avoid DB overload
   cron.schedule('1 0 * * *', async () => {
     try {
       console.log('[DAILY AUTO-COPY] Starting daily data copy job at midnight...');
@@ -113,226 +114,232 @@ export function setupScheduledTasks() {
       let skippedCount = 0;
       let errorCount = 0;
       
-      for (const user of allUsers) {
-        try {
-          // Check if today's data already exists
-          const allWeeks = await storage.getAllHercmWeeksByUserWithDates(user.id);
-          const todayData = allWeeks?.filter((w: any) => w.dateString === todayStr);
-          
-          if (todayData && todayData.length > 0) {
-            console.log(`[DAILY AUTO-COPY] User ${user.email}: Today's data already exists, skipping`);
-            skippedCount++;
-            continue;
-          }
-          
-          // Find last available data (search backward up to 7 days)
-          let sourceData = null;
-          let sourceDate = '';
-          
-          for (let i = 1; i <= 7; i++) {
-            const searchDateTime = new Date(todayStr);
-            searchDateTime.setDate(searchDateTime.getDate() - i);
-            const searchDate = `${searchDateTime.getFullYear()}-${String(searchDateTime.getMonth() + 1).padStart(2, '0')}-${String(searchDateTime.getDate()).padStart(2, '0')}`;
-            
-            const previousData = allWeeks?.filter((w: any) => w.dateString === searchDate);
-            
-            if (previousData && previousData.length > 0) {
-              sourceData = previousData.sort((a: any, b: any) => 
-                new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-              )[0];
-              sourceDate = searchDate;
-              break;
-            }
-          }
-          
-          if (!sourceData) {
-            console.log(`[DAILY AUTO-COPY] User ${user.email}: No previous data found in last 7 days, skipping`);
-            skippedCount++;
-            continue;
-          }
-          
-          console.log(`[DAILY AUTO-COPY] User ${user.email}: Copying data from ${sourceDate} to ${todayStr}`);
-          
-          // 🔥 SMART AUTO-DETECTION: Check if previous data had auto-sync enabled
-          const hadAutoSync = (
-            // Check if CW == NWT for all 4 HRCM areas
-            sourceData.healthProblems === sourceData.healthResult &&
-            sourceData.healthCurrentFeelings === sourceData.healthNextFeelings &&
-            sourceData.healthCurrentBelief === sourceData.healthNextTarget &&
-            sourceData.healthCurrentActions === sourceData.healthNextActions &&
-            sourceData.relationshipProblems === sourceData.relationshipResult &&
-            sourceData.relationshipCurrentFeelings === sourceData.relationshipNextFeelings &&
-            sourceData.relationshipCurrentBelief === sourceData.relationshipNextTarget &&
-            sourceData.relationshipCurrentActions === sourceData.relationshipNextActions &&
-            sourceData.careerProblems === sourceData.careerResult &&
-            sourceData.careerCurrentFeelings === sourceData.careerNextFeelings &&
-            sourceData.careerCurrentBelief === sourceData.careerNextTarget &&
-            sourceData.careerCurrentActions === sourceData.careerNextActions &&
-            sourceData.moneyProblems === sourceData.moneyResult &&
-            sourceData.moneyCurrentFeelings === sourceData.moneyNextFeelings &&
-            sourceData.moneyCurrentBelief === sourceData.moneyNextTarget &&
-            sourceData.moneyCurrentActions === sourceData.moneyNextActions &&
-            // Check if checklists also match
-            JSON.stringify(sourceData.healthProblemsChecklist || []) === JSON.stringify(sourceData.healthResultChecklist || []) &&
-            JSON.stringify(sourceData.healthFeelingsCurrentChecklist || []) === JSON.stringify(sourceData.healthFeelingsChecklist || []) &&
-            JSON.stringify(sourceData.healthBeliefsCurrentChecklist || []) === JSON.stringify(sourceData.healthBeliefsChecklist || []) &&
-            JSON.stringify(sourceData.healthActionsCurrentChecklist || []) === JSON.stringify(sourceData.healthActionsChecklist || []) &&
-            JSON.stringify(sourceData.relationshipProblemsChecklist || []) === JSON.stringify(sourceData.relationshipResultChecklist || []) &&
-            JSON.stringify(sourceData.relationshipFeelingsCurrentChecklist || []) === JSON.stringify(sourceData.relationshipFeelingsChecklist || []) &&
-            JSON.stringify(sourceData.relationshipBeliefsCurrentChecklist || []) === JSON.stringify(sourceData.relationshipBeliefsChecklist || []) &&
-            JSON.stringify(sourceData.relationshipActionsCurrentChecklist || []) === JSON.stringify(sourceData.relationshipActionsChecklist || []) &&
-            JSON.stringify(sourceData.careerProblemsChecklist || []) === JSON.stringify(sourceData.careerResultChecklist || []) &&
-            JSON.stringify(sourceData.careerFeelingsCurrentChecklist || []) === JSON.stringify(sourceData.careerFeelingsChecklist || []) &&
-            JSON.stringify(sourceData.careerBeliefsCurrentChecklist || []) === JSON.stringify(sourceData.careerBeliefsChecklist || []) &&
-            JSON.stringify(sourceData.careerActionsCurrentChecklist || []) === JSON.stringify(sourceData.careerActionsChecklist || []) &&
-            JSON.stringify(sourceData.moneyProblemsChecklist || []) === JSON.stringify(sourceData.moneyResultChecklist || []) &&
-            JSON.stringify(sourceData.moneyFeelingsCurrentChecklist || []) === JSON.stringify(sourceData.moneyFeelingsChecklist || []) &&
-            JSON.stringify(sourceData.moneyBeliefsCurrentChecklist || []) === JSON.stringify(sourceData.moneyBeliefsChecklist || []) &&
-            JSON.stringify(sourceData.moneyActionsCurrentChecklist || []) === JSON.stringify(sourceData.moneyActionsChecklist || [])
-          );
-          
-          // Set manualNextWeekMode based on smart detection
-          const detectedManualMode = !hadAutoSync;
-          
-          if (hadAutoSync) {
-            console.log(`[DAILY AUTO-COPY] 🔄 Previous data had auto-sync enabled (CW == NWT) → Enabling auto-sync for ${todayStr}`);
-          } else {
-            console.log(`[DAILY AUTO-COPY] 📝 Previous data had manual planning (CW != NWT) → Preserving separate Next Week Target for ${todayStr}`);
-          }
-          
-          // Create new record with today's date
-          const newWeekData = {
-            userId: user.id,
-            weekNumber: sourceData.weekNumber,
-            year: now.getFullYear(),
-            dateString: todayStr,
-            currentH: sourceData.currentH,
-            currentE: sourceData.currentE,
-            currentR: sourceData.currentR,
-            currentC: sourceData.currentC,
-            targetH: sourceData.targetH,
-            targetE: sourceData.targetE,
-            targetR: sourceData.targetR,
-            targetC: sourceData.targetC,
-            healthProblems: sourceData.healthProblems,
-            healthCurrentFeelings: sourceData.healthCurrentFeelings,
-            healthCurrentBelief: sourceData.healthCurrentBelief,
-            healthCurrentActions: sourceData.healthCurrentActions,
-            healthResult: sourceData.healthResult,
-            healthNextFeelings: sourceData.healthNextFeelings,
-            healthNextTarget: sourceData.healthNextTarget,
-            healthNextActions: sourceData.healthNextActions,
-            healthChecklist: sourceData.healthChecklist,
-            healthAssignment: sourceData.healthAssignment,
-            healthProblemsChecklist: sourceData.healthProblemsChecklist,
-            healthFeelingsCurrentChecklist: sourceData.healthFeelingsCurrentChecklist,
-            healthBeliefsCurrentChecklist: sourceData.healthBeliefsCurrentChecklist,
-            healthActionsCurrentChecklist: sourceData.healthActionsCurrentChecklist,
-            healthResultChecklist: sourceData.healthResultChecklist,
-            healthFeelingsChecklist: sourceData.healthFeelingsChecklist,
-            healthBeliefsChecklist: sourceData.healthBeliefsChecklist,
-            healthActionsChecklist: sourceData.healthActionsChecklist,
-            relationshipProblems: sourceData.relationshipProblems,
-            relationshipCurrentFeelings: sourceData.relationshipCurrentFeelings,
-            relationshipCurrentBelief: sourceData.relationshipCurrentBelief,
-            relationshipCurrentActions: sourceData.relationshipCurrentActions,
-            relationshipResult: sourceData.relationshipResult,
-            relationshipNextFeelings: sourceData.relationshipNextFeelings,
-            relationshipNextTarget: sourceData.relationshipNextTarget,
-            relationshipNextActions: sourceData.relationshipNextActions,
-            relationshipChecklist: sourceData.relationshipChecklist,
-            relationshipAssignment: sourceData.relationshipAssignment,
-            relationshipProblemsChecklist: sourceData.relationshipProblemsChecklist,
-            relationshipFeelingsCurrentChecklist: sourceData.relationshipFeelingsCurrentChecklist,
-            relationshipBeliefsCurrentChecklist: sourceData.relationshipBeliefsCurrentChecklist,
-            relationshipActionsCurrentChecklist: sourceData.relationshipActionsCurrentChecklist,
-            relationshipResultChecklist: sourceData.relationshipResultChecklist,
-            relationshipFeelingsChecklist: sourceData.relationshipFeelingsChecklist,
-            relationshipBeliefsChecklist: sourceData.relationshipBeliefsChecklist,
-            relationshipActionsChecklist: sourceData.relationshipActionsChecklist,
-            careerProblems: sourceData.careerProblems,
-            careerCurrentFeelings: sourceData.careerCurrentFeelings,
-            careerCurrentBelief: sourceData.careerCurrentBelief,
-            careerCurrentActions: sourceData.careerCurrentActions,
-            careerResult: sourceData.careerResult,
-            careerNextFeelings: sourceData.careerNextFeelings,
-            careerNextTarget: sourceData.careerNextTarget,
-            careerNextActions: sourceData.careerNextActions,
-            careerChecklist: sourceData.careerChecklist,
-            careerAssignment: sourceData.careerAssignment,
-            careerProblemsChecklist: sourceData.careerProblemsChecklist,
-            careerFeelingsCurrentChecklist: sourceData.careerFeelingsCurrentChecklist,
-            careerBeliefsCurrentChecklist: sourceData.careerBeliefsCurrentChecklist,
-            careerActionsCurrentChecklist: sourceData.careerActionsCurrentChecklist,
-            careerResultChecklist: sourceData.careerResultChecklist,
-            careerFeelingsChecklist: sourceData.careerFeelingsChecklist,
-            careerBeliefsChecklist: sourceData.careerBeliefsChecklist,
-            careerActionsChecklist: sourceData.careerActionsChecklist,
-            moneyProblems: sourceData.moneyProblems,
-            moneyCurrentFeelings: sourceData.moneyCurrentFeelings,
-            moneyCurrentBelief: sourceData.moneyCurrentBelief,
-            moneyCurrentActions: sourceData.moneyCurrentActions,
-            moneyResult: sourceData.moneyResult,
-            moneyNextFeelings: sourceData.moneyNextFeelings,
-            moneyNextTarget: sourceData.moneyNextTarget,
-            moneyNextActions: sourceData.moneyNextActions,
-            moneyChecklist: sourceData.moneyChecklist,
-            moneyAssignment: sourceData.moneyAssignment,
-            moneyProblemsChecklist: sourceData.moneyProblemsChecklist,
-            moneyFeelingsCurrentChecklist: sourceData.moneyFeelingsCurrentChecklist,
-            moneyBeliefsCurrentChecklist: sourceData.moneyBeliefsCurrentChecklist,
-            moneyActionsCurrentChecklist: sourceData.moneyActionsCurrentChecklist,
-            moneyResultChecklist: sourceData.moneyResultChecklist,
-            moneyFeelingsChecklist: sourceData.moneyFeelingsChecklist,
-            moneyBeliefsChecklist: sourceData.moneyBeliefsChecklist,
-            moneyActionsChecklist: sourceData.moneyActionsChecklist,
-            unifiedAssignment: sourceData.unifiedAssignment,
-            manualNextWeekMode: detectedManualMode  // 🔥 SMART DETECTION: Set based on previous day's CW==NWT comparison
-          };
-          
-          // Save the new record (UPSERT logic: delete existing + create new)
-          const existingData = await storage.getHercmWeekByDate(user.id, newWeekData.weekNumber, todayStr);
-          if (existingData) {
-            console.log(`[DAILY AUTO-COPY] Deleting existing data for ${todayStr} before copying`);
-            await storage.updateHercmWeek(existingData.id, newWeekData);
-          } else {
-            await storage.createHercmWeek(newWeekData);
-          }
-          
-          // 🔥 COPY PLATINUM STANDARDS RATINGS from source date to today
+      // ✅ FIX: Process users in batches of 50 instead of all at once
+      // This prevents 30,000+ DB queries hitting at the same time
+      const BATCH_SIZE = 50;
+      for (let batchStart = 0; batchStart < allUsers.length; batchStart += BATCH_SIZE) {
+        const batch = allUsers.slice(batchStart, batchStart + BATCH_SIZE);
+        console.log(`[DAILY AUTO-COPY] Processing batch ${Math.floor(batchStart / BATCH_SIZE) + 1} of ${Math.ceil(allUsers.length / BATCH_SIZE)} (users ${batchStart + 1}-${Math.min(batchStart + BATCH_SIZE, allUsers.length)})`);
+
+        for (const user of batch) {
           try {
-            const sourcePlatinumRatings = await storage.getUserPlatinumStandardRatingsByDate(user.id, sourceDate);
+            // Check if today's data already exists
+            const allWeeks = await storage.getAllHercmWeeksByUserWithDates(user.id);
+            const todayData = allWeeks?.filter((w: any) => w.dateString === todayStr);
             
-            if (sourcePlatinumRatings && sourcePlatinumRatings.length > 0) {
-              console.log(`[DAILY AUTO-COPY] Copying ${sourcePlatinumRatings.length} platinum standard ratings from ${sourceDate} to ${todayStr}`);
-              
-              for (const rating of sourcePlatinumRatings) {
-                // Copy each rating to today's date
-                await storage.upsertPlatinumStandardRating({
-                  userId: user.id,
-                  standardId: rating.standardId,
-                  dateString: todayStr,
-                  rating: rating.rating
-                });
-              }
-              
-              console.log(`[DAILY AUTO-COPY] ✅ Platinum standards ratings copied successfully`);
-            } else {
-              console.log(`[DAILY AUTO-COPY] No platinum standards ratings found for ${sourceDate}`);
+            if (todayData && todayData.length > 0) {
+              console.log(`[DAILY AUTO-COPY] User ${user.email}: Today's data already exists, skipping`);
+              skippedCount++;
+              continue;
             }
+            
+            // Find last available data (search backward up to 7 days)
+            let sourceData = null;
+            let sourceDate = '';
+            
+            for (let i = 1; i <= 7; i++) {
+              const searchDateTime = new Date(todayStr);
+              searchDateTime.setDate(searchDateTime.getDate() - i);
+              const searchDate = `${searchDateTime.getFullYear()}-${String(searchDateTime.getMonth() + 1).padStart(2, '0')}-${String(searchDateTime.getDate()).padStart(2, '0')}`;
+              
+              const previousData = allWeeks?.filter((w: any) => w.dateString === searchDate);
+              
+              if (previousData && previousData.length > 0) {
+                sourceData = previousData.sort((a: any, b: any) => 
+                  new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                )[0];
+                sourceDate = searchDate;
+                break;
+              }
+            }
+            
+            if (!sourceData) {
+              console.log(`[DAILY AUTO-COPY] User ${user.email}: No previous data found in last 7 days, skipping`);
+              skippedCount++;
+              continue;
+            }
+            
+            console.log(`[DAILY AUTO-COPY] User ${user.email}: Copying data from ${sourceDate} to ${todayStr}`);
+            
+            // 🔥 SMART AUTO-DETECTION: Check if previous data had auto-sync enabled
+            const hadAutoSync = (
+              sourceData.healthProblems === sourceData.healthResult &&
+              sourceData.healthCurrentFeelings === sourceData.healthNextFeelings &&
+              sourceData.healthCurrentBelief === sourceData.healthNextTarget &&
+              sourceData.healthCurrentActions === sourceData.healthNextActions &&
+              sourceData.relationshipProblems === sourceData.relationshipResult &&
+              sourceData.relationshipCurrentFeelings === sourceData.relationshipNextFeelings &&
+              sourceData.relationshipCurrentBelief === sourceData.relationshipNextTarget &&
+              sourceData.relationshipCurrentActions === sourceData.relationshipNextActions &&
+              sourceData.careerProblems === sourceData.careerResult &&
+              sourceData.careerCurrentFeelings === sourceData.careerNextFeelings &&
+              sourceData.careerCurrentBelief === sourceData.careerNextTarget &&
+              sourceData.careerCurrentActions === sourceData.careerNextActions &&
+              sourceData.moneyProblems === sourceData.moneyResult &&
+              sourceData.moneyCurrentFeelings === sourceData.moneyNextFeelings &&
+              sourceData.moneyCurrentBelief === sourceData.moneyNextTarget &&
+              sourceData.moneyCurrentActions === sourceData.moneyNextActions &&
+              JSON.stringify(sourceData.healthProblemsChecklist || []) === JSON.stringify(sourceData.healthResultChecklist || []) &&
+              JSON.stringify(sourceData.healthFeelingsCurrentChecklist || []) === JSON.stringify(sourceData.healthFeelingsChecklist || []) &&
+              JSON.stringify(sourceData.healthBeliefsCurrentChecklist || []) === JSON.stringify(sourceData.healthBeliefsChecklist || []) &&
+              JSON.stringify(sourceData.healthActionsCurrentChecklist || []) === JSON.stringify(sourceData.healthActionsChecklist || []) &&
+              JSON.stringify(sourceData.relationshipProblemsChecklist || []) === JSON.stringify(sourceData.relationshipResultChecklist || []) &&
+              JSON.stringify(sourceData.relationshipFeelingsCurrentChecklist || []) === JSON.stringify(sourceData.relationshipFeelingsChecklist || []) &&
+              JSON.stringify(sourceData.relationshipBeliefsCurrentChecklist || []) === JSON.stringify(sourceData.relationshipBeliefsChecklist || []) &&
+              JSON.stringify(sourceData.relationshipActionsCurrentChecklist || []) === JSON.stringify(sourceData.relationshipActionsChecklist || []) &&
+              JSON.stringify(sourceData.careerProblemsChecklist || []) === JSON.stringify(sourceData.careerResultChecklist || []) &&
+              JSON.stringify(sourceData.careerFeelingsCurrentChecklist || []) === JSON.stringify(sourceData.careerFeelingsChecklist || []) &&
+              JSON.stringify(sourceData.careerBeliefsCurrentChecklist || []) === JSON.stringify(sourceData.careerBeliefsChecklist || []) &&
+              JSON.stringify(sourceData.careerActionsCurrentChecklist || []) === JSON.stringify(sourceData.careerActionsChecklist || []) &&
+              JSON.stringify(sourceData.moneyProblemsChecklist || []) === JSON.stringify(sourceData.moneyResultChecklist || []) &&
+              JSON.stringify(sourceData.moneyFeelingsCurrentChecklist || []) === JSON.stringify(sourceData.moneyFeelingsChecklist || []) &&
+              JSON.stringify(sourceData.moneyBeliefsCurrentChecklist || []) === JSON.stringify(sourceData.moneyBeliefsChecklist || []) &&
+              JSON.stringify(sourceData.moneyActionsCurrentChecklist || []) === JSON.stringify(sourceData.moneyActionsChecklist || [])
+            );
+            
+            const detectedManualMode = !hadAutoSync;
+            
+            if (hadAutoSync) {
+              console.log(`[DAILY AUTO-COPY] 🔄 Auto-sync enabled → Enabling auto-sync for ${todayStr}`);
+            } else {
+              console.log(`[DAILY AUTO-COPY] 📝 Manual planning → Preserving separate Next Week Target for ${todayStr}`);
+            }
+            
+            // Create new record with today's date
+            const newWeekData = {
+              userId: user.id,
+              weekNumber: sourceData.weekNumber,
+              year: now.getFullYear(),
+              dateString: todayStr,
+              currentH: sourceData.currentH,
+              currentE: sourceData.currentE,
+              currentR: sourceData.currentR,
+              currentC: sourceData.currentC,
+              targetH: sourceData.targetH,
+              targetE: sourceData.targetE,
+              targetR: sourceData.targetR,
+              targetC: sourceData.targetC,
+              healthProblems: sourceData.healthProblems,
+              healthCurrentFeelings: sourceData.healthCurrentFeelings,
+              healthCurrentBelief: sourceData.healthCurrentBelief,
+              healthCurrentActions: sourceData.healthCurrentActions,
+              healthResult: sourceData.healthResult,
+              healthNextFeelings: sourceData.healthNextFeelings,
+              healthNextTarget: sourceData.healthNextTarget,
+              healthNextActions: sourceData.healthNextActions,
+              healthChecklist: sourceData.healthChecklist,
+              healthAssignment: sourceData.healthAssignment,
+              healthProblemsChecklist: sourceData.healthProblemsChecklist,
+              healthFeelingsCurrentChecklist: sourceData.healthFeelingsCurrentChecklist,
+              healthBeliefsCurrentChecklist: sourceData.healthBeliefsCurrentChecklist,
+              healthActionsCurrentChecklist: sourceData.healthActionsCurrentChecklist,
+              healthResultChecklist: sourceData.healthResultChecklist,
+              healthFeelingsChecklist: sourceData.healthFeelingsChecklist,
+              healthBeliefsChecklist: sourceData.healthBeliefsChecklist,
+              healthActionsChecklist: sourceData.healthActionsChecklist,
+              relationshipProblems: sourceData.relationshipProblems,
+              relationshipCurrentFeelings: sourceData.relationshipCurrentFeelings,
+              relationshipCurrentBelief: sourceData.relationshipCurrentBelief,
+              relationshipCurrentActions: sourceData.relationshipCurrentActions,
+              relationshipResult: sourceData.relationshipResult,
+              relationshipNextFeelings: sourceData.relationshipNextFeelings,
+              relationshipNextTarget: sourceData.relationshipNextTarget,
+              relationshipNextActions: sourceData.relationshipNextActions,
+              relationshipChecklist: sourceData.relationshipChecklist,
+              relationshipAssignment: sourceData.relationshipAssignment,
+              relationshipProblemsChecklist: sourceData.relationshipProblemsChecklist,
+              relationshipFeelingsCurrentChecklist: sourceData.relationshipFeelingsCurrentChecklist,
+              relationshipBeliefsCurrentChecklist: sourceData.relationshipBeliefsCurrentChecklist,
+              relationshipActionsCurrentChecklist: sourceData.relationshipActionsCurrentChecklist,
+              relationshipResultChecklist: sourceData.relationshipResultChecklist,
+              relationshipFeelingsChecklist: sourceData.relationshipFeelingsChecklist,
+              relationshipBeliefsChecklist: sourceData.relationshipBeliefsChecklist,
+              relationshipActionsChecklist: sourceData.relationshipActionsChecklist,
+              careerProblems: sourceData.careerProblems,
+              careerCurrentFeelings: sourceData.careerCurrentFeelings,
+              careerCurrentBelief: sourceData.careerCurrentBelief,
+              careerCurrentActions: sourceData.careerCurrentActions,
+              careerResult: sourceData.careerResult,
+              careerNextFeelings: sourceData.careerNextFeelings,
+              careerNextTarget: sourceData.careerNextTarget,
+              careerNextActions: sourceData.careerNextActions,
+              careerChecklist: sourceData.careerChecklist,
+              careerAssignment: sourceData.careerAssignment,
+              careerProblemsChecklist: sourceData.careerProblemsChecklist,
+              careerFeelingsCurrentChecklist: sourceData.careerFeelingsCurrentChecklist,
+              careerBeliefsCurrentChecklist: sourceData.careerBeliefsCurrentChecklist,
+              careerActionsCurrentChecklist: sourceData.careerActionsCurrentChecklist,
+              careerResultChecklist: sourceData.careerResultChecklist,
+              careerFeelingsChecklist: sourceData.careerFeelingsChecklist,
+              careerBeliefsChecklist: sourceData.careerBeliefsChecklist,
+              careerActionsChecklist: sourceData.careerActionsChecklist,
+              moneyProblems: sourceData.moneyProblems,
+              moneyCurrentFeelings: sourceData.moneyCurrentFeelings,
+              moneyCurrentBelief: sourceData.moneyCurrentBelief,
+              moneyCurrentActions: sourceData.moneyCurrentActions,
+              moneyResult: sourceData.moneyResult,
+              moneyNextFeelings: sourceData.moneyNextFeelings,
+              moneyNextTarget: sourceData.moneyNextTarget,
+              moneyNextActions: sourceData.moneyNextActions,
+              moneyChecklist: sourceData.moneyChecklist,
+              moneyAssignment: sourceData.moneyAssignment,
+              moneyProblemsChecklist: sourceData.moneyProblemsChecklist,
+              moneyFeelingsCurrentChecklist: sourceData.moneyFeelingsCurrentChecklist,
+              moneyBeliefsCurrentChecklist: sourceData.moneyBeliefsCurrentChecklist,
+              moneyActionsCurrentChecklist: sourceData.moneyActionsCurrentChecklist,
+              moneyResultChecklist: sourceData.moneyResultChecklist,
+              moneyFeelingsChecklist: sourceData.moneyFeelingsChecklist,
+              moneyBeliefsChecklist: sourceData.moneyBeliefsChecklist,
+              moneyActionsChecklist: sourceData.moneyActionsChecklist,
+              unifiedAssignment: sourceData.unifiedAssignment,
+              manualNextWeekMode: detectedManualMode
+            };
+            
+            // Save the new record (UPSERT logic)
+            const existingData = await storage.getHercmWeekByDate(user.id, newWeekData.weekNumber, todayStr);
+            if (existingData) {
+              console.log(`[DAILY AUTO-COPY] Updating existing data for ${todayStr}`);
+              await storage.updateHercmWeek(existingData.id, newWeekData);
+            } else {
+              await storage.createHercmWeek(newWeekData);
+            }
+            
+            // Copy Platinum Standards Ratings from source date to today
+            try {
+              const sourcePlatinumRatings = await storage.getUserPlatinumStandardRatingsByDate(user.id, sourceDate);
+              
+              if (sourcePlatinumRatings && sourcePlatinumRatings.length > 0) {
+                console.log(`[DAILY AUTO-COPY] Copying ${sourcePlatinumRatings.length} platinum ratings from ${sourceDate} to ${todayStr}`);
+                
+                for (const rating of sourcePlatinumRatings) {
+                  await storage.upsertPlatinumStandardRating({
+                    userId: user.id,
+                    standardId: rating.standardId,
+                    dateString: todayStr,
+                    rating: rating.rating
+                  });
+                }
+                
+                console.log(`[DAILY AUTO-COPY] ✅ Platinum ratings copied successfully`);
+              }
+            } catch (error) {
+              console.error(`[DAILY AUTO-COPY] Error copying platinum ratings:`, error);
+              // Don't fail the entire job if ratings copy fails
+            }
+            
+            console.log(`[DAILY AUTO-COPY] ✅ User ${user.email}: Successfully copied from ${sourceDate} to ${todayStr}`);
+            copiedCount++;
+            
           } catch (error) {
-            console.error(`[DAILY AUTO-COPY] Error copying platinum standards ratings:`, error);
-            // Don't fail the entire job if ratings copy fails
+            console.error(`[DAILY AUTO-COPY] ❌ Error processing user ${user.email}:`, error);
+            errorCount++;
           }
-          
-          console.log(`[DAILY AUTO-COPY] ✅ User ${user.email}: Successfully copied data from ${sourceDate} to ${todayStr}`);
-          copiedCount++;
-          
-        } catch (error) {
-          console.error(`[DAILY AUTO-COPY] ❌ Error processing user ${user.email}:`, error);
-          errorCount++;
-        }
-      }
+        } // end of batch for loop
+
+        // ✅ FIX: 1 second pause between batches to avoid DB overload
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+      } // end of batchStart for loop
       
       console.log(`[DAILY AUTO-COPY] Job completed: ${copiedCount} copied, ${skippedCount} skipped, ${errorCount} errors`);
     } catch (error) {
@@ -342,7 +349,7 @@ export function setupScheduledTasks() {
     timezone: 'Asia/Kolkata'
   });
 
-  // 🔥 NEW: Auto-delete expired events - Every hour
+  // Auto-delete expired events - Every hour
   cron.schedule('0 * * * *', async () => {
     try {
       console.log('[EVENT AUTO-DELETE] Checking for expired events...');
@@ -364,6 +371,6 @@ export function setupScheduledTasks() {
   console.log('Scheduled tasks initialized:');
   console.log('  - Weekly HRCM reminders: Every Monday 9:00 AM IST');
   console.log('  - Platinum badge check: Every Sunday 11:59 PM IST');
-  console.log('  - Daily auto-copy data: Every day at 12:01 AM IST');
-  console.log('  - Event auto-delete: Every hour (checks for expired events)');
+  console.log('  - Daily auto-copy data: Every day at 12:01 AM IST (BATCHED - 50 users at a time)');
+  console.log('  - Event auto-delete: Every hour');
 }
