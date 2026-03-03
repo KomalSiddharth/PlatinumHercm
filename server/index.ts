@@ -532,11 +532,8 @@ app.post('/admin/run-autocopy-now', async (req, res) => {
 
   if (app.get("env") === "development") {
     await setupVite(app, server);
-  } else {
-    // API routes already registered above via registerRoutes
-    // Static files served AFTER API routes
-    serveStatic(app);
   }
+  // Production mein serveStatic nahi - frontend Vercel pe hai
   const port = parseInt(process.env.PORT || "5000", 10);
   server.listen(
     { port, host: "0.0.0.0", reusePort: true },
